@@ -21,11 +21,18 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
+import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.util.GFileUtils;
 
 import java.io.BufferedOutputStream;
@@ -80,10 +87,10 @@ public class BuildOperationTrace implements Stoppable {
     private final OutputStream logOutputStream;
     private final BuildOperationListenerManager listenerManager;
 
-    private BuildOperationListener listener;
+    private BuildOperationListener buildOperationListener;
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
+    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+        this.listenerManager = buildOperationListenerManager;
 
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
         String basePath = sysProps.get(SYSPROP);
@@ -111,15 +118,15 @@ public class BuildOperationTrace implements Stoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        listener = new SerializingBuildOperationListener(logOutputStream);
-        listenerManager.addListener(listener);
-    }
+        buildOperationListener = new DeferedSerializingBuildOperationListener(new SerializingBuildOperationListener(logOutputStream));
+        buildOperationListenerManager.addListener(buildOperationListener);
 
+    }
 
     @Override
     public void stop() {
-        if (listener != null) {
-            listenerManager.removeListener(listener);
+        if (buildOperationListener != null) {
+            listenerManager.removeListener(buildOperationListener);
         }
 
         if (logOutputStream != null) {
@@ -272,7 +279,7 @@ public class BuildOperationTrace implements Stoppable {
                             finish.resultClassName,
                             finish.failureMsg,
                             progresses,
-                            children
+                            BuildOperationRecord.ORDERING.immutableSortedCopy(children)
                         );
 
                         if (start.parentId == null) {
@@ -319,5 +326,50 @@ public class BuildOperationTrace implements Stoppable {
             this.start = start;
         }
 
+    }
+
+    // This is a workaround for https://github.com/gradle/gradle/issues/3873
+    // Several early typed operations have `buildPath` property,
+    // the value of which can only be determined after the settings file for the build has loaded.
+    //
+    // The workaround is to buffer all operation notifications in memory until the root build's settings have loaded.
+    // This works because all possible settings files have been evaluated by the time the root one has been.
+    // This is not guaranteed to hold into the future.
+    // A proper solution would be to change the operation details/results to be
+    // truly immutable and convey values known at the time.
+    private static final class DeferedSerializingBuildOperationListener extends BuildAdapter implements BuildOperationListener {
+        private final SerializingBuildOperationListener delegate;
+
+        public DeferedSerializingBuildOperationListener(SerializingBuildOperationListener delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void projectsLoaded(Gradle gradle) {
+            if (gradle.getParent() == null) {
+                delegate.write();
+            }
+        }
+
+        // Build may have failed before getting to projectsLoaded
+        @Override
+        public void buildFinished(BuildResult result) {
+            delegate.write();
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            delegate.started(buildOperation, startEvent);
+        }
+
+        @Override
+        public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+            delegate.progress(buildOperation, progressEvent);
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            delegate.finished(buildOperation, finishEvent);
+        }
     }
 }

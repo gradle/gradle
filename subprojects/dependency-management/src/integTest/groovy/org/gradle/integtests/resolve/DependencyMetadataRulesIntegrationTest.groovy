@@ -94,7 +94,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB:', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
@@ -144,7 +144,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB:', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
@@ -391,7 +391,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB:', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
@@ -519,7 +519,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleC:', 'org.test:moduleC:1.0')
+                edge('org.test:moduleC', 'org.test:moduleC:1.0')
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0')

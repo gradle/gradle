@@ -92,10 +92,6 @@ import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
-import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.DefaultScriptingLanguages;
-import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -320,16 +316,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultProviderFactory();
     }
 
-    ScriptingLanguages createScriptingLanguages() {
-        return DefaultScriptingLanguages.create();
-    }
-
-    ScriptFileResolver createScriptFileResolver(ScriptingLanguages scriptingLanguages) {
-        return DefaultScriptFileResolver.forScriptingLanguages(scriptingLanguages);
-    }
-
-    BuildLayoutFactory createBuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
-        return new BuildLayoutFactory(scriptFileResolver);
+    BuildLayoutFactory createBuildLayoutFactory() {
+        return new BuildLayoutFactory();
     }
 
     TaskInputsListener createTaskInputsListener() {

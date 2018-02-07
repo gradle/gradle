@@ -28,6 +28,9 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
     def app = new CppHelloWorldApp()
 
     def setup() {
+        settingsFile << """
+            rootProject.name = 'app'
+        """
         app.writeSources(file("src/main"))
         buildFile << """
     apply plugin: 'cpp'
@@ -60,17 +63,17 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
                 projectFile.location = "very/deeply/nested/${project.name}.vcxproj"
                 filtersFile.location = "other/filters.vcxproj.filters"
             }
-            solutions.all {
+            solution {
                 solutionFile.location = "vs/${it.name}.solution"
             }
         }
     }
 '''
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
-        executedAndNotSkipped ":mainExeVisualStudio"
+        executedAndNotSkipped ":visualStudio"
 
         and:
         final projectFile = projectFile("very/deeply/nested/mainExe.vcxproj")
@@ -83,7 +86,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         def filtersFile = filtersFile("other/filters.vcxproj.filters")
 
         and:
-        final mainSolution = solutionFile("vs/mainExe.solution")
+        final mainSolution = solutionFile("vs/app.solution")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, ['debug', 'release'])
 
@@ -113,7 +116,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
     }
 """
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
@@ -135,7 +138,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
     }
 '''
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
         final filtersFile = filtersFile("mainExe.vcxproj.filters")
@@ -147,9 +150,9 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         buildFile << '''
     model {
         visualStudio {
-            solutions.all { solution ->
+            solution { solution ->
                 solution.solutionFile.withContent { content ->
-                    String projectList = solution.projects.collect({it.name}).join(',')
+                    String projectList = projects.collect({it.name}).join(',')
                     int insertPos = text.lastIndexOf("EndGlobal")
                     content.text = content.text.replace("EndGlobal", """
     GlobalSection(MyGlobalSection)
@@ -164,10 +167,10 @@ EndGlobal
 '''
 
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
-        final solutionFile = solutionFile("mainExe.sln")
+        final solutionFile = solutionFile("app.sln")
         solutionFile.content.contains "GlobalSection(MyGlobalSection)"
         solutionFile.content.contains "Project-list: mainExe"
     }
@@ -181,7 +184,7 @@ tasks.withType(GenerateProjectFileTask) {
 }
 """
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")

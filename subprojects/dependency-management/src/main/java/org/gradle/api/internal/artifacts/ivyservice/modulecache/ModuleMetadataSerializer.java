@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -109,9 +110,9 @@ public class ModuleMetadataSerializer {
         private void write(MavenModuleResolveMetadata metadata) throws IOException {
             encoder.writeByte(TYPE_MAVEN);
             writeInfoSection(metadata);
+            writeNullableString(metadata.getSnapshotTimestamp());
             writeMavenDependencies(metadata.getDependencies());
             writeSharedInfo(metadata);
-            writeNullableString(metadata.getSnapshotTimestamp());
             writeNullableString(metadata.getPackaging());
             writeBoolean(metadata.isRelocated());
             writeVariants(metadata);
@@ -387,10 +388,15 @@ public class ModuleMetadataSerializer {
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
             readInfoSection();
+            String snapshotTimestamp = readNullableString();
+            if (snapshotTimestamp != null) {
+                id = new MavenUniqueSnapshotComponentIdentifier(id, snapshotTimestamp);
+            }
+
             List<MavenDependencyDescriptor> dependencies = readMavenDependencies();
             MutableMavenModuleResolveMetadata metadata = mavenMetadataFactory.create(id, dependencies);
             readSharedInfo(metadata);
-            metadata.setSnapshotTimestamp(readNullableString());
+            metadata.setSnapshotTimestamp(snapshotTimestamp);
             metadata.setPackaging(readNullableString());
             metadata.setRelocated(readBoolean());
             metadata.setAttributes(attributes);

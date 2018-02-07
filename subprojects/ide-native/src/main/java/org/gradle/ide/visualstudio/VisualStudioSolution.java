@@ -22,18 +22,16 @@ import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A visual studio solution, representing one or more {@link org.gradle.nativeplatform.NativeBinarySpec} instances
- * from the same {@link org.gradle.nativeplatform.NativeComponentSpec}.
+ * A visual studio solution, representing one or more native binaries in a build.
  * <p>
  *
  * The content and location of the generate solution file can be modified by the supplied methods:
  *
  * <pre class='autoTested'>
- *  apply plugin: "cpp"
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {
- *          solutions.all {
+ *          solution {
  *              solutionFile.location = "vs/${name}.sln"
  *              solutionFile.withContent { TextProvider content -&gt;
  *                  content.asBuilder().insert(0, "# GENERATED FILE: DO NOT EDIT\n")

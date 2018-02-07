@@ -207,7 +207,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
             .child "Download http://localhost:${server.port}${projectC.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)")
+        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
 
         cleanup:
@@ -356,7 +356,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+    @Requires([KOTLIN_SCRIPT])
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')

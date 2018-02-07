@@ -23,11 +23,11 @@ dependencies {
     api project(":baseServices")
     api project(":messaging")
     api project(":native")
-    api libraries.jcip
+    api libraries.jcip.coordinate
 
-    implementation libraries.commons_collections
-    implementation libraries.commons_io
-    implementation libraries.commons_lang
+    implementation libraries.commons_collections.coordinate
+    implementation libraries.commons_io.coordinate
+    implementation libraries.commons_lang.coordinate
 }
 
 testFixtures {

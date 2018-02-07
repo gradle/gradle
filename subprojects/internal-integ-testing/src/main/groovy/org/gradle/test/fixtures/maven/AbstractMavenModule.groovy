@@ -98,7 +98,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return version
     }
 
-    private String getUniqueSnapshotVersion() {
+    String getUniqueSnapshotVersion() {
         assert uniqueSnapshots && version.endsWith('-SNAPSHOT')
         if (metaDataFile.isFile()) {
             def metaData = new XmlParser().parse(metaDataFile.assertIsFile())

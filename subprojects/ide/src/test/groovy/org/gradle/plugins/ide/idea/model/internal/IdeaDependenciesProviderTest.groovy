@@ -30,7 +30,7 @@ import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
-public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
+class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     def serviceRegistry = new DefaultServiceRegistry()
@@ -144,6 +144,22 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         then:
         result.size() == 1
         result.findAll { it.scope == 'COMPILE' }.size() == 1
+    }
+
+    def "testCompile dependency on current project (self-dependency)"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+        childProject.apply(plugin: 'java')
+
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+
+        when:
+        project.dependencies.add('testCompile', project)
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 0
     }
 
     def "test and runtime scope for the same dependency"() {

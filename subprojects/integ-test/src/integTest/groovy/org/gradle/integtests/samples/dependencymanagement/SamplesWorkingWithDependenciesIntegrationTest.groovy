@@ -33,7 +33,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('iterateScmDependencies')
+        succeeds('iterateDeclaredDependencies')
 
         then:
         outputContains("""org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r
@@ -45,7 +45,7 @@ commons-codec:commons-codec:1.7""")
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('iterateScmArtifacts')
+        succeeds('iterateResolvedArtifacts')
 
         then:
         def normalizedContent = normaliseFileSeparators(output)
@@ -57,6 +57,27 @@ commons-codec:commons-codec:1.7""")
         normalizedContent.contains('org.slf4j/slf4j-api/1.7.2/81d61b7f33ebeab314e07de0cc596f8e858d97/slf4j-api-1.7.2.jar')
         normalizedContent.contains('org.apache.httpcomponents/httpcore/4.3.3/f91b7a4aadc5cf486df6e4634748d7dd7a73f06d/httpcore-4.3.3.jar')
         normalizedContent.contains('commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar')
+    }
+
+    @UsesSample("userguide/dependencyManagement/workingWithDependencies/walkGraph")
+    def "can walk the dependency graph of a configuration"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('walkDependencyGraph')
+
+        then:
+        outputContains("""scm
+- org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r (requested)
+     - com.jcraft:jsch:0.1.54 (requested)
+     - com.googlecode.javaewah:JavaEWAH:1.1.6 (requested)
+     - org.apache.httpcomponents:httpclient:4.3.6 (requested)
+          - org.apache.httpcomponents:httpcore:4.3.3 (requested)
+          - commons-logging:commons-logging:1.1.3 (requested)
+          - commons-codec:commons-codec:1.7 (conflict resolution)
+     - org.slf4j:slf4j-api:1.7.2 (requested)
+- commons-codec:commons-codec:1.7 (conflict resolution)
+- some:unresolved:2.5 (failed)""")
     }
 
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")

@@ -16,7 +16,9 @@
 
 package org.gradle.language;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
  * Allows the implementation dependencies of a component to be specified.
@@ -26,9 +28,17 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ComponentDependencies {
     /**
-     * Adds an implementation dependency to this component.
+     * Adds an implementation dependency to this component. An implementation dependency is not visible to consumers that are compiled against this component.
      *
      * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
      */
     void implementation(Object notation);
+
+    /**
+     * Adds an implementation dependency to this component. An implementation dependency is not visible to consumers that are compiled against this component.
+     *
+     * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
+     * @param action The action to run to configure the dependency.
+     */
+    void implementation(Object notation, Action<? super ExternalModuleDependency> action);
 }

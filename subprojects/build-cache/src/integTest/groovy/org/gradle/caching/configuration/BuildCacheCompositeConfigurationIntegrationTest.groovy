@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.operations.trace.BuildOperationTrace
+import spock.lang.Issue
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
@@ -29,7 +30,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def setup() {
-        executer.withBuildCacheEnabled()
+        executer.beforeExecute {
+            withBuildCacheEnabled()
+        }
     }
 
     def "can configure with settings.gradle"() {
@@ -108,6 +111,50 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             ":": mainCache.cacheDir,
             ":buildSrc": buildSrcCache.cacheDir
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4216")
+    def "build cache service is closed only after all included builds are finished"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+
+        buildTestFixture.withBuildInSubDir()
+            multiProjectBuild('included', ['first', 'second']) {
+                buildFile << """
+                    gradle.startParameter.setTaskNames(['build'])
+                    allprojects {
+                        apply plugin: 'java-library'
+                        
+                        tasks.withType(JavaCompile) {
+                            doFirst {
+                                // this makes it more probable that tasks from the included build finish after the root build
+                                Thread.sleep(2000)
+                            }
+                        }
+                    }
+                """
+            }
+
+        settingsFile << localCache.localCacheConfiguration() << """
+            includeBuild "included"
+        """
+        buildFile << """             
+            apply plugin: 'java-library'
+            // This dependency is needed to actually trigger the included build at all
+            processResources.dependsOn gradle.includedBuild('included').task(':processResources')
+        """
+
+        expect:
+        succeeds "build"
+
+        when:
+        file("included/src/test/java/DummyTest.java") << "public class DummyTest {}"
+        then:
+        succeeds "build"
+        int buildSuccessful = output.indexOf("BUILD SUCCESSFUL")
+        int includedTest = output.indexOf(":included:test")
+        buildSuccessful > 0
+        includedTest > 0
+        buildSuccessful < includedTest
     }
 
     private static String customTaskCode(String val = "foo") {

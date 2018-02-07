@@ -24,9 +24,8 @@ import org.gradle.util.Requires
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
-@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+@Requires([KOTLIN_SCRIPT])
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
     private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)

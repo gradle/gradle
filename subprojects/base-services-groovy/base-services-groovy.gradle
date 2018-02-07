@@ -21,7 +21,7 @@ plugins {
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    api libraries.groovy
+    api libraries.groovy.coordinate
     api project(":baseServices")
 }
 

@@ -20,15 +20,25 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
     private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
     private final String preferredVersion;
     private final ImmutableList<String> rejectedVersions;
+    @Nullable
+    private final String requiredBranch;
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              List<String> rejectedVersions) {
+        this(preferredVersion, rejectedVersions, null);
+    }
+
+    public DefaultImmutableVersionConstraint(String preferredVersion,
+                                             List<String> rejectedVersions,
+                                             @Nullable
+                                             String requiredBranch) {
         if (preferredVersion == null) {
             throw new IllegalArgumentException("Preferred version must not be null");
         }
@@ -42,6 +52,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         }
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
+        this.requiredBranch = requiredBranch;
     }
 
     public DefaultImmutableVersionConstraint(String preferredVersion) {
@@ -50,6 +61,13 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         }
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.of();
+        this.requiredBranch = null;
+    }
+
+    @Nullable
+    @Override
+    public String getBranch() {
+        return requiredBranch;
     }
 
     @Override

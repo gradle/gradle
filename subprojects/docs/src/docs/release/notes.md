@@ -4,12 +4,12 @@ Here are the new features introduced in this Gradle release.
 
 ### Dependency constraints
 
-With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In addition, dependency constraints are published when the Gradle module metadata format is used (see below). This means that, as a library author, you can share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
+With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In the future, Gradle will also allow you to publish dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) that is currently under development. This means that, as a library author, you can share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
 
     dependencies {
         implementation 'org.apache.httpcomponents:httpclient'  
     }
-    
+
     dependencies {
         constraints {
             // declare versions for my dependencies in a central place
@@ -21,17 +21,39 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
 
 In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
 
-### Advanced POM support (preview)
+### Support for optional dependencies in POM consumption
 
-Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
+Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
 
 _Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
 
-### New Gradle `.module` metadata format (preview)
+### BOM import
 
-In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a [new module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc), that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
+Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
 
-The new metadata format is still under active development, but it can already be used in its current state in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_.
+    dependencies {
+        // import a BOM
+        implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
+    
+        // define dependencies without versions
+        implementation 'com.google.code.gson:gson'
+        implementation 'dom4j:dom4j'
+    }
+
+Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+
+### Compile/runtime scope separation in POM consumption
+
+Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
+
+- The compile classpath is much larger than it needs to be, slowing down compilation.
+- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
+
+Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
 
 <!--
 ### Example new and noteworthy
@@ -77,28 +99,28 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
 
     import org.gradle.api.tasks.options.Option;
-    
+
     public class UrlVerify extends DefaultTask {
         private String url;
-    
+
         @Option(option = "url", description = "Configures the URL to be verified.")
         public void setUrl(String url) {
             this.url = url;
         }
-    
+
         @Input
         public String getUrl() {
             return url;
         }
-    
+
         @TaskAction
         public void verify() {
             getLogger().quiet("Verifying URL '{}'", url);
-    
+
             // verify URL by making a HTTP call
         }
     }
-    
+
 ### Caching for Scala compilation when using the `play` plugin
 
 The task `PlatformScalaCompile` is now cacheable.
@@ -126,6 +148,11 @@ For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --
 In earlier versions of Gradle, this output was logged on the `INFO` log level.
 This does not happen anymore and the info logs should be much cleaner now when the build cache is enabled.
 
+
+### Better Visual Studio IDE support for multi-project builds
+
+Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build.  This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -151,7 +178,7 @@ The [build cache](userguide/build_cache.html) and [task output caching](userguid
 They are used in production by different teams, including the Gradle team itself, with great results.
 As of Gradle 4.6, the build cache and task output caching are no longer incubating and considered public features.
 
-Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating. 
+Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating.
 
 ## Fixed issues
 
@@ -190,7 +217,22 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 
 ### Added annotationProcessor configurations
 
-The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
+The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`.
+
+### Changes to Visual Studio IDE configuration
+[`VisualStudioExtension`](dsl/org.gradle.ide.visualstudio.VisualStudioExtension.html) no longer has a `solutions` property.  There is now only a single solution for a multi-project build that can be accessed through the [`VisualStudioRootExtension`](dsl/org.gradle.ide.visualstudio.VisualStudioRootExtension.html) on the root project.  For instance:
+
+    model {
+        visualStudio {
+            solution {
+                solutionFile.location = "vs/${name}.sln"
+            }
+        }
+    }
+
+
+### Removed Visual Studio IDE tasks
+There are no longer tasks to generate Visual Studio solution files for each component in the build.  There is now only a single task (`visualStudio`) in the root project that generates a solution containing all components in the build.
 
 ### Removed `StartParameter.taskOutputCacheEnabled`
 

@@ -140,8 +140,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOperationListenerManager(listenerManager);
     }
 
-    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager listenerManager) {
-        return new BuildOperationTrace(startParameter, listenerManager);
+    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationlistenerManager) {
+        return new BuildOperationTrace(startParameter, buildOperationlistenerManager);
     }
 
     BuildOperationExecutor createBuildOperationExecutor(

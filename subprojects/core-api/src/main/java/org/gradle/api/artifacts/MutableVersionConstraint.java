@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
  * A configurable version constraint. This is exposed to the build author, so that one can express
  * more constraints on a version,
@@ -27,6 +29,21 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface MutableVersionConstraint extends VersionConstraint {
+    /**
+     * Returns the branch to select versions from. When not {@code null}, select only versions that were built from the given branch.
+     *
+     * @since 4.6
+     */
+    @Nullable
+    String getBranch();
+
+    /**
+     * Specifies the branch to select versions from.
+     *
+     * @param branch The branch, possibly null.
+     * @since 4.6
+     */
+    void setBranch(@Nullable String branch);
 
     /**
      * Sets the preferred version of this module. Any other rejection/strict constraint will be overriden.

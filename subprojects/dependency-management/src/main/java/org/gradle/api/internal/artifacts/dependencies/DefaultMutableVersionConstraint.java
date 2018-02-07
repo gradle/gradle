@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
-import com.google.common.base.Strings;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String prefer;
+    private String branch;
     private final List<String> rejects = Lists.newArrayListWithExpectedSize(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
@@ -68,7 +70,18 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     @Override
     public ImmutableVersionConstraint asImmutable() {
         String v = prefer == null ? "" : prefer;
-        return new DefaultImmutableVersionConstraint(v, rejects);
+        return new DefaultImmutableVersionConstraint(v, rejects, branch);
+    }
+
+    @Nullable
+    @Override
+    public String getBranch() {
+        return branch;
+    }
+
+    @Override
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     @Override

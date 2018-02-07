@@ -35,6 +35,7 @@ import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -72,7 +73,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs;
         try {
-            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(true).call();
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(true).setHeads(false).call();
         } catch (URISyntaxException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
@@ -87,22 +88,43 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     @Override
-    public VersionRef getHead(VersionControlSpec spec) {
+    public VersionRef getDefaultBranch(VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs;
         try {
-            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(false).call();
         } catch (URISyntaxException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
         for (Ref ref : refs) {
-            if (ref.getName().equals("HEAD")) {
+            if (ref.getName().equals("refs/heads/master")) {
                 return GitVersionRef.from(ref);
             }
         }
-        throw new UnsupportedOperationException("Git repository has no HEAD reference");
+        throw new UnsupportedOperationException("Git repository has no master branch");
+    }
+
+    @Nullable
+    @Override
+    public VersionRef getBranch(VersionControlSpec spec, String branch) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs;
+        try {
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setHeads(true).setTags(false).call();
+        } catch (URISyntaxException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        } catch (GitAPIException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        }
+        String refName = "refs/heads/" + branch;
+        for (Ref ref : refs) {
+            if (ref.getName().equals(refName)) {
+                return GitVersionRef.from(ref);
+            }
+        }
+        return null;
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {

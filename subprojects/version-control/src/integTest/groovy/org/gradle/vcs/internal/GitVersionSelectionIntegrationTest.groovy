@@ -68,7 +68,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         fixture.prepare()
     }
 
-    def "selects and builds from HEAD for latest.integration selector"() {
+    def "selects and builds from master for latest.integration selector"() {
         given:
         buildFile << """
             dependencies { compile 'test:test:latest.integration' }
@@ -79,7 +79,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         repo.expectListVersions()
-        repo.expectCloneHead()
+        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -95,7 +95,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
         repo.commit("v3")
         repo.expectListVersions()
-        repo.expectCloneHead()
+        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -115,7 +115,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.checkout("master")
         repo.expectListVersions()
         // TODO - should not need this
-        repo.expectCloneHead()
+        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -144,7 +144,63 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         repo.expectListVersions()
-        repo.expectCloneHead()
+        repo.expectCloneSomething()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+
+        when:
+        // TODO - shouldn't require either of these
+        repo.expectListVersions()
+        repo.expectListVersions()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+    }
+
+    def "reports on and recovers from missing version for static selector"() {
+        given:
+        buildFile << """
+            dependencies { compile 'test:test:2.0' }
+        """
+        repo.commit("v1")
+        repo.createLightWeightTag("1.0")
+        repoSettingsFile.replace("version = '1.0'", "version = '1.1'")
+        repo.commit("v1.1")
+        repo.createLightWeightTag("1.1")
+
+        when:
+        repo.expectListVersions()
+        fails('checkDeps')
+
+        then:
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Could not find any version that matches test:test:2.0.
+Searched in the following locations:
+    Git Repository at ${repo.url}
+Required by:
+    project :""")
+
+        when:
+        repoSettingsFile.replace("version = '1.1'", "version = '2.0'")
+        repo.commit("v2")
+        repo.createLightWeightTag("2.0")
+        repo.expectListVersions()
+        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -189,7 +245,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         repo.expectListVersions()
-        repo.expectCloneHead()
+        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -206,7 +262,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.commit("v4")
         repo.createLightWeightTag("1.2")
         repo.expectListVersions()
-        repo.expectCloneHead()
+        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -225,7 +281,68 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "static selector cannot reference branch #selector"() {
+    def "reports on and recovers from missing version for selector #selector"() {
+        given:
+        buildFile << """
+            dependencies { compile 'test:test:${selector}' }
+        """
+        repo.commit("v1")
+
+        when:
+        repo.expectListVersions()
+        fails('checkDeps')
+
+        then:
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Could not find any version that matches test:test:${selector}.
+Searched in the following locations:
+    Git Repository at ${repo.url}
+Required by:
+    project :""")
+
+        when:
+        repoSettingsFile.replace("version = '1.0'", "version = '1.1'")
+        repo.commit("v2")
+        repo.createLightWeightTag("1.1")
+        repoSettingsFile.replace("version = '1.1'", "version = '2.0'")
+        repo.commit("v3")
+        repo.createLightWeightTag("2.0")
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+
+        when:
+        repo.expectListVersions()
+        // TODO - shouldn't require this
+        repo.expectListVersions()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+
+        where:
+        selector    | _
+        "1.+"       | _
+        "[1.0,1.9]" | _
+    }
+
+    @Unroll
+    def "static selector cannot reference #selector"() {
         given:
         buildFile << """
             dependencies { compile 'test:test:${selector}' }
@@ -238,12 +355,135 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         fails('checkDeps')
 
         then:
-        failure.assertHasCause("Could not resolve test:test:${selector}.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Could not find any version that matches test:test:${selector}.
+Searched in the following locations:
+    Git Repository at ${repo.url}
+Required by:
+    project :""")
 
         where:
         selector  | _
         "master"  | _
         "release" | _
         "HEAD"    | _
+    }
+
+    def "selects and builds latest from branch for branch selector"() {
+        given:
+        buildFile << """
+            dependencies { 
+                compile('test:test') {
+                    versionConstraint.branch = 'release'
+                }
+            }
+        """
+        repo.commit("v1")
+        repo.createBranch("release")
+        repo.checkout("release")
+        repoSettingsFile.replace("version = '1.0'", "version = '2.0'")
+        repo.commit("v2")
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+
+        when:
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+
+        when:
+        repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
+        repo.commit("v3")
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test", "project :test", "test:test:3.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+
+        when:
+        // TODO - should not do this
+        repo.expectListVersions()
+        repo.expectListVersions()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test", "project :test", "test:test:3.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+    }
+
+    def "reports on and recovers from missing branch"() {
+        given:
+        buildFile << """
+            dependencies { 
+                compile('test:test') {
+                    versionConstraint.branch = 'release'
+                }
+            }
+        """
+
+        when:
+        repo.commit("v1")
+        repo.expectListVersions()
+        fails('checkDeps')
+
+        then:
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Could not find any version that matches test:test (branch: release).
+Searched in the following locations:
+    Git Repository at ${repo.url}
+Required by:
+    project :""")
+
+        when:
+        repo.createBranch("release")
+        repo.checkout("release")
+        repoSettingsFile.replace("version = '1.0'", "version = '2.0'")
+        repo.commit("v2")
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+
+        when:
+        repo.expectListVersions()
+        // TODO - should not require this
+        repo.expectListVersions()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
     }
 }

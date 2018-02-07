@@ -21,42 +21,13 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.ScriptFileResolver;
 
 import java.io.File;
 
 @UsedByScanPlugin
 public class BuildLayoutFactory {
 
-    /**
-     * Constructs a {@code BuildLayoutFactory} that searches for script files
-     * matching all available scripting languages.
-     *
-     * @see ScriptFileResolver
-     */
-    public static BuildLayoutFactory forDefaultScriptingLanguages() {
-        return new BuildLayoutFactory();
-    }
-
     private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
-
-    private final ScriptFileResolver scriptFileResolver;
-
-    public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
-        this.scriptFileResolver = scriptFileResolver;
-    }
-
-    /**
-     * This constructor should not be used in Gradle.
-     * Its sole purpose is backwards compatibility with the build scan plugin.
-     *
-     * {@code BuildLayoutFactory} should be either consumed as a service or instantiated via
-     * {@link #forDefaultScriptingLanguages()}.
-     */
-    @Deprecated
-    public BuildLayoutFactory() {
-        this(DefaultScriptFileResolver.forDefaultScriptingLanguages());
-    }
 
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
@@ -91,10 +62,7 @@ public class BuildLayoutFactory {
 
     @Nullable
     public File findExistingSettingsFileIn(File directory) {
-        File defaultSettingsFile = new File(directory, Settings.DEFAULT_SETTINGS_FILE);
-        return defaultSettingsFile.isFile()
-            ? defaultSettingsFile
-            : scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
+        return new DefaultScriptFileResolver().resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {

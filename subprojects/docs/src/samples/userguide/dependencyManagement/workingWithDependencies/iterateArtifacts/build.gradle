@@ -12,12 +12,14 @@ dependencies {
 }
 
 //START SNIPPET iteration-task
-task iterateScmArtifacts {
+task iterateResolvedArtifacts {
     dependsOn configurations.scm
 
     doLast {
-        configurations.scm.files.each {
-            println it.absolutePath
+        Set<File> files = configurations.scm.files
+
+        files.each {
+            logger.quiet it.absolutePath
         }
     }
 }

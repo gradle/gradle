@@ -18,10 +18,10 @@ package org.gradle.ide.visualstudio.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.resolve.ProjectModelResolver;
-import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
+import org.gradle.ide.visualstudio.VisualStudioRootExtension;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioRootExtension;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
@@ -38,13 +38,11 @@ public class VisualStudioPlugin extends IdePlugin {
     private static final String LIFECYCLE_TASK_NAME = "visualStudio";
 
     private final Instantiator instantiator;
-    private final ProjectModelResolver projectModelResolver;
     private final FileResolver fileResolver;
 
     @Inject
-    public VisualStudioPlugin(Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
+    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
-        this.projectModelResolver = projectModelResolver;
         this.fileResolver = fileResolver;
     }
 
@@ -57,14 +55,16 @@ public class VisualStudioPlugin extends IdePlugin {
     protected void onApply(Project target) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, projectModelResolver, fileResolver);
+        if (isRoot()) {
+            VisualStudioRootExtension extension = project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, fileResolver, this);
+            getLifecycleTask().dependsOn(extension.getSolution());
+        } else {
+            VisualStudioExtension extension = project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, this);
+            getLifecycleTask().dependsOn(extension.getProjects());
+        }
 
-        project.getPluginManager().withPlugin("org.gradle.component-model-base", new Action<AppliedPlugin>() {
-            @Override
-            public void execute(AppliedPlugin appliedPlugin) {
-                project.getPluginManager().apply(NativeComponentModelPlugin.class);
-                project.getPluginManager().apply(VisualStudioPluginRules.class);
-            }
-        });
+        // TODO: Figure out how to conditionally apply VisualStudioPluginRules but ensure that rules are still fired in subprojects
+        project.getPluginManager().apply(NativeComponentModelPlugin.class);
+        project.getPluginManager().apply(VisualStudioPluginRules.class);
     }
 }

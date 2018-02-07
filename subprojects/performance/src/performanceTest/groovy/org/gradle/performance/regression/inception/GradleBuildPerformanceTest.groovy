@@ -21,10 +21,12 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
@@ -50,6 +52,9 @@ import spock.lang.Unroll
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
+    RetryRule retry = new PerformanceTestRetryRule()
+
+    @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Rule
@@ -73,8 +78,8 @@ class GradleBuildPerformanceTest extends Specification {
         }
     }
 
-    def warmupBuilds = 10
-    def measuredBuilds = 20
+    def warmupBuilds = 20
+    def measuredBuilds = 40
 
     @Unroll
     def "#tasks on the gradle build comparing the build"() {

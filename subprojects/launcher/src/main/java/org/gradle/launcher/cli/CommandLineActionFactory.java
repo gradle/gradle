@@ -44,9 +44,6 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -55,8 +52,6 @@ import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationCon
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GradleVersion;
 
-import javax.annotation.Nullable;
-import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +66,7 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
-    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(new LazyLenientScriptFileResolver());
+    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -90,7 +85,7 @@ public class CommandLineActionFactory {
             args,
             loggingConfiguration,
             new ExceptionReportingAction(
-                    new ParseAndBuildAction(loggingServices, args),
+                new ParseAndBuildAction(loggingServices, args),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
@@ -298,27 +293,6 @@ public class CommandLineActionFactory {
                 }
             }
             throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
-        }
-    }
-
-    private static class LazyLenientScriptFileResolver implements ScriptFileResolver {
-        private ScriptFileResolver delegate;
-
-        @Nullable
-        public File resolveScriptFile(File dir, String basename) {
-            return loadedDelegate().resolveScriptFile(dir, basename);
-        }
-
-        private ScriptFileResolver loadedDelegate() {
-            if (delegate == null) {
-                try {
-                    delegate = DefaultScriptFileResolver.forDefaultScriptingLanguages();
-                } catch (ServiceLookupException e) {
-                    // Kotlin ScriptingLanguage provider will fail to load on JVMs < 6
-                    delegate = DefaultScriptFileResolver.empty();
-                }
-            }
-            return delegate;
         }
     }
 }

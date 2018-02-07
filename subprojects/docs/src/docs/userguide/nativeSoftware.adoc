@@ -826,11 +826,11 @@ Cross-compiling is possible with the api:org.gradle.nativeplatform.toolchain.Gcc
 [[native_binaries:visual_studio]]
 === Visual Studio IDE integration
 
-Gradle has the ability to generate Visual Studio project and solution files for the native components defined in your build. This ability is added by the `visual-studio` plugin. For a multi-project build, all projects with native components should have this plugin applied.
+Gradle has the ability to generate Visual Studio project and solution files for the native components defined in your build. This ability is added by the `visual-studio` plugin. For a multi-project build, all projects with native components (and the root project) should have this plugin applied.
 
-When the `visual-studio` plugin is applied, a task name `${component.name}VisualStudio` is created for each defined component. This task will generate a Visual Studio Solution file for the named component. This solution will include a Visual Studio Project for that component, as well as linking to project files for each depended-on binary.
+When the `visual-studio` plugin is applied to the root project, a task named `visualStudio` is created, which will generate a Visual Studio Solution file containing all components in the build. This solution will include a Visual Studio Project for each component, as well as configuring each component to build using Gradle.
 
-The content of the generated visual studio files can be modified via API hooks, provided by the `visualStudio` extension. Take a look at the 'visual-studio' sample, or see api:org.gradle.ide.visualstudio.VisualStudioExtension#getProjects[] and api:org.gradle.ide.visualstudio.VisualStudioExtension#getSolutions[] in the API documentation for more details.
+The content of the generated visual studio files can be modified via API hooks, provided by the `visualStudio` extension. Take a look at the 'visual-studio' sample, or see api:org.gradle.ide.visualstudio.VisualStudioExtension#getProjects[] and api:org.gradle.ide.visualstudio.VisualStudioRootExtension#getSolution[] in the API documentation for more details.
 
 [[native_binaries:cunit]]
 === CUnit support

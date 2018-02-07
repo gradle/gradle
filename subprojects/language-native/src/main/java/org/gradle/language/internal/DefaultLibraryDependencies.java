@@ -16,8 +16,10 @@
 
 package org.gradle.language.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.language.LibraryDependencies;
 
 import javax.inject.Inject;
@@ -41,5 +43,12 @@ public class DefaultLibraryDependencies extends DefaultComponentDependencies imp
     @Override
     public void api(Object notation) {
         apiDependencies.getDependencies().add(getDependencyHandler().create(notation));
+    }
+
+    @Override
+    public void api(Object notation, Action<? super ExternalModuleDependency> action) {
+        ExternalModuleDependency dependency = (ExternalModuleDependency) getDependencyHandler().create(notation);
+        action.execute(dependency);
+        apiDependencies.getDependencies().add(dependency);
     }
 }

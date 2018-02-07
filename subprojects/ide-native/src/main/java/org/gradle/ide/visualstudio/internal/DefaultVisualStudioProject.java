@@ -18,6 +18,8 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.XmlConfigFile;
@@ -72,9 +74,8 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         additionalFiles.add(sourceFile);
     }
 
-    public String getUuid() {
-        String vsComponentPath = projectPath + ":" + getName();
-        return "{" + UUID.nameUUIDFromBytes(vsComponentPath.getBytes()).toString().toUpperCase() + "}";
+    public static String getUUID(File projectFile) {
+        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase() + "}";
     }
 
     public Set<File> getSourceFiles() {
@@ -130,6 +131,22 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public PublishArtifact getPublishArtifact() {
+        return new VisualStudioProjectArtifact();
+    }
+
+    private class VisualStudioProjectArtifact extends DefaultPublishArtifact {
+        public VisualStudioProjectArtifact() {
+            super(name, "vcxproj", ARTIFACT_TYPE, null, null, null, buildDependencies);
+        }
+
+        @Override
+        public File getFile() {
+            return projectFile.getLocation();
+        }
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {

@@ -48,6 +48,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  */
 @CleanupTestDirectory
 class AbstractIntegrationSpec extends Specification {
+
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -56,10 +57,9 @@ class AbstractIntegrationSpec extends Specification {
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
     IntegrationTestBuildContext getBuildContext() {
-        return IntegrationTestBuildContext.INSTANCE;
+        return IntegrationTestBuildContext.INSTANCE
     }
 
-//    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
 
     ExecutionResult result
@@ -112,7 +112,7 @@ class AbstractIntegrationSpec extends Specification {
         if (path.length == 1 && path[0] instanceof TestFile) {
             return path[0] as TestFile
         }
-        getTestDirectory().file(path);
+        getTestDirectory().file(path)
     }
 
     TestFile javaClassFile(String fqcn) {
@@ -140,7 +140,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected GradleExecuter inDirectory(File directory) {
-        executer.inDirectory(directory);
+        executer.inDirectory(directory)
     }
 
     protected GradleExecuter projectDir(path) {

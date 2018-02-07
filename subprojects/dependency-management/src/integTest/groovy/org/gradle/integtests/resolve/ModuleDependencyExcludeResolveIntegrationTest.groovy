@@ -387,4 +387,54 @@ task check(type: Sync) {
             }
         }
     }
+
+    // this test documents current behavior; it is debatable if it is also the desired behavior
+    def "excludes of conflicting versions are merged"() {
+        given:
+        repository {
+            'a:a:1.0' {
+                dependsOn group: 'b', artifact: 'b', version: '1.0', exclusions: [[module: 'e']]
+                dependsOn 'c:c:1.0'
+            }
+            'c:c:1.0' {
+                dependsOn group: 'b', artifact: 'b', version: '2.0', exclusions: [[module: 'd'], [module: 'e']]
+            }
+            'b:b:1.0' {
+                dependsOn 'd:d:1.0'
+                dependsOn 'e:e:1.0'
+            }
+            'b:b:2.0' {
+                dependsOn 'd:d:1.0'
+                dependsOn 'e:e:1.0'
+            }
+
+            'd:d:1.0'()
+            'e:e:1.0'()
+        }
+        repositoryInteractions {
+            'a:a:1.0' { expectResolve() }
+            'b:b:1.0' { expectGetMetadata() }
+            'b:b:2.0' { expectResolve() }
+            'c:c:1.0' { expectResolve() }
+            'd:d:1.0' { expectResolve() }
+        }
+
+        when:
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("a:a:1.0") {
+                    edge("b:b:1.0", "b:b:2.0")
+                    module("c:c:1.0") {
+                        module("b:b:2.0") {
+                            // 'd' is NOT excluded, because the exclude in 'a:a:1.0 --depends-on--> b:b:1.0' only excludes 'e'
+                            module("d:d:1.0")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

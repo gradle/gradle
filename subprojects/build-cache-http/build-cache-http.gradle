@@ -23,8 +23,8 @@ dependencies {
     compile project(':resourcesHttp')
     compile project(':baseServices')
     compile project(':core')
-    compile libraries.commons_httpclient
-    compile libraries.commons_lang
+    compile libraries.commons_httpclient.coordinate
+    compile libraries.commons_lang.coordinate
 
-    integTestCompile libraries.jetty
+    integTestCompile testLibraries.jetty
 }

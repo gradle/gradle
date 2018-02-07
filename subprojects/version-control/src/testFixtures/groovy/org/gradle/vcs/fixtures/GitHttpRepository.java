@@ -88,7 +88,7 @@ public class GitHttpRepository implements TestRule, GitRepository {
         server.expect(server.get(backingRepo.getName() + "/info/refs", getRefsAction()));
     }
 
-    public void expectCloneHead() {
+    public void expectCloneSomething() {
         server.expect(server.get(backingRepo.getName() + "/info/refs", getRefsAction()));
         server.expect(server.post(backingRepo.getName() + "/git-upload-pack", new ErroringAction<HttpExchange>() {
             @Override

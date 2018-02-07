@@ -95,7 +95,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
     protected void configure(VisualStudioProjectFile projectFile) {
         DefaultVisualStudioProject vsProject = visualStudioProject;
         projectFile.setGradleCommand(buildGradleCommand());
-        projectFile.setProjectUuid(vsProject.getUuid());
+        projectFile.setProjectUuid(DefaultVisualStudioProject.getUUID(getOutputFile()));
 
         for (File sourceFile : vsProject.getSourceFiles()) {
             projectFile.addSourceFile(sourceFile);
