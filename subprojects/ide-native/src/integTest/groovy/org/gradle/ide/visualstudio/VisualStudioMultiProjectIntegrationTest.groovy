@@ -19,7 +19,6 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -617,10 +616,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         then:
         generatedFiles*.assertDoesNotExist()
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
     }
 
     private ProjectFile projectFile(String path) {

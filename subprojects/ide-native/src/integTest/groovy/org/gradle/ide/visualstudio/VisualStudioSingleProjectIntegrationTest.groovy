@@ -19,7 +19,6 @@ import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -867,10 +866,6 @@ model {
         mainSolution.assertReferencesProject(exeProject, ['win32', 'x64'])
         mainSolution.assertReferencesProject(dllProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
         mainSolution.assertReferencesProject(libProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
     }
 
     private ProjectFile projectFile(String path) {

@@ -51,4 +51,22 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         final libProjectFile = new ProjectFile(visualStudio.dir.file("vs/helloLib.vcxproj"))
         libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
     }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "build generated visual studio solution"() {
+        given:
+        sample visualStudio
+        run "visualStudio"
+
+        when:
+        def resultDebug = msbuild
+            .withSolution(solutionFile(visualStudio.dir.file("vs/visual-studio.sln").absolutePath))
+            .withConfiguration("debug")
+            .succeeds()
+
+        then:
+        resultDebug.executedTasks as Set == [':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloStaticLibraryHelloCpp', ':createHelloStaticLibrary', ':helloStaticLibrary', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary'] as Set
+        resultDebug.skippedTasks.empty
+        installation('build/install/main').assertInstalled()
+    }
 }

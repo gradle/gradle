@@ -42,4 +42,8 @@ class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainInte
         executer.withArgument('/p:Platform=Win32')
         return executer
     }
+
+    protected SolutionFile solutionFile(String path) {
+        return new SolutionFile(file(path))
+    }
 }
