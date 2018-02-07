@@ -32,11 +32,6 @@ class VintageTestNameAdapter {
         return testIdentifier.getUniqueId().contains("[engine:junit-vintage]");
     }
 
-    static boolean isVintageNullDescriptionTest(TestIdentifier testIdentifier) {
-        return isVintageEngine(testIdentifier)
-            && !testIdentifier.getSource().isPresent();
-    }
-
     static boolean isVintageDynamicTest(TestIdentifier test) {
         return isVintageEngine(test)
             && test.getSource().isPresent()

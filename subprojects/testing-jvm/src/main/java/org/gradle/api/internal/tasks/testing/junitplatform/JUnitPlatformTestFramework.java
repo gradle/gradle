@@ -60,7 +60,6 @@ public class JUnitPlatformTestFramework implements TestFramework {
                 workerProcessBuilder.sharedPackages("org.junit.platform.commons");
                 workerProcessBuilder.sharedPackages("org.junit.platform.launcher.core");
                 workerProcessBuilder.sharedPackages("org.junit.platform.launcher");
-                workerProcessBuilder.sharedPackages("org.junit");
             }
         };
     }
