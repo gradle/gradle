@@ -18,12 +18,31 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class BuildOperationRecord {
+
+    public static final Ordering<BuildOperationRecord> ORDERING = Ordering.natural()
+        .onResultOf(new Function<BuildOperationRecord, Comparable>() {
+            @Override
+            public Comparable apply(BuildOperationRecord input) {
+                return input.startTime;
+            }
+        })
+        .compound(Ordering.natural().onResultOf(new Function<BuildOperationRecord, Comparable>() {
+            @Override
+            public Comparable apply(BuildOperationRecord input) {
+                if (input.id instanceof Comparable) {
+                    return (Comparable) input.id;
+                } else {
+                    return input.id.hashCode();
+                }
+            }
+        }));
 
     public final Object id;
     public final Object parentId;
@@ -123,7 +142,7 @@ public final class BuildOperationRecord {
     public static class Progress {
         public final long time;
         public final Map<String, ?> details;
-        private final String detailsClassName;
+        public final String detailsClassName;
 
         public Progress(
             long time,

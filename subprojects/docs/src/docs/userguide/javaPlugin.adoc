@@ -164,7 +164,7 @@ You configure the project layout by configuring the appropriate source set. This
 [[sec:java_plugin_and_dependency_management]]
 === Dependency management
 
-The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
+The Java plugin adds a number of <<defining_and_using_configurations,dependency configurations>> to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
 
 [[tab:configurations]]
 ==== Dependency configurations

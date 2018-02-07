@@ -23,7 +23,7 @@ import org.gradle.internal.progress.OperationProgressEvent;
 
 import java.util.Map;
 
-class SerializedOperationProgress {
+class SerializedOperationProgress implements SerializedOperation {
 
     final Object id;
     final long time;
@@ -48,7 +48,7 @@ class SerializedOperationProgress {
         this.detailsClassName = (String) map.get("detailsClassName");
     }
 
-    Map<String, ?> toMap() {
+    public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         // Order is optimised for humans looking at the log.

@@ -68,7 +68,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         fixture.prepare()
     }
 
-    def "selects and builds from HEAD for latest.integration selector"() {
+    def "selects and builds from master for latest.integration selector"() {
         given:
         buildFile << """
             dependencies { compile 'test:test:latest.integration' }
@@ -342,7 +342,7 @@ Required by:
     }
 
     @Unroll
-    def "static selector cannot reference branch #selector"() {
+    def "static selector cannot reference #selector"() {
         given:
         buildFile << """
             dependencies { compile 'test:test:${selector}' }

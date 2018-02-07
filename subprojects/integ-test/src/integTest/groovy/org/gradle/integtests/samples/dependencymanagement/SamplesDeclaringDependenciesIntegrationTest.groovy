@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
-
-import static org.gradle.util.TestPrecondition.JDK8_OR_LATER
 
 class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,7 +30,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
-    def "can use declare and resolve binary dependency with concrete version"() {
+    def "can use declare and resolve dependency with concrete version"() {
         executer.inDirectory(sample.dir)
 
         when:
@@ -44,7 +41,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/withoutVersion")
-    def "can use declare and resolve binary dependency without version"() {
+    def "can use declare and resolve dependency without version"() {
         executer.inDirectory(sample.dir)
 
         when:
@@ -55,7 +52,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/dynamicVersion")
-    def "can use declare and resolve binary dependency with dynamic version"() {
+    def "can use declare and resolve dependency with dynamic version"() {
         executer.inDirectory(sample.dir)
 
         when:
@@ -66,7 +63,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")
-    def "can use declare and resolve binary dependency with changing version"() {
+    def "can use declare and resolve dependency with changing version"() {
         executer.inDirectory(sample.dir)
 
         when:
@@ -97,20 +94,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
 
         expect:
         succeeds('assemble')
-    }
-
-    @Requires(JDK8_OR_LATER)
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/customConfigurations")
-    def "can declare and resolve custom configuration"() {
-        setup:
-        executer.inDirectory(sample.dir)
-        executer.requireGradleDistribution() // required to avoid multiple Servlet API JARs in classpath
-
-        when:
-        succeeds('preCompileJsps')
-
-        then:
-        sample.dir.file('build/compiled-jsps/org/apache/jsp/hello_jsp.java').isFile()
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnly")

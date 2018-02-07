@@ -25,7 +25,7 @@ import org.gradle.internal.progress.OperationFinishEvent;
 import java.util.Collections;
 import java.util.Map;
 
-class SerializedOperationFinish {
+class SerializedOperationFinish implements SerializedOperation {
 
     final Object id;
 
@@ -61,7 +61,7 @@ class SerializedOperationFinish {
         this.failureMsg = (String) map.get("failure");
     }
 
-    Map<String, ?> toMap() {
+    public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         // Order is optimised for humans looking at the log.

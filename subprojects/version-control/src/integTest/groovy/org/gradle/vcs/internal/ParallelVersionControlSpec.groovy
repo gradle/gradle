@@ -53,7 +53,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
                     def spec = new DefaultGitVersionControlSpec(project.gradle.startParameter, project.gradle.classLoaderScope)
                     spec.url = url
                     def system = versionControlSystemFactory.create(spec)
-                    def ref = system.getHead(spec)
+                    def ref = system.getDefaultBranch(spec)
                     system.populate(outputDir, ref, spec)
                     assert new File(outputDir, 'repo/.git').exists()
                 }

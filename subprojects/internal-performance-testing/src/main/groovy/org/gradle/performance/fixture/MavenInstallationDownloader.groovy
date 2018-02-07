@@ -42,8 +42,7 @@ class MavenInstallationDownloader {
             if (MavenInstallation.valid(home)) {
                 return new MavenInstallation(mavenVersion, home)
             }
-            def binArchive = downloadMavenBinArchiveWithRetry(mavenVersion)
-            def tempHome = extractBinArchive(mavenVersion, binArchive)
+            def tempHome = downloadAndExtractMavenBinArchiveWithRetry(mavenVersion)
             home = moveToInstallsRoot(tempHome)
             new MavenInstallation(mavenVersion, home)
         } finally {
@@ -51,7 +50,7 @@ class MavenInstallationDownloader {
         }
     }
 
-    private static File downloadMavenBinArchiveWithRetry(String mavenVersion) {
+    private static File downloadAndExtractMavenBinArchiveWithRetry(String mavenVersion) {
         def binArchiveUrls = [
             new URL("https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
             new URL(fetchPreferredUrl(mavenVersion))
@@ -61,11 +60,13 @@ class MavenInstallationDownloader {
             File mavenBinArchive = downloadMavenBinArchive(mavenVersion, binArchiveUrls[i])
 
             if (mavenBinArchive) {
-                return mavenBinArchive
-            } else if (!mavenBinArchive && i == (binArchiveUrls.size() - 1)) {
-                throw new UncheckedIOException("Unable to download Maven binary distribution from any of the repositories")
+                def extracted = extractMavenBinArchive(mavenVersion, mavenBinArchive)
+                if (extracted) {
+                    return extracted
+                }
             }
         }
+        throw new UncheckedIOException("Unable to download Maven binary distribution from any of the repositories")
     }
 
     private static File downloadMavenBinArchive(String mavenVersion, URL binArchiveUrl) {
@@ -94,6 +95,15 @@ class MavenInstallationDownloader {
             out << binArchiveUrl.openStream()
         }
         target
+    }
+
+    private static File extractMavenBinArchive(String mavenVersion, File binArchive) {
+        try {
+            return extractBinArchive(mavenVersion, binArchive)
+        } catch (Exception e) {
+            log.warn "Unable to unpack Maven distribution '$binArchive'", e
+            return null
+        }
     }
 
     private static File extractBinArchive(String mavenVersion, File binArchive) {

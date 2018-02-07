@@ -73,10 +73,8 @@ dependencies {
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation libraries.ivy
 
-    testFixturesRuntime project(':workers')
-    testFixturesRuntime project(':dependencyManagement')
-    testFixturesRuntime project(':pluginUse')
     testFixturesRuntime project(':runtimeApiInfo')
+    testFixturesRuntime rootProject.ext.allCoreRuntimeExtensions
 
     integTestImplementation project(":internalIntegTesting")
 

@@ -18,9 +18,9 @@
 Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
 
 [[sec:dependency_constraints]]
-=== Dependency constraints
+=== Managing versions of transitive dependencies with dependency constraints
 
-Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies. It is the preferred method to express constraints that should be applied to all dependencies of a configuration. When Gradle attempts to resolve a dependency to a module version, all <<sub:declaring_dependency_with_version,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration. The highest version that matches all conditions is selected. If no such version is found, Gradle fails with an error showing the conflicting declarations. If this happens you can adjust your dependencies or dependency constraints declarations, or <<managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed. Similar to dependency declarations, dependency constraint declarations are <<sub:scope_of_dependency_configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build. If a dependency constraint influenced the resolution result, any type of <<sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
+Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies. It is the preferred method to express constraints that should be applied to all dependencies of a configuration. When Gradle attempts to resolve a dependency to a module version, all <<sub:declaring_dependency_with_version,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration. The highest version that matches all conditions is selected. If no such version is found, Gradle fails with an error showing the conflicting declarations. If this happens you can adjust your dependencies or dependency constraints declarations, or <<managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed. Similar to dependency declarations, dependency constraint declarations are <<defining_and_using_configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build. If a dependency constraint influenced the resolution result, any type of <<sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
 ++++
 <sample id="declaringDependencyVersionsWithDependencyConstraints" dir="userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints" title="Define dependency constraints">
@@ -29,6 +29,13 @@ Dependency constraints allow you to define the version or the version range of b
 ++++
 
 In the example, all versions are omitted from the dependency declaration. Instead, the versions are defined in the constraints block. The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project. Otherwise, the constraint has no effect.
+
+Dependency constraints themselves can also be added transitively. If a modules's metadata is defined in a `.pom` file that contains dependency entries with `<optional>true</optional>`, Gradle will create a dependency constraint for each of these so-called _optional dependencies_. This leads to a similar resolution behavior as provided by Maven: if the corresponding module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that module (e.g., if the optional dependency defines a higher version, that one is chosen).
+
+[NOTE]
+====
+Support for _optional dependencies_ from pom files is active by default with Gradle 5.0+. For using it in Gradle 4.6+, you need to activate it by setting `org.gradle.advancedpomsupport=true` in gradle.properties.
+====
 
 [[sec:excluding_transitive_module_dependencies]]
 === Excluding transitive module dependencies
@@ -140,3 +147,23 @@ A project can decide to disable transitive dependency resolution completely. You
     <sourcefile file="build.gradle" snippet="transitive-per-configuration"/>
 </sample>
 ++++
+
+[[sec:bom_import]]
+=== Importing version recommendations from a Maven BOM
+
+Gradle provides support for importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[bill of materials (BOM) files], which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. The BOM support in Gradle works similar to using `<scope>import</scope>` when depending on a BOM in Maven. In Gradle however, it is done via a regular dependency declaration on the BOM:
+
+++++
+<sample id="importing-dependency-constraints-from-bom" dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM" title="Depending on a BOM to import its dependency constraints">
+    <sourcefile file="build.gradle" snippet="dependency-on-bom"/>
+</sample>
+++++
+
+In the example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM. This way, if you are developing for a platform like Spring Boot, you do not have to declare any versions yourself but can rely on the versions the platform provides.
+
+Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<sec:dependency_constraints,Gradle's dependency constraints>>. This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result. In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
+
+[NOTE]
+====
+Importing dependency constraints from Maven BOMs is active by default with Gradle 5.0+. For using it in Gradle 4.6+, you need to activate it by setting `org.gradle.advancedpomsupport=true` in gradle.properties.
+====

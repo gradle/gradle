@@ -174,6 +174,7 @@
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
                                     <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
+                                    <li><a href="/userguide/defining_using_configurations.html">Defining and Using Configurations</a></li>
                                     <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
                                     <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
                                     <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>

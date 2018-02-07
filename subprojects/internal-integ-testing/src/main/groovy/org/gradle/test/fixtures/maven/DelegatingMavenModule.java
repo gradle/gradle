@@ -256,6 +256,11 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public String getUniqueSnapshotVersion() {
+        return backingModule.getUniqueSnapshotVersion();
+    }
+
+    @Override
     public void withVariant(String name, Closure<?> action) {
         backingModule.withVariant(name, action);
     }

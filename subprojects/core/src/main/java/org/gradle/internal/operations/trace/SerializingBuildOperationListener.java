@@ -26,7 +26,10 @@ import org.gradle.internal.progress.OperationStartEvent;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Note: this is relying on Gradle's listener infrastructure serializing dispatch
@@ -37,38 +40,87 @@ class SerializingBuildOperationListener implements BuildOperationListener {
     private static final byte[] NEWLINE = "\n".getBytes();
     private static final byte[] INDENT = "    ".getBytes();
 
-    private OutputStream out;
+    private final OutputStream out;
 
     SerializingBuildOperationListener(OutputStream out) {
         this.out = out;
     }
 
+    private boolean buffering = true;
+    private final Lock bufferLock = new ReentrantLock();
+    private final Queue<Entry> buffer = new ArrayDeque<Entry>();
+
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        write(new SerializedOperationStart(buildOperation, startEvent).toMap(), false);
+        new Entry(new SerializedOperationStart(buildOperation, startEvent), false).add();
     }
 
     @Override
     public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-        write(new SerializedOperationProgress(buildOperation, progressEvent).toMap(), false);
+        new Entry(new SerializedOperationProgress(buildOperation, progressEvent), false).add();
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        write(new SerializedOperationFinish(buildOperation, finishEvent).toMap(), true);
+        new Entry(new SerializedOperationFinish(buildOperation, finishEvent), false).add();
     }
 
-    private void write(Map<String, ?> entry, boolean indent) {
-        String json = JsonOutput.toJson(entry);
-        try {
-            if (indent) {
-                out.write(INDENT);
+    public void write() {
+        if (buffering) {
+            bufferLock.lock();
+            try {
+                if (buffering) {
+                    for (Entry entry : buffer) {
+                        entry.write();
+                    }
+                    buffer.clear();
+                    buffering = false;
+                }
+            } finally {
+                bufferLock.unlock();
             }
-            out.write(json.getBytes("UTF-8"));
-            out.write(NEWLINE);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private final class Entry {
+        final SerializedOperation operation;
+        final boolean indent;
+
+        Entry(SerializedOperation operation, boolean indent) {
+            this.operation = operation;
+            this.indent = indent;
+        }
+
+        public void add() {
+            if (buffering) {
+                bufferLock.lock();
+                try {
+                    if (buffering) {
+                        buffer.add(this);
+                    } else {
+                        write();
+                    }
+                } finally {
+                    bufferLock.unlock();
+                }
+            } else {
+                write();
+            }
+        }
+
+        private void write() {
+            String json = JsonOutput.toJson(operation.toMap());
+            try {
+                if (indent) {
+                    out.write(INDENT);
+                }
+                out.write(json.getBytes("UTF-8"));
+                out.write(NEWLINE);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
     }
 
 }

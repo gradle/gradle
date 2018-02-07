@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
@@ -42,6 +43,8 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             return new DefaultProjectComponentIdentifier(buildIdentifier, decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+        } else if (Implementation.SNAPSHOT.getId() == id) {
+            return new MavenUniqueSnapshotComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
@@ -63,6 +66,12 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             encoder.writeString(moduleComponentIdentifier.getGroup());
             encoder.writeString(moduleComponentIdentifier.getModule());
             encoder.writeString(moduleComponentIdentifier.getVersion());
+        } else if (implementation == Implementation.SNAPSHOT) {
+            MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = (MavenUniqueSnapshotComponentIdentifier) value;
+            encoder.writeString(snapshotIdentifier.getGroup());
+            encoder.writeString(snapshotIdentifier.getModule());
+            encoder.writeString(snapshotIdentifier.getVersion());
+            encoder.writeString(snapshotIdentifier.getTimestamp());
         } else if (implementation == Implementation.BUILD) {
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) value;
             BuildIdentifier build = projectComponentIdentifier.getBuild();
@@ -95,7 +104,9 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
 
     private Implementation resolveImplementation(ComponentIdentifier value) {
         Implementation implementation;
-        if (value instanceof ModuleComponentIdentifier) {
+        if (value instanceof MavenUniqueSnapshotComponentIdentifier) {
+            implementation = Implementation.SNAPSHOT;
+        } else if (value instanceof ModuleComponentIdentifier) {
             implementation = Implementation.MODULE;
         } else if (value instanceof ProjectComponentIdentifier) {
             implementation = Implementation.BUILD;
@@ -108,7 +119,7 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
     }
 
     private enum Implementation {
-        MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3);
+        MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3), SNAPSHOT((byte) 4);
 
         private final byte id;
 

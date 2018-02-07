@@ -15,10 +15,47 @@
  */
 package org.gradle.internal.scripts;
 
+import com.google.common.collect.ImmutableList;
+
 import org.gradle.scripts.ScriptingLanguage;
+
+import java.util.List;
 
 /**
  * Registry of scripting languages.
  */
-public interface ScriptingLanguages extends Iterable<ScriptingLanguage> {
+public final class ScriptingLanguages {
+
+    private static final ImmutableList<ScriptingLanguage> ALL =
+        ImmutableList.of(
+            scriptingLanguage(".gradle", null),
+            scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"));
+
+    static final ImmutableList<String> EXTENSIONS = extensionsOf(ALL);
+
+    public static List<ScriptingLanguage> all() {
+        return ALL;
+    }
+
+    private static ScriptingLanguage scriptingLanguage(final String extension, final String scriptPluginFactory) {
+        return new ScriptingLanguage() {
+            @Override
+            public String getExtension() {
+                return extension;
+            }
+
+            @Override
+            public String getProvider() {
+                return scriptPluginFactory;
+            }
+        };
+    }
+
+    private static ImmutableList<String> extensionsOf(List<ScriptingLanguage> scriptingLanguages) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        for (ScriptingLanguage language : scriptingLanguages) {
+            builder.add(language.getExtension());
+        }
+        return builder.build();
+    }
 }
