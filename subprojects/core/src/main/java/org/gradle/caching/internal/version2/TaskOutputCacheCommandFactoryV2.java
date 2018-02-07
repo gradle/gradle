@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.file.FileCollection;
@@ -54,6 +53,7 @@ import org.gradle.internal.hash.Hashing;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,6 +69,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("Since15")
 public class TaskOutputCacheCommandFactoryV2 {
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[BUFFER_SIZE];
+        }
+    };
+
     private final TaskOutputOriginFactory taskOutputOriginFactory;
     private final FileSystemMirror fileSystemMirror;
     private final StringInterner stringInterner;
@@ -179,25 +187,15 @@ public class TaskOutputCacheCommandFactoryV2 {
                 if (incomingSnapshot != null
                     && incomingSnapshot.getType() == FileType.RegularFile
                     && incomingSnapshot.getContentMd5().equals(key)
-                    && !target.exists()) {
-                    System.out.println("> File should exist but doesn't: " + target);
-                }
-
-                if (incomingSnapshot != null
-                    && incomingSnapshot.getType() == FileType.RegularFile
-                    && incomingSnapshot.getContentMd5().equals(key)
-                    && target.isFile()
                 ) {
-                    // System.out.println("> File " + key + " already matches required content for " + target);
                     outgoingContentSnapshot = incomingSnapshot;
                 } else {
-                    // System.out.println("> Loading file " + key + " to " + target);
                     InputStream inputStream = ((FileEntry) entry).read();
                     try {
                         FileUtils.deleteQuietly(target);
                         OutputStream outputStream = new FileOutputStream(target);
                         try {
-                            ByteStreams.copy(inputStream, outputStream);
+                            IOUtils.copyLarge(inputStream, outputStream, COPY_BUFFERS.get());
                         } finally {
                             IOUtils.closeQuietly(outputStream);
                         }
@@ -208,7 +206,7 @@ public class TaskOutputCacheCommandFactoryV2 {
                 }
                 outgoingSnapshot = new RegularFileSnapshot(absolutePath, getChildPath(parent, target, true), parent == null, outgoingContentSnapshot);
             } else if (entry instanceof ManifestEntry) {
-                // System.out.println("> Processing manifest " + key + " for directory " + target);
+                // TODO Avoid loading directory if its hash is already what we expect here
                 ManifestEntry manifest = (ManifestEntry) entry;
                 ImmutableSortedMap<String, HashCode> childEntries = manifest.getChildren();
                 FileUtils.deleteQuietly(target);
@@ -225,20 +223,20 @@ public class TaskOutputCacheCommandFactoryV2 {
             }
             outgoingSnapshots.add(outgoingSnapshot);
         }
+    }
 
-        private RelativePath getChildPath(RelativePath parent, File target, boolean isFile) {
-            RelativePath relativePath;
-            if (parent == null) {
-                if (isFile) {
-                    relativePath = RelativePath.parse(true, target.getName());
-                } else {
-                    relativePath = RelativePath.EMPTY_ROOT;
-                }
+    private static RelativePath getChildPath(RelativePath parent, File target, boolean isFile) {
+        RelativePath relativePath;
+        if (parent == null) {
+            if (isFile) {
+                relativePath = RelativePath.parse(true, target.getName());
             } else {
-                relativePath = parent.append(isFile, target.getName());
+                relativePath = RelativePath.EMPTY_ROOT;
             }
-            return relativePath;
+        } else {
+            relativePath = parent.append(isFile, target.getName());
         }
+        return relativePath;
     }
 
     private class StoreCommand implements BuildCacheStoreCommandV2 {

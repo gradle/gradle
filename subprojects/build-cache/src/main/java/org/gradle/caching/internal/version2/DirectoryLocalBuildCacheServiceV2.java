@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.version2;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentCache;
@@ -39,6 +38,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheServiceV2 {
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[BUFFER_SIZE];
+        }
+    };
 
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
@@ -123,7 +129,7 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
                 output.writeInt(0);
                 FileInputStream input = new FileInputStream(file);
                 try {
-                    ByteStreams.copy(input, output);
+                    IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
                 } finally {
                     IOUtils.closeQuietly(input);
                 }
