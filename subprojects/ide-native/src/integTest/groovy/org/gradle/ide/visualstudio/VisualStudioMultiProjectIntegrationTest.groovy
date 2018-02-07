@@ -44,19 +44,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
                 apply plugin: 'cpp'
 
                 model {
-                    platforms {
-                        win32 {
-                            architecture "i386"
-                        }
-                    }
                     buildTypes {
                         debug
                         release
-                    }
-                    components {
-                        all {
-                            targetPlatform "win32"
-                        }
                     }
                 }
             }
@@ -195,7 +185,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable")
         }
 
         and:
@@ -204,7 +194,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary")
         }
 
         and:
@@ -213,7 +203,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary")
         }
 
         and:
