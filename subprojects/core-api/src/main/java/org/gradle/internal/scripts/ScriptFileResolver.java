@@ -39,12 +39,14 @@ public interface ScriptFileResolver {
     File resolveScriptFile(File dir, String basename);
 
     /**
-     * Searches for script files in the given directory, that is, any file with  a known
+     * Searches for script files in the given directory, that is, any file with a known
      * {@link ScriptingLanguage#getExtension()}).
      *
      * @param dir the directory in which to search
      *
      * @return list containing all script files found in the given directory in no particular order
+     *
+     * @since 4.6
      */
      List<File> findScriptsIn(File dir);
 }
