@@ -27,15 +27,15 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.groovy
+    api libraries.groovy.coordinate
 
     implementation project(':baseServicesGroovy')
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.commons_lang
-    implementation libraries.jcip
-    implementation libraries.asm
-    implementation libraries.asm_tree
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.commons_lang.coordinate
+    implementation libraries.jcip.coordinate
+    implementation libraries.asm.coordinate
+    implementation libraries.asm_tree.coordinate
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')

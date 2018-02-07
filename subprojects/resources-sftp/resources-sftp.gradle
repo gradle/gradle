@@ -23,11 +23,11 @@ dependencies {
     api project(':resources')
     api project(':core')
 
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.jsch
-    implementation libraries.jcip
-    implementation libraries.commons_io
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.jsch.coordinate
+    implementation libraries.jcip.coordinate
+    implementation libraries.commons_io.coordinate
 }
 
 testFixtures {

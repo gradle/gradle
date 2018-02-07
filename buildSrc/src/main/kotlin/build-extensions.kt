@@ -23,14 +23,19 @@ import org.gradle.kotlin.dsl.*
 
 @Suppress("unchecked_cast")
 val Project.libraries
-    get() = rootProject.extra["libraries"] as Map<String, Any>
+    get() = rootProject.extra["libraries"] as Map<String, Map<String, String>>
 
+@Suppress("unchecked_cast")
+val Project.testLibraries
+    get() = rootProject.extra["testLibraries"] as Map<String, Any>
 
-fun Project.library(name: String): Any =
-    libraries[name]!!
+fun Project.library(name: String): String =
+    libraries[name]!!["coordinate"]!!
 
+fun Project.testLibrary(name: String): Any =
+    testLibraries[name]!!
 
 // TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
 @Suppress("unchecked_cast")
-fun Project.libraries(name: String): List<Any> =
-    libraries[name]!! as List<Any>
+fun Project.testLibraries(name: String): List<Any> =
+    testLibraries[name]!! as List<Any>

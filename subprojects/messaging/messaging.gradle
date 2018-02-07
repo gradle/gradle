@@ -7,9 +7,9 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.slf4j_api
+    api libraries.slf4j_api.coordinate
 
-    implementation libraries.kryo
+    implementation libraries.kryo.coordinate
 }
 
 testFixtures {

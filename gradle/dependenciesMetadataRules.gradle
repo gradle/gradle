@@ -1,0 +1,212 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+subprojects {
+    dependencies {
+        components { handler ->
+            // Gradle distribution - minify: remove unused transitive dependencies
+            withModule(libraries.maven3.coordinate) {
+                allVariants {
+                    withDependencies {
+                        it.removeAll {
+                            it.name != 'maven-settings-builder' &&
+                                it.name != 'maven-model' &&
+                                it.name != 'maven-model-builder' &&
+                                it.name != 'maven-artifact' &&
+                                it.name != 'maven-aether-provider' &&
+                                it.group != 'org.sonatype.aether'
+                        }
+                    }
+                }
+            }
+            withModule(libraries.awsS3_core.coordinate) {
+                allVariants {
+                    withDependencies { it.removeAll { it.name == 'jackson-dataformat-cbor' } }
+                }
+            }
+            withModule(libraries.jgit.coordinate) {
+                allVariants {
+                    withDependencies { it.removeAll { it.group == 'com.googlecode.javaewah' }}
+                }
+            }
+            withModule(libraries.maven3_wagon_http_shared4.coordinate) {
+                allVariants {
+                    withDependencies { it.removeAll { it.group == 'org.jsoup' }}
+                }
+            }
+            withModule(libraries.aether_connector.coordinate) {
+                allVariants {
+                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' } }
+                }
+            }
+            withModule(libraries.maven3_compat.coordinate) {
+                allVariants {
+                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' } }
+                }
+            }
+            withModule(libraries.maven3_plugin_api.coordinate) {
+                allVariants {
+                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' } }
+                }
+            }
+
+            // Gradle distribution - replace similar library with different coordinates
+            replaceGoogleCollectionsWithGuava(handler, 'org.codehaus.plexus:plexus-container-default')
+
+            replaceJunitDepWithJunit(handler, 'org.jmock:jmock-junit4')
+
+            replaceBeanshellWithApacheBeanshell(handler, 'org.testng:testng')
+
+            replaceLog4JWithAdapter(handler, 'org.apache.xbean:xbean-reflect')
+
+            replaceJCLWithAdapter(handler, 'org.apache.xbean:xbean-reflect')
+            replaceJCLWithAdapter(handler, 'org.apache.httpcomponents:httpclient')
+            replaceJCLWithAdapter(handler, 'com.amazonaws:aws-java-sdk-core')
+            replaceJCLWithAdapter(handler, 'org.apache.httpcomponents:httpmime')
+            replaceJCLWithAdapter(handler, 'net.sourceforge.htmlunit:htmlunit')
+            replaceJCLWithAdapter(handler, 'org.apache.maven.wagon:wagon-http')
+            replaceJCLWithAdapter(handler, 'org.apache.maven.wagon:wagon-http-shared4')
+
+            replaceJCLConstraintWithAdapter(handler, 'org.codehaus.groovy:groovy-all')
+
+            //TODO check if we can upgrade the following dependencies and remove the rules
+            downgradeIvy(handler, 'org.codehaus.groovy:groovy-all')
+            downgradeTestNG(handler, 'org.codehaus.groovy:groovy-all')
+
+            downgradeXmlApis(handler, 'jaxen:jaxen')
+            downgradeXmlApis(handler, 'jdom:jdom')
+            downgradeXmlApis(handler, 'xalan:xalan')
+            downgradeXmlApis(handler, 'jaxen:jaxen')
+        }
+    }
+}
+
+def replaceJCLWithAdapter(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies {
+                it.removeAll { it.group == 'commons-logging' }
+                it.add ('org.slf4j:jcl-over-slf4j:1.7.10') {
+                    because 'We do not want non-slf4j logging implementations on the classpath'
+                }
+            }
+        }
+    }
+}
+
+def replaceJCLConstraintWithAdapter(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencyConstraints {
+                it.removeAll { it.group == 'commons-logging' }
+                it.add ('org.slf4j:jcl-over-slf4j:1.7.10') {
+                    because 'We do not want non-slf4j logging implementations on the classpath'
+                }
+            }
+        }
+    }
+}
+
+def replaceLog4JWithAdapter(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies {
+                it.removeAll { it.group == 'log4j' }
+                it.add ('org.slf4j:log4j-over-slf4j:1.7.16') {
+                    because 'We do not want non-slf4j logging implementations on the classpath'
+                }
+            }
+        }
+    }
+}
+
+def replaceGoogleCollectionsWithGuava(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies {
+                it.removeAll { it.group == 'com.google.collections' }
+                it.add('com.google.guava:guava-jdk5:17.0') {
+                    because 'Guava replaces google collections'
+                }
+            }
+        }
+    }
+}
+
+def replaceJunitDepWithJunit(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies {
+                it.removeAll { it.group == 'junit' }
+                it.add('junit:junit:4.12') {
+                    because 'junit:junit replaced junit:junit-dep'
+                }
+            }
+        }
+    }
+}
+
+def replaceBeanshellWithApacheBeanshell(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies {
+                it.removeAll { it.group == 'org.beanshell' }
+                it.add('org.apache-extras.beanshell:bsh:2.0b6') {
+                    because 'org.apache-extras.beanshell:bsh replaced junit:junit-dep'
+                }
+            }
+        }
+    }
+}
+
+def downgradeIvy(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencyConstraints {
+                it.findAll { it.group == 'org.apache.ivy' }.each {
+                    it.version { prefer '2.2.0' }
+                    it.because 'Gradle depends on ivy implementation details which changed with newer versions'
+                }
+            }
+        }
+    }
+}
+
+def downgradeTestNG(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencyConstraints {
+                it.findAll { it.group == 'org.testng' }.each {
+                    it.version { prefer '6.3.1' }
+                    it.because '6.3.1 is required by Gradle and part of the distribution'
+                }
+            }
+        }
+    }
+}
+
+def downgradeXmlApis(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies {
+                it.findAll { it.group == 'xml-apis' }.each {
+                    it.version { prefer '1.4.01' }
+                    it.because 'Gradle has trouble with the versioning scheme and pom redirects in higher versions'
+                }
+            }
+        }
+    }
+}

@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':core')
     compile project(":ide")
     compile project(':platformPlay')

@@ -22,21 +22,21 @@ plugins {
 }
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(":baseServices")
     compile project(":native")
-    compile libraries.slf4j_api
-    compile libraries.guava
-    compile libraries.commons_lang
-    compile libraries.commons_io
-    compile libraries.ant
-    compile libraries.asm
-    compile libraries.asm_tree
-    compile libraries.junit
-    compile libraries.jmock
-    compile libraries.spock
-    compile libraries.jsoup
+    compile libraries.slf4j_api.coordinate
+    compile libraries.guava.coordinate
+    compile libraries.commons_lang.coordinate
+    compile libraries.commons_io.coordinate
+    compile libraries.ant.coordinate
+    compile libraries.asm.coordinate
+    compile libraries.asm_tree.coordinate
+    compile libraries.junit.coordinate
+    compile testLibraries.jmock
+    compile testLibraries.spock
+    compile testLibraries.jsoup
 }
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

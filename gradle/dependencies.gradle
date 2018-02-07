@@ -15,370 +15,101 @@
  */
 
 ext {
-    versions = [:]
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.15.4'
-versions.commons_io = '2.2'
-versions.groovy = '2.4.12'
-versions.bouncycastle = '1.58'
-versions.maven = '3.0.4'
-versions.httpclient = '4.5.5'
-versions.httpcore = '4.4.9'
+libraries.aether_connector =    [coordinate: 'org.sonatype.aether:aether-connector-wagon', version: '1.13.1']
+libraries.ant =                 [coordinate: 'org.apache.ant:ant', version: '1.9.9']
+libraries.asm =                 [coordinate: 'org.ow2.asm:asm', version: '6.0']
+libraries.asm_commons =         [coordinate: 'org.ow2.asm:asm-commons', version: libraries.asm.version]
+libraries.asm_tree =            [coordinate: 'org.ow2.asm:asm-tree', version: libraries.asm.version]
+libraries.asm_util =            [coordinate: 'org.ow2.asm:asm-util', version: libraries.asm.version]
+libraries.awsS3_core =          [coordinate: 'com.amazonaws:aws-java-sdk-core', version: '1.11.267']
+libraries.awsS3_s3 =            [coordinate: 'com.amazonaws:aws-java-sdk-s3',   version: libraries.awsS3_core.version]
+libraries.awsS3_kms =           [coordinate: 'com.amazonaws:aws-java-sdk-kms',  version: libraries.awsS3_core.version]
+libraries.bouncycastle_provider = [coordinate: 'org.bouncycastle:bcprov-jdk15on', version: '1.58']
+libraries.bouncycastle_pgp =    [coordinate: 'org.bouncycastle:bcpg-jdk15on',   version: libraries.bouncycastle_provider.version]
+libraries.bndlib =              [coordinate: 'biz.aQute.bnd:biz.aQute.bndlib',  version: '3.4.0']
+libraries.bsh =                 [coordinate: 'org.apache-extras.beanshell:bsh', version: '2.0b6']
+libraries.commons_cli =         [coordinate: 'commons-cli:commons-cli', version: '1.2']
+libraries.commons_codec =       [coordinate: 'commons-codec:commons-codec', version: '1.10']
+libraries.commons_collections = [coordinate: 'commons-collections:commons-collections', version: '3.2.2']
+libraries.commons_compress =    [coordinate: 'org.apache.commons:commons-compress', version: '1.14']
+libraries.commons_httpclient =  [coordinate: 'org.apache.httpcomponents:httpclient', version: '4.5.5']
+libraries.commons_io =          [coordinate: 'commons-io:commons-io', version: '2.4']
+libraries.commons_lang =        [coordinate: 'commons-lang:commons-lang', version: '2.6']
+libraries.fastutil =            [coordinate: 'it.unimi.dsi:fastutil', version: '7.2.1']
+libraries.gcs =                 [coordinate: 'com.google.apis:google-api-services-storage', version: 'v1-rev116-1.23.0']
+libraries.groovy =              [coordinate: 'org.codehaus.groovy:groovy-all', version: '2.4.12']
+libraries.gson =                [coordinate: 'com.google.code.gson:gson', version: '2.7']
+libraries.guava =               [coordinate: 'com.google.guava:guava-jdk5', version: '17.0']
+libraries.inject =              [coordinate: 'javax.inject:javax.inject', version: '1']
+libraries.ivy =                 [coordinate: 'org.apache.ivy:ivy', version: '2.2.0']
+libraries.jackson_core =        [coordinate: 'com.fasterxml.jackson.core:jackson-core', version: '2.8.11']
+libraries.jackson_annotations = [coordinate: 'com.fasterxml.jackson.core:jackson-annotations', version: libraries.jackson_core.version]
+libraries.jackson_databind =    [coordinate: 'com.fasterxml.jackson.core:jackson-databind', version: libraries.jackson_core.version]
+libraries.jansi =               [coordinate: 'org.fusesource.jansi:jansi', version: '1.14']
+libraries.jatl =                [coordinate: 'com.googlecode.jatl:jatl', version: '0.2.2']
+libraries.jcifs =               [coordinate: 'org.samba.jcifs:jcifs', version: '1.3.17']
+libraries.jcip =                [coordinate: 'net.jcip:jcip-annotations', version: '1.0']
+libraries.jgit =                [coordinate: 'org.eclipse.jgit:org.eclipse.jgit', version: '4.5.3.201708160445-r', because: '4.6+ requires Java 8']
+libraries.joda =                [coordinate: 'joda-time:joda-time', version: '2.8.2']
+libraries.jsch =                [coordinate: 'com.jcraft:jsch', version: '0.1.54']
+libraries.jsr305 =              [coordinate: 'com.google.code.findbugs:jsr305', version: '2.0.1']
+libraries.junit =               [coordinate: 'junit:junit', version: '4.12']
+libraries.kryo =                [coordinate: 'com.esotericsoftware.kryo:kryo', version: '2.20']
+libraries.maven3 =              [coordinate: 'org.apache.maven:maven-core', version: '3.0.4']
+libraries.maven3_wagon_file =   [coordinate: 'org.apache.maven.wagon:wagon-file', version: '2.4']
+libraries.maven3_wagon_http =   [coordinate: 'org.apache.maven.wagon:wagon-http', version: libraries.maven3_wagon_file.version]
+libraries.nativePlatform =      [coordinate: 'net.rubygrapefruit:native-platform', version: '0.14']
+libraries.nekohtml =            [coordinate: 'net.sourceforge.nekohtml:nekohtml', version: '1.9.20']
+libraries.objenesis =           [coordinate: 'org.objenesis:objenesis', version: '1.2']
+libraries.plexus_container =    [coordinate: 'org.codehaus.plexus:plexus-container-default', version: '1.5.5']
+libraries.plist =               [coordinate: 'com.googlecode.plist:dd-plist', version: '1.20', because: 'for XCode IDE integration support']
+libraries.pmaven_common =       [coordinate: 'org.sonatype.pmaven:pmaven-common', version: '0.8-20100325']
+libraries.pmaven_groovy =       [coordinate: 'org.sonatype.pmaven:pmaven-groovy', version: libraries.pmaven_common.version]
+libraries.rhino =               [coordinate: 'org.mozilla:rhino', version: '1.7R3']
+libraries.simple =              [coordinate: 'org.simpleframework:simple', version: '4.1.21']
+libraries.testng =              [coordinate: 'org.testng:testng', version: '6.3.1']
+libraries.xerces =              [coordinate: 'xerces:xercesImpl', version: '2.11.0']
+libraries.xmlApis =             [coordinate: 'xml-apis:xml-apis', version: '1.4.01', because: '2.0.x has a POM with relocation Gradle does not handle well']
+libraries.slf4j_api =           [coordinate: 'org.slf4j:slf4j-api', version: '1.7.16']
+libraries.jcl_to_slf4j =        [coordinate: 'org.slf4j:jcl-over-slf4j', version: libraries.slf4j_api.version]
+libraries.jul_to_slf4j =        [coordinate: 'org.slf4j:jul-to-slf4j', version: libraries.slf4j_api.version]
+libraries.log4j_to_slf4j =      [coordinate: 'org.slf4j:log4j-over-slf4j', version: libraries.slf4j_api.version]
 
-libraries.ant = 'org.apache.ant:ant:1.9.9'
-libraries.asm =  'org.ow2.asm:asm:6.0'
-libraries.asm_commons =  'org.ow2.asm:asm-commons:6.0'
-libraries.asm_util =  'org.ow2.asm:asm-util:6.0'
-libraries.asm_tree =  'org.ow2.asm:asm-tree:6.0'
-libraries.cglib = 'cglib:cglib:3.2.5'
-libraries.bndlib = 'biz.aQute.bnd:biz.aQute.bndlib:3.4.0'
-libraries.commons_cli = 'commons-cli:commons-cli:1.2'
-libraries.commons_io = "commons-io:commons-io:${versions.commons_io}"
-libraries.commons_lang = 'commons-lang:commons-lang:2.6'
-libraries.commons_collections = 'commons-collections:commons-collections:3.2.2'
-libraries.commons_compress = 'org.apache.commons:commons-compress:1.14'
-libraries.jsch = 'com.jcraft:jsch:0.1.54'
-libraries.fastutil = "it.unimi.dsi:fastutil:7.2.1"
-libraries.snakeyaml = 'org.yaml:snakeyaml:1.6'
-
-libraries.ivy = 'org.apache.ivy:ivy:2.2.0'
-
-libraries.jcip = "net.jcip:jcip-annotations:1.0"
-libraries.inject = 'javax.inject:javax.inject:1'
-
-// Logging
-libraries.slf4j_api = 'org.slf4j:slf4j-api:1.7.10'
-libraries.jcl_to_slf4j = 'org.slf4j:jcl-over-slf4j:1.7.10'
-libraries.jul_to_slf4j = 'org.slf4j:jul-to-slf4j:1.7.10'
-libraries.log4j_to_slf4j = 'org.slf4j:log4j-over-slf4j:1.7.10'
-libraries.logback_core = 'ch.qos.logback:logback-core:1.0.13'
-libraries.logback_classic = 'ch.qos.logback:logback-classic:1.0.13'
-
-// Jetty
-libraries.servlet_api = "org.mortbay.jetty:servlet-api:2.5-20081211"
-libraries.jetty_util = "org.mortbay.jetty:jetty-util:6.1.26"
-libraries.jetty = "org.mortbay.jetty:jetty:6.1.26"
-libraries.commons_codec = "commons-codec:commons-codec:1.6"
-libraries.jcifs = "org.samba.jcifs:jcifs:1.3.17"
-libraries.commons_httpclient = "org.apache.httpcomponents:httpclient:${versions.httpclient}"
-
-
-libraries += [
-    jatl: 'com.googlecode.jatl:jatl:0.2.2',
-    dom4j: 'dom4j:dom4j:1.6.1',
-    guava: 'com.google.guava:guava-jdk5:17.0',
-    kryo: 'com.esotericsoftware.kryo:kryo:2.20',
-    jsr305: 'com.google.code.findbugs:jsr305:1.3.9',
-    groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
-    jaxen: 'jaxen:jaxen:1.1',
-    jcip: "net.jcip:jcip-annotations:1.0",
-    junit: 'junit:junit:4.12',
-    xmlunit: 'xmlunit:xmlunit:1.3',
-    equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
-    xbean: 'org.apache.xbean:xbean-reflect:3.4', //required by maven3 classes
-    nativePlatform: 'net.rubygrapefruit:native-platform:0.14',
-    jansi: 'org.fusesource.jansi:jansi:1.14',
-    xerces: "xerces:xercesImpl:2.11.0",
-    objenesis: 'org.objenesis:objenesis:1.2',
-    jsoup: 'org.jsoup:jsoup:1.6.3',
-    xmlApis: 'xml-apis:xml-apis:1.4.01',
-    jgit: [
-        'org.eclipse.jgit:org.eclipse.jgit:4.5.3.201708160445-r', // 4.6+ requires Java 8
-        libraries.commons_httpclient,
-        libraries.jsch
-    ],
-    testng: 'org.testng:testng:6.3.1',
-    bsh: 'org.apache-extras.beanshell:bsh:2.0b6'
-]
-
-libraries.nekohtml = "net.sourceforge.nekohtml:nekohtml:1.9.14"
-
-libraries.maven3 = "org.apache.maven:maven-core:${versions.maven}"
-
-libraries.spock = [
-    'org.spockframework:spock-core:1.0-groovy-2.4',
-    libraries.groovy,
-    libraries.objenesis,
-    libraries.cglib
-]
-libraries.jmock = [
-    'org.jmock:jmock:2.5.1',
-    'org.hamcrest:hamcrest-core:1.3',
-    'org.hamcrest:hamcrest-library:1.3',
-    dependencies.create('org.jmock:jmock-junit4:2.5.1') { exclude group: 'junit', module: 'junit-dep' }, //junit-dep pulls old definitions of core junit types.
-    'org.jmock:jmock-legacy:2.5.1',
-    libraries.objenesis,
-    libraries.cglib
-]
-
-versions.findbugs = "2.0.1"
-libraries.findbugs = "com.google.code.findbugs:findbugs:${versions.findbugs}"
-
-libraries.bcel = "com.google.code.findbugs:bcel:${versions.findbugs}"
-
-libraries.gson = "com.google.code.gson:gson:2.7"
-libraries.sshd = "org.apache.sshd:sshd-core:1.2.0"
-
-libraries.bouncycastle_provider = "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}"
-libraries.bouncycastle_pgp = "org.bouncycastle:bcpg-jdk15on:${versions.bouncycastle}"
-
-libraries.joda = 'joda-time:joda-time:2.8.2'
-
-versions.aws = "1.11.267"
-versions.jackson = "2.8.11"
-libraries.awsS3 = [
-        "com.amazonaws:aws-java-sdk-s3:${versions.aws}",
-        "com.amazonaws:aws-java-sdk-kms:${versions.aws}",
-        "com.amazonaws:aws-java-sdk-core:${versions.aws}",
-        "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
-        "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}",
-        "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-] + libraries.commons_httpclient + libraries.joda
-
-// keep in sync with ScalaLanguagePlugin code
-libraries.zinc = 'com.typesafe.zinc:zinc:0.3.15'
-
-libraries.gcs = [
-        dependencies.create('com.google.apis:google-api-services-storage:v1-rev116-1.23.0') {
-            exclude group: 'commons-logging', module: 'commons-logging'
-        },
-        "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
-        "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}",
-        "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-] + libraries.commons_httpclient + libraries.joda
-
-// for XCode IDE integration support
-libraries.plist = 'com.googlecode.plist:dd-plist:1.20'
-
-allprojects { currentProject ->
-    dependencies {
-        components {
-            withModule('org.apache.ivy:ivy') {
-                withVariant('default') {
-                    withDependencies {
-                        add('com.jcraft:jsch:0.1.54') //is declared, but optional
-                    }
-                }
-            }
-            withModule('org.apache.maven:maven-core') {
-                withVariant('default') {
-                    withDependencies {
-                        it.removeAll { it.group == 'org.sonatype.sisu' }
-                        add("org.apache.maven:maven-compat:${versions.maven}")
-                        add('org.apache.maven.wagon:wagon-file:2.4')
-                        add('org.apache.maven.wagon:wagon-http:2.4')
-                        add('org.apache.maven.wagon:wagon-provider-api:2.4')
-                        add('org.apache.maven.wagon:wagon-http-shared4:2.4')
-                        add('org.codehaus.plexus:plexus-container-default:1.5.5')
-                        add('org.sonatype.aether:aether-connector-wagon:1.13.1')
-                        add('org.sonatype.plexus:plexus-cipher:1.7')
-                    }
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' }}
-                }
-            }
-            withModule('org.apache.maven.wagon:wagon-provider-api') {
-                withVariant('default') {
-                    withDependencies { it.findAll { it.name == 'plexus-utils' }.each { changeVersionInMetadata it, '2.1' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.findAll { it.name == 'plexus-utils' }.each { changeVersionInMetadata it, '2.1' }}
-                }
-            }
-            withModule('org.apache.xbean:xbean-reflect') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'commons-logging' || it.group == 'log4j' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'commons-logging' || it.group == 'log4j' }}
-                }
-            }
-            withModule('org.codehaus.plexus:plexus-container-default') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'com.google.collections' || it.group == 'junit' || it.group == 'org.apache.xbean' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'com.google.collections' || it.group == 'junit' || it.group == 'org.apache.xbean' }}
-                }
-            }
-            withModule('org.sonatype.aether:aether-connector-wagon') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' }}
-                }
-            }
-            withModule('org.apache.maven:maven-compat') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' }}
-                }
-            }
-            withModule('org.apache.maven:maven-plugin-api') {
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' }}
-                }
-            }
-            withModule('org.apache.maven.wagon:wagon-http') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'org.apache.httpcomponents' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'org.apache.httpcomponents' }}
-                }
-            }
-            withModule('org.apache.maven.wagon:wagon-http-shared4') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'org.jsoup' || it.group == 'commons-logging' || it.group == 'org.apache.httpcomponents' }}
-                }
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'org.jsoup' || it.group == 'commons-logging' || it.group == 'org.apache.httpcomponents' }}
-                }
-            }
-            withModule('net.sourceforge.nekohtml:nekohtml') {
-                withVariant('default') {
-                    withDependencies {
-                        it.findAll { it.group == 'xerces' }.each {
-                            changeVersionInMetadata it, '2.11.0'
-                        }
-                    }
-                }
-            }
-            withModule('org.eclipse.jgit:org.eclipse.jgit') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group == 'com.googlecode.javaewah' }}
-                }
-            }
-            withModule('com.amazonaws:aws-java-sdk-core') {
-                withVariant('default') {
-                    withDependencies {
-                        it.removeAll { it.name == 'jackson-dataformat-cbor' || it.group == 'commons-logging' }
-                        it.findAll { it.name == 'httpclient' }.each { changeVersionInMetadata it, versions.httpclient }
-                    }
-                }
-                withVariant('runtime') {
-                    withDependencies {
-                        it.removeAll { it.name == 'jackson-dataformat-cbor' || it.group == 'commons-logging' }
-                        it.findAll { it.name == 'httpclient' }.each { changeVersionInMetadata it, versions.httpclient }
-                    }
-                }
-            }
-            withModule('dom4j:dom4j') {
-                withVariant('runtime') {
-                    withDependencies { it.removeAll { it.group == 'xml-apis' }}
-                }
-            }
-            withModule('com.google.code.findbugs:findbugs') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { it.group != 'dom4j' }}
-                }
-            }
-            withModule('org.apache.sshd:sshd-core') {
-                withVariant('default') {
-                    withDependencies {
-                        it.findAll { it.group == 'org.slf4j' }.each {
-                            changeVersionInMetadata it, '1.7.10'
-                        }
-                        add('org.apache.mina:mina-core:2.0.10') //is declared, but optional
-                    }
-                }
-            }
-            withModule('org.apache.mina:mina-core') {
-                withVariant('default') {
-                    withDependencies {
-                        it.findAll { it.group == 'org.slf4j' }.each {
-                            changeVersionInMetadata it, '1.7.10'
-                        }
-                    }
-                }
-                withVariant('runtime') {
-                    withDependencies {
-                        it.findAll { it.group == 'org.slf4j' }.each {
-                            changeVersionInMetadata it, '1.7.10'
-                        }
-                    }
-                }
-            }
-            withModule('org.spockframework:spock-core') {
-                withVariant('default') {
-                    withDependencies {
-                        it.findAll { it.group == 'org.objenesis' }.each {
-                            changeVersionInMetadata it, '1.2'
-                        }
-                    }
-                }
-            }
-            withModule('org.testng:testng') {
-                withVariant('default') {
-                    withDependencies {
-                        it.removeAll { it.name == 'bsh' }
-                        add(libraries.bsh)
-                    }
-                }
-            }
-            withModule('jaxen:jaxen') {
-                withVariant('default') {
-                    withDependencies { it.removeAll { true } }
-                }
-            }
-            if (currentProject.name != 'internalAndroidPerformanceTesting') {
-                withModule('org.apache.httpcomponents:httpclient') {
-                    withVariant('default') {
-                        withDependencies {
-                            it.removeAll { it.group == 'commons-logging' }
-                            add(libraries.jcl_to_slf4j)
-                            it.findAll { it.group == 'commons-codec' }.each { changeVersionInMetadata it, '1.6' }
-                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, versions.httpcore }
-                            add(libraries.jcifs)
-                        }
-                    }
-                    withVariant('runtime') {
-                        withDependencies {
-                            it.removeAll { it.group == 'commons-logging' }
-                            it.findAll { it.group == 'commons-codec' }.each { changeVersionInMetadata it, '1.6' }
-                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, versions.httpcore }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-def changeVersionInMetadata(DependencyMetadata dependencyMetadata, String version) {
-    if (dependencyMetadata.hasProperty('version')) {
-        dependencyMetadata.version = version
-    } else {
-        dependencyMetadata.version { prefer version }
-    }
-}
-
-allprojects {
-    configurations.all {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.name == 'asm') {
-                details.useTarget(libraries.asm)
-            } else if (details.requested.name == 'asm-util') {
-                details.useTarget(libraries.asm_util)
-            } else if (details.requested.name == 'asm-commons') {
-                details.useTarget(libraries.asm_commons)
-            } else if (details.requested.name == 'asm-tree') {
-                details.useTarget(libraries.asm_tree)
-            } else if (details.requested.group == 'org.codehaus.groovy') {
-                details.useTarget(libraries.groovy)
-            } else if (details.requested.group == 'cglib') {
-                details.useTarget(libraries.cglib)
-            } else if (details.requested.group == 'org.apache.ivy') {
-                details.useTarget(libraries.ivy)
-            } else if (details.requested.group == 'org.testng') {
-                details.useTarget(libraries.testng)
-            }
-        }
-    }
-}
+// these are transitive dependencies that are part of the Gradle distribution
+libraries.jetbrains_annotations = [coordinate: 'org.jetbrains:annotations', version: '13.0']
+libraries.ant_launcher = [coordinate: 'org.apache.ant:ant-launcher', version: libraries.ant.version]
+libraries.asm_util = [coordinate: 'org.ow2.asm:asm-util', version: libraries.asm.version]
+libraries.minlog = [coordinate: 'com.esotericsoftware.minlog:minlog', version: '1.2']
+libraries.aether_api = [coordinate: 'org.sonatype.aether:aether-api', version: libraries.aether_connector.version]
+libraries.aether_impl = [coordinate: 'org.sonatype.aether:aether-impl', version: libraries.aether_connector.version]
+libraries.aether_spi = [coordinate: 'org.sonatype.aether:aether-spi', version: libraries.aether_connector.version]
+libraries.aether_util = [coordinate: 'org.sonatype.aether:aether-util', version: libraries.aether_connector.version]
+libraries.google_api_client = [coordinate: 'com.google.api-client:google-api-client', version: '1.23.0']
+libraries.google_http_client = [coordinate: 'com.google.http-client:google-http-client', version: '1.23.0']
+libraries.google_http_client_jackson2 = [coordinate: 'com.google.http-client:google-http-client-jackson2', version: '1.23.0']
+libraries.google_oauth_client = [coordinate: 'com.google.oauth-client:google-oauth-client', version: '1.23.0']
+libraries.hamcrest = [coordinate: 'org.hamcrest:hamcrest-core', version: '1.3']
+libraries.httpcore = [coordinate: 'org.apache.httpcomponents:httpcore', version: '4.4.9']
+libraries.jcommander = [coordinate: 'com.beust:jcommander', version: '1.47']
+libraries.maven3_aether_provider = [coordinate: 'org.apache.maven:maven-aether-provider', version: libraries.maven3.version]
+libraries.maven3_artifact = [coordinate: 'org.apache.maven:maven-artifact', version: libraries.maven3.version]
+libraries.maven3_compat = [coordinate: 'org.apache.maven:maven-compat', version: libraries.maven3.version]
+libraries.maven3_model = [coordinate: 'org.apache.maven:maven-model', version: libraries.maven3.version]
+libraries.maven3_model_builder = [coordinate: 'org.apache.maven:maven-model-builder', version: libraries.maven3.version]
+libraries.maven3_plugin_api = [coordinate: 'org.apache.maven:maven-plugin-api', version: libraries.maven3.version]
+libraries.maven3_repository_metadata = [coordinate: 'org.apache.maven:maven-repository-metadata', version: libraries.maven3.version]
+libraries.maven3_settings = [coordinate: 'org.apache.maven:maven-settings', version: libraries.maven3.version]
+libraries.maven3_settings_builder = [coordinate: 'org.apache.maven:maven-settings-builder', version: libraries.maven3.version]
+libraries.plexus_cipher = [coordinate: 'org.sonatype.plexus:plexus-cipher', version: '1.7']
+libraries.plexus_classworlds = [coordinate: 'org.codehaus.plexus:plexus-classworlds', version: '2.4']
+libraries.plexus_component_annotations = [coordinate: 'org.codehaus.plexus:plexus-component-annotations', version: '1.5.5']
+libraries.plexus_interpolation = [coordinate: 'org.codehaus.plexus:plexus-interpolation', version: '1.14']
+libraries.plexus_sec_dispatcher = [coordinate: 'org.codehaus.plexus:plexus-sec-dispatcher', version: '1.3']
+libraries.plexus_utils = [coordinate: 'org.codehaus.plexus:plexus-utils', version: '3.0.8']
+libraries.snakeyaml = [coordinate: 'org.yaml:snakeyaml:1.6', version: '1.6'] //added by testng, could be avoided with newer TestNG version
+libraries.maven3_wagon_http_shared4 = [coordinate: 'org.apache.maven.wagon:wagon-http-shared4', version: libraries.maven3_wagon_file.version]
+libraries.maven3_wagon_provider_api = [coordinate: 'org.apache.maven.wagon:wagon-provider-api', version: libraries.maven3_wagon_file.version]
+libraries.xbean_reflect = [coordinate: 'org.apache.xbean:xbean-reflect', version: '3.4']
