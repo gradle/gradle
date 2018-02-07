@@ -18,31 +18,13 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
 import spock.lang.Unroll
-import spock.util.environment.OperatingSystem
 
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
         runner.minimumVersion = "4.5"
         runner.targetVersions = ["4.6-20180201071900+0000"]
-        if (OperatingSystem.current.linux) {
-            def toolchain = new File(runner.workingDir, "toolchain.gradle")
-            toolchain << """
-                allprojects { p ->
-                    apply plugin: SwiftCompilerPlugin
-                
-                    model {
-                        toolChains {
-                            swiftc(Swiftc) {
-                                path file('/opt/swift/latest/usr/bin')
-                            }
-                        }
-                    }
-                }
-            """
-            runner.args.add("-I${toolchain.absolutePath}")
-        }
-        runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
+        runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
     @Unroll

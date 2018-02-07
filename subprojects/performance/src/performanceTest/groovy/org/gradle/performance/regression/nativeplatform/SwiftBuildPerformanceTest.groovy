@@ -16,33 +16,17 @@
 
 package org.gradle.performance.regression.nativeplatform
 
+import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.AbstractFileChangeMutator
 import spock.lang.Unroll
-import spock.util.environment.OperatingSystem
 
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.5'
         runner.targetVersions = ["4.6-20180201071900+0000"]
-        if (OperatingSystem.current.linux) {
-            def toolchain = new File(runner.workingDir, "toolchain.gradle")
-            toolchain << """
-                allprojects { p ->
-                    apply plugin: SwiftCompilerPlugin
-                
-                    model {
-                        toolChains {
-                            swiftc(Swiftc) {
-                                path file('/opt/swift/latest/usr/bin')
-                            }
-                        }
-                    }
-                }
-            """
-            runner.args.add("-I${toolchain.absolutePath}")
-        }
+        runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
     @Unroll
@@ -52,8 +36,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.runs = iterations
-        runner.warmUpRuns = iterations
 
         when:
         def result = runner.run()
@@ -62,8 +44,8 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                       | maxMemory | iterations
-        'mediumSwiftMulti'                | '1G'      | null
+        testProject                       | maxMemory
+        'mediumSwiftMulti'                | '1G'
     }
 
     @Unroll
