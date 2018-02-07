@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import java.io.File;
 
-public interface ArtifactCacheMetaData {
+public interface ArtifactCacheMetadata {
     /**
      * Returns the root directory for the cache.
      */

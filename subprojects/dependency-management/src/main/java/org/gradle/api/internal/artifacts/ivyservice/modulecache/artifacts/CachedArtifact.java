@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
-import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.internal.resource.cached.CachedItem;
 
-public class DependencyManagementGradleUserHomeScopeServices {
-    DefaultArtifactCacheMetadata createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
-        return new DefaultArtifactCacheMetadata(cacheScopeMapping);
-    }
+import java.math.BigInteger;
+import java.util.List;
+
+public interface CachedArtifact extends CachedItem {
+    BigInteger getDescriptorHash();
+
+    List<String> attemptedLocations();
 }

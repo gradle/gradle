@@ -16,20 +16,20 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
 
-class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
+class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final ModuleSource moduleSource;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metaData;
     private ModuleComponentResolveMetadata processedMetadata;
 
-    public DefaultCachedMetaData(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.metaData = metaData;

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
@@ -35,7 +35,7 @@ import org.junit.Rule
 class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def artifactCacheMetaData = Mock(ArtifactCacheMetaData)
+    def artifactCacheMetaData = Mock(ArtifactCacheMetadata)
     def scopeMapping = Stub(CacheScopeMapping)
     def cacheRepo = new DefaultCacheRepository(scopeMapping, new InMemoryCacheFactory())
     def decorator = Stub(InMemoryCacheDecoratorFactory)

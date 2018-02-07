@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
+package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -32,8 +32,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SingleFileBackedModuleVersionsCache.class);
+public class DefaultModuleVersionsCache implements ModuleVersionsCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleVersionsCache.class);
 
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
@@ -42,7 +42,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
     private final Map<ModuleKey, ModuleVersionsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
     private PersistentIndexedCache<ModuleKey, ModuleVersionsCacheEntry> cache;
 
-    public SingleFileBackedModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
