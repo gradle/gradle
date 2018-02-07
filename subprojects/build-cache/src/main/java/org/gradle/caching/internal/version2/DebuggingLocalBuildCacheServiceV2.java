@@ -34,25 +34,25 @@ public class DebuggingLocalBuildCacheServiceV2 implements LocalBuildCacheService
     @Override
     public CacheEntry get(HashCode key) {
         CacheEntry entry = delegate.get(key);
-        LOGGER.lifecycle("Getting entry {}, found: {}", key, entry);
+        LOGGER.info("Getting entry {}, found: {}", key, entry);
         return entry;
     }
 
     @Override
     public FileEntry put(HashCode key, File file) {
-        LOGGER.lifecycle("Putting file {}: {}", key, file);
+        LOGGER.info("Putting file {}: {}", key, file);
         return delegate.put(key, file);
     }
 
     @Override
     public ManifestEntry put(HashCode key, ImmutableSortedMap<String, HashCode> entries) {
-        LOGGER.lifecycle("Putting manifest {}: {}", key, entries);
+        LOGGER.info("Putting manifest {}: {}", key, entries);
         return delegate.put(key, entries);
     }
 
     @Override
     public ResultEntry put(HashCode key, ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata) {
-        LOGGER.lifecycle("Putting results {}: {}", key, outputs);
+        LOGGER.info("Putting results {}: {}", key, outputs);
         return delegate.put(key, outputs, originMetadata);
     }
 }
