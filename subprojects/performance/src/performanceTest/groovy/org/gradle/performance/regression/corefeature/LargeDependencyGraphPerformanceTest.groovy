@@ -18,6 +18,7 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
+import spock.lang.Unroll
 
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
@@ -25,27 +26,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.minimumVersion = '4.0'
-    }
-
-    def "resolve large dependency graph"() {
-        runner.testProject = TEST_PROJECT_NAME
-        startServer()
-
-        given:
-        def baseline = "4.6-20180125002142+0000"
-        runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = [baseline]
-        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "-PnoExcludes"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        cleanup:
-        stopServer()
     }
 
     def "resolve large dependency graph from file repo"() {
@@ -65,7 +45,8 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    def "resolve large dependency graph (parallel)"() {
+    @Unroll
+    def "resolve large dependency graph (advanced pom support = #advancedPomSupport, parallel = #parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 
@@ -74,7 +55,13 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
         runner.targetVersions = [baseline]
-        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "-PnoExcludes", "--parallel"]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
+        if (parallel) {
+            runner.args += '--parallel'
+        }
+        if (advancedPomSupport) {
+            runner.args += '-Porg.gradle.advancedpomsupport=true'
+        }
 
         when:
         def result = runner.run()
@@ -84,48 +71,13 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
         cleanup:
         stopServer()
-    }
 
-    def "resolve large dependency graph with advanced pom support"() {
-        runner.testProject = TEST_PROJECT_NAME
-        startServer()
-
-        given:
-        def baseline = "4.6-20180125002142+0000"
-        runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = [baseline]
-        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '-Porg.gradle.advancedpomsupport=true']
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        cleanup:
-        stopServer()
-    }
-
-    def "resolve large dependency graph with advanced pom support (parallel)"() {
-        runner.testProject = TEST_PROJECT_NAME
-        startServer()
-
-        given:
-        def baseline = "4.6-20180125002142+0000"
-        runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = [baseline]
-        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '--parallel', '-Porg.gradle.advancedpomsupport=true']
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        cleanup:
-        stopServer()
+        where:
+        parallel | advancedPomSupport
+        true     | true
+        true     | false
+        false    | true
+        false    | false
     }
 
 }
