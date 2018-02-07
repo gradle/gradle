@@ -40,7 +40,7 @@ public interface ScriptFileResolver {
 
     /**
      * Searches for script files in the given directory, that is, any file with a known
-     * {@link ScriptingLanguage#getExtension()}).
+     * {@link ScriptingLanguage#getExtension() extension}.
      *
      * @param dir the directory in which to search
      *
