@@ -21,6 +21,8 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
@@ -44,6 +46,29 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
 internal
+data class ScriptBlock<out T>(
+    val displayName: String,
+    val scriptTemplate: KClass<*>,
+    val scriptPath: String,
+    val source: String,
+    val metadata: T) {
+
+    val sourceHash: HashCode = Hashing.md5().hashString(source)
+}
+
+
+internal
+data class CompiledScript<out T>(
+    val location: File,
+    val className: String,
+    val metadata: T)
+
+
+private
+val logger = loggerFor<KotlinScriptPluginFactory>()
+
+
+internal
 class CachingKotlinCompiler(
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
@@ -54,70 +79,24 @@ class CachingKotlinCompiler(
     }
 
     private
-    val logger = loggerFor<KotlinScriptPluginFactory>()
-
-    private
     val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl")
 
     private
     val cacheProperties = mapOf("version" to "6")
 
-    fun compileBuildscriptBlockOf(
-        buildscriptBlockTemplate: KClass<out Any>,
-        scriptPath: String,
-        buildscript: String,
-        classPath: ClassPath): CompiledScript {
+    fun <T> compileScriptBlock(scriptBlock: ScriptBlock<T>, classPath: ClassPath): CompiledScript<T> =
 
-        val scriptFileName = scriptFileNameFor(scriptPath)
-        val cacheKeySpec = cacheKeyPrefix + buildscriptBlockTemplate.qualifiedName + scriptFileName + buildscript
-        return compileScript(cacheKeySpec, classPath) { cacheDir ->
-            ScriptCompilationSpec(
-                buildscriptBlockTemplate,
-                scriptPath,
-                cacheFileFor(buildscript, cacheDir, scriptFileName),
-                scriptFileName + " buildscript block")
+        scriptBlock.run {
+            val scriptFileName = scriptFileNameFor(scriptPath)
+            val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + source
+            return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
+                ScriptCompilationSpec(
+                    displayName,
+                    scriptTemplate,
+                    scriptPath,
+                    cacheFileFor(source, cacheDir, scriptFileName))
+            }
         }
-    }
-
-    data class CompiledScript(val location: File, val className: String)
-
-    fun compilePluginsBlockOf(
-        pluginsBlockTemplate: KClass<out Any>,
-        scriptPath: String,
-        lineNumberedPluginsBlock: Pair<Int, String>,
-        classPath: ClassPath): CompiledPluginsBlock {
-
-        val (lineNumber, plugins) = lineNumberedPluginsBlock
-        val scriptFileName = scriptFileNameFor(scriptPath)
-        val cacheKeySpec = cacheKeyPrefix + pluginsBlockTemplate.qualifiedName + scriptFileName + plugins
-        val compiledScript = compileScript(cacheKeySpec, classPath) { cacheDir ->
-            ScriptCompilationSpec(
-                pluginsBlockTemplate,
-                scriptPath,
-                cacheFileFor(plugins, cacheDir, scriptFileName),
-                scriptFileName + " plugins block")
-        }
-        return CompiledPluginsBlock(lineNumber, compiledScript)
-    }
-
-    data class CompiledPluginsBlock(val lineNumber: Int, val compiledScript: CompiledScript)
-
-    fun compileGradleScript(
-        scriptTemplate: KClass<out Any>,
-        scriptPath: String,
-        script: String,
-        classPath: ClassPath): CompiledScript {
-
-        val scriptFileName = scriptFileNameFor(scriptPath)
-        val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + script
-        return compileScript(cacheKeySpec, classPath) { cacheDir ->
-            ScriptCompilationSpec(
-                scriptTemplate,
-                scriptPath,
-                cacheFileFor(script, cacheDir, scriptFileName),
-                scriptFileName)
-        }
-    }
 
     private
     fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
@@ -126,10 +105,11 @@ class CachingKotlinCompiler(
     }
 
     private
-    fun compileScript(
+    fun <T> compileScript(
         cacheKeySpec: CacheKeySpec,
         classPath: ClassPath,
-        compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript {
+        metadata: T,
+        compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript<T> {
 
         try {
             val cacheDir = cacheDirFor(cacheKeySpec + classPath) {
@@ -137,17 +117,17 @@ class CachingKotlinCompiler(
                     compileScriptTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath)
                 writeClassNameTo(baseDir, scriptClassName)
             }
-            return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir))
+            return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir), metadata)
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
     }
 
     data class ScriptCompilationSpec(
+        val displayName: String,
         val scriptTemplate: KClass<out Any>,
         val originalPath: String,
-        val scriptFile: File,
-        val description: String)
+        val scriptFile: File)
 
     private
     fun compileScriptTo(
@@ -156,8 +136,10 @@ class CachingKotlinCompiler(
         classPath: ClassPath): String =
 
         spec.run {
-            withProgressLoggingFor(description) {
-                logger.debug("Kotlin compilation classpath for {}: {}", description, classPath)
+            withProgressLoggingFor(displayName) {
+                logger.debug(
+                    "Compiling {} from {} with classpath: {}",
+                    scriptTemplate.simpleName, displayName, classPath)
                 compileKotlinScriptToDirectory(
                     outputDir,
                     scriptFile,

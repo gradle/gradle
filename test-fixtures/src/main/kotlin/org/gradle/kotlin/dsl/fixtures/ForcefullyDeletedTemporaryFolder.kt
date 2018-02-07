@@ -8,13 +8,14 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.CLASS
 
 
 /**
  * A [TemporaryFolder] JUnit rule that fails the test if the temporary folder cannot be deleted
  * when the test finishes and the test is not annotated with [LeaksFileHandles].
  */
-class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
+open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
 
     override fun delete() = GFileUtils.forceDelete(root)
 
@@ -49,6 +50,7 @@ class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
     private
     fun leaksFileHandles(description: Description) =
         description.getAnnotation(LeaksFileHandles::class.java) != null
+            || description.testClass.getAnnotation(LeaksFileHandles::class.java) != null
 }
 
 
@@ -58,5 +60,5 @@ class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
  *
  * @see ForcefullyDeletedTemporaryFolder
  */
-@Target(FUNCTION)
-annotation class LeaksFileHandles
+@Target(FUNCTION, CLASS)
+annotation class LeaksFileHandles(val why: String = "")

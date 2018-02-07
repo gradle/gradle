@@ -33,6 +33,7 @@ import javax.inject.Inject
 class KotlinScriptPluginFactory @Inject internal constructor(
     val classPathProvider: KotlinScriptClassPathProvider,
     val kotlinCompiler: CachingKotlinCompiler,
+    val classloadingCache: KotlinScriptClassloadingCache,
     val pluginRequestsHandler: PluginRequestsHandler,
     val embeddedKotlinProvider: EmbeddedKotlinProvider) : ScriptPluginFactory {
 
@@ -80,6 +81,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
         KotlinBuildScriptCompiler(
             kotlinCompiler,
+            classloadingCache,
             scriptSource,
             scriptTarget, scriptHandler as ScriptHandlerInternal,
             pluginRequestsHandler,
