@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.NativeLibrarySpec
 /**
  * Generates a multi-project native build that has project dependencies and tests.
  */
-class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
+class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
 
     /** Represents a native library requirement */
     class Dependency {

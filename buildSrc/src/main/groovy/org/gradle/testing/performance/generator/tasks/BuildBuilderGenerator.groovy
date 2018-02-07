@@ -17,7 +17,6 @@
 package org.gradle.testing.performance.generator.tasks
 
 import org.gradle.api.Action
-import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -35,7 +34,7 @@ import java.util.concurrent.Callable
  *
  * @see <a href="https://github.com/adammurdoch/build-builder">build builder</a>
  */
-class BuildBuilderGenerator extends DefaultTask {
+class BuildBuilderGenerator extends ProjectGeneratorTask {
     /**
      * Installation directory of the build-builder tool.
      */
