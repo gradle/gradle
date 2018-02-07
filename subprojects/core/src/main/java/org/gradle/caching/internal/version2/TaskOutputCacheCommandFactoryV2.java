@@ -229,7 +229,11 @@ public class TaskOutputCacheCommandFactoryV2 {
         private RelativePath getChildPath(RelativePath parent, File target, boolean isFile) {
             RelativePath relativePath;
             if (parent == null) {
-                relativePath = RelativePath.parse(isFile, target.getName());
+                if (isFile) {
+                    relativePath = RelativePath.parse(true, target.getName());
+                } else {
+                    relativePath = RelativePath.EMPTY_ROOT;
+                }
             } else {
                 relativePath = parent.append(isFile, target.getName());
             }
