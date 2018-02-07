@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -28,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
-import static org.testng.Assert.assertTrue;
 
 public class MSBuildExecutor {
     public enum MSBuildAction {
@@ -96,13 +96,6 @@ public class MSBuildExecutor {
     }
 
     private TestFile findMSBuild() {
-        TestFile vswhere = new TestFile(System.getenv("ProgramFiles(x86)") + "/Microsoft Visual Studio/Installer/vswhere.exe");
-        assertTrue(vswhere.exists(), "This test requires vswhere to be installed in '%ProgramFiles(x86)%/Microsoft Visual Studio/Installer/vswhere.exe'");
-
-        TestFile installDir = new TestFile(vswhere.exec("-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild", "-property", "installationPath").getOut().trim());
-
-        TestFile msbuild = installDir.file("MSBuild/15.0/Bin/MSBuild.exe");
-        assertTrue(msbuild.exists(), "This test requires msbuild to be installed");
-        return msbuild;
+        return new TestFile(VisualStudioLocatorTestFixture.getMSBuildLocator().getMSBuildInstall());
     }
 }

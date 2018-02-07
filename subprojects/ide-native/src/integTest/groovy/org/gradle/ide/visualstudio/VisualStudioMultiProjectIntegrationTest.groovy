@@ -21,10 +21,10 @@ import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -298,7 +298,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    @Requires(TestPrecondition.MSBUILD)
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
 
@@ -341,7 +341,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    @Requires(TestPrecondition.MSBUILD)
     def "can clean from visual studio with dependencies"() {
         useMsbuildTool()
         def debugBinary = executable('exe/build/exe/main/debug/main')

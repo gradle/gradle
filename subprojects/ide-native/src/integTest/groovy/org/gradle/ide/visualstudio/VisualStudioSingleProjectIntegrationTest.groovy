@@ -23,12 +23,13 @@ import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -140,7 +141,7 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    @Requires(TestPrecondition.MSBUILD)
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/exe/main/win32/debug/main")
@@ -172,7 +173,7 @@ model {
         installation('build/install/main/win32/debug').assertInstalled()
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    @Requires(TestPrecondition.MSBUILD)
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
@@ -205,7 +206,7 @@ model {
         debugBinaryDll.assertExists()
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    @Requires(TestPrecondition.MSBUILD)
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
 
@@ -235,7 +236,7 @@ model {
         file('build').assertDoesNotExist()
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    @Requires(TestPrecondition.MSBUILD)
     def "can clean from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable('build/exe/main/win32/debug/main')
