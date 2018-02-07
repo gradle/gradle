@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.SourcepathIgnoringProxy;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
@@ -31,6 +32,7 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
@@ -49,7 +51,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         if (!success) {
             throw new CompilationFailedException();
         }
-
         return WorkResults.didWork(true);
     }
 
@@ -63,7 +64,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         if (JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options)) {
             fileManager = (StandardJavaFileManager) SourcepathIgnoringProxy.proxy(standardFileManager, StandardJavaFileManager.class);
         }
-        return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, null, compilationUnits);
+
+        Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
+        if (annotationProcessors != null) {
+            task = new IncrementalAnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath());
+        }
+        return task;
     }
 
     private static boolean emptySourcepathIn(List<String> options) {

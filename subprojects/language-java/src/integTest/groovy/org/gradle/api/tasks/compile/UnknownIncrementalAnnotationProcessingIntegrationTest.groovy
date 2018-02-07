@@ -16,39 +16,39 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
+import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 
-class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
+class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
     @Override
-    protected IncrementalAnnotationProcessorType getProcessorType() {
-        return IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN
+    def setup() {
+        withProcessor(new NonIncrementalProcessorFixture())
     }
 
     def "all sources are recompiled when any class changes"() {
-        def a = java "@Helper class A {}"
+        def a = java "@Thing class A {}"
         java "class B {}"
 
         outputs.snapshot { run "compileJava" }
 
         when:
-        a.text = "@Helper class A { public void foo() {} }"
+        a.text = "@Thing class A { public void foo() {} }"
         run "compileJava"
 
         then:
-        outputs.recompiledClasses("A", "AHelper", "B")
+        outputs.recompiledClasses("A", "AThing", "B")
     }
 
     def "the user is informed about non-incremental processors"() {
-        def a = java "@Helper class A {}"
+        def a = java "@Thing class A {}"
 
         when:
         run "compileJava"
-        a.text = "@Helper class A { public void foo() {} }"
+        a.text = "@Thing class A { public void foo() {} }"
         run "compileJava", "--info"
 
         then:
         output.contains("The following annotation processors don't support incremental compilation:")
-        output.contains("Processor (type: MULTIPLE_ORIGIN)")
+        output.contains("Processor (type: UNKNOWN)")
     }
 }
