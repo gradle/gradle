@@ -18,9 +18,9 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
@@ -50,7 +50,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.SortedSet;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
@@ -112,7 +111,7 @@ public abstract class AbstractLoadCommand<I, O> {
 
     protected abstract O performLoad(I input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException;
 
-    protected void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
+    protected void updateSnapshots(Multimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
         ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
         for (OutputPropertySpec property : outputProperties) {
             String propertyName = property.getPropertyName();
@@ -121,7 +120,7 @@ public abstract class AbstractLoadCommand<I, O> {
                 propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
                 continue;
             }
-            List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
+            Collection<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
 
             CollectingFileCollectionSnapshotBuilder builder = new CollectingFileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
             for (FileSnapshot fileSnapshot : fileSnapshots) {

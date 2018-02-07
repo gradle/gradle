@@ -16,21 +16,26 @@
 
 package org.gradle.caching.internal.version2;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
+import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -42,6 +47,7 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -53,7 +59,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -81,8 +90,12 @@ public class TaskOutputCacheCommandFactoryV2 {
     }
 
     private class LoadCommand extends AbstractLoadCommand<Void, OriginTaskExecutionMetadata> implements BuildCacheLoadCommandV2<OriginTaskExecutionMetadata> {
+
+        private final Map<String, Map<String, FileContentSnapshot>> incomingSnapshotsPerProperty;
+
         public LoadCommand(BuildCacheKey key, SortedSet<? extends OutputPropertySpec> outputProperties, TaskInternal task, FileCollection localStateFiles, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
             super(key, outputProperties, task, localStateFiles, taskOutputChangesListener, taskArtifactState, fileSystemMirror, stringInterner, taskOutputOriginFactory);
+            this.incomingSnapshotsPerProperty = taskArtifactState.getOutputContentSnapshots();
         }
 
         @Override
@@ -97,7 +110,7 @@ public class TaskOutputCacheCommandFactoryV2 {
         }
 
         @Override
-        protected OriginTaskExecutionMetadata performLoad(Void input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) {
+        protected OriginTaskExecutionMetadata performLoad(Void input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
             HashCode resultKey = HashCode.fromString(getKey().getHashCode());
             CacheEntry entry = local.get(resultKey);
             if (entry == null) {
@@ -109,53 +122,118 @@ public class TaskOutputCacheCommandFactoryV2 {
 
             ResultEntry result = (ResultEntry) entry;
             Map<String, HashCode> outputs = result.getOutputs();
+            ImmutableListMultimap.Builder<String, FileSnapshot> outgoingSnapshotsPerProperty = ImmutableListMultimap.builder();
             for (OutputPropertySpec propertySpec : outputProperties) {
-                HashCode outputKey = outputs.get(propertySpec.getPropertyName());
-                if (outputKey == null) {
-                    // Optional outputs are missing
-                    FileUtils.deleteQuietly(propertySpec.getOutputRoot());
+                String propertyName = propertySpec.getPropertyName();
+
+                File outputRoot = propertySpec.getOutputRoot();
+                if (outputRoot == null) {
+                    // Optional output was null
                     continue;
                 }
-                try {
-                    if (propertySpec.getOutputType() == OutputType.FILE) {
-                        FileUtils.forceMkdir(propertySpec.getOutputRoot().getParentFile());
+
+                HashCode outputKey = outputs.get(propertyName);
+                if (outputKey == null) {
+                    // Outputs were deleted during task execution
+                    FileUtils.deleteQuietly(outputRoot);
+                    continue;
+                }
+
+                Map<String, FileContentSnapshot> incomingSnapshots = getIncomingSnapshots(propertyName);
+
+                if (propertySpec.getOutputType() == OutputType.FILE) {
+                    FileUtils.forceMkdir(outputRoot.getParentFile());
+                }
+                List<FileSnapshot> outgoingSnapshots = Lists.newArrayListWithExpectedSize(incomingSnapshots.size());
+                load(outputKey, outputRoot, null, incomingSnapshots, outgoingSnapshots);
+                outgoingSnapshotsPerProperty.putAll(propertyName, outgoingSnapshots);
+
+                for (String remainingAbsolutePath : incomingSnapshots.keySet()) {
+                    // System.out.println("> Deleting redundant output " + remainingAbsolutePath);
+                    File remainingFile = new File(remainingAbsolutePath);
+                    if (remainingFile.exists()) {
+                        FileUtils.forceDelete(remainingFile);
                     }
-                    load(outputKey, propertySpec.getOutputRoot());
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
                 }
             }
-            return reader.execute(result.getOriginMetadata());
+            OriginTaskExecutionMetadata originMetadata = reader.execute(result.getOriginMetadata());
+            updateSnapshots(outgoingSnapshotsPerProperty.build(), originMetadata);
+            return originMetadata;
         }
 
-        private void load(HashCode key, File target) throws IOException {
+        private Map<String, FileContentSnapshot> getIncomingSnapshots(String propertyName) {
+            Map<String, FileContentSnapshot> incomingSnapshots = incomingSnapshotsPerProperty.get(propertyName);
+            if (incomingSnapshots == null) {
+                throw new IllegalStateException("Cannot find incoming output snapshots for " + propertyName);
+            }
+            return new HashMap<String, FileContentSnapshot>(incomingSnapshots);
+        }
+
+        private void load(HashCode key, File target, RelativePath parent, Map<String, FileContentSnapshot> incomingSnapshots, Collection<FileSnapshot> outgoingSnapshots) throws IOException {
             CacheEntry entry = local.get(key);
+            String absolutePath = target.getAbsolutePath();
+            FileSnapshot outgoingSnapshot;
+            FileContentSnapshot incomingSnapshot = incomingSnapshots.remove(absolutePath);
             if (entry instanceof FileEntry) {
-                InputStream inputStream = ((FileEntry) entry).read();
-                try {
-                    FileUtils.deleteQuietly(target);
-                    OutputStream outputStream = new FileOutputStream(target);
-                    try {
-                        ByteStreams.copy(inputStream, outputStream);
-                    } finally {
-                        IOUtils.closeQuietly(outputStream);
-                    }
-                } finally {
-                    IOUtils.closeQuietly(inputStream);
+                FileContentSnapshot outgoingContentSnapshot;
+                if (incomingSnapshot != null
+                    && incomingSnapshot.getType() == FileType.RegularFile
+                    && incomingSnapshot.getContentMd5().equals(key)
+                    && !target.exists()) {
+                    System.out.println("> File should exist but doesn't: " + target);
                 }
+
+                if (incomingSnapshot != null
+                    && incomingSnapshot.getType() == FileType.RegularFile
+                    && incomingSnapshot.getContentMd5().equals(key)
+                    && target.isFile()
+                ) {
+                    // System.out.println("> File " + key + " already matches required content for " + target);
+                    outgoingContentSnapshot = incomingSnapshot;
+                } else {
+                    // System.out.println("> Loading file " + key + " to " + target);
+                    InputStream inputStream = ((FileEntry) entry).read();
+                    try {
+                        FileUtils.deleteQuietly(target);
+                        OutputStream outputStream = new FileOutputStream(target);
+                        try {
+                            ByteStreams.copy(inputStream, outputStream);
+                        } finally {
+                            IOUtils.closeQuietly(outputStream);
+                        }
+                    } finally {
+                        IOUtils.closeQuietly(inputStream);
+                    }
+                    outgoingContentSnapshot = new FileHashSnapshot(key);
+                }
+                outgoingSnapshot = new RegularFileSnapshot(absolutePath, getChildPath(parent, target, true), parent == null, outgoingContentSnapshot);
             } else if (entry instanceof ManifestEntry) {
+                // System.out.println("> Processing manifest " + key + " for directory " + target);
                 ManifestEntry manifest = (ManifestEntry) entry;
                 ImmutableSortedMap<String, HashCode> childEntries = manifest.getChildren();
                 FileUtils.deleteQuietly(target);
                 FileUtils.forceMkdir(target);
+                RelativePath relativePath = getChildPath(parent, target, false);
                 for (Map.Entry<String, HashCode> childEntry : childEntries.entrySet()) {
-                    load(childEntry.getValue(), new File(target, childEntry.getKey()));
+                    load(childEntry.getValue(), new File(target, childEntry.getKey()), relativePath, incomingSnapshots, outgoingSnapshots);
                 }
+                outgoingSnapshot = new DirectoryFileSnapshot(absolutePath, relativePath, false);
             } else if (entry == null) {
                 throw new IllegalStateException("Entry not found: " + key);
             } else {
                 throw new IllegalStateException("Invalid entry type: " + entry.getClass().getName());
             }
+            outgoingSnapshots.add(outgoingSnapshot);
+        }
+
+        private RelativePath getChildPath(RelativePath parent, File target, boolean isFile) {
+            RelativePath relativePath;
+            if (parent == null) {
+                relativePath = RelativePath.parse(isFile, target.getName());
+            } else {
+                relativePath = parent.append(isFile, target.getName());
+            }
+            return relativePath;
         }
     }
 

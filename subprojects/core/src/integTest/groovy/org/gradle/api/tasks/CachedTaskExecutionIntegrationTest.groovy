@@ -91,7 +91,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         cacheDir.listFiles() as List == []
 
         when:
-        withBuildCache().run "jar"
+        withBuildCache().run "jar", "-Dorg.gradle.caching.version2=true", "-DcacheV2Dir=$cacheDir"
         def originalCacheContents = listCacheFiles()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
@@ -99,10 +99,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         originalCacheContents.size() > 0
 
         expect:
-        withBuildCache().run "clean"
+        run "clean"
 
         when:
-        withBuildCache().run "jar", "--rerun-tasks"
+        withBuildCache().run "jar", "--rerun-tasks", "-Dorg.gradle.caching.version2=true", "-DcacheV2Dir=$cacheDir"
         def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
@@ -141,10 +141,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
             apply plugin: "application"
             mainClassName = "Hello"
         """
-        withBuildCache().run "run"
-        withBuildCache().run "clean"
+        withBuildCache().run "run", "-Dorg.gradle.caching.version2=true", "-DcacheV2Dir=$cacheDir"
+        run "clean"
         expect:
-        withBuildCache().run "run"
+        withBuildCache().run "run", "-Dorg.gradle.caching.version2=true", "-DcacheV2Dir=$cacheDir"
     }
 
     def "tasks get cached when source code changes without changing the compiled output"() {
