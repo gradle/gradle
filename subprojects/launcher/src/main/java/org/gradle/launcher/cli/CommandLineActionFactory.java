@@ -85,7 +85,7 @@ public class CommandLineActionFactory {
             args,
             loggingConfiguration,
             new ExceptionReportingAction(
-                    new ParseAndBuildAction(loggingServices, args),
+                new ParseAndBuildAction(loggingServices, args),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
