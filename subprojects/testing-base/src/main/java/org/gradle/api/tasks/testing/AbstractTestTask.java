@@ -551,21 +551,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return this;
     }
 
-    @Option(option = "fail-fast", description = "Stops test execution after the first failed test")
-    public AbstractTestTask setFailFast(boolean ignored) {
-        this.failFast = true;
-        return this;
+    boolean getFailFast() {
+        return failFast;
     }
 
-    @Option(option = "no-fail-fast", description = "Ensures test execution continues after a failed test")
-    public AbstractTestTask setFailFastOff(boolean ignored) {
-        this.failFast = false;
-        return this;
-    }
-
-    @Input
-    public boolean getFailFast() {
-        return this.failFast;
+    void setFailFast(boolean failFast) {
+        this.failFast = failFast;
     }
 
     /**
