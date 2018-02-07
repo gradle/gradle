@@ -134,6 +134,7 @@ data class CIBuildModel (
 
             GradleSubproject("soak", unitTests = false, functionalTests = false),
 
+            GradleSubproject("distributionsDependencies", unitTests = false, functionalTests = false),
             GradleSubproject("buildScanPerformance", unitTests = false, functionalTests = false),
             GradleSubproject("distributions", unitTests = false, functionalTests = false),
             GradleSubproject("docs", unitTests = false, functionalTests = false),
