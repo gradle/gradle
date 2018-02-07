@@ -217,7 +217,7 @@ public class TaskOutputCacheCommandFactoryV2 {
                 for (Map.Entry<String, HashCode> childEntry : childEntries.entrySet()) {
                     load(childEntry.getValue(), new File(target, childEntry.getKey()), relativePath, incomingSnapshots, outgoingSnapshots);
                 }
-                outgoingSnapshot = new DirectoryFileSnapshot(absolutePath, relativePath, false);
+                outgoingSnapshot = new DirectoryFileSnapshot(absolutePath, relativePath, parent == null);
             } else if (entry == null) {
                 throw new IllegalStateException("Entry not found: " + key);
             } else {
