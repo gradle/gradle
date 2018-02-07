@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.JvmArgumentProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
 
@@ -68,6 +69,7 @@ public class JvmOptions {
     private boolean debug;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
+    private List<JvmArgumentProvider> jvmArgumentProviders = new ArrayList<JvmArgumentProvider>();
 
     public JvmOptions(PathToFileResolver resolver) {
         this.resolver = resolver;
@@ -107,8 +109,7 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        List<String> args = new ArrayList<String>();
-        args.addAll(getJvmArgs());
+        List<String> args = new ArrayList<String>(getJvmArgs());
         args.addAll(getManagedJvmArgs());
         return args;
     }
@@ -144,6 +145,7 @@ public class JvmOptions {
 
     public void setAllJvmArgs(Iterable<?> arguments) {
         mutableSystemProperties.clear();
+        jvmArgumentProviders.clear();
         minHeapSize = null;
         maxHeapSize = null;
         extraJvmArgs.clear();
@@ -318,9 +320,16 @@ public class JvmOptions {
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
         target.systemProperties(immutableSystemProperties);
+        for (JvmArgumentProvider jvmArgumentProvider : getJvmArgumentProviders()) {
+            target.jvmArgs(jvmArgumentProvider.asArguments());
+        }
     }
 
     public static List<String> fromString(String input) {
         return ArgumentsSplitter.split(input);
+    }
+
+    public List<JvmArgumentProvider> getJvmArgumentProviders() {
+        return jvmArgumentProviders;
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.JvmArgumentProvider;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -49,8 +50,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public List<String> getAllJvmArgs() {
-        List<String> allArgs = new ArrayList<String>();
-        allArgs.addAll(javaOptions.getAllJvmArgs());
+        List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
             allArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getFiles()));
@@ -68,6 +68,11 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public List<String> getJvmArgs() {
         return javaOptions.getJvmArgs();
+    }
+
+    @Override
+    public List<JvmArgumentProvider> getJvmArgumentProviders() {
+        return javaOptions.getJvmArgumentProviders();
     }
 
     public void setJvmArgs(List<String> arguments) {
@@ -214,8 +219,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<String> getAllArguments() {
-        List<String> arguments = new ArrayList<String>();
-        arguments.addAll(getAllJvmArgs());
+        List<String> arguments = new ArrayList<String>(getAllJvmArgs());
         arguments.add(mainClass);
         arguments.addAll(getArgs());
         return arguments;

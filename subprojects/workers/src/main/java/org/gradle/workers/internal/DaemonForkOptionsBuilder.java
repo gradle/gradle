@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.JvmArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsInternal;
@@ -197,6 +198,11 @@ public class DaemonForkOptionsBuilder {
         @Override
         public List<String> getJvmArgs() {
             return ImmutableList.copyOf(delegate.getJvmArgs());
+        }
+
+        @Override
+        public List<JvmArgumentProvider> getJvmArgumentProviders() {
+            return ImmutableList.copyOf(delegate.getJvmArgumentProviders());
         }
 
         @Override

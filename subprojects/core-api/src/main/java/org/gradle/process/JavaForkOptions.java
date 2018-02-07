@@ -16,10 +16,12 @@
 
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -120,6 +122,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      */
     @Optional @Input
     List<String> getJvmArgs();
+
+    /**
+     * The argument providers for the jvm.
+     *
+     * @since 4.6
+     */
+    @Nested
+    @Incubating
+    List<JvmArgumentProvider> getJvmArgumentProviders();
 
     /**
      * Sets the extra arguments to use to launch the JVM for the process. System properties
