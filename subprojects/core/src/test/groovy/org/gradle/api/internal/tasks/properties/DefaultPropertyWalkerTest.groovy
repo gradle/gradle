@@ -122,6 +122,57 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         "Action"  |  new Action<String>() { @Override void execute(String s) {} }
     }
 
+    def "cycle in nested inputs is detected"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        def cycle = new Tree(value: "cycle", left: new Tree(value: "left"))
+        cycle.right = cycle
+        task.nested = new Tree(value: "first", left: new Tree(value: "left"), right: new Tree(value: "deeper", left: cycle, right: new Tree(value: "no-cycle")))
+
+        when:
+        visitProperties(task)
+
+        then:
+        IllegalStateException e = thrown(IllegalStateException)
+        e.message == "Cycles between nested beans are not allowed. Cycle detected between: 'nested.right.left' and 'nested.right.left.right'."
+    }
+
+    def "cycle in nested input and task itself is detected"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = new Tree(value: "root", left: task, right: new Tree(value: "right"))
+
+        when:
+        visitProperties(task)
+
+        then:
+        IllegalStateException e = thrown(IllegalStateException)
+        e.message == "Cycles between nested beans are not allowed. Cycle detected between: '<root>' and 'nested.left'."
+    }
+
+    def "nested beans can be re-used"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        def subTree = new Tree(value: "left", left: new Tree(value: "left"), right: new Tree(value: "right"))
+        task.nested = new Tree(value: "head", left: subTree, right: new Tree(value: "deeper", left: subTree, right: new Tree(value: "evenDeeper", left: subTree, right: subTree)))
+
+        when:
+        visitProperties(task)
+
+        then:
+        noExceptionThrown()
+    }
+
+    static class TaskWithNestedObject extends DefaultTask {
+        @Nested
+        Object nested
+    }
+
+    static class Tree {
+        @Input
+        String value
+
+        @Nested Object left
+        @Nested Object right
+    }
+
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
         new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List)).visitProperties(specFactory, visitor, task)
