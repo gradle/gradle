@@ -17,6 +17,8 @@
 apply from: 'templates.gradle'
 
 dependencies {
+    compile project(':distributionsDependencies')
+
     performanceTestImplementation libraries.commons_compress.coordinate
 
     // so that all Gradle features are available
