@@ -18,116 +18,85 @@ package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
-abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
-    protected static final String FAILED_RESOURCE = "fail"
-    protected static final String OTHER_RESOURCE = "other"
-    protected static final int MAX_WORKERS = 2
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.FAILED_RESOURCE
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.OTHER_RESOURCE
 
+abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
+    JvmBlockingTestClassGenerator generator
 
     def setup() {
         server.start()
+        generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependency(), testFrameworkConfiguration())
     }
 
-    def "all tests run without fail fast"() {
+    @Unroll
+    def "all tests run with #description"() {
         given:
-        withBuildFile()
-        withFailingTest()
-        withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(2, FAILED_RESOURCE, OTHER_RESOURCE)
+        buildFile.text = generator.initBuildFile()
+        buildFile << buildConfig
+        generator.withFailingTest()
+        generator.withNonfailingTest()
+        def testExecution = server.expectConcurrentAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
 
         when:
-        def gradleHandle = executer.withTasks('test').start()
+        def gradleHandle = executer.withTasks(taskList).start()
         testExecution.waitForAllPendingCalls()
 
         then:
         testExecution.release(FAILED_RESOURCE)
-        sleep(1000)
         testExecution.release(OTHER_RESOURCE)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
         result.testClass('pkg.OtherTest').assertTestPassed('passingTest')
+
+        where:
+        description        | taskList                   | buildConfig
+        'default config'   | ['test']                   | ''
+        'failFast = false' | ['test']                   | 'test { failFast = false }'
+        '--no-fail-fast'   | ['test', '--no-fail-fast'] | ''
     }
 
-    def "all tests run with --no-fail-fast"() {
+    @Unroll
+    def "stop test execution with #description"() {
         given:
-        withBuildFile()
-        buildFile << "test { failFast = true }"
-        withFailingTest()
-        withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(2, FAILED_RESOURCE, OTHER_RESOURCE)
+        buildFile.text = generator.initBuildFile()
+        buildFile << buildConfig
+        generator.withFailingTest()
+        generator.withNonfailingTest()
+        def testExecution = server.expectOptionalAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
 
         when:
-        def gradleHandle = executer.withTasks('test', '--no-fail-fast').start()
+        def gradleHandle = executer.withTasks(taskList).start()
         testExecution.waitForAllPendingCalls()
 
         then:
         testExecution.release(FAILED_RESOURCE)
-        sleep(1000)
-        testExecution.release(OTHER_RESOURCE)
-        gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        result.testClass('pkg.OtherTest').assertTestPassed('passingTest')
-    }
-
-    def "stop test execution with failFast"() {
-        given:
-        withBuildFile()
-        buildFile << "test { failFast = true }"
-        withFailingTest()
-        withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(2, FAILED_RESOURCE, OTHER_RESOURCE)
-
-        when:
-        def gradleHandle = executer.withTasks('test').start()
-        testExecution.waitForAllPendingCalls()
-
-        then:
-        testExecution.release(FAILED_RESOURCE)
-        sleep(1000)
-        testExecution.release(OTHER_RESOURCE)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
         result.testClass('pkg.OtherTest').assertTestCount(0, 0, 0)
-    }
 
-    def "stop test execution with --fail-fast"() {
-        given:
-        withBuildFile()
-        withFailingTest()
-        withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(2, FAILED_RESOURCE, OTHER_RESOURCE)
-
-        when:
-        def gradleHandle = executer.withTasks('test', '--fail-fast').start()
-        testExecution.waitForAllPendingCalls()
-
-        then:
-        testExecution.release(FAILED_RESOURCE)
-        sleep(1000)
-        testExecution.release(OTHER_RESOURCE)
-        gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        result.testClass('pkg.OtherTest').assertTestCount(0, 0, 0)
+        where:
+        description       | taskList                   | buildConfig
+        'failFast = true' | ['test']                   | 'test { failFast = true }'
+        '--fail-fast'     | ['test', '--fail-fast']    | ''
     }
 
     @Unroll
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
-        withBuildFile(maxWorkers, forkEvery)
-        withFailingTest()
-        def otherResources = withNonfailingTests(testOmitted)
+        buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)
+        generator.withFailingTest()
+        def otherResources = generator.withNonfailingTests(testOmitted)
         def testExecution = server.expectOptionalAndBlock(maxWorkers, ([FAILED_RESOURCE ] + otherResources).grep() as String[])
 
         when:
@@ -136,8 +105,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         testExecution.release(FAILED_RESOURCE)
-        sleep(1000)
-        testExecution.releaseAll()
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
@@ -157,10 +124,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
     def "fail fast console output shows failure"() {
         given:
-        withBuildFile()
-        withFailingTest()
-        withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(2, FAILED_RESOURCE, OTHER_RESOURCE)
+        buildFile.text = generator.initBuildFile()
+        generator.withFailingTest()
+        generator.withNonfailingTest()
+        def testExecution = server.expectConcurrentAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
@@ -171,69 +138,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         gradleHandle.waitForFailure()
         assert gradleHandle.standardOutput.matches(/(?s).*pkg\.FailedTest.*failTest.*FAILED.*java.lang.RuntimeException at FailedTest.java.*/)
         assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
-    }
-
-    void withBuildFile(int maxWorkers = MAX_WORKERS, int forkEvery = 0) {
-        buildFile << """
-            apply plugin: 'java'
-
-            ${RepoScriptBlockUtil.jcenterRepository()}
-
-            dependencies {
-                testCompile '${testDependency()}'
-            }
-
-            tasks.withType(Test) {
-                maxParallelForks = $maxWorkers
-                forkEvery = $forkEvery
-            }
-
-            ${testFrameworkConfiguration()}
-        """
-    }
-
-    void withFailingTest() {
-        file('src/test/java/pkg/FailedTest.java') << """
-            package pkg;
-            import ${testAnnotationClass()};
-            public class FailedTest {
-                @Test
-                public void failTest() {
-                    ${server.callFromBuild("$FAILED_RESOURCE")}
-                    throw new RuntimeException();
-                }
-            }
-        """.stripIndent()
-    }
-
-    void withNonfailingTest() {
-        file('src/test/java/pkg/OtherTest.java') << """
-            package pkg;
-            import ${testAnnotationClass()};
-            public class OtherTest {
-                @Test
-                public void passingTest() {
-                    ${server.callFromBuild("$OTHER_RESOURCE")}
-                }
-            }
-        """.stripIndent()
-    }
-
-    List<String> withNonfailingTests(int num) {
-        (1..num).collect {
-            final resource = "test_${it}" as String
-            file("src/test/java/pkg/OtherTest_${it}.java") << """
-                package pkg;
-                import ${testAnnotationClass()};
-                public class OtherTest_${it} {
-                    @Test
-                    public void passingTest() {
-                        ${server.callFromBuild("$resource")}
-                    }
-                }
-            """.stripIndent()
-            resource
-        }
     }
 
     abstract String testAnnotationClass()

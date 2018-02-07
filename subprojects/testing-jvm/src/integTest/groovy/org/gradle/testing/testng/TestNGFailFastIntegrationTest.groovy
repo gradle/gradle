@@ -21,6 +21,8 @@ import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.FAILED_RESOURCE
+
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
     String testAnnotationClass() {
@@ -44,7 +46,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Unroll
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
-        withBuildFile(maxWorkers)
+        buildFile.text = generator.initBuildFile(maxWorkers)
         buildFile << """
             test {
                 useTestNG() {
@@ -53,8 +55,8 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
                 }
             }
         """.stripIndent()
-        withFailingTest()
-        def otherResources = withNonfailingTests(5)
+        generator.withFailingTest()
+        def otherResources = generator.withNonfailingTests(5)
         def testExecution = server.expectOptionalAndBlock(maxWorkers * threadCount, ([FAILED_RESOURCE ] + otherResources).grep() as String[])
 
         when:
@@ -63,8 +65,6 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
 
         then:
         testExecution.release(FAILED_RESOURCE)
-        sleep(1000)
-        testExecution.releaseAll()
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
