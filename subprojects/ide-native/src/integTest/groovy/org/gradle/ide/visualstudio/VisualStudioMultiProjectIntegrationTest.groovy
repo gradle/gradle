@@ -16,12 +16,14 @@
 package org.gradle.ide.visualstudio
 
 import org.apache.commons.io.FilenameUtils
+import org.gradle.api.Project
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -517,6 +519,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
+    /** @see IdePlugin#toGradleCommand(Project) */
     @IgnoreIf({GradleContextualExecuter.daemon})
     def "detects gradle wrapper and uses in vs project"() {
         when:
@@ -544,6 +547,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         }
     }
 
+    /** @see IdePlugin#toGradleCommand(Project) */
     @IgnoreIf({!GradleContextualExecuter.daemon})
     def "detects executing gradle distribution and uses in vs project"() {
         when:

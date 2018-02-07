@@ -54,6 +54,12 @@ public abstract class IdePlugin implements Plugin<Project>, IdeArtifactRegistry 
     private Task cleanTask;
     protected Project project;
 
+    /**
+     * Returns the path to the correct Gradle distribution to use. The wrapper of the generating project will be used only if the execution context of the currently running Gradle is in the Gradle home (typical of a wrapper execution context). If this isn't the case, we try to use the current Gradle home, if available, as the distribution. Finally, if nothing matches, we default to the system-wide Gradle distribution.
+     *
+     * @param project the Gradle project generating the IDE files
+     * @return path to Gradle distribution to use within the generated IDE files
+     */
     public static String toGradleCommand(Project project) {
         Gradle gradle = project.getGradle();
         Optional<String> gradleWrapperPath = Optional.absent();
