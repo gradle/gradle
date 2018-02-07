@@ -44,7 +44,6 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     private TestFile dir;
     private String prefix;
     private boolean cleanup = true;
-    private boolean suppressCleanupErrors;
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -66,22 +65,18 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     }
 
     public Statement apply(final Statement base, Description description) {
-        Class<?> testClass = description.getTestClass();
-        init(description.getMethodName(), testClass.getSimpleName());
+        init(description.getMethodName(), description.getTestClass().getSimpleName());
 
-        suppressCleanupErrors = testClass.getAnnotation(LeaksFileHandles.class) != null
-            || description.getAnnotation(LeaksFileHandles.class) != null;
-
-        return new TestDirectoryCleaningStatement(base, description.getDisplayName());
+        return new TestDirectoryCleaningStatement(base, description);
     }
 
     private class TestDirectoryCleaningStatement extends Statement {
         private final Statement base;
-        private final String displayName;
+        private final Description description;
 
-        public TestDirectoryCleaningStatement(Statement base, String displayName) {
+        TestDirectoryCleaningStatement(Statement base, Description description) {
             this.base = base;
-            this.displayName = displayName;
+            this.description = description;
         }
 
         @Override
@@ -99,15 +94,31 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                     });
                 }
             } catch (Exception e) {
-                String message = "Couldn't delete test dir for " + displayName + " (test is holding files open). "
-                    + "In order to find out which files are held open you may find http://file-leak-detector.kohsuke.org/ useful.";
-                if (suppressCleanupErrors) {
-                    System.err.println(message);
+                if (suppressCleanupErrors()) {
+                    System.err.println(cleanupErrorMessage());
                     e.printStackTrace(System.err);
                 } else {
-                    throw new GradleException(message, e);
+                    throw new GradleException(cleanupErrorMessage(), e);
                 }
             }
+        }
+
+        private boolean suppressCleanupErrors() {
+            return testClass().getAnnotation(LeaksFileHandles.class) != null
+                || description.getAnnotation(LeaksFileHandles.class) != null;
+        }
+
+        private Class<?> testClass() {
+            return description.getTestClass();
+        }
+
+        private String cleanupErrorMessage() {
+            return "Couldn't delete test dir for `" + displayName() + "` (test is holding files open). "
+                + "In order to find out which files are held open you may find http://file-leak-detector.kohsuke.org/ useful.";
+        }
+
+        private String displayName() {
+            return description.getDisplayName();
         }
     }
 

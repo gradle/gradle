@@ -18,9 +18,7 @@ package org.gradle.scripts;
 import org.gradle.api.Incubating;
 
 /**
- * Scripting language provider SPI.
- *
- * Implementations are not managed and do not benefit from e.g. injection.
+ * Scripting language provider metadata.
  *
  * @since 4.0
  */

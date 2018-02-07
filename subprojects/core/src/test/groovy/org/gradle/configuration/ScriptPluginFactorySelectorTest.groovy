@@ -22,17 +22,14 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.scripts.ScriptingLanguages
-import org.gradle.scripts.ScriptingLanguage
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ScriptPluginFactorySelectorTest extends Specification {
 
-    def scriptingLanguages = Mock(ScriptingLanguages)
     def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
     def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
-    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, providerInstantiator, new TestBuildOperationExecutor())
+    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory,  providerInstantiator, new TestBuildOperationExecutor())
 
     def scriptHandler = Mock(ScriptHandler)
     def targetScope = Mock(ClassLoaderScope)
@@ -47,7 +44,6 @@ class ScriptPluginFactorySelectorTest extends Specification {
     @Unroll
     def "selects default scripting support short circuiting provider lookup for #fileName"() {
         given:
-        0 * scriptingLanguages._
         def scriptSource = scriptSourceFor(fileName)
         def target = new Object()
 
@@ -67,7 +63,6 @@ class ScriptPluginFactorySelectorTest extends Specification {
 
     def "given no scripting provider then falls back to default scripting support for any extension"() {
         given:
-        1 * scriptingLanguages.iterator() >> [].iterator()
         def scriptSource = scriptSourceFor('build.any')
         def target = new Object()
 
@@ -82,18 +77,13 @@ class ScriptPluginFactorySelectorTest extends Specification {
         1 * defaultScriptPlugin.apply(target)
     }
 
-    def "given matching scripting provider then selects it"() {
+    def "given `.gradle.kts` file extension, it selects scripting provider then selects it"() {
         given:
-        def fooLanguage = Mock(ScriptingLanguage) {
-            getExtension() >> '.foo'
-            getProvider() >> 'foo.Provider'
-        }
         def fooScriptPlugin = Mock(ScriptPlugin)
         def fooScriptPluginFactory = scriptPluginFactoryFor(fooScriptPlugin)
-        1 * scriptingLanguages.iterator() >> [fooLanguage].iterator()
-        1 * providerInstantiator.instantiate(fooLanguage.getProvider()) >> fooScriptPluginFactory
+        1 * providerInstantiator.instantiate('org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory') >> fooScriptPluginFactory
 
-        def scriptSource = scriptSourceFor('build.foo')
+        def scriptSource = scriptSourceFor('build.gradle.kts')
         def target = new Object()
 
         when:

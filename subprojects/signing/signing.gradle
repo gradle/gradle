@@ -15,13 +15,13 @@
  */
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(':core')
     compile project(':plugins')
     compile project(':maven')
 
-    compile libraries.bouncycastle_pgp
+    compile libraries.bouncycastle_pgp.coordinate
 }
 
 testFixtures {

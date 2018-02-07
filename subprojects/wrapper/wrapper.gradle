@@ -23,7 +23,7 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 dependencies {
     compile project(":cli")
 
-    testCompile libraries.ant
+    testCompile libraries.ant.coordinate
 }
 
 testFixtures {

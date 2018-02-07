@@ -18,13 +18,13 @@ plugins {
 }
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':core')
     compile project(":ide")
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingNative')
-    compile libraries.plist
+    compile libraries.plist.coordinate
 
     testFixturesCompile project(':internalTesting')
 }

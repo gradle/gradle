@@ -14,8 +14,8 @@ dependencies {
     api project(':native')
     api project(':modelCore')
 
-    implementation libraries.guava
-    implementation libraries.commons_io
+    implementation libraries.guava.coordinate
+    implementation libraries.commons_io.coordinate
 
     integTestImplementation project(':internalIntegTesting')
 }

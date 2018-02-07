@@ -288,7 +288,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
-        BuildLayoutFactory buildLayoutFactory = BuildLayoutFactory.forDefaultScriptingLanguages();
+        BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
         ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);

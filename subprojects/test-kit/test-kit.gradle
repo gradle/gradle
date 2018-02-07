@@ -5,7 +5,7 @@ plugins {
 dependencies {
     compile project(':core')
     compile project(':toolingApi')
-    compile libraries.commons_io
+    compile libraries.commons_io.coordinate
     runtime project(':native')
     integTestRuntime project(':toolingApiBuilders')
     integTestRuntime project(':pluginDevelopment')

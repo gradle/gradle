@@ -26,17 +26,17 @@ dependencies {
     api project(':resources')
     api project(':baseServices')
     api project(':core')
-    api libraries.commons_httpclient
+    api libraries.commons_httpclient.coordinate
 
-    implementation libraries.slf4j_api
-    implementation libraries.jcifs
-    implementation libraries.guava
-    implementation libraries.commons_lang
-    implementation libraries.commons_io
-    implementation libraries.xerces
-    implementation libraries.nekohtml
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.jcifs.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.commons_lang.coordinate
+    implementation libraries.commons_io.coordinate
+    implementation libraries.xerces.coordinate
+    implementation libraries.nekohtml.coordinate
 
-    testImplementation libraries.jetty
+    testImplementation testLibraries.jetty
 }
 
 testFixtures {

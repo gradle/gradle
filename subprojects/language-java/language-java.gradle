@@ -7,7 +7,7 @@ plugins {
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")

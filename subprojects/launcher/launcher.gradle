@@ -21,9 +21,9 @@ dependencies {
     compile project(':native')
     compile project(':logging')
 
-    compile libraries.asm
-    compile libraries.commons_io
-    compile libraries.slf4j_api
+    compile libraries.asm.coordinate
+    compile libraries.commons_io.coordinate
+    compile libraries.slf4j_api.coordinate
 
     integTestCompile project(':internalIntegTesting')
     // Needed for testing debug command line option (JDWPUtil)
