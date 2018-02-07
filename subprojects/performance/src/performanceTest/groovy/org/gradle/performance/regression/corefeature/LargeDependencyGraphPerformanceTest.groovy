@@ -94,6 +94,48 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         stopServer()
     }
 
+    def "resolve large dependency graph with advanced pom support"() {
+        runner.testProject = TEST_PROJECT_NAME
+        startServer()
+
+        given:
+        def baseline = "4.6-20180125002142+0000"
+        runner.tasksToRun = ['resolveDependencies']
+        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.targetVersions = [baseline]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '-Porg.gradle.advancedpomsupport=true']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
+    }
+
+    def "resolve large dependency graph with advanced pom support (parallel)"() {
+        runner.testProject = TEST_PROJECT_NAME
+        startServer()
+
+        given:
+        def baseline = "4.6-20180125002142+0000"
+        runner.tasksToRun = ['resolveDependencies']
+        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.targetVersions = [baseline]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '--parallel', '-Porg.gradle.advancedpomsupport=true']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
+    }
+
     private static BuildExperimentListener createArgsTweaker(String baseline) {
         new BuildExperimentListener() {
             @Override
