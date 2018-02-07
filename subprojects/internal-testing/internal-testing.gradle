@@ -37,6 +37,10 @@ dependencies {
     compile testLibraries.jmock
     compile testLibraries.spock
     compile testLibraries.jsoup
+
+    constraints {
+        compile("cglib:cglib-nodep:3.2.6") { because "required to work with Java 9"}
+    }
 }
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
