@@ -114,7 +114,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         @Override
         protected void applyChangeTo(StringBuilder text) {
-            def newText = text.replaceFirst(/Lib6Api3Impl2Api \{/, "Lib6Api3Impl2Api {\n    var ${uniqueText} : int = 0")
+            def newText = text.replaceFirst(/Lib6Api3Impl2Api \{/, "Lib6Api3Impl2Api {\n    var ${uniqueText} : Int = 0")
             text.replace(0, text.length(), newText)
         }
     }
