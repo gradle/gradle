@@ -65,7 +65,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         } else if (isClass(testIdentifier)) {
             reportTestClassStarted(testIdentifier);
             currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
-            reportTestClassFinished(testIdentifier, TestExecutionResult.aborted(null));
+            reportTestClassFinished(testIdentifier);
         }
     }
 
@@ -74,10 +74,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         if (isClass(testIdentifier)) {
             reportTestClassStarted(testIdentifier);
         }
-        if (!isLeafTest(testIdentifier)) {
-            return;
+        if (isLeafTest(testIdentifier)) {
+            adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
         }
-        adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
     }
 
     private boolean isLeafTest(TestIdentifier identifier) {
@@ -110,7 +109,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
 
         if (isClass(testIdentifier)) {
-            reportTestClassFinished(testIdentifier, testExecutionResult);
+            reportTestClassFinished(testIdentifier);
         }
     }
 
@@ -118,7 +117,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         currentRunningTestClass.start(className(testIdentifier));
     }
 
-    private void reportTestClassFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+    private void reportTestClassFinished(TestIdentifier testIdentifier) {
         currentRunningTestClass.end(className(testIdentifier));
     }
 
@@ -139,12 +138,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         } else if (isVintageDynamicTest(test)) {
             UniqueId uniqueId = UniqueId.parse(test.getUniqueId());
             return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(uniqueId), vintageDynamicMethodName(uniqueId));
-        } else if (isVintageNullDescriptionTest(test)) {
-            return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());
         } else if (isClass(test)) {
             return new DefaultTestDescriptor(idGenerator.generateId(), className(test), "classMethod");
         } else {
-            return null;
+            return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());
         }
     }
 
@@ -157,25 +154,20 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String className(TestIdentifier testIdentifier) {
-        if (isMethod(testIdentifier)) {
-            return retrieveClassName(testIdentifier);
-        } else if (testIdentifier.getSource().get() instanceof ClassSource) {
-            return ClassSource.class.cast(testIdentifier.getSource().get()).getClassName();
-        } else {
-            return "UnknownClass";
-        }
-    }
-
-    private String retrieveClassName(TestIdentifier testIdentifier) {
         // For tests in default method of interface,
         // we might not be able to get the implementation class directly.
         // In this case, we need to retrieve test plan to get the real implementation class.
-        TestIdentifier current = testIdentifier;
-        while (!isClass(current) && current.getParentId().isPresent()) {
-            current = currentTestPlan.getTestIdentifier(current.getParentId().get());
+        if (isClass(testIdentifier)) {
+            return ClassSource.class.cast(testIdentifier.getSource().get()).getClassName();
+        }
+        while (testIdentifier.getParentId().isPresent()) {
+            testIdentifier = currentTestPlan.getTestIdentifier(testIdentifier.getParentId().get());
+            if (isClass(testIdentifier)) {
+                return ClassSource.class.cast(testIdentifier.getSource().get()).getClassName();
+            }
         }
 
-        return className(current);
+        return "UnknownClass";
     }
 
     private class CurrentRunningTestClass {
