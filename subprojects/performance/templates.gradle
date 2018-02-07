@@ -322,6 +322,7 @@ task mediumSwiftMulti(type: BuildBuilderGenerator) {
     projectType = "swift"
     projects = 100
     sourceFiles = 4
+    description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
 }
 
 // === Android ===

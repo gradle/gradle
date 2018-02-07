@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.TestProject
 
+// TODO: Remove this and replace it with a BuildBuilderGenerator instead.
 class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
     @Internal
     DependencyGenerator.DependencyInfo depInfo
