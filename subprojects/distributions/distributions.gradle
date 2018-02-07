@@ -34,6 +34,10 @@ configurations {
     dists
 }
 
+dependencies {
+    compile project(':distributionsDependencies')
+}
+
 evaluationDependsOn ":docs"
 
 ext {

@@ -15,3 +15,7 @@
  */
 
 // This lib should not have any dependencies.
+dependencies {
+    //import dependency constraints
+    compile(project(":distributionsDependencies"))
+}
