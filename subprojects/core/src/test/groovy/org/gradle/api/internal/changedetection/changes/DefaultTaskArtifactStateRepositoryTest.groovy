@@ -390,7 +390,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         TaskArtifactState state = getStateFor(task1)
         state.isUpToDate([])
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         outputDirFile.createFile()
         state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
 
@@ -398,7 +398,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         !state.upToDate
 
         when:
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         outputDir.deleteDir()
 
         and:
@@ -409,7 +409,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         !state.isUpToDate([])
 
         when:
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         outputDirFile2.createFile()
         state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
 
@@ -523,7 +523,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         when:
         execute(task)
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         otherFile.write("new content")
         state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
         otherFile.delete()
@@ -561,7 +561,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         upToDate noInputsTask
 
         when:
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         outputDirFile.delete()
 
         then:
@@ -687,12 +687,12 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             TaskArtifactState state = getStateFor(task)
             state.isUpToDate([])
             // reset state
-            fileSystemMirror.beforeTaskOutputsGenerated()
+            fileSystemMirror.beforeTaskOutputChanged()
             super.execute(task)
             state.snapshotAfterTaskExecution(null, originMetadata.buildInvocationId, taskExecutionContext)
         }
         // reset state
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
     }
 
     private static class ChangedFiles {

@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -79,7 +79,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
      *
      * The second level indexes on the hash of file content and contains the value that was calculated from a file with the given hash.
      */
-    private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputsGenerationListener {
+    private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputChangesListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
         private final FileSystemSnapshotter fileSystemSnapshotter;
         private final PersistentIndexedCache<HashCode, V> contentCache;
@@ -94,7 +94,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         }
 
         @Override
-        public void beforeTaskOutputsGenerated() {
+        public void beforeTaskOutputChanged() {
             // A very dumb strategy for invalidating cache
             cache.clear();
         }

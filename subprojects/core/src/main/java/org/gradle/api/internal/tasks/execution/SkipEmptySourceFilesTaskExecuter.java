@@ -42,14 +42,14 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
-    private final TaskOutputsGenerationListener taskOutputsGenerationListener;
+    private final TaskOutputChangesListener taskOutputChangesListener;
     private final TaskExecuter executer;
     private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputChangesListener taskOutputChangesListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
         this.taskInputsListener = taskInputsListener;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
-        this.taskOutputsGenerationListener = taskOutputsGenerationListener;
+        this.taskOutputChangesListener = taskOutputChangesListener;
         this.executer = executer;
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
@@ -69,7 +69,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }
-                taskOutputsGenerationListener.beforeTaskOutputsGenerated();
+                taskOutputChangesListener.beforeTaskOutputChanged();
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
 

@@ -186,7 +186,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotAll(f)
         snapshotter.snapshotAll(f).is(snapshot)
 
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         f << "some other content"
 
         def snapshot2 = snapshotter.snapshotAll(f)
@@ -200,7 +200,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotAll(f)
         snapshotter.snapshotAll(f).is(snapshot)
 
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         f.createDir()
 
         def snapshot2 = snapshotter.snapshotAll(f)
@@ -216,7 +216,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotAll(f)
         snapshotter.snapshotAll(f).is(snapshot)
 
-        fileSystemMirror.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputChanged()
         f.createFile("newFile")
 
         def snapshot2 = snapshotter.snapshotAll(f)

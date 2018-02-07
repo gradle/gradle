@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-public interface TaskOutputsGenerationListener {
+public interface TaskOutputChangesListener {
     /**
-     * Invoked when the outputs for a task are about to be generated.
+     * Invoked when the outputs for a task are about to change.
      * This is for example just before the task actions are executed or the outputs are loaded from the cache.
      */
-    void beforeTaskOutputsGenerated();
+    void beforeTaskOutputChanged();
 }
