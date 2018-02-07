@@ -19,10 +19,12 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
@@ -396,6 +398,31 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithLocalState extends TaskWithAction {
+        private File localStateFile;
+
+        public TaskWithLocalState(File localStateFile) {
+            this.localStateFile = localStateFile;
+        }
+
+        @LocalState
+        public File getLocalStateFile() {
+            return localStateFile;
+        }
+    }
+
+    public static class TaskWithDestroyable extends TaskWithAction {
+        File destroyable;
+        public TaskWithDestroyable(File destroyable) {
+            this.destroyable = destroyable;
+        }
+
+        @Destroys
+        public File getDestroyable() {
+            return destroyable;
+        }
+    }
+
     public static class TaskWithNestedBean extends TaskWithAction {
         Bean bean = new Bean();
 
@@ -457,6 +484,10 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithOptionalNestedBean extends TaskWithAction {
         private final Bean bean;
+
+        public TaskWithOptionalNestedBean() {
+            this(null);
+        }
 
         public TaskWithOptionalNestedBean(Bean bean) {
             this.bean = bean;

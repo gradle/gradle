@@ -557,20 +557,20 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "registers input property for #prop on #type.simpleName"() {
         given:
-        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value)
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
 
         expect:
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop              | value                    | expected
-        TaskWithNestedBean                        | "bean.class"      | [null] as Object[]       | Bean.class
-        TaskWithNestedIterable                    | "beans.\$0.class" | [null] as Object[]       | Bean.class
-        TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] as Object[] | Bean2.class
-        TaskWithOptionalNestedBean                | "bean.class"      | null                     | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null                     | null
-        TaskWithInput                             | "inputValue"      | "value"                  | "value"
-        TaskWithBooleanInput                      | "inputValue"      | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop              | value        | expected
+        TaskWithNestedBean                        | "bean.class"      | [null]       | Bean.class
+        TaskWithNestedIterable                    | "beans.\$0.class" | [null]       | Bean.class
+        TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] | Bean2.class
+        TaskWithOptionalNestedBean                | "bean.class"      | null         | null
+        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null         | null
+        TaskWithInput                             | "inputValue"      | ["value"]    | "value"
+        TaskWithBooleanInput                      | "inputValue"      | [true]       | true           // https://issues.gradle.org/Browse/GRADLE-2815
     }
 
     @Unroll
@@ -585,6 +585,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         taskProperties.inputPropertyValues.create().keySet() == inputs as Set
         taskProperties.inputFileProperties*.propertyName as Set == inputFiles as Set
         taskProperties.outputFileProperties*.propertyName as Set == outputFiles as Set
+        taskProperties.destroyableFiles.empty
+        taskProperties.localStateFiles.empty
 
         where:
         type                                      | value                          | inputs                                          | inputFiles              | outputFiles
@@ -607,7 +609,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithNestedBean                        | [null]                         | ["bean.class"]                                  | ["bean.inputFile"]      | []
         TaskWithNestedIterable                    | [null]                         | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
         TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
-        TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
+        TaskWithOptionalNestedBean                | null                           | []                                              | []                      | []
         TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBeanWithPrivateType | null                           | []                                              | []                      | []
         TaskWithMultipleProperties                | [new File("some")]             | ["bean.class"]                                  | ["bean.inputFile"]      | ["outputFile"]
@@ -615,6 +617,38 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithJavaBeanCornerCaseProperties      | ["c", "C", "d", "U", "a", "b"] | ["cCompiler", "CFlags", "dns", "URL", "a", "b"] | []                      | []
 
         allTaskProperties = inputs + inputFiles + outputFiles
+    }
+
+    def "registers local state"() {
+        def localState = new File(temporaryFolder.file('localState').createFile().absolutePath)
+        given:
+        def task = expectTaskCreated(TaskWithLocalState, localState)
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.localStateFiles.files as List == [localState]
+        taskProperties.inputPropertyValues.create().isEmpty()
+        taskProperties.inputFileProperties.empty
+        taskProperties.outputFileProperties.empty
+        taskProperties.destroyableFiles.empty
+    }
+
+    def "registers destroyables"() {
+        def destroyable = new File(temporaryFolder.file('destroyable').createFile().absolutePath)
+        given:
+        def task = expectTaskCreated(TaskWithDestroyable, destroyable)
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.destroyableFiles.files as List == [destroyable]
+        taskProperties.inputPropertyValues.create().isEmpty()
+        taskProperties.inputFileProperties.empty
+        taskProperties.outputFileProperties.empty
+        taskProperties.localStateFiles.empty
     }
 
     @Unroll
