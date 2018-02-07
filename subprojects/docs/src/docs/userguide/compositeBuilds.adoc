@@ -214,7 +214,7 @@ Limitations of the current implementation include:
 * No support for included builds that have publications that don't mirror the project default configuration. See <<included_build_substitution_limitations>>.
 * Native builds are not supported. (Binary dependencies are not yet supported for native builds).
 * Substituting plugins only works with the `buildscript` block but not with the `plugins` block.
-
+* The use of `--continue` does not collect all failures. It only reports the failure of the first failing build.
 
 Improvements we have planned for upcoming releases include:
 
