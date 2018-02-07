@@ -98,7 +98,7 @@ task copyReports(type: Copy) {
 
 This approach has the side effect of copying the directory structure below `reports` as well as the files. This may be what you want. It may not be. Copying files includes many such decisions and there are too many to cover here, but know that there are very few requirements that can't be handled elegantly by Gradle copy specifications.
 
-Head over to ~TBD~ in order to learn all the different options available for getting the exact behavior you want.
+Head over to ~TODO~ in order to learn all the different options available for getting the exact behavior you want.
 
 === Copying directory hierarchies
 
@@ -165,6 +165,7 @@ task packageDistribution(type: Zip) {
 
 As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration.
 
+[[sec:unpacking_archives_example]]
 === Unpacking archives
 
 Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system into a directory (or even another archive). Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files known as file trees (TODO: link to an in-depth discussion of file trees).
@@ -241,9 +242,19 @@ task copyWithTruncate(type: Copy) {
 As with filtering, you can also apply renaming to a subset of files to copy by configuring it on a `from()` instead of at the task level.
 
 [[sec:locating_files]]
-=== Locating files
+=== File paths in depth
 
-You can locate a file relative to the project directory using the api:org.gradle.api.Project#file(java.lang.Object)[] method.
+In order to perform some action on a file, you need to know where it is, and that's the information provided by file paths. Gradle builds on the standard Java `java.io.File` class, which represents the location of a single file, and provides new APIs for dealing with collections of paths. This section shows you how to use the Gradle APIs to specify file paths that tasks can use.
+
+[[sec:single_file_paths]]
+==== Single file paths
+
+One of the great quandaries when developing a build is how to specify file locations when the build may be executed from an arbitrary directory — not necessarily in the project — and may be run on any number of different systems with incompatible directory layouts. The standard Java mechanism for specifying a file path runs into trouble in these situations:
+
+ * `new File(relative path)` generates a path relative to the current working directory, which could be anywhere
+ * `new File(absolute path)` will fail if the file system doesn't have the requisite path.
+
+Gradle solves this problem by providing the api:org.gradle.api.Project#file(java.lang.Object)[] method, which generates a path relative to the _project_ directory (unless the given path is absolute, in which case it is used as is). Here are some examples of using the `file()` method with different types of argument:
 
 ++++
 <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
@@ -251,16 +262,26 @@ You can locate a file relative to the project directory using the api:org.gradle
 </sample>
 ++++
 
-You can pass any object to the `file()` method, and it will attempt to convert the value to an absolute `File` object. Usually, you would pass it a `String`, `File` or `Path` instance. If this path is an absolute path, it is used to construct a `File` instance. Otherwise, a `File` instance is constructed by prepending the project directory path to the supplied path. The `file()` method also understands URLs, such as `file:/some/path.xml`.
+As you can see, you can pass strings, `File` instances and `Path` instances to the `file()` method, all of which result in an absolute `File` object. You can find other options for argument types in the reference guide, linked in the previous paragraph.
 
-Using this method is a useful way to convert some user provided value into an absolute `File`. It is preferable to using `new File(somePath)`, as `file()` always evaluates the supplied path relative to the project directory, which is fixed, rather than the current working directory, which can change depending on how the user runs Gradle.
+What happens in the case of multi-project builds? The `file()` method will always turn relative paths into paths that are relative to the current project directory, which may be a child project. If you want to use a path that's relative to the _root project_ directory, then you need to use the special api:org.gradle.api.Project#getRootDir()[] property to construct an absolute path, like so:
+
+----
+File configFile = file("${rootDir}/shared/config.xml")
+----
+
+Let's say you're working on a multi-project build in a `dev/projects/AcmeHealth` directory. You use the above example in the build of the library you're fixing — at `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`. The file path will resolve to the absolute version of `dev/projects/AcmeHealth/shared/config.xml`.
+
+The `file()` method can be used to configure any task that has a property of type `File`. Many tasks, though, work on multiple files, so we look at how to specify sets of files next.
 
 [[sec:file_collections]]
-=== File collections
+==== File collections
 
-A _file collection_ is simply a set of files. It is represented by the api:org.gradle.api.file.FileCollection[] interface. Many objects in the Gradle API implement this interface. For example, <<sub:configurations,dependency configurations>> implement `FileCollection`.
+A _file collection_ is simply a set of file paths that's represented by the api:org.gradle.api.file.FileCollection[] interface. _Any_ file paths. It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory. You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<sub:configurations,dependency configurations>>.
 
-One way to obtain a `FileCollection` instance is to use the api:org.gradle.api.Project#files(java.lang.Object...)[] method. You can pass this method any number of objects, which are then converted into a set of `File` objects. The `files()` method accepts any type of object as its parameters. These are evaluated relative to the project directory, as per the `file()` method, described in <<sec:locating_files>>. You can also pass collections, iterables, maps and arrays to the `files()` method. These are flattened and the contents converted to `File` instances.
+The recommended way to specify a collection of files is to use the api:org.gradle.api.Project#files(java.lang.Object...)[] method, which returns a `FileCollection` instance. This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of `File`s, and more. You can even pass in tasks if they have <<sec:task_inputs_outputs,defined outputs>>. Learn about all the supported argument types in the reference guide.
+
+As with the api:org.gradle.api.Project#file(java.lang.Object)[] method covered in the <<sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use, using strings, `File` instances, a list and a `Path`:
 
 ++++
 <sample id="fileCollections" dir="userguide/files/fileCollections" title="Creating a file collection">
@@ -268,16 +289,14 @@ One way to obtain a `FileCollection` instance is to use the api:org.gradle.api.P
 </sample>
 ++++
 
-A file collection is iterable, and can be converted to a number of other types using the `as` operator. You can also add 2 file collections together using the `+` operator, or subtract one file collection from another using the `-` operator. Here are some examples of what you can do with a file collection.
+File collections have some important attributes in Gradle. They can be:
 
-++++
-<sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
-    <sourcefile file="build.gradle" snippet="usage"/>
-    <test args="-q usage"/>
-</sample>
-++++
+ * created lazily
+ * iterated over
+ * filtered
+ * combined
 
-You can also pass the `files()` method a closure or a `Callable` instance. This is called when the contents of the collection are queried, and its return value is converted to a set of `File` instances. The return value can be an object of any of the types supported by the `files()` method. This is a simple way to 'implement' the `FileCollection` interface.
+_Lazy creation_ of a file collection is useful when you need to evaluate the files that make up a collection when the build runs. In the following example, we query the file system to find out what files exist in a particular directory and make them a file collection:
 
 ++++
 <sample id="fileCollections" dir="userguide/files/fileCollections" title="Implementing a file collection">
@@ -286,24 +305,50 @@ You can also pass the `files()` method a closure or a `Callable` instance. This 
 </sample>
 ++++
 
-Some other types of things you can pass to `files()`:
+The key to lazy creation is passing a closure to the `files()` method. Your closure simply needs to return a value of a type accepted by `files()`, such as `List<File>`, `String`, `FileCollection`, etc.
 
-`FileCollection`::
-These are flattened and the contents included in the file collection.
-`Task`::
-The output files of the task are included in the file collection.
-`TaskOutputs`::
-The output files of the TaskOutputs are included in the file collection.
+_Iterating over a file collection_ can be done through the `each()` method on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
 
+The following example demonstrates such iteration as well as how you can convert file collections to other types using the `as` operator or supported properties:
 
-It is important to note that the content of a file collection is evaluated lazily, when it is needed. This means you can, for example, create a `FileCollection` that represents files which will be created in the future by, say, some task.
+++++
+<sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
+    <sourcefile file="build.gradle" snippet="usage"/>
+    <test args="-q usage"/>
+</sample>
+++++
+
+You can also see at the end of the example _how to combine file collections_ using the `+` and `-` operators to merge and subtract them. An important feature of the resulting file collections is that they are _live_. In other words, when you combine file collections in this way, the result always reflects what's in the original file collections, even if they change during the build.
+
+For example, imagine `collection` in the above example gains an extra file or two after `union` is created. As long as you use `union` after those files are added to `collection`, `union` will also contain those additional files. The same goes for the `different` file collection.
+
+Live collections are also important when it comes to _filtering_. If you want to use a subset of a file collection, you can take advantage of the api:org.gradle.api.file.FileCollection#filter(org.gradle.api.specs.Spec)[] method to determine which files to "keep". In the following example, we create a new collection that consists of only the files that end with .txt in the source collection:
+
+----
+FileCollection textFiles = collection.filter { File f ->
+    f.name.endsWith(".txt")
+}
+----
+
+If `collection` changes at any time, either by adding or removing files from itself, then `textFiles` will immediately reflect the change because it is also a live collection. Note that the closure you pass to `filter()` takes a `File` as an argument and should return a boolean.
 
 [[sec:file_trees]]
-=== File trees
+==== File trees
 
-A _file tree_ is a collection of files arranged in a hierarchy. For example, a file tree might represent a directory tree or the contents of a ZIP file. It is represented by the api:org.gradle.api.file.FileTree[] interface. The `FileTree` interface extends `FileCollection`, so you can treat a file tree exactly the same way as you would a file collection. Several objects in Gradle implement the `FileTree` interface, such as <<sec:source_sets,source sets>>.
+A _file tree_ is a file collection that retains the directory structure of the files it contains and has the type api:org.gradle.api.file.FileTree[]. This means that all the paths in a file tree must have a shared parent directory. The following diagram highlights the distinction between file trees and file collections in the common case of copying files:
 
-One way to obtain a `FileTree` instance is to use the api:org.gradle.api.Project#fileTree(java.util.Map)[] method. This creates a `FileTree` defined with a base directory, and optionally some Ant-style include and exclude patterns.
+++++
+<figure>
+    <title>The differences in how file trees and file collections behave when copying files</title>
+    <imageobject>
+        <imagedata fileref="img/file-collection-vs-file-tree.png" width="160mm"/>
+    </imageobject>
+</figure>
+++++
+
+NOTE: Although `FileTree` extends `FileCollection` (an is-a relationship), their behaviors do differ. In other words, you can use a file tree wherever a file collection is required, but remember: a file collection is a flat list/set of files, while a file tree is a file and directory hierarchy. To convert a file tree to a flat collection, use the api:org.gradle.api.file.FileTree#getFiles()[] property.
+
+The simplest way to create a file tree is to pass a file or directory path to the api:org.gradle.api.Project#fileTree(java.lang.Object)[] method. This will create a tree of all the files and directories in that base directory (but not the base directory itself). The following example demonstrates how to use the basic method and, in addition, how to filter the files and directories using Ant-style patterns:
 
 ++++
 <sample id="fileTrees" dir="userguide/files/fileTrees" title="Creating a file tree">
@@ -311,23 +356,37 @@ One way to obtain a `FileTree` instance is to use the api:org.gradle.api.Project
 </sample>
 ++++
 
-You use a file tree in the same way you use a file collection. You can also visit the contents of the tree, and select a sub-tree using Ant-style patterns:
-
-++++
-<sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
-            <sourcefile file="build.gradle" snippet="use"/>
-        </sample>
-++++
+You can see more examples of supported patterns in the API docs for api:org.gradle.api.tasks.util.PatternFilterable[]. Also, see the API documentation for `fileTree()` to see what types you can pass as the base directory.
 
 [NOTE]
 ====
 By default, the `FileTree` instance `fileTree()` returns will apply some Ant-style default exclude patterns for convenience. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[Default Excludes].
 ====
 
-[[sec:archive_contents]]
-=== Using the contents of an archive as a file tree
+You can do many of the same things with file trees that you can with file collections:
 
-You can use the contents of an archive, such as a ZIP or TAR file, as a file tree. You do this using the api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree(java.lang.Object)[] methods. These methods return a `FileTree` instance which you can use like any other file tree or file collection. For example, you can use it to expand the archive by copying the contents, or to merge some archives into another.
+ * iterate over them (depth first)
+ * filter them (using api:org.gradle.api.file.FileTree#matching(org.gradle.api.Action)[] and Ant-style patterns)
+ * merge them
+
+You can also traverse file trees using the api:org.gradle.api.file.FileTree#visit(org.gradle.api.Action)[] method. All of these techniques are demonstrated in the following example: 
+
+++++
+<sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
+    <sourcefile file="build.gradle" snippet="use"/>
+</sample>
+++++
+
+We've discussed how to create your own file trees and file collections, but it's also worth bearing in mind that many Gradle plugins provide their own instances of file trees, such as <<sec:java_source_sets,Java's source sets>>. These can be used and manipulated in exactly the same way as the file trees you create yourself.
+
+Another specific type of file tree that users commonly need is the archive, i.e. ZIP files, TAR files, etc. We look at those next.
+
+[[sec:archive_contents]]
+==== Using archives as file trees
+
+An archive is a directory and file hierarchy packed into a single file. In other words, it's a special case of a file tree, and that's exactly how Gradle treats archives. Instead of using the `fileTree()` method, which only works on normal file systems, you use the api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree(java.lang.Object)[] methods to wrap archive files of the corresponding type (note that JAR, WAR and EAR files are ZIPs). Both methods return `FileTree` instances that you can then use in the same way as normal file trees. For example, you can extract some or all of the files of an archive by copying its contents to some directory on the file system. Or you can merge one archive into another.
+
+Here are some simple examples of creating archive-based file trees:
 
 ++++
 <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using an archive as a file tree">
@@ -335,9 +394,12 @@ You can use the contents of an archive, such as a ZIP or TAR file, as a file tre
 </sample>
 ++++
 
+You can see a practical example of extracting an archive file <<sec:unpacking_archives_example,earlier in the chapter>>.
 
 [[sec:specifying_multiple_files]]
-=== Specifying a set of input files
+==== Understanding implicit conversion to file collections
+
+TODO: Review this section for accuracy
 
 Many objects in Gradle have properties which accept a set of input files. For example, the api:org.gradle.api.tasks.compile.JavaCompile[] task has a `source` property, which defines the source files to compile. You can set the value of this property using any of the types supported by the <<sec:file_collections,files()>> method, which was shown above. This means you can set the property using, for example, a `File`, `String`, collection, `FileCollection` or even a closure. Here are some examples:
 
