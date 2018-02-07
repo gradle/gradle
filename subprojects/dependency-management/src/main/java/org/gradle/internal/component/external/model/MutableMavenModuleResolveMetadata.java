@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
 
 public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
-    /**
-     * {@inheritDoc}
-     */
     @Override
     MavenModuleResolveMetadata asImmutable();
 
@@ -31,7 +30,16 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
     String getSnapshotTimestamp();
 
     String getPackaging();
+    void setPackaging(String packaging);
+
     boolean isPomPackaging();
     boolean isKnownJarPackaging();
+
     boolean isRelocated();
+    void setRelocated(boolean relocated);
+
+    /**
+     * Returns the dependency declarations of this component.
+     */
+    ImmutableList<MavenDependencyDescriptor> getDependencies();
 }

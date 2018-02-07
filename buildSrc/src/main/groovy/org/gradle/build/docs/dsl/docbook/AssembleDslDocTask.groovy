@@ -100,7 +100,7 @@ class AssembleDslDocTask extends DefaultTask {
         ClassMetaDataRepository<ClassMetaData> classRepository = new SimpleClassMetaDataRepository<ClassMetaData>()
         classRepository.load(classMetaDataFile)
         ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
-        //for every method found in class meta, create a javadoc/groovydoc link
+        //for every method found in class meta, create a javadoc link
         classRepository.each {name, ClassMetaData metaData ->
             linkRepository.put(name, new ClassLinkMetaData(metaData))
         }

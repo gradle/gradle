@@ -40,7 +40,7 @@ class ForkingGradleSession implements GradleSession {
     private ProcessBuilder stop
 
     ForkingGradleSession(GradleInvocationSpec invocation, IntegrationTestBuildContext integrationTestBuildContext) {
-        this.invocation = invocation
+        this.invocation = invocation.withBuilder().distribution(new PerformanceTestGradleDistribution(invocation.gradleDistribution, invocation.workingDirectory)).build()
         this.integrationTestBuildContext = integrationTestBuildContext
     }
 
@@ -83,7 +83,6 @@ class ForkingGradleSession implements GradleSession {
         }
         args << new File(invocation.gradleDistribution.gradleHomeDir, "bin/gradle").absolutePath
         args << "--gradle-user-home" << invocationInfo.gradleUserHome.absolutePath
-        args << "--no-search-upward"
         args << "--stacktrace"
         if (invocation.useDaemon) {
             args << "--daemon"

@@ -45,7 +45,6 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
-        spec.getCompileOptions().setAnnotationProcessorPath(null); // This is not used (the processor path is on the spec)
         resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);

@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.tasks.CompileClasspathNormalizer;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
@@ -39,7 +41,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
-        return CompileClasspathSnapshotter.class;
+    public Class<? extends FileNormalizer> getRegisteredType() {
+        return CompileClasspathNormalizer.class;
     }
 }

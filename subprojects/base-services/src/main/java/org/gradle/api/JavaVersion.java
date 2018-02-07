@@ -54,10 +54,10 @@ public enum JavaVersion {
         }
 
         String name = value.toString();
-        Matcher matcher = Pattern.compile("(\\d{1,2})(-.+)?").matcher(name);
+        Matcher matcher = Pattern.compile("(\\d{1,2})(\\D.+)?").matcher(name);
         if (matcher.matches()) {
             int index = Integer.parseInt(matcher.group(1)) - 1;
-            if (index < values().length && values()[index].hasMajorVersion) {
+            if (index > 0 && index < values().length && values()[index].hasMajorVersion) {
                 return values()[index];
             }
         }
@@ -98,7 +98,7 @@ public enum JavaVersion {
     }
 
     public static JavaVersion forClass(byte[] classData) {
-        if (classData.length<8) {
+        if (classData.length < 8) {
             throw new IllegalArgumentException("Invalid class format. Should contain at least 8 bytes");
         }
         return forClassVersion(classData[7] & 0xFF);

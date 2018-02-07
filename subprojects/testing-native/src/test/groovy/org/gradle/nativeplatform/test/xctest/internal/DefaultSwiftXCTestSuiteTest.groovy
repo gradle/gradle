@@ -16,42 +16,45 @@
 
 package org.gradle.nativeplatform.test.xctest.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.internal.file.DefaultProjectLayout
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Subject
 
-@Subject(DefaultSwiftXCTestSuite)
 class DefaultSwiftXCTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
-    def providerFactory = new DefaultProviderFactory()
-    def projectLayout = new DefaultProjectLayout(tmpDir.testDirectory, TestFiles.resolver(tmpDir.testDirectory))
-    def testSuite = new DefaultSwiftXCTestSuite("test", TestUtil.objectFactory(), fileOperations, providerFactory, Stub(ConfigurationContainer), projectLayout)
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
 
-    def "has a bundle"() {
+    def "has implementation dependencies"() {
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
         expect:
-        testSuite.bundle.name == "testBundle"
-        testSuite.bundle.debuggable
-        testSuite.developmentBinary == testSuite.bundle
+        testSuite.implementationDependencies == project.configurations.testImplementation
     }
 
-    def "can change location of Info.plist by changing the test suite resource directory location"() {
-        def file = tmpDir.createFile("Tests")
+    def "can add a test executable"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 
         expect:
-        testSuite.resourceDir.set(file)
-        testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("Tests/Info.plist")
+        def exe = testSuite.addExecutable("Executable", targetPlatform, toolChain, platformToolProvider)
+        exe.name == 'testExecutable'
+        exe.targetPlatform == targetPlatform
+        exe.toolChain == toolChain
+        exe.platformToolProvider == platformToolProvider
     }
 
-    def "uses source layout convention when Info.plist not set"() {
+    def "can add a test bundle"() {
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
         expect:
-        testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("src/test/resources/Info.plist")
+        def exe = testSuite.addBundle("Executable", Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'testExecutable'
     }
 }

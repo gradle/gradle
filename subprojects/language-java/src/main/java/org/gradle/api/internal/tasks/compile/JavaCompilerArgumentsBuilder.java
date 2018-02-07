@@ -19,15 +19,17 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -111,7 +113,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        CompileOptions compileOptions = spec.getCompileOptions();
+        final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
             if (sourceCompatibility != null) {
@@ -142,13 +144,25 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
         }
-        if (compileOptions.getBootClasspath() != null) { //TODO: move bootclasspath to platform
+        String bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
+            @Nullable
+            @Override
+            @SuppressWarnings("deprecation")
+            public String create() {
+                return compileOptions.getBootClasspath();
+            }
+        });
+        if (bootClasspath != null) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
-            args.add(compileOptions.getBootClasspath());
+            args.add(bootClasspath);
         }
         if (compileOptions.getExtensionDirs() != null) {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
+        }
+        if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+            args.add("-s");
+            args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
         }
 
         if (compileOptions.isDebug()) {
@@ -161,11 +175,11 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-g:none");
         }
 
-        FileCollection sourcepath = compileOptions.getSourcepath();
+        Collection<File> sourcepath = compileOptions.getSourcepath();
         String userProvidedSourcepath = extractSourcepathFrom(compilerArgs, false);
         if (allowEmptySourcePath || sourcepath != null && !sourcepath.isEmpty() || !userProvidedSourcepath.isEmpty()) {
             args.add("-sourcepath");
-            args.add(sourcepath == null ? userProvidedSourcepath : Joiner.on(File.pathSeparator).skipNulls().join(sourcepath.getAsPath(), userProvidedSourcepath.isEmpty() ? null : userProvidedSourcepath));
+            args.add(sourcepath == null ? userProvidedSourcepath : Joiner.on(File.pathSeparator).skipNulls().join(GUtil.asPath(sourcepath), userProvidedSourcepath.isEmpty() ? null : userProvidedSourcepath));
         }
 
         if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {

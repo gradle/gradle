@@ -23,8 +23,9 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
     String compilationTask = ':compileJava'
     String compiledFile = "build/classes/java/main/Hello.class"
 
-    def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
+    def setupProjectInDirectory(TestFile project) {
         project.with {
+            file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
             plugins {
                 id 'java'
@@ -56,7 +57,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         libraryAppProjectWithIncrementalCompilation()
 
         when:
-        withBuildCache().succeeds appCompileJava
+        withBuildCache().run appCompileJava
 
         then:
         executedAndNotSkipped appCompileJava
@@ -75,7 +76,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         executedAndNotSkipped libraryCompileJava
 
         when:
-        withBuildCache().succeeds 'clean', appCompileJava
+        withBuildCache().run 'clean', appCompileJava
 
         then:
         result.output.contains "${appCompileJava} FROM-CACHE"

@@ -49,7 +49,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         return !(toolChain instanceof AvailableToolChains.InstalledWindowsGcc)
     }
 
-    abstract IncrementalHelloWorldApp getHelloWorldApp();
+    abstract IncrementalHelloWorldApp getHelloWorldApp()
 
     String getCompilerTool() {
         "${app.sourceType}Compiler"
@@ -146,7 +146,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
@@ -156,7 +156,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "recompiles library and relinks executable with library source file change"() {
+    def "recompiles library and relinks executable after library source file change"() {
         given:
         run "installMainExecutable"
         maybeWait()
@@ -164,7 +164,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         when:
         for (int i = 0; i < librarySourceFiles.size(); i++) {
-            TestFile sourceFile = librarySourceFiles.get(i);
+            TestFile sourceFile = librarySourceFiles.get(i)
             sourceFile.text = app.alternateLibrarySources[i].content
         }
 
@@ -174,10 +174,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped ":linkHelloSharedLibrary"
-        executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
         and:
@@ -200,7 +197,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
@@ -225,7 +222,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
@@ -233,20 +230,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
-    }
-
-    private boolean nonDeterministicCompilation() {
-        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
-        AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp || objectiveCWithAslr()
-    }
-
-    // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings)
-    // We saw this behaviour only on linux so far.
-    boolean objectiveCWithAslr() {
-        return (sourceType == "Objc" || sourceType == "Objcpp") &&
-                OperatingSystem.current().isLinux() &&
-                AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "clang"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -275,10 +258,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped ":linkHelloSharedLibrary"
-        executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
         and:
@@ -353,7 +333,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'"
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
         model {
@@ -481,7 +461,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if(objectiveCWithAslr()){
+        if(objectiveCWithAslr){
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 apply from: "$rootDir/gradle/taskProperties.gradle"
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -42,37 +44,37 @@ dependencies {
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
-    api libraries.groovy
-    api libraries.ant
-    api libraries.guava
-    api libraries.inject
+    api libraries.groovy.coordinate
+    api libraries.ant.coordinate
+    api libraries.guava.coordinate
+    api libraries.inject.coordinate
 
     implementation project(":modelGroovy")
-    implementation libraries.asm
-    implementation libraries.slf4j_api
-    implementation libraries.commons_collections
-    implementation libraries.commons_io
-    implementation libraries.commons_lang
-    implementation libraries.jcip
-    implementation libraries.nativePlatform
-    implementation libraries.commons_compress
+    implementation libraries.asm.coordinate
+    implementation libraries.asm_commons.coordinate
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.commons_collections.coordinate
+    implementation libraries.commons_io.coordinate
+    implementation libraries.commons_lang.coordinate
+    implementation libraries.jcip.coordinate
+    implementation libraries.nativePlatform.coordinate
+    implementation libraries.commons_compress.coordinate
+    implementation libraries.xmlApis.coordinate
 
     runtimeOnly project(":docs")
 
-    testImplementation libraries.jsoup
-    testImplementation libraries.log4j_to_slf4j
+    testImplementation testLibraries.jsoup
+    testImplementation libraries.log4j_to_slf4j.coordinate
 
-    testRuntimeOnly libraries.xerces
+    testRuntimeOnly libraries.xerces.coordinate
     testRuntimeOnly project(":diagnostics")
     testRuntimeOnly project(":compositeBuilds")
 
     testFixturesImplementation project(":internalTesting")
-    testFixturesImplementation libraries.ivy
+    testFixturesImplementation libraries.ivy.coordinate
 
-    testFixturesRuntime project(':workers')
-    testFixturesRuntime project(':dependencyManagement')
-    testFixturesRuntime project(':pluginUse')
     testFixturesRuntime project(':runtimeApiInfo')
+    testFixturesRuntime rootProject.ext.allCoreRuntimeExtensions
 
     integTestImplementation project(":internalIntegTesting")
 
@@ -80,12 +82,14 @@ dependencies {
     integTestRuntimeOnly project(':maven')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":coreApi")
-useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":modelCore")
-useTestFixtures(project: ":logging")
-useTestFixtures(project: ":baseServices")
+testFixtures {
+    from(':core')
+    from(':coreApi')
+    from(':messaging')
+    from(':modelCore')
+    from(':logging')
+    from(':baseServices')
+}
 
 test {
     forkEvery = 200

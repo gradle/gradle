@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -36,7 +37,6 @@ public class DaemonParameters {
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
     private final File gradleUserHomeDir;
 
@@ -52,7 +52,7 @@ public class DaemonParameters {
     private boolean foreground;
     private boolean stop;
     private boolean status;
-    private boolean interactive = System.console() != null || Boolean.getBoolean(INTERACTIVE_TOGGLE);
+    private boolean interactive = ConsoleStateUtil.isInteractive();
     private JavaInfo jvm = Jvm.current();
 
     public DaemonParameters(BuildLayoutParameters layout) {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.io.FileType
+import org.gradle.internal.FileUtils
 
 import static org.apache.commons.io.FilenameUtils.removeExtension
 import static org.spockframework.util.CollectionUtil.asSet
@@ -24,11 +25,18 @@ import static org.spockframework.util.CollectionUtil.asSet
 class CompilationOutputsFixture {
 
     private final File targetDir
+    private final List<String> includeExtensions
 
-    //Tracks outputs in given target dir
     CompilationOutputsFixture(File targetDir) {
+        this(targetDir, [])
+    }
+    /**
+     * Tracks outputs in given target dir considering only the files by the given extensions (ignoring case)
+     */
+    CompilationOutputsFixture(File targetDir, List<String> includeExtensions) {
         assert targetDir != null
         this.targetDir = targetDir
+        this.includeExtensions = includeExtensions
     }
 
     private List<File> snapshot = []
@@ -38,10 +46,18 @@ class CompilationOutputsFixture {
         T result = operation?.call()
         snapshot.clear()
         targetDir.eachFileRecurse(FileType.FILES) {
-            it.lastModified = 0
-            snapshot << it
+            if (isIncluded(it)) {
+                it.lastModified = 0
+                snapshot << it
+            }
         }
         result
+    }
+
+    private boolean isIncluded(File file) {
+        includeExtensions.empty || includeExtensions.any {
+            FileUtils.hasExtensionIgnoresCase(file.name, it)
+        }
     }
 
     //asserts none of the files changed/added since last snapshot
@@ -75,8 +91,10 @@ class CompilationOutputsFixture {
         // Get all of the files that do not have a zero last modified timestamp
         def changed = new HashSet()
         targetDir.eachFileRecurse(FileType.FILES) {
-            if (it.lastModified() > 0) {
-                changed << removeExtension(it.name)
+            if (isIncluded(it)) {
+                if (it.lastModified() > 0) {
+                    changed << removeExtension(it.name)
+                }
             }
         }
         changed

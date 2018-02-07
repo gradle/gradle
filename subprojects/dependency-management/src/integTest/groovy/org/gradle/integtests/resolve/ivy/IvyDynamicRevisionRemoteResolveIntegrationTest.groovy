@@ -361,7 +361,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    def "recovers from broken directory listing in subsequent resolution"() {
+    def "fails on broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
 
@@ -380,14 +380,17 @@ dependencies {
 
         and: "projectA is broken in repo1"
         repo1.directoryList("group", "projectA").expectGetBroken()
-        expectGetDynamicRevision(projectA11)
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.1"
+        fails "checkDeps"
+        failure.assertHasCause "Could not resolve group:projectA:1.+."
+        failure.assertHasCause "Could not list versions"
+        failure.assertHasCause "Could not GET '$repo1.uri/group/projectA/'"
 
         when:
         server.resetExpectations()
         expectGetDynamicRevision(projectA12)
+        expectGetDynamicRevisionMetadata(projectA11)
 
         then:
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
@@ -440,7 +443,7 @@ dependencies {
 """
 
         when:
-        ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
         def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
 
         and:
@@ -474,6 +477,57 @@ dependencies {
                 edge "org.test:projectA:[1.0,2.0)", "org.test:projectA:1.2"
             }
         }
+    }
+
+    @Issue("gradle/gradle#3019")
+    def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { 
+    fresh
+    stale
+}
+configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+
+dependencies {
+    fresh group: "org.test", name: "projectA", version: "1.+"
+    stale group: "org.test", name: "projectA", version: "1.+"
+}
+
+task resolveStaleThenFresh {
+    doFirst {
+        println 'stale:' + configurations.stale.collect { it.name } + ',fresh:' + configurations.fresh.collect { it.name }
+    }
+}
+"""
+
+        when:
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        expectGetDynamicRevision(projectA12)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.2.jar]")
+
+        when:
+        def projectA13 = ivyHttpRepo.module("org.test", "projectA", "1.3").publish()
+        server.resetExpectations()
+
+        and:
+        // Should get the newer version when resolving 'fresh'
+        expectGetDynamicRevision(projectA13)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
     }
 
     def "reuses cached version lists unless no matches"() {
@@ -1217,6 +1271,11 @@ dependencies {
         expectListVersions(module)
         module.ivy.expectGet()
         module.jar.expectGet()
+    }
+
+    def expectGetDynamicRevisionMetadata(IvyHttpModule module) {
+        expectListVersions(module)
+        module.ivy.expectGet()
     }
 
     private expectListVersions(IvyHttpModule module) {

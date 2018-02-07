@@ -16,15 +16,11 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
+import org.gradle.test.fixtures.file.TestFile
 
-import java.nio.file.Files
-
-class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
-
-    private classes = new ScalaCompilationFixture(testDirectory)
-    def differentSubdir = file("src/main/scala/other")
+class ScalaCompileRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
@@ -32,24 +28,21 @@ class ScalaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegr
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
+    protected void setupProjectIn(TestFile projectDir) {
+        def classes = new ScalaCompilationFixture(projectDir)
         classes.baseline()
-        differentSubdir.createDir()
-        buildScript(classes.buildScript())
+        projectDir.file("build.gradle") << classes.buildScript()
     }
 
     @Override
-    protected void moveFilesAround() {
-        classes.classDependingOnBasicClassSource.source.moveToDirectory(differentSubdir)
-        Files.move(file("src/main/scala").toPath(), file("src/main/new-scala").toPath())
-        classes.sourceDir = 'src/main/new-scala'
-        buildScript(classes.buildScript())
-        // Move zinc and scala library dependencies around on disk
+    protected void prepareForRelocation(TestFile projectDir) {
+        // Move Zinc and Scala library dependencies around on disk
         executer.requireOwnGradleUserHomeDir()
     }
 
     @Override
-    protected extractResults() {
+    protected extractResultsFrom(TestFile projectDir) {
+        def classes = new ScalaCompilationFixture(projectDir)
         return classes.classDependingOnBasicClassSource.compiledClass.bytes
     }
 }

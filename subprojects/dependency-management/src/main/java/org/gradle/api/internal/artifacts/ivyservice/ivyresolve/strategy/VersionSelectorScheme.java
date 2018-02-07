@@ -33,4 +33,13 @@ public interface VersionSelectorScheme {
      * Renders a {@link VersionSelector} to a selector string.
      */
     String renderSelector(VersionSelector selector);
+
+    /**
+     * Creates another version selector which complements the provided one, but also makes sense to use
+     * in a rejection rule. It will therefore fail when computing a complement for this use case doesn't
+     * make sense.
+     * @param selector the selector to create a complement for
+     * @return a selector that complements the provided one and can be used in a reject rule
+     */
+    VersionSelector complementForRejection(VersionSelector selector);
 }

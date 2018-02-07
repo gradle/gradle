@@ -19,14 +19,28 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
-public class ComponentSelectorSerializerTest extends SerializerSpec {
-    ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()
+class ComponentSelectorSerializerTest extends SerializerSpec {
+    private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()
+
+    private ImmutableVersionConstraint constraint(String version, boolean strict = false) {
+        def reject = strict ? versionSelectorScheme.complementForRejection(versionSelectorScheme.parseSelector(version)) : null
+        List<String> rejects = strict ? [reject.selector] : []
+        return new DefaultImmutableVersionConstraint(
+            version,
+            rejects
+        )
+    }
 
     def "throws exception if null is provided"() {
         when:
@@ -39,7 +53,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentSelector"() {
         given:
-        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', 'version-one')
+        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', constraint('version-one'))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)
@@ -48,6 +62,8 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
         result.group == 'group-one'
         result.module == 'name-one'
         result.version == 'version-one'
+        result.versionConstraint.preferredVersion == 'version-one'
+        result.versionConstraint.rejectedVersions == []
     }
 
     def "serializes BuildComponentSelector"() {
@@ -79,5 +95,20 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
         ':myPath'   | 'myLib'
         ':myPath'   | null
         ':myPath'   | 'myLib'
+    }
+
+    def "serializes strict constraint"() {
+        given:
+        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', constraint('version-one', true))
+
+        when:
+        ModuleComponentSelector result = serialize(selection, serializer)
+
+        then:
+        result.group == 'group-one'
+        result.module == 'name-one'
+        result.version == 'version-one'
+        result.versionConstraint.preferredVersion == 'version-one'
+        result.versionConstraint.rejectedVersions == [']version-one,)']
     }
 }

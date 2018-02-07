@@ -27,31 +27,25 @@ import java.io.IOException;
 public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
 
     private final File dir;
-    private final String partialFileSuffix;
 
-    public DefaultBuildCacheTempFileStore(File dir, String partialFileSuffix) {
+    public DefaultBuildCacheTempFileStore(File dir) {
         this.dir = dir;
-        this.partialFileSuffix = partialFileSuffix;
         GFileUtils.mkdirs(this.dir);
     }
 
     @Override
-    public void allocateTempFile(BuildCacheKey key, Action<? super File> action) {
+    public void withTempFile(BuildCacheKey key, Action<? super File> action) {
         String hashCode = key.getHashCode();
-        final File tempFile;
+        File tempFile = null;
         try {
-            tempFile = File.createTempFile(hashCode, partialFileSuffix, dir);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
-
-        try {
+            try {
+                tempFile = File.createTempFile(hashCode + "-", PARTIAL_FILE_SUFFIX, dir);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
             action.execute(tempFile);
         } finally {
-            if (tempFile.exists()) {
-                GFileUtils.deleteQuietly(tempFile);
-            }
+            GFileUtils.deleteQuietly(tempFile);
         }
     }
-
 }

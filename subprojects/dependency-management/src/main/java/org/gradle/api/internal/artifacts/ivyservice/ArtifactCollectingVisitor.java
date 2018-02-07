@@ -39,7 +39,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         this.artifacts.add(artifact.toPublicView());
     }
 
@@ -59,7 +59,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
         throw new UnsupportedOperationException();
     }
 

@@ -29,8 +29,17 @@ import java.util.SortedSet;
 
 public class TaskCacheKeyCalculator {
 
-    public static TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
+    private final boolean buildCacheDebugLogging;
+
+    public TaskCacheKeyCalculator(boolean buildCacheDebugLogging) {
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
+    }
+
+    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
         TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
+        if (buildCacheDebugLogging) {
+            builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);
+        }
         builder.appendTaskImplementation(execution.getTaskImplementation());
         builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 
@@ -38,8 +47,12 @@ public class TaskCacheKeyCalculator {
         for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
             DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
             entry.getValue().appendToHasher(newHasher);
-            HashCode hash = newHasher.hash();
-            builder.appendInputPropertyHash(entry.getKey(), hash);
+            if (newHasher.isValid()) {
+                HashCode hash = newHasher.hash();
+                builder.appendInputPropertyHash(entry.getKey(), hash);
+            } else {
+                builder.inputPropertyLoadedByUnknownClassLoader(entry.getKey());
+            }
         }
 
         SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();

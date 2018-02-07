@@ -25,6 +25,11 @@ import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.tasks.internal.XcodeSchemeFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+import java.io.File;
+
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
+
 /**
  * Task for generating a scheme file.
  *
@@ -54,40 +59,66 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     private void configureBuildAction(XcodeSchemeFile.BuildAction action) {
-        action.entry(new Action<XcodeSchemeFile.BuildActionEntry>() {
-            @Override
-            public void execute(XcodeSchemeFile.BuildActionEntry buildActionEntry) {
-                buildActionEntry.setBuildForAnalysing(true);
-                buildActionEntry.setBuildForArchiving(true);
-                buildActionEntry.setBuildForProfiling(true);
-                buildActionEntry.setBuildForRunning(true);
-                buildActionEntry.setBuildForTesting(true);
-                buildActionEntry.setBuildableReference(toBuildableReference(xcodeProject.getTarget()));
-            }
-        });
+        for (final XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
+            action.entry(new Action<XcodeSchemeFile.BuildActionEntry>() {
+                @Override
+                public void execute(XcodeSchemeFile.BuildActionEntry buildActionEntry) {
+                    buildActionEntry.setBuildForAnalysing(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForArchiving(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForProfiling(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForRunning(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForTesting(xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildableReference(toBuildableReference(xcodeTarget));
+                }
+            });
+        }
     }
 
     private void configureTestAction(XcodeSchemeFile.TestAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
+
+        for (final XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
+            if (xcodeTarget.isUnitTest()) {
+                action.setBuildConfiguration(TEST_DEBUG);
+                action.entry(new Action<XcodeSchemeFile.TestableEntry>() {
+                    @Override
+                    public void execute(XcodeSchemeFile.TestableEntry testableEntry) {
+                        testableEntry.setSkipped(false);
+                        XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeTarget);
+                        testableEntry.setBuildableReference(buildableReference);
+                    }
+                });
+            }
+        }
     }
 
     private void configureLaunchAction(XcodeSchemeFile.LaunchAction action) {
-        action.setBuildConfiguration("Debug");
-        XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeProject.getTarget());
-        action.setBuildableProductRunnable(buildableReference);
-        action.setBuildableReference(buildableReference);
+        action.setBuildConfiguration(BUILD_DEBUG);
+        for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
+            XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeTarget);
+            if (xcodeTarget.isRunnable()) {
+                action.setBuildableProductRunnable(buildableReference);
+            }
+            action.setBuildableReference(buildableReference);
+            break;
+        }
     }
 
     private void configureArchiveAction(XcodeSchemeFile.ArchiveAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
     }
 
     private void configureProfileAction(XcodeSchemeFile.ProfileAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
     }
 
     private void configureAnalyzeAction(XcodeSchemeFile.AnalyzeAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
+    }
+
+    @Override
+    public File getInputFile() {
+        return null;
     }
 
     @Override

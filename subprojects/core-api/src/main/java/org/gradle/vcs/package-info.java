@@ -16,5 +16,7 @@
 
 /**
  * Packages for version control systems.
+ *
+ * @since 4.4
  */
 package org.gradle.vcs;

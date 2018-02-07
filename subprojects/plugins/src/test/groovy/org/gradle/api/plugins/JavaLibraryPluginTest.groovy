@@ -17,6 +17,8 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -217,15 +219,28 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
     def "adds Java library component"() {
         given:
         project.pluginManager.apply(JavaLibraryPlugin)
+        project.dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, "org:api1:1.0")
+        project.dependencies.constraints.add(JavaPlugin.API_CONFIGURATION_NAME, "org:api2:2.0")
+        project.dependencies.add(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, "org:impl1:1.0")
+        project.dependencies.constraints.add(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, "org:impl2:2.0")
 
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
         def javaLibrary = project.components.getByName("java")
+        def runtimeUsage = javaLibrary.usages[0]
+        def apiUsage = javaLibrary.usages[1]
 
         then:
         javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
-        javaLibrary.runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
-        javaLibrary.compileUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies
+        runtimeUsage.dependencies.size() == 2
+        runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        runtimeUsage.dependencyConstraints.size() == 2
+        runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(DependencyConstraint)
+
+        apiUsage.dependencies.size() == 1
+        apiUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        apiUsage.dependencyConstraints.size() == 1
+        apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(DependencyConstraint)
     }
 
 }

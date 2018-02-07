@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     api project(':coreApi')
 
     implementation project(':core')
-    implementation libraries.jgit
+    implementation libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
 
     testFixturesImplementation project(":internalTesting")
+    testFixturesImplementation project(":internalIntegTesting")
+    testFixturesCompile libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
 }
 
-useTestFixtures()
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+}

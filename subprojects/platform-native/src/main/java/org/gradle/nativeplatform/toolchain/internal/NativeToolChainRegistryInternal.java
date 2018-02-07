@@ -15,10 +15,12 @@
  */
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 
 public interface NativeToolChainRegistryInternal extends NativeToolChainRegistry {
+
     /**
      * Registers a default ToolChain, which may later be added to the registry via {@link #addDefaultToolChains()}.
      */
@@ -28,4 +30,9 @@ public interface NativeToolChainRegistryInternal extends NativeToolChainRegistry
      * Adds default tool chains to the registry.
      */
     void addDefaultToolChains();
+
+    /**
+     * Selects the tool chain that can build binaries from the given source language that can run on the target machine.
+     */
+    NativeToolChainInternal getForPlatform(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine);
 }

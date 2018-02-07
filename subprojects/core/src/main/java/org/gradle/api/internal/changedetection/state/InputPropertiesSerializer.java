@@ -44,7 +44,9 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int SET_SNAPSHOT = 13;
     private static final int MAP_SNAPSHOT = 14;
     private static final int PROVIDER_SNAPSHOT = 15;
-    private static final int DEFAULT_SNAPSHOT = 16;
+    private static final int MANAGED_NAMED_SNAPSHOT = 16;
+    private static final int IMPLEMENTATION_SNAPSHOT = 17;
+    private static final int DEFAULT_SNAPSHOT = 18;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
@@ -121,6 +123,10 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return new MapValueSnapshot(mapBuilder.build());
             case PROVIDER_SNAPSHOT:
                 return new ProviderSnapshot(readSnapshot(decoder));
+            case MANAGED_NAMED_SNAPSHOT:
+                return new ManagedNamedTypeSnapshot(decoder.readString(), decoder.readString());
+            case IMPLEMENTATION_SNAPSHOT:
+                return new ImplementationSnapshot(decoder.readString(), decoder.readBoolean() ? null : serializer.read(decoder));
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
@@ -186,6 +192,14 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             for (ValueSnapshot valueSnapshot : setSnapshot.getElements()) {
                 writeEntry(encoder, valueSnapshot);
             }
+        } else if (snapshot instanceof ImplementationSnapshot) {
+            ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) snapshot;
+            encoder.writeSmallInt(IMPLEMENTATION_SNAPSHOT);
+            encoder.writeString(implementationSnapshot.getTypeName());
+            encoder.writeBoolean(implementationSnapshot.hasUnknownClassLoader());
+            if (!implementationSnapshot.hasUnknownClassLoader()) {
+                serializer.write(encoder, implementationSnapshot.getClassLoaderHash());
+            }
         } else if (snapshot instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
@@ -219,6 +233,11 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             encoder.writeSmallInt(PROVIDER_SNAPSHOT);
             ProviderSnapshot providerSnapshot = (ProviderSnapshot) snapshot;
             writeEntry(encoder, providerSnapshot.getValue());
+        } else if (snapshot instanceof ManagedNamedTypeSnapshot) {
+            encoder.writeSmallInt(MANAGED_NAMED_SNAPSHOT);
+            ManagedNamedTypeSnapshot namedSnapshot = (ManagedNamedTypeSnapshot) snapshot;
+            encoder.writeString(namedSnapshot.getClassName());
+            encoder.writeString(namedSnapshot.getName());
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }

@@ -26,7 +26,7 @@ import java.util.Set;
  * repository.
  */
 @HasInternalProtocol
-public interface SelfResolvingDependency extends Dependency, Buildable {
+public interface SelfResolvingDependency extends DirectDependency, Buildable {
     /**
      * Resolves this dependency. A {@link org.gradle.api.artifacts.ProjectDependency} is resolved with transitive equals true
      * by this method.

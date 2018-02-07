@@ -29,9 +29,13 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     private final Class<? extends Artifact> type;
     private final File file;
 
-    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier, AttributeContainer variantAttributes, Class<? extends Artifact> type, File file) {
+    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier, AttributeContainer variantAttributes, String variantDisplayName, Class<? extends Artifact> type, File file) {
+        this(identifier, variantDisplayName, variantAttributes, type, file);
+    }
+
+    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier, String variantDisplayName, AttributeContainer variantAttributes, Class<? extends Artifact> type, File file) {
         this.identifier = identifier;
-        this.variant = new DefaultResolvedVariantResult(variantAttributes);
+        this.variant = new DefaultResolvedVariantResult(variantDisplayName, variantAttributes);
         this.type = type;
         this.file = file;
     }

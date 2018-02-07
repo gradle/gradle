@@ -154,7 +154,7 @@ repositories {
 
     private MavenHttpModule publishModuleWithoutMetadata() {
         MavenHttpModule module = createModule()
-        module.withNoMetaData()
+        module.withNoPom()
         module.publish()
     }
 

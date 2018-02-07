@@ -26,18 +26,18 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     }
 
     @Override
-    public FileContentSnapshot getSnapshot() {
+    public final FileContentSnapshot getSnapshot() {
         return snapshot;
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public final void appendToHasher(BuildCacheHasher hasher) {
         hasher.putString(getNormalizedPath());
         hasher.putHash(getSnapshot().getContentMd5());
     }
 
     @Override
-    public int compareTo(NormalizedFileSnapshot o) {
+    public final int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
             result = getSnapshot().getContentMd5().compareTo(o.getSnapshot().getContentMd5());
@@ -46,7 +46,7 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -55,18 +55,39 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
         return snapshot.equals(that.snapshot)
-            && getNormalizedPath().equals(that.getNormalizedPath());
+            && hasSameNormalizedPathAs(that);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int result = snapshot.hashCode();
-        result = 31 * result + getNormalizedPath().hashCode();
+        result = 31 * result + hashNormalizedPath();
         return result;
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return String.format("'%s' / %s", getNormalizedPath(), snapshot);
+    }
+
+    /**
+     * This is a performance optimization and must return the same result as
+     * <pre>
+     *     getNormalizedPath().equals(other.getNormalizedPath());
+     * </pre>
+     */
+    protected boolean hasSameNormalizedPathAs(AbstractNormalizedFileSnapshot other) {
+        return getNormalizedPath().equals(other.getNormalizedPath());
+    }
+
+
+    /**
+     * This is a performance optimization and must return the same result as
+     * <pre>
+     *     getNormalizedPath().hashCode();
+     * </pre>
+     */
+    protected int hashNormalizedPath() {
+        return getNormalizedPath().hashCode();
     }
 }

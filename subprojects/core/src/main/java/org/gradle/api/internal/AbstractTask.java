@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -25,29 +26,31 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFileVar;
-import org.gradle.api.internal.file.TaskFileVarFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
+import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -58,6 +61,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -129,10 +133,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
+    private final TaskLocalStateInternal taskLocalState;
     private final Class<? extends Task> publicType;
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
+    private final PropertySpecFactory specFactory;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -154,15 +160,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert name != null;
         state = new TaskStateInternal();
         TaskContainerInternal tasks = project.getTasks();
-        dependencies = new DefaultTaskDependency(tasks);
         mustRunAfter = new DefaultTaskDependency(tasks);
         finalizedBy = new DefaultTaskDependency(tasks);
         shouldRunAfter = new DefaultTaskDependency(tasks);
         services = project.getServices();
+
+        FileResolver fileResolver = project.getFileResolver();
+        PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
-        taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
-        taskDestroyables = new DefaultTaskDestroyables(project.getFileResolver(), this, taskMutator);
+        specFactory = new DefaultPropertySpecFactory(this, fileResolver);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, specFactory);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, specFactory);
+        taskDestroyables = new DefaultTaskDestroyables(taskMutator);
+        taskLocalState = new DefaultTaskLocalState(taskMutator);
+
+        dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
     }
 
     private void assertDynamicObject() {
@@ -216,7 +228,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<ContextAwareTaskAction> getTaskActions() {
         if (actions == null) {
-            actions = new ArrayList<ContextAwareTaskAction>();
+            actions = new ArrayList<ContextAwareTaskAction>(3);
         }
         return actions;
     }
@@ -240,7 +252,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Set<Object> getDependsOn() {
-        return dependencies.getValues();
+        return dependencies.getMutableValues();
     }
 
     @Override
@@ -555,6 +567,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public TaskDestroyables getDestroyables() {
         return taskDestroyables;
+    }
+
+    @Override
+    public TaskLocalState getLocalState() {
+        return taskLocalState;
     }
 
     @Internal
@@ -980,49 +997,5 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public boolean isHasCustomActions() {
         return hasCustomActions;
-    }
-
-    /**
-     * Creates a new output directory property for this task.
-     *
-     * @return The property.
-     * @since 4.1
-     */
-    @Incubating
-    protected DirectoryVar newOutputDirectory() {
-        return getServices().get(TaskFileVarFactory.class).newOutputDirectory(this);
-    }
-
-    /**
-     * Creates a new output file property for this task.
-     *
-     * @return The property.
-     * @since 4.1
-     */
-    @Incubating
-    protected RegularFileVar newOutputFile() {
-        return getServices().get(TaskFileVarFactory.class).newOutputFile(this);
-    }
-
-    /**
-     * Creates a new input file property for this task.
-     *
-     * @return The property.
-     * @since 4.1
-     */
-    @Incubating
-    protected RegularFileVar newInputFile() {
-        return getServices().get(TaskFileVarFactory.class).newInputFile(this);
-    }
-
-    /**
-     * Creates a new input directory property for this task.
-     *
-     * @return The property.
-     * @since 4.3
-     */
-    @Incubating
-    protected DirectoryVar newInputDirectory() {
-        return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
     }
 }

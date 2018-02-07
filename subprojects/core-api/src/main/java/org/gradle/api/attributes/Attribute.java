@@ -19,7 +19,6 @@ package org.gradle.api.attributes;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.internal.changedetection.state.SupportedImmutableTypes;
 
 /**
  * An attribute is a named entity with a type. It is used in conjunction with a {@link AttributeContainer}
@@ -67,20 +66,11 @@ public class Attribute<T> implements Named {
     }
 
     private Attribute(String name, Class<T> type) {
-        validateType(name, type);
         this.name = name;
         this.type = type;
         int hashCode = name.hashCode();
         hashCode = 31 * hashCode + type.hashCode();
         this.hashCode = hashCode;
-    }
-
-    private void validateType(String name, Class<T> type) {
-        if (!SupportedImmutableTypes.isSupportedImmutableType(type)) {
-            StringBuilder sb = new StringBuilder("Cannot declare a attribute '" + name + "' with type " + type + ". Supported types are: \n");
-            SupportedImmutableTypes.describeTo(sb);
-            throw new IllegalArgumentException(sb.toString());
-        }
     }
 
     /**

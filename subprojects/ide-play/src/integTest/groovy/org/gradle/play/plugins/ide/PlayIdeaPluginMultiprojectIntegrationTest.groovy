@@ -18,6 +18,7 @@ package org.gradle.play.plugins.ide
 
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
+import org.gradle.play.internal.platform.PlayMajorVersion
 
 class PlayIdeaPluginMultiprojectIntegrationTest extends PlayIdeaPluginIntegrationTest {
 
@@ -32,28 +33,28 @@ class PlayIdeaPluginMultiprojectIntegrationTest extends PlayIdeaPluginIntegratio
 
     @Override
     List<File> getIdeFiles() {
-        return super.getIdeFiles() + [ "${playApp.name}.iml", 'submodule/submodule.iml', 'javalibrary/javalibrary.iml' ]
+        return super.getIdeFiles() + ["${playApp.name}.iml", 'submodule/submodule.iml', 'javalibrary/javalibrary.iml']
     }
 
     String[] getSourcePaths() {
-        [ "public", "conf", "app", "build/src/play/binary/routesScalaSources" ]
+        ["public", "conf", "app", "build/src/play/binary/routesScalaSources"]
     }
 
     String[] getBuildTasks() {
-        [ ":ideaModule",
-        ":ideaProject",
-        ":ideaWorkspace",
-        ":idea",
-        ":javalibrary:ideaModule",
-        ":javalibrary:idea",
-        ":primary:compilePlayBinaryPlayRoutes",
-        ":primary:ideaModule",
-        ":primary:idea",
-        ":submodule:ideaModule",
-        ":submodule:idea" ]
+        [":ideaModule",
+         ":ideaProject",
+         ":ideaWorkspace",
+         ":idea",
+         ":javalibrary:ideaModule",
+         ":javalibrary:idea",
+         ":primary:compilePlayBinaryPlayRoutes",
+         ":primary:ideaModule",
+         ":primary:idea",
+         ":submodule:ideaModule",
+         ":submodule:idea"]
     }
 
     int getExpectedScalaClasspathSize() {
-        102
+        return PlayIdeaPluginBasicIntegrationTest.PLAY_VERSION_TO_CLASSPATH_SIZE[PlayMajorVersion.forPlayVersion(version.toString())]
     }
 }

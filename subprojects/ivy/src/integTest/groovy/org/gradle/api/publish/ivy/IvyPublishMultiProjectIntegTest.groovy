@@ -17,9 +17,9 @@
 package org.gradle.api.publish.ivy
 
 class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
-    def project1 = ivyRepo.module("org.gradle.test", "project1", "1.0")
-    def project2 = ivyRepo.module("org.gradle.test", "project2", "2.0")
-    def project3 = ivyRepo.module("org.gradle.test", "project3", "3.0")
+    def project1 = javaLibrary(ivyRepo.module("org.gradle.test", "project1", "1.0"))
+    def project2 = javaLibrary(ivyRepo.module("org.gradle.test", "project2", "2.0"))
+    def project3 = javaLibrary(ivyRepo.module("org.gradle.test", "project3", "3.0"))
 
     def "project dependencies are correctly bound to published project"() {
         createBuildScripts("")
@@ -29,20 +29,20 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@compile", "org.gradle.test:project3:3.0@compile")
+        project1.assertApiDependencies("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
 
         project2.assertPublishedAsJavaModule()
-        project2.parsedIvy.assertDependsOn("org.gradle.test:project3:3.0@compile")
+        project2.assertApiDependencies("org.gradle.test:project3:3.0")
 
         project3.assertPublishedAsJavaModule()
-        project3.parsedIvy.dependencies.isEmpty()
+        project3.assertApiDependencies()
 
         and:
-        resolveArtifacts(project1) == ['project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
+        resolveArtifacts(project1) { expectFiles 'project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar' }
     }
 
     def "project dependencies reference publication identity of dependent project"() {
-        def project3 = ivyRepo.module("changed.org", "changed-module", "changed")
+        def project3 = javaLibrary(ivyRepo.module("changed.org", "changed-module", "changed"))
 
         createBuildScripts("""
 project(":project3") {
@@ -61,16 +61,16 @@ project(":project3") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@compile", "changed.org:changed-module:changed@compile")
+        project1.assertApiDependencies("org.gradle.test:project2:2.0", "changed.org:changed-module:changed")
 
         project2.assertPublishedAsJavaModule()
-        project2.parsedIvy.assertDependsOn("changed.org:changed-module:changed@compile")
+        project2.assertApiDependencies("changed.org:changed-module:changed")
 
         project3.assertPublishedAsJavaModule()
-        project3.parsedIvy.dependencies.isEmpty()
+        project3.assertApiDependencies()
 
         and:
-        resolveArtifacts(project1) == ['changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+        resolveArtifacts(project1) { expectFiles 'changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar' }
     }
 
     def "reports failure when project dependency references a project with multiple publications"() {
@@ -109,26 +109,29 @@ Found the following publications in project ':project3':
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
         createBuildScripts("""
 // TODO - replace this with a public API when available
-class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentInternal, ChildComponent {
+class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentInternal, ComponentWithVariants {
     String name = 'extra'
     Set usages = []
-    SoftwareComponent owner
+    Set variants = []
 }
 
 project(":project3") {
+    def e1 = new ExtraComp()
+    def e2 = new ExtraComp(variants: [e1, components.java])
+
     publishing {
         publications {
             extra1(IvyPublication) {
-                from new ExtraComp(owner: components.java)
+                from e1
                 organisation "extra.org"
                 module "extra-1"
                 revision "extra"
             }
             extra2(IvyPublication) {
-                from new ExtraComp(owner: components.java)
-                organisation "extra.org"
-                module "extra-2"
-                revision "extra"
+                from e2
+                organisation "custom"
+                module "custom3"
+                revision "456"
             }
         }
     }
@@ -139,7 +142,7 @@ project(":project3") {
         succeeds "publish"
 
         then:
-        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@compile", "org.gradle.test:project3:3.0@compile")
+        project1.assertApiDependencies("org.gradle.test:project2:2.0", "custom:custom3:456")
     }
 
     def "ivy-publish plugin does not take archivesBaseName into account"() {
@@ -154,11 +157,11 @@ project(":project2") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@compile", "org.gradle.test:project3:3.0@compile")
+        project1.assertApiDependencies("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
 
         // published with the correct coordinates, even though artifact has different name
         project2.assertPublishedAsJavaModule()
-        project2.parsedIvy.assertDependsOn("org.gradle.test:project3:3.0@compile")
+        project2.assertApiDependencies("org.gradle.test:project3:3.0")
 
         project3.assertPublishedAsJavaModule()
         project3.parsedIvy.dependencies.isEmpty()
@@ -206,7 +209,7 @@ project(":project2") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:1.0@compile")
+        project1.assertApiDependencies("org.gradle.test:project2:1.0")
     }
 
     def "ivy-publish plugin publishes project dependency excludes in descriptor"() {

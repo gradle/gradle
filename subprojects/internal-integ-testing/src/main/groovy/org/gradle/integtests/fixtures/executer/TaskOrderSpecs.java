@@ -17,7 +17,9 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.Sets;
+import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +63,8 @@ public class TaskOrderSpecs {
     }
 
     public static TaskOrderSpec exact(Object[] constraints) {
-        return new ExactOrderSpec(Arrays.asList(constraints));
+        List<Object> flattenedConstraints = GUtil.flatten(constraints, new ArrayList<Object>());
+        return new ExactOrderSpec(flattenedConstraints);
     }
 
     private static abstract class RecursiveOrderSpec implements TaskOrderSpec {

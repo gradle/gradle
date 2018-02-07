@@ -133,6 +133,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
                         lock.release()
                         project(':b').lock.acquire()
                         logger.quiet 'After'
+                        assert false
                     }
                 }
             }
@@ -166,11 +167,13 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
         """
 
         when:
-        succeeds('run')
+        fails('run')
 
         then:
         result.groupedOutput.task(':a:log').outputs == ['Before', 'After']
+        result.groupedOutput.task(':a:log').outcome == 'FAILED'
         result.groupedOutput.task(':b:log').output == 'Interrupting output'
+        result.groupedOutput.task(':b:log').outcome == null
     }
 
     def "long running task output are flushed after delay"() {

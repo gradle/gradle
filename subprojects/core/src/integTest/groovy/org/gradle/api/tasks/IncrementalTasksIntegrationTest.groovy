@@ -82,7 +82,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             [ 'discovered/file0.txt', 'discovered/file1.txt', 'discovered/file2.txt', 'discoveredDir' ].each { fileName ->
                 def discoveredInput = project.file(fileName)
                 if (discoveredInput.exists()) {
-                    inputs.newInput(discoveredInput)
+                    inputs.newInputs([discoveredInput])
                 }
             }
 
@@ -354,6 +354,36 @@ ext.added = ['file3.txt', 'file4.txt']
         executesWithRebuildContext()
     }
 
+    def "incremental task is informed that all input files are 'out-of-date' when input file property has been added"() {
+        given:
+        file('new-input.txt').text = "new input file"
+        previousExecution()
+
+        when:
+        buildFile << "incremental.inputs.file('new-input.txt')"
+
+        then:
+        executesWithRebuildContext("ext.changed += ['new-input.txt']")
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
+        given:
+        buildFile << """                            
+            if (file('new-input.txt').exists()) {
+                incremental.inputs.file('new-input.txt')
+            }
+        """
+        def toBeRemovedInputFile = file('new-input.txt')
+        toBeRemovedInputFile.text = "to be removed input file"
+        previousExecution()
+
+        when:
+        toBeRemovedInputFile.delete()
+
+        then:
+        executesWithRebuildContext()
+    }
+
     def "incremental task is informed that all input files are 'out-of-date' when task class has changed"() {
         given:
         previousExecution()
@@ -474,11 +504,11 @@ ext.added = ['file3.txt', 'file4.txt']
     }
 
     def executesWithRebuildContext(String fileChanges="") {
-        buildFile << fileChanges
         buildFile << """
     ext.changed = ['file0.txt', 'file1.txt', 'file2.txt']
     ext.incrementalExecution = false
 """
+        buildFile << fileChanges
         succeeds "incrementalCheck"
     }
 }

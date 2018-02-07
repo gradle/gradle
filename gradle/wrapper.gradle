@@ -45,14 +45,6 @@ tasks.withType(Wrapper) {
         scriptFile.write scriptFile.text.replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\"")
         batchScript.write batchScript.text.replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts")
     }
-    doLast {
-        def buildSrcWrapperDir = new File(rootDir, 'buildSrc/gradle/wrapper')
-        GFileUtils.mkdirs(buildSrcWrapperDir)
-        copy {
-            from propertiesFile
-            into buildSrcWrapperDir
-        }
-    }
 }
 wrapperUpdateTask "nightly", "nightly"
 wrapperUpdateTask "rc", "release-candidate"

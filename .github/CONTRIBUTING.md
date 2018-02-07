@@ -1,5 +1,5 @@
 # Contributing to Gradle
-Thank you for considering a contribution to Gradle! This guide explains how to: 
+Thank you for considering a contribution to Gradle! This guide explains how to:
 
 * maximize the chance of your changes being accepted
 * work on the Gradle code base
@@ -7,23 +7,23 @@ Thank you for considering a contribution to Gradle! This guide explains how to:
 
 ## Get in touch
 
-Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can safe both you and us a lot of time.
+Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can save both you and us a lot of time.
 For any non-trivial change, we'll ask you to create a short design document explaining:
 
 * Why is this change done? What's the use case?
 * What will the API look like? (For new features)
 * What test cases should it have? What could go wrong?
-* How will it roughly be implemented? (We'll happily provide code pointers to safe you time)
+* How will it roughly be implemented? (We'll happily provide code pointers to save you time)
 
 This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with us.
 
-## Sign the CLA
+## Accept Developer Certificate of Origin
 
-Before we can accept any code contributions, you must electronically sign a [Gradle CLA](http://gradle.org/cla).
+In order for your contributions to be accepted, you must [sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your Git commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
 
 ## Follow the Code of Conduct
 
-In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/). 
+In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/).
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
@@ -42,14 +42,28 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
     git config user.name 'First Last'
     git config user.email user@example.com
 
-You can generate the IntelliJ project by running
+### IntelliJ
+
+You can generate the IntelliJ projects by running
 
     ./gradlew idea
+
+### Eclipse
 
 You can generate the Eclipse projects by running
 
     ./gradlew eclipse
 
+Then you can import the generated projects into Eclipse
+  
+1. Install Eclipse 4.5 (Mars) at least
+2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
+3. Make sure you have a Java 8 compatible JDK configured in your workspace
+4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
+5. Import all projects using the "Import Existing Projects into Workspace" wizard
+
+
+ 
 ### Code Change Guidelines
 
 All code contributions should contain the following:
@@ -82,11 +96,27 @@ The commit messages that accompany your code changes are an important piece of d
 * Keep commits discrete: avoid including multiple unrelated changes in a single commit
 * Keep commits self-contained: avoid spreading a single change across multiple commits. A single commit should make sense in isolation
 * If your commit pertains to a GitHub issue, include (`Issue: #123`) in the commit message on a separate line
-* Please check that your email address matches that on your [CLA](http://gradle.org/cla)
+* [Sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
 
 ### Submitting Your Change
 
 After you submit your pull request, a Gradle core developer will review it. It is normal that this takes several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
+
+### Signing Off Commits After Submitting a Pull Request
+
+Pull requests are automatically verified that all commit messages contain the Signed-off-by line with an email address that matches the commit author. In case you didn't sign off your commits before creating a pull request, you can still fix that to confirm that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
+
+To sign off a single commit:
+
+`git commit --amend --signoff`
+
+To sign off one or multiple commits:
+
+`git filter-branch --msg-filter "cat - && echo && echo 'Signed-off-by: Your Name <Your.Name@example.com>'" HEAD`
+
+Then force push your branch:
+
+`git push --force origin test-branch`
 
 ## Getting Help
 
@@ -94,6 +124,6 @@ If you run into any trouble, please reach out to us on the issue you are working
 
 ## Our Thanks
 
-We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to. 
-  
-If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)? 
+We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to.
+
+If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)?

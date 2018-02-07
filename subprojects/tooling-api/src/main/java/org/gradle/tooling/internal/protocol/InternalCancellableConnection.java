@@ -25,9 +25,10 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
  * <p>Consumer compatibility: This interface is used by all consumer versions from 2.1-rc-1.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from 2.1-rc-1.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 2.1-rc-1. Methods have different version compatibilities.</p>
  *
  * @since 2.1-rc-1
+ * @see InternalParameterAcceptingConnection
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
 public interface InternalCancellableConnection extends InternalProtocolInterface {
@@ -57,7 +58,9 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
     /**
      * Performs some action against a build and returns the result.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 2.1-rc-1.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 2.1-rc-1 to 4.3. It is also used by later consumers when the provider does not
+     * implement newer interfaces.
+     * </p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 2.1-rc-1.</p>
      *
      * @throws BuildExceptionVersion1 On build failure.
@@ -66,7 +69,9 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 2.1-rc-1
+     * @deprecated 4.4. Use {@link InternalParameterAcceptingConnection#run(InternalBuildActionVersion2, InternalCancellationToken, BuildParameters)} instead.
      */
+    @Deprecated
     <T> BuildResult<T> run(InternalBuildAction<T> action,
                            InternalCancellationToken cancellationToken,
                            BuildParameters operationParameters) throws

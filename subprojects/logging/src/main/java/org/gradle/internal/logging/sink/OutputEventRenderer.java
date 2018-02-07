@@ -33,6 +33,8 @@ import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
+import org.gradle.internal.logging.console.UserInputConsoleRenderer;
+import org.gradle.internal.logging.console.UserInputStandardOutputRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
@@ -72,12 +74,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
 
-    public OutputEventRenderer(Clock clock) {
+    public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(new UserInputStandardOutputRenderer(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)), clock));
             }
         });
         formatters.add(stdOutChain);
@@ -142,12 +144,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void attachAnsiConsole(OutputStream outputStream) {
+        attachAnsiConsole(outputStream, false);
+    }
+
+    protected void attachAnsiConsole(OutputStream outputStream, boolean verbose) {
         synchronized (lock) {
-            ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
+            ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-            addConsole(console, true, true, consoleMetaData);
+            addConsole(console, true, true, consoleMetaData, verbose);
         }
     }
 
@@ -209,14 +216,20 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
+        return addConsole(console, stdout, stderr, consoleMetaData, false);
+    }
+
+    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
-            new BuildStatusRenderer(
-                new WorkInProgressRenderer(
-                    new BuildLogLevelFilterRenderer(
-                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), clock, new PrettyPrefixedLogHeaderFormatter(), false)),
-                    console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, clock),
-            clock);
+            new UserInputConsoleRenderer(
+                new BuildStatusRenderer(
+                    new WorkInProgressRenderer(
+                        new BuildLogLevelFilterRenderer(
+                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), clock, new PrettyPrefixedLogHeaderFormatter(!verbose), verbose)),
+                        console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
+                    console.getStatusBar(), console, consoleMetaData, clock),
+                console),
+                clock);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;

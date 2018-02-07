@@ -94,16 +94,16 @@ If your build enters a build cycle like this, you can track down the task by loo
 
 Due to class access restrictions related to Java 9, Gradle cannot set some operating system specific options, which means that: 
 
-* On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
+* On macOS, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
 * On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.
  
 
 [[sec:performance_and_stability]]
 ==== Performance and stability
 
-The JDK file watching facility relies on inefficient file system polling on Mac OS X (see: https://bugs.openjdk.java.net/browse/JDK-7133447[JDK-7133447]). This can significantly delay notification of changes on large projects with many source files.
+The JDK file watching facility relies on inefficient file system polling on macOS (see: https://bugs.openjdk.java.net/browse/JDK-7133447[JDK-7133447]). This can significantly delay notification of changes on large projects with many source files.
 
-Additionally, the watching mechanism may deadlock under _heavy_ load on Mac OS X (see: https://bugs.openjdk.java.net/browse/JDK-8079620[JDK-8079620]). This will manifest as Gradle appearing not to notice file changes. If you suspect this is occurring, exit continuous build and start again.
+Additionally, the watching mechanism may deadlock under _heavy_ load on macOS (see: https://bugs.openjdk.java.net/browse/JDK-8079620[JDK-8079620]). This will manifest as Gradle appearing not to notice file changes. If you suspect this is occurring, exit continuous build and start again.
 
 On Linux, OpenJDK's implementation of the file watch service can sometimes miss file system events (see: https://bugs.openjdk.java.net/browse/JDK-8145981[JDK-8145981]).
 

@@ -26,6 +26,28 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def server = new BlockingHttpServer(1000)
 
+    def "serves HTTP resources"() {
+        server.expect("a")
+        server.expect("b")
+        server.start()
+
+        when:
+        def a = server.uri("a")
+        def b = server.uri("b")
+
+        then:
+        a.scheme == "http"
+        b.scheme == "http"
+
+        when:
+        a.toURL().text
+        b.toURL().text
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "succeeds when expected serial requests are made"() {
         given:
         server.expect("a")
@@ -81,6 +103,27 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
+    def "can specify an action to run to generate response for a GET request"() {
+        given:
+        server.expect(server.get("a", { e ->
+            e.sendResponseHeaders(200, 0)
+        }))
+        server.expect(server.get("b", { e ->
+            def str = "this is the content"
+            e.sendResponseHeaders(200, str.bytes.length)
+            e.responseBody.write(str.bytes)
+        }))
+        server.start()
+
+        when:
+        server.uri("a").toURL().text == ""
+        server.uri("b").toURL().text == "this is the content"
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "can expect a PUT request"() {
         given:
         server.expect(server.put("a"))
@@ -96,6 +139,29 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.stop()
 
         then:
+        noExceptionThrown()
+    }
+
+    def "can expect a POST request and provide action to generate response"() {
+        given:
+        server.expect(server.post("a", { e ->
+            def str = "this is the content"
+            e.sendResponseHeaders(200, str.bytes.length)
+            e.responseBody.write(str.bytes)
+        }))
+        server.start()
+
+        when:
+        def connection = server.uri("a").toURL().openConnection()
+        connection.requestMethod = 'POST'
+        connection.doOutput = true
+        connection.outputStream << "123".bytes
+        def result = connection.inputStream.text
+
+        server.stop()
+
+        then:
+        result == "this is the content"
         noExceptionThrown()
     }
 
@@ -403,6 +469,29 @@ class BlockingHttpServerTest extends ConcurrentSpec {
     def "fails when request method does not match expected serial PUT request"() {
         given:
         server.expect(server.put("a"))
+        server.start()
+
+        when:
+        server.uri("a").toURL().text
+
+        then:
+        thrown(IOException)
+
+        when:
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'Failed to handle all HTTP requests.'
+        e.causes.message.sort() == [
+            'Failed to handle GET /a',
+            'Unexpected request GET a received. Waiting for [a], already received [].'
+        ]
+    }
+
+    def "fails when request method does not match expected serial POST request"() {
+        given:
+        server.expect(server.post("a", { e -> e.sendResponseHeaders(200, 0) }))
         server.start()
 
         when:

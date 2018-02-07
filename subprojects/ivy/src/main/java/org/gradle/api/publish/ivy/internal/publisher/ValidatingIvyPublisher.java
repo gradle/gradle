@@ -26,10 +26,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Disconnect
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
 
 import java.io.File;
@@ -41,9 +42,9 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     private final IvyPublisher delegate;
     private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser;
 
-    public ValidatingIvyPublisher(IvyPublisher delegate, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
+    public ValidatingIvyPublisher(IvyPublisher delegate, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
         this.delegate = delegate;
-        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository);
+        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory);
     }
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
@@ -66,13 +67,13 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .notEmpty()
                 .validInFileName();
 
-        MutableModuleComponentResolveMetadata metadata = parseIvyFile(publication);
+        MutableIvyModuleResolveMetadata metadata = parseIvyFile(publication);
         ModuleVersionIdentifier moduleId = metadata.getId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
 
-        field(publication, "branch", metadata.getDescriptor().getBranch())
+        field(publication, "branch", metadata.getBranch())
                 .optionalNotEmpty()
                 .doesNotContainSpecialCharacters(true);
 
@@ -81,9 +82,9 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .validInFileName();
     }
 
-    private MutableModuleComponentResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
+    private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile());
+            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile());
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         }

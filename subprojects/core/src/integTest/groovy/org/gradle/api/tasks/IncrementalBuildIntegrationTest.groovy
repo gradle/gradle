@@ -17,7 +17,9 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
 
@@ -693,13 +695,17 @@ task b(type: DirTransformerTask) {
     }
 
     def "can use up-to-date predicate to force task to execute"() {
-        buildFile << '''
+        def inputFileName = 'src.txt'
+
+        buildFile << """
 task inputsAndOutputs {
-    inputs.files 'src.txt'
-    outputs.file 'src.a.txt'
+    def inputFile = '${inputFileName}'
+    def outputFile = 'src.a.txt'
+    inputs.files inputFile
+    outputs.file outputFile
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst {
-        outputs.files.singleFile.text = "[${inputs.files.singleFile.text}]"
+        file(outputFile).text = "[\${file(inputFile).text}]"
     }
 }
 task noOutputs {
@@ -711,8 +717,8 @@ task nothing {
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst { }
 }
-'''
-        TestFile srcFile = file('src.txt')
+"""
+        TestFile srcFile = file(inputFileName)
         srcFile.text = 'content'
 
         when:
@@ -1187,7 +1193,8 @@ task generate(type: TransformerTask) {
         file("build/output/file.txt").assertExists()
     }
 
-    def "produces a sensible error when a task output causes dependency resolution"() {
+    @Unroll
+    def "produces a sensible error when a task #description causes dependency resolution"() {
         buildFile << """
             ${jcenterRepository()}
             
@@ -1199,13 +1206,13 @@ task generate(type: TransformerTask) {
                 foo "commons-io:commons-io:1.2"
             }
             
-            task foobar(type: TaskWithOutputFileCollection) {
-                outputFiles = configurations.foo
+            task foobar(type: MisbehavingTask) {
+                misbehavingProperty = configurations.foo
             }
             
-            class TaskWithOutputFileCollection extends DefaultTask {
-                @OutputFiles 
-                def outputFiles 
+            class MisbehavingTask extends DefaultTask {
+                @${propertyType.simpleName}
+                def misbehavingProperty 
             }
         """
 
@@ -1213,7 +1220,13 @@ task generate(type: TransformerTask) {
         fails("foobar")
 
         then:
-        failure.assertHasDescription("A deadlock was detected while resolving the task outputs for :foobar.  This can be caused, for instance, by a task output causing dependency resolution.")
+        failure.assertHasDescription message
+
+        where:
+        description   | propertyType | message
+        "output"      | OutputFiles  | "A deadlock was detected while resolving the outputs for task ':foobar'. This can be caused, for instance, by an output or local state property causing dependency resolution."
+        "local state" | LocalState   | "A deadlock was detected while resolving the outputs for task ':foobar'. This can be caused, for instance, by an output or local state property causing dependency resolution."
+        "destroyable" | Destroys     | "A deadlock was detected while resolving the destroyables for task ':foobar'. This can be caused, for instance, by a destroyable property causing dependency resolution."
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2180")
@@ -1262,6 +1275,134 @@ task generate(type: TransformerTask) {
 
         then:
         skipped(':taskWithInputs')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/1224')
+    def 'can change input properties dynamically'() {
+        given:
+        file('inputDir1').createDir()
+        file('inputDir2').createDir()
+        buildFile << '''
+    class MyTask extends DefaultTask{
+        @TaskAction
+        void processFiles(IncrementalTaskInputs inputs) {
+            inputs.outOfDate { }
+        }
+    }
+    
+    task myTask (type: MyTask){
+        project.ext.inputDirs.split(',').each { inputs.dir(it) }
+    }
+'''
+
+        when:
+        args('-PinputDirs=inputDir1,inputDir2')
+
+        then:
+        succeeds('myTask')
+
+        when:
+        args('-PinputDirs=inputDir1')
+
+        then:
+        succeeds('myTask')
+    }
+
+    @ToBeImplemented("Private getters should be ignored")
+    def "private inputs can be overridden in subclass"() {
+        given:
+        buildFile << '''
+            class MyBaseTask extends DefaultTask {
+                @Input
+                private String getMyPrivateInput() { project.property('private') }
+                
+                @OutputFile
+                File getOutput() {
+                    new File('build/output.txt')
+                }
+                
+                @TaskAction
+                void doStuff() {
+                    output.text = getMyPrivateInput()
+                }
+            }
+            
+            class MyTask extends MyBaseTask {
+                @Input
+                private String getMyPrivateInput() { 'only private' }
+            }
+            
+            task myTask(type: MyTask)
+        '''
+
+        when:
+        run 'myTask', '-Pprivate=first'
+
+        then:
+        def outputFile = file('build/output.txt')
+        outputFile.text == 'first'
+
+        when:
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        skipped ':myTask'
+        outputFile.text == 'first'
+
+        when:
+        outputFile.delete()
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        executedAndNotSkipped ':myTask'
+        outputFile.text == 'second'
+    }
+
+    @ToBeImplemented("Private getters should be ignored")
+    def "private inputs in superclass are respected"() {
+        given:
+        buildFile << '''
+            class MyBaseTask extends DefaultTask {
+                @Input
+                private String getMyPrivateInput() { project.property('private') }
+                
+                @OutputFile
+                File getOutput() {
+                    new File('build/output.txt')
+                }
+                
+                @TaskAction
+                void doStuff() {
+                    output.text = getMyPrivateInput()
+                }
+            }
+            
+            class MyTask extends MyBaseTask {
+            }
+            
+            task myTask(type: MyTask)
+        '''
+
+        when:
+        run 'myTask', '-Pprivate=first'
+
+        then:
+        def outputFile = file('build/output.txt')
+        outputFile.text == 'first'
+
+        when:
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        executedAndNotSkipped ':myTask'
+        outputFile.text == 'second'
+
+        when:
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        skipped ':myTask'
+        outputFile.text == 'second'
     }
 
 }

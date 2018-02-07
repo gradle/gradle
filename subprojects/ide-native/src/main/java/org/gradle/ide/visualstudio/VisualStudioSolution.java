@@ -16,15 +16,13 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.BuildableComponentSpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-
-import java.util.Set;
+import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A visual studio solution, representing one or more {@link org.gradle.nativeplatform.NativeBinarySpec} instances
- * from the same {@link org.gradle.nativeplatform.NativeComponentSpec}.
+ * A visual studio solution, representing one or more native binaries in a build.
  * <p>
  *
  * The content and location of the generate solution file can be modified by the supplied methods:
@@ -33,7 +31,7 @@ import java.util.Set;
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {
- *          solutions.all {
+ *          solution {
  *              solutionFile.location = "vs/${name}.sln"
  *              solutionFile.withContent { TextProvider content -&gt;
  *                  content.asBuilder().insert(0, "# GENERATED FILE: DO NOT EDIT\n")
@@ -45,17 +43,8 @@ import java.util.Set;
  * </pre>
  */
 @Incubating
-public interface VisualStudioSolution extends BuildableComponentSpec {
-    /**
-     * The set of projects included in this solution.
-     */
-    Set<VisualStudioProject> getProjects();
-
-    /**
-     * The component that this solution represents.
-     */
-    NativeComponentSpec getComponent();
-
+@HasInternalProtocol
+public interface VisualStudioSolution extends Named, Buildable {
     /**
      * Configuration for the generated solution file.
      */

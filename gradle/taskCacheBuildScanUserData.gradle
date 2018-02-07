@@ -14,21 +14,8 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileCollectionVisitor
-import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClassLoaderVisitor
-import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.OperationFinishEvent
-import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.util.Path
-
-import java.util.regex.Pattern
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.buildCacheEnabled) {
@@ -47,64 +34,12 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     if (task.state.executed && (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
                         || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath()))) {
                         def buildScan = task.project.buildScan
-                        def fileProperties = task.inputs.fileProperties
-                        fileProperties.each { inputProperty ->
-                            def name = inputProperty.propertyName
-                            def snapshotter = gradle.services.get(inputProperty.snapshotter)
-                            def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getPathNormalizationStrategy(), task.project.normalization.buildFinalStrategy())
-                            def prefix = "${task.path}-input-${name}"
-                            if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
-                                publishPaths(inputProperty.propertyFiles, prefix)
-                            }
-                            if (name in taskPropertiesWithFullFileSnapshot[task.getPath()]) {
-                                publishIndividualFileHashes(snapshot, prefix)
-                            }
-                        }
                         if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                             def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                             new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
                         }
                     }
                 }
-            }
-
-            private publishIndividualFileHashes(snapshot, prefix) {
-                int idx = 0
-                snapshot.snapshots.each { path, normalizedSnapshot ->
-                    def normalizedPath = normalizedSnapshot.normalizedPath
-                    buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-filename", new File(path).name)
-                    if (normalizedPath) {
-                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-path", normalizedPath)
-                    }
-                    buildScan.value("${prefix}-snapshot-${String.format('%04d', idx++)}-hash", normalizedSnapshot.snapshot.contentMd5.toString())
-                }
-            }
-
-            private publishPaths(propertyFiles, String prefix) {
-                int idx = 0
-                propertyFiles.visitRootElements(new FileCollectionVisitor() {
-                    void visitCollection(FileCollectionInternal fileCollection) {
-                        buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
-                        buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.files)
-                        idx++
-                    }
-
-                    void visitTree(FileTreeInternal fileTree) {
-                        buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
-                        idx++
-                    }
-
-                    void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                        buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
-                        idx++
-                    }
-                })
-            }
-
-            private static String hashKey(some) {
-                def builder = new org.gradle.caching.internal.DefaultBuildCacheHasher()
-                some.appendToHasher(builder)
-                builder.hash().toString()
             }
         })
     }

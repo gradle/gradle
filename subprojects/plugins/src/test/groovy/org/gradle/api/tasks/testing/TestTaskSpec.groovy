@@ -17,9 +17,14 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.*
-import org.gradle.api.internal.tasks.testing.detection.TestExecuter
-import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.TestExecuter
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec
+import org.gradle.api.internal.tasks.testing.TestFramework
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -38,6 +43,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')
+        task.testClassesDirs = task.project.files()
         completion = task.project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
     }
 
@@ -57,7 +63,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
             getResultType() >> TestResult.ResultType.FAILURE
         }
 
-        _ * testExecuter.execute(task, _) >> { Test task, TestResultProcessor processor ->
+        _ * testExecuter.execute(_ as TestExecutionSpec, _) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
             processor.started(suiteDescriptor, startEvent)
             processor.completed(testId, finishEvent)
         }
@@ -75,7 +81,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
             getResultType() >> TestResult.ResultType.SUCCESS
         }
 
-        _ * testExecuter.execute(task, _) >> { Test task, TestResultProcessor processor ->
+        _ * testExecuter.execute(_ as TestExecutionSpec, _) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
             processor.started(suiteDescriptor, startEvent)
             processor.completed(testId, finishEvent)
         }
@@ -102,7 +108,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
             getResultType() >> TestResult.ResultType.SUCCESS
         }
 
-        _ * testExecuter.execute(task, _) >> { Test task, TestResultProcessor processor ->
+        _ * testExecuter.execute(_ as TestExecutionSpec, _) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
             processor.started(suiteDescriptor, suiteStartEvent)
             processor.started(testDescriptor, testStartEvent)
             processor.completed("test", finishEvent)
@@ -233,7 +239,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
     def "removes listeners even if execution fails"() {
         given:
-        testExecuter.execute(task, _ as TestResultProcessor) >> { throw new RuntimeException("Boo!") }
+        testExecuter.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { throw new RuntimeException("Boo!") }
 
         task.addTestListener(Stub(TestListener))
         task.addTestOutputListener(Stub(TestOutputListener))

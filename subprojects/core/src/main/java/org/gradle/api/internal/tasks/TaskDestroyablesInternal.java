@@ -18,15 +18,11 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.TaskDestroyables;
 
-import java.io.File;
 import java.util.Collection;
 
 /**
  * Note: this is currently not visible on {@link org.gradle.api.internal.TaskInternal} to avoid it leaking onto {@link org.gradle.api.internal.AbstractTask} and so on to the public API.
  */
 public interface TaskDestroyablesInternal extends TaskDestroyables {
-    /**
-     * Returns the files that this task will destroy.
-     */
-    Collection<File> getFilesReadOnly();
+    Collection<Object> getRegisteredPaths();
 }

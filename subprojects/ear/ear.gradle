@@ -17,7 +17,9 @@
 dependencies {
     compile project(':core')
     compile project(":plugins")
-    compile libraries.inject
+    compile libraries.inject.coordinate
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

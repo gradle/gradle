@@ -27,9 +27,16 @@ import java.util.List;
  * Provides access to snapshots of the content and metadata of the file system.
  *
  * The implementation will attempt to efficiently honour the queries, maintaining some or all state in-memory and dealing with concurrent access to the same parts of the file system.
+ *
+ * Note: use this interface only for those files that are not expected to be changing, for example task inputs.
  */
 @ThreadSafe
 public interface FileSystemSnapshotter {
+    /**
+     * Determines whether the given file is not missing. Using this method can be more efficient than using {@link File#exists()}.
+     */
+    boolean exists(File file);
+
     /**
      * Returns the current snapshot of the contents and meta-data of the given file. The file may be a regular file, a directory or missing. When the specified file is a directory, details about the directory itself is returned, rather than details about the children of the directory.
      */

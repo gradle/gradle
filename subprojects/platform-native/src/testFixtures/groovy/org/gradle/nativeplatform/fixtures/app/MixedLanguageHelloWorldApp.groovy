@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
-public class MixedLanguageHelloWorldApp extends HelloWorldApp {
+class MixedLanguageHelloWorldApp extends HelloWorldApp {
     private final AvailableToolChains.InstalledToolChain toolChain
 
     MixedLanguageHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {
@@ -110,10 +110,13 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         return i386GnuAsmSource
     }
 
+    // HACK: Ensure include root are correctly setup, use `INCLUDE <ks386.inc>`
+    // See: https://github.com/gradle/gradle/issues/3662
     private static String windowsMasmSource = '''
 .386
 .model    flat
 
+INCLUDE <ks386.inc>
 PUBLIC    _sumx
 _TEXT     SEGMENT
 _sumx    PROC

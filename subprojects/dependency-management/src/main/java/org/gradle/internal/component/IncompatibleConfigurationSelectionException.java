@@ -16,28 +16,26 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.text.TreeFormatter;
-
-import java.util.Collections;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
 public class IncompatibleConfigurationSelectionException extends RuntimeException {
     public IncompatibleConfigurationSelectionException(
-        AttributeContainer fromConfigurationAttributes,
+        AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentResolveMetadata targetComponent,
         String targetConfiguration) {
         super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent, String targetConfiguration) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent, String targetConfiguration) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Configuration '" + targetConfiguration + "' in " + targetComponent.getComponentId().getDisplayName() + " does not match the consumer attributes");
-        formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, Collections.singletonList(targetComponent.getConfiguration(targetConfiguration)),  targetConfiguration);
+        formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, targetComponent.getConfiguration(targetConfiguration));
         return formatter.toString();
     }
 

@@ -21,12 +21,10 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
@@ -34,9 +32,7 @@ import spock.lang.Specification
 class ResolverProviderComponentMetaDataResolverTest extends Specification {
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
-    final dependency = Stub(DependencyMetadata)
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
-    final selector = DefaultModuleVersionSelector.newSelector("group", "project", "1.0")
 
     final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)
@@ -51,10 +47,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
         new DefaultModuleVersionIdentifier(moduleRevId.organisation, moduleRevId.name, moduleRevId.revision)
-    }
-
-    def setup() {
-        _ * dependency.requested >> selector
     }
 
     def addRepo1() {

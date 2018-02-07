@@ -100,7 +100,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private boolean showProgress;
 
-    @Nested
     private final FindBugsReportsInternal reports;
 
     public FindBugs() {
@@ -128,6 +127,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @return The reports container
      */
+    @Nested
     public FindBugsReports getReports() {
         return reports;
     }
@@ -439,7 +439,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether to allow the build to continue if there are warnings.
      */
-    @Input
     @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;

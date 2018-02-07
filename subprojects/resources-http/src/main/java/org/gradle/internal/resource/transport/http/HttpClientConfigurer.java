@@ -30,11 +30,13 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
@@ -91,6 +93,9 @@ public class HttpClientConfigurer {
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
         configureCookieSpecRegistry(builder);
+        configureRequestConfig(builder);
+        configureSocketConfig(builder);
+        configureRedirectStrategy(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
@@ -194,6 +199,20 @@ public class HttpClientConfigurer {
         );
     }
 
+    private void configureRequestConfig(HttpClientBuilder builder) {
+        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
+        RequestConfig config = RequestConfig.custom()
+            .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
+            .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
+            .build();
+        builder.setDefaultRequestConfig(config);
+    }
+
+    private void configureSocketConfig(HttpClientBuilder builder) {
+        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
+        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).build());
+    }
+
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {
         org.gradle.api.credentials.Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
         if (!(credentials instanceof PasswordCredentials)) {
@@ -201,6 +220,14 @@ public class HttpClientConfigurer {
         }
 
         return Cast.uncheckedCast(credentials);
+    }
+
+    private void configureRedirectStrategy(HttpClientBuilder builder) {
+        if (httpSettings.isFollowRedirects()) {
+            builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
+        } else {
+            builder.disableRedirectHandling();
+        }
     }
 
     private String getAuthScheme(Authentication authentication) {

@@ -42,11 +42,13 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -64,7 +66,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Build
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -100,6 +101,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -120,6 +122,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
+    private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -145,8 +148,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
-    // These fields are not covered by mutation lock
     private final Path path;
+
+    // These fields are not covered by mutation lock
     private final String name;
     private final DefaultConfigurationPublications outgoing;
 
@@ -169,12 +173,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
+    private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
     private final DisplayName displayName;
 
-    public DefaultConfiguration(final Path identityPath, Path path, String name,
+    public DefaultConfiguration(DomainObjectContext domainObjectContext,
+                                String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
@@ -187,9 +193,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 Instantiator instantiator,
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder) {
-        this.identityPath = identityPath;
-        this.path = path;
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder
+
+    ) {
+        this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -204,10 +211,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
         this.attributesFactory = attributesFactory;
-        this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+        this.configurationAttributes = attributesFactory.mutable();
+        this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
-
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
@@ -226,6 +234,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
+        path = domainObjectContext.projectPath(name);
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -361,14 +370,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void triggerWhenEmptyActionsIfNecessary() {
-        if (dependencies.isEmpty()) {
-            defaultDependencyActions.execute(dependencies);
-        }
-        // Discard actions
+    public Configuration withDependencies(final Action<? super DependencySet> action) {
+        validateMutation(MutationType.DEPENDENCIES);
+        withDependencyActions = withDependencyActions.add(action);
+        return this;
+    }
+
+    public void runDependencyActions() {
+        defaultDependencyActions.execute(dependencies);
+        withDependencyActions.execute(dependencies);
+
+        // Discard actions after execution
         defaultDependencyActions = ImmutableActionSet.empty();
+        withDependencyActions = ImmutableActionSet.empty();
+
         for (Configuration superConfig : extendsFrom) {
-            ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
+            ((ConfigurationInternal) superConfig).runDependencyActions();
         }
     }
 
@@ -447,7 +464,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
-                // TODO:DAZ I'm not sure we can ever get into this state, now that we prevent modification of resolved configuration
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
@@ -455,9 +471,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
+                runDependencyActions();
                 preventFromFurtherMutation();
 
-                ResolvableDependencies incoming = getIncoming();
+                final ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
                 cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
@@ -471,11 +488,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
+                context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
+                    @Override
+                    public ResolvedComponentResult getRootComponent() {
+                        return incoming.getResolutionResult().getRoot();
+                    }
+                });
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath).progressDisplayName("Resolve dependencies " + identityPath);
+                String displayName = "Resolve dependencies of " + identityPath;
+                return BuildOperationDescriptor.displayName(displayName)
+                    .progressDisplayName(displayName)
+                    .details(new OperationDetails());
             }
         });
     }
@@ -488,7 +514,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         } finally {
             insideBeforeResolve = false;
         }
-        triggerWhenEmptyActionsIfNecessary();
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
@@ -555,7 +580,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         validateMutation(MutationType.DEPENDENCIES);
-        excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
+        excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs));
         return this;
     }
 
@@ -583,6 +608,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void preventFromFurtherMutation() {
+        // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
             AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
             configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
@@ -616,10 +642,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
         String newName = name + "Copy";
-        Path newIdentityPath = identityPath.getParent().child(newName);
-        Path newPath = path.getParent().child(newName);
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
-        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
             rootComponentMetadataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
@@ -1005,7 +1029,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public String toString() {
-            return "dependencies '" + path + "'";
+            return "dependencies '" + getIdentityPath() + "'";
         }
 
         public FileCollection getFiles() {
@@ -1013,6 +1037,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public DependencySet getDependencies() {
+            runDependencyActions();
             return getAllDependencies();
         }
 
@@ -1111,7 +1136,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
-                viewAttributes = new DefaultMutableAttributeContainer(attributesFactory, configurationAttributes);
+                viewAttributes = attributesFactory.mutable(configurationAttributes);
                 attributesUsed = true;
             }
             return viewAttributes;
@@ -1277,6 +1302,50 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     rethrowFailure("task dependencies", failures);
                 }
             }
+        }
+    }
+
+    private class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
+
+        @Override
+        public String getConfigurationName() {
+            return getName();
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            if (isScriptConfiguration()) {
+                return null;
+            } else {
+                Path projectPath = domainObjectContext.getProjectPath();
+                return projectPath == null ? null : projectPath.getPath();
+            }
+        }
+
+        @Override
+        public boolean isScriptConfiguration() {
+            return domainObjectContext.isScript();
+        }
+
+        @Override
+        public String getConfigurationDescription() {
+            return getDescription();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return domainObjectContext.getBuildPath().getPath();
+        }
+
+        @Override
+        public boolean isConfigurationVisible() {
+            return isVisible();
+        }
+
+        @Override
+        public boolean isConfigurationTransitive() {
+            return isTransitive();
         }
     }
 

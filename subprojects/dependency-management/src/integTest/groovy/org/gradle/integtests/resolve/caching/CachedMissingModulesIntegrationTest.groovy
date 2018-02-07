@@ -181,7 +181,7 @@ Required by:
         repo1DirList.expectGet()
         repo2MetaData.expectGet()
         repo2Module.pom.expectGet()
-        repo2Module.getArtifact().expectGet()
+        repo2Module.artifact.expectGet()
 
         then:
         run 'retrieve'

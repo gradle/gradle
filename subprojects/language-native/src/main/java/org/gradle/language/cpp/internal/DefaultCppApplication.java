@@ -16,38 +16,64 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.internal.DefaultComponentDependencies;
+import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
-    private final DefaultCppExecutable debug;
-    private final DefaultCppExecutable release;
+public class DefaultCppApplication extends DefaultCppComponent implements CppApplication, PublicationAwareComponent {
+    private final ObjectFactory objectFactory;
+    private final Property<CppExecutable> developmentBinary;
+    private final MainExecutableVariant mainVariant = new MainExecutableVariant();
+    private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultCppApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
-        super(name, fileOperations, providerFactory, configurations);
-        debug = objectFactory.newInstance(DefaultCppExecutable.class, name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppExecutable.class, name + "Release", objectFactory, getBaseName(), false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
+    public DefaultCppApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
+        super(name, fileOperations, objectFactory);
+        this.objectFactory = objectFactory;
+        this.developmentBinary = objectFactory.property(CppExecutable.class);
+        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+    }
+
+    public DefaultCppExecutable addExecutable(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
+        return result;
     }
 
     @Override
-    public CppExecutable getDevelopmentBinary() {
-        return debug;
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
     }
 
     @Override
-    public CppExecutable getDebugExecutable() {
-        return debug;
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
     }
 
     @Override
-    public CppExecutable getReleaseExecutable() {
-        return release;
+    public MainExecutableVariant getMainPublication() {
+        return mainVariant;
+    }
+
+    @Override
+    public Property<CppExecutable> getDevelopmentBinary() {
+        return developmentBinary;
     }
 }

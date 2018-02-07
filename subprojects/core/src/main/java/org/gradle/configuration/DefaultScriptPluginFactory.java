@@ -54,9 +54,9 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestsSerializer;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.process.internal.ExecFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
@@ -72,12 +72,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
-    private final PluginRepositoryRegistry pluginRepositoryRegistry;
-    private final PluginRepositoryFactory pluginRepositoryFactory;
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
+    private final ExecFactory execFactory;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
+    private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -89,12 +89,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
-                                      PluginRepositoryRegistry pluginRepositoryRegistry,
-                                      PluginRepositoryFactory pluginRepositoryFactory,
                                       ProviderFactory providerFactory,
                                       TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
-                                      FileHasher fileHasher) {
+                                      FileHasher fileHasher,
+                                      ExecFactory execFactory,
+                                      AutoAppliedPluginHandler autoAppliedPluginHandler) {
+
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -104,13 +105,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
-        this.pluginRepositoryRegistry = pluginRepositoryRegistry;
-        this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
+        this.execFactory = execFactory;
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
+        this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
     public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
@@ -155,12 +156,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileLookup.class, fileLookup);
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
-            services.add(PluginRepositoryRegistry.class, pluginRepositoryRegistry);
-            services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
             services.add(ProviderFactory.class, providerFactory);
             services.add(TextResourceLoader.class, textResourceLoader);
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
+            services.add(ExecFactory.class, execFactory);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
@@ -177,9 +177,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
 
-            PluginRequests pluginRequests = initialRunner.getData();
-            PluginManagerInternal pluginManager = initialPassScriptTarget.getPluginManager();
-            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
+            PluginRequests initialPluginRequests = initialRunner.getData();
+            PluginRequests mergedPluginRequests = autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
+
+            PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
+            pluginRequestApplicator.applyPlugins(mergedPluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {}, pluginRepositories{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);

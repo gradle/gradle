@@ -73,14 +73,14 @@ class PropertyStateProjectUnderTest {
             import org.gradle.api.DefaultTask
             import org.gradle.api.file.FileCollection
             import org.gradle.api.file.ConfigurableFileCollection
-            import org.gradle.api.provider.PropertyState
+            import org.gradle.api.provider.Property
             import org.gradle.api.provider.Provider
             import org.gradle.api.tasks.TaskAction
             import org.gradle.api.tasks.Input
             import org.gradle.api.tasks.OutputFiles
 
             class MyTask extends DefaultTask {
-                private final PropertyState<Boolean> enabled = project.property(Boolean)
+                private final Property<Boolean> enabled = project.objects.property(Boolean)
                 private final ConfigurableFileCollection outputFiles = project.files()
 
                 @Input
@@ -122,7 +122,7 @@ class PropertyStateProjectUnderTest {
             import org.gradle.api.DefaultTask;
             import org.gradle.api.file.FileCollection;
             import org.gradle.api.file.ConfigurableFileCollection;
-            import org.gradle.api.provider.PropertyState;
+            import org.gradle.api.provider.Property;
             import org.gradle.api.provider.Provider;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.Input;
@@ -134,11 +134,11 @@ class PropertyStateProjectUnderTest {
             import java.io.IOException;
         
             public class MyTask extends DefaultTask {
-                private final PropertyState<Boolean> enabled;
+                private final Property<Boolean> enabled;
                 private final ConfigurableFileCollection outputFiles;
 
                 public MyTask() {
-                    enabled = getProject().property(Boolean.class);
+                    enabled = getProject().getObjects().property(Boolean.class);
                     outputFiles = getProject().files();
                 }
 
@@ -214,11 +214,11 @@ class PropertyStateProjectUnderTest {
             }
 
             class MyExtension {
-                private final PropertyState<Boolean> enabled
+                private final Property<Boolean> enabled
                 private final ConfigurableFileCollection outputFiles
 
                 MyExtension(Project project) {
-                    enabled = project.property(Boolean)
+                    enabled = project.objects.property(Boolean)
                     outputFiles = project.files()
                 }
 

@@ -64,7 +64,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
         and:
         1 * resultsLoader.create(_) >> transientConfigurationResults
-        1 * transientConfigurationResults.getRootNode() >> rootNode
+        1 * transientConfigurationResults.getFirstLevelDependencies() >> [(Mock(ModuleDependency)): child]
         0 * _
     }
 

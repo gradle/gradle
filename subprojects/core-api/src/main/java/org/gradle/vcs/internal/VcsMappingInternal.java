@@ -16,14 +16,12 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 
 public interface VcsMappingInternal extends VcsMapping {
-    ModuleVersionSelector getOldRequested();
 
     VersionControlSpec getRepository();
 
-    boolean isUpdated();
+    boolean hasRepository();
 }

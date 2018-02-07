@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -172,7 +171,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private Set<DependencyGraphNodeResult> getFirstLevelNodes(Spec<? super Dependency> dependencySpec) {
         Set<DependencyGraphNodeResult> matches = new LinkedHashSet<DependencyGraphNodeResult>();
         TransientConfigurationResults graphResults = loadTransientGraphResults(getSelectedArtifacts());
-        for (Map.Entry<ModuleDependency, DependencyGraphNodeResult> entry : graphResults.getFirstLevelDependencies().entrySet()) {
+        for (Map.Entry<Dependency, DependencyGraphNodeResult> entry : graphResults.getFirstLevelDependencies().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
                 matches.add(entry.getValue());
             }
@@ -280,7 +279,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren();
+        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
     }
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
@@ -288,7 +287,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final Set<File> files = Sets.newLinkedHashSet();
 
         @Override
-        public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+        public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             try {
                 ResolvedArtifact resolvedArtifact = artifact.toPublicView();
                 files.add(resolvedArtifact.getFile());
@@ -314,7 +313,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
             throw new UnsupportedOperationException();
         }
     }
@@ -326,7 +325,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
             files.add(file);
         }
     }

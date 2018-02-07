@@ -1,19 +1,26 @@
-dependencies {
-    integTestCompile libraries.groovy
-    integTestCompile libraries.ant
-    integTestCompile libraries.jsoup
+plugins {
+    id 'classycle'
+}
 
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
+dependencies {
+    integTestCompile libraries.groovy.coordinate
+    integTestCompile libraries.ant.coordinate
+    integTestCompile testLibraries.jsoup
+
+    integTestRuntime allTestRuntimeDependencies
 
     crossVersionTestCompile project(':scala')
     crossVersionTestCompile project(':ide')
     crossVersionTestCompile project(':codeQuality')
     crossVersionTestCompile project(':signing')
 
-    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
+    crossVersionTestRuntime allTestRuntimeDependencies
 }
-useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
-useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
+
+testFixtures {
+    from(':diagnostics', 'integTest')
+    from(':platformNative', 'integTest')
+}
 
 integTestTasks.all { task ->
     project.tasks.findByName("configure${task.name.capitalize()}").configure {
@@ -42,8 +49,6 @@ integTestTasks.all { task ->
 parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }
-
-useClassycle()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

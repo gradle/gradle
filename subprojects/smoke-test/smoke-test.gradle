@@ -1,7 +1,5 @@
 import org.gradle.testing.SmokeTest
 
-useTestFixtures()
-
 sourceSets {
     smokeTest {
         compileClasspath += main.output + test.output
@@ -18,9 +16,9 @@ configurations {
 dependencies {
     smokeTestCompile project(':testKit')
     smokeTestCompile project(":internalIntegTesting")
-    smokeTestCompile libraries.spock
+    smokeTestCompile testLibraries.spock
 
-    smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${versions.gradle_kotlin_dsl}"
+    smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
     smokeTestRuntimeOnly project(':codeQuality')
     smokeTestRuntimeOnly project(':ide')
     smokeTestRuntimeOnly project(':ivy')
@@ -28,6 +26,11 @@ dependencies {
     smokeTestRuntimeOnly project(':maven')
     smokeTestRuntimeOnly project(':plugins')
     smokeTestRuntimeOnly project(':toolingApiBuilders')
+}
+
+testFixtures {
+    from(':core')
+    from(':versionControl')
 }
 
 processSmokeTestResources {

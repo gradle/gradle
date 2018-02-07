@@ -28,10 +28,14 @@ public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public DefaultExclude convertExcludeRule(String configurationName, ExcludeRule excludeRule) {
-        String org = GUtil.elvis(excludeRule.getGroup(), PatternMatchers.ANY_EXPRESSION);
-        String module = GUtil.elvis(excludeRule.getModule(), PatternMatchers.ANY_EXPRESSION);
-        String[] configurationNames = GUtil.isTrue(configurationName) ? new String[]{configurationName} : new String[0];
-        return new DefaultExclude(moduleIdentifierFactory.module(org, module), configurationNames, PatternMatchers.EXACT);
+    public DefaultExclude convertExcludeRule(ExcludeRule excludeRule) {
+        return createExcludeRule(excludeRule.getGroup(), excludeRule.getModule());
+    }
+
+    @Override
+    public DefaultExclude createExcludeRule(String group, String module) {
+        group = GUtil.elvis(group, PatternMatchers.ANY_EXPRESSION);
+        module = GUtil.elvis(module, PatternMatchers.ANY_EXPRESSION);
+        return new DefaultExclude(moduleIdentifierFactory.module(group, module));
     }
 }

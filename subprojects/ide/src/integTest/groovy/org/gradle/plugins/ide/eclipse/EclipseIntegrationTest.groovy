@@ -129,7 +129,7 @@ sourceSets {
         def classpath = parseClasspathFile()
 
         def outputs = findEntries(classpath, "output")
-        assert outputs*.@path == ["bin"]
+        assert outputs*.@path == ["bin/default"]
 
         def sources = findEntries(classpath, "src")
         sources.each { assert !it.attributes().containsKey("path") }
@@ -365,8 +365,10 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 '''
         def jdt = parseJdtFile()
-        assert jdt.contains('source=' + JavaVersion.current().toString())
-        assert jdt.contains('targetPlatform=' + JavaVersion.current().toString())
+        def javaVersion = JavaVersion.current()
+        def javaVersionNumber = javaVersion.isJava9Compatible() ? javaVersion.getMajorVersion() : javaVersion.toString()
+        assert jdt.contains('source=' + javaVersionNumber)
+        assert jdt.contains('targetPlatform=' + javaVersionNumber)
     }
 
     @Test

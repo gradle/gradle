@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':core')
     compile project(":ide")
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingNative')
-    compile libraries.plist
+    compile libraries.plist.coordinate
 
     testFixturesCompile project(':internalTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useClassycle()
+testFixtures {
+    from(':core')
+    from(':platformNative')
+    from(':versionControl')
+}

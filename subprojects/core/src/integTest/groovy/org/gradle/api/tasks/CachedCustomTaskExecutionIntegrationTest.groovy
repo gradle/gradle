@@ -16,17 +16,24 @@
 
 package org.gradle.api.tasks
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
+
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    def setup() {
+    def configureCacheForBuildSrc() {
         file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
 
     def "buildSrc is loaded from cache"() {
+        configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
 
@@ -34,7 +41,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
         assert listCacheFiles().size() == 0
         when:
-        withBuildCache().succeeds "tasks"
+        withBuildCache().run "tasks"
         then:
         skippedTasks.empty
         listCacheFiles().size() == 1 // compileGroovy
@@ -43,12 +50,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/build").assertIsDir().deleteDir()
 
         when:
-        withBuildCache().succeeds "tasks"
+        withBuildCache().run "tasks"
         then:
         output.contains ":buildSrc:compileGroovy FROM-CACHE"
     }
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
+        configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
         file("input.txt") << "input"
         buildFile << """
@@ -58,7 +66,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
 
@@ -67,12 +75,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
 
     def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
+        configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
         taskSourceFile << customGroovyTask()
         file("input.txt") << "input"
@@ -83,7 +92,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
         file("build/output.txt").text == "input"
@@ -92,7 +101,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customGroovyTask(" modified")
 
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "input modified"
@@ -115,6 +124,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "cacheable task with cache disabled doesn't get cached"() {
+        configureCacheForBuildSrc()
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
@@ -143,7 +153,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
 
@@ -156,7 +166,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().run "customTask"
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
 
         then:
         nonSkippedTasks.contains ":customTask"
@@ -176,7 +186,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask", "--info"
+        withBuildCache().run "customTask", "--info"
         then:
         nonSkippedTasks.contains ":customTask"
         output.contains "Caching disabled for task ':customTask': Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
@@ -208,7 +218,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -247,6 +257,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "optional file output is not stored when there is no output"() {
+        configureCacheForBuildSrc()
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
@@ -274,7 +285,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -283,7 +294,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -295,7 +306,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << """
             customTask.secondaryOutputFile = null
         """
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -303,7 +314,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -311,6 +322,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "plural output files are only restored when map keys match"() {
+        configureCacheForBuildSrc()
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
@@ -338,7 +350,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output-1.txt").text == "one"
@@ -353,7 +365,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 two: file("build/output-b.txt")
             ]
         """
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output-a.txt").text == "one"
@@ -368,7 +380,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 second: file("build/output-b.txt")
             ]
         """
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output-a.txt").text == "first"
@@ -395,7 +407,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -404,7 +416,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -439,7 +451,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         // creates the directory, but not the output file
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -448,7 +460,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -472,14 +484,14 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/empty").assertIsEmptyDir()
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/empty").assertIsEmptyDir()
@@ -507,7 +519,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         executer.withStackTraceChecksDisabled()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         def expectedMessage = message.replace("PATH", file("build/output").path)
         output.contains "Could not pack property 'output': $expectedMessage"
@@ -542,7 +554,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask", "--info"
+        withBuildCache().run "customTask", "--info"
         then:
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
@@ -584,7 +596,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask", "--info"
+        withBuildCache().run "customTask", "--info"
         then:
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
@@ -593,16 +605,16 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("input.txt").text = "input"
         buildFile << defineProducerTask()
 
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
         then:
         skippedTasks as List == [":producer"]
 
         when:
-        withBuildCache().succeeds "producer", "--info"
+        withBuildCache().run "producer", "--info"
         !output.contains("Caching disabled for task ':producer'")
         then:
         skippedTasks as List == [":producer"]
@@ -613,25 +625,53 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineProducerTask()
 
         // Store in local cache
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         // Load from local cache
         cleanBuildDir()
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         // Store to local cache again
         when:
         cleanLocalBuildCache()
-        withBuildCache().succeeds "producer", "--info", "--rerun-tasks"
+        withBuildCache().run "producer", "--info", "--rerun-tasks"
         then:
         !output.contains("Caching disabled for task ':producer'")
 
         when:
         // Can load from local cache again
         cleanBuildDir()
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
         then:
         skippedTasks as List == [":producer"]
+    }
+
+    def "re-ran task is not loaded from cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        // Store in local cache
+        withBuildCache().run "producer"
+
+        // Shouldn't load from cache
+        when:
+        withBuildCache().run "producer", "--rerun-tasks"
+        then:
+        executed ":producer"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3358")
+    def "re-ran task is stored in cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        // Store in local cache
+        withBuildCache().run "producer", "--rerun-tasks"
+
+        when:
+        withBuildCache().run "producer"
+        then:
+        skipped ":producer"
     }
 
     def "downstream task stays cached when upstream task is loaded from cache"() {
@@ -639,13 +679,133 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineProducerTask()
         buildFile << defineConsumerTask()
 
-        withBuildCache().succeeds "consumer"
+        withBuildCache().run "consumer"
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "consumer"
+        withBuildCache().run "consumer"
         then:
         skippedTasks.sort() == [":consumer", ":producer"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3043")
+    def "URL-quoted characters in file names are handled properly"() {
+        def weirdOutputPath = 'build/bad&dir/bad! Dezső %20.txt'
+        def expectedOutput = file(weirdOutputPath)
+        buildFile << """
+            task weirdOutput {
+                outputs.dir("build")
+                outputs.cacheIf { true }
+                doLast {
+                    mkdir file('$weirdOutputPath').parentFile
+                    file('$weirdOutputPath').text = "Data"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().run "weirdOutput"
+        then:
+        executedAndNotSkipped ":weirdOutput"
+        expectedOutput.file
+
+        when:
+        cleanBuildDir()
+        withBuildCache().run "weirdOutput"
+        then:
+        skipped ":weirdOutput"
+        expectedOutput.file
+    }
+
+    @Unroll
+    def "local state declared via #api API is destroyed when task is loaded from cache"() {
+        def localStateFile = file("local-state.json")
+        buildFile << defineTaskWithLocalState(useRuntimeApi)
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        localStateFile.assertIsFile()
+
+        when:
+        cleanBuildDir()
+        withBuildCache().run "customTask"
+        then:
+        skipped ":customTask"
+        localStateFile.assertDoesNotExist()
+
+        where:
+        useRuntimeApi << [true, false]
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @Unroll
+    def "local state declared via #api API is not destroyed when task is not loaded from cache"() {
+        def localStateFile = file("local-state.json")
+        buildFile << defineTaskWithLocalState(useRuntimeApi)
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        localStateFile.assertIsFile()
+
+        when:
+        cleanBuildDir()
+        succeeds "customTask", "-PassertLocalState"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        where:
+        useRuntimeApi << [true, false]
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @Unroll
+    def "null local state declared via #api API is supported"() {
+        buildFile << defineTaskWithLocalState(useRuntimeApi, localStateFile)
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        where:
+        useRuntimeApi | localStateFile
+        true          | "{ null }"
+        false         | "null"
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Issue("https://github.com/gradle/gradle/issues/3537")
+    def "concurrent access to local cache works"() {
+        def projectNames = GroovyCollections.combinations(('a'..'p'), ('a'..'p'), ('a'..'d'))*.join("")
+        println "Running with ${projectNames.size()} projects"
+        projectNames.each { projectName ->
+            settingsFile << "include '$projectName'\n"
+        }
+
+        buildFile << """
+            subprojects { project ->
+                task test {
+                    def outputFile = file("\${project.buildDir}/output.txt")
+                    outputs.cacheIf { true }
+                    outputs.file(outputFile).withPropertyName("outputFile") 
+                    doFirst {
+                        Thread.sleep(new Random().nextInt(30))
+                        outputFile.text = "output"
+                    }
+                }
+            }
+        """
+
+        when:
+        args "--parallel", "--max-workers=100"
+        withBuildCache().run "test"
+        then:
+        noExceptionThrown()
     }
 
     private static String defineProducerTask() {
@@ -716,6 +876,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
+    }
+
+    private void cleanLocalBuildCache() {
+        listCacheFiles().each { file ->
+            println "Deleting cache entry: $file"
+            FileUtils.forceDelete(file)
+        }
     }
 
     void taskIsNotCached(String task) {

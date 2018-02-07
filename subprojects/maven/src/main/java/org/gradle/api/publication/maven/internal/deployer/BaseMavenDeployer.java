@@ -48,9 +48,10 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(pomFile, getJars());
+    protected MavenPublishAction createPublishAction(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(pomFile, metadataFile, getJars());
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
+        deployAction.produceLegacyMavenMetadata();
         deployAction.setUniqueVersion(isUniqueVersion());
         deployAction.setRepositories(remoteRepository, remoteSnapshotRepository);
         return deployAction;

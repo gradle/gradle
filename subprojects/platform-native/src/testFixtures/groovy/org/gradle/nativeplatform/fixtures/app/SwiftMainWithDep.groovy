@@ -19,6 +19,8 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 class SwiftMainWithDep extends SwiftMain {
+    def greeterModule = "Greeter"
+
     SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
         super(greeter, sum)
     }
@@ -26,6 +28,6 @@ class SwiftMainWithDep extends SwiftMain {
     @Override
     SourceFile getSourceFile() {
         def delegate = super.getSourceFile()
-        sourceFile(delegate.path, delegate.name, "import Greeter\n${delegate.content}")
+        sourceFile(delegate.path, delegate.name, "import ${greeterModule}\n${delegate.content}")
     }
 }

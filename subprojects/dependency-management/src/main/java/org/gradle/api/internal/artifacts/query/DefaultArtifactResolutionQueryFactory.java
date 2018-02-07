@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 
@@ -28,21 +27,19 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
     private final RepositoryHandler repositoryHandler;
     private final ResolveIvyFactory ivyFactory;
     private final GlobalDependencyResolutionRules metadataHandler;
-    private final CacheLockingManager cacheLockingManager;
     private final ComponentTypeRegistry componentTypeRegistry;
 
     public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                                  ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
-                                                 CacheLockingManager cacheLockingManager, ComponentTypeRegistry componentTypeRegistry) {
+                                                 ComponentTypeRegistry componentTypeRegistry) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataHandler = metadataHandler;
-        this.cacheLockingManager = cacheLockingManager;
         this.componentTypeRegistry = componentTypeRegistry;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, cacheLockingManager, componentTypeRegistry);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry);
     }
 }

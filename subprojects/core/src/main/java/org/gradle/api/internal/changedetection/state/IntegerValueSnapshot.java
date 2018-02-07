@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class IntegerValueSnapshot extends AbstractScalarValueSnapshot<Integer> {
+public class IntegerValueSnapshot extends AbstractIsolatableScalarValue<Integer> {
     public IntegerValueSnapshot(Integer value) {
         super(value);
     }

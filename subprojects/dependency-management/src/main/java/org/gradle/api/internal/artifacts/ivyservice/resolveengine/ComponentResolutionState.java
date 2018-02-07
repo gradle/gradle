@@ -16,8 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
@@ -33,7 +35,12 @@ public interface ComponentResolutionState extends StringVersioned {
     @Nullable
     ComponentResolveMetadata getMetaData();
 
-    ComponentSelectionReason getSelectionReason();
+    ResolvedVersionConstraint getVersionConstraint();
 
-    void setSelectionReason(ComponentSelectionReason componentSelectionReason);
+    boolean isResolved();
+
+    ComponentSelectionReasonInternal getSelectionReason();
+
+    void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription);
+
 }

@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -29,25 +26,27 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.SystemProperties;
+import org.gradle.api.specs.Spec;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -66,7 +65,6 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.ByteArrayReadableContent;
 import org.gradle.internal.resource.local.FileReadableContent;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -75,17 +73,15 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata, S extends MutableModuleComponentResolveMetadata> implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
+public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata> implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final String name;
@@ -99,9 +95,9 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final FileResourceRepository fileResourceRepository;
 
-    private final VersionLister versionLister;
+    private final ImmutableMetadataSources metadataSources;
+    private final MetadataArtifactProvider metadataArtifactProvider;
 
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
@@ -110,20 +106,20 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        boolean local,
                                        ExternalResourceRepository repository,
                                        CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                       VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                       FileResourceRepository fileResourceRepository) {
+                                       ImmutableMetadataSources metadataSources,
+                                       MetadataArtifactProvider metadataArtifactProvider) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
-        this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.fileResourceRepository = fileResourceRepository;
+        this.metadataSources = metadataSources;
+        this.metadataArtifactProvider = metadataArtifactProvider;
     }
 
     public String getId() {
@@ -132,6 +128,10 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
         id = generateId(this);
         return id;
+    }
+
+    public ImmutableMetadataSources getMetadataSources() {
+        return metadataSources;
     }
 
     public String getName() {
@@ -161,26 +161,33 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         throw new UnsupportedOperationException();
     }
 
-    private void doListModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getRequested().getGroup(), dependency.getRequested().getName());
-        Set<String> versions = new LinkedHashSet<String>();
-        VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
+    private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
 
-        // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
-        IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());
-        listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, visitor);
+        // TODO:DAZ Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
+        // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
+        ResourceVersionLister versionLister = new ResourceVersionLister(repository);
+        List<ResourcePattern> completeIvyPatterns = filterComplete(this.ivyPatterns, module);
+        List<ResourcePattern> completeArtifactPatterns = filterComplete(this.artifactPatterns, module);
 
-        // List modules with missing metadata files
-        for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency.getRequested().getName(), dependency.getArtifacts())) {
-            listVersionsForAllPatterns(artifactPatterns, otherArtifact, visitor);
+        // Iterate over the metadata sources to see if they can provide the version list
+        for (MetadataSource<?> metadataSource : metadataSources.sources()) {
+            metadataSource.listModuleVersions(dependency, module, completeIvyPatterns, completeArtifactPatterns, versionLister, result);
+            if (result.hasResult() && result.isAuthoritative()) {
+                return;
+            }
         }
-        result.listed(versions);
+
+        result.listed(ImmutableSet.<String>of());
     }
 
-    private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionPatternVisitor visitor) {
-        for (ResourcePattern resourcePattern : patternList) {
-            visitor.visit(resourcePattern, ivyArtifactName);
-        }
+    private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {
+        return CollectionUtils.filter(ivyPatterns, new Spec<ResourcePattern>() {
+            @Override
+            public boolean isSatisfiedBy(ResourcePattern element) {
+                return element.isComplete(module);
+            }
+        });
     }
 
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
@@ -188,86 +195,17 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected final void resolveStaticDependency(ModuleComponentIdentifier moduleVersionIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, ExternalResourceArtifactResolver artifactResolver) {
-        MutableModuleComponentResolveMetadata metaDataArtifactMetaData = parseMetaDataFromArtifact(moduleVersionIdentifier, artifactResolver, result);
-        if (metaDataArtifactMetaData != null) {
-            LOGGER.debug("Metadata file found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
-            metaDataArtifactMetaData.setSource(artifactResolver.getSource());
-            result.resolved(metaDataArtifactMetaData.asImmutable());
-            return;
-        }
-
-        MutableModuleComponentResolveMetadata metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
-        if (metaDataFromDefaultArtifact != null) {
-            LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
-            metaDataFromDefaultArtifact.setSource(artifactResolver.getSource());
-            result.resolved(metaDataFromDefaultArtifact.asImmutable());
-            return;
+        for (MetadataSource<?> source : metadataSources.sources()) {
+            MutableModuleComponentResolveMetadata value = source.create(name, componentResolvers, moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
+            if (value != null) {
+                value.setSource(artifactResolver.getSource());
+                result.resolved(value.asImmutable());
+                return;
+            }
         }
 
         LOGGER.debug("No meta-data file or artifact found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
         result.missing();
-    }
-
-    @Nullable
-    protected S parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
-        LocallyAvailableExternalResource metaDataResource = artifactResolver.resolveArtifact(artifact, result);
-        if (metaDataResource == null) {
-            return null;
-        }
-
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
-        return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
-    }
-
-    private S createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        Set<IvyArtifactName> artifacts = overrideMetadata.getArtifacts();
-        for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), artifacts)) {
-            if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
-                return createDefaultComponentResolveMetaData(moduleComponentIdentifier, artifacts);
-            }
-        }
-        return null;
-    }
-
-    protected abstract S createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts);
-
-    protected abstract S parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
-
-    private Set<IvyArtifactName> getDependencyArtifactNames(String moduleName, Set<IvyArtifactName> artifacts) {
-        Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
-        artifactSet.addAll(artifacts);
-
-        if (artifactSet.isEmpty()) {
-            artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar"));
-        }
-
-        return artifactSet;
-    }
-
-    protected void checkMetadataConsistency(ModuleComponentIdentifier expectedId, MutableModuleComponentResolveMetadata metadata) throws MetaDataParseException {
-        checkModuleIdentifier(expectedId, metadata.getId());
-    }
-
-    private void checkModuleIdentifier(ModuleComponentIdentifier expectedId, ModuleVersionIdentifier actualId) {
-        List<String> errors = new ArrayList<String>();
-        checkEquals("group", expectedId.getGroup(), actualId.getGroup(), errors);
-        checkEquals("module name", expectedId.getModule(), actualId.getName(), errors);
-        checkEquals("version", expectedId.getVersion(), actualId.getVersion(), errors);
-        if (errors.size() > 0) {
-            throw new MetaDataParseException(
-                String.format("inconsistent module metadata found. Descriptor: %s Errors: %s", actualId, joinLines(errors)));
-        }
-    }
-
-    private String joinLines(List<String> lines) {
-        return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(lines);
-    }
-
-    private void checkEquals(String label, String expected, String actual, List<String> errors) {
-        if (!expected.equals(actual)) {
-            errors.add("bad " + label + ": expected='" + expected + "' found='" + actual + "'");
-        }
     }
 
     protected abstract boolean isMetaDataArtifact(ArtifactType artifactType);
@@ -281,38 +219,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
-        IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getModule());
-        DefaultModuleComponentArtifactMetadata defaultModuleComponentArtifactMetadata = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
-        return new DefaultModuleDescriptorArtifactMetadata(defaultModuleComponentArtifactMetadata);
-    }
-
-    protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
-
-    protected void resolveArtifact(ComponentArtifactMetadata componentArtifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        ModuleComponentArtifactMetadata artifact = (ModuleComponentArtifactMetadata) componentArtifact;
-
-        File localFile;
-        try {
-            localFile = download(artifact, moduleSource, result);
-        } catch (Throwable e) {
-            result.failed(new ArtifactResolveException(artifact.getId(), e));
-            return;
-        }
-
-        if (localFile != null) {
-            result.resolved(localFile);
-        } else {
-            result.notFound(artifact.getId());
-        }
-    }
-
-    protected File download(ModuleComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        LocallyAvailableExternalResource artifactResource = createArtifactResolver(moduleSource).resolveArtifact(artifact, result);
-        if (artifactResource == null) {
-            return null;
-        }
-
-        return artifactResource.getFile();
+        IvyArtifactName ivyArtifactName = metadataArtifactProvider.getMetaDataArtifactName(moduleComponentIdentifier.getModule());
+        return new DefaultModuleDescriptorArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver() {
@@ -324,7 +232,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return artifactResolver;
     }
 
-    protected ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
+    private ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
         return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, artifactFileStore, cachingResourceAccessor);
     }
 
@@ -417,8 +325,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         CollectionUtils.addAll(artifactPatterns, patterns);
     }
 
-    public abstract boolean isM2compatible();
-
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
@@ -454,7 +360,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        public final void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public final void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         }
 
         @Override
@@ -485,7 +391,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        public final void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public final void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             doListModuleVersions(dependency, result);
         }
 
@@ -515,14 +421,24 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         @Override
         protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
-            // Meta data  artifacts are determined locally
+            // Meta data artifacts are determined locally
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
+            try {
+                ExternalResourceArtifactResolver resolver = createArtifactResolver(moduleSource);
+                ModuleComponentArtifactMetadata moduleArtifact = (ModuleComponentArtifactMetadata) artifact;
+                LocallyAvailableExternalResource artifactResource = resolver.resolveArtifact(moduleArtifact, result);
+                if (artifactResource == null) {
+                    result.notFound(artifact.getId());
+                } else {
+                    result.resolved(artifactResource.getFile());
+                }
+            } catch (Throwable e) {
+                result.failed(new ArtifactResolveException(artifact.getId(), e));
+            }
         }
-
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
@@ -535,30 +451,25 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
             return MetadataFetchingCost.EXPENSIVE;
         }
-
     }
 
-    private static String generateId(ExternalResourceResolver resolver) {
-        StringBuilder sb = new StringBuilder(resolver.getClass().getName());
-        sb.append("::");
-        joinPatterns(sb, resolver.ivyPatterns);
-        sb.append("::");
-        joinPatterns(sb, resolver.artifactPatterns);
-        if (resolver.isM2compatible()) {
-            sb.append("::m2compatible");
+    private String generateId(ExternalResourceResolver resolver) {
+        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
+        cacheHasher.putString(getClass().getName());
+        cacheHasher.putInt(resolver.ivyPatterns.size());
+        for (ResourcePattern ivyPattern : ivyPatterns) {
+            cacheHasher.putString(ivyPattern.getPattern());
         }
-        return HashUtil.createHash(sb.toString(), "MD5").asHexString();
+        cacheHasher.putInt(artifactPatterns.size());
+        for (ResourcePattern artifactPattern : artifactPatterns) {
+            cacheHasher.putString(artifactPattern.getPattern());
+        }
+        appendId(cacheHasher);
+        return cacheHasher.hash().toString();
     }
 
-    private static void joinPatterns(StringBuilder sb, List<ResourcePattern> resourcePatterns) {
-        int len = resourcePatterns.size();
-        for (int i = 0; i < len; i++) {
-            ResourcePattern ivyPattern = resourcePatterns.get(i);
-            sb.append(ivyPattern.getPattern());
-            if (i < len - 1) {
-                sb.append(",");
-            }
-        }
+    protected void appendId(BuildCacheHasher hasher) {
+        getMetadataSources().appendId(hasher);
     }
 
     private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {

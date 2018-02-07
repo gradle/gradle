@@ -25,8 +25,9 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
     String compiledFile = "build/classes/scala/main/Hello.class"
 
     @Override
-    def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
+    def setupProjectInDirectory(TestFile project) {
         project.with {
+            file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
             plugins {
                 id 'scala'
@@ -86,14 +87,14 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         def compiledScalaClass = scalaClassFile('UsesJava.class')
 
         when:
-        withBuildCache().succeeds ':compileJava', compilationTask
+        withBuildCache().run ':compileJava', compilationTask
 
         then:
         compiledJavaClass.exists()
         compiledScalaClass.exists()
 
         when:
-        withBuildCache().succeeds ':clean', ':compileJava'
+        withBuildCache().run ':clean', ':compileJava'
 
         then:
         skipped ':compileJava'
@@ -104,7 +105,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         // compileScala from the cache the compiled java
         // classes are replaced and recorded as changed
         compiledJavaClass.makeOlder()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         skipped compilationTask
@@ -127,7 +128,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             }
         """
 
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         compiledJavaClass.exists()
@@ -145,37 +146,55 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         when:
         executer.inDirectory(warmupDir)
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         classes.all*.compiledClass*.exists().every()
+        classes.analysisFile.assertIsFile()
 
         when:
         warmupDir.deleteDir()
         setupProjectInDirectory(testDirectory)
         classes = new ScalaCompilationFixture(testDirectory)
         classes.baseline()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         executedAndNotSkipped compilationTask
+        classes.analysisFile.assertIsFile()
 
         when:
         classes.classDependingOnBasicClassSource.change()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         skipped compilationTask
+        // Local state is removed when loaded from cache
+        classes.analysisFile.assertDoesNotExist()
+
+        when:
+        cleanBuildDir()
+        withBuildCache().run compilationTask
+
+        then:
+        skipped compilationTask
+        // Local state is removed when loaded from cache
+        classes.analysisFile.assertDoesNotExist()
 
         when:
         // Make sure we notice when classes are recompiled
         classes.all*.compiledClass*.makeOlder()
         classes.independentClassSource.change()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         executedAndNotSkipped compilationTask
         assertAllRecompiled(classes.allClassesLastModified, old(classes.allClassesLastModified))
+        classes.analysisFile.assertIsFile()
+    }
+
+    private void cleanBuildDir() {
+        file("build").assertIsDir().deleteDir()
     }
 
     private static void assertAllRecompiled(List<Long> lastModified, List<Long> oldLastModified) {

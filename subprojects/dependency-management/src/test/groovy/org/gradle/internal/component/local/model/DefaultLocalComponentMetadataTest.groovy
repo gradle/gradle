@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -74,7 +73,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = metadata.getConfiguration('conf')
         conf.dependencies.empty
         conf.artifacts.empty
-        conf.getExclusions(moduleExclusions) == ModuleExclusions.excludeNone()
+        conf.excludes.empty
         conf.files.empty
     }
 
@@ -214,8 +213,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         artifactMetadata1.id != artifactMetadata2.id
 
         and:
-        metadata.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
-        metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
+        metadata.getConfiguration("conf1").artifacts == [artifactMetadata1]
+        metadata.getConfiguration("conf2").artifacts == [artifactMetadata2]
     }
 
     def "variants are attached to configuration but not its children"() {
@@ -256,31 +255,21 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def files3 = Stub(LocalFileDependencyMetadata)
 
         given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
+        def conf1 = addConfiguration("conf1")
+        def conf2 = addConfiguration("conf2")
+        def child1 = addConfiguration("child1", ["conf1", "conf2"])
         addConfiguration("child2", ["conf1"])
 
         when:
-        metadata.addFiles("conf1", files1)
-        metadata.addFiles("conf2", files2)
-        metadata.addFiles("child1", files3)
+        conf1.addFiles(files1)
+        conf2.addFiles(files2)
+        child1.addFiles(files3)
 
         then:
         metadata.getConfiguration("conf1").files == [files1] as Set
         metadata.getConfiguration("conf2").files == [files2] as Set
         metadata.getConfiguration("child1").files == [files1, files2, files3] as Set
         metadata.getConfiguration("child2").files == [files1] as Set
-    }
-
-    def "can add dependencies"() {
-        def dependency = Mock(LocalOriginDependencyMetadata)
-
-        when:
-        metadata.addDependency(dependency)
-
-        then:
-        metadata.dependencies == [dependency]
     }
 
     def "dependency is attached to configuration and its children"() {
@@ -292,14 +281,15 @@ class DefaultLocalComponentMetadataTest extends Specification {
         dependency3.moduleConfiguration >> "child1"
 
         when:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
+        def conf1 = addConfiguration("conf1")
+        def conf2 = addConfiguration("conf2")
+        def child1 = addConfiguration("child1", ["conf1", "conf2"])
         addConfiguration("child2", ["conf1"])
         addConfiguration("other")
-        metadata.addDependency(dependency1)
-        metadata.addDependency(dependency2)
-        metadata.addDependency(dependency3)
+
+        conf1.addDependency(dependency1)
+        conf2.addDependency(dependency2)
+        child1.addDependency(dependency3)
 
         then:
         metadata.getConfiguration("conf1").dependencies == [dependency1]
@@ -310,26 +300,21 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "builds and caches exclude rules for a configuration"() {
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-
         given:
-        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
-        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
+        def compile = metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
+        def runtime = metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
 
-        def rule1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["compile"] as String[], PatternMatchers.EXACT)
-        def rule2 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["runtime"] as String[], PatternMatchers.EXACT)
-        def rule3 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["other"] as String[], PatternMatchers.EXACT)
+        def rule1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"))
+        def rule2 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"))
 
-        metadata.addExclude(rule1)
-        metadata.addExclude(rule2)
-        metadata.addExclude(rule3)
+        compile.addExclude(rule1)
+        runtime.addExclude(rule2)
 
         expect:
         def config = metadata.getConfiguration("runtime")
-
-        def exclusions = config.getExclusions(moduleExclusions)
-        exclusions == moduleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.getExclusions(moduleExclusions))
+        def excludes = config.excludes
+        excludes == [rule1, rule2]
+        config.excludes.is(excludes)
     }
 
     def artifactName() {

@@ -15,28 +15,25 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.internal.FileUtils.hasExtension;
-
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
+
     protected void findScriptsInDir(File initScriptsDir, Collection<File> scripts) {
         if (!initScriptsDir.isDirectory()) {
             return;
         }
-        List<File> files = new ArrayList<File>();
-        for (File file : initScriptsDir.listFiles()) {
-            if (file.isFile() && hasExtension(file, ".gradle")) {
-                files.add(file);
-            }
-        }
-        Collections.sort(files);
-        for (File file : files) {
-            scripts.add(file);
-        }
+        List<File> found = initScriptsIn(initScriptsDir);
+        Collections.sort(found);
+        scripts.addAll(found);
+    }
+
+    private List<File> initScriptsIn(File initScriptsDir) {
+        return new DefaultScriptFileResolver().findScriptsIn(initScriptsDir);
     }
 }

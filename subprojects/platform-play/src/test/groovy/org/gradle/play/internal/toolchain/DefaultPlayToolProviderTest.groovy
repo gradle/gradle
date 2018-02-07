@@ -19,9 +19,11 @@ package org.gradle.play.internal.toolchain
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
+import org.gradle.play.internal.platform.PlayMajorVersion
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
@@ -42,11 +44,16 @@ class DefaultPlayToolProviderTest extends Specification {
     PlayPlatform playPlatform = Mock()
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     File daemonWorkingDir = Mock()
+    ClasspathSnapshotter snapshotter = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
 
     DefaultPlayToolProvider playToolProvider
+
+    private DefaultPlayToolProvider createProvider() {
+        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, snapshotter)
+    }
 
     @Unroll
     def "provides playRunner for play #playVersion"(){
@@ -54,7 +61,7 @@ class DefaultPlayToolProviderTest extends Specification {
         _ * playPlatform.getPlayVersion() >> playVersion
 
         when:
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = createProvider()
         def runner = playToolProvider.get(PlayApplicationRunner.class)
 
         then:
@@ -73,11 +80,11 @@ class DefaultPlayToolProviderTest extends Specification {
     def "cannot create tool provider for unsupported play versions"() {
         when:
         _ * playPlatform.getPlayVersion() >> playVersion
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = createProvider()
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
-        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [2.6.x, 2.5.x, 2.4.x, 2.3.x, 2.2.x]."
+        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [${PlayMajorVersion.values().join(', ')}]."
 
         and: "no dependencies resolved"
         0 * dependencyHandler.create(_)
@@ -90,7 +97,7 @@ class DefaultPlayToolProviderTest extends Specification {
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
         _ * playPlatform.getPlayVersion() >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = createProvider()
 
         when:
         playToolProvider.newCompiler(UnknownCompileSpec.class)

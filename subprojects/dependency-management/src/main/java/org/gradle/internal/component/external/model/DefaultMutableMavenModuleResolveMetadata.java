@@ -17,53 +17,62 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.component.external.descriptor.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 
 public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableMavenModuleResolveMetadata {
-    private String packaging;
+
+    private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator objectInstantiator;
+    private final boolean advancedPomSupportEnabled;
+
+    private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
+    private ImmutableList<MavenDependencyDescriptor> dependencies;
 
-    /**
-     * Creates default metadata given a set of artifacts.
-     */
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(id, componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), "jar", false, ImmutableList.<DependencyMetadata>of());
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies,
+                                                    ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
+                                                    boolean advancedPomSupportEnabled) {
+        super(attributesFactory, id, componentIdentifier);
+        this.dependencies = ImmutableList.copyOf(dependencies);
+        this.attributesFactory = attributesFactory;
+        this.objectInstantiator = objectInstantiator;
+        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated, Collection<DependencyMetadata> dependencies) {
-        this(id, moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated, dependencies);
-    }
-
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, String packaging, boolean relocated, Collection<? extends DependencyMetadata> dependencies) {
-        super(id, componentIdentifier, descriptor, GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS, ImmutableList.copyOf(dependencies));
-        this.packaging = packaging;
-        this.relocated = relocated;
-    }
-
-    DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata) {
+    DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata,
+                                             ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
+                                             boolean advancedPomSupportEnabled) {
         super(metadata);
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
+        this.dependencies = metadata.getDependencies();
+        this.attributesFactory = attributesFactory;
+        this.objectInstantiator = objectInstantiator;
+        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
     }
 
     @Override
     public MavenModuleResolveMetadata asImmutable() {
-        return new DefaultMavenModuleResolveMetadata(this);
+        return new DefaultMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, advancedPomSupportEnabled);
+    }
+
+    @Override
+    protected ImmutableMap<String, Configuration> getConfigurationDefinitions() {
+        return GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
     }
 
     @Nullable
@@ -83,16 +92,32 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
+    public void setRelocated(boolean relocated) {
+        this.relocated = relocated;
+    }
+
+    @Override
     public String getPackaging() {
         return packaging;
     }
 
+    @Override
+    public void setPackaging(String packaging) {
+        this.packaging = packaging;
+    }
+
+    @Override
     public boolean isPomPackaging() {
         return POM_PACKAGING.equals(packaging);
     }
 
+    @Override
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
     }
 
+    @Override
+    public ImmutableList<MavenDependencyDescriptor> getDependencies() {
+        return dependencies;
+    }
 }

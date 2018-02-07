@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 
 public interface ResolvedGraphResults {
-    ModuleDependency getModuleDependency(long nodeId);
+    Dependency getModuleDependency(long nodeId);
 }

@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.CompileOptions;
-
 import java.io.File;
 import java.util.List;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
-    CompileOptions getCompileOptions();
+    MinimalJavaCompileOptions getCompileOptions();
 
     @Override
     File getDestinationDir();

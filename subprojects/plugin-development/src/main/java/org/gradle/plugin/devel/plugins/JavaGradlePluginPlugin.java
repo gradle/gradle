@@ -247,9 +247,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         validator.setGroup(PLUGIN_DEVELOPMENT_GROUP);
         validator.setDescription(VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION);
 
-        File reportsDir = new File(project.getBuildDir(), "reports");
-        File validatorReportsDir = new File(reportsDir, "task-properties");
-        validator.setOutputFile(new File(validatorReportsDir, "report.txt"));
+        validator.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/task-properties/report.txt"));
 
         final SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         validator.setClasses(mainSourceSet.getOutput().getClassesDirs());

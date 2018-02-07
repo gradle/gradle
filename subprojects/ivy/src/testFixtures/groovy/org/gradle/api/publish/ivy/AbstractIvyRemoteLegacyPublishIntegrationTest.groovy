@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 import spock.lang.Issue
 
-public abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec {
     abstract RepositoryServer getServer()
 
     @Rule ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
@@ -104,10 +104,10 @@ uploadArchives {
             dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasConf("runtime->default")
             dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
 
-            dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasExclude(new IvyDescriptorDependencyExclusion('commons-logging','*','*', '*', '*', 'compile', 'exact'))
-            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion('com.fasterxml.jackson.core','jackson-annotations','*', '*', '*', 'runtime', 'exact'))
-            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion('com.fasterxml.jackson.core','jackson-core','*', '*', '*', 'runtime', 'exact'))
-            dependencies["org.apache.camel:camel-jackson:2.15.3"].hasExclude(new IvyDescriptorDependencyExclusion('*','camel-core','*', '*', '*', 'compile', 'exact'))
+            dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasExclude(new IvyDescriptorDependencyExclusion(org: 'commons-logging', module: '*'))
+            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion(org: 'com.fasterxml.jackson.core', module: 'jackson-annotations'))
+            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion(org: 'com.fasterxml.jackson.core', module: 'jackson-core'))
+            dependencies["org.apache.camel:camel-jackson:2.15.3"].hasExclude(new IvyDescriptorDependencyExclusion(org: '*', module: 'camel-core'))
 
             dependencies["commons-beanutils:commons-beanutils:1.8.3"].transitiveEnabled()
             dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].transitiveEnabled()

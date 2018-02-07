@@ -15,32 +15,52 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
     def result = Mock(BuildableComponentArtifactsResolveResult)
-    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), Stub(FileResourceRepository))
+    def resolver = resolver()
 
     def "has useful string representation"() {
         expect:
         resolver.toString() == "Maven repository 'repo'"
     }
 
+    def "uses variant metadata when present"() {
+        given:
+        module.variants >> ImmutableList.of(Stub(ComponentVariant))
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
+        }
+    }
+
     def "resolve to empty when module is relocated"() {
         given:
-        module.isRelocated() >> true
+        module.variants >> ImmutableList.of()
+        module.relocated >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, result)
@@ -54,7 +74,8 @@ class MavenResolverTest extends Specification {
 
     def "resolve artifact when module's packaging is jar"() {
         given:
-        module.isKnownJarPackaging() >> true
+        module.variants >> ImmutableList.of()
+        module.knownJarPackaging >> true
         ModuleComponentArtifactMetadata artifact = Mock(ModuleComponentArtifactMetadata)
         module.artifact('jar', 'jar', null) >> artifact
 
@@ -64,7 +85,58 @@ class MavenResolverTest extends Specification {
         then:
         1 * result.resolved(_) >> { args ->
             assert args[0] instanceof FixedComponentArtifacts
-            assert args[0].artifacts == [artifact] as Set
+            assert args[0].artifacts == [artifact]
         }
+    }
+
+    def "resolvers are differentiated by useGradleMetadata flag"() {
+        given:
+        def resolver1 = resolver()
+        def resolver2 = resolver(true)
+
+        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+
+        expect:
+        resolver1.id != resolver2.id
+    }
+
+    def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
+        given:
+        def resolver1 = resolver( false, false)
+        def resolver2 = resolver( false, true)
+
+        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+
+        expect:
+        resolver1.id != resolver2.id
+    }
+
+    private MavenResolver resolver(boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false) {
+        MetadataArtifactProvider metadataArtifactProvider = new MavenMetadataArtifactProvider()
+        def fileResourceRepository = Stub(FileResourceRepository)
+        def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
+        ImmutableMetadataSources metadataSources = Stub() {
+            sources() >> {
+                ImmutableList.of(new DefaultMavenPomMetadataSource(
+                    metadataArtifactProvider,
+                    null,
+                    fileResourceRepository,
+                    moduleIdentifierFactory, validator
+                ))
+            }
+            appendId(_) >> { args ->
+                args[0].putBoolean(useGradleMetadata)
+                args[0].putBoolean(alwaysProvidesMetadataForModules)
+            }
+        }
+
+
+        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader))
     }
 }

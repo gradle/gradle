@@ -17,6 +17,10 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
+import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 
 /**
  * A shared library built from C++ source.
@@ -24,5 +28,5 @@ import org.gradle.api.Incubating;
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary {
+public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
 }

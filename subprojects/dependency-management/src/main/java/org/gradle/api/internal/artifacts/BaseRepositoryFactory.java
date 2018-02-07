@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -23,7 +24,13 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
  * Factory for {@link org.gradle.api.artifacts.repositories.ArtifactRepository} implementations.
  */
 public interface BaseRepositoryFactory {
+
+    String PLUGIN_PORTAL_DEFAULT_URL = "https://plugins.gradle.org/m2";
+    String PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY = "org.gradle.internal.plugins.portal.url.override";
+
     FlatDirectoryArtifactRepository createFlatDirRepository();
+
+    ArtifactRepository createGradlePluginPortal();
 
     MavenArtifactRepository createMavenLocalRepository();
 

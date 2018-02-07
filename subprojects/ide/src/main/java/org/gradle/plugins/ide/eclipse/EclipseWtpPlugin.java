@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -141,6 +140,9 @@ public class EclipseWtpPlugin extends IdePlugin {
                         return model.getProject().getName();
                     }
                 });
+                final Set<Configuration> libConfigurations = task.getComponent().getLibConfigurations();
+                final Set<Configuration> rootConfigurations = task.getComponent().getRootConfigurations();
+                final Set<Configuration> minusConfigurations = task.getComponent().getMinusConfigurations();
                 project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
                     @Override
                     public void execute(JavaPlugin javaPlugin) {
@@ -149,8 +151,7 @@ public class EclipseWtpPlugin extends IdePlugin {
 
                         }
 
-                        task.getComponent().setLibConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("runtime")));
-                        task.getComponent().setMinusConfigurations(Sets.<Configuration>newHashSet());
+                        libConfigurations.add(project.getConfigurations().getByName("runtime"));
                         task.getComponent().setClassesDeployPath("/");
                         ((IConventionAware) task.getComponent()).getConventionMapping().map("libDeployPath", new Callable<String>() {
                             @Override
@@ -170,8 +171,8 @@ public class EclipseWtpPlugin extends IdePlugin {
                 project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
                     @Override
                     public void execute(WarPlugin warPlugin) {
-                        task.getComponent().setLibConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("runtime")));
-                        task.getComponent().setMinusConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("providedRuntime")));
+                        libConfigurations.add(project.getConfigurations().getByName("runtime"));
+                        minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                         task.getComponent().setClassesDeployPath("/WEB-INF/classes");
                         ConventionMapping convention = ((IConventionAware) task.getComponent()).getConventionMapping();
                         convention.map("libDeployPath", new Callable<String>() {
@@ -204,9 +205,10 @@ public class EclipseWtpPlugin extends IdePlugin {
                 project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
                     @Override
                     public void execute(EarPlugin earPlugin) {
-                        task.getComponent().setRootConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("deploy")));
-                        task.getComponent().setLibConfigurations(Sets.<Configuration>newHashSet(project.getConfigurations().getByName("earlib")));
-                        task.getComponent().setMinusConfigurations(Sets.<Configuration>newHashSet());
+                        rootConfigurations.clear();
+                        rootConfigurations.add(project.getConfigurations().getByName("deploy"));
+                        libConfigurations.clear();
+                        libConfigurations.add(project.getConfigurations().getByName("earlib"));
                         task.getComponent().setClassesDeployPath("/");
                         final ConventionMapping convention = ((IConventionAware) task.getComponent()).getConventionMapping();
                         convention.map("libDeployPath", new Callable<String>() {

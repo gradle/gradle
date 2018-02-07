@@ -21,12 +21,10 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
@@ -44,43 +42,37 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.util.Collection;
 
 public class ResolveIvyFactory {
-    private final ModuleVersionsCache moduleVersionsCache;
-    private final ModuleMetaDataCache moduleMetaDataCache;
-    private final ModuleArtifactsCache moduleArtifactsCache;
-    private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
+    private final ModuleRepositoryCacheProvider cacheProvider;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final BuildCommencedTimeProvider timeProvider;
     private final InMemoryCachedRepositoryFactory inMemoryCache;
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final RepositoryBlacklister repositoryBlacklister;
 
-    public ResolveIvyFactory(ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
-                             CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
+    public ResolveIvyFactory(ModuleRepositoryCacheProvider cacheProvider,
                              StartParameterResolutionOverride startParameterResolutionOverride,
                              BuildCommencedTimeProvider timeProvider, InMemoryCachedRepositoryFactory inMemoryCache, VersionSelectorScheme versionSelectorScheme,
-                             VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.moduleVersionsCache = moduleVersionsCache;
-        this.moduleMetaDataCache = moduleMetaDataCache;
-        this.moduleArtifactsCache = moduleArtifactsCache;
-        this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
+                             VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {
+        this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
         this.inMemoryCache = inMemoryCache;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.repositoryBlacklister = repositoryBlacklister;
     }
 
     public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
-                                  Collection<? extends ResolutionAwareRepository> repositories,
-                                  ComponentMetadataProcessor metadataProcessor) {
+                                     Collection<? extends ResolutionAwareRepository> repositories,
+                                     ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
@@ -103,17 +95,18 @@ public class ResolveIvyFactory {
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
                 moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);
+                moduleComponentRepository = inMemoryCache.cacheLocalRepository(moduleComponentRepository);
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
+                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getCaches(),
+                    cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
+                moduleComponentRepository = inMemoryCache.cacheRemoteRepository(moduleComponentRepository);
             }
 
             if (baseRepository.isDynamicResolveMode()) {
-                moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
+                moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
             }
-            moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
-            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository);
+            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
 
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);

@@ -16,82 +16,188 @@
 package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
+import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
+import org.gradle.test.fixtures.ModuleArtifact
+import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.MavenJavaModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
+abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
 
-    protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
-        doResolveArtifacts("""
-    dependencies {
-        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', classifier: '${sq(classifier)}', ext: '${sq(extension)}'
-    }
-""")
+    def setup() {
+        prepare()
     }
 
-    protected def resolveArtifacts(MavenFileModule module) {
-        doResolveArtifacts("""
-    dependencies {
-        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
-    }
-""")
+    protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
+        return new MavenJavaModule(mavenFileModule)
     }
 
-    protected def resolveArtifacts(MavenFileModule module, Map... additionalArtifacts) {
-        def dependencies = """
-    dependencies {
-        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
-        resolve(group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}') {
-"""
-        additionalArtifacts.each {
-            // Docs say type defaults to 'jar', but seems it must be set explicitly
-            def type = it.type == null ? 'jar' : it.type
-            dependencies += """
-            artifact {
-                name = '${sq(module.artifactId)}' // TODO:DAZ Get NPE if name isn't set
-                classifier = '${it.classifier}'
-                type = '${type}'
-            }
-"""
-        }
-        dependencies += """
+    void resolveArtifacts(Object dependencyNotation, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
+        MavenArtifactResolutionExpectation expectation = new MavenArtifactResolutionExpectation(dependencyNotation)
+        expectation.dependency = convertDependencyNotation(dependencyNotation)
+        expectationSpec.resolveStrategy = Closure.DELEGATE_FIRST
+        expectationSpec.delegate = expectation
+        expectationSpec()
+
+        expectation.validate()
+
+    }
+
+    void resolveApiArtifacts(MavenModule module, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
+        resolveArtifacts(module) {
+            variant = 'JAVA_API'
+            expectationSpec.delegate = delegate
+            expectationSpec()
         }
     }
-"""
-        doResolveArtifacts(dependencies)
+
+    void resolveRuntimeArtifacts(MavenModule module, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
+        resolveArtifacts(module) {
+            variant = 'JAVA_RUNTIME'
+            expectationSpec.delegate = delegate
+            expectationSpec()
+        }
     }
 
-    protected def doResolveArtifacts(def dependencies) {
+    private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
+        FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
+        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        def attributes = params.variant == null ?
+            "" :
+            """ 
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
+    }
+"""
+        String extraArtifacts = ""
+        if (params.additionalArtifacts) {
+            String artifacts = params.additionalArtifacts.collect {
+                def tokens = it.ivyTokens
+                """
+                    artifact {
+                        name = '${sq(tokens.artifact)}'
+                        classifier = '${sq(tokens.classifier)}'
+                        type = '${sq(tokens.type)}'
+                    }"""
+            }.join('\n')
+            extraArtifacts = """
+                {
+                    transitive = false
+                    $artifacts
+                }
+            """
+        }
+
+        String dependencyNotation = params.dependency
+        if (params.classifier) {
+            dependencyNotation = "${dependencyNotation}, classifier: '${sq(params.classifier)}'"
+        }
+        if (params.ext) {
+            dependencyNotation = "${dependencyNotation}, ext: '${sq(params.ext)}'"
+        }
+
+        def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
+
         buildFile.text = """
             configurations {
-                resolve
+                resolve {
+                    ${attributes}
+                }
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
-                ${mavenCentralRepositoryDefinition()}
+                maven { 
+                    url "${mavenRepo.uri}"
+                    metadataSources {
+                        ${params.resolveModuleMetadata?'gradleMetadata':'mavenPom'}()
+                    }
+                }
+                ${externalRepo}
             }
-            $dependencies
+
+            dependencies {
+               resolve($dependencyNotation) $extraArtifacts
+            }
+
             task resolveArtifacts(type: Sync) {
+                outputs.upToDateWhen { false }
                 from configurations.resolve
                 into "artifacts"
             }
 
 """
 
-        run "resolveArtifacts"
+        if (params.expectFailure) {
+            fails("resolveArtifacts")
+            return failure
+        }
+        run("resolveArtifacts")
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
         return artifactsList.sort()
     }
 
+    static class ResolveParams {
+        MavenModule module
+        String dependency
+        List<? extends ModuleArtifact> additionalArtifacts
 
-    String sq(String input) {
-        return escapeForSingleQuoting(input)
+        String classifier
+        String ext
+        String variant
+        boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+        boolean expectFailure
     }
 
-    String escapeForSingleQuoting(String input) {
-        return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    class MavenArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec<MavenModule> {
+
+        MavenArtifactResolutionExpectation(Object dependencyNotation) {
+            if (dependencyNotation instanceof MavenModule) {
+                module = dependencyNotation
+            }
+            createSpecs()
+        }
+
+        MavenModule getModule() {
+            super.module
+        }
+
+        void validate() {
+            singleValidation(true, withModuleMetadataSpec)
+            singleValidation(false, withoutModuleMetadataSpec)
+        }
+
+        void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {
+            ResolveParams params = new ResolveParams(
+                module: module,
+                dependency: dependency,
+                classifier: classifier,
+                ext: ext,
+                additionalArtifacts: additionalArtifacts?.asImmutable(),
+                variant: variant,
+                resolveModuleMetadata: withModuleMetadata,
+                expectFailure: !expectationSpec.expectSuccess
+            )
+            println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
+            def resolutionResult = doResolveArtifacts(params)
+            expectationSpec.with {
+                if (expectSuccess) {
+                    assert resolutionResult == expectedFileNames
+                } else {
+                    failureExpectations.each {
+                        it.resolveStrategy = Closure.DELEGATE_FIRST
+                        it.delegate = resolutionResult
+                        it()
+                    }
+                }
+            }
+        }
+
     }
 }

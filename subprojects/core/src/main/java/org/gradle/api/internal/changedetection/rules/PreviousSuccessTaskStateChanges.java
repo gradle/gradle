@@ -17,27 +17,23 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.Iterators;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 
+@NonNullApi
 public class PreviousSuccessTaskStateChanges implements TaskStateChanges {
     private static final TaskStateChange PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
     private final TaskExecution previousExecution;
-    private final TaskExecution currentExecution;
-    private final TaskInternal task;
 
-    public PreviousSuccessTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+    public PreviousSuccessTaskStateChanges(TaskExecution previousExecution) {
         this.previousExecution = previousExecution;
-        this.currentExecution = currentExecution;
-        this.task = task;
     }
 
     @Override
     public Iterator<TaskStateChange> iterator() {
-        if (previousExecution == null || previousExecution.isSuccessful()) {
+        if (previousExecution.isSuccessful()) {
             return Iterators.emptyIterator();
         } else {
             return Iterators.singletonIterator(PREVIOUS_FAILURE);

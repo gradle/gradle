@@ -42,6 +42,8 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * If you want to refer to the artifacts declared in this configuration
  * please use {@link #getArtifacts()} or {@link #getAllArtifacts()}.
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
+ *
+ * Please see <a href="https://docs.gradle.org/current/userguide/defining_and_using_configurations.html" target="_top">the Defining and Using Configurations User Guide chapter</a> for more information.
  */
 @HasInternalProtocol
 public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {
@@ -293,18 +295,26 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName);
 
     /**
-     * Gets the set of dependencies directly contained in this configuration
+     * Gets the set of declared dependencies directly contained in this configuration
      * (ignoring superconfigurations).
+     * <p>
+     * This method does not resolve the configuration. Therefore, the return value does not include
+     * transitive dependencies.
      *
      * @return the set of dependencies
+     * @see #extendsFrom(Configuration...)
      */
     DependencySet getDependencies();
 
     /**
-     * <p>Gets the complete set of dependencies including those contributed by
-     * superconfigurations.</p>
+     * Gets the complete set of declared dependencies including those contributed by
+     * superconfigurations.
+     * <p>
+     * This method does not resolve the configuration. Therefore, the return value does not include
+     * transitive dependencies.
      *
      * @return the (read-only) set of dependencies
+     * @see #extendsFrom(Configuration...)
      */
     DependencySet getAllDependencies();
 
@@ -367,6 +377,37 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     @Incubating
     Configuration defaultDependencies(Action<? super DependencySet> action);
+
+    /**
+     * Execute the given action before the configuration first participates in
+     * dependency resolution. A {@code Configuration} will participate in dependency resolution
+     * when:
+     * <ul>
+     *     <li>The {@link Configuration} itself is resolved</li>
+     *     <li>Another {@link Configuration} that extends this one is resolved</li>
+     *     <li>Another {@link Configuration} that references this one as a project dependency is resolved</li>
+     * </ul>
+     *
+     * This method is useful for mutating the dependencies for a configuration:
+     * <pre class='autoTested'>
+     * configurations { conf }
+     * configurations['conf'].withDependencies { dependencies -&gt;
+     *      dependencies.each { dependency -&gt;
+     *          if (dependency.version == null) {
+     *              dependency.version { prefer '1.0' }
+     *          }
+     *      }
+     * }
+     * </pre>
+     *
+     * Actions will be executed in the order provided.
+     *
+     * @since 4.4
+     * @param action a dependency action to execute before the configuration is used.
+     * @return this
+     */
+    @Incubating
+    Configuration withDependencies(Action<? super DependencySet> action);
 
     /**
      * Returns all the configurations belonging to the same configuration container as this

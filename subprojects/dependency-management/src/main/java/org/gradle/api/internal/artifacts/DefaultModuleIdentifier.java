@@ -73,6 +73,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public int hashCode() {
-        return 31 * group.hashCode() ^ name.hashCode();
+        return 31 * name.hashCode() ^ group.hashCode();
     }
 }

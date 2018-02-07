@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
@@ -55,7 +56,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean debuggable;
-    private final RegularFileVar outputFile;
+    private final RegularFileProperty outputFile;
     private final ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
@@ -64,7 +65,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         libs = getProject().files();
         source = getProject().files();
         outputFile = newOutputFile();
-        linkerArgs = getProject().getProviders().listProperty(String.class);
+        linkerArgs = getProject().getObjects().listProperty(String.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -111,7 +112,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.1
      */
     @OutputFile
-    public RegularFileVar getBinaryFile() {
+    public RegularFileProperty getBinaryFile() {
         return outputFile;
     }
 
@@ -155,6 +156,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         return debuggable;
     }
 
+    /**
+     * Create a debuggable binary?
+     *
+     * @since 4.3
+     */
     public void setDebuggable(boolean debuggable) {
         this.debuggable = debuggable;
     }
@@ -163,6 +169,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * The source object files to be passed to the linker.
      */
     @InputFiles
+    @SkipWhenEmpty
     public ConfigurableFileCollection getSource() {
         return source;
     }
@@ -209,7 +216,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         cleaner.execute();
 
         if (getSource().isEmpty()) {
-            setDidWork(false);
+            setDidWork(cleaner.getDidWork());
             return;
         }
 

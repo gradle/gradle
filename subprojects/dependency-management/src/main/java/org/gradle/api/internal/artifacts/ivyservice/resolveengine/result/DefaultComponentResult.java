@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 
 public class DefaultComponentResult implements ComponentResult {
@@ -26,12 +27,16 @@ public class DefaultComponentResult implements ComponentResult {
     private final ModuleVersionIdentifier id;
     private final ComponentSelectionReason reason;
     private final ComponentIdentifier componentIdentifier;
+    private final String variantName;
+    private final AttributeContainer variantAttributes;
 
-    public DefaultComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
+    public DefaultComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;
+        this.variantName = variantName;
+        this.variantAttributes = variantAttributes;
     }
 
     @Override
@@ -49,5 +54,15 @@ public class DefaultComponentResult implements ComponentResult {
 
     public ComponentIdentifier getComponentId() {
         return componentIdentifier;
+    }
+
+    @Override
+    public String getVariantName() {
+        return variantName;
+    }
+
+    @Override
+    public AttributeContainer getVariantAttributes() {
+        return variantAttributes;
     }
 }

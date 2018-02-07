@@ -19,14 +19,14 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
-@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+@Requires([KOTLIN_SCRIPT])
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
@@ -40,6 +40,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
+    @LeaksFileHandles
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
@@ -51,7 +52,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
 
@@ -60,12 +61,13 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
+    @LeaksFileHandles
     def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
@@ -78,7 +80,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
         file("build/output.txt").text == "input"
@@ -87,7 +89,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "input modified"

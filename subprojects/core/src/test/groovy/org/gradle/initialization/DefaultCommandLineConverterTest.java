@@ -270,6 +270,12 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
         checkConversion("--console", "rich");
     }
 
+    @Test
+    public void withColorVerbose() {
+        expectedConsoleOutput = ConsoleOutput.Verbose;
+        checkConversion("--console", "verbose");
+    }
+
     @Test(expected = CommandLineArgumentException.class)
     public void withLowerPParameterWithoutArgument() {
         checkConversion("-p");

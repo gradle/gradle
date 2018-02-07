@@ -316,7 +316,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("type", "jdk");
             attributes.put("jdkName", jdkName);
             attributes.put("jdkType", "JavaSDK");
@@ -325,7 +325,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("type", "inheritedJdk");
             moduleRootManager.appendNode("orderEntry", attributes);
         }
@@ -350,7 +350,7 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = findOrCreateContentNode();
         for (Path path : sourceFolders) {
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "false");
             if (generatedSourceFolders.contains(path)) {
@@ -359,7 +359,7 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "true");
             if (generatedSourceFolders.contains(path)) {
@@ -368,7 +368,7 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : excludeFolders) {
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             content.appendNode("excludeFolder", attributes);
         }

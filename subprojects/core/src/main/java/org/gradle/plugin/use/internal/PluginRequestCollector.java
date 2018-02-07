@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -30,6 +31,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -86,10 +88,14 @@ public class PluginRequestCollector {
     }
 
     public PluginRequests getPluginRequests() {
+        if (specs.isEmpty()) {
+            return DefaultPluginRequests.EMPTY;
+        }
         return new DefaultPluginRequests(listPluginRequests());
     }
 
-    public List<PluginRequestInternal> listPluginRequests() {
+    @VisibleForTesting
+    List<PluginRequestInternal> listPluginRequests() {
         List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
             public PluginRequestInternal transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
@@ -106,8 +112,9 @@ public class PluginRequestCollector {
         for (PluginId key : groupedById.keySet()) {
             Collection<PluginRequestInternal> pluginRequestsForId = groupedById.get(key);
             if (pluginRequestsForId.size() > 1) {
-                PluginRequestInternal first = pluginRequests.get(0);
-                PluginRequestInternal second = pluginRequests.get(1);
+                Iterator<PluginRequestInternal> iterator = pluginRequestsForId.iterator();
+                PluginRequestInternal first = iterator.next();
+                PluginRequestInternal second = iterator.next();
 
                 InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
                 throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());

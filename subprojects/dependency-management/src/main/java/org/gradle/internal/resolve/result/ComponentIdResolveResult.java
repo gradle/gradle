@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -36,7 +36,7 @@ public interface ComponentIdResolveResult extends ResolveResult {
 
     ModuleVersionIdentifier getModuleVersionId();
 
-    ComponentSelectionReason getSelectionReason();
+    ComponentSelectionDescriptorInternal getSelectionDescription();
 
     /**
      * Returns the meta-data for the component, if it was available at resolve time.

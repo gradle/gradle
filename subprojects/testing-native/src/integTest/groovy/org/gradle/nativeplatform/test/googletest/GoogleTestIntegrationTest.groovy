@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test.googletest
 
+import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
@@ -327,7 +328,9 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
+    // RunTestExecutable is not incremental yet
     @Issue("GRADLE-3528")
+    @NotYetImplemented
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -403,11 +406,11 @@ tasks.withType(RunTestExecutable) {
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 
         when:
-        succeeds "helloTestVisualStudio"
+        succeeds "visualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("helloTestExe.sln"))
-        mainSolution.assertHasProjects("helloTestExe")
+        final mainSolution = new SolutionFile(file("test.sln"))
+        mainSolution.assertHasProjects("helloTestExe", "helloLib", "helloDll")
 
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))

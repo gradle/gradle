@@ -164,7 +164,7 @@ class DefaultProjectSpec extends Specification {
         def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
         def streamHasher = Mock(StreamHasher)
         def fileHasher = Mock(FileHasher)
-        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher)
+        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, TestFiles.execFactory())
 
         return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations

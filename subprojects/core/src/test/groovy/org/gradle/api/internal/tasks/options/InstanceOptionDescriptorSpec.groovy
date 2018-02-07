@@ -63,20 +63,6 @@ class InstanceOptionDescriptorSpec extends Specification{
         descriptors[2].name == "optionC"
     }
 
-    def "should sort by custom order if specified"() {
-        given:
-        InstanceOptionDescriptor optionA1 = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionA", 1))
-        InstanceOptionDescriptor optionB0 = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionB", 0))
-        def descriptors = Arrays.asList(optionA1, optionB0)
-
-        when:
-        Collections.sort(descriptors)
-
-        then:
-        descriptors[0].name == "optionB"
-        descriptors[1].name == "optionA"
-    }
-
     def optionElement(String name) {
         optionElement(name, 0)
     }

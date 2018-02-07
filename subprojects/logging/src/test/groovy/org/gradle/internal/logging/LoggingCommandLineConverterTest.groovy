@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
@@ -56,12 +57,12 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def convertsWarnLevel() {
-         expectedConfig.logLevel = LogLevel.WARN
+        expectedConfig.logLevel = LogLevel.WARN
 
-         expect:
-         checkConversion(['-w'])
-         checkConversion(['--warn'])
-     }
+        expect:
+        checkConversion(['-w'])
+        checkConversion(['--warn'])
+    }
 
     def convertsConsole() {
         expectedConfig.consoleOutput = consoleOutput
@@ -83,7 +84,7 @@ class LoggingCommandLineConverterTest extends Specification {
 
         then:
         CommandLineArgumentException e = thrown()
-        e.message == /Unrecognized value 'unknown' for console./
+        e.message == /Argument value 'unknown' given for --console option is invalid/
     }
 
     def convertsShowStacktrace() {
@@ -116,10 +117,17 @@ class LoggingCommandLineConverterTest extends Specification {
         converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN] as Set
     }
 
+    def getsWarningMode() {
+        expectedConfig.warningMode = WarningMode.All
+        expect:
+        checkConversion(['--warning-mode=all'])
+    }
+
     void checkConversion(List<String> args) {
         def actual = converter.convert(args, new DefaultLoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
+        assert actual.warningMode == expectedConfig.warningMode
     }
 }

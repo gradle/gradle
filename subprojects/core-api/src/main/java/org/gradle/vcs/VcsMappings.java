@@ -21,29 +21,44 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
+ * Allows VCS mapping rules to be specified for a build. A VCS mapping rule is responsible for calculating the VCS information for a particular dependency.
+ *
  * In settings.gradle:
- * <pre>
- * vcsMappings {
- *   withModule("group:name") {
- *     from vcs(GitVcs) {
- *         url = "..."
- *     }
- *   }
- *   addRule("rule for group") { details ->
- *       if (details.requested.group == "group") {
- *           from vcs(GitVcs) {
- *               url = "..."
- *           }
+ * <pre class='autoTestedSettings'>
+ * sourceControl {
+ *   vcsMappings {
+ *     withModule("org.gradle:gradle") {
+ *       from vcs(GitVersionControlSpec) {
+ *         url = uri("https://github.com/gradle/gradle")
  *       }
+ *     }
+ *     all { details -&gt;
+ *       if (details.requested.group == "org.gradle") {
+ *         from vcs(GitVersionControlSpec) {
+ *           url = uri("https://github.com/gradle/${details.requested.module}")
+ *         }
+ *       }
+ *     }
  *   }
  * }
  * </pre>
- * @since 4.3
+ *
+ * @since 4.4
  */
 @Incubating
 @HasInternalProtocol
 public interface VcsMappings {
-    VcsMappings addRule(String message, Action<VcsMapping> rule);
-    VcsMappings withModule(String groupName, Action<VcsMapping> rule);
-    <T extends VersionControlSpec> T vcs(Class<T> type, Action<? super T> configuration);
+    /**
+     * Adds a mapping rule that may define VCS information for any dependency. The supplied action is executed for all components.
+     *
+     * @since 4.6
+     */
+    VcsMappings all(Action<? super VcsMapping> rule);
+
+    /**
+     * Adds a mapping rule that may define VCS information for the given module. The supplied action is executed when the given module is required.
+     *
+     * @param module The module to apply the rule to, in the form "group:module".
+     */
+    VcsMappings withModule(String module, Action<? super VcsMapping> rule);
 }

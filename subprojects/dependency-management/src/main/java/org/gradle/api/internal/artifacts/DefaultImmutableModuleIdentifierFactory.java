@@ -46,6 +46,11 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
     @Override
     public ModuleVersionIdentifier moduleWithVersion(String group, String name, String version) {
         ModuleIdentifier mi = module(group, name);
+        return moduleWithVersion(mi, version);
+    }
+
+    @Override
+    public ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier mi, String version) {
         Map<String, ModuleVersionIdentifier> byVersion = idToVersions.get(mi);
         if (byVersion == null) {
             byVersion = idToVersions.get(mi);

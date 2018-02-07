@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInternal {
@@ -56,8 +57,8 @@ abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInt
     protected abstract void doRemoved(Action<? super InputFileDetails> removedAction);
 
     @Override
-    public void newInput(File discoveredInput) {
-        discoveredInputs.add(discoveredInput);
+    public void newInputs(Collection<File> newDiscoveredInputs) {
+        discoveredInputs.addAll(newDiscoveredInputs);
     }
 
     @Override

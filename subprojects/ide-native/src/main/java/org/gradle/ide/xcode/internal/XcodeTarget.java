@@ -16,14 +16,21 @@
 
 package org.gradle.ide.xcode.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
+import org.gradle.language.swift.SwiftVersion;
 
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
@@ -32,26 +39,27 @@ public class XcodeTarget implements Named {
     private final String id;
     private final String name;
     private final ConfigurableFileCollection headerSearchPaths;
-    private final ConfigurableFileCollection importPaths;
+    private final ConfigurableFileCollection compileModules;
     private final ConfigurableFileCollection sources;
+    private final List<TaskDependency> taskDependencies = Lists.newArrayList();
     private String taskName;
     private String gradleCommand;
 
-    private final RegularFileVar debugOutputFile;
-    private final RegularFileVar releaseOutputFile;
+    private Provider<? extends FileSystemLocation> debugOutputFile;
+    private Provider<? extends FileSystemLocation> releaseOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
+    private Property<SwiftVersion> swiftSourceCompatibility;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations, ProjectLayout projectLayout) {
+    public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
         this.name = name;
         this.id = id;
-        this.debugOutputFile = projectLayout.newFileVar();
-        this.releaseOutputFile = projectLayout.newFileVar();
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
-        this.importPaths = fileOperations.files();
+        this.compileModules = fileOperations.files();
+        this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
     }
 
     public String getId() {
@@ -63,11 +71,11 @@ public class XcodeTarget implements Named {
         return name;
     }
 
-    public RegularFileVar getDebugOutputFile() {
+    public Provider<? extends FileSystemLocation> getDebugOutputFile() {
         return debugOutputFile;
     }
 
-    public RegularFileVar getReleaseOutputFile() {
+    public Provider<? extends FileSystemLocation> getReleaseOutputFile() {
         return releaseOutputFile;
     }
 
@@ -85,6 +93,14 @@ public class XcodeTarget implements Named {
 
     public void setProductType(PBXTarget.ProductType productType) {
         this.productType = productType;
+    }
+
+    public boolean isRunnable() {
+        return PBXTarget.ProductType.TOOL.equals(getProductType());
+    }
+
+    public boolean isUnitTest() {
+        return PBXTarget.ProductType.UNIT_TEST.equals(getProductType());
     }
 
     public String getProductName() {
@@ -119,7 +135,43 @@ public class XcodeTarget implements Named {
         return headerSearchPaths;
     }
 
-    public ConfigurableFileCollection getImportPaths() {
-        return importPaths;
+    public ConfigurableFileCollection getCompileModules() {
+        return compileModules;
+    }
+
+    public void addTaskDependency(TaskDependency taskDependency) {
+        taskDependencies.add(taskDependency);
+    }
+
+    public List<TaskDependency> getTaskDependencies() {
+        return taskDependencies;
+    }
+
+    public void setDebug(Provider<? extends FileSystemLocation> debugProductLocation, PBXTarget.ProductType productType) {
+        this.debugOutputFile = debugProductLocation;
+        this.productType = productType;
+        this.outputFileType = toFileType(productType);
+    }
+
+    public void setRelease(Provider<? extends FileSystemLocation> releaseProductLocation, PBXTarget.ProductType productType) {
+        this.releaseOutputFile = releaseProductLocation;
+        this.productType = productType;
+        this.outputFileType = toFileType(productType);
+    }
+
+    private static String toFileType(PBXTarget.ProductType productType) {
+        if (PBXTarget.ProductType.TOOL.equals(productType)) {
+            return FileTypes.MACH_O_EXECUTABLE.identifier;
+        } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
+            return FileTypes.MACH_O_DYNAMIC_LIBRARY.identifier;
+        } else if (PBXTarget.ProductType.STATIC_LIBRARY.equals(productType)) {
+            return FileTypes.ARCHIVE_LIBRARY.identifier;
+        } else {
+            return "compiled";
+        }
+    }
+
+    public Property<SwiftVersion> getSwiftSourceCompatibility() {
+        return swiftSourceCompatibility;
     }
 }

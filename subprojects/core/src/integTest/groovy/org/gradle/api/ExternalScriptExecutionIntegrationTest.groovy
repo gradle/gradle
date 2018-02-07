@@ -148,6 +148,8 @@ class ListenerImpl extends BuildAdapter {
 
     @Test
     public void canFetchScriptViaHttp() {
+        executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
+
         TestFile script = testFile('external.gradle')
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.expectGet('/external.gradle', script)

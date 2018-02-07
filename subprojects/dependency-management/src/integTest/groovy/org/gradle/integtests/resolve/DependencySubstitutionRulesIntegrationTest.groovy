@@ -1406,4 +1406,43 @@ Required by:
         }
         """
     }
+
+    void "custom dependency substitution reasons are available in resolution result"() {
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
+        mavenRepo.module("org", "c").publish()
+        //a1
+        //b->a2->c
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'foo:bar:baz'
+            }
+
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('foo:bar:baz') because('we need integration tests') with module('org:b:1.0')
+            }
+"""
+
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution()
+                    module("org:c:1.0")
+                }
+                edge("foo:bar:baz", "org:b:1.0") {
+                    byReason('we need integration tests')
+                    module("org:a:2.0")
+                }
+            }
+        }
+    }
 }

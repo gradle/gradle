@@ -24,8 +24,6 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,26 +44,25 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is up-to-date", task);
-        Timer clock = Time.startTimer();
         TaskArtifactState taskArtifactState = context.getTaskArtifactState();
 
         List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);
         if (taskArtifactState.isUpToDate(messages)) {
-            LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getElapsed());
+            LOGGER.info("Skipping {} as it is up-to-date.", task);
             state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-            context.setOriginBuildInvocationId(taskArtifactState.getOriginBuildInvocationId());
+            context.setOriginExecutionMetadata(taskArtifactState.getExecutionHistory().getOriginExecutionMetadata());
             return;
         }
         context.setUpToDateMessages(ImmutableList.copyOf(messages));
-        logOutOfDateMessages(messages, task, clock.getElapsed());
+        logOutOfDateMessages(messages, task);
 
         executer.execute(task, state, context);
     }
 
-    private void logOutOfDateMessages(List<String> messages, TaskInternal task, String took) {
+    private void logOutOfDateMessages(List<String> messages, TaskInternal task) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
-            formatter.format("Executing %s (up-to-date check took %s) due to:", task, took);
+            formatter.format("Task '%s' is not up-to-date because:", task.getIdentityPath());
             for (String message : messages) {
                 formatter.format("%n  %s", message);
             }

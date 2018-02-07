@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,12 +29,14 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     private final boolean resolvable;
     private final String description;
     private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
+    private final ResolvedVariantResult variantResult;
 
-    public RequestedVersion(ComponentSelector requested, ComponentIdentifier actual, boolean resolvable, String description) {
+    public RequestedVersion(ComponentSelector requested, ComponentIdentifier actual, boolean resolvable, String description, ResolvedVariantResult resolvedVariant) {
         this.requested = requested;
         this.actual = actual;
         this.resolvable = resolvable;
         this.description = description;
+        this.variantResult = resolvedVariant;
     }
 
     public void addChild(DependencyEdge child) {
@@ -43,6 +46,11 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return variantResult;
     }
 
     @Override

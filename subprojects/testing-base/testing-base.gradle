@@ -20,9 +20,17 @@ dependencies {
     compile project(':core')
     compile project(':reporting')
     compile project(':platformBase')
+
+    compile libraries.kryo.coordinate
+
+    testFixturesCompile project(':internalIntegTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':core')
+    from(':messaging')
+    from(':platformBase')
+    from(':logging')
+    from(':baseServices')
+    from(':launcher')
+}

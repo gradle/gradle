@@ -17,16 +17,63 @@
 package org.gradle.language.objectivec
 
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
-@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+
+@RequiresInstalledToolChain(GCC_COMPATIBLE)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCHelloWorldApp()
+    }
+
+    @Unroll
+    def "does not recompile when include path has #testCase"() {
+        given:
+        outputs.snapshot { run "mainExecutable" }
+
+        file("src/additional-headers/other.h") << """
+    // extra header file that is not included in source
+"""
+        file("src/replacement-headers/${sharedHeaderFile.name}") << """
+    // replacement header file that is included in source
+"""
+
+        when:
+        buildFile << """
+    model {
+        components {
+            main {
+                sources {
+                    ${app.sourceType} {
+                        exportedHeaders {
+                            srcDirs ${headerDirs}
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        skipped compileTask
+        outputs.noneRecompiled()
+
+        where:
+        testCase                       | headerDirs
+        "extra header dir after"       | '"src/main/headers", "src/additional-headers"'
+        "extra header dir before"      | '"src/additional-headers", "src/main/headers"'
+        "replacement header dir after" | '"src/main/headers", "src/replacement-headers"'
     }
 
     def "recompiles only source file that imported changed header file"() {
@@ -51,12 +98,13 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
-    def "source is always recompiled if it imported header via macro"() {
+    def "source is always recompiled if it imported header via complex macro"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
-            #define MY_HEADER "${otherHeaderFile.name}"
+            #define _MY_HEADER(X) #X
+            #define MY_HEADER _MY_HEADER(${otherHeaderFile.name})
             #import MY_HEADER
 """
 

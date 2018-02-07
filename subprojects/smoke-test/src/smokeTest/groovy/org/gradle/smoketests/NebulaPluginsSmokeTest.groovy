@@ -16,14 +16,18 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Issue
+import spock.lang.Unroll
+
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "4.1.2"
+                id "nebula.dependency-recommender" version "5.1.0"
             }
 
             ${jcenterRepository()}
@@ -42,11 +46,12 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         runner('build').build()
     }
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '5.6.0'
+                id 'nebula.plugin-plugin' version '6.2.0'
             }
         """
 
@@ -65,6 +70,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         runner('groovydoc').build()
     }
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.lint')
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -73,7 +79,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             plugins {
-                id "nebula.lint" version "7.3.5"
+                id "nebula.lint" version "8.3.1"
             }
 
             apply plugin: 'java'
@@ -86,12 +92,13 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
 
         when:
-        def result = runner('lintGradle').build()
+        def result = runner('autoLintGradle').build()
 
         then:
+        int numOfRepoBlockLines = 14 + jcenterRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
-        result.output.contains("build.gradle:15")
+        result.output.contains("build.gradle:$numOfRepoBlockLines")
         result.output.contains("testCompile('junit:junit:4.7')")
         buildFile.text.contains("testCompile('junit:junit:4.7')")
 
@@ -100,20 +107,121 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.contains("""fixed          dependency-parentheses             parentheses are unnecessary for dependencies
-build.gradle:15
+build.gradle:$numOfRepoBlockLines
 testCompile('junit:junit:4.7')""")
         buildFile.text.contains("testCompile 'junit:junit:4.7'")
     }
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
     def 'nebula dependency lock plugin'() {
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "4.9.4"
+                id "nebula.dependency-lock" version "5.0.3"
             }
         """.stripIndent()
 
         then:
         runner('buildEnvironment', 'generateLock').build()
+    }
+
+    @Issue("gradle/gradle#3798")
+    @Unroll
+    def "nebula dependency lock plugin version #version binary compatibility"() {
+        when:
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'nebula.dependency-lock' version '$version'
+            }
+            
+            ${jcenterRepository()}
+            
+            dependencies {
+                api 'org.apache.commons:commons-math3:3.6.1'
+            }
+            
+            task resolve {
+                doFirst {
+                    configurations.compileClasspath.each { println it.name }
+                }
+            }
+        """
+        file('dependencies.lock') << '''{
+    "compileClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "default": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "runtimeClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "testCompileClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "testRuntimeClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    }
+}'''
+
+        then:
+        runner('dependencies').build()
+        runner('generateLock').build()
+        runner('resolve').build()
+
+        where:
+        version << ['4.9.5', '5.0.3']
+    }
+
+    @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
+    def 'nebula resolution rules plugin'() {
+        when:
+        file('rules.json') << """
+            {
+                "replace" : [
+                    {
+                        "module" : "asm:asm",
+                        "with" : "org.ow2.asm:asm",
+                        "reason" : "The asm group id changed for 4.0 and later",
+                        "author" : "Example Person <person@example.org>",
+                        "date" : "2015-10-07T20:21:20.368Z"
+                    }
+                ]
+            }
+"""
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'nebula.resolution-rules' version '5.1.0'
+            }
+            
+            ${jcenterRepository()}                        
+
+            dependencies {
+                resolutionRules files('rules.json')
+                
+                // Need a non-empty configuration to trigger the plugin
+                api 'org.apache.commons:commons-math3:3.6.1'
+            }
+        """.stripIndent()
+
+        then:
+        runner('dependencies').build()
     }
 }

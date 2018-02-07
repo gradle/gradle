@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -848,6 +849,55 @@ api (n)
 \\--- foo:foo:1.0 (n)
 
 (n) - Not resolved (configuration is not meant to be resolved)
+"""
+    }
+
+    @NotYetImplemented
+    void "reports custom selection reasons"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "2.0").publish()
+        mavenRepo.module("org", "baz", "1.0").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency {
+                        switch (it.requested.name) {
+                           case 'foo':
+                              it.because('because I am in control').useVersion('2.0')
+                              break
+                           case 'bar':
+                              it.because('why not?').useTarget('org.test:bar:2.0')
+                              break
+                           default:
+                              useVersion(it.requested.version)
+                        }
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0'
+                conf 'org:bar:1.0'
+                conf 'org:baz:1.0'
+            }
+        """
+
+        when:
+        run ":dependencies", "--configuration", "conf"
+
+        then:
+        output.contains """
+conf
++--- org:foo:1.0 -> 2.0 (because I am in control)
++--- org:bar:1.0 -> org.test:bar:2.0 (why not?)
+\\--- org:baz:1.0 (selected by rule)
+
 """
     }
 }

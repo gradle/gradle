@@ -192,6 +192,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
         executer.inDirectory(apiDir).withTasks('classes').run()
         TestFile sharedJar = javaprojectDir.file("shared/build/libs/shared-1.0.jar")
         TestFile.Snapshot snapshot = sharedJar.snapshot()
+        executer.expectDeprecationWarning()
         executer.inDirectory(apiDir).withTasks('clean', 'classes').withArguments("-a").run()
         sharedJar.assertHasNotChangedSince(snapshot)
     }

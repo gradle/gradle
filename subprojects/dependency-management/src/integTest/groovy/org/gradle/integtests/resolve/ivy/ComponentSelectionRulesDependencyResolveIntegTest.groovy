@@ -16,16 +16,23 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
+
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+    boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
+        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataEnabled || gradleCompatible)
+    }
+
     @Unroll
-    def "uses '#rule' rule to choose component for #selector" () {
+    def "uses '#rule' rule to choose component for #selector"() {
+        given:
+        Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
 
         buildFile << """
-            $httpBaseBuildFile
-
             dependencies {
                 conf "org.utils:api:${selector}"
             }
@@ -38,50 +45,81 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                 }
             }
 
-            resolveConf.doLast {
-                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
-                assert artifacts.size() == 1
-                assert artifacts[0].moduleVersion.id.version == '${chosen}'
+            checkDeps.doLast {
                 assert candidates == ${candidates}
             }
 """
 
         when:
-        if (selector != "1.1") {
-            ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        }
-        downloadedMetadata.each {
-            modules[it].ivy.expectGet()
-        }
-        modules[chosen].artifact.expectGet()
+        def chosenModule = setupInterations(selector, chosenVersion, downloadedMetadata)
 
         then:
-        succeeds 'resolveConf'
+        checkDependencies {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge("org.utils:api:${selector}", "org.utils:${chosenModule}:${chosenVersion}")
+                }
+            }
+        }
 
         when:
-        server.resetExpectations()
+        resetExpectations()
 
         then:
-        succeeds 'resolveConf'
+        checkDependencies()
+
+        and:
+        resetExpectations()
 
         where:
-        selector             | rule            | chosen | candidates                            | downloadedMetadata
-        "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
-        "1.+"                | "select status" | "1.1"  | '["1.2", "1.1"]'                      | ['1.2', '1.1']
-        "1.+"                | "select branch" | "1.1"  | '["1.2", "1.1"]'                      | ['1.2', '1.1']
-        "latest.integration" | "select 2.1"    | "2.1"  | '["2.1"]'                             | ['2.1']
-        "latest.milestone"   | "select 2.0"    | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
-        "latest.milestone"   | "select status" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
-        "latest.milestone"   | "select branch" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
-        "1.1"                | "select 1.1"    | "1.1"  | '["1.1"]'                             | ['1.1']
-        "1.1"                | "select status" | "1.1"  | '["1.1"]'                             | ['1.1']
-        "1.1"                | "select branch" | "1.1"  | '["1.1"]'                             | ['1.1']
+        selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true            | true
+        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | true
+        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | false
+        "latest.integration" | "select 2.1"    | "2.1"         | '["2.1"]'        | ['2.1']            | true            | true
+        "latest.milestone"   | "select 2.0"    | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "latest.milestone"   | "select status" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "latest.milestone"   | "select branch" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | false
+        "1.1"                | "select 1.1"    | "1.1"         | '["1.1"]'        | ['1.1']            | true            | true
+        "1.1"                | "select status" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | true
+        "1.1"                | "select branch" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | false
+    }
+
+    private String setupInterations(String selector, String chosenVersion, List<String> downloadedMetadata, Closure<Void> more = {}) {
+        def chosenModule = chosenVersion ? (chosenVersion.contains('-lib') ? 'lib' : 'api') : null
+        repositoryInteractions {
+            'org.utils:api' {
+                if (!(selector in ["1.0", "1.1"])) {
+                    expectVersionListing()
+                }
+            }
+            downloadedMetadata.each { v ->
+                group('org.utils') {
+                    def mod = v.contains('-lib') ? 'lib' : 'api'
+                    module(mod) {
+                        version(v - '-lib') {
+                            expectGetMetadata()
+                        }
+                    }
+                }
+            }
+            if (chosenModule) {
+                "org.utils:${chosenModule}:${chosenVersion - '-lib'}" {
+                    expectGetArtifact()
+                }
+            }
+            more.delegate = delegate
+            more()
+        }
+        chosenModule
     }
 
     @Unroll
-    def "uses '#rule' rule to reject all candidates for dynamic version #selector" () {
+    def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
+        given:
+        Assume.assumeTrue isWellBehaved(mavenCompatible)
+
         buildFile << """
-            $httpBaseBuildFile
 
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -95,7 +133,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                 }
             }
 
-            task checkConf {
+            task checkLenient {
                 doLast {
                     def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
                     assert artifacts.size() == 0
@@ -105,45 +143,52 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 """
 
         when:
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        downloadedMetadata.each {
-            modules[it].ivy.expectGet()
+        setupInterations(selector, null, downloadedMetadata)
+
+        then:
+        checkDependencies(':checkLenient')
+
+        when:
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectHeadVersionListing()
+            }
         }
 
         then:
-        succeeds 'checkConf'
-
-        when:
-        server.resetExpectations()
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-
-        then:
-        fails 'resolveConf'
+        fails ':checkDeps'
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         when:
-        server.resetExpectations()
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectHeadVersionListing()
+            }
+        }
 
         then:
-        fails 'resolveConf'
+        fails ':checkDeps'
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
+
+        and:
+        resetExpectations()
 
         where:
-        selector             | rule                       | candidates                            | downloadedMetadata
-        "1.+"                | "reject all"               | '["1.2", "1.1", "1.0"]'               | []
-        "latest.integration" | "reject all"               | '["2.1"]'                             | ['2.1']
-        "latest.milestone"   | "reject all"               | '["2.0"]'                             | ['2.1', '2.0']
-        "1.+"                | "reject all with metadata" | '["1.2", "1.1", "1.0"]'               | ['1.2', '1.1', '1.0']
-        "latest.integration" | "reject all with metadata" | '["2.1"]'                             | ['2.1']
-        "latest.milestone"   | "reject all with metadata" | '["2.0"]'                             | ['2.1', '2.0']
+        selector             | rule                       | candidates              | downloadedMetadata    | mavenCompatible
+        "1.+"                | "reject all"               | '["1.2", "1.1", "1.0"]' | []                    | true
+        "latest.integration" | "reject all"               | '["2.1"]'               | ['2.1']               | false
+        "latest.milestone"   | "reject all"               | '["2.0"]'               | ['2.1', '2.0']        | false
+        "1.+"                | "reject all with metadata" | '["1.2", "1.1", "1.0"]' | ['1.2', '1.1', '1.0'] | true
+        "latest.integration" | "reject all with metadata" | '["2.1"]'               | ['2.1']               | false
+        "latest.milestone"   | "reject all with metadata" | '["2.0"]'               | ['2.1', '2.0']        | false
         // latest.milestone is 2.0, but since the rule rejects it, we should never reach version 1.1
-        "latest.milestone"   | "select 1.1"               | '["2.0"]'                             | ['2.1', '2.0']
+        "latest.milestone"   | "select 1.1"               | '["2.0"]'               | ['2.1', '2.0']        | false
     }
 
-    def "reports all candidates rejected by rule" () {
+    def "reports all candidates rejected by rule"() {
         buildFile << """
-            $httpBaseBuildFile
 
             dependencies {
                 conf "org.utils:api:1.+"
@@ -159,14 +204,10 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 """
 
         when:
-        def dirList = ivyHttpRepo.directoryList("org.utils", "api")
-        dirList.expectGet()
-        modules["1.2"].ivy.expectGet()
-        modules["1.1"].ivy.expectGet()
-        modules["1.0"].ivy.expectGet()
+        setupInterations('1.+', null, ['1.2', '1.1', '1.0'])
 
         then:
-        fails 'resolveConf'
+        fails ':checkDeps'
 
         and:
         failureHasCause("""Could not find any version that matches org.utils:api:1.+.
@@ -178,19 +219,23 @@ Versions rejected by component selection rules:
     1.1
     1.0
 Searched in the following locations:
-    ${dirList.uri}
-    ${modules["1.2"].ivy.uri}
-    ${modules["1.1"].ivy.uri}
-    ${modules["1.0"].ivy.uri}
+    ${versionListingURI('org.utils', 'api')}
+${triedMetadata('org.utils', 'api', "1.2", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.1", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.0", false, gradleMetadataEnabled || !experimentalEnabled)}
 Required by:
 """)
 
         when:
-        server.resetExpectations()
-        dirList.expectGet()
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectHeadVersionListing()
+            }
+        }
 
         then:
-        fails 'resolveConf'
+        fails ':checkDeps'
 
         and:
         // TODO - this failure and the previous failure should report the same urls (whatever that happens to be)
@@ -203,16 +248,17 @@ Versions rejected by component selection rules:
     1.1
     1.0
 Searched in the following locations:
-    ${dirList.uri}
+    ${versionListingURI('org.utils', 'api')}
 Required by:
 """)
     }
 
     @Unroll
-    def "uses '#rule' rule to reject candidate for static version #selector" () {
-        buildFile << """
-            $httpBaseBuildFile
+    def "uses '#rule' rule to reject candidate for static version #selector"() {
+        given:
+        Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
 
+        buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
             }
@@ -225,7 +271,7 @@ Required by:
                 }
             }
 
-            task checkConf {
+            task checkLenient {
                 doLast {
                     def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
                     assert artifacts.size() == 0
@@ -235,34 +281,30 @@ Required by:
 """
 
         when:
-        downloadedMetadata.each {
-            modules[it].ivy.expectGet()
-        }
+        setupInterations(selector, null, downloadedMetadata)
 
         then:
-        succeeds 'checkConf'
+        checkDependencies(':checkLenient')
 
         when:
-        server.resetExpectations()
+        resetExpectations()
 
         then:
-        fails 'resolveConf'
-        failureHasCause("Could not find org.utils:api:${selector}.")
+        fails ':checkDeps'
 
         when:
-        server.resetExpectations()
+        resetExpectations()
 
         then:
-        fails 'resolveConf'
-        failureHasCause("Could not find org.utils:api:${selector}.")
+        fails ':checkDeps'
 
         where:
-        selector             | rule            | candidates                            | downloadedMetadata
-        "1.0"                | "reject all"    | '["1.0"]'                             | ['1.0']
-        "1.0"                | "select 1.1"    | '["1.0"]'                             | ['1.0']
-        "1.0"                | "select status" | '["1.0"]'                             | ['1.0']
-        "1.0"                | "select branch" | '["1.0"]'                             | ['1.0']
-        "1.1"                | "reject all"    | '["1.1"]'                             | ['1.1']
+        selector | rule            | candidates | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.0"    | "reject all"    | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select 1.1"    | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select status" | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select branch" | '["1.0"]'  | ['1.0']            | false           | false
+        "1.1"    | "reject all"    | '["1.1"]'  | ['1.1']            | true            | true
     }
 
     @Unroll
@@ -271,9 +313,7 @@ Required by:
         def module2 = ivyRepo2.module("org.utils", "api", "1.1").withBranch("other").publishWithChangedContent()
 
         buildFile << """
-            configurations { conf }
             repositories {
-                ivy { url "${ivyRepo.uri}" }
                 ivy { url "${ivyRepo2.uri}" }
             }
 
@@ -299,22 +339,43 @@ Required by:
             }
 """
         when:
-        succeeds "retrieve"
+        if (GradleMetadataResolveRunner.useIvy()) {
+            repositoryInteractions {
+                'org.utils:api' {
+                    if (selector != '1.1') {
+                        expectVersionListing()
+                    }
+                    '1.2' {
+                        allowAll()
+                    }
+                    '1.1' {
+                        allowAll()
+                    }
+                    '1.0' {
+                        allowAll()
+                    }
+                }
+            }
+            succeeds "retrieve"
+        }
 
         then:
-        file("libs").assertHasDescendants("api-1.1.jar")
-        file("libs/api-1.1.jar").assertIsDifferentFrom(modules['1.1'].jarFile)
-        file("libs/api-1.1.jar").assertIsCopyOf(module2.jarFile)
+        if (GradleMetadataResolveRunner.useIvy()) {
+            file("libs").assertHasDescendants("api-1.1.jar")
+            file("libs/api-1.1.jar").assertIsDifferentFrom(ivyHttpRepo.module('org.utils', 'api', '1.1').jarFile)
+            file("libs/api-1.1.jar").assertIsCopyOf(module2.jarFile)
+        }
 
         where:
         selector << ["1.1", "1.+"]
     }
 
     @Unroll
-    def "can control selection of components by module for #selector" () {
-        buildFile << """
-            $httpBaseBuildFile
+    def "can control selection of components by module rule #rule for #selector"() {
+        given:
+        Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
 
+        buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
                 conf "org.utils:lib:1.+"
@@ -338,7 +399,7 @@ Required by:
                 }
             }
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
                 assert artifacts.size() == 2
                 assert artifacts[0].moduleVersion.id.version == '${chosen}'
@@ -347,40 +408,39 @@ Required by:
         """
 
         when:
-        if (selector != "1.1") {
-            ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        setupInterations(selector, chosen, downloadedMetadata) {
+            'org.utils:lib' {
+                expectVersionListing()
+            }
+            'org.utils:lib:1.1' {
+                expectResolve()
+            }
         }
-        downloadedMetadata.each {
-            modules[it].ivy.expectGet()
-        }
-        modules[chosen].artifact.expectGet()
-
-        ivyHttpRepo.directoryList("org.utils", "lib").expectGet()
-        modules["1.1-lib"].ivy.expectGet()
-        modules["1.1-lib"].artifact.expectGet()
 
         then:
-        succeeds 'resolveConf'
+        checkDependencies()
+
+        and:
+        resetExpectations()
 
         where:
-        selector             | rule            | chosen | candidates                            | downloadedMetadata
-        "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
-        "latest.milestone"   | "select status" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
-        "1.1"                | "select branch" | "1.1"  | '["1.1"]'                             | ['1.1']
+        selector           | rule            | chosen | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.+"              | "select 1.1"    | "1.1"  | '["1.2", "1.1"]' | ['1.1']            | true            | true
+        "latest.milestone" | "select status" | "2.0"  | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "1.1"              | "select branch" | "1.1"  | '["1.1"]'        | ['1.1']            | false           | false
     }
 
     @Issue("GRADLE-3236")
-    def "can select a different component for the same selector in different configurations" () {
+    def "can select a different component for the same selector in different configurations"() {
+        def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'IvyModuleDescriptor ivy' : 'ComponentMetadata md'
         buildFile << """
-            $httpBaseBuildFile
-
             configurations {
                 modules
                 modulesA {
                     extendsFrom modules
                     resolutionStrategy {
                         componentSelection {
-                            all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                            all { ComponentSelection selection, $descriptorArg ->
                                 println "A is evaluating \$selection.candidate"
                                 if (selection.candidate.version != "1.1") { selection.reject("Rejected by A") }
                             }
@@ -391,7 +451,7 @@ Required by:
                     extendsFrom modules
                     resolutionStrategy {
                         componentSelection {
-                            all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                            all { ComponentSelection selection, $descriptorArg ->
                                 println "B is evaluating \$selection.candidate"
                                 if (selection.candidate.version != "1.0") { selection.reject("Rejected by B") }
                             }
@@ -413,20 +473,29 @@ Required by:
         """
 
         when:
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        modules['1.2'].ivy.expectGet()
-        modules['1.1'].ivy.expectGet()
-        modules['1.0'].ivy.expectGet()
-        modules['1.1'].artifact.expectGet()
-        modules['1.0'].artifact.expectGet()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                }
+                '1.1' {
+                    expectResolve()
+                }
+                '1.0' {
+                    expectResolve()
+                }
+            }
+        }
 
         then:
         succeeds "verify"
 
         when:
-        server.resetExpectations()
+        resetExpectations()
 
         then:
         succeeds "verify"
     }
+
 }

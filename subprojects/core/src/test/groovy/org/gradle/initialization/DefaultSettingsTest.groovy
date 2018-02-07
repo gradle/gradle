@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
@@ -29,7 +30,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.JUnit4GroovyMockery
@@ -58,9 +58,9 @@ class DefaultSettingsTest {
     ProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
     FileResolver fileResolver
-    ScriptFileResolver scriptFileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
+    ScriptHandler settingsScriptHandler
     DefaultPluginManager pluginManager
 
     @Before
@@ -76,9 +76,9 @@ class DefaultSettingsTest {
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
-        scriptFileResolver = context.mock(ScriptFileResolver.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
         scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
+        settingsScriptHandler = context.mock(ScriptHandler.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
@@ -87,8 +87,6 @@ class DefaultSettingsTest {
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
             will(returnValue(settingsServices));
 
-            allowing(settingsServices).get((Type)ScriptFileResolver.class);
-            will(returnValue(scriptFileResolver));
             allowing(settingsServices).get((Type)FileResolver.class);
             will(returnValue(fileResolver));
             allowing(settingsServices).get((Type)ScriptPluginFactory.class);
@@ -100,7 +98,6 @@ class DefaultSettingsTest {
             allowing(settingsServices).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
 
-            allowing(scriptFileResolver).resolveScriptFile(withParam(notNullValue()), withParam(notNullValue()));
             will(returnValue(null));
             allowing(fileResolver).resolve(withParam(notNullValue()))
             will { File file -> file.canonicalFile }
@@ -108,7 +105,8 @@ class DefaultSettingsTest {
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
         settings = classGenerator.newInstance(DefaultSettings, serviceRegistryFactory,
-                gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
+                gradleMock, classLoaderScope, rootClassLoaderScope, settingsScriptHandler,
+                settingsDir, scriptSourceMock, startParameter);
     }
 
     @Test
@@ -122,6 +120,7 @@ class DefaultSettingsTest {
         assertEquals(settings.getRootProject().getProjectDir().getName(), settings.getRootProject().getName())
         assertEquals(settings.rootProject.buildFileName, Project.DEFAULT_BUILD_FILE);
         assertSame(gradleMock, settings.gradle)
+        assertSame(settingsScriptHandler, settings.buildscript)
     }
 
     @Test

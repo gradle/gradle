@@ -18,17 +18,18 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 
 import javax.annotation.Nullable;
 
 public interface TaskHistoryRepository {
-    History getHistory(TaskInternal task);
+    History getHistory(TaskInternal task, TaskProperties taskProperties);
 
     interface History {
         @Nullable
-        TaskExecution getPreviousExecution();
+        HistoricalTaskExecution getPreviousExecution();
 
-        TaskExecution getCurrentExecution();
+        CurrentTaskExecution getCurrentExecution();
 
         void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs);
 

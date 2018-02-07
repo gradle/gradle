@@ -17,28 +17,38 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
+import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
@@ -49,6 +59,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -87,19 +98,29 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final DefaultMavenArtifactSet mavenArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
+    private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
+    private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final FeaturePreviews featurePreviews;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
     private FileCollection pomFile;
+    private FileCollection moduleMetadataFile;
     private SoftwareComponentInternal component;
+    private boolean isPublishWithOriginalFileName;
+    private boolean alias;
 
     public DefaultMavenPublication(
-            String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
-            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory
-    ) {
+        String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
+        ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+        FeaturePreviews featurePreviews,
+        ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
+        this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
+        this.featurePreviews = featurePreviews;
     }
 
     public String getName() {
@@ -120,9 +141,22 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.pomFile = pomFile;
     }
 
+    public void setGradleModuleMetadataFile(FileCollection file) {
+        this.moduleMetadataFile = file;
+    }
 
     public void pom(Action<? super MavenPom> configure) {
         configure.execute(pom);
+    }
+
+    @Override
+    public boolean isAlias() {
+        return alias;
+    }
+
+    @Override
+    public void setAlias(boolean alias) {
+        this.alias = alias;
     }
 
     public void from(SoftwareComponent component) {
@@ -133,6 +167,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
+        Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
         for (UsageContext usageContext : getSortedUsageContexts()) {
             // TODO Need a smarter way to map usage to artifact classifier
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
@@ -152,6 +187,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     }
                 }
             }
+            Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext.getUsage());
+            for (DependencyConstraint dependency : usageContext.getDependencyConstraints()) {
+                if (seenConstraints.add(dependency)
+                    && !dependency.getVersionConstraint().getPreferredVersion().isEmpty()) {
+                    addDependencyConstraint(dependency, dependencyConstraints);
+                }
+            }
         }
     }
 
@@ -168,6 +210,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return runtimeDependencies;
     }
 
+    private Set<MavenDependency> dependencyConstraintsFor(Usage usage) {
+        if (Usage.JAVA_API.equals(usage.getName())) {
+            return apiDependencyConstraints;
+        }
+        return runtimeDependencyConstraints;
+    }
+
     private void addProjectDependency(ProjectDependency dependency, Set<MavenDependencyInternal> dependencies) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
         dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
@@ -175,6 +224,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addModuleDependency(ModuleDependency dependency, Set<MavenDependencyInternal> dependencies) {
         dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(dependency)));
+    }
+
+    private void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependency> dependencies) {
+        dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion()));
     }
 
     private static Set<ExcludeRule> getExcludeRules(ModuleDependency dependency) {
@@ -225,11 +278,21 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile);
+        return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile, moduleMetadataFile);
     }
 
     public MavenProjectIdentity getMavenProjectIdentity() {
         return projectIdentity;
+    }
+
+    @Override
+    public Set<MavenDependency> getApiDependencyConstraints() {
+        return apiDependencyConstraints;
+    }
+
+    @Override
+    public Set<MavenDependency> getRuntimeDependencyConstraints() {
+        return runtimeDependencyConstraints;
     }
 
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
@@ -241,7 +304,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        return new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getArtifacts(), determineMainArtifact());
+        return new MavenNormalizedPublication(name, getPomFile(), getGradleMetadataFile(), projectIdentity, getArtifacts(), determineMainArtifact());
     }
 
     private File getPomFile() {
@@ -249,6 +312,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             throw new IllegalStateException("pomFile not set for publication");
         }
         return pomFile.getSingleFile();
+    }
+
+    private File getGradleMetadataFile() {
+        if (moduleMetadataFile == null) {
+            // possible if experimental features are disabled
+            return null;
+        }
+        return moduleMetadataFile.getSingleFile();
     }
 
     public String determinePackagingFromArtifacts() {
@@ -296,6 +367,91 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
+    }
+
+    public void publishWithOriginalFileName() {
+        this.isPublishWithOriginalFileName = true;
+    }
+
+    @Override
+    public boolean canPublishModuleMetadata() {
+        if (getComponent() == null) {
+            // Cannot yet publish module metadata without component
+            return false;
+        }
+        if (getComponent() instanceof ComponentWithVariants) {
+            // Always publish `ComponentWithVariants`
+            return true;
+        }
+        return featurePreviews.isGradleMetadataEnabled();
+    }
+
+    @Override
+    public PublishedFile getPublishedFile(final PublishArtifact source) {
+        checkThatArtifactIsPublishedUnmodified(source);
+        final String publishedUrl = getPublishedUrl(source);
+        final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
+        return new PublishedFile() {
+            @Override
+            public String getName() {
+                return publishedName;
+            }
+
+            @Override
+            public String getUri() {
+                return publishedUrl;
+            }
+        };
+    }
+
+    @Nullable
+    @Override
+    public ImmutableAttributes getAttributes() {
+        String version = getMavenProjectIdentity().getVersion();
+        String status = MavenVersionUtils.inferStatusFromVersionNumber(version);
+        return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
+    }
+
+    /*
+     * When the artifacts declared in a component are modified for publishing (name/classifier/extension), then the
+     * Maven publication no longer represents the underlying java component. Instead of
+     * publishing incorrect metadata, we fail any attempt to publish the module metadata.
+     *
+     * In the long term, we will likely prevent any modification of artifacts added from a component. Instead, we will
+     * make it easier to modify the component(s) produced by a project, allowing the
+     * published metadata to accurately reflect the local component metadata.
+     */
+    private void checkThatArtifactIsPublishedUnmodified(PublishArtifact source) {
+        for (MavenArtifact mavenArtifact : mavenArtifacts) {
+            if (source.getFile().equals(mavenArtifact.getFile())
+                && source.getExtension().equals(mavenArtifact.getExtension())
+                && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
+                return;
+            }
+        }
+
+        throw new PublishException("Cannot publish module metadata where component artifacts are modified.");
+    }
+
+    private String getPublishedUrl(PublishArtifact source) {
+        return getArtifactFileName(source.getClassifier(), source.getExtension());
+    }
+
+    private String getArtifactFileName(String classifier, String extension) {
+        StringBuilder artifactPath = new StringBuilder();
+        ModuleVersionIdentifier coordinates = getCoordinates();
+        artifactPath.append(coordinates.getName());
+        artifactPath.append('-');
+        artifactPath.append(coordinates.getVersion());
+        if (GUtil.isTrue(classifier)) {
+            artifactPath.append('-');
+            artifactPath.append(classifier);
+        }
+        if (GUtil.isTrue(extension)) {
+            artifactPath.append('.');
+            artifactPath.append(extension);
+        }
+        return artifactPath.toString();
     }
 
     private static class ArtifactKey {

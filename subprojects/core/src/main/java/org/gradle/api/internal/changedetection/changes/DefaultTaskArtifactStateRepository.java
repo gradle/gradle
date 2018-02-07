@@ -22,18 +22,25 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.rules.DefaultTaskUpToDateState;
+import org.gradle.api.internal.changedetection.rules.NoHistoryTaskUpToDateState;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
+import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -48,20 +55,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private final TaskHistoryRepository taskHistoryRepository;
     private final Instantiator instantiator;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
+    private final TaskCacheKeyCalculator taskCacheKeyCalculator;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              TaskOutputFilesRepository taskOutputFilesRepository) {
+                                              TaskOutputFilesRepository taskOutputFilesRepository, TaskCacheKeyCalculator taskCacheKeyCalculator) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
+        this.taskCacheKeyCalculator = taskCacheKeyCalculator;
     }
 
-    public TaskArtifactState getStateFor(final TaskInternal task) {
-        return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task));
+    public TaskArtifactState getStateFor(final TaskInternal task, TaskProperties taskProperties) {
+        return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task, taskProperties));
     }
 
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
@@ -88,13 +98,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges() {
+        public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (!outputsRemoved && canPerformIncrementalBuild()) {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             } else {
-                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
+                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
             }
             return taskInputs;
         }
@@ -108,6 +118,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return true;
         }
 
+        @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
             return history.getCurrentExecution().getDetectedOverlappingOutputs();
@@ -115,13 +126,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-            return TaskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
+            return taskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
         }
 
         @Override
         public Set<File> getOutputFiles() {
-            TaskExecution previousExecution = history.getPreviousExecution();
-            if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            if (previousExecution == null) {
                 return Collections.emptySet();
             }
             ImmutableCollection<FileCollectionSnapshot> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
@@ -148,15 +159,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return this;
         }
 
-        @Nullable
         @Override
-        public UniqueId getOriginBuildInvocationId() {
-            TaskExecution previousExecution = history.getPreviousExecution();
-            if (previousExecution == null) {
-                return null;
-            } else {
-                return previousExecution.getBuildInvocationId();
-            }
+        public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            return previousExecution == null ? null : previousExecution.getOriginExecutionMetadata();
         }
 
         @Override
@@ -170,20 +176,24 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterTaskExecution(Throwable failure) {
+        public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
             history.updateCurrentExecution(taskInputs);
-            snapshotAfterOutputsWereGenerated(history, failure);
+            snapshotAfterOutputsWereGenerated(history, failure, new OriginTaskExecutionMetadata(
+                buildInvocationId,
+                taskExecutionContext.markExecutionTime()
+            ));
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
             history.updateCurrentExecutionWithOutputs(taskInputs, newOutputSnapshot);
-            snapshotAfterOutputsWereGenerated(history, null);
+            snapshotAfterOutputsWereGenerated(history, null, originMetadata);
         }
 
-        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, Throwable failure) {
+        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, @Nullable Throwable failure, OriginTaskExecutionMetadata originMetadata) {
             // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
+                history.getCurrentExecution().setOriginExecutionMetadata(originMetadata);
                 history.persist();
                 ImmutableSet<String> outputFilePaths = history.getCurrentExecution().getDeclaredOutputFilePaths();
                 taskOutputFilesRepository.recordOutputs(outputFilePaths);
@@ -192,10 +202,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private TaskUpToDateState getStates() {
             if (states == null) {
-                TaskExecution previousExecution = history.getPreviousExecution();
+                HistoricalTaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
-                TaskExecution currentExecution = history.getCurrentExecution();
-                states = new TaskUpToDateState(previousExecution, currentExecution, task);
+                // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
+                CurrentTaskExecution currentExecution = history.getCurrentExecution();
+                if (previousExecution == null) {
+                    states = NoHistoryTaskUpToDateState.INSTANCE;
+                } else {
+                    states = new DefaultTaskUpToDateState(previousExecution, currentExecution, task);
+                }
             }
             return states;
         }

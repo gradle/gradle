@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.internal.hash.HashCode;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -49,20 +50,20 @@ public class JarSnapshot {
         return new DefaultDependentsSet(result);
     }
 
-    public Set<Integer> getAllConstants(DependentsSet dependents) {
-        Set<Integer> result = Sets.newHashSet();
+    public IntSet getAllConstants(DependentsSet dependents) {
+        IntSet result = new IntOpenHashSet();
         for (String cn : dependents.getDependentClasses()) {
             result.addAll(data.data.getConstants(cn));
         }
         return result;
     }
 
-    public Set<Integer> getRelevantConstants(JarSnapshot other, Set<String> affectedClasses) {
-        Set<Integer> result = Sets.newHashSet();
+    public IntSet getRelevantConstants(JarSnapshot other, Set<String> affectedClasses) {
+        IntSet result = new IntOpenHashSet();
         for (String affectedClass : affectedClasses) {
-            Set<Integer> previous = other.getData().data.getConstants(affectedClass);
-            Set<Integer> current = data.data.getConstants(affectedClass);
-            result.addAll(Sets.difference(previous, current));
+            IntSet difference = new IntOpenHashSet(other.getData().data.getConstants(affectedClass));
+            difference.removeAll(data.data.getConstants(affectedClass));
+            result.addAll(difference);
         }
         return result;
     }
@@ -82,7 +83,7 @@ public class JarSnapshot {
             if (thisClsBytes == null || !thisClsBytes.equals(otherClassBytes)) {
                 //removed since or changed since
                 affected.add(otherClassName);
-                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName, Collections.<Integer>emptySet());
+                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }

@@ -1,3 +1,8 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
 sourceCompatibility = 1.6
 
 dependencies {
@@ -10,9 +15,8 @@ dependencies {
     integTestRuntime project(':languageJava')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
-
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':diagnostics')
+    from(':platformBase')
+}

@@ -25,6 +25,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -45,6 +46,7 @@ import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressList
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -69,14 +71,16 @@ public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
     private final LoggingServiceRegistry loggingServices;
+    private final BuildLayoutFactory buildLayoutFactory;
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecuter<BuildActionParameters> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final JvmVersionDetector jvmVersionDetector;
 
-    public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory,
+    public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
                               BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector) {
         this.loggingServices = loggingServices;
+        this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
@@ -119,6 +123,14 @@ public class ProviderConnection {
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+        return runClientAction(clientAction, cancellationToken, providerParameters);
+    }
+
+    public Object run(InternalBuildActionVersion2<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+        return runClientAction(clientAction, cancellationToken, providerParameters);
+    }
+
+    public Object runClientAction(Object clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
@@ -126,6 +138,7 @@ public class ProviderConnection {
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
+
     }
 
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
@@ -176,7 +189,7 @@ public class ProviderConnection {
         layout.setProjectDir(operationParameters.getProjectDir());
 
         Map<String, String> properties = new HashMap<String, String>();
-        new LayoutToPropertiesConverter().convert(layout, properties);
+        new LayoutToPropertiesConverter(buildLayoutFactory).convert(layout, properties);
 
         DaemonParameters daemonParams = new DaemonParameters(layout);
         new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);

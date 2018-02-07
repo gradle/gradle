@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.file.FileType;
 
 import java.io.Closeable;
 import java.io.File;
@@ -28,12 +27,12 @@ import java.io.IOException;
 public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
-    private final FileSystemMirror fileSystemMirror;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
 
-    public DefaultTaskOutputFilesRepository(PersistentCache cacheAccess, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultTaskOutputFilesRepository(PersistentCache cacheAccess, FileSystemSnapshotter fileSystemSnapshotter, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
-        this.fileSystemMirror = fileSystemMirror;
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.outputFiles = cacheAccess.createCache(cacheParameters(inMemoryCacheDecoratorFactory));
     }
 
@@ -61,9 +60,8 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     @Override
     public void recordOutputs(Iterable<String> outputFilePaths) {
         for (String outputFilePath : outputFilePaths) {
-            FileSnapshot fileSnapshot = fileSystemMirror.getFile(outputFilePath);
             File outputFile = new File(outputFilePath);
-            boolean exists = fileSnapshot == null ? outputFile.exists() : fileSnapshot.getType() != FileType.Missing;
+            boolean exists = fileSystemSnapshotter.exists(outputFile);
             if (exists) {
                 outputFiles.put(outputFilePath, Boolean.TRUE);
                 File outputFileParent = outputFile.getParentFile();

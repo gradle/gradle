@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
@@ -48,6 +49,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     String HELP_TASK = "help";
     String TASKS_TASK = "tasks";
     String PROJECTS_TASK = "projects";
+
+    Attribute<String> STATUS_ATTRIBUTE = Attribute.of("org.gradle.status", String.class);
 
     ProjectInternal getParent();
 

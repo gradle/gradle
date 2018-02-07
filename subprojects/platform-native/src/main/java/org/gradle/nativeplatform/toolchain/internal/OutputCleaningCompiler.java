@@ -53,6 +53,10 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
         boolean didRemove = false;
         for (File removedSource : spec.getRemovedSourceFiles()) {
             File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
+
+            // Remove .pdb file if present
+            new File(objectFile.getParentFile(), objectFile.getName() + ".pdb").delete();
+
             if (objectFile.delete()) {
                 didRemove = true;
                 objectFile.getParentFile().delete();

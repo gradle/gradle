@@ -21,14 +21,14 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.List;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
-    private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
+    private List<BuildOption<DaemonParameters>> buildOptions = DaemonBuildOptions.get();
 
     public DaemonParameters convert(ParsedCommandLine args, DaemonParameters target) throws CommandLineArgumentException {
         for (BuildOption<DaemonParameters> option : buildOptions) {

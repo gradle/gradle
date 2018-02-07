@@ -30,6 +30,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
@@ -41,10 +42,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
     private final PatternSpecFactory patternSpecFactory;
 
-    private final Set<String> includes = Sets.newLinkedHashSet();
-    private final Set<String> excludes = Sets.newLinkedHashSet();
-    private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
-    private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
+    private Set<String> includes;
+    private Set<String> excludes;
+    private Set<Spec<FileTreeElement>> includeSpecs;
+    private Set<Spec<FileTreeElement>> excludeSpecs;
     private boolean caseSensitive = true;
 
     public PatternSet() {
@@ -75,16 +76,16 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (caseSensitive != that.caseSensitive) {
             return false;
         }
-        if (excludeSpecs != null ? !excludeSpecs.equals(that.excludeSpecs) : that.excludeSpecs != null) {
+        if (!nullToEmpty(excludeSpecs).equals(nullToEmpty(that.excludeSpecs))) {
             return false;
         }
-        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
+        if (!nullToEmpty(excludes).equals(nullToEmpty(that.excludes))) {
             return false;
         }
-        if (includeSpecs != null ? !includeSpecs.equals(that.includeSpecs) : that.includeSpecs != null) {
+        if (!nullToEmpty(includeSpecs).equals(nullToEmpty(that.includeSpecs))) {
             return false;
         }
-        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
+        if (!nullToEmpty(includes).equals(nullToEmpty(that.includes))) {
             return false;
         }
 
@@ -93,12 +94,19 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     @Override
     public int hashCode() {
-        int result = includes != null ? includes.hashCode() : 0;
-        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (includeSpecs != null ? includeSpecs.hashCode() : 0);
-        result = 31 * result + (excludeSpecs != null ? excludeSpecs.hashCode() : 0);
+        int result = nullToEmpty(includes).hashCode();
+        result = 31 * result + nullToEmpty(excludes).hashCode();
+        result = 31 * result + nullToEmpty(includeSpecs).hashCode();
+        result = 31 * result + nullToEmpty(excludeSpecs).hashCode();
         result = 31 * result + (caseSensitive ? 1 : 0);
         return result;
+    }
+
+    private Set<?> nullToEmpty(@Nullable Set<?> set) {
+        if (set == null) {
+            return Collections.emptySet();
+        }
+        return set;
     }
 
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
@@ -106,33 +114,35 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     protected PatternSet doCopyFrom(PatternSet from) {
-        includes.clear();
-        excludes.clear();
-        includeSpecs.clear();
-        excludeSpecs.clear();
         caseSensitive = from.caseSensitive;
 
         if (from instanceof IntersectionPatternSet) {
             PatternSet other = ((IntersectionPatternSet) from).other;
             PatternSet otherCopy = new PatternSet(other).copyFrom(other);
             PatternSet intersectCopy = new IntersectionPatternSet(otherCopy);
-            intersectCopy.includes.addAll(from.includes);
-            intersectCopy.excludes.addAll(from.excludes);
-            intersectCopy.includeSpecs.addAll(from.includeSpecs);
-            intersectCopy.excludeSpecs.addAll(from.excludeSpecs);
+            copyIncludesAndExcludes(intersectCopy, from);
+
+            includes = null;
+            excludes = null;
+            includeSpecs = Sets.newLinkedHashSet();
             includeSpecs.add(intersectCopy.getAsSpec());
+            excludeSpecs = null;
         } else {
-            includes.addAll(from.includes);
-            excludes.addAll(from.excludes);
-            includeSpecs.addAll(from.includeSpecs);
-            excludeSpecs.addAll(from.excludeSpecs);
+            copyIncludesAndExcludes(this, from);
         }
 
         return this;
     }
 
+    private void copyIncludesAndExcludes(PatternSet target, PatternSet from) {
+        target.includes = from.includes == null ? null : Sets.newLinkedHashSet(from.includes);
+        target.excludes = from.excludes == null ? null : Sets.newLinkedHashSet(from.excludes);
+        target.includeSpecs = from.includeSpecs == null ? null : Sets.newLinkedHashSet(from.includeSpecs);
+        target.excludeSpecs = from.excludeSpecs == null ? null : Sets.newLinkedHashSet(from.excludeSpecs);
+    }
+
     public PatternSet intersect() {
-        if(isEmpty()) {
+        if (isEmpty()) {
             return new PatternSet(this.patternSpecFactory);
         } else {
             return new IntersectionPatternSet(this);
@@ -148,7 +158,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
      * @return true when no includes or excludes have been added to this instance
      */
     public boolean isEmpty() {
-        return getExcludes().isEmpty() && getIncludes().isEmpty() && getExcludeSpecs().isEmpty() && getIncludeSpecs().isEmpty();
+        return (includes == null || includes.isEmpty())
+            && (excludes == null || excludes.isEmpty())
+            && (includeSpecs == null || includeSpecs.isEmpty())
+            && (excludeSpecs == null || excludeSpecs.isEmpty());
     }
 
     private static class IntersectionPatternSet extends PatternSet {
@@ -216,45 +229,57 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public Set<String> getIncludes() {
+        if (includes == null) {
+            includes = Sets.newLinkedHashSet();
+        }
         return includes;
     }
 
     public Set<Spec<FileTreeElement>> getIncludeSpecs() {
+        if (includeSpecs == null) {
+            includeSpecs = Sets.newLinkedHashSet();
+        }
         return includeSpecs;
     }
 
     public PatternSet setIncludes(Iterable<String> includes) {
-        this.includes.clear();
+        this.includes = null;
         return include(includes);
     }
 
     public PatternSet include(String... includes) {
-        Collections.addAll(this.includes, includes);
+        Collections.addAll(getIncludes(), includes);
         return this;
     }
 
     public PatternSet include(Iterable includes) {
         for (Object include : includes) {
-            this.includes.add(PARSER.parseNotation(include));
+            getIncludes().add(PARSER.parseNotation(include));
         }
         return this;
     }
 
     public PatternSet include(Spec<FileTreeElement> spec) {
-        includeSpecs.add(spec);
+        getIncludeSpecs().add(spec);
         return this;
     }
 
     public Set<String> getExcludes() {
+        if (excludes == null) {
+            excludes = Sets.newLinkedHashSet();
+        }
         return excludes;
     }
 
     public Set<Spec<FileTreeElement>> getExcludeSpecs() {
+        if (excludeSpecs == null) {
+            excludeSpecs = Sets.newLinkedHashSet();
+        }
         return excludeSpecs;
     }
 
     public PatternSet setExcludes(Iterable<String> excludes) {
-        this.excludes.clear();
+        this.excludes = null;
         return exclude(excludes);
     }
 
@@ -271,7 +296,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     This can't be called just include, because it has the same erasure as include(Iterable<String>).
      */
     public PatternSet includeSpecs(Iterable<Spec<FileTreeElement>> includeSpecs) {
-        CollectionUtils.addAll(this.includeSpecs, includeSpecs);
+        CollectionUtils.addAll(getIncludeSpecs(), includeSpecs);
         return this;
     }
 
@@ -281,24 +306,24 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet exclude(String... excludes) {
-        Collections.addAll(this.excludes, excludes);
+        Collections.addAll(getExcludes(), excludes);
         return this;
     }
 
     public PatternSet exclude(Iterable excludes) {
         for (Object exclude : excludes) {
-            this.excludes.add(PARSER.parseNotation(exclude));
+            getExcludes().add(PARSER.parseNotation(exclude));
         }
         return this;
     }
 
     public PatternSet exclude(Spec<FileTreeElement> spec) {
-        excludeSpecs.add(spec);
+        getExcludeSpecs().add(spec);
         return this;
     }
 
     public PatternSet excludeSpecs(Iterable<Spec<FileTreeElement>> excludes) {
-        CollectionUtils.addAll(this.excludeSpecs, excludes);
+        CollectionUtils.addAll(getExcludeSpecs(), excludes);
         return this;
     }
 
@@ -309,10 +334,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     public Object addToAntBuilder(Object node, String childNodeName) {
 
-        if (!includeSpecs.isEmpty() || !excludeSpecs.isEmpty()) {
+        if (!nullToEmpty(includeSpecs).isEmpty() || !nullToEmpty(excludeSpecs).isEmpty()) {
             throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 
-        return new PatternSetAntBuilderDelegate(includes, excludes, caseSensitive).addToAntBuilder(node, childNodeName);
+        return new PatternSetAntBuilderDelegate(getIncludes(), getExcludes(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
     }
 }

@@ -44,6 +44,8 @@ public class NamedObjectInstantiator {
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
     private static final Type CLASS_GENERATING_LOADER = Type.getType(ClassGeneratingLoader.class);
+    private static final Type MANAGED = Type.getType(Managed.class);
+    private static final String[] INTERFACES_FOR_ABSTRACT_CLASS = {MANAGED.getInternalName()};
     private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
     private static final String RETURN_STRING = Type.getMethodDescriptor(STRING);
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
@@ -52,7 +54,7 @@ public class NamedObjectInstantiator {
     private static final String[] EMPTY_STRINGS = new String[0];
     private static final String CONSTRUCTOR_NAME = "<init>";
 
-    // Currently retains strong references
+    // Currently retains strong references to types
     private final LoadingCache<Class<?>, LoadingCache<String, Object>> values = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
         @Override
         public LoadingCache<String, Object> load(Class<?> type) {
@@ -88,10 +90,10 @@ public class NamedObjectInstantiator {
         String[] interfaces;
         if (publicClass.isInterface()) {
             superClass = OBJECT;
-            interfaces = new String[]{publicType.getInternalName()};
+            interfaces = new String[]{publicType.getInternalName(), MANAGED.getInternalName()};
         } else {
             superClass = publicType;
-            interfaces = EMPTY_STRINGS;
+            interfaces = INTERFACES_FOR_ABSTRACT_CLASS;
         }
 
         visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, implementationType.getInternalName(), null, superClass.getInternalName(), interfaces);
@@ -211,6 +213,12 @@ public class NamedObjectInstantiator {
             }
             collector.add(field, "A Named implementation class must not define any instance fields.");
         }
+    }
+
+    /**
+     * Mixed into each generated class, to mark it as managed.
+     */
+    public interface Managed {
     }
 
     protected abstract static class ClassGeneratingLoader extends CacheLoader<String, Object> {

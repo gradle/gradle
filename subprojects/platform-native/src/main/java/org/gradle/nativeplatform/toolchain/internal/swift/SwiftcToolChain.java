@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -28,11 +29,12 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
@@ -43,25 +45,25 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc, NativeToolChainInternal {
+public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc {
     public static final String DEFAULT_NAME = "swiftc";
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
+    private final CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider;
     private final Instantiator instantiator;
     private final ToolSearchPath toolSearchPath;
     private final ExecActionFactory execActionFactory;
     private final WorkerLeaseService workerLeaseService;
     private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
 
-    public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
-                           CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory compilerMetaDataProviderFactory, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
-        this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), compilerMetaDataProviderFactory, instantiator, workerLeaseService);
+    public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+        this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), compilerMetaDataProvider, instantiator, workerLeaseService);
     }
 
-    SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
-                    CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProviderFactory compilerMetaDataProviderFactory, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
+        this.compilerMetaDataProvider = compilerMetaDataProvider;
         this.instantiator = instantiator;
         this.toolSearchPath = tools;
         this.execActionFactory = execActionFactory;
@@ -91,8 +93,24 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
+        SwiftcMetadata swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(compiler.getTool(), ImmutableList.<String>of());
+        result.mustBeAvailable(swiftcMetaData);
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
+        }
 
-        return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+        return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService, swiftcMetaData);
+    }
+
+    @Override
+    public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
+        switch (sourceLanguage) {
+            case SWIFT:
+            case ANY:
+                return select(targetMachine);
+            default:
+                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+        }
     }
 
     @Override
@@ -108,10 +126,14 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     private void addDefaultTools(DefaultSwiftcPlatformToolChain toolChain) {
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER));
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SYMBOL_EXTRACTOR));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STRIPPER));
     }
 
     @Override
     protected String getTypeName() {
         return "Swift Compiler";
     }
+
 }

@@ -49,12 +49,10 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
 
         where:
         name                     | excludeAttributes   | resolvedJars
-        'non-matching module'    | [module: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'non-matching artifact'  | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching all modules'   | [module: '*']       | ['a-1.0.jar']
-        'matching module'        | [module: 'b']       | ['a-1.0.jar', 'c-1.0.jar']
         'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar']
         'matching artifact'      | [artifact: 'b']     | ['a-1.0.jar', 'c-1.0.jar']
+        'matching self artifact' | [artifact: 'a']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'] // Current behaviour, likely a bug
     }
 
     /**
@@ -84,10 +82,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
 
         where:
         name                     | excludeAttributes   | resolvedJars
-        'non-matching module'    | [module: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
         'non-matching artifact'  | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
-        'matching all modules'   | [module: '*']       | ['a-1.0.jar']
-        'matching module'        | [module: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar']
         'matching artifact'      | [artifact: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
     }
@@ -191,10 +186,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
 
         where:
         name                     | excludeAttributes
-        'non-matching module'    | [module: 'other']
         'non-matching artifact'  | [artifact: 'other']
-        'matching all modules'   | [module: '*']
-        'matching module'        | [module: 'd']
         'matching all artifacts' | [artifact: '*']
         'matching artifact'      | [artifact: 'd']
     }
@@ -227,11 +219,8 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
 
         where:
         name                     | excludeAttributes   | resolvedJars
-        'non-matching module'    | [module: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
         'non-matching artifact'  | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching all modules'   | [module: '*']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching module'        | [module: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'matching artifact'      | [artifact: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
@@ -346,6 +335,61 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
 
         expect:
         succeedsDependencyResolution()
+    }
+
+    /**
+     * Ivy module exclusions may define one or more configurations to apply to.
+     * Configuration exclusions are inherited.
+     * Dependency graph:
+     * a -> b, c
+     */
+    @Issue("GRADLE-3275")
+    def "module excludes apply to specified configurations"() {
+        given:
+        IvyModule moduleA = ivyRepo.module('a')
+            .configuration('other')
+            .dependsOn('b').dependsOn('c').dependsOn('d')
+        ivyRepo.module('b').publish()
+        ivyRepo.module('c').publish()
+        ivyRepo.module('d').publish()
+
+        addExcludeRuleToModule(moduleA, [module: 'b', conf: 'other'])
+        addExcludeRuleToModule(moduleA, [module: 'c', conf: 'runtime'])
+        addExcludeRuleToModule(moduleA, [module: 'd', conf: 'default'])
+
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar'])
+    }
+
+    @Issue("GRADLE-3951")
+    def "artifact excludes merge correctly with chained composite exclusions"() {
+        ivyRepo.module('a').dependsOn('b').dependsOn('c').publish()
+
+        def moduleB = ivyRepo.module('b').dependsOn('d')
+        addExcludeRuleToModule(moduleB, [artifact: 'e'])
+        moduleB.publish()
+
+        def moduleC = ivyRepo.module('c').dependsOn('d')
+        addExcludeRuleToModule(moduleC, [artifact: 'e'])
+        addExcludeRuleToModule(moduleC, [artifact: 'doesnotexist1', matcher: 'regexp'])
+        moduleC.publish()
+
+        def moduleD = ivyRepo.module('d').dependsOn('e')
+        addExcludeRuleToModule(moduleD, [artifact: 'doesnotexist2', matcher: 'regexp'])
+        moduleD.publish()
+
+        ivyRepo.module('e').publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar'])
     }
 
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {

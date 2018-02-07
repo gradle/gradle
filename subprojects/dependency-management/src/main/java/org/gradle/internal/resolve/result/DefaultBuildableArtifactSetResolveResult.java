@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.util.Set;
+import java.util.Collection;
 
-public class DefaultBuildableArtifactSetResolveResult extends DefaultBuildableTypedResolveResult<Set<? extends ComponentArtifactMetadata>, ArtifactResolveException> implements BuildableArtifactSetResolveResult {
+public class DefaultBuildableArtifactSetResolveResult extends DefaultBuildableTypedResolveResult<Collection<? extends ComponentArtifactMetadata>, ArtifactResolveException> implements BuildableArtifactSetResolveResult {
 }

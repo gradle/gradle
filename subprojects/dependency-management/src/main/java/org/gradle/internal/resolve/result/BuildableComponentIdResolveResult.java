@@ -18,7 +18,8 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -27,7 +28,11 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
 
     void resolved(ComponentResolveMetadata metaData);
 
-    void setSelectionReason(ComponentSelectionReason reason);
+    void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
 
     void failed(ModuleVersionResolveException failure);
+
+    ResolvedVersionConstraint getResolvedVersionConstraint();
+
+    void setResolvedVersionConstraint(ResolvedVersionConstraint versionConstraint);
 }

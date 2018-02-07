@@ -27,6 +27,7 @@ import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.io.WriterTextStream;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -141,7 +142,7 @@ public class GUtil {
         return prefixed;
     }
 
-    public static boolean isTrue(Object object) {
+    public static boolean isTrue(@Nullable Object object) {
         if (object == null) {
             return false;
         }
@@ -153,7 +154,7 @@ public class GUtil {
         return true;
     }
 
-    public static <T> T elvis(T object, T defaultValue) {
+    public static <T> T elvis(@Nullable T object, T defaultValue) {
         return isTrue(object) ? object : defaultValue;
     }
 
@@ -257,7 +258,10 @@ public class GUtil {
         }
     }
 
-
+    /**
+     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
+     */
+    @Deprecated
     public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
         try {
             FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
@@ -271,6 +275,10 @@ public class GUtil {
         }
     }
 
+    /**
+     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
+     */
+    @Deprecated
     public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
         saveProperties(properties,
             new LineBufferingOutputStream(
@@ -310,29 +318,43 @@ public class GUtil {
      * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -> withUnderscores
      */
     public static String toCamelCase(CharSequence string) {
+        return toCamelCase(string, false);
+    }
+
+    public static String toLowerCamelCase(CharSequence string) {
+        return toCamelCase(string, true);
+    }
+
+    private static String toCamelCase(CharSequence string, boolean lower) {
         if (string == null) {
             return null;
         }
         StringBuilder builder = new StringBuilder();
         Matcher matcher = WORD_SEPARATOR.matcher(string);
         int pos = 0;
+        boolean first = true;
         while (matcher.find()) {
-            builder.append(StringUtils.capitalize(string.subSequence(pos, matcher.start()).toString()));
+            String chunk = string.subSequence(pos, matcher.start()).toString();
             pos = matcher.end();
+            if (chunk.isEmpty()) {
+                continue;
+            }
+            if (lower && first) {
+                chunk = StringUtils.uncapitalize(chunk);
+                first = false;
+            } else {
+                chunk = StringUtils.capitalize(chunk);
+            }
+            builder.append(chunk);
         }
-        builder.append(StringUtils.capitalize(string.subSequence(pos, string.length()).toString()));
+        String rest = string.subSequence(pos, string.length()).toString();
+        if (lower && first) {
+            rest = StringUtils.uncapitalize(rest);
+        } else {
+            rest = StringUtils.capitalize(rest);
+        }
+        builder.append(rest);
         return builder.toString();
-    }
-
-    public static String toLowerCamelCase(CharSequence string) {
-        String camelCase = toCamelCase(string);
-        if (camelCase == null) {
-            return null;
-        }
-        if (camelCase.length() == 0) {
-            return "";
-        }
-        return ((Character) camelCase.charAt(0)).toString().toLowerCase() + camelCase.subSequence(1, camelCase.length());
     }
 
     /**
@@ -490,6 +512,29 @@ public class GUtil {
             result.add(toEnum(enumType, value));
         }
         return result;
+    }
+
+    /**
+     * Checks whether the fist {@link CharSequence} ends with the second.
+     *
+     * If the {@link CharSequence#charAt(int)} method of both sequences is fast,
+     * this check is faster than converting them to Strings and using {@link String#endsWith(String)}.
+     */
+    public static boolean endsWith(CharSequence longer, CharSequence shorter) {
+        if (longer instanceof String && shorter instanceof String) {
+            return ((String) longer).endsWith((String) shorter);
+        }
+        int longerLength = longer.length();
+        int shorterLength = shorter.length();
+        if (longerLength < shorterLength) {
+            return false;
+        }
+        for (int i = shorterLength; i > 0; i--) {
+            if (longer.charAt(longerLength - i) != shorter.charAt(shorterLength - i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

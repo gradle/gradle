@@ -15,15 +15,14 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Issue
 
-public class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
+class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
-        mavenRepo.module("org", "foo").publish()
-        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "default-dependency").publish()
+        mavenRepo.module("org", "explicit-dependency").publish()
 
         buildFile << """
 configurations {
@@ -36,7 +35,7 @@ repositories {
 
 if (project.hasProperty('explicitDeps')) {
     dependencies {
-        conf "org:bar:1.0"
+        conf "org:explicit-dependency:1.0"
     }
 }
 task checkDefault {
@@ -46,19 +45,19 @@ task checkDefault {
         }
 
         def deps = configurations.conf.incoming.resolutionResult.allDependencies
-        assert deps*.selected.id.displayName == ['org:foo:1.0']
+        assert deps*.selected.id.displayName == ['org:default-dependency:1.0']
 
         def files = configurations.conf.files
-        assert files*.name == ["foo-1.0.jar"]
+        assert files*.name == ["default-dependency-1.0.jar"]
     }
 }
 task checkExplicit {
     doLast {
         def deps = configurations.conf.incoming.resolutionResult.allDependencies
-        assert deps*.selected.id.displayName == ['org:bar:1.0']
+        assert deps*.selected.id.displayName == ['org:explicit-dependency:1.0']
 
         def files = configurations.conf.files
-        assert files*.name == ["bar-1.0.jar"]
+        assert files*.name == ["explicit-dependency-1.0.jar"]
     }
 }
 """
@@ -66,9 +65,8 @@ task checkExplicit {
 
     def "can use defaultDependencies to specify default dependencies"() {
         buildFile << """
-def fooDep = project.dependencies.create("org:foo:1.0")
 configurations.conf.defaultDependencies { deps ->
-    deps.add(fooDep)
+    deps.add project.dependencies.create("org:default-dependency:1.0")
 }
 """
 
@@ -88,8 +86,33 @@ configurations.conf.defaultDependencies { deps ->
         succeeds "checkExplicit"
     }
 
+    @Issue("gradle/gradle#3908")
+    def "defaultDependencies action is executed only when configuration participates in resolution"() {
+        buildFile << """
+configurations {
+    other
+    conf {
+        defaultDependencies { deps ->
+            println 'project.status == ' + project.status
+            assert project.status == 'foo'
+            deps.add project.dependencies.create("org:default-dependency:1.0")
+        }
+    }
+}
+dependencies {
+    other "org:explicit-dependency:1.0"
+}
+// Resolve unrelated configuration should not realize defaultDependencies
+println configurations.other.files
+
+project.status = 'foo'
+"""
+
+        expect:
+        succeeds "checkDefault"
+    }
+
     @Issue("gradle/gradle#812")
-    @NotYetImplemented
     def "can use defaultDependencies in a multi-project build"() {
         buildFile.text = """
 subprojects {
@@ -102,18 +125,15 @@ subprojects {
 
 project(":producer") {
     configurations {
-        confWithDefault {
-            defaultDependencies {
-                add(project.dependencies.create("org:foo:1.0"))
-            }
-        }
         compile {
-            extendsFrom confWithDefault
+            defaultDependencies {
+                add(project.dependencies.create("org:default-dependency:1.0"))
+            }
         }
     }
     dependencies {
         if (project.hasProperty('explicitDeps')) {
-            confWithDefault "org:bar:1.0"
+            compile "org:explicit-dependency:1.0"
         }
     }
 }
@@ -131,9 +151,9 @@ subprojects {
         doLast {
             def resolvedJars = configurations.compile.files.collect { it.name }
             if (project.hasProperty('explicitDeps')) {
-                assert "bar-1.0.jar" in resolvedJars
+                assert "explicit-dependency-1.0.jar" in resolvedJars
             } else {
-                assert "foo-1.0.jar" in resolvedJars
+                assert "default-dependency-1.0.jar" in resolvedJars
             }
         }
     }
@@ -145,17 +165,68 @@ include 'consumer', 'producer'
         expect:
         // relying on explicit dependency
         succeeds("resolve", "-PexplicitDeps")
+
         // relying on default dependency
         succeeds("resolve")
 
     }
+    def "can use defaultDependencies in a composite build"() {
+        buildTestFixture.withBuildInSubDir()
+
+        def producer = singleProjectBuild("producer") {
+            buildFile << """
+    apply plugin: 'java'
+
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+    configurations {
+        compile {
+            defaultDependencies {
+                add(project.dependencies.create("org:default-dependency:1.0"))
+            }
+        }
+    }
+"""
+        }
+
+        def consumer = singleProjectBuild("consumer") {
+            settingsFile << """
+    includeBuild '${producer.toURI()}'
+"""
+            buildFile << """
+    apply plugin: 'java'
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+    dependencies {
+        compile 'org.test:producer:1.0'
+    }
+    task resolve {
+        dependsOn configurations.compile
+
+        doLast {
+            def resolvedJars = configurations.compile.files.collect { it.name }
+            assert "default-dependency-1.0.jar" in resolvedJars
+        }
+    }
+"""
+        }
+
+        expect:
+        executer.inDirectory(consumer)
+        succeeds ":resolve"
+    }
 
     def "can use beforeResolve to specify default dependencies"() {
         buildFile << """
-def fooDep = project.dependencies.create("org:foo:1.0")
 configurations.conf.incoming.beforeResolve {
     if (configurations.conf.dependencies.empty) {
-        configurations.conf.dependencies.add(fooDep)
+        configurations.conf.dependencies.add project.dependencies.create("org:default-dependency:1.0")
     }
 }
 """
@@ -172,10 +243,9 @@ configurations.conf.incoming.beforeResolve {
 
     def "fails if beforeResolve used to add dependencies to observed configuration"() {
         buildFile << """
-def fooDep = project.dependencies.create("org:foo:1.0")
 configurations.conf.incoming.beforeResolve {
     if (configurations.conf.dependencies.empty) {
-        configurations.conf.dependencies.add(fooDep)
+        configurations.conf.dependencies.add project.dependencies.create("org:default-dependency:1.0")
     }
 }
 """

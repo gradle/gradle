@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -79,6 +80,15 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return The repository.
      */
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
+
+    /**
+     * Adds a repository which looks in Gradle Central Plugin Repository for dependencies.
+     *
+     * @return The Gradle Central Plugin Repository
+     * @since 4.4
+     */
+    @Incubating
+    ArtifactRepository gradlePluginPortal();
 
     /**
      * Adds a repository which looks in Bintray's JCenter repository for dependencies.

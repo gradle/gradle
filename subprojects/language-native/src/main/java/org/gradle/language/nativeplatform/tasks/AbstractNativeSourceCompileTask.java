@@ -17,13 +17,22 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
+import org.gradle.language.base.compile.CompilerVersion;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -33,10 +42,6 @@ import java.io.File;
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 
-    public AbstractNativeSourceCompileTask() {
-        super();
-    }
-
     @Override
     protected void configureSpec(NativeCompileSpec spec) {
         super.configureSpec(spec);
@@ -45,8 +50,25 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
             File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
             spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
-            spec.setPreCompiledHeader(DefaultInclude.parse(preCompiledHeader.getIncludeString(), true).getValue());
+            spec.setPreCompiledHeader(IncludeWithSimpleExpression.parse(preCompiledHeader.getIncludeString(), true).getValue());
         }
+    }
+
+    public AbstractNativeSourceCompileTask() {
+        super();
+        getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return getPreCompiledHeader() != null;
+            }
+        });
+        getOutputs().doNotCacheIf("Could not determine compiler version", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                CompilerVersion compilerVersion = getCompilerVersion();
+                return compilerVersion == null;
+            }
+        });
     }
 
     /**
@@ -59,5 +81,24 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
 
     public void setPreCompiledHeader(PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
+    }
+
+    /**
+     * The compiler used, including the type and the version.
+     *
+     * @since 4.4
+     */
+    @Nested
+    @Optional
+    @Nullable
+    protected CompilerVersion getCompilerVersion() {
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
+        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        Compiler<? extends NativeCompileSpec> compiler = toolProvider.newCompiler(createCompileSpec().getClass());
+        if (!(compiler instanceof VersionAwareCompiler)) {
+            return null;
+        }
+        return ((VersionAwareCompiler) compiler).getVersion();
     }
 }

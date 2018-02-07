@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -81,8 +82,6 @@ class UserGuideTransformTask extends DefaultTask {
     @Input
     Set<String> tags = new LinkedHashSet()
 
-    final SampleElementValidator validator = new SampleElementValidator()
-
     @Input String getJavadocUrl() {
         javadocUrl
     }
@@ -94,6 +93,9 @@ class UserGuideTransformTask extends DefaultTask {
     @Input String getWebsiteUrl() {
         websiteUrl
     }
+
+    @Internal
+    final SampleElementValidator validator = new SampleElementValidator()
 
     @TaskAction
     def transform() {
@@ -246,18 +248,19 @@ class UserGuideTransformTask extends DefaultTask {
                     String args = child.'@args'
                     String outputFile = child.'@outputFile' ?: "${sampleId}.out"
                     boolean hidden = child.'@hidden' ?: false
+                    String executable = child.'@executable' ?: 'gradle'
 
                     if (!hidden) {
                         Element outputTitle = doc.createElement("para")
                         outputTitle.appendChild(doc.createTextNode("Output of "))
                         Element commandElement = doc.createElement('userinput')
-                        commandElement.appendChild(doc.createTextNode("gradle $args"))
+                        commandElement.appendChild(doc.createTextNode("$executable $args"))
                         outputTitle.appendChild(commandElement)
                         exampleElement.appendChild(outputTitle)
 
                         Element screenElement = doc.createElement('screen')
                         File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
-                        screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
+                        screenElement.appendChild(doc.createTextNode("> $executable $args\n" + normalise(srcFile.text)))
                         exampleElement.appendChild(screenElement)
                     }
                 } else if (child.name() == 'layout') {

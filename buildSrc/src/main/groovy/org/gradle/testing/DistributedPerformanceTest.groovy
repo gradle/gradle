@@ -26,6 +26,7 @@ import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -65,6 +66,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Input
     String teamCityUsername
 
+    @Internal
     String teamCityPassword
 
     @OutputFile
@@ -73,13 +75,13 @@ class DistributedPerformanceTest extends PerformanceTest {
     @OutputFile
     File scenarioReport
 
-    RESTClient client
+    private RESTClient client
 
-    List<String> scheduledBuilds = Lists.newArrayList()
+    private List<String> scheduledBuilds = Lists.newArrayList()
 
-    List<Object> finishedBuilds = Lists.newArrayList()
+    private List<Object> finishedBuilds = Lists.newArrayList()
 
-    Map<String, List<File>> testResultFilesForBuild = [:]
+    private Map<String, List<File>> testResultFilesForBuild = [:]
     private File workerTestResultsTempDir
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator

@@ -25,6 +25,10 @@ public interface BuildCacheTempFileStore {
 
     String PARTIAL_FILE_SUFFIX = ".part";
 
-    void allocateTempFile(BuildCacheKey key, Action<? super File> action);
+    /**
+     * Run the given action with a temp file allocated based on the given cache key.
+     * The temp file will be deleted once the action is completed.
+     */
+    void withTempFile(BuildCacheKey key, Action<? super File> action);
 
 }

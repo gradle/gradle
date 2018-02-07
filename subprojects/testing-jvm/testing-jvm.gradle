@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
+    // id 'strict-compile'
+    // id 'classycle'
+}
+
 // Test execution
 sourceCompatibility = 1.6
 
@@ -22,25 +28,25 @@ dependencies {
     compile project(':languageJava')
     compile project(':testingBase')
 
-    compile libraries.junit
-    compile libraries.kryo
-    compile 'org.testng:testng:6.3.1'
+    compile libraries.junit.coordinate
+    compile libraries.testng.coordinate
+    compile libraries.bsh.coordinate
 
-    testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
+    testCompile ('com.google.inject:guice:2.0') {
+        because 'This is for TestNG'
+    }
 
 }
 
-configure([test, java9Test]) {
+test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }
 
-useTestFixtures()
-useTestFixtures(project: ':testingBase', sourceSet: 'testFixtures')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ':baseServices')
-
-// TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-//useClassycle()
-//strictCompile()
+testFixtures {
+    from(':core')
+    from(':testingBase')
+    from(':diagnostics')
+    from(':messaging')
+    from(':baseServices')
+}

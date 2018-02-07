@@ -16,21 +16,21 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
-public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
+class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     def serviceRegistry = new DefaultServiceRegistry()
@@ -66,10 +66,8 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 4
-        assertSingleLibrary(result, 'PROVIDED', 'guava.jar')
-        assertSingleLibrary(result, 'RUNTIME', 'guava.jar')
-        assertSingleLibrary(result, 'TEST', 'guava.jar')
+        result.size() == 2
+        assertSingleLibrary(result, 'COMPILE', 'guava.jar')
         assertSingleLibrary(result, 'TEST', 'mockito.jar')
     }
 
@@ -144,10 +142,24 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 3
-        result.findAll { it.scope == 'PROVIDED' }.size() == 1
-        result.findAll { it.scope == 'RUNTIME' }.size() == 1
-        result.findAll { it.scope == 'TEST' }.size() == 1
+        result.size() == 1
+        result.findAll { it.scope == 'COMPILE' }.size() == 1
+    }
+
+    def "testCompile dependency on current project (self-dependency)"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+        childProject.apply(plugin: 'java')
+
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+
+        when:
+        project.dependencies.add('testCompile', project)
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 0
     }
 
     def "test and runtime scope for the same dependency"() {
@@ -201,20 +213,16 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 5
-        assertSingleLibrary(result, 'PROVIDED', 'foo-runtime.jar')
+        result.size() == 2
+        assertSingleLibrary(result, 'COMPILE', 'foo-runtime.jar')
         assertSingleLibrary(result, 'PROVIDED', 'foo-testRuntime.jar')
-        assertSingleLibrary(result, 'RUNTIME', 'foo-runtime.jar')
-        assertSingleLibrary(result, 'TEST', 'foo-runtime.jar')
-        assertSingleLibrary(result, 'TEST', 'foo-testRuntime.jar')
     }
 
     def "ignore unknown configurations"() {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesExtractor = Spy(IdeDependenciesExtractor)
-        def dependenciesProvider = new IdeaDependenciesProvider(dependenciesExtractor, serviceRegistry)
+        def dependenciesProvider = new IdeaDependenciesProvider(serviceRegistry)
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
         def extraConfiguration = project.configurations.create('extraConfiguration')
@@ -224,11 +232,7 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        // only for compileClasspath, runtimeClasspath, testCompileClasspath, testRuntimeClasspath
-        4 * dependenciesExtractor.extractProjectDependencies(_, { !it.contains(extraConfiguration) }, _)
-        4 * dependenciesExtractor.extractLocalFileDependencies({ !it.contains(extraConfiguration) }, _)
-        // offline: 4 * dependenciesExtractor.extractRepoFileDependencies(_, { !it.contains(extraConfiguration) }, _, _, _)
-        0 * dependenciesExtractor._
+        extraConfiguration.state == Configuration.State.UNRESOLVED
         result.size() == 1
         result.findAll { it.scope == 'TEST' }.size() == 1
     }
@@ -242,6 +246,6 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def size = dependencies.findAll { SingleEntryModuleLibrary module ->
             module.scope == scope && module.libraryFile.path.endsWith(artifactName)
         }.size()
-        assert size == 1 : "Expected single entry for artifact $artifactName in scope $scope but found $size"
+        assert size == 1: "Expected single entry for artifact $artifactName in scope $scope but found $size"
     }
 }

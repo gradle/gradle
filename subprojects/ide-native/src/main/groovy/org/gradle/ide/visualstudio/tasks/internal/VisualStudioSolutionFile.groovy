@@ -16,32 +16,38 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 
+import com.google.common.collect.Maps
+import com.google.common.collect.Sets
 import org.gradle.api.Action
 import org.gradle.ide.visualstudio.TextProvider
-import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 import org.gradle.util.TextUtil
 
+import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
+
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
-    private final Map<String, List<VisualStudioProjectConfiguration>> solutionConfigurations = [:]
-    private final projects = [:]
-    private mainProject
+    private Map<File, String> projects = Maps.newLinkedHashMap()
+    private Map<File, Set<String>> projectConfigurations = Maps.newLinkedHashMap()
     private baseText
 
     protected String getDefaultResourceName() {
         'default.sln'
     }
 
-    void setMainProject(DefaultVisualStudioProject mainProject) {
-        this.mainProject = mainProject
+    void setProjects(List<LocalComponentArtifactMetadata> projects) {
+        projects.each { LocalComponentArtifactMetadata project ->
+            this.projects[project.file] = project.name.name
+        }
     }
 
-    void addSolutionConfiguration(String name, List<VisualStudioProjectConfiguration> projectConfigurations) {
-        solutionConfigurations[name] = projectConfigurations
-        projectConfigurations.each {
-            projects[it.project.name] = it.project
+    void setProjectConfigurations(List<LocalComponentArtifactMetadata> projectConfigurations) {
+        projectConfigurations.each { LocalComponentArtifactMetadata projectConfiguration ->
+            if (!this.projectConfigurations.containsKey(projectConfiguration.file)) {
+                this.projectConfigurations[projectConfiguration.file] = Sets.newHashSet();
+            }
+            this.projectConfigurations[projectConfiguration.file].add(projectConfiguration.name.name)
         }
     }
 
@@ -62,31 +68,28 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
 
     private void generateContent(StringBuilder builder) {
         builder << baseText
-        projects.each { String name, DefaultVisualStudioProject vsProject ->
+        projects.each { File projectFile, String projectName ->
             builder << """
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${name}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${projectName}", "${projectFile.absolutePath}", "${getUUID(projectFile)}"
 EndProject"""
         }
         builder << """
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution"""
-        solutionConfigurations.keySet().each { solutionConfiguration ->
-            builder << """
-		${solutionConfiguration}=${solutionConfiguration}"""
+        Set<String> configurationNames = Sets.newLinkedHashSet(projectConfigurations.values().flatten().sort())
+        configurationNames.each { String configurationName ->
+            builder << """\n\t\t${configurationName}=${configurationName}"""
         }
         builder << """
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
-        solutionConfigurations.each { solutionConfiguration, projectConfigurations ->
-            projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
-                builder << """
-		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.ActiveCfg = ${projectConfiguration.name}"""
-                if (mainProject == projectConfiguration.project) {
-                    builder << """
-		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.Build.0 = ${projectConfiguration.name}"""
-                }
+        projects.each { File projectFile, String projectName ->
+            projectConfigurations[projectFile].sort().each { String configurationName ->
+                builder << """\n\t\t${getUUID(projectFile)}.${configurationName}.ActiveCfg = ${configurationName}"""
+                builder << """\n\t\t${getUUID(projectFile)}.${configurationName}.Build.0 = ${configurationName}"""
             }
         }
+
 
         builder << """
 	EndGlobalSection

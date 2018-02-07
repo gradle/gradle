@@ -74,6 +74,7 @@ class ExtractSamplesTask extends DefaultTask {
 
             element.children().each { Element child ->
                 if (child.name() == 'output') {
+                    String executable = child.'@executable'
                     String args = child.'@args'
                     String outputFile = child.'@outputFile' ?: "${sampleId}.out"
                     boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
@@ -81,8 +82,14 @@ class ExtractSamplesTask extends DefaultTask {
                     boolean expectFailure = child.'@expectFailure' ?: false
 
                     samplesXml << {
-                        sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
-                            ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure)
+                        def params = [id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
+                        ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure]
+
+                        if (executable != null && executable.length() > 0) {
+                            params['executable'] = executable
+                        }
+
+                        sample(params)
                     }
                 } else if (child.name() == 'test') {
                     String args = child.'@args'

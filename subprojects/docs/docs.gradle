@@ -14,43 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.build.docs.AssembleSamplesDocTask
+import org.gradle.build.docs.CacheableAsciidoctorTask
+import org.gradle.build.docs.Docbook2Xhtml
+import org.gradle.build.docs.ExtractSamplesTask
+import org.gradle.build.docs.ExtractSnippetsTask
+import org.gradle.build.docs.UserGuideSectionVerifier
+import org.gradle.build.docs.UserGuideTransformTask
+import org.gradle.build.docs.Xhtml2Pdf
+import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
+import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
+import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
+import org.gradle.build.docs.releasenotes.*
+import org.gradle.build.docs.releasenotes.checks.*
+import org.gradle.plugins.pegdown.PegDown
+
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
-import org.gradle.build.docs.CacheableAsciidoctorTask
-import org.gradle.build.docs.UserGuideSectionVerifier
-import org.gradle.build.docs.UserGuideTransformTask
-import org.gradle.build.docs.ExtractSnippetsTask
-import org.gradle.build.docs.ExtractSamplesTask
-import org.gradle.build.docs.AssembleSamplesDocTask
-import org.gradle.build.docs.Docbook2Xhtml
-import org.gradle.build.docs.Xhtml2Pdf
-import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
-import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
-import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
-import org.gradle.build.docs.releasenotes.*
-import org.gradle.build.docs.releasenotes.checks.*
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.plugins.pegdown.PegDown
-
-apply plugin: 'base'
-apply plugin: 'pegdown'
-apply plugin: 'jsoup'
-apply plugin: 'javascript-base'
-apply plugin: 'org.asciidoctor.convert'
+plugins {
+    id 'base'
+    id 'pegdown'
+    id 'jsoup'
+    id 'javascript-base'
+    id 'org.asciidoctor.convert'
+}
 
 repositories {
     javaScript.googleApis()
-
-    ivy {
-        name "Google Fonts"
-        url "http://themes.googleusercontent.com/static/fonts/"
-        layout 'pattern', {
-            artifact '[organisation]/v[revision](/[classifier])(.[ext])'
-            ivy '[organisation]/v[revision]/ivy(.[ext])'
-        }
-    }
 
     maven { url 'https://repo.gradle.org/gradle/gradle-build-internal' }
 }
@@ -60,38 +53,24 @@ configurations {
     userGuideTask
     jquery
     jqueryTipTip
-    fonts
 }
 
 dependencies {
-    userGuideTask 'xalan:xalan:2.7.1', libraries.xerces
-    userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
-        dependency 'itext:itext:2.0.8@jar'
-    }
-    userGuideTask 'xslthl:xslthl:2.0.1@jar'
+    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
+    userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
+    userGuideTask 'itext:itext:2.0.8'
+    userGuideTask 'xslthl:xslthl:2.0.1'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    fonts \
-        "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
-        "lato:regular-italic:6:LqowQDslGv4DmUBAfWa2Vw@ttf",
-        "lato:bold:6:DvlFBScY1r-FMtZSYIYoYw@ttf",
-        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYEKCWcynf_cDxXwCLxiixG1c@ttf",
-        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkZ0EAVxt0G0biEntp43Qt6E@ttf",
-        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
-        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
-        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
-
     testCompile "org.pegdown:pegdown:1.1.0"
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.3"
-    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    testCompile libraries.commons_httpclient
-    testCompile 'org.apache.httpcomponents:httpmime:4.4.1'
+    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
+    testCompile libraries.commons_httpclient.coordinate
+    testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
 }
 
@@ -144,7 +123,7 @@ tasks.withType(CacheableAsciidoctorTask) {
     attributes website: 'http://www.gradle.org'
 
     doLast {
-        outputDir.eachFile { File file ->
+        outputDir.eachFileMatch(~/.*.xml/) { File file ->
             def contents = file.getText("utf-8")
             try {
                 def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
@@ -184,16 +163,10 @@ tasks.withType(AssembleDslDocTask) {
 
 task configureCss {
     doLast {
-        def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        def tokens = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
             [it.name, it.bytes.encodeBase64().toString()]
         }
 
-        def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
-            def id = it.moduleVersion.id
-            ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
-        }
-
-        ext.tokens = images + fonts
         css.inputs.property 'tokens', tokens
         css.filter ReplaceTokens, tokens: tokens
     }
@@ -211,28 +184,16 @@ ext.cssFiles = fileTree(css.destinationDir) {
 }
 
 task samples(type: ExtractSnippetsTask) {
-    source samplesSrcDir
-    exclude 'userguideOutput/**'
-    exclude '**/readme.xml'
-    exclude '**/build/**'
-    exclude '**/.gradle/**'
-
-    // Resources that should not be filtered
-    exclude 'userguide/tutorial/antLoadfileResources/**'
-    exclude 'native-binaries/cunit/libs/**'
-    exclude 'native-binaries/google-test/libs/**'
-
+    samples = samplesSrcDir
     destDir = samplesDir
+    excludes = ['userguideOutput/**',
+                '**/readme.xml',
+                '**/build/**',
+                '**/.gradle/**']
+    nonFiltered = [ 'userguide/tutorial/antLoadfileResources/**',
+                    'native-binaries/cunit/libs/**',
+                    'native-binaries/google-test/libs/**' ]
     snippetsDir = new File(buildDir, 'snippets')
-    doLast {
-        copy {
-            from samplesSrcDir
-            into samplesDir
-            include 'userguide/tutorial/antLoadfileResources/**'
-            include 'native-binaries/cunit/libs/**'
-            include 'native-binaries/google-test/libs/**'
-        }
-    }
 }
 
 task userguideStyleSheets(type: Copy) {
@@ -254,6 +215,13 @@ task userguideAsciidoc(type: CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include '*.adoc' }
     outputDir = asciidocOutputDir
+    inputs.file { defaultImports.importsDestFile } withPropertyName 'defaultImports' withPathSensitivity PathSensitivity.NONE
+
+    // we pull the default-imports from here:
+    resources {
+        from(generatedResourcesDir)
+        include "**/*.txt"
+    }
 }
 
 task samplesDocbook(type: AssembleSamplesDocTask) {
@@ -294,7 +262,6 @@ task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
     excludePackage 'org.gradle.plugins.ide.eclipse.model'
     excludePackage 'org.gradle.plugins.ide.idea.model'
     excludePackage 'org.gradle.api.tasks.testing.logging'
-    extraPackage 'org.gradle.util'
 
     // TODO - rename some incubating types to remove collisions and then remove these exclusions
     excludePackage 'org.gradle.plugins.binaries.model'
@@ -328,7 +295,7 @@ task checkSectionIds(type: UserGuideSectionVerifier) {
     )
 }
 
-[configureCss, samples, samplesDocbook, defaultImports]*.mustRunAfter(checkSectionIds)
+[configureCss, samples, samplesDocbook]*.mustRunAfter(checkSectionIds)
 
 task extractSamples(type: ExtractSamplesTask) {
     // We need default imports since it is included by userguide.xml
@@ -405,8 +372,8 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
-def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
-def mavenApiUrl = "http://maven.apache.org/ref/${versions.maven}/maven-model/apidocs"
+def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${libraries.groovy.version}/html/gapi"
+def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
 task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
@@ -495,15 +462,13 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
 
-['test', 'java9Test'].each {
-    tasks[it].configure {
-        dependsOn releaseNotes
-        inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
-        inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
-        inputs.property "systemProperties", [:]
-        systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
-        systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
-    }
+test {
+    dependsOn releaseNotes
+    inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
+    inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
+    inputs.property "systemProperties", [:]
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
+    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
 
 task docs {

@@ -38,14 +38,15 @@ class PluginRequestsSerializerTest extends SerializerSpec {
         def serialized = serialize(new DefaultPluginRequests([
             new DefaultPluginRequest("java", null, true, 1, "buildscript"),
             new DefaultPluginRequest("groovy", null, false, 2, "buildscript"),
-            new DefaultPluginRequest("custom", "1.0", false, 3, "initscript")
+            new DefaultPluginRequest("custom", "1.0", false, 3, "initscript"),
+            new DefaultPluginRequest("auto-apply", "2.0", true, null, "auto-applied plugin")
         ]), serializer)
 
         then:
-        serialized*.id == ["java", "groovy", "custom"].collect { DefaultPluginId.of(it) }
-        serialized*.version == [null, null, "1.0"]
-        serialized*.lineNumber == [1, 2, 3]
-        serialized*.scriptDisplayName == ["buildscript", "buildscript", "initscript"]
-        serialized*.apply == [true, false, false]
+        serialized*.id == ["java", "groovy", "custom", "auto-apply"].collect { DefaultPluginId.of(it) }
+        serialized*.version == [null, null, "1.0", "2.0"]
+        serialized*.lineNumber == [1, 2, 3, null]
+        serialized*.scriptDisplayName == ["buildscript", "buildscript", "initscript", "auto-applied plugin"]
+        serialized*.apply == [true, false, false, true]
     }
 }

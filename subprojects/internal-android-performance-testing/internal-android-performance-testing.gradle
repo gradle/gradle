@@ -1,11 +1,19 @@
+plugins {
+    id 'application'
+}
+
 configurations {
     androidTools
     compile.extendsFrom androidTools
 }
 
+repositories {
+    google()
+}
+
 dependencies {
     compile project(':toolingApi')
-    androidTools 'com.android.tools.build:gradle:2.3.0'
+    androidTools 'com.android.tools.build:gradle:3.0.0'
 }
 
 task buildClassPath(type: BuildClassPath) {
@@ -27,8 +35,6 @@ class BuildClassPath extends DefaultTask {
         }
     }
 }
-
-apply plugin: 'application'
 
 mainClassName = 'org.gradle.performance.android.Main'
 applicationName = 'android-test-app'

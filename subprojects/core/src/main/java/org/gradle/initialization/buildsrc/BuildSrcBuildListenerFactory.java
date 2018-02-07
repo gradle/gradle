@@ -42,17 +42,15 @@ public class BuildSrcBuildListenerFactory {
         this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
     }
 
-    Listener create(boolean rebuild) {
-        return new Listener(rebuild, buildSrcRootProjectConfiguration);
+    Listener create() {
+        return new Listener(buildSrcRootProjectConfiguration);
     }
 
     public static class Listener extends BuildAdapter implements ModelConfigurationListener {
         private Set<File> classpath;
-        private final boolean rebuild;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
-        private Listener(boolean rebuild, Action<ProjectInternal> rootProjectConfiguration) {
-            this.rebuild = rebuild;
+        private Listener(Action<ProjectInternal> rootProjectConfiguration) {
             this.rootProjectConfiguration = rootProjectConfiguration;
         }
 
@@ -65,8 +63,7 @@ public class BuildSrcBuildListenerFactory {
         @Override
         public void onConfigure(GradleInternal gradle) {
             BuildableJavaComponent mainComponent = mainComponentOf(gradle);
-            gradle.getStartParameter().setTaskNames(
-                rebuild ? mainComponent.getRebuildTasks() : mainComponent.getBuildTasks());
+            gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
             classpath = mainComponent.getRuntimeClasspath().getFiles();
         }
 

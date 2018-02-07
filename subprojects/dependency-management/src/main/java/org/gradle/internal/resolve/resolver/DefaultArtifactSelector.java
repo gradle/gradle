@@ -31,9 +31,9 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newHashMap();
@@ -68,7 +68,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends ComponentArtifactMetadata> artifacts) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts) {
         return DefaultArtifactSet.singleVariant(component.getComponentId(), component.getId(), Describables.of(component.getComponentId()), artifacts, component.getSource(), ModuleExclusions.excludeNone(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
     }
 }

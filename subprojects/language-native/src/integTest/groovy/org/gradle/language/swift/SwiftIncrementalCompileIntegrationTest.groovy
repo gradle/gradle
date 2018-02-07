@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,224 +16,265 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputApp
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputLib
-import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.junit.Assume
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def "rebuilds application when a single source file changes"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new IncrementalSwiftModifyExpectedOutputApp()
-
-        given:
-        app.writeToProject(testDirectory)
-
-        and:
+    def setup() {
+        // Useful for diagnosing swiftc incremental compile failures
         buildFile << """
-            apply plugin: 'swift-executable'
-         """
-
-        when:
-        succeeds "assemble"
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        executable("build/exe/main/debug/App").exec().out == app.expectedOutput
-
-        when:
-        app.applyChangesToProject(testDirectory)
-        succeeds "assemble"
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        executable("build/exe/main/debug/App").exec().out == app.expectedAlternateOutput
-
-        when:
-        succeeds "assemble"
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-    }
-
-    def "rebuilds application when a single source file in library changes"() {
-        settingsFile << "include 'app', 'greeter'"
-        def app = new IncrementalSwiftModifyExpectedOutputAppWithLib()
-
-        given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-executable'
-                dependencies {
-                    implementation project(':greeter')
+            allprojects {            
+                tasks.withType(SwiftCompile) {
+                    compilerArgs.add('-driver-show-incremental')
                 }
             }
-            project(':greeter') {
-                apply plugin: 'swift-library'
-            }
-"""
-        app.library.writeToProject(file("greeter"))
-        app.executable.writeToProject(file("app"))
-
-        when:
-        succeeds ":app:assemble"
-
-        then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-
-        when:
-        app.library.applyChangesToProject(file('greeter'))
-        succeeds ":app:assemble"
-
-        then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
-
-        when:
-        succeeds ":app:assemble"
-
-        then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        """
     }
 
-    def "removes stale object files for executable"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new IncrementalSwiftStaleCompileOutputApp()
-
+    def 'recompiles only the Swift source files that have changed'() {
         given:
-        app.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'swift-executable'
-         """
-
-        and:
-        succeeds "assemble"
-        app.applyChangesToProject(testDirectory)
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate, app.moduleName))
-        executable("build/exe/main/debug/App").assertExists()
-        installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
-    }
-
-    def "removes stale object files for library"() {
-        def lib = new IncrementalSwiftStaleCompileOutputLib()
-        settingsFile << "rootProject.name = 'hello'"
-
-        given:
-        lib.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'swift-library'
-         """
-
-        and:
-        succeeds "assemble"
-        lib.applyChangesToProject(testDirectory)
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
-
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate, lib.moduleName))
-        sharedLibrary("build/lib/main/debug/Hello").assertExists()
-    }
-
-    def "skips compile and link tasks for executable when source doesn't change"() {
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        def main = file("src/main/swift/main.swift").makeOlder()
 
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        when:
+        main.replace("a: 5, b: 7", "a: 21, b: 21")
+        and:
+        succeeds("assemble")
+
+        then:
+        outputs.recompiledFile(main)
+
+        when:
+        outputs.snapshot()
+        main.replace("a: 21, b: 21", "a: 5, b: 7")
+        succeeds("compileDebugSwift")
+
+        then:
+        outputs.recompiledFile(main)
+    }
+
+    def 'adding a new file only compiles new file'() {
         given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        when:
+        def newFile = file("src/main/swift/NewFile.swift")
+        newFile << """
+            public class NewFile {}
+        """
+        and:
+        succeeds("compileDebugSwift")
+
+        then:
+        outputs.recompiledFile(newFile)
+    }
+
+    def 'adding a new file that overlaps with an existing type fails'() {
+        given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        succeeds("compileDebugSwift")
+        def newFile = file("src/main/swift/NewFile.swift")
+        newFile.text = app.sum.sourceFile.content
+
+        expect:
+        fails("compileDebugSwift")
+        result.error.contains("error: invalid redeclaration of 'sum(a:b:)'")
+    }
+
+    def 'removing a file rebuilds everything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+        file("src/main/swift/multiply.swift").delete()
+
+        expect:
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter')
+        outputs.deletedClasses("multiply")
+    }
+
+    def 'changing compiler arguments rebuilds everything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        buildFile << """
+            tasks.withType(SwiftCompile) {
+                compilerArgs.add('-Onone')
+            }
+        """
+
+        expect:
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
+    }
+
+    def 'changes to an unused dependency rebuilds everything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << """
+            rootProject.name = 'app'
+            include 'unused'
+        """
+        buildFile << """
+            apply plugin: 'swift-application'
+            
+            project(":unused") {
+                apply plugin: 'swift-library'
+            }
+        """
+        file("unused/src/main/swift/Library.swift") << """
+            public class Library {
+                public init() {}
+                public func unused() {
+                }
+            }
+        """
         app.writeToProject(testDirectory)
 
-        and:
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
         buildFile << """
-            apply plugin: 'swift-executable'
-         """
-
-        and:
-        succeeds "assemble"
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-
-        executable("build/exe/main/debug/App").assertExists()
-        installation("build/install/main/debug").exec().out == app.expectedOutput
-    }
-
-    def "skips compile and link tasks for library when source doesn't change"() {
-        def lib = new SwiftLib()
-        settingsFile << "rootProject.name = 'hello'"
-
-        given:
-        lib.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'swift-library'
-         """
-
-        and:
-        succeeds "assemble"
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
-
-        sharedLibrary("build/lib/main/debug/Hello").assertExists()
-    }
-
-    private List<String> expectIntermediateDescendants(SourceElement sourceElement, String moduleName) {
-        List<String> result = new ArrayList<String>()
-
-        String sourceSetName = sourceElement.getSourceSetName()
-        String intermediateFilesDirPath = "build/obj/main/debug"
-        File intermediateFilesDir = file(intermediateFilesDirPath)
-        for (SourceFile sourceFile : sourceElement.getFiles()) {
-            if (!sourceFile.getName().endsWith(".h")) {
-                def cppFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
-                result.add(objectFileFor(cppFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
-                result.add(swiftmoduleFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
-                result.add(swiftdocFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
+            application {
+                dependencies {
+                    if (project.hasProperty("includeDep")) {
+                        implementation(project(":unused"))
+                    }
+                }
             }
-        }
-        result.add("output-file-map.json")
-        result.add(moduleName + ".swiftmodule")
-        result.add(moduleName + ".swiftdoc")
-        return result
+        """
+
+        expect:
+        // Addition of 'unused' dependency rebuilds everything.
+        succeeds("compileDebugSwift", "-PincludeDep")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
+
+        and:
+        // Removal of 'unused' dependency rebuilds everything.
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    def swiftmoduleFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
-        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftmodule")
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    def 'changing Swift language level rebuilds everything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+            application {
+                if (project.hasProperty("swift4")) {
+                    sourceCompatibility = SwiftVersion.SWIFT4
+                } else {
+                    sourceCompatibility = SwiftVersion.SWIFT3
+                }
+            }
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        expect:
+        // rebuild for Swift4
+        succeeds("compileDebugSwift", "-Pswift4")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
+
+        and:
+        // rebuild for Swift3
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    def swiftdocFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
-        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftdoc")
+    // This isn't quite right, we really want to assert something like "has both swiftc3 and swiftc4"
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    def 'changing Swift tool chain rebuilds everything'() {
+        given:
+        def swiftc3 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_3)
+        def swiftc4 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_4)
+        Assume.assumeNotNull(swiftc3, swiftc4)
+
+        initScript.text = """
+            allprojects { p ->
+                apply plugin: ${swiftc3.pluginClass}
+
+                model {
+                      toolChains {
+                        ${swiftc3.buildScriptConfig}
+                      }
+                }
+            }
+        """
+
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        // Build with swiftc3
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        initScript.text = """
+            allprojects { p ->
+                apply plugin: ${swiftc4.pluginClass}
+
+                model {
+                      toolChains {
+                        ${swiftc4.buildScriptConfig}
+                      }
+                }
+            }
+        """
+
+        expect:
+        // rebuild with swiftc4
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 }

@@ -16,25 +16,21 @@
 
 package org.gradle.api.internal.attributes
 
-import com.google.common.collect.LinkedListMultimap
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.changedetection.state.SupportedImmutableTypes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.component.model.DefaultCandidateResult
-import org.gradle.internal.component.model.DefaultCompatibilityCheckResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    def factory = new DefaultImmutableAttributesFactory()
+    def factory = TestUtil.attributesFactory()
 
     @Unroll
     def "can create an attribute of scalar type #type"() {
@@ -46,7 +42,8 @@ class DefaultAttributesSchemaTest extends Specification {
 
         where:
         type << [
-            *SupportedImmutableTypes.SCALAR_TYPES,
+            String,
+            Number,
             MyEnum,
             Flavor
         ]
@@ -62,41 +59,11 @@ class DefaultAttributesSchemaTest extends Specification {
 
         where:
         type << [
-            *SupportedImmutableTypes.SCALAR_TYPES,
+            String,
+            Number,
             MyEnum,
             Flavor
         ]
-    }
-
-    static String getSupportedImmutableDescription() {
-        def sb = new StringBuilder()
-        SupportedImmutableTypes.describeTo(sb)
-        sb.toString()
-    }
-
-    def "cannot create a Named attribute if it's not an interface type"() {
-        when:
-        Attribute.of('attr', ConcreteNamed)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-
-        and:
-        e.message == """Cannot declare a attribute 'attr' with type class org.gradle.api.internal.attributes.DefaultAttributesSchemaTest\$ConcreteNamed. Supported types are: 
-${supportedImmutableDescription}"""
-
-    }
-
-    def "displays a reasonable error message if attribute type is unsupported"() {
-        when:
-        Attribute.of('attr', Date)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-
-        and:
-        e.message == """Cannot declare a attribute 'attr' with type class java.util.Date. Supported types are: 
-${supportedImmutableDescription}"""
     }
 
     def "fails if no strategy is declared for custom type"() {
@@ -114,13 +81,8 @@ ${supportedImmutableDescription}"""
         schema.attribute(attribute)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-        !details.isCompatible()
-
-        def details2 = new DefaultCompatibilityCheckResult<String>("a", "a")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details2)
-        details2.isCompatible()
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "b")
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "a")
 
         !schema.matcher().isMatching(attribute, "a", "b")
         schema.matcher().isMatching(attribute, "a", "a")
@@ -141,13 +103,8 @@ ${supportedImmutableDescription}"""
         schema.attribute(attribute).compatibilityRules.add(DoNothingRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-        !details.isCompatible()
-
-        def details2 = new DefaultCompatibilityCheckResult<String>("a", "a")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details2)
-        details2.isCompatible()
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "b")
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "a")
 
         !schema.matcher().isMatching(attribute, "a", "b")
         schema.matcher().isMatching(attribute, "a", "a")
@@ -166,9 +123,7 @@ ${supportedImmutableDescription}"""
         schema.attribute(attribute).compatibilityRules.add(BrokenRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "a")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-        details.isCompatible()
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "a")
 
         schema.matcher().isMatching(attribute, "a", "a")
     }
@@ -221,13 +176,8 @@ ${supportedImmutableDescription}"""
         def value2 = flavor('otherValue')
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<Flavor>(value1, value2)
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details)
-        details.isCompatible()
-
-        def details2 = new DefaultCompatibilityCheckResult<Flavor>(value2, value1)
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details2)
-        !details2.isCompatible()
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, value1, value2)
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, value2, value1)
 
         schema.matcher().isMatching(attr, value2, value1)
         !schema.matcher().isMatching(attr, value1, value2)
@@ -248,9 +198,7 @@ ${supportedImmutableDescription}"""
         schema.attribute(attr).compatibilityRules.add(BrokenRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details)
-        !details.isCompatible()
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, "a", "b")
 
         !schema.matcher().isMatching(attr, "a", "b")
     }
@@ -260,18 +208,13 @@ ${supportedImmutableDescription}"""
 
         given:
         schema.attribute(attr)
-
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
+        def candidates = ["foo", "bar"] as Set
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "bar", candidates)
 
         then:
-        best == ["item2"]
+        best == ["bar"] as Set
     }
 
     static class DoNothingSelectionRule implements AttributeDisambiguationRule<String> {
@@ -285,18 +228,13 @@ ${supportedImmutableDescription}"""
 
         given:
         schema.attribute(attr).disambiguationRules.add(DoNothingSelectionRule)
-
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
+        def candidates = ["foo", "bar"] as Set
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "bar", candidates)
 
         then:
-        best == ["item2"]
+        best == ["bar"] as Set
     }
 
     def "selects all candidates when no disambiguation rules and requested is not one of the candidate values"() {
@@ -304,18 +242,13 @@ ${supportedImmutableDescription}"""
 
         given:
         schema.attribute(attr)
-
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
+        def candidates = ["foo", "bar"] as Set
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == ["item1", "item2"]
+        best == candidates
     }
 
     def "selects all candidates when no rule expresses an opinion and requested is not one of the candidate values"() {
@@ -323,18 +256,13 @@ ${supportedImmutableDescription}"""
 
         given:
         schema.attribute(attr).disambiguationRules.add(DoNothingSelectionRule)
-
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
-        def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
+        def candidates = ["foo", "bar"] as Set
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == ["item1", "item2"]
+        best == candidates
     }
 
     def "custom rule can select best match"() {
@@ -346,27 +274,19 @@ ${supportedImmutableDescription}"""
         def value1 = flavor('value1')
         def value2 = flavor('value2')
 
-        def candidates = LinkedListMultimap.create()
-        candidates.put(value1, "item1")
-        candidates.put(value2, "item2")
+        def candidates = [value1, value2] as Set
 
         when:
-        def best = []
-        def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
-
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best= schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, flavor('requested'), candidates)
 
         then:
-        best == ["item1"]
+        best == [value1] as Set
 
         when:
-        best = []
-        candidateDetails = new DefaultCandidateResult(candidates, value2, best)
-
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, value2, candidates)
 
         then:
-        best == ["item1"]
+        best == [value1] as Set
     }
 
     def "merging creates schema with additional attributes defined by producer"() {
@@ -398,9 +318,7 @@ ${supportedImmutableDescription}"""
 
         expect:
         def merged = schema.mergeWith(producer)
-        def result = new DefaultCompatibilityCheckResult<Object>(flavor('value'), flavor('otherValue'))
-        merged.matchValue(attr, result)
-        result.compatible
+        merged.matchValue(attr, flavor('value'), flavor('otherValue'))
     }
 
     def "uses the producers selection rules when the consumer does not express an opinion"() {
@@ -414,18 +332,13 @@ ${supportedImmutableDescription}"""
         def value1 = flavor('value')
         def value2 = flavor('otherValue')
 
-        def candidates = LinkedListMultimap.create()
-        candidates.put(value1, "item1")
-        candidates.put(value2, "item2")
+        def candidates = [value1, value2] as Set
 
         when:
-        def best = []
-        def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
-
-        schema.mergeWith(producer).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(producer).disambiguate(attr, flavor('requested'), candidates)
 
         then:
-        best == ["item1"]
+        best == [value1] as Set
     }
 
     interface Flavor extends Named {}

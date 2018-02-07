@@ -22,9 +22,11 @@ public interface PluginRequestInternal extends PluginRequest {
 
     boolean isApply();
 
-    int getLineNumber();
+    Integer getLineNumber();
 
     String getScriptDisplayName();
 
     String getDisplayName();
+
+    PluginRequestInternal getOriginalRequest();
 }

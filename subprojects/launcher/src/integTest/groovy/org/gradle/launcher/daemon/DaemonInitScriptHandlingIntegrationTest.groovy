@@ -22,12 +22,14 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
+@LeaksFileHandles("isolated daemons are not always stopped in time") //may fail with 'Unable to delete file: daemon.out.log'
 class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     TestFile createDistribution(int i) {

@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -116,7 +117,11 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            result.converted(parseFile(file));
+            IvyArtifact ivyArtifact = parseFile(file);
+            if (notation instanceof TaskDependencyContainer) {
+                ivyArtifact.builtBy(notation);
+            }
+            result.converted(ivyArtifact);
         }
 
         protected IvyArtifact parseFile(File file) {

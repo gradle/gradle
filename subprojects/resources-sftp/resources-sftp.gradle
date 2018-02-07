@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     api project(':resources')
     api project(':core')
 
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.jsch
-    implementation libraries.jcip
-    implementation libraries.commons_io
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.jsch.coordinate
+    implementation libraries.jcip.coordinate
+    implementation libraries.commons_io.coordinate
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useTestFixtures()
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+    from(':core')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

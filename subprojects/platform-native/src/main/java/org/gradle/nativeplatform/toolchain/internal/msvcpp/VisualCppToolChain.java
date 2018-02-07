@@ -26,17 +26,19 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements VisualCpp, NativeToolChainInternal {
+public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements VisualCpp {
 
     private final String name;
     private final OperatingSystem operatingSystem;
@@ -113,7 +115,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
-            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+            result.unavailable(String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
@@ -123,6 +125,26 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         configureActions.execute(configurableToolChain);
 
         return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+    }
+
+    @Override
+    public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
+        switch (sourceLanguage) {
+            case CPP:
+                PlatformToolProvider toolProvider = select(targetMachine);
+                if (!toolProvider.isAvailable()) {
+                    return toolProvider;
+                }
+                ToolSearchResult cppCompiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                if (!cppCompiler.isAvailable()) {
+                    return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
+                }
+                return toolProvider;
+            case ANY:
+                return select(targetMachine);
+            default:
+                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+        }
     }
 
     private ToolChainAvailability getAvailability() {

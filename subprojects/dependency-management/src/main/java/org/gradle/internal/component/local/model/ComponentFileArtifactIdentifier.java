@@ -19,19 +19,29 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
     private final ComponentIdentifier componentId;
-    private final String fileName;
+    private final Object fileName;
 
     public ComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName) {
         this.componentId = componentId;
         this.fileName = fileName;
     }
 
+    public ComponentFileArtifactIdentifier(ComponentIdentifier componentIdentifier, IvyArtifactName artifactName) {
+        this.componentId = componentIdentifier;
+        this.fileName = artifactName;
+    }
+
     @Override
     public ComponentIdentifier getComponentIdentifier() {
         return componentId;
+    }
+
+    public String getFileName() {
+        return fileName.toString();
     }
 
     @Override

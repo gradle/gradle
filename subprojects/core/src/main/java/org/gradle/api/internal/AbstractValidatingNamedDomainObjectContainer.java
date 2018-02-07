@@ -25,7 +25,7 @@ import org.gradle.util.NameValidator;
 /**
  * A {@link AbstractNamedDomainObjectContainer} that performs name validation before creating a new domain object.
  *
- * @see org.gradle.util.NameValidator#validate(String)
+ * @see org.gradle.util.NameValidator#validate(String, String, String)
  */
 public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
 
@@ -38,7 +38,7 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
     }
 
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
-        NameValidator.validate(name);
+        NameValidator.validate(name, "name", "");
         return super.create(name, configureAction);
     }
 }

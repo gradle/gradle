@@ -100,4 +100,5 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     public FileCollection getFiles() {
         return source;
     }
+
 }

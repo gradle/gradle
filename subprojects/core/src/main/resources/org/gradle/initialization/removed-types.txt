@@ -13,3 +13,5 @@ org.gradle.api.internal.tasks.compile.Compiler
 org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler
 org.gradle.api.internal.xml.XmlTransformer
 org.gradle.api.internal.XmlTransformer
+org.gradle.api.internal.tasks.testing.detection.TestExecuter
+org.gradle.api.internal.tasks.testing.junit.report.TestReporter

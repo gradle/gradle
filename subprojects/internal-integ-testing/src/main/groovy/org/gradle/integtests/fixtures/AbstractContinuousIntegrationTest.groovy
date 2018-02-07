@@ -168,7 +168,7 @@ ${result.error}
         gradle.stdinPipe
     }
 
-    private void waitForBuild() {
+    protected void waitForBuild() {
         def lastOutput = buildOutputSoFar()
         def lastLength = lastOutput.size()
         def lastActivity = monotonicClockMillis()

@@ -1,15 +1,21 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
 dependencies {
     compile project(':resources')
     compile project(':resourcesHttp')
     compile project(':core')
-    compile libraries.guava
-    compile libraries.gcs
-    compile libraries.commons_lang
-    testCompile libraries.groovy
+    compile libraries.guava.coordinate
+    compile libraries.jackson_core.coordinate, libraries.jackson_annotations.coordinate, libraries.jackson_databind.coordinate
+    compile libraries.gcs.coordinate, libraries.commons_httpclient.coordinate, libraries.joda.coordinate
+    compile libraries.commons_lang.coordinate
+    testCompile libraries.groovy.coordinate
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+}

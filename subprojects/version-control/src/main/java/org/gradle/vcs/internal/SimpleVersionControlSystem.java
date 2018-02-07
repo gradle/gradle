@@ -16,23 +16,47 @@
 
 package org.gradle.vcs.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.VersionControlSystem;
+import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 public class SimpleVersionControlSystem implements VersionControlSystem {
     @Override
-    public void populate(File workingDir, VersionControlSpec spec) {
-        File sourceDir = ((DirectoryRepository)spec).getSourceDir();
+    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+        return Sets.newHashSet(getDefaultBranch(spec));
+    }
+
+    @Override
+    public VersionRef getDefaultBranch(VersionControlSpec spec) {
+        return new DefaultVersionRef();
+    }
+
+    @Nullable
+    @Override
+    public VersionRef getBranch(VersionControlSpec spec, String branch) {
+        return null;
+    }
+
+    @Override
+    public File populate(File versionDir, VersionRef ref, VersionControlSpec spec) {
+        File sourceDir = ((DirectoryRepositorySpec)spec).getSourceDir();
+        File workingDir = new File(versionDir, sourceDir.getName());
+        File checkoutFlag = new File(workingDir, "checkedout");
         try {
-            GFileUtils.copyDirectory(sourceDir, workingDir);
-            new File(workingDir, "checkedout").createNewFile();
+            if (!checkoutFlag.exists()) {
+                GFileUtils.copyDirectory(sourceDir, workingDir);
+                checkoutFlag.createNewFile();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        return workingDir;
     }
 }

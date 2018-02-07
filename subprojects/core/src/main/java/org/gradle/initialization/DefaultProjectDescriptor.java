@@ -18,9 +18,12 @@ package org.gradle.initialization;
 import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.util.NameValidator;
 import org.gradle.util.Path;
@@ -31,6 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
+    public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
+        + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details)";
 
     private static final String BUILD_SCRIPT_BASENAME = "build";
 
@@ -53,18 +58,20 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
                                     ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
                                     @Nullable ScriptFileResolver scriptFileResolver) {
-        NameValidator.validate(name);
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
+        this.scriptFileResolver = scriptFileResolver != null
+            ? scriptFileResolver
+            : new DefaultScriptFileResolver();
+
         projectDescriptorRegistry.addProject(this);
         if (parent != null) {
             parent.getChildren().add(this);
         }
-        this.scriptFileResolver = scriptFileResolver;
     }
 
     private Path path(String name) {
@@ -88,7 +95,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public void setName(String name) {
-        NameValidator.validate(name);
+        NameValidator.validate(name, "project name",
+            INVALID_NAME_IN_INCLUDE_HINT);
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
     }
@@ -134,24 +142,18 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public File getBuildFile() {
-        return FileUtils.canonicalize(buildFile());
+        return FileUtils.normalize(buildFile());
     }
 
     private File buildFile() {
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        File defaultBuildFile = new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
-        if (defaultBuildFile.isFile()) {
-            return defaultBuildFile;
+        File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
+        if (buildScriptFile != null) {
+            return buildScriptFile;
         }
-        if (scriptFileResolver != null) {
-            File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-            if (buildScriptFile != null) {
-                return buildScriptFile;
-            }
-        }
-        return defaultBuildFile;
+        return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
     }
 
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {

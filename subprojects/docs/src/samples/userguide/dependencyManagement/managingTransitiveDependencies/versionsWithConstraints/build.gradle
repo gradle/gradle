@@ -1,0 +1,20 @@
+apply plugin: 'java-library'
+
+repositories {
+    mavenCentral()
+}
+
+//START SNIPPET dependency-constraints
+dependencies {
+    implementation 'org.apache.httpcomponents:httpclient'
+    constraints {
+        implementation 'org.apache.httpcomponents:httpclient:4.5.3'
+        implementation 'commons-codec:commons-codec:1.11'
+    }
+}
+//END SNIPPET dependency-constraints
+
+task copyLibs(type: Copy) {
+    from configurations.compileClasspath
+    into "$buildDir/libs"
+}

@@ -1,4 +1,7 @@
-apply plugin: "groovy"
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
 
 // Compiler daemon
 sourceCompatibility = 1.6
@@ -14,20 +17,19 @@ dependencies {
     integTestRuntime project(":compositeBuilds")
     integTestRuntime project(":idePlay")
     testFixturesCompile project(":internalIntegTesting")
-    testFixturesCompile libraries.commons_httpclient
+    testFixturesCompile libraries.commons_httpclient.coordinate
 }
 
-useTestFixtures()
-useTestFixtures(project: ":languageScala", sourceSet: 'integTest')
-useTestFixtures(project: ":languageJava", sourceSet: 'integTest')
-useTestFixtures(project: ':languageJvm', sourceSet: 'testFixtures')
-useTestFixtures(project: ":launcher", sourceSet: 'testFixtures')
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":diagnostics")
-useTestFixtures(project: ':platformBase')
-
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':languageScala', 'integTest')
+    from(':languageJava', 'integTest')
+    from(':languageJvm', 'testFixtures')
+    from(':launcher', 'testFixtures')
+    from(':dependencyManagement')
+    from(':diagnostics')
+    from(':platformBase')
+}
 
 integTest {
     exclude 'org/gradle/play/prepare/**'

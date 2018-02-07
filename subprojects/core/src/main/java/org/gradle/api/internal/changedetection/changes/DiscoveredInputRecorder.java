@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import java.io.File;
+import java.util.Collection;
 
 public interface DiscoveredInputRecorder {
     /**
@@ -26,7 +27,7 @@ public interface DiscoveredInputRecorder {
      * <p>
      * This method may be called at any time.
      * </p>
-     * @param discoveredInput New input files discovered as part of the task's action.
+     * @param discoveredInputs New input files discovered as part of the task's action.
      */
-    void newInput(File discoveredInput);
+    void newInputs(Collection<File> discoveredInputs);
 }

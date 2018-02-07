@@ -23,8 +23,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 
-import java.math.BigInteger;
-
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
     private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
@@ -38,8 +36,6 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
                 encoder.writeBoolean(value.isChanging);
                 encoder.writeLong(value.createTimestamp);
                 moduleSourceSerializer.write(encoder, value.moduleSource);
-                byte[] hash = value.moduleDescriptorHash.toByteArray();
-                encoder.writeBinary(hash);
                 break;
             default:
                 throw new IllegalArgumentException("Don't know how to serialize meta-data entry: " + value);
@@ -56,9 +52,7 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
                 boolean isChanging = decoder.readBoolean();
                 createTimestamp = decoder.readLong();
                 ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
-                byte[] encodedHash = decoder.readBinary();
-                BigInteger hash = new BigInteger(encodedHash);
-                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, hash, moduleSource);
+                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, moduleSource);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }

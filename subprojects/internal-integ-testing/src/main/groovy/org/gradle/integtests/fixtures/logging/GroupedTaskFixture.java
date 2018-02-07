@@ -25,6 +25,8 @@ public class GroupedTaskFixture {
 
     private final String taskName;
 
+    private String taskOutcome;
+
     private final List<String> outputs = new ArrayList<String>(1);
 
     public GroupedTaskFixture(String taskName) {
@@ -33,6 +35,17 @@ public class GroupedTaskFixture {
 
     protected void addOutput(String output) {
         outputs.add(output);
+    }
+
+    public void setOutcome(String taskOutcome) {
+        if (this.taskOutcome != null) {
+            throw new AssertionError(taskName + " task's outcome is set twice!");
+        }
+        this.taskOutcome = taskOutcome;
+    }
+
+    public String getOutcome(){
+        return taskOutcome;
     }
 
     public String getName() {

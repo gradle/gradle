@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[plugins]]
-== Gradle Plugins
+== Using Gradle Plugins
 
 Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. api:org.gradle.api.tasks.compile.JavaCompile[]), domain objects (e.g. api:org.gradle.api.tasks.SourceSet[]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
 
@@ -161,7 +161,7 @@ If the restrictions of the new syntax are prohibitive, the recommended approach 
 [[sec:subprojects_plugins_dsl]]
 ===== Applying plugins to subprojects
 
-If you have a <<multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin version»` in the `subprojects` block:
+If you have a <<multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block:
 
 ++++
 <sample id="pluginsOnSubprojects" dir="plugins/multiproject" title="Applying plugins only on certain subprojects.">
@@ -224,16 +224,16 @@ To add resolution rules, use the `resolutionStrategy {}` inside the `pluginManag
 
 This tells Gradle to use the specified plugin implementation artifact instead of using its built-in default mapping from plugin ID to Maven/Ivy coordinates.
 
-The `pluginManagement {}` block may only appear in the `settings.gradle` file, and must be the first block in the file. Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<javaGradle_plugin>>.
+The `pluginManagement {}` block may only appear in the `settings.gradle` file, and must be the first block in the file. Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin>>.
 
 See api:org.gradle.plugin.management.PluginManagementSpec[] for complete documentation for using the `pluginManagement {}` block.
 
 [[sec:plugin_markers]]
 ===== Plugin Marker Artifacts
 
-Since the `plugins {}` DSL block only allows for declaring plugins by their globally unique plugin `id` and `version` properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact. To do so, Gradle will look for a Plugin Marker Artifact with the coordinates `plugin.id:plugin.id.gradle.plugin:plugin.version`. This marker needs to have a dependency on the actual plugin implementation. Publishing these markers is automated by the <<javaGradle_plugin,java-gradle-plugin>>.
+Since the `plugins {}` DSL block only allows for declaring plugins by their globally unique plugin `id` and `version` properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact. To do so, Gradle will look for a Plugin Marker Artifact with the coordinates `plugin.id:plugin.id.gradle.plugin:plugin.version`. This marker needs to have a dependency on the actual plugin implementation. Publishing these markers is automated by the <<java_gradle_plugin,java-gradle-plugin>>.
 
-For example, the following complete sample from the `sample-plugins` project shows how to publish a `org.gradle.sample.hello` plugin and a `org.gradle.sample.goodbye` plugin to both an Ivy and Maven repository using the combination of the <<javaGradle_plugin,java-gradle-plugin>>, the <<publishing_maven,maven-publish>> plugin, and the <<publishing_ivy,ivy-publish>> plugin.
+For example, the following complete sample from the `sample-plugins` project shows how to publish a `org.gradle.sample.hello` plugin and a `org.gradle.sample.goodbye` plugin to both an Ivy and Maven repository using the combination of the <<java_gradle_plugin,java-gradle-plugin>>, the <<publishing_maven,maven-publish>> plugin, and the <<publishing_ivy,ivy-publish>> plugin.
 
 ++++
 <sample id="completePluginPublishing" title="Complete Plugin Publishing Sample" dir="plugins/publishing">

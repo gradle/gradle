@@ -1,0 +1,366 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[working_with_files]]
+== Working With Files
+
+Most builds work with files. Gradle adds some concepts and APIs to help you achieve this.
+
+
+[[sec:locating_files]]
+=== Locating files
+
+You can locate a file relative to the project directory using the api:org.gradle.api.Project#file(java.lang.Object)[] method.
+
+++++
+<sample id="resolveFile" dir="userguide/files/file" title="Locating files">
+    <sourcefile file="build.gradle" snippet="simple-params"/>
+</sample>
+++++
+
+You can pass any object to the `file()` method, and it will attempt to convert the value to an absolute `File` object. Usually, you would pass it a `String`, `File` or `Path` instance. If this path is an absolute path, it is used to construct a `File` instance. Otherwise, a `File` instance is constructed by prepending the project directory path to the supplied path. The `file()` method also understands URLs, such as `file:/some/path.xml`.
+
+Using this method is a useful way to convert some user provided value into an absolute `File`. It is preferable to using `new File(somePath)`, as `file()` always evaluates the supplied path relative to the project directory, which is fixed, rather than the current working directory, which can change depending on how the user runs Gradle.
+
+[[sec:file_collections]]
+=== File collections
+
+A _file collection_ is simply a set of files. It is represented by the api:org.gradle.api.file.FileCollection[] interface. Many objects in the Gradle API implement this interface. For example, <<sub:configurations,dependency configurations>> implement `FileCollection`.
+
+One way to obtain a `FileCollection` instance is to use the api:org.gradle.api.Project#files(java.lang.Object...)[] method. You can pass this method any number of objects, which are then converted into a set of `File` objects. The `files()` method accepts any type of object as its parameters. These are evaluated relative to the project directory, as per the `file()` method, described in <<sec:locating_files>>. You can also pass collections, iterables, maps and arrays to the `files()` method. These are flattened and the contents converted to `File` instances.
+
+++++
+<sample id="fileCollections" dir="userguide/files/fileCollections" title="Creating a file collection">
+    <sourcefile file="build.gradle" snippet="simple-params"/>
+</sample>
+++++
+
+A file collection is iterable, and can be converted to a number of other types using the `as` operator. You can also add 2 file collections together using the `+` operator, or subtract one file collection from another using the `-` operator. Here are some examples of what you can do with a file collection.
+
+++++
+<sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
+    <sourcefile file="build.gradle" snippet="usage"/>
+    <test args="-q usage"/>
+</sample>
+++++
+
+You can also pass the `files()` method a closure or a `Callable` instance. This is called when the contents of the collection are queried, and its return value is converted to a set of `File` instances. The return value can be an object of any of the types supported by the `files()` method. This is a simple way to 'implement' the `FileCollection` interface.
+
+++++
+<sample id="fileCollections" dir="userguide/files/fileCollections" title="Implementing a file collection">
+    <sourcefile file="build.gradle" snippet="closure"/>
+    <output args="-q list"/>
+</sample>
+++++
+
+Some other types of things you can pass to `files()`:
+
+`FileCollection`::
+These are flattened and the contents included in the file collection.
+`Task`::
+The output files of the task are included in the file collection.
+`TaskOutputs`::
+The output files of the TaskOutputs are included in the file collection.
+
+
+It is important to note that the content of a file collection is evaluated lazily, when it is needed. This means you can, for example, create a `FileCollection` that represents files which will be created in the future by, say, some task.
+
+[[sec:file_trees]]
+=== File trees
+
+A _file tree_ is a collection of files arranged in a hierarchy. For example, a file tree might represent a directory tree or the contents of a ZIP file. It is represented by the api:org.gradle.api.file.FileTree[] interface. The `FileTree` interface extends `FileCollection`, so you can treat a file tree exactly the same way as you would a file collection. Several objects in Gradle implement the `FileTree` interface, such as <<sec:source_sets,source sets>>.
+
+One way to obtain a `FileTree` instance is to use the api:org.gradle.api.Project#fileTree(java.util.Map)[] method. This creates a `FileTree` defined with a base directory, and optionally some Ant-style include and exclude patterns.
+
+++++
+<sample id="fileTrees" dir="userguide/files/fileTrees" title="Creating a file tree">
+    <sourcefile file="build.gradle" snippet="define"/>
+</sample>
+++++
+
+You use a file tree in the same way you use a file collection. You can also visit the contents of the tree, and select a sub-tree using Ant-style patterns:
+
+++++
+<sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
+            <sourcefile file="build.gradle" snippet="use"/>
+        </sample>
+++++
+
+[NOTE]
+====
+By default, the `FileTree` instance `fileTree()` returns will apply some Ant-style default exclude patterns for convenience. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[Default Excludes].
+====
+
+[[sec:archive_contents]]
+=== Using the contents of an archive as a file tree
+
+You can use the contents of an archive, such as a ZIP or TAR file, as a file tree. You do this using the api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree(java.lang.Object)[] methods. These methods return a `FileTree` instance which you can use like any other file tree or file collection. For example, you can use it to expand the archive by copying the contents, or to merge some archives into another.
+
+++++
+<sample id="fileTrees" dir="userguide/files/fileTrees" title="Using an archive as a file tree">
+    <sourcefile file="build.gradle" snippet="archive-trees"/>
+</sample>
+++++
+
+
+[[sec:specifying_multiple_files]]
+=== Specifying a set of input files
+
+Many objects in Gradle have properties which accept a set of input files. For example, the api:org.gradle.api.tasks.compile.JavaCompile[] task has a `source` property, which defines the source files to compile. You can set the value of this property using any of the types supported by the <<sec:file_collections,files()>> method, which was shown above. This means you can set the property using, for example, a `File`, `String`, collection, `FileCollection` or even a closure. Here are some examples:
+
+++++
+<sample id="inputFiles" dir="userguide/files/inputFiles" title="Specifying a set of files">
+    <sourcefile file="build.gradle" snippet="set-input-files"/>
+</sample>
+++++
+
+Usually, there is a method with the same name as the property, which appends to the set of files. Again, this method accepts any of the types supported by the <<sec:file_collections,files()>> method.
+
+++++
+<sample id="inputFiles" dir="userguide/files/inputFiles" title="Appending a set of files">
+    <sourcefile file="build.gradle" snippet="add-input-files"/>
+</sample>
+++++
+
+
+[[sec:copying_files]]
+=== Copying files
+
+You can use the api:org.gradle.api.tasks.Copy[] task to copy files. The copy task is very flexible, and allows you to, for example, filter the contents of the files as they are copied, and map to the file names.
+
+To use the `Copy` task, you must provide a set of source files to copy, and a destination directory to copy the files to. You may also specify how to transform the files as they are copied. You do all this using a _copy spec_. A copy spec is represented by the api:org.gradle.api.file.CopySpec[] interface. The `Copy` task implements this interface. You specify the source files using the api:org.gradle.api.file.CopySpec#from(java.lang.Object...)[] method. To specify the destination directory, use the api:org.gradle.api.file.CopySpec#into(java.lang.Object)[] method.
+
+++++
+<sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
+    <sourcefile file="build.gradle" snippet="copy-task"/>
+    <test args="test"/>
+</sample>
+++++
+
+The `from()` method accepts any of the arguments that the <<sec:file_collections,files()>> method does. When an argument resolves to a directory, everything under that directory (but not the directory itself) is recursively copied into the destination directory. When an argument resolves to a file, that file is copied into the destination directory. When an argument resolves to a non-existing file, that argument is ignored. If the argument is a task, the output files (i.e. the files the task creates) of the task are copied and the task is automatically added as a dependency of the `Copy` task. The `into()` accepts any of the arguments that the <<sec:locating_files,file()>> method does. Here is another example:
+
+++++
+<sample id="copy" dir="userguide/files/copy" title="Specifying copy task source files and destination directory">
+    <sourcefile file="build.gradle" snippet="copy-task-2"/>
+</sample>
+++++
+
+You can select the files to copy using Ant-style include or exclude patterns, or using a closure:
+
+++++
+<sample id="copy" dir="userguide/files/copy" title="Selecting the files to copy">
+    <sourcefile file="build.gradle" snippet="copy-task-with-patterns"/>
+</sample>
+++++
+
+You can also use the api:org.gradle.api.Project#copy(org.gradle.api.Action)[] method to copy files. It works the same way as the task with some major limitations though. First, the `copy()` is not incremental (see <<sec:up_to_date_checks>>).
+
+++++
+<sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method without up-to-date check">
+    <sourcefile file="build.gradle" snippet="copy-method"/>
+</sample>
+++++
+
+Secondly, the `copy()` method cannot honor task dependencies when a task is used as a copy source (i.e. as an argument to `from()`) because it's a method and not a task. As such, if you are using the `copy()` method as part of a task action, you must explicitly declare all inputs and outputs in order to get the correct behavior.
+
+++++
+<sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method with up-to-date check">
+    <sourcefile file="build.gradle" snippet="copy-method-with-dependency"/>
+</sample>
+++++
+
+It is preferable to use the `Copy` task wherever possible, as it supports incremental building and task dependency inference without any extra effort on your part. The `copy()` method can be used to copy files as _part_ of a task's implementation. That is, the copy method is intended to be used by custom tasks (see <<custom_tasks>>) that need to copy files as part of their function. In such a scenario, the custom task should sufficiently declare the inputs/outputs relevant to the copy action.
+
+[[sec:renaming_files]]
+==== Renaming files
+
+++++
+<sample id="renameOnCopy" dir="userguide/files/copy" title="Renaming files as they are copied">
+    <sourcefile file="build.gradle" snippet="rename-files"/>
+</sample>
+++++
+
+[[sec:filtering_files]]
+==== Filtering files
+
+++++
+<sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
+    <sourcefile file="build.gradle" snippet="filter-files"/>
+</sample>
+++++
+
+When you use the `ReplaceTokens` class with the “filter” operation, the result is a template engine that replaces tokens of the form “@tokenName@” (the Apache Ant-style token) with a set of given values. The “expand” operation does the same thing except it treats the source files as http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates] in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when using this option, for example if it contains literal “$” or “&lt;%” strings.
+
+It's a good practice to specify the charset when reading and writing the file, using the `filteringCharset` property. If not specified, the JVM default charset is used, which might not match with the actual charset of the files to filter, and might be different from one machine to another.
+
+[[sec:using_the_copyspec_class]]
+==== Using the `CopySpec` class
+
+Copy specs form a hierarchy. A copy spec inherits its destination path, include patterns, exclude patterns, copy actions, name mappings and filters.
+
+++++
+<sample id="nestedCopySpecs" dir="userguide/files/copy" title="Nested copy specs">
+    <sourcefile file="build.gradle" snippet="nested-specs"/>
+</sample>
+++++
+
+[[sec:sync_task]]
+=== Using the `Sync` task
+
+The api:org.gradle.api.tasks.Sync[] task extends the `Copy` task. When it executes, it copies the source files into the destination directory, and then removes any files from the destination directory which it did not copy. This can be useful for doing things such as installing your application, creating an exploded copy of your archives, or maintaining a copy of the project's dependencies.
+
+Here is an example which maintains a copy of the project's runtime dependencies in the `build/libs` directory.
+
+++++
+<sample id="syncDependencies" dir="userguide/files/sync" title="Using the Sync task to copy dependencies">
+    <sourcefile file="build.gradle" snippet="copy-dependencies"/>
+    <test args="libs"/>
+</sample>
+++++
+
+[[sec:archives]]
+=== Creating archives
+
+A project can have as many JAR archives as you want. You can also add WAR, ZIP and TAR archives to your project. Archives are created using the various archive tasks: api:org.gradle.api.tasks.bundling.Zip[], api:org.gradle.api.tasks.bundling.Tar[], api:org.gradle.api.tasks.bundling.Jar[], api:org.gradle.api.tasks.bundling.War[], and api:org.gradle.plugins.ear.Ear[]. They all work the same way, so let's look at how you create a ZIP file.
+
+++++
+<sample id="createZip" dir="userguide/files/archives" title="Creating a ZIP archive">
+    <sourcefile file="build.gradle" snippet="zip"/>
+</sample>
+++++
+
+[TIP]
+.Why are you using the Java plugin?
+====
+The Java plugin adds a number of default values for the archive tasks. You can use the archive tasks without using the Java plugin, if you like. You will need to provide values for some additional properties.
+====
+
+The archive tasks all work exactly the same way as the `Copy` task, and implement the same `CopySpec` interface. As with the `Copy` task, you specify the input files using the `from()` method, and can optionally specify where they end up in the archive using the `into()` method. You can filter the contents of file, rename files, and all the other things you can do with a copy spec.
+
+[[sec:archive_naming]]
+==== Archive naming
+
+The format of `__projectName__-__version__.__type__` is used for generated archive file names. For example:
+
+++++
+<sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
+    <sourcefile file="build.gradle"/>
+    <output args="-q myZip"/>
+</sample>
+++++
+
+This adds a `Zip` archive task with the name `myZip` which produces ZIP file `zipProject-1.0.zip`. It is important to distinguish between the name of the archive task and the name of the archive generated by the archive task. The default name for archives can be changed with the `archivesBaseName` project property. The name of the archive can also be changed at any time later on.
+
+There are a number of properties which you can set on an archive task. These are listed below in <<archiveTasksNamingProperties>>. You can, for example, change the name of the archive:
+
+++++
+<sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName" title="Configuration of archive task - custom archive name">
+    <sourcefile file="build.gradle"/>
+    <output args="-q myZip"/>
+</sample>
+++++
+
+You can further customize the archive names:
+
+++++
+<sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments" title="Configuration of archive task - appendix &amp; classifier">
+    <sourcefile file="build.gradle"/>
+    <output args="-q myZip"/>
+</sample>
+++++
+
+[[archiveTasksNamingProperties]]
+.Archive tasks - naming properties
+[cols="a,a,a,a", options="header"]
+|===
+| Property name
+| Type
+| Default value
+| Description
+
+| `archiveName`
+| `String`
+| `__baseName__-__appendix__-__version__-__classifier__.__extension__`
+
+If any of these properties is empty the trailing `-` is not added to the name.
+| The base file name of the generated archive
+
+| `archivePath`
+| `File`
+| `__destinationDir__/__archiveName__`
+| The absolute path of the generated archive.
+
+| `destinationDir`
+| `File`
+| Depends on the archive type. JARs and WARs go into `__project.buildDir__/libraries`. ZIPs and TARs go into `__project.buildDir__/distributions`.
+| The directory to generate the archive into
+
+| `baseName`
+| `String`
+| `__project.name__`
+| The base name portion of the archive file name.
+
+| `appendix`
+| `String`
+| `null`
+| The appendix portion of the archive file name.
+
+| `version`
+| `String`
+| `__project.version__`
+| The version portion of the archive file name.
+
+| `classifier`
+| `String`
+| `null`
+| The classifier portion of the archive file name,
+
+| `extension`
+| `String`
+| Depends on the archive type, and for TAR files, the compression type as well: `zip`, `jar`, `war`, `tar`, `tgz` or `tbz2`.
+| The extension of the archive file name.
+|===
+
+[[sec:sharing_content_between_multiple_archives]]
+==== Sharing content between multiple archives
+
+You can use the api:org.gradle.api.Project#copySpec(org.gradle.api.Action)[] method to share content between archives.
+
+[[sec:reproducible_archives]]
+==== Reproducible archives
+
+Sometimes it can be desirable to recreate archives in a byte for byte way on different machines. You want to be sure that building an artifact from source code produces the same result, byte for byte, no matter when and where it is built. This is necessary for projects like https://reproducible-builds.org/[reproducible-builds.org].
+
+Reproducing the same archive byte for byte poses some challenges since the order of the files in an archive is influenced by the underlying filesystem. Each time a zip, tar, jar, war or ear is built from source, the order of the files inside the archive may change. Files that only have a different timestamp also causes archives to be slightly different between builds. All api:org.gradle.api.tasks.bundling.AbstractArchiveTask[] (e.g. Jar, Zip) tasks shipped with Gradle include <<feature_lifecycle,incubating>> support producing reproducible archives.
+
+For example, to make a `Zip` task reproducible you need to set api:org.gradle.api.tasks.bundling.Zip#isReproducibleFileOrder()[] to `true` and api:org.gradle.api.tasks.bundling.Zip#isPreserveFileTimestamps()[] to `false`. In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
+
+++++
+<sample id="createZip" dir="userguide/files/archives" title="Activating reproducible archives">
+    <sourcefile file="build.gradle" snippet="reproducible"/>
+</sample>
+++++
+
+Often you will want to publish an archive, so that it is usable from another project. This process is described in <<artifact_management>>
+
+[[sec:properties_files]]
+=== Properties files
+
+Properties files are used in many places during Java development. Gradle makes it easy to create properties files as a normal part of the build. You can use the api:org.gradle.api.tasks.WriteProperties[] task to create properties files.
+
+The `WriteProperties` task also fixes a well-known problem with `Properties.store()` that can reduce the usefulness of incremental builds (see <<sec:up_to_date_checks>>). The standard Java way to write a properties file produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments. Gradle's `WriteProperties` task generates exactly the same output byte-for-byte if none of the properties have changed. This is achieved by a few tweaks to how a properties file is generated:
+
+* no timestamp comment is added to the output
+* the line separator is system independent, but can be configured explicitly (it defaults to `'\n'`)
+* the properties are sorted alphabetically

@@ -19,7 +19,7 @@ task checkForCleanM2Repository {
     doLast {
         File m2RepositoryFolder = new File("${org.gradle.internal.SystemProperties.instance.userHome}/.m2/repository")
         if (m2RepositoryFolder.exists()) {
-            GFileUtils.deleteDirectory(m2RepositoryFolder)
+            m2RepositoryFolder.deleteDir()
             throw new GradleException("Build fails due to polluting user home '~/.m2/repository' directory")
         }
     }

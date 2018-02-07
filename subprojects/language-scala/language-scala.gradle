@@ -1,3 +1,6 @@
+plugins {
+    id 'strict-compile'
+}
 
 // Compiler daemon
 sourceCompatibility = 1.6
@@ -8,11 +11,14 @@ dependencies {
     compile project(":languageJava")
     compile project(":languageJvm")
 
-    compileOnly libraries.zinc
+    // keep in sync with ScalaLanguagePlugin code
+    compileOnly 'com.typesafe.zinc:zinc:0.3.15'
 }
 
-strictCompile()
-useTestFixtures()
-useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":launcher")
+testFixtures {
+    from(':core')
+    from(':languageJvm', 'testFixtures')
+    from(':platformBase')
+    from(':launcher')
+    from(':plugins')
+}

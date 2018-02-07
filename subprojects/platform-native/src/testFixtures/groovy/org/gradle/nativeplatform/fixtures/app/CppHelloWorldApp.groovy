@@ -32,7 +32,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
               std::cout << sum(5, 7);
               return 0;
             }
-        """);
+        """)
     }
 
     SourceFile getAlternateMainSource() {
@@ -75,11 +75,11 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #endif
 
             #endif
-        """);
+        """)
     }
 
     @Override
-    def SourceFile getCommonHeader() {
+    SourceFile getCommonHeader() {
         sourceFile("headers", "common.h", """
             #ifndef COMMON_H
             #define COMMON_H
@@ -165,10 +165,28 @@ int main(int argc, char **argv) {
             ]
             List<SourceFile> headerFiles = [
             ]
-        };
+        }
     }
 
-    public SourceFile getBrokenFile() {
+    TestNativeComponent getSimpleTestExecutable() {
+        return new TestNativeComponent() {
+            List<SourceFile> sourceFiles = [
+                sourceFile("cpp", "test.cpp", """
+#include "hello.h"
+
+int main(int argc, char **argv) {
+  if (sum(2, 2) == 4) {
+    return 0;
+  }
+  return -1;
+}"""),
+            ]
+            List<SourceFile> headerFiles = [
+            ]
+        }
+    }
+
+    SourceFile getBrokenFile() {
         return sourceFile("cpp", "broken.cpp", """'broken""")
     }
 

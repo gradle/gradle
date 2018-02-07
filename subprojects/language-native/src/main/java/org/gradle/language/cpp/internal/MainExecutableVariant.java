@@ -17,8 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.component.ChildComponent;
 import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MainExecutableVariant implements SoftwareComponentInternal, ComponentWithVariants {
-    private final Set<ChildComponent> variants = new HashSet<ChildComponent>();
+    private final Set<SoftwareComponent> variants = new HashSet<SoftwareComponent>();
 
     @Override
     public String getName() {
@@ -34,11 +34,11 @@ public class MainExecutableVariant implements SoftwareComponentInternal, Compone
     }
 
     @Override
-    public Set<ChildComponent> getVariants() {
+    public Set<SoftwareComponent> getVariants() {
         return variants;
     }
 
-    public void addVariant(ChildComponent variant) {
+    public void addVariant(SoftwareComponent variant) {
         variants.add(variant);
     }
 

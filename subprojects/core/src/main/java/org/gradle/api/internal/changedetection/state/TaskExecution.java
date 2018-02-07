@@ -16,55 +16,19 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+
+import javax.annotation.Nullable;
 
 /**
  * The state for a single task execution.
  */
-public abstract class TaskExecution {
-    private final UniqueId buildInvocationId;
-    private final ImplementationSnapshot taskImplementation;
-    private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
-    private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
-    private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
-    private final ImmutableSet<String> declaredOutputFilePaths;
-    private final OverlappingOutputs detectedOverlappingOutputs;
-    private Boolean successful;
+public interface TaskExecution {
 
-    public TaskExecution(
-        UniqueId buildInvocationId,
-        ImplementationSnapshot taskImplementation,
-        ImmutableList<ImplementationSnapshot> taskActionImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths,
-        Boolean successful,
-        OverlappingOutputs detectedOverlappingOutputs) {
-        this.buildInvocationId = buildInvocationId;
-        this.taskImplementation = taskImplementation;
-        this.taskActionImplementations = taskActionImplementations;
-        this.inputProperties = inputProperties;
-        this.outputPropertyNamesForCacheKey = outputPropertyNames;
-        this.declaredOutputFilePaths = declaredOutputFilePaths;
-        this.successful = successful;
-        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
-    }
-
-    public Boolean isSuccessful() {
-        return successful;
-    }
-
-    public void setSuccessful(Boolean successful) {
-        this.successful = successful;
-    }
-
-    public UniqueId getBuildInvocationId() {
-        return buildInvocationId;
-    }
+    @Nullable
+    OriginTaskExecutionMetadata getOriginExecutionMetadata();
 
     /**
      * Returns the names of all cacheable output property names that have a value set.
@@ -72,42 +36,20 @@ public abstract class TaskExecution {
      * and excludes optional properties that don't have a value set. If the task is not
      * cacheable, it returns an empty collection.
      */
-    public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
-        return ImmutableSortedSet.copyOf(outputPropertyNamesForCacheKey);
-    }
+    ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey();
 
-    /**
-     * Returns the absolute path of every declared output file and directory.
-     * The returned set includes potentially missing files as well, and does
-     * not include the resolved contents of directories.
-     */
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
-        return declaredOutputFilePaths;
-    }
+    ImplementationSnapshot getTaskImplementation();
 
-    public ImplementationSnapshot getTaskImplementation() {
-        return taskImplementation;
-    }
+    ImmutableList<ImplementationSnapshot> getTaskActionImplementations();
 
-    public ImmutableList<ImplementationSnapshot> getTaskActionImplementations() {
-        return taskActionImplementations;
-    }
+    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
 
-    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-        return inputProperties;
-    }
+    ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
 
-    public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
+    ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
 
-    public abstract void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot);
+    FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
-    public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
+    boolean isSuccessful();
 
-    public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
-
-    public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
-
-    public OverlappingOutputs getDetectedOverlappingOutputs() {
-        return detectedOverlappingOutputs;
-    }
 }

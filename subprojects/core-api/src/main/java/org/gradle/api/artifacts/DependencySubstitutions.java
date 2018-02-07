@@ -95,6 +95,17 @@ public interface DependencySubstitutions {
      */
     interface Substitution {
         /**
+         * Specify a reason for the substition. This is optional
+         * @param reason the reason for the selection
+         *
+         * @since 4.5
+         *
+         * @return the substitution
+         */
+        @Incubating
+        Substitution because(String reason);
+
+        /**
          * Specify the target of the substitution.
          */
         void with(ComponentSelector notation);

@@ -258,8 +258,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             }
 
             static TestedGradleDistribution mostRecentFinalRelease() {
-                new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
-                    GradleProvider.version(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
+                new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentRelease.version,
+                    GradleProvider.version(RELEASED_VERSION_DISTRIBUTIONS.mostRecentRelease.version.version))
             }
 
         }

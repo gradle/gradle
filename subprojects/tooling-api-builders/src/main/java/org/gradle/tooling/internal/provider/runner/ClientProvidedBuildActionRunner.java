@@ -27,10 +27,9 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -47,8 +46,8 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
         ClientProvidedBuildAction clientProvidedBuildAction = (ClientProvidedBuildAction) action;
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-        final InternalBuildAction<?> clientAction = (InternalBuildAction<?>) payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
+        final Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
         gradle.addBuildListener(new BuildAdapter() {
             @Override
@@ -66,14 +65,19 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle) {
+    @SuppressWarnings("deprecation")
+    private BuildActionResult buildResult(Object clientAction, GradleInternal gradle) {
         forceFullConfiguration(gradle);
 
-        InternalBuildController internalBuildController = new DefaultBuildController(gradle);
+        DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;
         Throwable failure = null;
         try {
-            model = clientAction.execute(internalBuildController);
+            if (clientAction instanceof InternalBuildActionVersion2<?>) {
+                model = ((InternalBuildActionVersion2) clientAction).execute(internalBuildController);
+            } else {
+                model = ((org.gradle.tooling.internal.protocol.InternalBuildAction) clientAction).execute(internalBuildController);
+            }
         } catch (BuildCancelledException e) {
             failure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {

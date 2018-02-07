@@ -47,9 +47,8 @@ import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.process.internal.DefaultExecAction;
-import org.gradle.process.internal.DefaultJavaExecAction;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecAction;
 import org.gradle.util.GFileUtils;
 
@@ -66,11 +65,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final DefaultResourceHandler resourceHandler;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
+    private final ExecFactory execFactory;
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -79,6 +79,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
+        this.execFactory = execFactory;
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileLookup.getFileSystem();
         this.deleter = new Deleter(fileResolver, fileSystem);
@@ -109,7 +110,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public FileTree zipTree(Object zipPath) {
-        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher));
+        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher), fileResolver.getPatternSetFactory());
     }
 
     public FileTree tarTree(Object tarPath) {
@@ -125,7 +126,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
             resource = new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
         }
         TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory, streamHasher);
-        return new FileTreeAdapter(tarTree);
+        return new FileTreeAdapter(tarTree, fileResolver.getPatternSetFactory());
     }
 
     private File getExpandDir() {
@@ -177,13 +178,13 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        JavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, fileResolver);
+        JavaExecAction javaExecAction = execFactory.forContext(fileResolver, instantiator).newDecoratedJavaExecAction();
         action.execute(javaExecAction);
         return javaExecAction.execute();
     }
 
     public ExecResult exec(Action<? super ExecSpec> action) {
-        ExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver);
+        ExecAction execAction = execFactory.forContext(fileResolver, instantiator).newDecoratedExecAction();
         action.execute(execAction);
         return execAction.execute();
     }

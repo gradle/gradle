@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
@@ -29,7 +30,6 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -147,11 +147,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
-                            FileCollection sourcepath = new SimpleFileCollection(stubDir);
+                            ImmutableList.Builder<File> sourcepathBuilder = ImmutableList.builder();
+                            sourcepathBuilder.add(stubDir);
                             if (spec.getCompileOptions().getSourcepath() != null) {
-                                sourcepath = spec.getCompileOptions().getSourcepath().plus(sourcepath);
+                                sourcepathBuilder.addAll(spec.getCompileOptions().getSourcepath());
                             }
-                            spec.getCompileOptions().setSourcepath(sourcepath);
+                            spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
                         }
 
                         spec.setSource(spec.getSource().filter(new Spec<File>() {

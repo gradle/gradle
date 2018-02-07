@@ -18,14 +18,11 @@ package org.gradle.nativeplatform.fixtures.app
 
 class SwiftGreeterTest extends XCTestSourceFileElement {
     final GreeterElement testedElement
-    final String moduleName
 
-    SwiftGreeterTest(String moduleName, GreeterElement testedElement) {
+    SwiftGreeterTest(GreeterElement testedElement) {
+        super("GreeterTestSuite")
         this.testedElement = testedElement
-        this.moduleName = moduleName
     }
-
-    String testSuiteName = "GreeterTestSuite"
 
     @Override
     List<XCTestCaseElement> getTestCases() {

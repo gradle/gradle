@@ -21,24 +21,18 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    def "produces incubation warning"() {
-        buildFile << defineCacheableTask()
-        withBuildCache().succeeds "cacheable"
-        expect:
-        result.assertOutputContains("Build cache is an incubating feature.")
-    }
 
     def "displays info about local build cache configuration"() {
         buildFile << defineCacheableTask()
-        withBuildCache().succeeds "cacheable", "--info"
+        withBuildCache().run "cacheable", "--info"
         expect:
-        result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir}, removeUnusedEntriesAfter = 7 days)."
     }
 
     def "cache entry contains expected contents"() {
         buildFile << defineCacheableTask()
         when:
-        withBuildCache().succeeds("cacheable")
+        withBuildCache().run("cacheable")
         then:
         def cacheFiles = listCacheFiles()
         cacheFiles.size() == 1
@@ -76,12 +70,12 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         withBuildCache().fails "foo", "-Pfail"
 
         when:
-        withBuildCache().succeeds "foo"
+        withBuildCache().run "foo"
         then:
         executedTasks == [":foo"]
 
         when:
-        withBuildCache().succeeds "foo"
+        withBuildCache().run "foo"
         then:
         skippedTasks as List == [":foo"]
     }
@@ -102,7 +96,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         """
 
         // Cache original
-        withBuildCache().succeeds "foo"
+        withBuildCache().run "foo"
 
         // Fail with a change
         executer.withStackTraceChecksDisabled()
@@ -110,7 +104,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
 
         // Re-running without change should load from cache
         when:
-        withBuildCache().succeeds "foo"
+        withBuildCache().run "foo"
         then:
         skippedTasks as List == [":foo"]
     }

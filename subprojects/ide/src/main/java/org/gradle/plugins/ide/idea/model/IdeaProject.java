@@ -120,7 +120,7 @@ public class IdeaProject {
     private IdeaLanguageLevel languageLevel;
     private JavaVersion targetBytecodeVersion;
     private String vcs;
-    private Set<String> wildcards;
+    private Set<String> wildcards = Sets.newLinkedHashSet();
     private File outputFile;
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;

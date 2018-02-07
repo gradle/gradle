@@ -18,16 +18,71 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
+public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable, ConfigurableComponentWithExecutable {
+    private final RegularFileProperty executableFile;
+    private final DirectoryProperty installDirectory;
+    private final Property<LinkExecutable> linkTaskProperty;
+    private final Property<InstallExecutable> installTaskProperty;
+    private final RegularFileProperty debuggerExecutableFile;
+    private final ConfigurableFileCollection outputs;
+
     @Inject
-    public DefaultSwiftExecutable(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, objectFactory, module, debuggable, source, configurations, implementation);
+    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+        this.executableFile = projectLayout.fileProperty();
+        this.installDirectory = projectLayout.directoryProperty();
+        this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
+        this.installTaskProperty = objectFactory.property(InstallExecutable.class);
+        this.debuggerExecutableFile = projectLayout.fileProperty();
+        this.outputs = fileOperations.files();
+    }
+
+    @Override
+    public ConfigurableFileCollection getOutputs() {
+        return outputs;
+    }
+
+    @Override
+    public RegularFileProperty getExecutableFile() {
+        return executableFile;
+    }
+
+    @Override
+    public DirectoryProperty getInstallDirectory() {
+        return installDirectory;
+    }
+
+    @Override
+    public Property<LinkExecutable> getLinkTask() {
+        return linkTaskProperty;
+    }
+
+    @Override
+    public Property<InstallExecutable> getInstallTask() {
+        return installTaskProperty;
+    }
+
+    @Override
+    public RegularFileProperty getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
     }
 }

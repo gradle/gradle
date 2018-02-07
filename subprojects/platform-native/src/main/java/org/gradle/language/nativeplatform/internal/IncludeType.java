@@ -17,5 +17,48 @@
 package org.gradle.language.nativeplatform.internal;
 
 public enum IncludeType {
-    SYSTEM, QUOTED, MACRO
+    /**
+     * A system include path, eg {@code <hello.h>}
+     */
+    SYSTEM,
+    /**
+     * A quoted include path eg {@code "hello.h"}
+     */
+    QUOTED,
+    /**
+     * An identifier that should be macro expanded. These appear in the body of a directive eg {@code #define HEADER ABC}.
+     */
+    MACRO,
+    /**
+     * A macro function invocation that should be expanded. These appear in the body of a directive and as arguments to another function eg {@code #define HEADER ABC(X, Y)}.
+     */
+    MACRO_FUNCTION,
+    /**
+     * An identifier that should not be macro expanded. These appear as the arguments to a {@link #MACRO_FUNCTION} or {@link #TOKEN_CONCATENATION} eg {@code #include ABC(X, Y)}
+     */
+    IDENTIFIER,
+    /**
+     * A macro function argument list. These appear in the body of a directive or as the arguments to a {@link #MACRO_FUNCTION} eg {@code #include ABC(a b c)}.
+     */
+    ARGS_LIST,
+    /**
+     * A sequence of expressions. These appear as the arguments to a {@link #MACRO_FUNCTION} eg {@code #include ABC(a b c)}.
+     */
+    EXPRESSIONS,
+    /**
+     * A token concatenation expression whose value should not be macro expanded. These appear in the body of macro directives or as the arguments to a {@link #MACRO_FUNCTION} eg {@code #define ABC(X, Y) X ## Y}.
+     */
+    TOKEN_CONCATENATION,
+    /**
+     * A token concatenation expression whose value should be macro expanded.
+     */
+    EXPAND_TOKEN_CONCATENATION,
+    /**
+     * A single character that is not an identifier. These appear as the arguments to a {@link #MACRO_FUNCTION} eg {@code #include ABC((a b, c))}.
+     */
+    TOKEN,
+    /**
+     * All other expressions. These things cannot be resolved to an include path.
+     */
+    OTHER
 }

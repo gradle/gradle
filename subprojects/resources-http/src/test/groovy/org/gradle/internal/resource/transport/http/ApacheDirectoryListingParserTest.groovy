@@ -165,7 +165,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         where:
         artifactRootURI                                                         | repoType
         "http://localhost:8081/artifactory/repo1/junit/junit/"                  | "artifactory"
-        "https://repo1.maven.org/maven2/junit/junit/"                           | "mavencentral"
+        "https://repo.maven.apache.org/maven2/junit/junit/"                     | "mavencentral"
         "http://localhost:8081/nexus/content/repositories/central/junit/junit/" | "nexus"
     }
 

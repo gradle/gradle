@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
@@ -50,7 +49,6 @@ import java.util.List;
  *
  * @since 2.6
  */
-@Incubating
 public abstract class GradleRunner {
 
     /**
@@ -176,7 +174,7 @@ public abstract class GradleRunner {
      * A project directory must be set.
      * This method must be called before {@link #build()} or {@link #buildAndFail()}.
      * <p>
-     * All builds executed with the runner effectively implicitly add the {@code --no-search-upward} argument.
+     * All builds executed with the runner effectively do not search parent directories for a {@code settings.gradle} file.
      * This suppresses Gradle's default behaviour of searching upwards through the file system in order to find the root of the current project tree.
      * This default behaviour is often utilised when focusing on a particular build within a multi-project build.
      * This behaviour is suppressed due to test builds being executed potentially being created within a “real build”

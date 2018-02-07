@@ -35,11 +35,12 @@ class ComponentModuleMetadataContainerTest extends Specification {
 
     def "keeps track of replacements"() {
         replacements.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");
-        replacements.module(newId("foo", "bar")).replacedBy(newId("foo", "xxx"));
+        replacements.module(newId("foo", "bar")).replacedBy(newId("foo", "xxx"), 'custom');
 
         expect:
-        replacements.getReplacementFor(newId("com.google.collections", "google-collections")) == newId("com.google.guava", "guava")
-        replacements.getReplacementFor(newId("foo", "bar")) == newId("foo", "xxx")
+        replacements.getReplacementFor(newId("com.google.collections", "google-collections")).target == newId("com.google.guava", "guava")
+        replacements.getReplacementFor(newId("foo", "bar")).target == newId("foo", "xxx")
+        replacements.getReplacementFor(newId("foo", "bar")).reason == 'custom'
 
         !replacements.getReplacementFor(newId("com.google.guava", "guava"))
         !replacements.getReplacementFor(newId("bar", "foo"))

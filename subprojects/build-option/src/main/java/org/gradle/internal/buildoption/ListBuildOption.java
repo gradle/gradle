@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @since 4.3
  */
-public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public ListBuildOption(String gradleProperty) {
         super(gradleProperty);
@@ -44,14 +44,14 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
         if (value != null) {
             String[] splitValues = value.split("\\s*,\\s*");
-            applyTo(Arrays.asList(splitValues), settings, Origin.GRADLE_PROPERTY);
+            applyTo(Arrays.asList(splitValues), settings, Origin.forGradleProperty(gradleProperty));
         }
     }
 
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating()).hasArguments();
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating()).hasArguments();
         }
     }
 
@@ -60,7 +60,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
             if (options.hasOption(config.getLongOption())) {
                 List<String> value = options.option(config.getLongOption()).getValues();
-                applyTo(value, settings, Origin.COMMAND_LINE);
+                applyTo(value, settings, Origin.forCommandLine(config.getLongOption()));
             }
         }
     }

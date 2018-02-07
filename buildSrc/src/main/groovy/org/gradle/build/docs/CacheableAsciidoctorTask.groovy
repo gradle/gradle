@@ -15,21 +15,84 @@
  */
 package org.gradle.build.docs
 
+import org.asciidoctor.gradle.AsciidoctorProxy
 import org.asciidoctor.gradle.AsciidoctorTask
-import org.asciidoctor.gradle.AsciidoctorPlugin
-import org.asciidoctor.gradle.AsciidoctorProxyImpl
+import org.asciidoctor.gradle.ResourceCopyProxy
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.CopySpec
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.util.PatternSet
 
 @CacheableTask
 class CacheableAsciidoctorTask extends AsciidoctorTask {
 
+    @Internal
+    @Override
+    AsciidoctorProxy getAsciidoctor() {
+        return super.getAsciidoctor()
+    }
+
+    @Internal
+    @Override
+    List<Object> getAsciidoctorExtensions() {
+        return super.getAsciidoctorExtensions()
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Override
+    File getBaseDir() {
+        return super.getBaseDir()
+    }
+
+    @Classpath
+    @Optional
+    @Override
+    Configuration getClasspath() {
+        return super.getClasspath()
+    }
+
+    @Internal
+    @Override
+    CopySpec getDefaultResourceCopySpec() {
+        return super.getDefaultResourceCopySpec()
+    }
+
+    @Internal
+    @Override
+    PatternSet getDefaultSourceDocumentPattern() {
+        return super.getDefaultSourceDocumentPattern()
+    }
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Override
+    FileCollection getGemPath() {
+        return super.getGemPath()
+    }
+
+    @Input
+    @Override
+    boolean getLogDocuments() {
+        return super.getLogDocuments()
+    }
+
     /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * <b>Note on cacheability:</b>
      * AsciidoctorTask annotates getOutputDirectories() with @OutputDirectories which returns a Set which breaks cacheability.
      * Since we use `separateOutputDirs = false`, getOutputDir() is sufficient and we can just ignore getOutputDirectories().
+     * </p>
      */
     @Override
     @Internal
@@ -37,10 +100,42 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
         super.getOutputDirectories()
     }
 
+    @Internal
+    @Override
+    ResourceCopyProxy getResourceCopyProxy() {
+        return super.getResourceCopyProxy()
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * <b>Note on cacheability:</b>
+     * We don't use this. Otherwise it should be tracked in some way.
+     * </p>
+     */
+    @Internal
+    @Override
+    CopySpec getResourceCopySpec() {
+        return super.getResourceCopySpec()
+    }
+
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
     File getSourceDir() {
         super.getSourceDir()
+    }
+
+    @Internal
+    @Override
+    File getSourceDocumentName() {
+        return super.getSourceDocumentName()
+    }
+
+    @Internal
+    @Override
+    FileCollection getSourceDocumentNames() {
+        return super.getSourceDocumentNames()
     }
 
     @Override
@@ -50,28 +145,8 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
     }
 
     @Override
-    void processAsciidocSources() {
-        def originalCL =  Thread.currentThread().contextClassLoader
-        // This is a copy of the initialization code of the super implementation that injects our custom AsciidoctorProxy implementation
-        def classpath = project.configurations.getByName(AsciidoctorPlugin.ASCIIDOCTOR)
-        def urls = classpath.files.collect { it.toURI().toURL() }
-        def cl = new URLClassLoader(urls as URL[], Thread.currentThread().contextClassLoader)
-        Thread.currentThread().contextClassLoader = cl
-        if (!asciidoctorExtensions?.empty) {
-            Class asciidoctorExtensionsDslRegistry = cl.loadClass('org.asciidoctor.groovydsl.AsciidoctorExtensions')
-            asciidoctorExtensions.each { asciidoctorExtensionsDslRegistry.extensions(it) }
-        }
-        this.asciidoctor = new StreamClosingAsciidoctorProxyImpl(delegate: cl.loadClass(ASCIIDOCTOR_FACTORY_CLASSNAME).create(null as String))
-        super.processAsciidocSources()
-        Thread.currentThread().contextClassLoader = originalCL
-    }
-
-    static class StreamClosingAsciidoctorProxyImpl extends AsciidoctorProxyImpl {
-        @Override
-        String renderFile(File filename, Map<String, Object> options) {
-            def content = filename.text
-            options['to_file'] = filename.name.replace(".adoc", ".xml")
-            delegate.render(content, options)
-        }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileCollection getResourceFileCollection() {
+        super.getResourceFileCollection()
     }
 }

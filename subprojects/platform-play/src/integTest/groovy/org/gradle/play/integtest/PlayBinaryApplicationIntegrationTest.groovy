@@ -39,6 +39,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
     def "can run play app"() {
         setup:
+        patchForPlay()
         run "assemble"
         buildFile << """
             model {
@@ -66,16 +67,16 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
     void verifyJars() {
         jar("build/playBinary/lib/${playApp.name}.jar").containsDescendants(
-                "Routes.class",
-                "views/html/index.class",
-                "views/html/main.class",
-                "controllers/Application.class",
-                "application.conf",
-                "logback.xml")
+            determineRoutesClassName(),
+            "views/html/index.class",
+            "views/html/main.class",
+            "controllers/Application.class",
+            "application.conf",
+            "logback.xml")
         jar("build/playBinary/lib/${playApp.name}-assets.jar").containsDescendants(
-                "public/images/favicon.svg",
-                "public/stylesheets/main.css",
-                "public/javascripts/hello.js")
+            "public/images/favicon.svg",
+            "public/stylesheets/main.css",
+            "public/javascripts/hello.js")
     }
 
     String[] getBuildTasks() {

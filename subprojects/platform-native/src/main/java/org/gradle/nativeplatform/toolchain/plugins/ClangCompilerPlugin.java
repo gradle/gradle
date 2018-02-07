@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
@@ -33,13 +34,14 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 /**
  * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
  */
 @Incubating
+@NonNullApi
 public class ClangCompilerPlugin implements Plugin<Project> {
 
     @Override

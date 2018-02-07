@@ -22,12 +22,14 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
 
 public class ModuleForcingResolveRule implements Action<DependencySubstitutionInternal> {
 
@@ -52,9 +54,14 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
         if (forcedModules == null) {
             return;
         }
-        ModuleIdentifier key = moduleIdentifierFactory.module(details.getOldRequested().getGroup(), details.getOldRequested().getName());
-        if (forcedModules.containsKey(key) && details.getRequested() instanceof ModuleComponentSelector) {
-            details.useTarget(DefaultModuleComponentSelector.newSelector(key.getGroup(), key.getName(), forcedModules.get(key)), VersionSelectionReasons.FORCED);
+        if (details.getRequested() instanceof ModuleComponentSelector) {
+            ModuleComponentSelector selector = (ModuleComponentSelector) details.getRequested();
+            ModuleIdentifier key = moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
+            if (forcedModules.containsKey(key)) {
+                DefaultImmutableVersionConstraint versionConstraint = new DefaultImmutableVersionConstraint(forcedModules.get(key));
+                details.useTarget(newSelector(key.getGroup(), key.getName(), versionConstraint), VersionSelectionReasons.FORCED);
+
+            }
         }
     }
 }

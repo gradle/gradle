@@ -18,12 +18,31 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class BuildOperationRecord {
+
+    public static final Ordering<BuildOperationRecord> ORDERING = Ordering.natural()
+        .onResultOf(new Function<BuildOperationRecord, Comparable>() {
+            @Override
+            public Comparable apply(BuildOperationRecord input) {
+                return input.startTime;
+            }
+        })
+        .compound(Ordering.natural().onResultOf(new Function<BuildOperationRecord, Comparable>() {
+            @Override
+            public Comparable apply(BuildOperationRecord input) {
+                if (input.id instanceof Comparable) {
+                    return (Comparable) input.id;
+                } else {
+                    return input.id.hashCode();
+                }
+            }
+        }));
 
     public final Object id;
     public final Object parentId;
@@ -36,6 +55,7 @@ public final class BuildOperationRecord {
     private final String resultClassName;
     public final String failure;
 
+    public final List<Progress> progress;
     public final List<BuildOperationRecord> children;
 
     BuildOperationRecord(
@@ -49,6 +69,7 @@ public final class BuildOperationRecord {
         Map<String, ?> result,
         String resultClassName,
         String failure,
+        List<Progress> progress,
         List<BuildOperationRecord> children
     ) {
         this.id = id;
@@ -61,6 +82,7 @@ public final class BuildOperationRecord {
         this.result = result == null ? null : new StrictMap<String, Object>(result);
         this.resultClassName = resultClassName;
         this.failure = failure;
+        this.progress = progress;
         this.children = children;
     }
 
@@ -115,5 +137,21 @@ public final class BuildOperationRecord {
     @Override
     public String toString() {
         return "BuildOperationRecord{" + displayName + '}';
+    }
+
+    public static class Progress {
+        public final long time;
+        public final Map<String, ?> details;
+        public final String detailsClassName;
+
+        public Progress(
+            long time,
+            Map<String, ?> details,
+            String detailsClassName
+        ) {
+            this.time = time;
+            this.details = details == null ? null : new StrictMap<String, Object>(details);
+            this.detailsClassName = detailsClassName;
+        }
     }
 }

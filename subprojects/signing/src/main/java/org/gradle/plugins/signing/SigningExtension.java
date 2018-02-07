@@ -17,6 +17,7 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
+import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider;
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
@@ -211,6 +213,15 @@ public class SigningExtension {
 
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
+    }
+
+    /**
+     * Use GnuPG agent to perform signing work.
+     * @since 4.5
+     */
+    @Incubating
+    public void useGpgCmd() {
+        setSignatories(new GnupgSignatoryProvider());
     }
 
     /**

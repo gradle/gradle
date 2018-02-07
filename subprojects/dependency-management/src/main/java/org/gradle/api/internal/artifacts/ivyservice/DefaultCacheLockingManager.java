@@ -33,7 +33,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultCacheLockingManager implements CacheLockingManager, Closeable {
     private final PersistentCache cache;
 
-    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData cacheMetaData) {
+    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
@@ -50,6 +50,11 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     @Override
     public <T> T withFileLock(Factory<? extends T> action) {
         return cache.withFileLock(action);
+    }
+
+    @Override
+    public void withFileLock(Runnable action) {
+        cache.withFileLock(action);
     }
 
     @Override

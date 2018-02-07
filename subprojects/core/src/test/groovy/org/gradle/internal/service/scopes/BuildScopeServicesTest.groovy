@@ -63,12 +63,12 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceLookupException
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.profile.ProfileEventAdapter
@@ -114,15 +114,12 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
         sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)
         sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)
-        sessionServices.get(PluginRepositoryRegistry) >> Mock(PluginRepositoryRegistry)
-        sessionServices.get(PluginRepositoryFactory) >> Mock(PluginRepositoryFactory)
         sessionServices.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         sessionServices.get(BuildStartedTime) >> BuildStartedTime.startingAt(0)
         def parentListenerManager = Mock(ListenerManager)
         sessionServices.get(ListenerManager) >> parentListenerManager
         parentListenerManager.createChild() >> listenerManager
         sessionServices.getAll(_) >> []
-        sessionServices.hasService(_) >> true
 
         registry = new BuildScopeServices(sessionServices)
     }
@@ -144,9 +141,11 @@ class BuildScopeServicesTest extends Specification {
         def plugin1 = Mock(PluginServiceRegistry)
 
         given:
-        def sessionServices = Mock(BuildSessionScopeServices) {
-            getAll(PluginServiceRegistry) >> [plugin1, plugin2]
-            hasService(_) >> true
+        def sessionServices = new DefaultServiceRegistry() {
+            @Override
+            def <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
+                [plugin1, plugin2]
+            }
         }
 
         when:

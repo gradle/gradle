@@ -31,11 +31,15 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     IvyModuleDescriptorSpecInternal getDescriptor();
 
-    void setDescriptorFile(FileCollection descriptorFile);
+    void setIvyDescriptorFile(FileCollection descriptorFile);
+
+    void setGradleModuleDescriptorFile(FileCollection descriptorFile);
 
     FileCollection getPublishableFiles();
 
     Set<IvyDependencyInternal> getDependencies();
 
     IvyNormalizedPublication asNormalisedPublication();
+
+    boolean canPublishModuleMetadata();
 }

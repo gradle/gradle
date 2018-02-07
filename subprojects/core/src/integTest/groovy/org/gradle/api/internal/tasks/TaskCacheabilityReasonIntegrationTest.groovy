@@ -84,7 +84,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a cacheable task is null"() {
@@ -96,7 +96,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with no outputs is NO_OUTPUTS_DECLARED"() {
@@ -114,7 +114,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with no actions is UNKNOWN"() {
@@ -130,7 +130,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with plural outputs is PLURAL_OUTPUTS"() {
@@ -138,7 +138,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             @CacheableTask
             class PluralOutputs extends BaseTask {
                 @OutputFiles
-                Set<File> outputFiles = []
+                Set<File> outputFiles = ['some.txt']
                 
                 @TaskAction
                 void generate() {}
@@ -151,7 +151,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with overlapping outputs is OVERLAPPING_OUTPUTS"() {
@@ -170,7 +170,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable", "cacheableWithOverlap"
+        withBuildCache().run "cacheable", "cacheableWithOverlap"
     }
 
     def "cacheability for a task with a cacheIf is CACHE_IF_SPEC_NOT_SATISFIED"() {
@@ -183,7 +183,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with a doNotCacheIf is DO_NOT_CACHE_IF_SPEC_SATISFIED"() {
@@ -196,7 +196,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with onlyIf is UNKNOWN"() {
@@ -209,7 +209,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a task with no sources is UNKNOWN"() {
@@ -228,7 +228,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a cacheable task that's up-to-date"() {
@@ -239,9 +239,9 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 disabledReasonCategory = null
             }
         """
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a non-cacheable task that's up-to-date"() {
@@ -252,9 +252,9 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
             }
         """
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
         expect:
-        withBuildCache().succeeds "cacheable"
+        withBuildCache().run "cacheable"
     }
 
     def "cacheability for a failing cacheable task is null"() {

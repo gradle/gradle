@@ -22,16 +22,16 @@ import java.io.File;
 import java.util.List;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
-    private CompileOptions compileOptions;
+    private MinimalJavaCompileOptions compileOptions;
     private List<File> annotationProcessorPath;
 
     @Override
-    public CompileOptions getCompileOptions() {
+    public MinimalJavaCompileOptions getCompileOptions() {
         return compileOptions;
     }
 
     public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = compileOptions;
+        this.compileOptions = new MinimalJavaCompileOptions(compileOptions);
     }
 
     @Override

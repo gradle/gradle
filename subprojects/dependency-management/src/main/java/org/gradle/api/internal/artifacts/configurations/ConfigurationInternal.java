@@ -33,7 +33,12 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     Path getIdentityPath();
 
-    void triggerWhenEmptyActionsIfNecessary();
+    /**
+     * Runs any registered dependency actions for this Configuration, and any parent Configuration.
+     * Actions may mutate the dependency set for this configuration.
+     * After execution, all actions are de-registered, so execution will only occur once.
+     */
+    void runDependencyActions();
 
     void markAsObserved(InternalState requestedState);
 

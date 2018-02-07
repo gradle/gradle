@@ -23,6 +23,14 @@ class ConflictContainerTest extends Specification {
 
     @Subject container = new ConflictContainer<String, Integer>()
 
+    def "no conflict when candidates are empty"() {
+        def conflict = container.newElement('a', [], null)
+
+        expect:
+        conflict == null
+        container.size == 0
+    }
+
     def "contains few unconflicted elements"() {
         container.newElement("a", [1], null)
         container.newElement("b", [1], null)

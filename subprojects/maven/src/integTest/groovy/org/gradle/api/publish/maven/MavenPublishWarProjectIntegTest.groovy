@@ -18,8 +18,8 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
-    public void "publishes war and meta-data for web component with external dependencies"() {
-        def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
+    void "publishes war and meta-data for web component with external dependencies"() {
+        def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9").withModuleMetadata()
 
         given:
         settingsFile << "rootProject.name = 'project1'"
@@ -64,12 +64,13 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         then:
         webModule.assertPublishedAsWebModule()
         webModule.parsedPom.scopes.isEmpty()
+        webModule.parsedModuleMetadata.variant("master").dependencies.isEmpty()
 
         and:
-        resolveArtifacts(webModule) == ["project1-1.9.war"]
+        resolveArtifacts(webModule) { expectFiles "project1-1.9.war" }
     }
 
-    public void "publishes war and meta-data for web component with project dependencies"() {
+    void "publishes war and meta-data for web component with project dependencies"() {
         given:
         settingsFile << "include 'projectWeb', 'depProject1', 'depProject2'"
 
@@ -129,16 +130,16 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenRepo.module("org.gradle.test", "depProject1", "1.9").assertPublishedAsJavaModule()
-        mavenRepo.module("org.gradle.test", "depProject2", "1.9").assertPublishedAsWebModule()
+        javaLibrary(mavenRepo.module("org.gradle.test", "depProject1", "1.9")).assertPublished()
+        mavenRepo.module("org.gradle.test", "depProject2", "1.9").assertPublished()
 
-        def webModule = mavenRepo.module("org.gradle.test", "projectWeb", "1.9")
+        def webModule = mavenRepo.module("org.gradle.test", "projectWeb", "1.9").withModuleMetadata()
         webModule.assertPublishedAsWebModule()
-
         webModule.parsedPom.scopes.isEmpty()
+        webModule.parsedModuleMetadata.variant("master").dependencies.isEmpty()
 
         and:
-        resolveArtifacts(webModule) == ["projectWeb-1.9.war"]
+        resolveArtifacts(webModule) { expectFiles "projectWeb-1.9.war" }
     }
 
 }

@@ -1,21 +1,27 @@
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     api project(':core')
     api project(':resources')
 
     implementation project(':resourcesHttp')
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.awsS3
-    implementation libraries.commons_lang
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.awsS3_core.coordinate, libraries.awsS3_s3.coordinate, libraries.awsS3_kms.coordinate
+    implementation libraries.jackson_core.coordinate, libraries.jackson_annotations.coordinate, libraries.jackson_databind.coordinate
+    implementation libraries.commons_httpclient.coordinate, libraries.joda.coordinate
+    implementation libraries.commons_lang.coordinate
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

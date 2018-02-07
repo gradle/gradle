@@ -16,31 +16,41 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final String group;
     private final String module;
-    private final String version;
+    private final ImmutableVersionConstraint versionConstraint;
 
-    public DefaultModuleComponentSelector(String group, String module, String version) {
+    private DefaultModuleComponentSelector(String group, String module, ImmutableVersionConstraint version) {
         assert group != null : "group cannot be null";
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
         this.group = group;
         this.module = module;
-        this.version = version;
+        this.versionConstraint = version;
     }
 
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getPreferredVersion().length() + 2);
         builder.append(group);
         builder.append(":");
         builder.append(module);
-        builder.append(":");
-        builder.append(version);
+        if (versionConstraint.getPreferredVersion().length() > 0) {
+            builder.append(":");
+            builder.append(versionConstraint.getPreferredVersion());
+        }
+        if (versionConstraint.getBranch() != null) {
+            builder.append(" (branch: ");
+            builder.append(versionConstraint.getBranch());
+            builder.append(")");
+        }
         return builder.toString();
     }
 
@@ -53,17 +63,22 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public String getVersion() {
-        return version;
+        return versionConstraint.getPreferredVersion();
+    }
+
+    @Override
+    public VersionConstraint getVersionConstraint() {
+        return versionConstraint;
     }
 
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if(identifier instanceof ModuleComponentIdentifier) {
-            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)identifier;
+        if (identifier instanceof ModuleComponentIdentifier) {
+            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
             return module.equals(moduleComponentIdentifier.getModule())
-                    && group.equals(moduleComponentIdentifier.getGroup())
-                    && version.equals(moduleComponentIdentifier.getVersion());
+                && group.equals(moduleComponentIdentifier.getGroup())
+                && versionConstraint.getPreferredVersion().equals(moduleComponentIdentifier.getVersion());
         }
 
         return false;
@@ -86,7 +101,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         if (!module.equals(that.module)) {
             return false;
         }
-        if (!version.equals(that.version)) {
+        if (!versionConstraint.equals(that.versionConstraint)) {
             return false;
         }
 
@@ -97,7 +112,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     public int hashCode() {
         int result = group.hashCode();
         result = 31 * result + module.hashCode();
-        result = 31 * result + version.hashCode();
+        result = 31 * result + versionConstraint.hashCode();
         return result;
     }
 
@@ -106,11 +121,15 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return getDisplayName();
     }
 
+    public static ModuleComponentSelector newSelector(String group, String name, VersionConstraint version) {
+        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version));
+    }
+
     public static ModuleComponentSelector newSelector(String group, String name, String version) {
-        return new DefaultModuleComponentSelector(group, name, version);
+        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version));
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
-        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), selector.getVersion());
+        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), DefaultImmutableVersionConstraint.of(selector.getVersion()));
     }
 }

@@ -34,6 +34,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
+
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
@@ -114,11 +117,14 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
+        if (hasCriticalFailure(failures)) {
+            return null;
+        }
         if (best != null) {
             return best;
         }
 
-        // Nothing found - do a second pass
+        // Nothing found locally - try a remote search for all resolve states that were not yet searched remotely
         queue.addAll(missing);
         missing.clear();
         return findBestMatch(queue, failures, missing);
@@ -129,15 +135,13 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();
             BuildableModuleComponentMetaDataResolveResult metaDataResolveResult;
-            try {
-                metaDataResolveResult = request.resolve();
-            } catch (Throwable t) {
-                failures.add(t);
-                continue;
-            }
+            metaDataResolveResult = request.resolve();
             switch (metaDataResolveResult.getState()) {
                 case Failed:
                     failures.add(metaDataResolveResult.getFailure());
+                    if (isCriticalFailure(metaDataResolveResult.getFailure())) {
+                        queue.clear();
+                    }
                     break;
                 case Missing:
                     // Queue this up for checking again later
@@ -147,7 +151,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                     break;
                 case Resolved:
                     RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, metaDataResolveResult.getMetaData());
-                    if (!metaDataResolveResult.getMetaData().isGenerated()) {
+                    if (!metaDataResolveResult.getMetaData().isMissing()) {
                         return moduleResolution;
                     }
                     best = best != null ? best : moduleResolution;

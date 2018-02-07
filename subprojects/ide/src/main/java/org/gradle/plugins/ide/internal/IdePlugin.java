@@ -15,17 +15,37 @@
  */
 package org.gradle.plugins.ide.internal;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
+import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 
-public abstract class IdePlugin implements Plugin<Project> {
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+
+public abstract class IdePlugin implements Plugin<Project>, IdeArtifactRegistry {
 
     private Task lifecycleTask;
     private Task cleanTask;
@@ -37,7 +57,7 @@ public abstract class IdePlugin implements Plugin<Project> {
         String lifecycleTaskName = getLifecycleTaskName();
         lifecycleTask = target.task(lifecycleTaskName);
         lifecycleTask.setGroup("IDE");
-        cleanTask = target.task(cleanName(lifecycleTaskName));
+        cleanTask = target.getTasks().create(cleanName(lifecycleTaskName), Delete.class);
         cleanTask.setGroup("IDE");
         onApply(target);
     }
@@ -94,5 +114,55 @@ public abstract class IdePlugin implements Plugin<Project> {
             });
             rootExtraProperties.set(extraPropertyName, true);
         }
+    }
+
+    @Override
+    public void registerIdeArtifact(PublishArtifact ideArtifact) {
+        ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
+        ProjectComponentIdentifier projectId = newProjectId(project);
+        projectComponentProvider.registerAdditionalArtifact(projectId, new PublishArtifactLocalArtifactMetadata(projectId, ideArtifact));
+    }
+
+    @Override
+    public List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type) {
+        ServiceRegistry serviceRegistry = ((ProjectInternal)project).getServices();
+        List<LocalComponentArtifactMetadata> result = Lists.newArrayList();
+        ProjectPathRegistry projectPathRegistry = serviceRegistry.get(ProjectPathRegistry.class);
+        LocalComponentRegistry localComponentRegistry = serviceRegistry.get(LocalComponentRegistry.class);
+
+        for (Path projectPath : projectPathRegistry.getAllExplicitProjectPaths()) {
+            ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+            Iterable<LocalComponentArtifactMetadata> additionalArtifacts = localComponentRegistry.getAdditionalArtifacts(projectId);
+            for (LocalComponentArtifactMetadata artifactMetadata : additionalArtifacts) {
+                if (artifactMetadata.getName().getType().equals(type)) {
+                    result.add(artifactMetadata);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public FileCollection getIdeArtifacts(final String type) {
+        return project.files(new Callable<List<FileCollection>>() {
+            @Override
+            public List<FileCollection> call() throws Exception {
+                return CollectionUtils.collect(
+                    getIdeArtifactMetadata(type),
+                    new Transformer<FileCollection, LocalComponentArtifactMetadata>() {
+                        @Override
+                        public FileCollection transform(LocalComponentArtifactMetadata metadata) {
+                            ConfigurableFileCollection result = project.files(metadata.getFile());
+                            result.builtBy(metadata.getBuildDependencies());
+                            return result;
+                        }
+                    });
+            }
+        });
+    }
+
+    public boolean isRoot() {
+        return project.getParent() == null;
     }
 }

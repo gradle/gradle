@@ -15,14 +15,50 @@
  */
 package org.gradle.vcs;
 
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
+import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 
 /**
  * Captures user-provided information about a version control system.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface VersionControlSpec extends Describable {
+    /**
+     * Returns a {@link String} identifier which will be unique to this version
+     * control specification among other version control specifications.
+     */
+    String getUniqueId();
+
+    /**
+     * Returns the name of the repository.
+     */
+    String getRepoName();
+
+    /**
+     * Returns the relative path to the root of the build within the repository.
+     * <p>
+     * Defaults to an empty relative path, meaning the root of the repository.
+     *
+     * @since 4.5
+     */
+    String getRootDir();
+
+    /**
+     * Sets the relative path to the root of the build within the repository.
+     *
+     * @since 4.5
+     */
+    void setRootDir(String rootDir);
+
+    /**
+     * Configure injected plugins into this build.
+     *
+     * @param configuration the configuration action for adding injected plugins
+     * @since 4.6
+     */
+    void plugins(Action<? super InjectedPluginDependencies> configuration);
 }

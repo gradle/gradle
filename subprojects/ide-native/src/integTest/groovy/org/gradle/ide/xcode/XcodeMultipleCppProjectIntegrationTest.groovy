@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
@@ -27,10 +28,10 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 @Requires(TestPrecondition.XCODE)
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
-        executer.requireGradleDistribution()
+        useXcodebuildTool()
     }
 
-    def "create xcode project C++ executable"() {
+    def "can create xcode project for C++ executable"() {
         given:
         settingsFile << """
             include 'app', 'greeter'
@@ -38,7 +39,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -55,8 +56,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -68,26 +69,26 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
         resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':app:compileDebugCpp', ':app:linkDebug')
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withScheme('App')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
-        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseCpp', ':greeter:linkRelease',
-            ':app:compileReleaseCpp', ':app:linkRelease')
+        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseCpp', ':greeter:linkRelease', ':greeter:stripSymbolsRelease',
+            ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
-    def "create xcode project C++ executable with transitive dependencies"() {
+    def "can create xcode project for C++ executable with transitive dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
@@ -97,7 +98,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         """
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':deck')
                 }
@@ -125,10 +126,10 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeSchemeDeckSharedLibrary", ":deck:xcode",
-            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeSchemeCardSharedLibrary", ":card:xcode",
-            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeSchemeShuffleSharedLibrary", ":shuffle:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeScheme", ":deck:xcode",
+            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeScheme", ":card:xcode",
+            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeScheme", ":shuffle:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -142,36 +143,121 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
         resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
             ':card:compileDebugCpp', ':card:linkDebug',
             ':deck:compileDebugCpp', ':deck:linkDebug',
-            ':app:compileDebugCpp', ':app:linkDebug')
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Deck SharedLibrary')
-            .withConfiguration('Release')
+            .withScheme('Deck')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease',
-            ':card:compileReleaseCpp', ':card:linkRelease',
-            ':deck:compileReleaseCpp', ':deck:linkRelease')
+        resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:stripSymbolsRelease',
+            ':card:compileReleaseCpp', ':card:linkRelease', ':card:stripSymbolsRelease',
+            ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
-    def "create xcode project C++ executable inside composite build"() {
+    def "can create xcode project for C++ executable with binary-specific dependencies"() {
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'deck', 'card', 'shuffle'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                dependencies {
+                    implementation project(':deck')
+                }
+            }
+            project(':deck') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    api project(':card')
+                }
+                library {
+                    binaries.configureEach {
+                        dependencies {
+                            if (targetPlatform.operatingSystem.macOsX) {
+                                implementation project(':shuffle')
+                            }
+                        }
+                    }
+                }
+            }
+            project(':card') {
+                apply plugin: 'cpp-library'
+            }
+            project(':shuffle') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        app.deck.writeToProject(file("deck"))
+        app.card.writeToProject(file("card"))
+        app.shuffle.writeToProject(file("shuffle"))
+        app.main.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeScheme", ":deck:xcode",
+            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeScheme", ":card:xcode",
+            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeScheme", ":shuffle:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'deck/deck.xcodeproj', 'card/card.xcodeproj', 'shuffle/shuffle.xcodeproj')
+
+        def appProject = xcodeProject("app/app.xcodeproj").projectFile
+        appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("deck/src/main/public"), file("card/src/main/public"))
+        def deckProject = xcodeProject("deck/deck.xcodeproj").projectFile
+        deckProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("deck/src/main/public"), file("deck/src/main/headers"), file("card/src/main/public"), file("shuffle/src/main/public"))
+
+        when:
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
+            ':card:compileDebugCpp', ':card:linkDebug',
+            ':deck:compileDebugCpp', ':deck:linkDebug',
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+
+        when:
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Deck')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:stripSymbolsRelease',
+            ':card:compileReleaseCpp', ':card:linkRelease', ':card:stripSymbolsRelease',
+            ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
+    }
+
+    def "can create xcode project for C++ executable inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'
             rootProject.name = '${rootProjectName}'
         """
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             apply plugin: 'xcode'
 
             dependencies {
@@ -195,7 +281,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
+        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -207,20 +293,21 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':compileDebugCpp', ':linkDebug')
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
+            ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
 
         when:
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Greeter SharedLibrary')
-            .withConfiguration('Release')
+            .withScheme('Greeter')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
-        resultReleaseGreeter.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
+        resultReleaseGreeter.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___Greeter_Release')
     }
 }

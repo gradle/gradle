@@ -40,11 +40,11 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -66,7 +66,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
-                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider,
+                                 LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
@@ -82,7 +83,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return this;
     }
 
-    protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishAction createPublishAction(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
@@ -110,7 +111,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
             File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishAction publishAction = createPublishAction(pomFile, mavenRepositoryLocator);
+            MavenPublishAction publishAction = createPublishAction(pomFile, null, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(publishAction, mavenDeployment);
             execute(publishAction);

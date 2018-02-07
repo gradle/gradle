@@ -99,7 +99,7 @@ In this example, we configure the `greet` task `destination` property as a closu
 
 Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice. The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
-The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers the mutable type api:org.gradle.api.provider.PropertyState[] for representing a property that should be lazily evaluated e.g. during execution time. The method api:org.gradle.api.provider.PropertyState#set(T)[] provides the value, api:org.gradle.api.provider.Provider#get()[] returns the value upon request.
+The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration>> for more information.
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 
@@ -109,16 +109,6 @@ The following demonstrates the usage of the type for mapping an extension proper
             <output args="-q hello"/>
         </sample>
 ++++
-
-The example above uses instances of api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.PropertyState[]. The main difference between these two interfaces is attributed to mutability. A api:org.gradle.api.provider.Provider[] is immutable and can be created with the method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. api:org.gradle.api.provider.PropertyState[] extends the interface api:org.gradle.api.provider.Provider[], represents a mutable value and can be created with the method api:org.gradle.api.Project#property(java.lang.Class)[]. Please note that the provider types are not intended for implementation by build script or plugin authors.
-
-[NOTE]
-====
-
-The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
-
-====
-
 
 [[sec:custom_plugins_standalone_project]]
 === A standalone project
@@ -147,7 +137,7 @@ Notice that the properties filename matches the plugin id and is placed in the r
 
 Plugin ids are fully qualified in a manner similar to Java packages (i.e. a reverse domain name). This helps to avoid collisions and provides a way to group plugins with similar ownership.
 
-Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides. For example if you had a Github account named “foo” and your plugin was named “bar”, a suitable plugin id might be `com.github.foo.bar`. Similarly, if the plugin was developed at the baz organization, the plugin id might be `org.baz.bar`.
+Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides. For example if you had a Github account named "foo" and your plugin was named "bar", a suitable plugin id might be `com.github.foo.bar`. Similarly, if the plugin was developed at the baz organization, the plugin id might be `org.baz.bar`.
 
 Plugin ids should conform to the following:
 
@@ -159,7 +149,7 @@ Plugin ids should conform to the following:
 * Cannot start or end with a '.' character.
 * Cannot contain consecutive '.' characters (i.e. '..').
 
-Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is necessary for a plugin id. For instance, it might seem reasonable to add “gradle” as a component of your plugin id, but since plugin ids are only used for Gradle plugins, this would be superfluous. Generally, a namespace that identifies ownership and a name are all that are needed for a good plugin id.
+Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is necessary for a plugin id. For instance, it might seem reasonable to add "gradle" as a component of your plugin id, but since plugin ids are only used for Gradle plugins, this would be superfluous. Generally, a namespace that identifies ownership and a name are all that are needed for a good plugin id.
 
 [[sec:publishing_your_plugin]]
 ==== Publishing your plugin
@@ -171,7 +161,7 @@ If you are interested in publishing your plugin to be used by the wider Gradle c
 [[sec:using_your_plugin_in_another_project]]
 ==== Using your plugin in another project
 
-To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To do this, you use a “`buildscript { }`” block, as described in <<sec:applying_plugins_buildscript>>. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
+To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To do this, you use a "`buildscript { }`" block, as described in <<sec:applying_plugins_buildscript>>. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
 
 ++++
 <sample id="customPluginStandalone" dir="customPlugin/consumer" title="Using a custom plugin in another project">
@@ -205,7 +195,7 @@ You can use the api:org.gradle.testfixtures.ProjectBuilder[] class to create api
 [[sec:using_the_java_gradle_plugin_development_plugin]]
 ==== Using the Java Gradle Plugin development plugin
 
-You can use the incubating <<javaGradle_plugin,Java Gradle Plugin development plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin,Java plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution.
+You can use the incubating <<java_gradle_plugin,Java Gradle Plugin development plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin,Java plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution.
 
 ++++
 <sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
@@ -213,7 +203,7 @@ You can use the incubating <<javaGradle_plugin,Java Gradle Plugin development pl
             </sample>
 ++++
 
-When publishing plugins to custom plugin repositories using the <<publishing_ivy,ivy>> or <<publishing_maven,maven>> publish plugins, the <<javaGradle_plugin,Java Gradle Plugin development plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
+When publishing plugins to custom plugin repositories using the <<publishing_ivy,ivy>> or <<publishing_maven,maven>> publish plugins, the <<java_gradle_plugin,Java Gradle Plugin development plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
 
 [[sec:implementing_a_dsl]]
 === Providing a configuration DSL for the plugin
@@ -249,4 +239,4 @@ Gradle provides some utility classes for maintaining collections of objects, int
             </sample>
 ++++
 
-The api:org.gradle.api.Project#container(java.lang.Class)[] methods create instances of api:org.gradle.api.NamedDomainObjectContainer[], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named “`name`” as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.
+The api:org.gradle.api.Project#container(java.lang.Class)[] methods create instances of api:org.gradle.api.NamedDomainObjectContainer[], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named "`name`" as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.

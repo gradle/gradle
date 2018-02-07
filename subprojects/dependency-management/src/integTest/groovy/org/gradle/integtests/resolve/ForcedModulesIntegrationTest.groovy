@@ -46,6 +46,35 @@ task checkDeps {
         run("checkDeps")
     }
 
+    void "can force the version of a transitive dependency module"() {
+        mavenRepo.module("org", "foo", '1.3.3')
+            .dependsOn("org", "bar", '1.1')
+            .publish()
+        mavenRepo.module("org", "bar", '1.0').publish()
+
+        buildFile << """
+apply plugin: 'java'
+repositories { maven { url "${mavenRepo.uri}" } }
+
+dependencies {
+    compile 'org:foo:1.3.3'
+}
+
+configurations.all {
+    resolutionStrategy.force 'org:bar:1.0'
+}
+
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
+    }
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
+
     void "can force already resolved version of a module and avoid conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()

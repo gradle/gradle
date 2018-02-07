@@ -16,28 +16,55 @@
 
 package org.gradle.language.cpp.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.ChildComponent;
 import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class MainLibraryVariant extends NativeVariant implements ComponentWithVariants {
-    private final Set<ChildComponent> variants = new HashSet<ChildComponent>();
+public class MainLibraryVariant implements ComponentWithVariants, SoftwareComponentInternal {
+    private final Set<SoftwareComponent> variants = new HashSet<SoftwareComponent>();
+    private final String name;
+    private final Usage usage;
+    private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+    private final Configuration dependencies;
 
-    public MainLibraryVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
-        super(name, usage, artifacts, dependencies);
+    public MainLibraryVariant(String name, Usage usage, Configuration dependencies) {
+        this.name = name;
+        this.usage = usage;
+        this.dependencies = dependencies;
     }
 
     @Override
-    public Set<? extends ChildComponent> getVariants() {
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public Set<? extends UsageContext> getUsages() {
+        return ImmutableSet.of(new DefaultUsageContext(name, usage, artifacts, dependencies));
+    }
+
+    @Override
+    public Set<? extends SoftwareComponent> getVariants() {
         return variants;
     }
 
-    public void addVariant(ChildComponent variant) {
+    public void addArtifact(PublishArtifact artifact) {
+        artifacts.add(artifact);
+    }
+
+    /**
+     * Adds a child variant
+     */
+    public void addVariant(SoftwareComponent variant) {
         variants.add(variant);
     }
 }

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.internal
+
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.component.ChildComponent
+import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
@@ -102,13 +103,12 @@ class ProjectDependencyPublicationResolverTest extends Specification {
 
     def "uses coordinates from root component publication"() {
         given:
-        def root = Stub(SoftwareComponentInternal)
         def child1 = Stub(TestComponent)
-        child1.owner >> root
         def child2 = Stub(TestComponent)
-        child2.owner >> child1
+        child2.variants >> [child1]
         def child3 = Stub(TestComponent)
-        child3.owner >> root
+        def root = Stub(TestComponent)
+        root.variants >> [child2, child3]
 
         def publication = pub('mock', "pub-group", "pub-name", "pub-version")
         publication.component >> root
@@ -203,6 +203,6 @@ Found the following publications in <project>:
         return publication
     }
 
-    interface TestComponent extends SoftwareComponentInternal, ChildComponent {
+    interface TestComponent extends SoftwareComponentInternal, ComponentWithVariants {
     }
 }

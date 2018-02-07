@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.Transformer;
@@ -52,11 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.AddDTDFilterInputStream;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getAllChilds;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildElement;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildText;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getTextContent;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
@@ -161,7 +156,7 @@ public class PomReader implements PomParent {
     }
 
     public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
-        this(resource, moduleIdentifierFactory, Maps.<String, String>newHashMap());
+        this(resource, moduleIdentifierFactory, Collections.<String, String>emptyMap());
     }
 
     public void setPomParent(PomParent pomParent) {
@@ -184,9 +179,11 @@ public class PomReader implements PomParent {
     }
 
     private void setPomProperties(Map<String, String> pomProperties) {
-        this.pomProperties.putAll(pomProperties);
-        for (Map.Entry<String, String> pomProperty : pomProperties.entrySet()) {
-            maybeSetEffectiveProperty(pomProperty.getKey(), pomProperty.getValue());
+        if (!pomProperties.isEmpty()) {
+            this.pomProperties.putAll(pomProperties);
+            for (Map.Entry<String, String> pomProperty : pomProperties.entrySet()) {
+                maybeSetEffectiveProperty(pomProperty.getKey(), pomProperty.getValue());
+            }
         }
     }
 
@@ -345,14 +342,6 @@ public class PomReader implements PomParent {
             val = "jar";
         }
         return replaceProps(val);
-    }
-
-    public String getDescription() {
-        String val = getFirstChildText(projectElement, DESCRIPTION);
-        if (val == null) {
-            val = "";
-        }
-        return val.trim();
     }
 
     public ModuleVersionIdentifier getRelocation() {

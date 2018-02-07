@@ -652,7 +652,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
             task a {
                 outputs.file('foo')
-                destroyables.file('bar')
+                destroyables.register('bar')
             }
         """
         file('foo') << 'foo'
@@ -669,7 +669,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
             task a {
                 inputs.file('foo')
-                destroyables.file('bar')
+                destroyables.register('bar')
             }
         """
         file('foo') << 'foo'
@@ -680,6 +680,23 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+    }
+
+    def "produces a sensible error when a task declares both local state and destroys"() {
+        buildFile << """
+            task a {
+                localState.register('foo')
+                destroyables.register('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2401")

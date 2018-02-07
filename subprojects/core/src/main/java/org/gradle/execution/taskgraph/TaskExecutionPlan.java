@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
@@ -38,6 +39,17 @@ public interface TaskExecutionPlan extends Describable {
      * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
      */
     void awaitCompletion();
+
+    /**
+     * <p>Returns the dependencies of a task which are part of the execution plan.</p>
+     *
+     * @return The tasks. Returns an empty set if there are no dependent tasks.
+     * @throws IllegalStateException When the task is not part of the execution plan.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    Set<Task> getDependencies(Task task);
 
     /**
      * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.

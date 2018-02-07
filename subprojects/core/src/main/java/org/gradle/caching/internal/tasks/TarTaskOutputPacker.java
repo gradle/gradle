@@ -35,12 +35,12 @@ import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OutputType;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.hash.HashCode;
@@ -55,7 +55,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
@@ -68,6 +71,7 @@ import static org.gradle.caching.internal.tasks.TaskOutputPackerUtils.makeDirect
 /**
  * Packages task output to a POSIX TAR file.
  */
+@SuppressWarnings("Since15")
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
@@ -140,7 +144,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (root == null) {
             return 0;
         }
-        String propertyPath = "property-" + propertyName;
+        String propertyPath = "property-" + escape(propertyName);
         if (outputSnapshots.isEmpty()) {
             storeMissingProperty(propertyPath, tarOutput);
             return 1;
@@ -169,7 +173,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         entries++;
 
         String rootAbsolutePath = directory.getAbsolutePath();
-        URI rootUri = directory.toURI();
+        Path rootPath = directory.toPath();
 
         for (Map.Entry<String, FileContentSnapshot> entry : outputSnapshots.entrySet()) {
             String absolutePath = entry.getKey();
@@ -178,7 +182,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 continue;
             }
             File file = new File(absolutePath);
-            String relativePath = rootUri.relativize(file.toURI()).toString();
+            String relativePath = rootPath.relativize(file.toPath()).toString();
             String targetPath = propertyRoot + relativePath;
             int mode = fileSystem.getUnixMode(file);
             switch (entry.getValue().getType()) {
@@ -251,25 +255,25 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             }
         });
         TarArchiveEntry tarEntry;
-        TaskOutputOriginMetadata originMetadata = null;
+        OriginTaskExecutionMetadata originMetadata = null;
         ImmutableListMultimap.Builder<String, FileSnapshot> propertyFileSnapshots = ImmutableListMultimap.builder();
 
         long entries = 0;
         while ((tarEntry = tarInput.getNextTarEntry()) != null) {
             ++entries;
-            String name = tarEntry.getName();
+            String path = tarEntry.getName();
 
-            if (name.equals(METADATA_PATH)) {
+            if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
                 originMetadata = readOriginAction.execute(new CloseShieldInputStream(tarInput));
             } else {
                 // handle output property
-                Matcher matcher = PROPERTY_PATH.matcher(name);
+                Matcher matcher = PROPERTY_PATH.matcher(path);
                 if (!matcher.matches()) {
-                    throw new IllegalStateException("Cached result format error, invalid contents: " + name);
+                    throw new IllegalStateException("Cached result format error, invalid contents: " + path);
                 }
 
-                String propertyName = matcher.group(2);
+                String propertyName = unescape(matcher.group(2));
                 ResolvedTaskOutputFilePropertySpec propertySpec = propertySpecsMap.get(propertyName);
                 if (propertySpec == null) {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
@@ -343,5 +347,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);
+    }
+
+    private static String escape(String name) {
+        try {
+            return URLEncoder.encode(name, "utf-8");
+        } catch (UnsupportedEncodingException ignored) {
+            throw new AssertionError();
+        }
+    }
+
+    private static String unescape(String name) {
+        try {
+            return URLDecoder.decode(name, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        }
     }
 }

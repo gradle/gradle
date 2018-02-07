@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':wrapper')
-    integTestRuntime project(':maven')
-    integTestRuntime project(':scala')
+plugins {
+    id 'classycle'
 }
 
-useTestFixtures()
-useClassycle()
+dependencies {
+    implementation 'org.codehaus.plexus:plexus-container-default'
+    implementation 'org.apache.maven:maven-compat'
+    implementation 'org.apache.maven:maven-plugin-api'
+    implementation libraries.groovy.coordinate
+
+    implementation project(':core')
+    implementation project(':plugins')
+    implementation project(':wrapper')
+
+    testFixturesImplementation project(":internalTesting")
+
+    integTestRuntime allTestRuntimeDependencies
+}
+
+testFixtures {
+    from(':core')
+}

@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
+import spock.lang.Issue
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE.substring(4)
@@ -204,6 +205,26 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
     }
 
+    def "Generated plugin descriptor are os independent"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "jar"
+        def descriptorHash = file("build/resources/main/META-INF/gradle-plugins/test-plugin.properties").md5Hash
+        descriptorHash == "0698dda8ffafedc3b054c5fe3aae95f1"
+    }
+
     def "Plugin descriptor generation is up-to-date if declarations did not change"() {
         given:
         buildFile()
@@ -245,8 +266,37 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         expect:
 
         succeeds "jar"
-        file("build", "pluginDescriptors").listFiles().size() == 1
-        file("build", "resources", "main", "META-INF", "gradle-plugins").listFiles().size() == 1
+        file("build/pluginDescriptors").listFiles().size() == 1
+        file("build/resources/main/META-INF/gradle-plugins").listFiles().size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1061")
+    def "one plugin project can depend on another when using publishing plugins"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        file("a/build.gradle") << """
+            apply plugin: 'java-gradle-plugin'
+            apply plugin: 'maven-publish'
+            apply plugin: 'ivy-publish'
+            gradlePlugin {
+                plugins {
+                    foo {
+                        id = 'foo-plugin'
+                        implementationClass = "com.foo.Foo"
+                    }
+                }
+            }
+        """
+        file("b/build.gradle") << """
+            apply plugin: 'java-gradle-plugin'
+            apply plugin: 'maven-publish'
+            apply plugin: 'ivy-publish'
+            dependencies {
+                implementation project(':a')
+            }
+        """
+        expect:
+        succeeds("assemble")
     }
 
     def buildFile() {

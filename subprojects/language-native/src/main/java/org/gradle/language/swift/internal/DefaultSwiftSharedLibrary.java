@@ -18,16 +18,84 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements SwiftSharedLibrary {
+public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements SwiftSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage {
+    private final RegularFileProperty linkFile;
+    private final RegularFileProperty runtimeFile;
+    private final Property<LinkSharedLibrary> linkTaskProperty;
+    private final Property<Configuration> linkElements;
+    private final Property<Configuration> runtimeElements;
+    private final ConfigurableFileCollection outputs;
+
     @Inject
-    public DefaultSwiftSharedLibrary(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, objectFactory, module, debuggable, source, configurations, implementation);
+    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+        this.linkFile = projectLayout.fileProperty();
+        this.runtimeFile = projectLayout.fileProperty();
+        this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
+        this.linkElements = objectFactory.property(Configuration.class);
+        this.runtimeElements = objectFactory.property(Configuration.class);
+        this.outputs = fileOperations.files();
+    }
+
+    @Override
+    public ConfigurableFileCollection getOutputs() {
+        return outputs;
+    }
+
+    @Override
+    public RegularFileProperty getLinkFile() {
+        return linkFile;
+    }
+
+    @Override
+    public RegularFileProperty getRuntimeFile() {
+        return runtimeFile;
+    }
+
+    @Override
+    public Property<LinkSharedLibrary> getLinkTask() {
+        return linkTaskProperty;
+    }
+
+    @Override
+    public Property<Configuration> getLinkElements() {
+        return linkElements;
+    }
+
+    @Override
+    public Property<Configuration> getRuntimeElements() {
+        return runtimeElements;
+    }
+
+    @Nullable
+    @Override
+    public Linkage getLinkage() {
+        return Linkage.SHARED;
+    }
+
+    @Override
+    public boolean hasRuntimeFile() {
+        return true;
     }
 }

@@ -21,5 +21,27 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
 public interface ExecHandleBuilder extends ProcessForkOptions, BaseExecSpec, ExecSpec {
+    /**
+     * Merge the process' error stream into its output stream
+     */
+    ExecHandleBuilder redirectErrorStream();
+
+    ExecHandleBuilder setDisplayName(String displayName);
+
+    /**
+     * When true, spawn the process. That is, start the process and leave it running once successfully started. When false, fork the process (the default). That is, start the process and wait for it to complete.
+     */
+    ExecHandleBuilder setDaemon(boolean daemon);
+
+    /**
+     * Sets a handler for the <em>output</em> streams of the process.
+     */
+    ExecHandleBuilder streamsHandler(StreamsHandler streamsHandler);
+
+    /**
+     * Sets the start-up timeout, when spawning a process. Not used when forking a process (the default).
+     */
+    ExecHandleBuilder setTimeout(int timeoutMillis);
+
     ExecHandle build();
 }

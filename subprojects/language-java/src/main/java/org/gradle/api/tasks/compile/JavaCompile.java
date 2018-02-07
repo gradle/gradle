@@ -22,21 +22,15 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -46,9 +40,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.cache.CacheRepository;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -75,10 +66,12 @@ import javax.inject.Inject;
  */
 @CacheableTask
 public class JavaCompile extends AbstractCompile {
-    private final CompileOptions compileOptions = new CompileOptions();
+    private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
 
     public JavaCompile() {
+        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
+        this.compileOptions = compileOptions;
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -123,58 +116,18 @@ public class JavaCompile extends AbstractCompile {
         }
 
         DefaultJavaCompileSpec spec = createSpec();
-        CompileCaches compileCaches = createCompileCaches();
-        IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getStreamHasher(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorPath());
-        Compiler<JavaCompileSpec> compiler = factory.createCompiler();
-        performCompilation(spec, compiler);
-    }
-
-    private CompileCaches createCompileCaches() {
-        final GeneralCompileCaches generalCaches = getGeneralCompileCaches();
-        final LocalClassSetAnalysisStore localClassSetAnalysisStore = generalCaches.createLocalClassSetAnalysisStore(getPath());
-        final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore = generalCaches.createLocalJarClasspathSnapshotStore(getPath());
-        return new CompileCaches() {
-            public ClassAnalysisCache getClassAnalysisCache() {
-                return generalCaches.getClassAnalysisCache();
-            }
-
-            public JarSnapshotCache getJarSnapshotCache() {
-                return generalCaches.getJarSnapshotCache();
-            }
-
-            public LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore() {
-                return localJarClasspathSnapshotStore;
-            }
-
-            public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
-                return localClassSetAnalysisStore;
-            }
-        };
+        Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
+            createCompiler(spec),
+            getPath(),
+            (IncrementalTaskInputsInternal) inputs,
+            source,
+            getEffectiveAnnotationProcessorPath()
+        );
+        performCompilation(spec, incrementalCompiler);
     }
 
     @Inject
-    protected StreamHasher getStreamHasher() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileHasher getCachingFileHasher() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileOperations getFileOperations() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected GeneralCompileCaches getGeneralCompileCaches() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected CacheRepository getCacheRepository() {
+    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -183,7 +136,6 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    @Override
     protected void compile() {
         DefaultJavaCompileSpec spec = createSpec();
         performCompilation(spec, createCompiler(spec));
@@ -247,7 +199,7 @@ public class JavaCompile extends AbstractCompile {
     @Incubating
     @Classpath
     public FileCollection getEffectiveAnnotationProcessorPath() {
-        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
-        return annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
+        return annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
     }
 }

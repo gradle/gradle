@@ -19,15 +19,18 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -48,9 +51,17 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         this.fileResourceRepository = fileResourceRepository;
     }
 
+    @Override
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
         File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentResolver(), mainResolvers.getArtifactResolver(), artifactType);
         return fileResourceRepository.resource(resolvedArtifactFile);
+    }
+
+    @Override
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleDependencyMetadata dependencyMetadata, ArtifactType artifactType) {
+        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
+        mainResolvers.getComponentIdResolver().resolve(dependencyMetadata, idResolveResult);
+        return getMetaDataArtifact((ModuleComponentIdentifier) idResolveResult.getId(), artifactType);
     }
 
     private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,

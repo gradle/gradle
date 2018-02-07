@@ -26,10 +26,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -39,6 +39,13 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 import java.util.Map;
 
+/**
+ * A ModuleComponentRepository that caches all results in-memory for the life of a single build.
+ * This ensures that any repository with the same {@link ModuleComponentRepository#getId()} will return the
+ * same result for a dependency for the life of a build.
+ *
+ * Unfortunately, this leads to bugs due to the fact that the resolution strategy will be ignored for subsequent resolves.
+ */
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
@@ -82,10 +89,10 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
         }
 
         @Override
-        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            if (!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
+        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+            if (!metaDataCache.supplyModuleVersions(dependency.getSelector(), result)) {
                 super.listModuleVersions(dependency, result);
-                metaDataCache.newModuleVersions(dependency.getRequested(), result);
+                metaDataCache.newModuleVersions(dependency.getSelector(), result);
             }
         }
 

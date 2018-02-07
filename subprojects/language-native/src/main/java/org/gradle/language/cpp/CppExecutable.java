@@ -17,6 +17,12 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithExecutable;
+import org.gradle.language.nativeplatform.ComponentWithInstallation;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
 
 /**
  * An executable built from C++ source.
@@ -24,5 +30,11 @@ import org.gradle.api.Incubating;
  * @since 4.2
  */
 @Incubating
-public interface CppExecutable extends CppBinary {
+public interface CppExecutable extends CppBinary, ComponentWithExecutable, ComponentWithInstallation, ComponentWithOutputs, ComponentWithRuntimeUsage {
+    /**
+     * Returns the executable file to use with a debugger for this executable.
+     *
+     * @since 4.5
+     */
+    Provider<RegularFile> getDebuggerExecutableFile();
 }

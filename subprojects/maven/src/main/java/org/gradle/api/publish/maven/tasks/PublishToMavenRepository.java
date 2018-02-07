@@ -87,7 +87,6 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         }.run();
     }
 
-
     @Inject
     protected RepositoryTransportFactory getRepositoryTransportFactory() {
         throw new UnsupportedOperationException();

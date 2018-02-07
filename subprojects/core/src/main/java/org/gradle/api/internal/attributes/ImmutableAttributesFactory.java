@@ -16,18 +16,33 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 
 public interface ImmutableAttributesFactory {
-    DefaultImmutableAttributesFactory.Builder builder();
+    /**
+     * Returns an empty mutable attribute container.
+     */
+    AttributeContainerInternal mutable();
 
-    DefaultImmutableAttributesFactory.Builder builder(ImmutableAttributes from);
+    /**
+     * Returns an empty mutable attribute container with the given parent.
+     */
+    AttributeContainerInternal mutable(AttributeContainerInternal parent);
 
-    ImmutableAttributes of(Attribute<?> key, Object value);
+    /**
+     * Returns an attribute container that contains the given value.
+     */
+    <T> ImmutableAttributes of(Attribute<T> key, T value);
 
     /**
      * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
-    ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value);
+    <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value);
+
+    /**
+     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     */
+    <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 
     /**
      * Merges the second container into the first container and returns the result. Values in the second container win.

@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DirectDependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ResolvableDependency;
 
-public abstract class AbstractDependency implements ResolvableDependency, Dependency {
+public abstract class AbstractDependency implements ResolvableDependency, DirectDependency {
+    private String reason;
+
     protected void copyTo(AbstractDependency target) {
+        target.reason = reason;
     }
 
     public void resolve(DependencyResolveContext context) {
@@ -33,5 +36,15 @@ public abstract class AbstractDependency implements ResolvableDependency, Depend
         result = 31 * result + getName().hashCode();
         result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
+    public void because(String reason) {
+        this.reason = reason;
     }
 }

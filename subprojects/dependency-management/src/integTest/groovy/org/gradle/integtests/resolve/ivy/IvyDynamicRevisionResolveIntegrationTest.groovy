@@ -15,55 +15,68 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def setup() {
-        settingsFile << "rootProject.name = 'test' "
-    }
+@RequiredFeatures([
+    // this test is specific to Ivy
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
+]
+)
+@IgnoreIf({ GradleContextualExecuter.parallel })
+class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Issue("GRADLE-2502")
     def "latest.integration selects highest version regardless of status"() {
         given:
         buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:latest.integration'
-  }
-  """
-
-        and:
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
+            dependencies {
+                conf 'org.test:projectA:latest.integration'
+            }
+"""
 
         when:
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+        }
         runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any matches for org.test:projectA:latest.integration as no versions of org.test:projectA are available.'
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.0').withNoMetaData().publish()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.integration", "org.test:projectA:1.0")
+        resetExpectations()
+        repository {
+            'org.test:projectA' {
+                '1.1' {
+                    withModule {
+                        withStatus('integration')
+                    }
+                }
+                '1.2' {
+                    withModule {
+                        withStatus('integration')
+                    }
+                }
             }
         }
-
-        when:
-        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('integration').publish()
-        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('integration').publish()
-        run 'checkDeps'
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.2' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -73,24 +86,31 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('release').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA' {
+                '1.3' {
+                    withModule {
+                        withStatus('release')
+                    }
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:latest.integration", "org.test:projectA:1.3")
-            }
-        }
-
-        when:
-        ivyRepo.module('org.test', 'projectA', '1.4').withNoMetaData().publish()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.integration", "org.test:projectA:1.4")
             }
         }
     }
@@ -99,53 +119,75 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
     def "latest.milestone selects highest version with milestone or release status"() {
         given:
         buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:latest.milestone'
-  }
-  """
-        and:
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
+            dependencies {
+                conf 'org.test:projectA:latest.milestone'
+            }
+"""
 
         when:
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+        }
         runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any matches for org.test:projectA:latest.milestone as no versions of org.test:projectA are available.'
 
         when:
-        ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
-        runAndFail 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.3' {
+                withModule {
+                    withStatus 'integration'
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectGetMetadata()
+            }
+        }
+        runAndFail 'checkDeps', '--refresh-dependencies'
 
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
 Versions that do not match:
-    2.0
-Searched in the following locations:
-'''
-
-        when:
-        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
-        runAndFail 'checkDeps'
-
-        then:
-        failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
-Versions that do not match:
-    2.0
     1.3
 Searched in the following locations:
 '''
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus('milestone').publish()
-        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('milestone').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.0' {
+                withModule {
+                    withStatus 'milestone'
+                }
+            }
+            'org.test:projectA:1.1' {
+                withModule {
+                    withStatus 'milestone'
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectHeadMetadata()
+            }
+            'org.test:projectA:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -155,8 +197,27 @@ Searched in the following locations:
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('release').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.2' {
+                withModule {
+                    withStatus 'release'
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectHeadMetadata()
+            }
+            'org.test:projectA:1.2' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -166,8 +227,28 @@ Searched in the following locations:
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.3' {
+                withModule {
+                    withStatus 'integration'
+                    publishWithChangedContent()
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                allowAll()
+            }
+            'org.test:projectA:1.2' {
+                expectHeadMetadata()
+                expectHeadArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -178,58 +259,89 @@ Searched in the following locations:
     }
 
     @Issue("GRADLE-2502")
-    public void "latest.release selects highest version with release status"() {
+    void "latest.release selects highest version with release status"() {
         given:
         buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:latest.release'
-  }
-  """
-        and:
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
-
+            dependencies {
+                conf 'org.test:projectA:latest.release'
+            }
+"""
         when:
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+        }
         runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any matches for org.test:projectA:latest.release as no versions of org.test:projectA are available.'
 
         when:
-        ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
-        runAndFail 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.3' {
+                withModule {
+                    withStatus 'integration'
+                }
+            }
+            'org.test:projectA:1.2' {
+                withModule {
+                    withStatus 'milestone'
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectGetMetadata()
+            }
+            'org.test:projectA:1.2' {
+                expectGetMetadata()
+            }
+        }
+        runAndFail 'checkDeps', '--refresh-dependencies'
 
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
 Versions that do not match:
-    2.0
-Searched in the following locations:
-'''
-
-        when:
-        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
-        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('milestone').publish()
-        runAndFail 'checkDeps'
-
-        then:
-        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
-Versions that do not match:
-    2.0
     1.3
     1.2
 Searched in the following locations:
 '''
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus('release').publish()
-        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('release').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.1' {
+                withModule {
+                    withStatus 'release'
+                }
+            }
+            'org.test:projectA:1.0' {
+                withModule {
+                    withStatus 'release'
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectHeadMetadata()
+            }
+            'org.test:projectA:1.2' {
+                expectHeadMetadata()
+            }
+            'org.test:projectA:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -239,9 +351,38 @@ Searched in the following locations:
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.1.1').withStatus('milestone').publish()
-        ivyRepo.module('org.test', 'projectA', '1.1-beta2').withStatus('integration').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.1.1' {
+                withModule {
+                    withStatus 'milestone'
+                }
+            }
+            'org.test:projectA:1.1-beta2' {
+                withModule {
+                    withStatus 'integration'
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectHeadMetadata()
+            }
+            'org.test:projectA:1.2' {
+                expectHeadMetadata()
+            }
+            'org.test:projectA:1.1.1' {
+                expectGetMetadata()
+            }
+            'org.test:projectA:1.1' {
+                expectHeadMetadata()
+                expectHeadArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -255,44 +396,42 @@ Searched in the following locations:
     def "version selector ending in + selects highest matching version"() {
         given:
         buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:1.2+'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:1.2+'
+            }
+"""
         and:
-        ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
-        ivyRepo.module('org.test', 'projectA', '2.0').publish()
-
-        and:
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
+        repository {
+            'org.test:projectA:1.1.2'()
+            'org.test:projectA:2.0'()
+        }
 
         when:
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+        }
         runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:1.2+'
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:1.2+", "org.test:projectA:1.2")
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.2.1'()
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.2.1' {
+                expectGetMetadata()
+                expectGetArtifact()
             }
         }
-
-        when:
-        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
-        run 'checkDeps'
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -302,8 +441,20 @@ Searched in the following locations:
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2.9').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.2.9'()
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.2.9' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -313,8 +464,20 @@ Searched in the following locations:
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2.10').withNoMetaData().publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.2.10'()
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.2.10' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -328,24 +491,22 @@ Searched in the following locations:
     def "version range selects highest matching version"() {
         given:
         buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:[1.2,2.0]'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:[1.2,2.0]'
+            }
+"""
         and:
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
-
-        and:
-        ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
-        ivyRepo.module('org.test', 'projectA', '2.1').publish()
-
+        repository {
+            'org.test:projectA' {
+                '1.1.2'()
+                '2.1'()
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+        }
         when:
         runAndFail 'checkDeps'
 
@@ -353,19 +514,20 @@ Searched in the following locations:
         failureHasCause 'Could not find any version that matches org.test:projectA:[1.2,2.0]'
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2")
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.2.1'()
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.2.1' {
+                expectGetMetadata()
+                expectGetArtifact()
             }
         }
-
-        when:
-        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
-        run 'checkDeps'
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -375,8 +537,20 @@ Searched in the following locations:
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.3').publish()
-        run 'checkDeps'
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.3'()
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.3' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
@@ -384,15 +558,56 @@ Searched in the following locations:
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.3")
             }
         }
+    }
+
+    def "can resolve version range when no metadata is published"() {
+        given:
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    artifact()
+                }
+            }
+            dependencies {
+                conf 'org.test:projectA:[1.2,2.0)'
+            }
+"""
+        and:
+        repository {
+            'org.test:projectA:1.2' {
+                withModule {
+                    withNoMetaData()
+                }
+            }
+            'org.test:projectA:1.2.1' {
+                withModule {
+                    withNoMetaData()
+                }
+            }
+            'org.test:projectA:2.0' {
+                withModule {
+                    withNoMetaData()
+                }
+            }
+        }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.4').withNoMetaData().publish()
-        run 'checkDeps'
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.2.1' {
+                expectHeadArtifact()
+                expectGetArtifact()
+            }
+        }
+
+        run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.4")
+                edge("org.test:projectA:[1.2,2.0)", "org.test:projectA:1.2.1:default")
             }
         }
     }
@@ -401,85 +616,58 @@ Searched in the following locations:
     def "can resolve version range with single value specified"() {
         given:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyRepo.uri}"
-    }
-}
-
-configurations { compile }
-
 dependencies {
-    compile group: "org.test", name: "projectA", version: "[1.1]"
+    conf group: "org.test", name: "projectA", version: "[1.1]"
 }
 """
         and:
-        ivyRepo.module('org.test', 'projectB', '2.0').publish()
-        ivyRepo.module('org.test', 'projectA', '1.1').dependsOn('org.test', 'projectB', '[2.0]').publish()
-
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
+        repository {
+            'org.test' {
+                'projectB' {
+                    '2.0'()
+                }
+                'projectA' {
+                    '1.1' {
+                        dependsOn 'org.test:projectB:[2.0]'
+                    }
+                }
+            }
+        }
 
         when:
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                // todo: is single version in range something we want to allow in Gradle metadata?
+                'org.test:projectB' {
+                    expectVersionListing()
+                }
+            }
+            'org.test:projectB:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
         succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
-                    edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        edge("org.test:projectB:[2.0]", "org.test:projectB:2.0")
+                    } else {
+                        edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                    }
                 }
             }
         }
     }
 
-    @Issue("GRADLE-2502")
-    def "can resolve dynamic version from different repositories"() {
-        given:
-        def repo1 = ivyRepo("ivyRepo1")
-        def repo2 = ivyRepo("ivyRepo2")
-
-        and:
-        buildFile << """
-  repositories {
-      ivy {
-          url "${repo1.uri}"
-      }
-      ivy {
-          url "${repo2.uri}"
-      }
-
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:latest.milestone'
-  }
-  """
-        and:
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
-
-        when:
-        repo1.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
-        repo2.module('org.test', 'projectA', '1.2').withStatus("integration").publish()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1")
-            }
-        }
-
-        when:
-        repo2.module('org.test', 'projectA', '1.3').withStatus("milestone").publish()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.3")
-            }
-        }
-    }
 }

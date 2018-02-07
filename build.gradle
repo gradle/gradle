@@ -15,16 +15,23 @@
  */
 
 import org.gradle.build.Install
+import org.gradle.build.DefaultJavaInstallation
 import org.gradle.cleanup.EmptyDirectoryCheck
 
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+
+plugins {
+    id 'java-base'
+    id 'build-types'
+}
+
 defaultTasks 'assemble'
-apply plugin: 'java-base'
-apply plugin: 'build-types'
 archivesBaseName = 'gradle'
 
 buildTypes {
     sanityCheck {
         tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
+        projectProperties ignoreIncomingBuildReceipt: true
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
@@ -98,15 +105,6 @@ buildTypes {
         tasks "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
     }
 
-    //Initial smoke test for java 9
-    java9Build {
-        tasks "java9Test", "java9IntegTest"
-    }
-
-    java9SmokeTest {
-        tasks "java9IntegTest"
-    }
-
     soakTest {
         tasks "soak:soakTest"
         projectProperties testAllVersions: true
@@ -114,6 +112,7 @@ buildTypes {
 }
 
 ext {
+    gradle_kotlin_dsl_version = '0.15.4'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("CI")
@@ -174,16 +173,19 @@ apply from: "gradle/buildScanUserData.gradle"
 apply from: "gradle/taskCacheBuildScanUserData.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
+apply from: "gradle/dependenciesMetadataRules.gradle"
+apply from: "gradle/minifiedDependencies.gradle"
+apply from: "gradle/testDependencies.gradle"
 apply from: "gradle/wrapper.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
-apply from: "gradle/classycle.gradle"
-apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
 apply from: "gradle/publicApi.gradle"
+apply from: "gradle/updateReleasedVersions.gradle"
+apply from: "gradle/dependenciesCheck.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -206,9 +208,9 @@ subprojects {
     version = rootProject.version
 
     if (project in groovyProjects) {
-        apply from: "$rootDir/gradle/groovyProject.gradle"
+        apply from: "$rootDir/gradle/groovyProject.gradle.kts"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
-        apply from: "$rootDir/gradle/java9.gradle"
+        apply from: "$rootDir/gradle/java9plus.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }
@@ -248,15 +250,21 @@ configurations {
         extendsFrom runtime
         extendsFrom gradlePlugins
     }
+
+    all {
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
 }
+
+ext.allTestRuntimeDependencies = configurations.testRuntime.allDependencies
 
 def patchedExternalModulesDir = new File(buildDir, "external/files")
 def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules "org.gradle:gradle-kotlin-dsl:${versions.gradle_kotlin_dsl}"
-    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${versions.gradle_kotlin_dsl}"
+    externalModules "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
+    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${gradle_kotlin_dsl_version}"
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
@@ -274,6 +282,8 @@ dependencies {
     coreRuntimeExtensions patchedExternalModules
 }
 
+ext.allCoreRuntimeExtensions = configurations.coreRuntimeExtensions.allDependencies
+
 import org.gradle.modules.PatchExternalModules
 
 task patchExternalModules(type: PatchExternalModules) {
@@ -285,22 +295,29 @@ task patchExternalModules(type: PatchExternalModules) {
 
 task verifyIsProductionBuildEnvironment {
     doLast {
-        assert javaVersion.java7: "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
-        def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
-    }
-}
+        assert javaVersion.java8:
+            "Must use a Java 8 compatible JVM to perform this build. Current JVM is ${jvm}"
 
-task waitForDaemonsToDie {
-    if (!project.hasProperty("noWaitForDaemonsToDie")) {
-        if (isWindows && isCiServer && buildTypes.crossVersionTest.active) {
-            gradle.startParameter.taskNames.add(0, it.path)
+        def javaHomeProperty = { propertyName -> project.findProperty(propertyName) ?: System.getProperty(propertyName) }
+        def assertJavaHomeVersion = { propertyName, javaVersion ->
+            def javaInstallationPath = javaHomeProperty(propertyName)
+            assert javaInstallationPath:
+                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
+                    "Currently unset. Set -P$propertyName=/path/to/jvm/$javaVersion"
+            def javaInstallation = new DefaultJavaInstallation()
+            gradle.services.get(JavaInstallationProbe).checkJdk(file(javaInstallationPath)).configure(javaInstallation)
+            assert javaInstallation.javaVersion == javaVersion:
+                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
+                    "Is currently ${javaInstallation.displayName} at $javaInstallationPath. Set -P$propertyName=/path/to/jvm/$javaVersion"
         }
-        doLast {
-            def mins = 2
-            println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
-            sleep mins * 60 * 1000
+
+        assertJavaHomeVersion("java7Home", JavaVersion.VERSION_1_7)
+        if (javaHomeProperty("testJavaHome")) {
+            assertJavaHomeVersion("testJavaHome", JavaVersion.VERSION_1_8)
         }
+
+        def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
     }
 }
 

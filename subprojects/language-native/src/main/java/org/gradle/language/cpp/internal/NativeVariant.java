@@ -18,24 +18,26 @@ package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.language.nativeplatform.internal.Names;
 
 import java.util.Set;
 
-public class NativeVariant implements SoftwareComponentInternal {
-    private final String name;
+public class NativeVariant implements SoftwareComponentInternal, ComponentWithVariants {
     private final Usage linkUsage;
     private final Configuration linkElements;
     private final Usage runtimeUsage;
     private final Set<? extends PublishArtifact> runtimeArtifacts;
     private final Configuration runtimeElementsConfiguration;
+    private final Names names;
 
-    public NativeVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
-        this.name = name;
+    public NativeVariant(Names names, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
+        this.names = names;
         this.linkUsage = null;
         this.linkElements = null;
         this.runtimeUsage = usage;
@@ -43,8 +45,8 @@ public class NativeVariant implements SoftwareComponentInternal {
         this.runtimeElementsConfiguration = dependencies;
     }
 
-    public NativeVariant(String name, Usage linkUsage, Configuration linkElements, Usage runtimeUsage, Configuration runtimeElements) {
-        this.name = name;
+    public NativeVariant(Names names, Usage linkUsage, Configuration linkElements, Usage runtimeUsage, Configuration runtimeElements) {
+        this.names = names;
         this.linkUsage = linkUsage;
         this.linkElements = linkElements;
         this.runtimeUsage = runtimeUsage;
@@ -54,42 +56,20 @@ public class NativeVariant implements SoftwareComponentInternal {
 
     @Override
     public String getName() {
-        return name;
+        return names.getBaseName();
+    }
+
+    @Override
+    public Set<SoftwareComponent> getVariants() {
+        return ImmutableSet.of();
     }
 
     @Override
     public Set<? extends UsageContext> getUsages() {
         if (linkElements == null) {
-            return ImmutableSet.of(new SimpleUsage(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(names.getLowerBaseName() + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         } else {
-            return ImmutableSet.of(new SimpleUsage(linkUsage, linkElements.getAllArtifacts(), linkElements), new SimpleUsage(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
-        }
-    }
-
-    private static class SimpleUsage implements UsageContext {
-        private final Usage usage;
-        private final Set<? extends PublishArtifact> artifacts;
-        private final Set<ModuleDependency> dependencies;
-
-        SimpleUsage(Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-            this.usage = usage;
-            this.artifacts = artifacts;
-            this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
-        }
-
-        @Override
-        public Usage getUsage() {
-            return usage;
-        }
-
-        @Override
-        public Set<? extends PublishArtifact> getArtifacts() {
-            return artifacts;
-        }
-
-        @Override
-        public Set<ModuleDependency> getDependencies() {
-            return dependencies;
+            return ImmutableSet.of(new DefaultUsageContext(names.getLowerBaseName() + "-link", linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(names.getLowerBaseName() + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         }
     }
 }

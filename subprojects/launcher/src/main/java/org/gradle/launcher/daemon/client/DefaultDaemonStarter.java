@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
@@ -37,6 +38,7 @@ import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.CollectionUtils;
@@ -66,7 +68,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.versionValidator = versionValidator;
     }
 
-    public DaemonStartupInfo startDaemon() {
+    public DaemonStartupInfo startDaemon(boolean singleUse) {
         String daemonUid = UUID.randomUUID().toString();
 
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
@@ -116,6 +118,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
             encoder.writeSmallInt(daemonParameters.getIdleTimeout());
             encoder.writeSmallInt(daemonParameters.getPeriodicCheckInterval());
+            encoder.writeBoolean(singleUse);
             encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {
@@ -140,13 +143,20 @@ public class DefaultDaemonStarter implements DaemonStarter {
         try {
             GFileUtils.mkdirs(workingDir);
 
-            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer(stdInput);
-            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);
+            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
 
-            handle.start();
-            LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
-            handle.waitForFinish();
-            LOGGER.debug("Gradle daemon process is now detached.");
+            // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
+            DefaultExecActionFactory execActionFactory = new DefaultExecActionFactory(new IdentityFileResolver());
+            try {
+                ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
+
+                handle.start();
+                LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
+                handle.waitForFinish();
+                LOGGER.debug("Gradle daemon process is now detached.");
+            } finally {
+                execActionFactory.stop();
+            }
 
             return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput());
         } catch (GradleException e) {

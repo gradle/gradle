@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.internal.publication;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
+import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.MutableActionSet;
@@ -65,5 +66,15 @@ public class DefaultMavenPom implements MavenPomInternal {
 
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
+    }
+
+    @Override
+    public Set<MavenDependency> getApiDependencyManagement() {
+        return mavenPublication.getApiDependencyConstraints();
+    }
+
+    @Override
+    public Set<MavenDependency> getRuntimeDependencyManagement() {
+        return mavenPublication.getRuntimeDependencyConstraints();
     }
 }

@@ -15,10 +15,14 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -33,11 +37,19 @@ import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
@@ -82,6 +94,23 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
                 });
             }
         });
+        FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
+        task.includes(fileCollectionFactory.create(new MinimalFileSet() {
+            @Override
+            public Set<File> getFiles() {
+                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
+                if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
+                    ToolType toolType = determineToolType(languageTransform.getLanguageName());
+                    return new LinkedHashSet<File>(((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(toolType));
+                }
+                return ImmutableSet.of();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "System includes for " + binary.getToolChain().getDisplayName();
+            }
+        }));
 
         for (String toolName : languageTransform.getBinaryTools().keySet()) {
             Tool tool = binary.getToolByName(toolName);
@@ -91,6 +120,13 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
             task.getCompilerArgs().set(tool.getArgs());
         }
+    }
+
+    private ToolType determineToolType(String languageName) {
+        if (languageName.equals("cpp")) {
+            return ToolType.CPP_COMPILER;
+        }
+        return ToolType.C_COMPILER;
     }
 
     abstract void configureCompileTask(AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet);

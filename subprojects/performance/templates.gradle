@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.gradle.testing.performance.generator.tasks.CppMultiProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
@@ -20,6 +22,20 @@ import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGen
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
+
+// === Gradle Build ===
+task gradleBuildCurrent(type: RemoteProject) {
+    dependsOn rootProject.determineCommitId
+    remoteUri = rootDir.absolutePath
+    ref = provider { rootProject.determineCommitId.commitId }
+}
+
+task gradleBuildBaseline(type: RemoteProject) {
+    remoteUri = rootDir.absolutePath
+    // Remember to update accordingly when rebasing/squashing
+    // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
+    ref = 'c07cdaf'
+}
 
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
@@ -80,7 +96,7 @@ task ktsManyProjects(type: KtsProjectGeneratorTask) {
 task ktsSmall(type: KtsProjectGeneratorTask) {
 }
 
-// === Native ===
+// === Native Software Model ===
 task smallNative(type: NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
@@ -216,14 +232,91 @@ task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
     generateDeepHierarchy = true
 }
 
+// === Native Current Model Plugins ===
+task smallCppApp(type: CppMultiProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 20
+    templateArgs = [
+        functionCount: 2
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppApp(type: CppMultiProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 100
+    templateArgs = [
+        functionCount: 20
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppAppWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 100
+    templateArgs = [
+        functionCount: 20,
+        useMacroIncludes: true
+
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task bigCppApp(type: CppMultiProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 500
+    templateArgs = [
+        functionCount: 50
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task smallCppMulti(type: CppMultiProjectGeneratorTask) {
+    projects = 11
+    sourceFiles = 2
+    templateArgs = [
+        functionCount: 1
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
+    projects = 101
+    sourceFiles = 4
+    templateArgs = [
+        functionCount: 2
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppMultiWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+    projects = 101
+    sourceFiles = 4
+    templateArgs = [
+        functionCount: 2,
+        useMacroIncludes: true
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task bigCppMulti(type: CppMultiProjectGeneratorTask) {
+    projects = 201
+    sourceFiles = 8
+    templateArgs = [
+        functionCount: 3
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+// === Android ===
 task k9AndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    branch = 'gradle'
+    branch = 'android-30'
 }
 
 task largeAndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'gradle'
+    branch = 'android-30'
 }
 
 task excludeRuleMergingBuild(type: RemoteProject) {

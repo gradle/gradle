@@ -19,10 +19,13 @@ import java.lang.annotation.*;
 
 /**
  * Marks a property as available from the command-line.
+ *
+ * @deprecated This class will be removed in Gradle 5.0. Use {@link org.gradle.api.tasks.options.Option instead}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Inherited
+@Deprecated
 public @interface Option {
     /**
      * The option to map to this property.

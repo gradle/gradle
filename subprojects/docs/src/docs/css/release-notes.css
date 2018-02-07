@@ -1,3 +1,24 @@
+.table-of-contents a {
+  color: #02303A;
+}
+
+#fixed-issues-list ul,
+.table-of-contents ul,
+.topic ul {
+  list-style-type: none;
+}
+
+#fixed-issues-list li:before,
+.table-of-contents ul li:before,
+.topic ul li:before {
+  color: #02303A;
+  content: '\00276F';
+  float: left;
+  font: 14px bold sans-serif;
+  margin-left: -1em;
+  line-height: 25px;
+}
+
 img.logo {
   margin-bottom: 1em;
 }
@@ -68,11 +89,12 @@ section.footer {
   text-align: center;
 }
 
+/* Same as code highlighting values in docs.css */
 .java_keyword {
-  color: #DDC498;
+  color: #963;
 }
 .java_comment {
-  color: #AFAFAF;
+  color: #998;
 }
 .java_plain, .java_type {
 
@@ -81,10 +103,10 @@ section.footer {
 
 }
 .java_operator {
-  color: #C7B390;
+  color: #555;
 }
 .java_literal {
-  color: #83C283;
+  color: #d14;
 }
 
 /* TipTip CSS - Version 1.2 */

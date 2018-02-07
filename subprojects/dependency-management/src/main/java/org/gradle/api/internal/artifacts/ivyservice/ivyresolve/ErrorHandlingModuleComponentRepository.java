@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -37,16 +38,23 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 import java.util.Map;
 
+/**
+ * A ModuleComponentRepository that catches any exception and applies it to the result object.
+ * This allows other repository implementations to throw exceptions on failure.
+ *
+ * This implementation will also blacklist any repository that throws a critical failure, failing-fast with that
+ * repository for any subsequent requests.
+ */
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
 
     private final ModuleComponentRepository delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
-    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate) {
+    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryBlacklister remoteRepositoryBlacklister) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess());
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess());
+        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryBlacklister.NoOpBlacklister.INSTANCE);
+        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister);
     }
 
     @Override
@@ -84,10 +92,15 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
+        private final static String BLACKLISTED_REPOSITORY_ERROR_MESSAGE = "Skipped due to earlier error";
         private final ModuleComponentRepositoryAccess delegate;
+        private final String repositoryId;
+        private final RepositoryBlacklister repositoryBlacklister;
 
-        public ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister) {
             this.delegate = delegate;
+            this.repositoryId = repositoryId;
+            this.repositoryBlacklister = repositoryBlacklister;
         }
 
         @Override
@@ -96,46 +109,78 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         @Override
-        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
+                result.failed(new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                return;
+            }
+
             try {
                 delegate.listModuleVersions(dependency, result);
             } catch (Throwable throwable) {
-                result.failed(new ModuleVersionResolveException(dependency.getSelector(), throwable));
+                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
+                ModuleComponentSelector selector = dependency.getSelector();
+                String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
+                result.failed(new ModuleVersionResolveException(selector, message, throwable));
             }
         }
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
+                result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                return;
+            }
+
             try {
                 delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             } catch (Throwable throwable) {
+                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
                 result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, throwable));
             }
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
+                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                return;
+            }
+
             try {
                 delegate.resolveArtifactsWithType(component, artifactType, result);
             } catch (Throwable throwable) {
+                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
                 result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
             }
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
+                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                return;
+            }
+
             try {
                 delegate.resolveArtifacts(component, result);
             } catch (Throwable throwable) {
+                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
                 result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
             }
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
+                result.failed(new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                return;
+            }
+
             try {
                 delegate.resolveArtifact(artifact, moduleSource, result);
             } catch (Throwable throwable) {
+                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
                 result.failed(new ArtifactResolveException(artifact.getId(), throwable));
             }
         }

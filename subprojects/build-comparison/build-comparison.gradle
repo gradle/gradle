@@ -15,7 +15,7 @@
  */
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(":resources")
     compile project(":core")
@@ -23,12 +23,16 @@ dependencies {
     compile project(":reporting")
     compile project(':plugins')
     compile project(':ear')
-    compile libraries.guava
-    compile libraries.slf4j_api
+    compile libraries.guava.coordinate
+    compile libraries.slf4j_api.coordinate
 
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
 
     integTestRuntime project(":toolingApiBuilders")
+}
+
+testFixtures {
+    from(':core')
 }
 
 processResources {
@@ -37,5 +41,3 @@ processResources {
         include "base.css"
     }
 }
-
-useTestFixtures()

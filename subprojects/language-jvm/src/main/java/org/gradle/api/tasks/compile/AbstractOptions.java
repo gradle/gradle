@@ -87,6 +87,7 @@ public abstract class AbstractOptions implements Serializable {
     private boolean isOptionField(Field field) {
         return ((field.getModifiers() & Modifier.STATIC) == 0)
                 && (!field.getName().equals("metaClass"))
+                && (!field.getName().equals("fileResolver"))
                 && (!excludeFromAntProperties(field.getName()));
     }
 }

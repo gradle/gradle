@@ -34,6 +34,10 @@ configurations {
     dists
 }
 
+dependencies {
+    compile project(':distributionsDependencies')
+}
+
 evaluationDependsOn ":docs"
 
 ext {
@@ -99,16 +103,20 @@ task srcZip(type: Zip) {
             def spec = delegate
             ['buildSrc', 'subprojects/*'].each {
                 spec.include "$it/*.gradle"
+                spec.include "$it/*.gradle.kts"
                 spec.include "$it/src/"
             }
             include 'gradle.properties'
+            include 'buildSrc/gradle.properties'
             include 'config/'
             include 'gradle/'
             include 'src/'
             include '*.gradle'
+            include '*.gradle.kts'
             include 'wrapper/'
             include 'gradlew.bat'
             include 'version.txt'
+            include 'released-versions.json'
         }
     }
 }

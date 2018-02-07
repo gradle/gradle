@@ -17,20 +17,25 @@
 /*
  * The model management core.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.groovy
+    api libraries.groovy.coordinate
 
     implementation project(':baseServicesGroovy')
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.commons_lang
-    implementation libraries.jcip
-    implementation libraries.asm
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.commons_lang.coordinate
+    implementation libraries.jcip.coordinate
+    implementation libraries.asm.coordinate
+    implementation libraries.asm_tree.coordinate
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')
@@ -39,13 +44,18 @@ dependencies {
     testFixturesImplementation project(':core')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
-useClassycle(exclude: [
-    'org/gradle/model/internal/core/**',
-    'org/gradle/model/internal/inspect/**',
-    'org/gradle/model/internal/manage/schema/**',
-    'org/gradle/model/internal/type/**'
-])
-strictCompileIgnoreDeprecations()
+testFixtures {
+    from(':core')
+    from(':diagnostics', 'testFixtures')
+}
 
+strictCompile {
+    ignoreDeprecations = true
+}
+
+classycle {
+    excludePatterns = ['org/gradle/model/internal/core/**',
+                       'org/gradle/model/internal/inspect/**',
+                       'org/gradle/model/internal/manage/schema/**',
+                       'org/gradle/model/internal/type/**']
+}

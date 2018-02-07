@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.Named
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
@@ -163,6 +164,35 @@ class InputPropertiesSerializerTest extends Specification {
 
         expect:
         original == written
+    }
+
+    def "serializes managed named properties"() {
+        def value = Stub(Named)
+        value.name >> "123"
+        def original = [a: new ManagedNamedTypeSnapshot(value)]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes implementation properties"() {
+        def original = [a: new ImplementationSnapshot("someClassName", HashCode.fromString("0123456789"))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes implementation properties with unknown classloader"() {
+        def original = new ImplementationSnapshot("someClassName", null)
+        def originalMap = [a: original]
+        write(originalMap)
+
+        expect:
+        ImplementationSnapshot copy = written.a
+        original.typeName == copy.typeName
+        copy.hasUnknownClassLoader()
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {

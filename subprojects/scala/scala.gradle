@@ -18,22 +18,24 @@
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(":core")
     compile project(":languageJvm")
     compile project(":languageScala")
     compile project(":plugins")
 
-    testCompile libraries.slf4j_api
+    testCompile libraries.slf4j_api.coordinate
 
     integTestRuntime project(":ide")
     integTestRuntime project(':maven')
 }
 
-useTestFixtures(project: ":plugins") // includes core test fixtures
-useTestFixtures(project: ":languageJvm")
-useTestFixtures(project: ":languageScala")
+testFixtures {
+    from(':plugins') // include core test fixtures
+    from(':languageJvm')
+    from(':languageScala')
+}
 
 integTest {
     jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen

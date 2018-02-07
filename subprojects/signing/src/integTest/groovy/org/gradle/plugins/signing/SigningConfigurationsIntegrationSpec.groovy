@@ -16,7 +16,7 @@
 package org.gradle.plugins.signing
 
 class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
-    
+
     def "signing configurations"() {
         given:
         buildFile << """
@@ -25,19 +25,20 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
             }
             
             signing {
+                ${signingConfiguration()}
                 sign configurations.archives, configurations.meta
             }
 
             ${keyInfo.addAsPropertiesScript()}
             ${getJavadocAndSourceJarsScript("meta")}
         """
-        
+
         when:
         run "buildSignatures"
-        
+
         then:
         executedAndNotSkipped ":signArchives", ":signMeta"
-        
+
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "libs", "sign-1.0-javadoc.jar.asc").text

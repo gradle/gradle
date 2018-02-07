@@ -16,8 +16,8 @@
 package org.gradle.internal.resolve;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -31,11 +31,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         super(selector, message);
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionSelector selector, String message) {
-        super(selector, message);
-    }
-
-    public ModuleVersionNotFoundException(ModuleVersionSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
+    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
     }
 
@@ -43,10 +39,14 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         super(id, format(id, attemptedLocations));
     }
 
-    private static String format(ModuleVersionSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
+    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations) {
+        super(selector, format(selector, attemptedLocations));
+    }
+
+    private static String format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
         StringBuilder builder = new StringBuilder();
         if (unmatchedVersions.isEmpty() && rejectedVersions.isEmpty()) {
-            builder.append(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getName()));
+            builder.append(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getModule()));
         } else {
             builder.append(String.format("Could not find any version that matches %s.", selector));
             if (!unmatchedVersions.isEmpty()) {
@@ -65,6 +65,13 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     private static String format(ModuleVersionIdentifier id, Collection<String> locations) {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("Could not find %s.", id));
+        addLocations(builder, locations);
+        return builder.toString();
+    }
+
+    private static String format(ModuleComponentSelector selector, Collection<String> locations) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Could not find any version that matches %s.", selector));
         addLocations(builder, locations);
         return builder.toString();
     }

@@ -23,9 +23,10 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -188,18 +189,26 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             resolution.text("Run with ");
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.StacktraceOption.STACKTRACE_LONG_OPTION);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION);
             resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             resolution.text("Run with ");
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.LogLevelOption.INFO_LONG_OPTION);
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION);
                 resolution.text(" or ");
             }
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.LogLevelOption.DEBUG_LONG_OPTION);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
             resolution.text(" option to get more log output.");
         }
+
+        addBuildScanMessage(resolution);
+    }
+
+    private void addBuildScanMessage(BufferingStyledTextOutput resolution) {
+        resolution.text(" Run with ");
+        resolution.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        resolution.text(" to get full insights.");
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {

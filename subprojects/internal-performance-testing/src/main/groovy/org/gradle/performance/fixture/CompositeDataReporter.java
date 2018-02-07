@@ -19,11 +19,13 @@ package org.gradle.performance.fixture;
 import org.gradle.performance.results.CrossVersionPerformanceResults;
 import org.gradle.performance.results.DataReporter;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CompositeDataReporter implements DataReporter<CrossVersionPerformanceResults> {
+public class CompositeDataReporter implements DataReporter<CrossVersionPerformanceResults>, Closeable {
     private final List<DataReporter<CrossVersionPerformanceResults>> reporters;
     private final Set<String> testIds = new HashSet<String>();
 
@@ -37,6 +39,13 @@ public class CompositeDataReporter implements DataReporter<CrossVersionPerforman
         }
         for (DataReporter<CrossVersionPerformanceResults> reporter : reporters) {
             reporter.report(results);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (DataReporter<CrossVersionPerformanceResults> reporter : reporters) {
+            reporter.close();
         }
     }
 }

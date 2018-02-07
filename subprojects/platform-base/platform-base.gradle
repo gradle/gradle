@@ -1,17 +1,24 @@
+plugins {
+    id 'strict-compile'
+}
+
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':workers')
-    compile libraries.commons_collections
+    compile libraries.commons_collections.coordinate
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
 }
 
-//useClassycle(exclude: ['org.gradle.language.base.internal/**'])
-strictCompile()
-useTestFixtures()
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':diagnostics', 'testFixtures')
+}
 
+// classycle {
+//     excludePatterns = ['org.gradle.language.base.internal/**']
+// }

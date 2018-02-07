@@ -73,7 +73,7 @@ class IncrementalTestIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds('test').assertTasksNotSkipped(':test')
 
-        result.assertTestClassesExecuted('TestNGTest', 'JUnitTest') //previous result still present in the dir
+        result.assertTestClassesExecuted('TestNGTest') //previous result still present in the dir
 
         succeeds('test').assertTasksNotSkipped()
     }

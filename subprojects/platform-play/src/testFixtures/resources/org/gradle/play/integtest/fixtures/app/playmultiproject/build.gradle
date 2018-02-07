@@ -1,1 +1,3 @@
-// repositories added in PlayApp class
+plugins {
+    id 'play'
+}

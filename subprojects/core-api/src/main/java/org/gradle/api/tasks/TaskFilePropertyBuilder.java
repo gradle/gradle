@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -24,12 +23,10 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 3.1
  */
-@Incubating
 @HasInternalProtocol
 public interface TaskFilePropertyBuilder extends TaskPropertyBuilder {
     /**
-     * Sets the name for this property. The name must be a valid Java identifier,
-     * or a series of valid Java identifiers separated with dots ('.').
+     * Sets the name for this property. The name must be a non-empty string.
      *
      * <p>If the method is not called, or if it is called with {@code null}, a name
      * will be assigned to the property automatically.</p>

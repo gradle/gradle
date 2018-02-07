@@ -112,7 +112,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {
-        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager);
+        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), configuration.isSingleUse(), get(DaemonRegistry.class), listenerManager);
     }
 
     protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
@@ -156,7 +156,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             ),
             get(DaemonRegistry.class),
             get(DaemonContext.class),
-            new DaemonCommandExecuter(actions),
+            new DaemonCommandExecuter(configuration, actions),
             get(ExecutorFactory.class),
             get(ListenerManager.class)
         );

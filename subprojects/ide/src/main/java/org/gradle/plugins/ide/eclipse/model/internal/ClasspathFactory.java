@@ -22,9 +22,8 @@ import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Container;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.Output;
-import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
+import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,7 +51,7 @@ public class ClasspathFactory {
         return new Output(classpath.getProject().relativePath(classpath.getDefaultOutputDir()));
     }
 
-    private List<ClasspathEntry> createSourceFolders() {
+    private List<SourceFolder> createSourceFolders() {
         return new SourceFoldersCreator().createSourceFolders(classpath);
     }
 
@@ -71,9 +70,5 @@ public class ClasspathFactory {
 
     private List<? extends ClasspathEntry> createClassFolders() {
         return classpath.isProjectDependenciesOnly() ? Collections.<ClasspathEntry>emptyList() : new ClassFoldersCreator().create(classpath);
-    }
-
-    public Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies() {
-        return dependenciesCreator.unresolvedExternalDependencies();
     }
 }

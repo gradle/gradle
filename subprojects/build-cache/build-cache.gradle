@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     api project(":baseServices")
-    api libraries.inject
+    api libraries.inject.coordinate
 
     implementation project(":messaging")
     implementation project(":native")
@@ -25,16 +29,16 @@ dependencies {
     implementation project(":resources")
     implementation project(":logging")
 
-    implementation libraries.commons_io
+    implementation libraries.commons_io.coordinate
 
-    jmh libraries.ant
-    jmh libraries.commons_compress
+    jmh (libraries.ant.coordinate) { version { prefer libraries.ant.version } }
+    jmh (libraries.commons_compress.coordinate) { version { prefer libraries.commons_compress.version } }
     jmh "io.airlift:aircompressor:0.8"
     jmh "org.iq80.snappy:snappy:0.4"
     jmh "org.kamranzafar:jtar:2.3"
 }
 
-useTestFixtures()
-useTestFixtures(project: ":baseServices")
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':baseServices')
+}

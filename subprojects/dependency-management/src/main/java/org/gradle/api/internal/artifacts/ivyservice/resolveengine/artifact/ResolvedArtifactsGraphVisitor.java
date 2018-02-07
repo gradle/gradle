@@ -29,8 +29,8 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
@@ -65,9 +65,11 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     @Override
     public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
-            DependencyGraphNode parent = dependency.getFrom();
-            ArtifactsForNode artifacts = getArtifacts(dependency, node);
-            artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
+            if (dependency.contributesArtifacts()) {
+                DependencyGraphNode parent = dependency.getFrom();
+                ArtifactsForNode artifacts = getArtifacts(dependency, node);
+                artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
+            }
         }
         for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
             int id = nextId++;
@@ -82,10 +84,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
-        ConfigurationMetadata configuration = toConfiguration.getMetadata();
+        ConfigurationMetadata targetConfiguration = toConfiguration.getMetadata();
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
 
-        Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
+        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetConfiguration);
         if (!artifacts.isEmpty()) {
             int id = nextId++;
             ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts);
@@ -94,8 +96,16 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
-            ModuleExclusion exclusions = dependency.getExclusions(moduleExclusions);
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, configuration, exclusions);
+            ModuleExclusion exclusions = dependency.getExclusions();
+
+            // The above isn't quite right, since we are not applying artifact exclusions defined for the target node,
+            // to the target node itself. So a module exclusion for `type='jar'` won't exclude the jar for the module itself.
+            // While fixing this, we should be smarter about artifact exclusions: these can be completely separate from module exclusions.
+//            ModuleExclusion nodeExclusions = targetConfiguration.getExclusions(moduleExclusions);
+//            ModuleExclusion edgeExclusions = dependency.getExclusions();
+//            ModuleExclusion exclusions = moduleExclusions.intersect(edgeExclusions, nodeExclusions);
+
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

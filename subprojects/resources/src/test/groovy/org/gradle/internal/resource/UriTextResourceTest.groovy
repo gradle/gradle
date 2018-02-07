@@ -114,8 +114,6 @@ class UriTextResourceTest extends Specification {
 
         then:
         !resource.exists
-        resource.file == null
-        resource.charset == null
 
         when:
         resource.text
@@ -146,8 +144,6 @@ class UriTextResourceTest extends Specification {
 
         then:
         resource.exists
-        resource.file == null
-        resource.charset == null
 
         when:
         resource.text

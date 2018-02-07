@@ -29,6 +29,7 @@ import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -38,6 +39,7 @@ import java.io.File;
 public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup(FILE_SYSTEM, PatternSets.getNonCachingPatternSetFactory());
+    private static final DefaultExecActionFactory EXEC_FACTORY = new DefaultExecActionFactory(resolver());
 
     public static FileLookup fileLookup() {
         return FILE_LOOKUP;
@@ -70,7 +72,7 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory());
     }
 
     public static DefaultStreamHasher streamHasher() {
@@ -93,20 +95,24 @@ public class TestFiles {
         return new DefaultSourceDirectorySetFactory(resolver(baseDir), new DefaultDirectoryFileTreeFactory());
     }
 
+    public static ExecFactory execFactory() {
+        return EXEC_FACTORY;
+    }
+
     public static ExecActionFactory execActionFactory() {
-        return new DefaultExecActionFactory(resolver());
+        return execFactory();
     }
 
     public static ExecHandleFactory execHandleFactory() {
-        return new DefaultExecActionFactory(resolver());
+        return execFactory();
     }
 
     public static ExecHandleFactory execHandleFactory(File baseDir) {
-        return new DefaultExecActionFactory(resolver(baseDir));
+        return execFactory().forContext(resolver(baseDir), DirectInstantiator.INSTANCE);
     }
 
     public static JavaExecHandleFactory javaExecHandleFactory(File baseDir) {
-        return new DefaultExecActionFactory(resolver(baseDir));
+        return execFactory().forContext(resolver(baseDir), DirectInstantiator.INSTANCE);
     }
 
     public static Factory<PatternSet> getPatternSetFactory() {

@@ -16,12 +16,8 @@
 
 sourceCompatibility = 1.6
 
-configurations {
-    testFixtures
-}
-
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(':core')
     compile project(':workers')
@@ -34,13 +30,13 @@ dependencies {
     compile project(':diagnostics')
     compile project(':testingJvm')
 
-    compile libraries.ant
-    compile libraries.asm
-    compile libraries.commons_io
-    compile libraries.commons_lang
-    compile libraries.slf4j_api
+    compile libraries.ant.coordinate
+    compile libraries.asm.coordinate
+    compile libraries.commons_io.coordinate
+    compile libraries.commons_lang.coordinate
+    compile libraries.slf4j_api.coordinate
 
-    runtime libraries.commons_cli
+    runtime libraries.commons_cli.coordinate
 
     // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
@@ -48,9 +44,18 @@ dependencies {
 
     testFixturesCompile project(":internalIntegTesting")
 
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
 
     integTestRuntime project(":maven")
+}
+
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':dependencyManagement')
+    from(':languageJava')
+    from(':languageGroovy')
+    from(':diagnostics')
 }
 
 def wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
@@ -61,13 +66,4 @@ task wrapperJar(type: Copy) {
 }
 sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar
 
-useTestFixtures()
-useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":languageJava")
-useTestFixtures(project: ":languageGroovy")
-useTestFixtures(project: ':diagnostics')
-
-
 verifyTestFilesCleanup.errorWhenNotEmpty = false
-

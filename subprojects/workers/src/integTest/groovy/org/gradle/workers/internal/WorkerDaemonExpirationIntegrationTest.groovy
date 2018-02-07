@@ -17,7 +17,9 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Timeout
 
+@Timeout(60)
 class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

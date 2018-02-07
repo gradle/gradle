@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 import java.util.Collections;
@@ -51,6 +52,11 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
     }
 
     @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return null;
+    }
+
+    @Override
     public String getName() {
         ComponentSelector requested = dependency.getRequested();
         ComponentSelector attempted = dependency.getAttempted();
@@ -65,8 +71,8 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
 
             if(requestedSelector.getGroup().equals(attemptedSelector.getGroup())
                     && requestedSelector.getModule().equals(attemptedSelector.getModule())
-                    && !requestedSelector.getVersion().equals(attemptedSelector.getVersion())) {
-                return requested.getDisplayName() + " -> " + ((ModuleComponentSelector) attempted).getVersion();
+                    && !requestedSelector.getVersionConstraint().equals(attemptedSelector.getVersionConstraint())) {
+                return requested.getDisplayName() + " -> " + ((ModuleComponentSelector) attempted).getVersionConstraint().getPreferredVersion();
             }
         }
 

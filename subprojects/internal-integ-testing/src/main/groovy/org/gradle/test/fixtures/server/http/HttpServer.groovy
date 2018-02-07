@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.internal.BiAction
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.ServerExpectation
@@ -27,10 +28,12 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
+import org.mortbay.io.EndPoint
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.HttpStatus
 import org.mortbay.jetty.MimeTypes
+import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -226,6 +229,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     *  Expects one GET request, which fails with a 401 status code.
+     */
+    void expectGetUnauthorized(String path) {
+        expect(path, false, ['GET'], unauthorized())
+    }
+
+    /**
      * Expects one GET request, which will block for maximum 60 seconds
      */
     void expectGetBlocking(String path) {
@@ -269,6 +279,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "broken")
+            }
+        }
+    }
+
+    private Action unauthorized() {
+        new ActionSupport("return 401 unauthorized") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(401, "unauthorized")
             }
         }
     }
@@ -623,6 +641,18 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     void addHandler(Handler handler) {
         collection.addHandler(handler)
+    }
+
+    /**
+     * Blocks on SSL handshake for 60 seconds.
+     */
+    void expectSslHandshakeBlocking() {
+        sslPreHandler = new BiAction<EndPoint, Request>() {
+            @Override
+            void execute(EndPoint endPoint, Request request) {
+                Thread.sleep(TimeUnit.SECONDS.toMillis(60))
+            }
+        }
     }
 
     static class HttpExpectOne extends ExpectOne {

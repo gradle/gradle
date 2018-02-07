@@ -36,7 +36,6 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBu
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeHtmlRenderer;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -180,7 +179,6 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
      *
      * @return True if a comparison between non identical builds will fail the task execution, otherwise false.
      */
-    @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }

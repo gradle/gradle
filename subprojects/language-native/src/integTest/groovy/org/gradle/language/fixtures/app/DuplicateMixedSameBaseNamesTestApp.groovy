@@ -19,7 +19,7 @@ package org.gradle.language.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.TestNativeComponent;
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
 
 // TODO integrate objective-c/cpp we have coverage on windows
@@ -74,7 +74,7 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
 
         """),
                 sourceFile("asm", "foo.s", asmSource())
-        ];
+        ]
     }
 
     String asmSource() {

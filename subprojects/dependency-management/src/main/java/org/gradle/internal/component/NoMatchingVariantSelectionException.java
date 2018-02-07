@@ -25,7 +25,7 @@ import java.util.Collection;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
 
-public class NoMatchingVariantSelectionException extends RuntimeException {
+public class NoMatchingVariantSelectionException extends VariantSelectionException {
     public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
         super(format(producerDisplayName, consumer, candidates, matcher));
     }

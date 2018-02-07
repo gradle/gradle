@@ -29,12 +29,17 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
+import org.spockframework.runtime.Sputnik;
+import org.spockframework.runtime.model.FeatureInfo;
+import org.spockframework.runtime.model.IterationInfo;
+import org.spockframework.runtime.model.NameProvider;
+import org.spockframework.runtime.model.SpecInfo;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -49,12 +54,18 @@ import java.util.Set;
 public abstract class AbstractMultiTestRunner extends Runner implements Filterable {
     protected final Class<?> target;
     private final List<Execution> executions = new ArrayList<Execution>();
+    private final boolean runAllExecutions;
     private Description description;
     private Description templateDescription;
     private boolean executionsInitialized;
 
     protected AbstractMultiTestRunner(Class<?> target) {
+        this(target, true);
+    }
+
+    protected AbstractMultiTestRunner(Class<?> target, boolean runAllExecutions) {
         this.target = target;
+        this.runAllExecutions = runAllExecutions;
     }
 
     @Override
@@ -66,8 +77,12 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     @Override
     public void run(RunNotifier notifier) {
         initDescription();
+
         for (Execution execution : executions) {
             execution.run(notifier);
+            if (!runAllExecutions && execution.hasAnyEnabledTests()) {
+                break;
+            }
         }
     }
 
@@ -82,7 +97,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     private void initExecutions() {
         if (!executionsInitialized) {
             try {
-                Runner descriptionProvider = createRunnerFor(Arrays.asList(target), Collections.<Filter>emptyList());
+                UnrollAwareSuite descriptionProvider = createRunnerFor(Collections.singletonList(target), Collections.<Filter>emptyList(), null);
                 templateDescription = descriptionProvider.getDescription();
             } catch (InitializationError initializationError) {
                 throw UncheckedException.throwAsUncheckedException(initializationError);
@@ -116,7 +131,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         executions.add(execution);
     }
 
-    private static Runner createRunnerFor(List<? extends Class<?>> targetClasses, final List<Filter> filters) throws InitializationError {
+    private static UnrollAwareSuite createRunnerFor(List<? extends Class<?>> targetClasses, final List<Filter> filters, Execution execution) throws InitializationError {
         RunnerBuilder runnerBuilder = new RunnerBuilder() {
             @Override
             public Runner runnerForClass(Class<?> testClass) throws Throwable {
@@ -138,7 +153,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             private Runner filter(Runner r) {
                 for (Filter filter : filters) {
                     try {
-                        ((Filterable)r).filter(filter);
+                        ((Filterable) r).filter(filter);
                     } catch (NoTestsRemainException e) {
                         //ignore
                     }
@@ -146,7 +161,59 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 return r;
             }
         };
-        return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[0]));
+        return new UnrollAwareSuite(runnerBuilder, targetClasses.toArray(new Class<?>[0]), execution);
+    }
+
+    private static class UnrollAwareSuite extends Suite {
+
+        private static final Method SPEC_METHOD;
+
+        static {
+            Method spec = null;
+            try {
+                spec = Sputnik.class.getDeclaredMethod("getSpec");
+                spec.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                spec = null;
+            } finally {
+                SPEC_METHOD = spec;
+            }
+        }
+
+        public UnrollAwareSuite(RunnerBuilder builder, Class<?>[] classes, final Execution execution) throws InitializationError {
+            super(builder, classes);
+            if (execution != null) {
+                fixupNameProvider(execution);
+            }
+        }
+
+        private void fixupNameProvider(final Execution execution) {
+            for (Runner child : getChildren()) {
+                if (child instanceof Sputnik && SPEC_METHOD != null) {
+                    try {
+                        Description childDescription = child.getDescription();
+                        SpecInfo spec = (SpecInfo) SPEC_METHOD.invoke(child);
+                        List<FeatureInfo> allFeatures = spec.getAllFeatures();
+                        for (FeatureInfo feature : allFeatures) {
+                            feature.setSkipped(feature.isSkipped() || !execution.isTestEnabled(new TestDescriptionBackedTestDetails(childDescription, feature.getDescription())));
+                            final NameProvider<IterationInfo> provider = feature.getIterationNameProvider();
+                            if (provider!=null) {
+                                feature.setIterationNameProvider(new NameProvider<IterationInfo>() {
+                                    @Override
+                                    public String getName(IterationInfo iterationInfo) {
+                                        return provider.getName(iterationInfo) + " [" + execution.getDisplayName() + "]";
+                                    }
+                                });
+                            }
+                        }
+                    } catch (IllegalAccessException e) {
+                        // no luck
+                    } catch (InvocationTargetException e) {
+                        // no luck
+                    }
+                }
+            }
+        }
     }
 
     protected static abstract class Execution implements Filterable {
@@ -157,6 +224,10 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private final Set<Description> disabledTests = new LinkedHashSet<Description>();
         private final List<Filter> filters = new LinkedList<Filter>();
 
+        final boolean hasAnyEnabledTests() {
+            return !enabledTests.isEmpty();
+        }
+
         final void init(Class<?> target, Description templateDescription) {
             this.target = target;
             this.templateDescription = templateDescription;
@@ -164,7 +235,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
         private Runner createExecutionRunner() throws InitializationError {
             List<? extends Class<?>> targetClasses = loadTargetClasses();
-            return createRunnerFor(targetClasses, filters);
+            return createRunnerFor(targetClasses, filters, this);
         }
 
         final void addDescriptions(Description parent) {
@@ -183,7 +254,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             }
 
             for (Description disabledTest : disabledTests) {
-                nested.fireTestStarted(disabledTest);
                 nested.fireTestIgnored(disabledTest);
             }
         }

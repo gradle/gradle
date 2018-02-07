@@ -20,23 +20,26 @@ import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.IvyDependencyMetadata
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
-import org.gradle.util.TextUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.component.ArtifactType.IVY_DESCRIPTOR
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
@@ -45,10 +48,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     FileResourceRepository fileRepository = TestFiles.fileRepository()
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileRepository)
+    IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
+
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileRepository, metadataFactory)
 
     DescriptorParseContext parseContext = Mock()
-    ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 
     def "parses minimal Ivy descriptor"() {
@@ -64,11 +68,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
+        metadata.contentHash == HashUtil.createHash(file, "MD5")
 
         artifact()
     }
@@ -90,9 +94,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
 
@@ -119,9 +122,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
         metadata.dependencies.empty
 
@@ -328,16 +330,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
-        md.publicationDate == new GregorianCalendar(2004, 10, 1, 11, 0, 0).getTime()
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "status"
 
-        TextUtil.normaliseLineSeparators(md.getDescription()) ==
-            "This module is <b>great</b> !<br/>\n\tYou can use it especially with myconf1 and myconf2, and myconf4 is not too bad too."
-
-        md.extraInfo.size() == 1
-        md.extraInfo.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
+        metadata.extraAttributes.size() == 1
+        metadata.extraAttributes.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
 
         metadata.configurationDefinitions.size() == 5
         assertConf("myconf1", "desc 1", true, new String[0])
@@ -346,7 +343,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertConf("myconf4", "desc 4", true, ["myconf1", "myconf2"].toArray(new String[2]))
         assertConf("myoldconf", "my old desc", true, new String[0])
 
-        md.artifacts.size() == 4
+        metadata.artifactDefinitions.size() == 4
         assertArtifacts("myconf1", ["myartifact1", "myartifact2", "myartifact3", "myartifact4"])
         assertArtifacts("myconf2", ["myartifact1", "myartifact3"])
         assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
@@ -360,7 +357,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         verifyFullDependencies(metadata.dependencies)
 
-        def rules = md.excludes
+        def rules = metadata.excludes
         rules.size() == 2
         rules[0].matcher == PatternMatcher.GLOB
         rules[0].configurations as List == ["myconf1"]
@@ -400,14 +397,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
 
         metadata.dependencies.size() == 1
         def dependency = metadata.dependencies.first()
-        dependency.requested == newSelector("deporg", "depname", "deprev")
+        dependency.selector == newSelector("deporg", "depname", new DefaultMutableVersionConstraint("deprev"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2766")
@@ -687,24 +683,23 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.extraInfo.size() == 2
-        md.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
-        md.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.extraAttributes.size() == 2
+        metadata.extraAttributes[new NamespaceId("namespace-b", "a")] == "info 1"
+        metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {
         metadata = parser.parseMetaData(parseContext, file)
-        md = metadata.descriptor
     }
 
-    private artifact() {
-        assert md.artifacts.size() == 1
-        md.artifacts[0]
+    private Artifact artifact() {
+        assert metadata.artifactDefinitions.size() == 1
+        metadata.artifactDefinitions[0]
     }
 
-    private artifacts(String conf) {
-        md.artifacts.findAll { it.configurations.contains(conf) }
+    private List<Artifact> artifacts(String conf) {
+        metadata.artifactDefinitions.findAll { it.configurations.contains(conf) }
     }
 
     static componentId(String group, String module, String version) {
@@ -712,17 +707,17 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     void assertArtifact(String name, String extension, String type, String classifier) {
-        def artifactName = md.artifacts*.artifactName.find({it.name == name})
+        def artifactName = metadata.artifactDefinitions*.artifactName.find({it.name == name})
         assert artifactName.name == name
         assert artifactName.type == type
         assert artifactName.extension == extension
         assert artifactName.classifier == classifier
     }
 
-    def verifyFullDependencies(Collection<IvyDependencyMetadata> dependencies) {
+    def verifyFullDependencies(Collection<IvyDependencyDescriptor> dependencies) {
         // no conf def => equivalent to *->*
         def dd = getDependency(dependencies, "mymodule2")
-        assert dd.requested == newSelector("myorg", "mymodule2", "2.0")
+        assert dd.selector == newSelector("myorg", "mymodule2", new DefaultMutableVersionConstraint("2.0"))
         assert dd.confMappings == map("*": ["*"])
         assert !dd.changing
         assert dd.transitive
@@ -735,74 +730,74 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         // conf="myconf1" => equivalent to myconf1->myconf1
         dd = getDependency(dependencies, "yourmodule1")
-        assert dd.requested == newSelector("yourorg", "yourmodule1", "1.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule1", new DefaultMutableVersionConstraint("1.1"))
         assert dd.dynamicConstraintVersion == "1+"
         assert dd.confMappings == map(myconf1: ["myconf1"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1"
         dd = getDependency(dependencies, "yourmodule2")
-        assert dd.requested == newSelector("yourorg", "yourmodule2", "2+")
+        assert dd.selector == newSelector("yourorg", "yourmodule2", new DefaultMutableVersionConstraint("2+"))
         assert dd.confMappings == map(myconf1: ["yourconf1"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule3")
-        assert dd.requested == newSelector("yourorg", "yourmodule3", "3.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule3", new DefaultMutableVersionConstraint("3.1"))
         assert dd.confMappings == map(myconf1: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1, myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule4")
-        assert dd.requested == newSelector("yourorg", "yourmodule4", "4.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule4", new DefaultMutableVersionConstraint("4.1"))
         assert dd.confMappings == map(myconf1:["yourconf1", "yourconf2"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1 | myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule5")
-        assert dd.requested == newSelector("yourorg", "yourmodule5", "5.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule5", new DefaultMutableVersionConstraint("5.1"))
         assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="*->@"
         dd = getDependency(dependencies, "yourmodule11")
-        assert dd.requested == newSelector("yourorg", "yourmodule11", "11.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule11", new DefaultMutableVersionConstraint("11.1"))
         assert dd.confMappings == map("*":["@"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as nested elements
         dd = getDependency(dependencies, "yourmodule6")
-        assert dd.requested == newSelector("yourorg", "yourmodule6", "latest.integration")
+        assert dd.selector == newSelector("yourorg", "yourmodule6", new DefaultMutableVersionConstraint("latest.integration"))
         assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as deeply nested elements
         dd = getDependency(dependencies, "yourmodule7")
-        assert dd.requested == newSelector("yourorg", "yourmodule7", "7.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule7", new DefaultMutableVersionConstraint("7.1"))
         assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Dependency artifacts
         dd = getDependency(dependencies, "yourmodule8")
-        assert dd.requested == newSelector("yourorg", "yourmodule8", "8.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule8", new DefaultMutableVersionConstraint("8.1"))
         assert dd.dependencyArtifacts.size() == 2
         assertDependencyArtifact(dd, "yourartifact8-1", ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"])
         assertDependencyArtifact(dd, "yourartifact8-2", ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"])
 
         // Dependency artifacts with confs
         dd = getDependency(dependencies, "yourmodule9")
-        assert dd.requested == newSelector("yourorg", "yourmodule9", "9.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule9", new DefaultMutableVersionConstraint("9.1"))
         assert dd.dependencyArtifacts.size() == 2
         assertDependencyArtifact(dd, "yourartifact9-1", ["myconf1", "myconf2"])
         assertDependencyArtifact(dd, "yourartifact9-2", ["myconf2", "myconf3"])
 
         // Dependency excludes
         dd = getDependency(dependencies, "yourmodule10")
-        assert dd.requested == newSelector("yourorg", "yourmodule10", "10.1")
+        assert dd.selector == newSelector("yourorg", "yourmodule10", new DefaultMutableVersionConstraint("10.1"))
         assert dd.dependencyArtifacts.empty
-        assert dd.excludes.size() == 1
-        assert dd.excludes[0].artifact.name == "toexclude"
-        assert dd.excludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
+        assert dd.allExcludes.size() == 1
+        assert dd.allExcludes[0].artifact.name == "toexclude"
+        assert dd.allExcludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
         true
     }
 
@@ -827,13 +822,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assert conf.extendsFrom as Set == exts as Set
     }
 
-    protected static IvyDependencyMetadata getDependency(Collection<IvyDependencyMetadata> dependencies, String name) {
-        def found = dependencies.find { it.requested.name == name }
+    protected static IvyDependencyDescriptor getDependency(Collection<IvyDependencyDescriptor> dependencies, String name) {
+        def found = dependencies.find { it.selector.module == name }
         assert found != null
         return found
     }
 
-    protected static void assertDependencyArtifact(IvyDependencyMetadata dd, String name, List<String> confs) {
+    protected static void assertDependencyArtifact(IvyDependencyDescriptor dd, String name, List<String> confs) {
         def artifact = dd.dependencyArtifacts.find { it.artifactName.name == name }
         assert artifact != null
         assert artifact.configurations == confs as Set

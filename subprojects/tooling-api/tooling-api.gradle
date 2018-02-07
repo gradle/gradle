@@ -1,3 +1,5 @@
+import org.gradle.ShadedJar
+
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -10,8 +12,8 @@ dependencies {
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
-    publishCompile libraries.slf4j_api
-    compile libraries.jcip
+    publishCompile (libraries.slf4j_api.coordinate) { version { prefer libraries.slf4j_api.version } }
+    compile libraries.jcip.coordinate
 
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
@@ -19,16 +21,18 @@ dependencies {
     integTestRuntime project(":toolingApiBuilders")
     integTestRuntime project(":ivy")
 
-    crossVersionTestRuntime "org.gradle:gradle-kotlin-dsl:${versions.gradle_kotlin_dsl}"
+    crossVersionTestRuntime "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
     crossVersionTestRuntime project(':buildComparison')
     crossVersionTestRuntime project(":ivy")
     crossVersionTestRuntime project(":maven")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":logging")
-useTestFixtures(project: ':dependencyManagement')
-useTestFixtures(project: ':ide')
+testFixtures {
+    from(':core')
+    from(':logging')
+    from(':dependencyManagement')
+    from(':ide')
+}
 
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")
@@ -92,7 +96,7 @@ task publishLocalArchives(type: Upload) {
     doFirst {
         if (repoBaseDir.exists()) {
             // Make sure tooling API artifacts do not pile up
-            GFileUtils.forceDelete(repoBaseDir)
+            repoBaseDir.deleteDir()
         }
     }
 }

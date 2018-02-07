@@ -15,18 +15,21 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -44,12 +47,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Compiles native source files into object files.
@@ -61,25 +60,25 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private boolean positionIndependentCode;
     private boolean debug;
     private boolean optimize;
-    private final DirectoryVar objectFileDir;
+    private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
-    private ImmutableList<String> includePaths;
+    private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
-        source = getProject().files();
+        source = getTaskFileVarFactory().newInputFileCollection(this);
         objectFileDir = newOutputDirectory();
-        compilerArgs = getProject().getProviders().listProperty(String.class);
-        getInputs().property("outputType", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
-            }
-        });
+        compilerArgs = getProject().getObjects().listProperty(String.class);
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes);
         dependsOn(includes);
+    }
+
+    @Inject
+    protected TaskFileVarFactory getTaskFileVarFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -89,6 +88,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Inject
     protected BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileCollectionFactory getFileCollectionFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -107,7 +111,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setDebuggable(isDebuggable());
         spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(inputs.isIncremental());
-        spec.setDiscoveredInputRecorder((DiscoveredInputRecorder) inputs);
         spec.setOperationLogger(operationLogger);
 
         configureSpec(spec);
@@ -122,7 +125,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> incrementalCompiler = this.incrementalCompiler.createCompiler(baseCompiler);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return loggingCompiler.execute(spec);
     }
@@ -139,6 +142,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setToolChain(NativeToolChain toolChain) {
         this.toolChain = (NativeToolChainInternal) toolChain;
+        incrementalCompiler.setToolChain(this.toolChain);
     }
 
     /**
@@ -175,6 +179,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return debug;
     }
 
+    /**
+     * Should the compiler generate debuggable code?
+     *
+     * @since 4.3
+     */
     public void setDebuggable(boolean debug) {
         this.debug = debug;
     }
@@ -189,6 +198,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return optimize;
     }
 
+    /**
+     * Should the compiler generate optimized code?
+     *
+     * @since 4.3
+     */
     public void setOptimized(boolean optimize) {
         this.optimize = optimize;
     }
@@ -199,7 +213,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.3
      */
     @OutputDirectory
-    public DirectoryVar getObjectFileDir() {
+    public DirectoryProperty getObjectFileDir() {
         return objectFileDir;
     }
 
@@ -209,19 +223,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
     public ConfigurableFileCollection getIncludes() {
         return includes;
-    }
-
-    @Input
-    protected Collection<String> getIncludePaths() {
-        if (includePaths == null) {
-            Set<File> roots = includes.getFiles();
-            ImmutableList.Builder<String> builder = ImmutableList.builder();
-            for (File root : roots) {
-                builder.add(root.getAbsolutePath());
-            }
-            includePaths = builder.build();
-        }
-        return includePaths;
     }
 
     /**
@@ -235,6 +236,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Returns the source files to be compiled.
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }
@@ -267,5 +269,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Input
     public ListProperty<String> getCompilerArgs() {
         return compilerArgs;
+    }
+
+    /**
+     * The set of dependent headers. This is used for up-to-date checks only.
+     *
+     * @since 4.3
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    protected FileCollection getHeaderDependencies() {
+        return incrementalCompiler.getHeaderFiles();
     }
 }

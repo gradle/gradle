@@ -16,14 +16,20 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.TestExecutionResult;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
-public abstract class XCTestSourceElement extends SourceElement implements XCTestElement {
+public abstract class XCTestSourceElement extends SwiftSourceElement implements XCTestElement {
+    public XCTestSourceElement(String projectName) {
+        super(projectName);
+    }
+
     @Override
     public String getSourceSetName() {
         return "test";
@@ -31,12 +37,40 @@ public abstract class XCTestSourceElement extends SourceElement implements XCTes
 
     @Override
     public List<SourceFile> getFiles() {
-        return CollectionUtils.collect(getTestSuites(), new Transformer<SourceFile, XCTestSourceFileElement>() {
+        List<SourceFile> result = Lists.newArrayList(CollectionUtils.collect(getTestSuites(), new Transformer<SourceFile, XCTestSourceFileElement>() {
             @Override
             public SourceFile transform(XCTestSourceFileElement element) {
                 return element.getSourceFile();
             }
-        });
+        }));
+
+        if (OperatingSystem.current().isLinux()) {
+            result.add(getLinuxMainSourceFile(getTestSuites()));
+        }
+        return result;
+    }
+
+    public static SourceFile getLinuxMainSourceFile(List<XCTestSourceFileElement> testSuites) {
+        StringBuilder content = new StringBuilder();
+        content.append("import XCTest\n");
+
+        for (XCTestSourceFileElement testSuite : testSuites) {
+            content.append("extension " + testSuite.getTestSuiteName() + " {\n");
+            content.append("  public static var allTests = [\n");
+            for (XCTestCaseElement testCase : testSuite.getTestCases()) {
+                content.append("    (\"" + testCase.getName() + "\", " + testCase.getName() + "),\n");
+            }
+            content.append("  ]\n");
+            content.append("}\n");
+        }
+
+        content.append("XCTMain([\n");
+        for (XCTestSourceFileElement testSuite : testSuites) {
+            content.append("  testCase(" + testSuite.getTestSuiteName() + ".allTests),\n");
+        }
+        content.append("])\n");
+
+        return new SourceFile("swift", "main.swift", content.toString());
     }
 
     @Override
@@ -68,50 +102,18 @@ public abstract class XCTestSourceElement extends SourceElement implements XCTes
 
     public abstract List<XCTestSourceFileElement> getTestSuites();
 
-    public void assertTestCasesRan(String output) {
-        for (XCTestSourceFileElement element : getTestSuites()) {
-            element.assertTestCasesRan(output);
+    public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
+        assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
+    }
+
+    static void assertTestCasesRanInSuite(TestExecutionResult testExecutionResult, List<XCTestSourceFileElement> testSuites) {
+        for (XCTestSourceFileElement element : testSuites) {
+            element.assertTestCasesRan(testExecutionResult.testClass(element.getTestSuiteName()));
         }
-
-        if (!getExpectedSummaryOutputPattern().matcher(output).find()) {
-            throw new RuntimeException(String.format("Couldn't find test summary with %d failed and %d passing test(s)", getFailureCount(), getPassCount()));
-        }
     }
 
-    public Pattern getExpectedSummaryOutputPattern() {
-        return toExpectedSummaryOutputPattern("All tests", getTestCount(), getFailureCount());
-    }
-
-    static Pattern toExpectedSummaryOutputPattern(String testSuiteName, int testCount, int failureCount) {
-        return Pattern.compile(
-            "Test Suite '" + testSuiteName + "' " + toResult(failureCount) + " at .+\n"
-                + "\\s+Executed " + testCount + " " + plurializeIf("test", testCount)
-                + ", with " + failureCount + " " + plurializeIf("failure", failureCount)
-                + " \\(0 unexpected\\)",
-            Pattern.MULTILINE | Pattern.DOTALL);
-    }
-
-    public static String toResult(int failureCount) {
-        if (failureCount > 0) {
-            return "failed";
-        }
-        return "passed";
-    }
-
-    private static String plurializeIf(String noun, int count) {
-        if (count > 1 || count == 0) {
-            return noun + "s";
-        }
-        return noun;
-    }
-
-    public SourceFile emptyInfoPlist() {
-        return sourceFile("resources", "Info.plist",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-                + "<plist version=\"1.0\">\n"
-                + "<dict>\n"
-                + "</dict>\n"
-                + "</plist>");
+    @Override
+    public String getModuleName() {
+        return super.getModuleName() + "Test";
     }
 }

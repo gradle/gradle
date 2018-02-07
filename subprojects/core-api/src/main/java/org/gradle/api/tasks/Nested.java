@@ -26,6 +26,11 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
+ *
+ * <p>The implementation of the nested bean is tracked as an input, too.
+ * This allows tracking behavior such as {@link org.gradle.api.Action}s as task inputs.</p>
+ *
+ * <p>This annotation supports iterable values by treating each element as a separate nested input.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

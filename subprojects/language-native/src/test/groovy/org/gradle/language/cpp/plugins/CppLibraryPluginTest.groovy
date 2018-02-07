@@ -20,6 +20,7 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppLibrary
+import org.gradle.language.cpp.CppSharedLibrary
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -51,11 +52,20 @@ class CppLibraryPluginTest extends Specification {
     def "registers a component for the library"() {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
+        project.evaluate()
 
         then:
         project.components.main == project.library
-        project.components.mainDebug == project.library.debugSharedLibrary
-        project.components.mainRelease == project.library.releaseSharedLibrary
+        project.library.binaries.get().name == ['mainDebug', 'mainRelease']
+        project.components.containsAll(project.library.binaries.get())
+
+        and:
+        def binaries = project.library.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof CppSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
     }
 
     def "adds compile and link tasks"() {
@@ -66,11 +76,12 @@ class CppLibraryPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(CppLibraryPlugin)
+        project.evaluate()
 
         then:
         def compileDebugCpp = project.tasks.compileDebugCpp
         compileDebugCpp instanceof CppCompile
-        compileDebugCpp.includes.files as List == [publicHeaders, privateHeaders]
+        compileDebugCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileDebugCpp.source.files as List == [src]
         compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebugCpp.debuggable
@@ -83,22 +94,23 @@ class CppLibraryPluginTest extends Specification {
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
         compileReleaseCpp instanceof CppCompile
-        compileReleaseCpp.includes.files as List == [publicHeaders, privateHeaders]
+        compileReleaseCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
         compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
-        !compileReleaseCpp.debuggable
+        compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
         linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
-        !linkRelease.debuggable
+        linkRelease.debuggable
     }
 
     def "output locations are calculated using base name defined on extension"() {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
         project.library.baseName = "test_lib"
+        project.evaluate()
 
         then:
         def link = project.tasks.linkDebug
@@ -108,6 +120,7 @@ class CppLibraryPluginTest extends Specification {
     def "output locations reflects changes to buildDir"() {
         given:
         project.pluginManager.apply(CppLibraryPlugin)
+        project.evaluate()
 
         when:
         project.buildDir = "output"
@@ -124,6 +137,7 @@ class CppLibraryPluginTest extends Specification {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
         project.pluginManager.apply(MavenPublishPlugin)
+        project.evaluate()
 
         then:
         def zip = project.tasks.cppHeaders
@@ -137,6 +151,7 @@ class CppLibraryPluginTest extends Specification {
         project.version = 1.2
         project.group = 'my.group'
         project.library.baseName = 'mylib'
+        project.evaluate()
 
         then:
         def publishing = project.publishing

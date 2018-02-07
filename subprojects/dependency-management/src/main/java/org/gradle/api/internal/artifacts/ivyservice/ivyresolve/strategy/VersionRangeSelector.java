@@ -74,17 +74,17 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private static final String CLOSE_PATTERN = "[" + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + "]";
 
     private static final String ANY_NON_SPECIAL_PATTERN = "[^\\s" + SEPARATOR + OPEN_INC_PATTERN
-            + OPEN_EXC_PATTERN + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + LI_PATTERN + UI_PATTERN
-            + "]";
+        + OPEN_EXC_PATTERN + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + LI_PATTERN + UI_PATTERN
+        + "]";
 
     private static final String FINITE_PATTERN = OPEN_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN
-            + "+)" + SEP_PATTERN + "(" + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
+        + "+)" + SEP_PATTERN + "(" + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
 
     private static final String LOWER_INFINITE_PATTERN = LI_PATTERN + SEP_PATTERN + "("
-            + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
+        + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
 
     private static final String UPPER_INFINITE_PATTERN = OPEN_PATTERN + "\\s*("
-            + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN + UI_PATTERN;
+        + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN + UI_PATTERN;
 
     private static final String SINGLE_VALUE_PATTERN = OPEN_INC_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + CLOSE_INC_PATTERN;
 
@@ -97,7 +97,7 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private static final Pattern SINGLE_VALUE_RANGE = Pattern.compile(SINGLE_VALUE_PATTERN);
 
     public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
-            + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
+        + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
 
     private final String upperBound;
     private final Version upperBoundVersion;
@@ -185,5 +185,137 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private boolean isHigher(Version version1, Version version2, boolean inclusive) {
         int result = comparator.compare(version1, version2);
         return result >= (inclusive ? 0 : 1);
+    }
+
+    public String getUpperBound() {
+        return upperBound;
+    }
+
+    public Version getUpperBoundVersion() {
+        return upperBoundVersion;
+    }
+
+    public boolean isUpperInclusive() {
+        return upperInclusive;
+    }
+
+    public String getLowerBound() {
+        return lowerBound;
+    }
+
+    public boolean isLowerInclusive() {
+        return lowerInclusive;
+    }
+
+    public Version getLowerBoundVersion() {
+        return lowerBoundVersion;
+    }
+
+    @Override
+    public String toString() {
+        return getSelector();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        VersionRangeSelector that = (VersionRangeSelector) o;
+
+        if (upperInclusive != that.upperInclusive) {
+            return false;
+        }
+        if (lowerInclusive != that.lowerInclusive) {
+            return false;
+        }
+        if (upperBound != null ? !upperBound.equals(that.upperBound) : that.upperBound != null) {
+            return false;
+        }
+        if (upperBoundVersion != null ? !upperBoundVersion.equals(that.upperBoundVersion) : that.upperBoundVersion != null) {
+            return false;
+        }
+        if (lowerBound != null ? !lowerBound.equals(that.lowerBound) : that.lowerBound != null) {
+            return false;
+        }
+        if (lowerBoundVersion != null ? !lowerBoundVersion.equals(that.lowerBoundVersion) : that.lowerBoundVersion != null) {
+            return false;
+        }
+        return comparator.equals(that.comparator);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = upperBound != null ? upperBound.hashCode() : 0;
+        result = 31 * result + (upperBoundVersion != null ? upperBoundVersion.hashCode() : 0);
+        result = 31 * result + (upperInclusive ? 1 : 0);
+        result = 31 * result + (lowerBound != null ? lowerBound.hashCode() : 0);
+        result = 31 * result + (lowerInclusive ? 1 : 0);
+        result = 31 * result + (lowerBoundVersion != null ? lowerBoundVersion.hashCode() : 0);
+        result = 31 * result + comparator.hashCode();
+        return result;
+    }
+
+    public VersionRangeSelector intersect(VersionRangeSelector other) {
+        StringBuilder sb = new StringBuilder();
+        Version lower = null;
+        Version upper = null;
+        boolean lowerInc = false;
+        if (lowerBound == null) {
+            if (other.lowerBound == null) {
+                sb.append(LOWER_INFINITE);
+            } else {
+                sb.append(other.lowerInclusive ? OPEN_INC : OPEN_EXC);
+                sb.append(other.lowerBound);
+                lower = other.lowerBoundVersion;
+                lowerInc = other.lowerInclusive;
+            }
+        } else {
+            if (other.lowerBound == null || isHigher(lowerBoundVersion, other.lowerBoundVersion, lowerInclusive)) {
+                lowerInc = lowerBound.equals(other.lowerBound) ? lowerInclusive && other.lowerInclusive : lowerInclusive;
+                sb.append(lowerInc ? OPEN_INC : OPEN_EXC);
+                sb.append(lowerBound);
+                lower = lowerBoundVersion;
+            } else {
+                lowerInc = other.lowerBound.equals(lowerBound) ? lowerInclusive && other.lowerInclusive : other.lowerInclusive;
+                sb.append(lowerInc ? OPEN_INC : OPEN_EXC);
+                sb.append(other.lowerBound);
+                lower = other.lowerBoundVersion;
+                lowerInc = other.lowerInclusive;
+            }
+        }
+        sb.append(SEPARATOR);
+        if (upperBound == null) {
+            if (other.upperBound == null) {
+                sb.append(UPPER_INFINITE);
+            } else {
+                sb.append(other.upperBound);
+                sb.append(other.upperInclusive ? CLOSE_INC : CLOSE_EXC);
+                upper = other.upperBoundVersion;
+            }
+        } else {
+            if (other.upperBound == null || isLower(upperBoundVersion, other.upperBoundVersion, upperInclusive)) {
+                sb.append(upperBound);
+                boolean inclusive = upperBound.equals(other.upperBound) ? upperInclusive && other.upperInclusive : upperInclusive;
+                sb.append(inclusive ? CLOSE_INC : CLOSE_EXC);
+                upper = upperBoundVersion;
+            } else {
+                sb.append(other.upperBound);
+                boolean inclusive = other.upperBound.equals(upperBound) ? upperInclusive && other.upperInclusive : other.upperInclusive;
+                sb.append(inclusive ? CLOSE_INC : CLOSE_EXC);
+                upper = other.upperBoundVersion;
+            }
+        }
+        if (lower != null && upper != null && isHigher(lower, upper, lowerInc)) {
+            return null;
+        }
+        if (lower != null && lower.equals(upper) && !lowerInc) {
+            return null;
+        }
+        return new VersionRangeSelector(sb.toString(), comparator);
     }
 }

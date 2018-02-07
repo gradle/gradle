@@ -24,6 +24,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
@@ -34,7 +35,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver.PLUGIN_MARKER_SUFFIX;
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 class MavenPluginPublishingRules extends RuleSource {
 
@@ -63,13 +64,14 @@ class MavenPluginPublishingRules extends RuleSource {
         }
     }
     private void createMavenPluginPublication(SoftwareComponent component, PublicationContainer publications) {
-        MavenPublication publication = publications.create("pluginMaven", MavenPublication.class);
+        MavenPublication publication = publications.maybeCreate("pluginMaven", MavenPublication.class);
         publication.from(component);
     }
 
     private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
-        MavenPublication publication = publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
+        MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
+        publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.setGroupId(pluginId);
         publication.getPom().withXml(new Action<XmlProvider>() {

@@ -18,12 +18,14 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
@@ -45,25 +47,17 @@ import java.util.Set;
  *
  * </ul>
  */
-public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext, TaskDependency {
+@NonNullApi
+public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext {
     private final LinkedList<Object> queue = new LinkedList<Object>();
     private final CachingDirectedGraphWalker<Object, Task> walker = new CachingDirectedGraphWalker<Object, Task>(
             new TaskGraphImpl());
     private Task task;
 
-    public Set<? extends Task> getDependencies(Task task) {
-        add(task.getTaskDependencies());
-        return resolve(task);
-    }
-
-    public Task getTask() {
-        return task;
-    }
-
-    public Set<Task> resolve(Task task) {
+    public Set<? extends Task> getDependencies(@Nullable Task task, TaskDependency container) {
         this.task = task;
         try {
-            return doResolve();
+            return doGetDependencies(container);
         } catch (Exception e) {
             throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
         } finally {
@@ -72,8 +66,13 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         }
     }
 
-    private Set<Task> doResolve() {
-        walker.add(queue);
+    @Nullable
+    public Task getTask() {
+        return task;
+    }
+
+    private Set<Task> doGetDependencies(TaskDependency container) {
+        walker.add(container);
         return walker.findValues();
     }
 

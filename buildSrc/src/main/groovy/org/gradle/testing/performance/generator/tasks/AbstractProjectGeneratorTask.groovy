@@ -19,31 +19,77 @@ package org.gradle.testing.performance.generator.tasks
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.gradle.testing.performance.generator.*
+import org.gradle.testing.performance.generator.DependencyGraph
+import org.gradle.testing.performance.generator.MavenJarCreator
+import org.gradle.testing.performance.generator.MavenRepository
+import org.gradle.testing.performance.generator.RepositoryBuilder
+import org.gradle.testing.performance.generator.TestProject
+
 /**
  * Original tangled mess of a project generator.
  */
 abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
+
+    @Input
     int sourceFiles = 1
+    @Input
     int projectCount = 1
+    @Input
+    @Optional
     Integer testSourceFiles
+    @Input
     int linesOfCodePerSourceFile = 5
+    @Input
     int filesPerPackage = 100
-    List<String> additionalProjectFiles = []
-    final List<TestProject> projects = []
-    List<String> rootProjectTemplates = ['root-project']
-    List<String> subProjectTemplates = ['project-with-source']
-    final SimpleTemplateEngine engine = new SimpleTemplateEngine()
-    final Map<File, Template> templates = [:]
-    Map<String, Object> templateArgs = [:]
-    final DependencyGraph dependencyGraph = new DependencyGraph()
+    @Input
     int numberOfExternalDependencies = 0
-    MavenJarCreator mavenJarCreator = new MavenJarCreator()
+
+    @Nested
+    final DependencyGraph dependencyGraph = new DependencyGraph()
+
+    @Input
+    List<String> additionalProjectFiles = []
+
+    @Internal("Represented as part of templateDirectories")
     String buildSrcTemplate
+    @Internal("Represented as part of templateDirectories")
+    List<String> rootProjectTemplates = ['root-project']
+    @Internal("Represented as part of templateDirectories")
+    List<String> subProjectTemplates = ['project-with-source']
+
+    @Input
+    Map<String, Object> templateArgs = [:]
+
+    @Internal
+    final SimpleTemplateEngine engine = new SimpleTemplateEngine()
+    @Internal
+    final MavenJarCreator mavenJarCreator = new MavenJarCreator()
+
+    @Internal
+    final List<TestProject> projects = []
+    @Internal
+    final Map<File, Template> templates = [:]
 
     AbstractProjectGeneratorTask() {
         super()
+    }
+
+    @InputFiles
+    FileTree getTemplateDirectories() {
+        def allTemplates = rootProjectTemplates + subProjectTemplates
+        if (buildSrcTemplate) {
+            allTemplates += buildSrcTemplate
+        }
+        def templateDirectories = project.fileTree([:])
+        allTemplates.each { templateDirectories.from(resolveTemplate(it)) }
+        return templateDirectories
     }
 
     int getTestSourceFiles() {
@@ -71,6 +117,9 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         println "  root project templates: ${rootProjectTemplates}"
         println "  project templates: ${subProjectTemplates}"
         println "  number of external dependencies: ${numberOfExternalDependencies}"
+
+        // For Subclasses
+        initialize()
 
         while (projects.size() < projectCount) {
             def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
@@ -100,35 +149,38 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         }
     }
 
+    @Internal
     protected List getSubprojectNames() {
         return getSubprojects().collect { it.name }
     }
 
+    @Internal
     protected TestProject getRootProject() {
         return projects[0]
     }
 
     MavenRepository generateDependencyRepository() {
         MavenRepository repo = new RepositoryBuilder(getDestDir())
-                .withArtifacts(dependencyGraph.size)
-                .withDepth(dependencyGraph.depth)
-                .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
-                .withMavenJarCreator(mavenJarCreator)
-                .create()
-        return repo;
+            .withArtifacts(dependencyGraph.size)
+            .withDepth(dependencyGraph.depth)
+            .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
+            .withMavenJarCreator(mavenJarCreator)
+            .create()
+        return repo
     }
 
+    @Internal
     protected List<TestProject> getSubprojects() {
-        return projects.subList(1, projects.size())
+        return projects.size() < 2 ? [] : projects.subList(1, projects.size())
     }
 
     def generateRootProject() {
         generateProject(rootProject,
-                subprojects: subprojectNames,
-                projectDir: destDir,
-                files: rootProjectFiles,
-                templates: effectiveRootProjectTemplates,
-                includeSource: subprojectNames.empty)
+            subprojects: subprojectNames,
+            projectDir: destDir,
+            files: rootProjectFiles,
+            templates: effectiveRootProjectTemplates,
+            includeSource: subprojectNames.empty)
 
         project.copy {
             from resolveTemplate("init.gradle")
@@ -142,21 +194,23 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         }
     }
 
+    @Internal
     List<String> getEffectiveRootProjectTemplates() {
         subprojectNames.empty ? subProjectTemplates : rootProjectTemplates
     }
 
+    @Input
     List<String> getRootProjectFiles() {
-        subprojectNames.empty ? [] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
+        subprojectNames.empty ? ['settings.gradle'] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
     }
 
     def generateSubProject(TestProject testProject) {
         generateProject(testProject,
-                subprojects: [],
-                projectDir: new File(destDir, testProject.name),
-                files: [],
-                templates: subProjectTemplates,
-                includeSource: true)
+            subprojects: [],
+            projectDir: new File(destDir, testProject.name),
+            files: [],
+            templates: subProjectTemplates,
+            includeSource: true)
     }
 
     def generateProject(Map parameterArgs, TestProject testProject) {
@@ -172,12 +226,12 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         files.addAll(additionalProjectFiles)
 
         args += [
-                projectName: testProject.name,
-                subprojectNumber: testProject.subprojectNumber,
-                propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
-                repository: testProject.repository,
-                dependencies: testProject.dependencies,
-                testProject: testProject
+            projectName     : testProject.name,
+            subprojectNumber: testProject.subprojectNumber,
+            propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
+            repository      : testProject.repository,
+            dependencies    : testProject.dependencies,
+            testProject     : testProject
         ]
 
         args += templateArgs
@@ -192,6 +246,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         }
     }
 
+    @Input
     List<String> getDefaultProjectFiles() {
         ['build.gradle', 'settings.gradle', 'gradle.properties', 'pom.xml', 'build.xml']
     }
@@ -214,9 +269,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
             getTemplate(it).make(templateArgs).writeTo(writer)
             def originalContents = writer.toString()
             int idx = originalContents.indexOf('plugins {')
-            if (idx>0) { idx = originalContents.indexOf('}', idx) }
-            def beforePlugins = idx>0?originalContents.substring(0, idx+1):''
-            def afterPlugins = idx>0?originalContents.substring(idx+1):originalContents
+            if (idx > 0) {
+                idx = originalContents.indexOf('}', idx)
+            }
+            def beforePlugins = idx > 0 ? originalContents.substring(0, idx + 1) : ''
+            def afterPlugins = idx > 0 ? originalContents.substring(idx + 1) : originalContents
             templateArgs.original = originalContents
             templateArgs.beforePlugins = beforePlugins
             templateArgs.afterPlugins = afterPlugins
@@ -244,9 +301,13 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         return template
     }
 
+    @Input
     Map getTaskArgs() {
         [:]
     }
 
-    abstract void generateProjectSource(File projectDir, TestProject testProject, Map args);
+    void initialize() {
+    }
+
+    abstract void generateProjectSource(File projectDir, TestProject testProject, Map args)
 }

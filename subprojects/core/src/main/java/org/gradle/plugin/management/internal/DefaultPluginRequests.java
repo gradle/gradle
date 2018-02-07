@@ -16,10 +16,14 @@
 
 package org.gradle.plugin.management.internal;
 
+import com.google.common.collect.Iterators;
+
 import java.util.Iterator;
 import java.util.List;
 
 public class DefaultPluginRequests implements PluginRequests {
+
+    public static final PluginRequests EMPTY = new EmptyPluginRequests();
 
     private final List<PluginRequestInternal> requests;
 
@@ -40,5 +44,23 @@ public class DefaultPluginRequests implements PluginRequests {
     @Override
     public Iterator<PluginRequestInternal> iterator() {
         return requests.iterator();
+    }
+
+    private static class EmptyPluginRequests implements PluginRequests {
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public Iterator<PluginRequestInternal> iterator() {
+            return Iterators.emptyIterator();
+        }
     }
 }

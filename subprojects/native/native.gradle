@@ -1,23 +1,27 @@
 /*
     This project contains various native operating system integration utilities.
 */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'classycle'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.nativePlatform
+    api libraries.nativePlatform.coordinate
 
-    implementation libraries.commons_io
-    implementation libraries.slf4j_api
-    implementation libraries.jansi
-    implementation libraries.guava
+    implementation libraries.commons_io.coordinate
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.jansi.coordinate
+    implementation libraries.guava.coordinate
 }
 
-useTestFixtures()
-useTestFixtures(project: ":logging")
-useClassycle()
+testFixtures {
+    from(':core')
+    from(':logging')
+}
 
 jmh {
     fork = 1

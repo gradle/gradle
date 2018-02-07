@@ -17,6 +17,7 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
+import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 
@@ -53,11 +54,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("task('do-stuff')");
         testFile("child/build.gradle").write("task('do-stuff')");
 
-        inDirectory(rootDir).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        inDirectory(rootDir).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        inDirectory(rootDir).withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        inDirectory(rootDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
 
-        inDirectory(childDir).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        inDirectory(childDir).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        inDirectory(childDir).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
+        inDirectory(childDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
     }
 
     @Test
@@ -69,11 +70,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("task('do-stuff')");
         testFile("child/build.gradle").write("task('do-stuff')");
 
-        usingProjectDir(rootDir).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        usingProjectDir(rootDir).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        usingProjectDir(rootDir).withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingProjectDir(rootDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
 
-        usingProjectDir(childDir).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        usingProjectDir(childDir).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        usingProjectDir(childDir).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
+        usingProjectDir(childDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
     }
 
     @Test
@@ -86,11 +87,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.write("task('do-stuff')");
 
-        usingBuildFile(rootBuildFile).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        usingBuildFile(rootBuildFile).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingBuildFile(rootBuildFile).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
 
-        usingBuildFile(childBuildFile).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        usingBuildFile(childBuildFile).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        usingBuildFile(childBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
+        usingBuildFile(childBuildFile).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
     }
 
     @Test
@@ -187,8 +188,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         subDirectory.file("build.gradle").write("throw new RuntimeException()");
         subDirectory.file("child.gradle").write("task('do-stuff')");
 
-        inDirectory(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
-        usingProjectDir(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
+        inDirectory(subDirectory).withTasks("do-stuff").run();
+        usingProjectDir(subDirectory).withTasks("do-stuff").run();
     }
 
     @Test
@@ -217,9 +218,56 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
                 "}");
         testFile("subdirectory/gradle.properties").write("prop=value");
 
-        inDirectory(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
-        usingProjectDir(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
-        usingBuildFile(buildFile).withSearchUpwards().withTasks("do-stuff").run();
+        inDirectory(subDirectory).withTasks("do-stuff").expectDeprecationWarning().run();
+        usingProjectDir(subDirectory).withTasks("do-stuff").expectDeprecationWarning().run();
+        usingBuildFile(buildFile).withTasks("do-stuff").expectDeprecationWarning().run();
+    }
+
+    @Test
+    public void deprecationWarningAppearsWhenNestedBuildHasNoSettingsFile() {
+        testFile("settings.gradle").write("include 'another'");
+
+        TestFile subDirectory = getTestDirectory().file("sub");
+        TestFile subBuildFile = subDirectory.file("sub.gradle").write("");
+        subDirectory.file("build.gradle").write("");
+
+        ExecutionResult result = inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
+        result.assertOutputContains("Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+
+        result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
+        result.assertOutputContains("Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+
+        result = usingProjectDir(subDirectory).withTasks("help").expectDeprecationWarning().run();
+        result.assertOutputContains("Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+    }
+
+    @Test
+    public void noDeprecationWarningAppearsWhenUsingRootProject() {
+        testFile("settings.gradle").write("include 'another'");
+
+        TestFile subDirectory = getTestDirectory().file("sub");
+        subDirectory.file("build.gradle").write("");
+
+        usingProjectDir(getTestDirectory()).inDirectory(subDirectory).withTasks("help").run();
+    }
+
+    @Test
+    public void noDeprecationWarningAppearsWhenSettingsFileIsSpecified() {
+        testFile("settings.gradle").write("include 'another'");
+
+        TestFile subDirectory = getTestDirectory().file("sub");
+        TestFile subSettingsFile = subDirectory.file("renamed_settings.gradle").write("");
+        subDirectory.file("build.gradle").write("");
+
+        inDirectory(subDirectory).usingSettingsFile(subSettingsFile).withTasks("help").run();
+    }
+
+    @Test
+    public void noDeprecationWarningAppearsWhenEnclosingBuildUsesAnotherBuildFile() {
+        testFile("settings.gradle").write("include 'another'");
+        TestFile renamedBuildGradle = getTestDirectory().file("renamed_build.gradle").createFile();
+
+        usingBuildFile(renamedBuildGradle).inDirectory(getTestDirectory()).withTasks("help").run();
     }
 
     @Test

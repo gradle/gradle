@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-
-
 dependencies {
-	compile libraries.groovy
-	compile project(':core')
-	compile project(':plugins')
-	compile project(':reporting')
-    testCompile libraries.jsoup
+    compile libraries.groovy.coordinate
+    compile project(':core')
+    compile project(':plugins')
+    compile project(':reporting')
+    testCompile testLibraries.jsoup
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

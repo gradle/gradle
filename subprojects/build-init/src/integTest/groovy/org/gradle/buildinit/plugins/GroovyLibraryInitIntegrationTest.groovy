@@ -16,28 +16,25 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
+import spock.lang.Unroll
 
-class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
+class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/groovy/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
-    final wrapper = new WrapperTestFixture(testDirectory)
-
-    def "creates sample source if no source present"() {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-library')
+        succeeds('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
@@ -46,21 +43,27 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted("LibraryTest")
         testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "supports the Spock test framework"() {
+    @Unroll
+    def "supports the Spock test framework with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-library', '--test-framework', 'spock')
+        succeeds('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when groovy sources detected"() {
+    @Unroll
+    def "setupProjectLayout is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/groovy/org/acme/SampleMain.groovy") << """
             package org.acme;
@@ -75,13 +78,14 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
                     }
             """
         when:
-        succeeds('init', '--type', 'groovy-library')
+        succeeds('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
         !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 }

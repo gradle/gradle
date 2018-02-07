@@ -18,9 +18,12 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithDependencies;
+import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
+import org.gradle.nativeplatform.Linkage;
 
 /**
  * A binary built from C++ source and linked from the resulting object files.
@@ -28,21 +31,25 @@ import org.gradle.api.provider.Provider;
  * @since 4.2
  */
 @Incubating
-public interface CppBinary extends SoftwareComponent {
+public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
      * The dependency resolution attribute use to indicate whether a binary is debuggable or not.
      */
     Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
 
     /**
-     * Returns the base name of the binary.
+     * The dependency resolution attribute use to indicate whether a binary is optimized or not.
+     *
+     * @since 4.5
      */
-    Provider<String> getBaseName();
+    Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
 
     /**
-     * Returns true if this binary has debugging enabled.
+     * The dependency resolution attribute use to indicate which linkage a binary uses.
+     *
+     * @since 4.5
      */
-    boolean isDebuggable();
+    Attribute<Linkage> LINKAGE_ATTRIBUTE = Attribute.of("org.gradle.native.linkage", Linkage.class);
 
     /**
      * Returns the C++ source files of this binary.
@@ -63,4 +70,18 @@ public interface CppBinary extends SoftwareComponent {
      * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
      */
     FileCollection getRuntimeLibraries();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 4.5
+     */
+    CppPlatform getTargetPlatform();
+
+    /**
+     * Returns the compile task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<CppCompile> getCompileTask();
 }

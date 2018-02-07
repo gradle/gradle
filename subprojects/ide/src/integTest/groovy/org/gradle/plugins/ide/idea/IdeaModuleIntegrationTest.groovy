@@ -400,10 +400,10 @@ project(':impl') {
         def content = getFile([print : true], 'impl/impl.iml').text
 
         //then
-        assert content.count("someDependency.jar") == 3
-        assert content.count("artifactTwo-1.0.jar") == 3
-        assert content.count("someApiProject") == 3
-        assert content.count("unresolved dependency - i.dont Exist 1.0") == 3
+        assert content.count("someDependency.jar") == 1
+        assert content.count("artifactTwo-1.0.jar") == 1
+        assert content.count("someApiProject") == 1
+        assert content.count("unresolved dependency - i.dont Exist 1.0") == 1
     }
 
     @Issue("GRADLE-2017")
@@ -431,14 +431,14 @@ dependencies {
 """
         //then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 5
-        dependencies.assertHasLibrary(['PROVIDED', 'RUNTIME','TEST'], 'api-artifact-1.0.jar')
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
         dependencies.assertHasLibrary('RUNTIME', 'impl-artifact-1.0.jar')
         dependencies.assertHasLibrary('TEST', 'impl-artifact-1.0.jar')
     }
 
     @Test
-    void "custom configuration is added to all specified scopes"() {
+    void "custom configuration is added to all specified scopes considering IDEA scope inclusion"() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("org.gradle", "api-artifact").publish()
@@ -470,8 +470,8 @@ idea {
 """
         //then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 2
-        dependencies.assertHasLibrary(['PROVIDED', 'COMPILE'], 'bar-1.0.jar')
+        assert dependencies.libraries.size() == 1
+        dependencies.assertHasLibrary('COMPILE', 'bar-1.0.jar')
     }
 
     @Test
@@ -508,8 +508,8 @@ idea {
 """
         //then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 5
-        dependencies.assertHasLibrary(['PROVIDED', 'RUNTIME','TEST'], 'api-artifact-1.0.jar')
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
         dependencies.assertHasLibrary(['RUNTIME','TEST'], 'bar-1.0.jar')
     }
 
@@ -578,8 +578,8 @@ dependencies {
 }
 """
         String expected = """:ideaModule
-Could not resolve: myGroup:missing-artifact:1.0
 Could not resolve: myGroup:missing-extra-artifact:1.0
+Could not resolve: myGroup:missing-artifact:1.0
 :ideaProject
 :ideaWorkspace
 :idea
@@ -613,13 +613,9 @@ dependencies {
 
         // then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 8
-        dependencies.assertHasLibrary('PROVIDED', 'shared-1.0.jar')
-        dependencies.assertHasLibrary('RUNTIME', 'shared-1.0.jar')
-        dependencies.assertHasLibrary('TEST', 'shared-1.0.jar')
-        dependencies.assertHasLibrary('PROVIDED', 'compile-1.0.jar')
-        dependencies.assertHasLibrary('RUNTIME', 'compile-1.0.jar')
-        dependencies.assertHasLibrary('TEST', 'compile-1.0.jar')
+        assert dependencies.libraries.size() == 4
+        dependencies.assertHasLibrary('COMPILE', 'shared-1.0.jar')
+        dependencies.assertHasLibrary('COMPILE', 'compile-1.0.jar')
         dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
         dependencies.assertHasLibrary('TEST', 'testCompileOnly-1.0.jar')
     }

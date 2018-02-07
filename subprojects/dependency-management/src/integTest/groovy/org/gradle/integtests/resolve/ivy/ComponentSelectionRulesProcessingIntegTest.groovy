@@ -16,11 +16,16 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.maven.MavenModule
+
 class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
     def "rules are not fired when no candidate matches selector"() {
         buildFile << """
-            $baseBuildFile
 
             dependencies {
                 conf "org.utils:api:3.+"
@@ -36,7 +41,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            task checkConf {
+            task lenientCheck {
                 doLast {
                     def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
                     assert artifacts.size() == 0
@@ -44,14 +49,19 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 """
-        expect:
-        succeeds 'checkConf'
+        when:
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+            }
+        }
+
+        then:
+        succeeds 'lenientCheck'
     }
 
     def "further rules are not fired when any rule rejects candidate"() {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.+"
             }
@@ -68,21 +78,36 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 assert extraRuleCandidates == ['1.1']
             }
 """
-        expect:
-        succeeds 'resolveConf'
+        when:
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then:
+        checkDependencies()
     }
 
+    @RequiredFeatures([
+        // this test doesn't make sense with Gradle metadata
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false"),
+        // only test one combination
+        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")]
+    )
     def "maven module is not affected by rule requiring ivy module descriptor input"() {
         def mavenModule = mavenRepo.module("org.utils", "api", "1.1").publishWithChangedContent()
 
         buildFile << """
             configurations { conf }
             repositories {
-                ivy { url "${ivyRepo.uri}" }
                 maven { url "${mavenRepo.uri}" }
             }
 
@@ -106,33 +131,47 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 """
         when:
+        repositoryInteractions {
+            'org.utils:api:1.1' {
+                expectGetMetadata()
+            }
+        }
         succeeds "retrieve"
 
         then:
         file("libs").assertHasDescendants("api-1.1.jar")
-        file("libs/api-1.1.jar").assertIsDifferentFrom(modules['1.1'].jarFile)
+        file("libs/api-1.1.jar").assertIsDifferentFrom(ivyHttpRepo.module('org.utils', 'api', '1.1').jarFile)
         file("libs/api-1.1.jar").assertIsCopyOf(mavenModule.artifactFile)
     }
 
-    def "maven parent pom is not affected by selection rules" () {
-        mavenRepo.module("org", "parent_dep", "1.2").publish()
-        mavenRepo.module("org", "child_dep", "1.7").publish()
-
-        def parent = mavenRepo.module("org", "parent", "1.0")
-        parent.hasPackaging('pom')
-        parent.dependsOn("org", "parent_dep", "1.2")
-        parent.publish()
-
-        def child = mavenRepo.module("org", "child", "1.0")
-        child.dependsOn("org", "child_dep", "1.7")
-        child.parent("org", "parent", "1.0")
-        child.publish()
+    @RequiredFeatures([
+        // Gradle metadata doesn't support parents
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")]
+    )
+    def "parent is not affected by selection rules" () {
+        given:
+        repository {
+            'org:parent_dep:1.2'()
+            'org:child_dep:1.7'()
+            'org:parent:1.0' {
+                dependsOn('org:parent_dep:1.2')
+                withModule(MavenModule) {
+                    hasPackaging('pom')
+                }
+            }
+            'org:child:1.0' {
+                dependsOn('org:child_dep:1.7')
+                withModule(MavenModule) {
+                    parent('org', 'parent', '1.0')
+                }
+                withModule(IvyModule) {
+                    extendsFrom(organisation: "org", module: "parent", revision: "1.0")
+                }
+            }
+        }
 
         buildFile << """
             configurations { conf }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
 
             def fired = []
             configurations.all {
@@ -163,63 +202,32 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
         """
 
-        expect:
+        when:
+        repositoryInteractions {
+            'org:child:1.0' {
+                expectResolve()
+            }
+            'org:parent:1.0' {
+                expectGetMetadata()
+            }
+            'org:child_dep:1.7' {
+                expectResolve()
+            }
+            'org:parent_dep:1.2' {
+                expectResolve()
+            }
+        }
+
+        then:
         succeeds "resolveConf"
     }
 
-    def "ivy extension module is not affected by selection rules" () {
-        ivyRepo.module("org", "parent_dep", "1.2").publish()
-        ivyRepo.module("org", "child_dep", "1.7").publish()
-
-        def parent = ivyRepo.module("org", "parent", "1.0").dependsOn("org", "parent_dep", "1.2").publish()
-        def child = ivyRepo.module("org", "child", "1.0")
-        child.dependsOn("org", "child_dep", "1.7")
-        child.extendsFrom(organisation: "org", module: "parent", revision: "1.0")
-        child.publish()
-
-        buildFile << """
-            configurations { conf }
-            repositories {
-                ivy { url "${ivyRepo.uri}" }
-            }
-
-            def fired = []
-            configurations.all {
-                resolutionStrategy {
-                    componentSelection {
-                        all { ComponentSelection selection ->
-                            logger.warn("fired for \${selection.candidate.module}")
-                            fired << "\${selection.candidate.module}"
-                        }
-
-                        withModule('org:parent') { ComponentSelection selection ->
-                            logger.warn("rejecting parent")
-                            selection.reject("Rejecting parent")
-                        }
-                    }
-                }
-            }
-
-            dependencies {
-                conf "org:child:1.0"
-            }
-
-            task resolveConf {
-                doLast {
-                    configurations.conf.files
-                    assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
-                }
-            }
-        """
-
-        expect:
-        succeeds "resolveConf"
-    }
-
+    @RequiredFeatures(
+        // because of the IvyModuleDescriptor rule
+        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
+    )
     def "component metadata is requested only once for rules that do require it" () {
         buildFile << """
-            $httpBaseBuildFile
-
             dependencies {
                 conf "org.utils:api:2.0"
             }
@@ -239,32 +247,39 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 assert rule1candidates == ['2.0']
                 assert rule2candidates == ['2.0']
             }
         """
 
         when:
-        modules['2.0'].ivy.expectDownload()
-        modules['2.0'].artifact.expectDownload()
+        repositoryInteractions {
+            'org.utils:api:2.0' {
+                expectResolve()
+            }
+        }
 
         then:
-        succeeds 'resolveConf'
+        checkDependencies()
 
         when:
         // Should use cache second time
-        server.resetExpectations()
+        resetExpectations()
 
         then:
-        succeeds 'resolveConf'
+        checkDependencies()
     }
 
+    @RequiredFeatures([
+        // because of the IvyModuleDescriptor rule
+        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy"),
+        // because of branch
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false"),
+    ])
     def "changed component metadata becomes visible when module is refreshed" () {
 
-        def commonBuildFile = """
-            $httpBaseBuildFile
-
+        def commonBuildFile = buildFile.text + """
             dependencies {
                 conf "org.utils:api:1.+"
             }
@@ -288,39 +303,53 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         """
 
         when:
-        buildFile << """
+        buildFile.text = """
             $commonBuildFile
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 assert status11 == 'milestone'
                 assert branch11 == 'test'
             }
         """
 
         and:
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        modules["1.2"].ivy.expectDownload()
-        modules["1.1"].ivy.expectDownload()
-        modules["1.1"].artifact.expectDownload()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                }
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
 
         then:
-        succeeds 'resolveConf'
+        succeeds 'checkDeps'
 
         when:
-        modules["1.1"].withBranch('master').withStatus('release').publishWithChangedContent()
-
-        and:
-        server.resetExpectations()
+        resetExpectations()
+        repository {
+            'org.utils:api:1.1' {
+                withModule {
+                    withBranch('master')
+                    withStatus('release')
+                    publishWithChangedContent()
+                }
+            }
+        }
 
         then:
+        repositoryInteractions {}
         // Everything should come from cache
-        succeeds 'resolveConf'
+        succeeds 'checkDeps'
 
         when:
         buildFile.text = """
             $commonBuildFile
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 assert status11 == 'release'
                 assert branch11 == 'master'
             }
@@ -329,25 +358,34 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         """
 
         and:
-        server.resetExpectations()
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        modules["1.2"].ivy.expectHead()
-        modules["1.1"].ivy.expectHead()
-        modules["1.1"].ivy.sha1.expectGet()
-        modules["1.1"].ivy.expectDownload()
-        modules["1.1"].artifact.expectMetadataRetrieve()
-        modules["1.1"].artifact.sha1.expectGet()
-        modules["1.1"].artifact.expectDownload()
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.2' {
+                    expectHeadMetadata()
+                }
+                '1.1' {
+                    expectHeadMetadata()
+                    withModule {
+                        // todo: handle this properly in ModuleVersionSpec test fixture
+                        getArtifact(name: 'ivy', ext: 'xml.sha1').allowGetOrHead()
+                        getArtifact(ext: 'jar.sha1').allowGetOrHead()
+                    }
+                    expectGetMetadata()
+                    expectHeadArtifact()
+                    expectGetArtifact()
+                }
+            }
+        }
 
         then:
         args("--refresh-dependencies")
-        succeeds 'resolveConf'
+        succeeds 'checkDeps'
     }
 
     def "copies selection rules when configuration is copied" () {
         buildFile << """
-            $baseBuildFile
-
             configurations {
                 notCopy 
             }
@@ -366,7 +404,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
             configurations.add(configurations.conf.copy())
 
-            task('checkConf') {
+            task('checkDeps') {
                 doLast {
                     assert configurations.conf.files*.name == ['api-1.1.jar']
                     assert configurations.confCopy.files*.name == ['api-1.1.jar']
@@ -375,14 +413,25 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
         """
 
-        expect:
-        succeeds 'checkConf'
+        when:
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.1' {
+                    expectResolve()
+                }
+                '1.2' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then:
+        checkDependencies()
     }
 
     def "can provide component selection rule as closure" () {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.+"
             }
@@ -406,18 +455,26 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 assert candidates == ['1.2', '1.2', '1.2', '1.2']
             }
         """
+        when:
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+        }
 
-        expect:
-        succeeds 'resolveConf'
+        then:
+        checkDependencies()
     }
 
     def "can provide component selection rule as rule source"() {
         buildFile << """
-            $baseBuildFile
 
             dependencies {
                 conf "org.utils:api:1.+"
@@ -433,7 +490,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            resolveConf.doLast {
+            checkDeps.doLast {
                 def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
                 assert artifacts.size() == 1
                 assert artifacts[0].moduleVersion.id.version == '1.1'
@@ -453,7 +510,18 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
         """
 
-        expect:
-        succeeds "resolveConf"
+        when:
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then:
+        checkDependencies()
+
     }
 }

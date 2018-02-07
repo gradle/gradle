@@ -48,4 +48,20 @@ public interface ResourcePattern {
      * Returns the path for the given component.
      */
     ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier);
+
+    /**
+     * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
+     */
+    boolean isComplete(ModuleIdentifier moduleIdentifier);
+
+    /**
+     * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
+     */
+    boolean isComplete(ModuleComponentIdentifier componentIdentifier);
+
+    /**
+     * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
+     */
+    boolean isComplete(ModuleComponentArtifactMetadata id);
+
 }

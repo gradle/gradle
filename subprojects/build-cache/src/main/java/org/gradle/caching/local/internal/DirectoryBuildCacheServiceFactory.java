@@ -16,19 +16,18 @@
 
 package org.gradle.caching.local.internal;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
+import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import javax.inject.Inject;
@@ -47,16 +46,16 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final PathToFileResolver resolver;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
+    private final CleanupActionFactory cleanupActionFactory;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, BuildOperationExecutor buildOperationExecutor, DirectoryBuildCacheFileStoreFactory fileStoreFactory) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory, CleanupActionFactory cleanupActionFactory) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.fileStoreFactory = fileStoreFactory;
+        this.cleanupActionFactory = cleanupActionFactory;
     }
 
     @Override
@@ -70,21 +69,20 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        long targetSizeInMB = configuration.getTargetSizeInMB();
-        String humanReadableCacheSize = FileUtils.byteCountToDisplaySize(targetSizeInMB *1024*1024);
+        int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
-            config("targetSize", humanReadableCacheSize);
+            config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetSizeInMB, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, FAILED_READ_SUFFIX);
     }

@@ -23,17 +23,19 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.Factories
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
@@ -561,12 +563,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.mustRunAfter >> Stub(TaskDependency)
         _ * mock.shouldRunAfter >> Stub(TaskDependency)
         _ * mock.compareTo(_) >> { Task t -> name.compareTo(t.name) }
-        _ * mock.outputs >> Stub(TaskOutputsInternal) {
-            getFiles() >> project.files()
-        }
-        _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
-            getFilesReadOnly() >> []
-        }
+        _ * mock.outputs >> Stub(TaskOutputsInternal)
+        _ * mock.inputs >> Stub(TaskInputsInternal)
+        _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
+        _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
         return mock
     }
@@ -597,12 +597,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.mustRunAfter >> Stub(TaskDependency)
         _ * mock.shouldRunAfter >> Stub(TaskDependency)
         _ * mock.compareTo(_) >> { Task t -> name.compareTo(t.name) }
-        _ * mock.outputs >> Stub(TaskOutputsInternal) {
-            getFiles() >> project.files()
-        }
-        _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
-            getFiles() >> []
-        }
+        _ * mock.outputs >> Stub(TaskOutputsInternal)
+        _ * mock.inputs >> Stub(TaskInputsInternal)
+        _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
+        _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
         return mock
     }

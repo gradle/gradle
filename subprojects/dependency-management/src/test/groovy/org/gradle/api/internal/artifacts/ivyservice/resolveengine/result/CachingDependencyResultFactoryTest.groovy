@@ -17,12 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newVariant
 
 class CachingDependencyResultFactoryTest extends Specification {
 
@@ -31,6 +33,25 @@ class CachingDependencyResultFactoryTest extends Specification {
     def "creates and caches resolved dependencies"() {
         def fromModule = newModule('from')
         def selectedModule = newModule('selected')
+
+        when:
+        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
+        def same = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
+
+        def differentRequested = factory.createResolvedDependency(selector('xxx'), fromModule, selectedModule)
+        def differentFrom = factory.createResolvedDependency(selector('requested'), newModule('xxx'), selectedModule)
+        def differentSelected = factory.createResolvedDependency(selector('requested'), fromModule, newModule('xxx'))
+
+        then:
+        dep.is(same)
+        !dep.is(differentFrom)
+        !dep.is(differentRequested)
+        !dep.is(differentSelected)
+    }
+
+    def "creates and caches resolved dependencies with attributes"() {
+        def fromModule = newModule('from')
+        def selectedModule = newModule('selected', 'a', '1', selectedByRule(), newVariant('custom', [attr1: 'foo', attr2: 'bar']))
 
         when:
         def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
@@ -67,10 +88,14 @@ class CachingDependencyResultFactoryTest extends Specification {
     }
 
     def selector(String group='a', String module='a', String version='1') {
-        DefaultModuleComponentSelector.newSelector(group, module, version)
+        DefaultModuleComponentSelector.newSelector(group, module, new DefaultMutableVersionConstraint(version))
     }
 
     def moduleVersionSelector(String group='a', String module='a', String version='1') {
-        newSelector(group, module, version)
+        newSelector(group, module, new DefaultMutableVersionConstraint(version))
+    }
+
+    private static ComponentSelectionReason selectedByRule() {
+        VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE])
     }
 }

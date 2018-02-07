@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     compile project(':core')
@@ -22,11 +26,15 @@ dependencies {
     integTestRuntime project(":ideNative")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":messaging")
+testFixtures {
+    from(':core')
+    from(':versionControl')
+    from(':platformNative')
+    from(':platformBase')
+    from(':messaging')
+    from(':platformNative', 'testFixtures')
+}
 
-useClassycle()
-strictCompile()
-
+classycle {
+    excludePatterns = ['org/gradle/language/nativeplatform/internal/**']
+}

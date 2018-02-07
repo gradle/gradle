@@ -27,11 +27,13 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -66,6 +68,8 @@ class BuildActionsFactory implements CommandLineAction {
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, new Parameters());
+        parameters.getStartParameter().setInteractive(ConsoleStateUtil.isInteractive());
+
         parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
         if (parameters.getDaemonParameters().isStop()) {
@@ -125,7 +129,8 @@ class BuildActionsFactory implements CommandLineAction {
                 .provider(new GlobalScopeServices(startParameter.isContinuous()))
                 .build();
 
-        return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices);
+        // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
+        return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
     }
 
     private Runnable runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
@@ -158,12 +163,12 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable runBuildAndCloseServices(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
-        BuildActionParameters parameters = createBuildActionParamters(startParameter, daemonParameters);
+        BuildActionParameters parameters = createBuildActionParameters(startParameter, daemonParameters);
         Stoppable stoppable = new CompositeStoppable().add(stopBeforeSharedServices).add(sharedServices);
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices, stoppable);
     }
 
-    private BuildActionParameters createBuildActionParamters(StartParameter startParameter, DaemonParameters daemonParameters) {
+    private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
         return new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
                 daemonParameters.getEnvironmentVariables(),

@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
+import java.util.Collection;
+
 public interface ConflictResolutionResult {
 
     /**
@@ -32,4 +34,6 @@ public interface ConflictResolutionResult {
      * The actual selected version.
      */
     <T extends ComponentResolutionState> T getSelected();
+
+    Collection<? extends ComponentResolutionState> getCandidates();
 }

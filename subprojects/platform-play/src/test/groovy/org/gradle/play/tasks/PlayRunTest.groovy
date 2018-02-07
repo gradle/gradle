@@ -40,6 +40,7 @@ class PlayRunTest extends Specification {
 
     def setup() {
         playRun = TestUtil.create(tmpDir).task(PlayRun)
+        playRun.workingDir.set(tmpDir.testDirectory)
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
         playRun.playToolProvider = playToolProvider

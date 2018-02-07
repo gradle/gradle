@@ -16,47 +16,34 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
 public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
-    private final PersistentCache cache;
     private final BuildController buildController;
     private BuildSrcBuildListenerFactory listenerFactory;
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    public BuildSrcUpdateFactory(PersistentCache cache, BuildController buildController, BuildSrcBuildListenerFactory listenerFactory) {
-        this.cache = cache;
+    public BuildSrcUpdateFactory(BuildController buildController, BuildSrcBuildListenerFactory listenerFactory) {
         this.buildController = buildController;
         this.listenerFactory = listenerFactory;
     }
 
     public DefaultClassPath create() {
-        File markerFile = new File(cache.getBaseDir(), "built.bin");
-        final boolean rebuild = !markerFile.exists();
-
-        Collection<File> classpath = build(rebuild);
+        Collection<File> classpath = build();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        try {
-            markerFile.createNewFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
         return new DefaultClassPath(classpath);
     }
 
-    private Collection<File> build(boolean rebuild) {
-        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
+    private Collection<File> build() {
+        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
         GradleInternal gradle = buildController.getGradle();
         gradle.addListener(listener);
 

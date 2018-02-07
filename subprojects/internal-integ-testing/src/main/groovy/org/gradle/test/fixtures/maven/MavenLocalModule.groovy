@@ -17,17 +17,19 @@ package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.file.TestFile
 
-class MavenLocalModule extends AbstractMavenModule {
+class MavenLocalModule extends MavenFileModule {
     private boolean uniqueSnapshots = false;
 
-    MavenLocalModule(TestFile moduleDir, String groupId, String artifactId, String version) {
-        super(moduleDir, groupId, artifactId, version)
+    MavenLocalModule(TestFile rootDir, TestFile moduleDir, String groupId, String artifactId, String version) {
+        super(rootDir, moduleDir, groupId, artifactId, version)
     }
 
+    @Override
     boolean getUniqueSnapshots() {
         return uniqueSnapshots
     }
 
+    @Override
     MavenLocalModule withNonUniqueSnapshots() {
         //NO-OP for mavenLocal cache.
         this
@@ -58,11 +60,6 @@ class MavenLocalModule extends AbstractMavenModule {
     @Override
     protected boolean publishesMetaDataFile() {
         version.endsWith("-SNAPSHOT")
-    }
-
-    @Override
-    protected boolean publishesHashFiles() {
-        false
     }
 
     /* No checksums published for local modules */

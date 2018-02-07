@@ -16,10 +16,11 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.ModuleSource;
 
 /**
- * Meta-data for a module version resolved from a Maven repository.
+ * Meta-data for a component resolved from a Maven repository.
  */
 public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetadata {
     /**
@@ -39,4 +40,6 @@ public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetada
     boolean isPomPackaging();
     boolean isKnownJarPackaging();
     String getSnapshotTimestamp();
+
+    ImmutableList<MavenDependencyDescriptor> getDependencies();
 }

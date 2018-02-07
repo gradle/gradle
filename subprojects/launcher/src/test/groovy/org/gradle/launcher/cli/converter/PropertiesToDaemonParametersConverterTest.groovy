@@ -16,10 +16,9 @@
 
 package org.gradle.launcher.cli.converter
 
-import org.gradle.api.GradleException
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -37,14 +36,14 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
 
     def "allows whitespace around boolean properties"() {
         when:
-        converter.convert([ (DaemonBuildOptionFactory.DaemonOption.GRADLE_PROPERTY): 'false ' ], params)
+        converter.convert([ (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): 'false ' ], params)
         then:
         !params.enabled
     }
 
     def "can configure jvm args combined with a system property"() {
         when:
-        converter.convert([(DaemonBuildOptionFactory.JvmArgsOption.GRADLE_PROPERTY): '-Xmx512m -Dprop=value'], params)
+        converter.convert([(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY): '-Xmx512m -Dprop=value'], params)
 
         then:
         params.effectiveJvmArgs.contains('-Xmx512m')
@@ -55,7 +54,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
 
     def "supports 'empty' system properties"() {
         when:
-        converter.convert([(DaemonBuildOptionFactory.JvmArgsOption.GRADLE_PROPERTY): "-Dfoo= -Dbar"], params)
+        converter.convert([(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY): "-Dfoo= -Dbar"], params)
 
         then:
         params.systemProperties == [foo: '', bar: '']
@@ -64,13 +63,13 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-            (DaemonBuildOptionFactory.JvmArgsOption.GRADLE_PROPERTY)     : '-Xmx256m',
-            (DaemonBuildOptionFactory.JavaHomeOption.GRADLE_PROPERTY)    : Jvm.current().javaHome.absolutePath,
-            (DaemonBuildOptionFactory.DaemonOption.GRADLE_PROPERTY)      : "false",
-            (DaemonBuildOptionFactory.BaseDirOption.GRADLE_PROPERTY)     : new File("baseDir").absolutePath,
-            (DaemonBuildOptionFactory.IdleTimeoutOption.GRADLE_PROPERTY) : "115",
-            (DaemonBuildOptionFactory.HealthCheckOption.GRADLE_PROPERTY) : "42",
-            (DaemonBuildOptionFactory.DebugOption.GRADLE_PROPERTY)       : "true",
+            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY)     : '-Xmx256m',
+            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY)    : Jvm.current().javaHome.absolutePath,
+            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY)      : "false",
+            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY)     : new File("baseDir").absolutePath,
+            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) : "115",
+            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY) : "42",
+            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY)       : "true",
         ], params)
 
         then:
@@ -85,10 +84,10 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
 
     def "shows nice message for dummy java home"() {
         when:
-        converter.convert([(DaemonBuildOptionFactory.JavaHomeOption.GRADLE_PROPERTY): "/invalid/path"], params)
+        converter.convert([(DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY): "/invalid/path"], params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.java.home'
         ex.message.contains '/invalid/path'
     }
@@ -96,30 +95,30 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "shows nice message for invalid java home"() {
         def dummyDir = temp.createDir("foobar")
         when:
-        converter.convert([(DaemonBuildOptionFactory.JavaHomeOption.GRADLE_PROPERTY): dummyDir.absolutePath], params)
+        converter.convert([(DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY): dummyDir.absolutePath], params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.java.home'
         ex.message.contains 'foobar'
     }
 
     def "shows nice message for invalid idle timeout"() {
         when:
-        converter.convert((DaemonBuildOptionFactory.IdleTimeoutOption.GRADLE_PROPERTY): 'asdf', params)
+        converter.convert((DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY): 'asdf', params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.daemon.idletimeout'
         ex.message.contains 'asdf'
     }
 
     def "shows nice message for invalid periodic check interval"() {
         when:
-        converter.convert((DaemonBuildOptionFactory.HealthCheckOption.GRADLE_PROPERTY): 'bogus', params)
+        converter.convert((DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY): 'bogus', params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.daemon.healthcheckinterval'
         ex.message.contains 'bogus'
     }
@@ -127,7 +126,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     @Unroll
     def "explicitly sets daemon usage if daemon system property is specified"() {
         when:
-        converter.convert((DaemonBuildOptionFactory.DaemonOption.GRADLE_PROPERTY): enabled.toString(), params)
+        converter.convert((DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): enabled.toString(), params)
 
         then:
         params.enabled == propertyValue
@@ -141,7 +140,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "enable debug mode from JVM args when default debug argument is used"() {
         when:
         converter.convert([
-            (DaemonBuildOptionFactory.JvmArgsOption.GRADLE_PROPERTY)                 : "-Xmx256m $debugArgs".toString(),
+            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY)                 : "-Xmx256m $debugArgs".toString(),
         ], params)
 
         then:

@@ -4,20 +4,30 @@
  * Should have a very small set of dependencies, and should be appropriate to embed in an external
  * application (eg as part of the tooling API).
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'classycle'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    api libraries.guava
-    api libraries.jsr305
+    compile project(':distributionsDependencies')
 
-    implementation libraries.slf4j_api
-    implementation libraries.commons_lang
-    implementation libraries.commons_io
-    implementation libraries.jcip
+    api libraries.guava.coordinate
+    api libraries.jsr305.coordinate
+    api libraries.fastutil.coordinate
 
-    jmh libraries.bouncycastle_provider
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.commons_lang.coordinate
+    implementation libraries.commons_io.coordinate
+    implementation libraries.jcip.coordinate
+
+    jmh(libraries.bouncycastle_provider.coordinate) { version { prefer libraries.bouncycastle_provider.version } }
+}
+
+testFixtures {
+    from(':core')
 }
 
 jmh {
@@ -31,6 +41,3 @@ task buildReceiptResource(type: Copy) {
     destinationDir = file("${generatedTestResourcesDir}/${buildReceiptPackage}")
 }
 sourceSets.main.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
-
-useTestFixtures()
-useClassycle()

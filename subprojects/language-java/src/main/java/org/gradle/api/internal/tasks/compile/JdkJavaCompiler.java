@@ -19,7 +19,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.reflect.SourcepathIgnoringProxy;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
@@ -57,7 +56,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
-        CompileOptions compileOptions = spec.getCompileOptions();
+        MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSource());
         StandardJavaFileManager fileManager = standardFileManager;

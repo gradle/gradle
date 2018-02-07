@@ -32,7 +32,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
  */
-public interface ModuleDependency extends Dependency {
+public interface ModuleDependency extends DirectDependency {
     /**
      * Adds an exclude rule to exclude transitive dependencies of this dependency.
      * <p>
@@ -155,4 +155,5 @@ public interface ModuleDependency extends Dependency {
      * {@inheritDoc}
      */
     ModuleDependency copy();
+
 }

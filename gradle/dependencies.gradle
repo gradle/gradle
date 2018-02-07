@@ -15,217 +15,101 @@
  */
 
 ext {
-    versions = [:]
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.11.1'
+libraries.aether_connector =    [coordinate: 'org.sonatype.aether:aether-connector-wagon', version: '1.13.1']
+libraries.ant =                 [coordinate: 'org.apache.ant:ant', version: '1.9.9']
+libraries.asm =                 [coordinate: 'org.ow2.asm:asm', version: '6.0']
+libraries.asm_commons =         [coordinate: 'org.ow2.asm:asm-commons', version: libraries.asm.version]
+libraries.asm_tree =            [coordinate: 'org.ow2.asm:asm-tree', version: libraries.asm.version]
+libraries.asm_util =            [coordinate: 'org.ow2.asm:asm-util', version: libraries.asm.version]
+libraries.awsS3_core =          [coordinate: 'com.amazonaws:aws-java-sdk-core', version: '1.11.267']
+libraries.awsS3_s3 =            [coordinate: 'com.amazonaws:aws-java-sdk-s3',   version: libraries.awsS3_core.version]
+libraries.awsS3_kms =           [coordinate: 'com.amazonaws:aws-java-sdk-kms',  version: libraries.awsS3_core.version]
+libraries.bouncycastle_provider = [coordinate: 'org.bouncycastle:bcprov-jdk15on', version: '1.58']
+libraries.bouncycastle_pgp =    [coordinate: 'org.bouncycastle:bcpg-jdk15on',   version: libraries.bouncycastle_provider.version]
+libraries.bndlib =              [coordinate: 'biz.aQute.bnd:biz.aQute.bndlib',  version: '3.4.0']
+libraries.bsh =                 [coordinate: 'org.apache-extras.beanshell:bsh', version: '2.0b6']
+libraries.commons_cli =         [coordinate: 'commons-cli:commons-cli', version: '1.2']
+libraries.commons_codec =       [coordinate: 'commons-codec:commons-codec', version: '1.10']
+libraries.commons_collections = [coordinate: 'commons-collections:commons-collections', version: '3.2.2']
+libraries.commons_compress =    [coordinate: 'org.apache.commons:commons-compress', version: '1.14']
+libraries.commons_httpclient =  [coordinate: 'org.apache.httpcomponents:httpclient', version: '4.5.5']
+libraries.commons_io =          [coordinate: 'commons-io:commons-io', version: '2.4']
+libraries.commons_lang =        [coordinate: 'commons-lang:commons-lang', version: '2.6']
+libraries.fastutil =            [coordinate: 'it.unimi.dsi:fastutil', version: '7.2.1']
+libraries.gcs =                 [coordinate: 'com.google.apis:google-api-services-storage', version: 'v1-rev116-1.23.0']
+libraries.groovy =              [coordinate: 'org.codehaus.groovy:groovy-all', version: '2.4.12']
+libraries.gson =                [coordinate: 'com.google.code.gson:gson', version: '2.7']
+libraries.guava =               [coordinate: 'com.google.guava:guava-jdk5', version: '17.0']
+libraries.inject =              [coordinate: 'javax.inject:javax.inject', version: '1']
+libraries.ivy =                 [coordinate: 'org.apache.ivy:ivy', version: '2.2.0']
+libraries.jackson_core =        [coordinate: 'com.fasterxml.jackson.core:jackson-core', version: '2.8.11']
+libraries.jackson_annotations = [coordinate: 'com.fasterxml.jackson.core:jackson-annotations', version: libraries.jackson_core.version]
+libraries.jackson_databind =    [coordinate: 'com.fasterxml.jackson.core:jackson-databind', version: libraries.jackson_core.version]
+libraries.jansi =               [coordinate: 'org.fusesource.jansi:jansi', version: '1.14']
+libraries.jatl =                [coordinate: 'com.googlecode.jatl:jatl', version: '0.2.2']
+libraries.jcifs =               [coordinate: 'org.samba.jcifs:jcifs', version: '1.3.17']
+libraries.jcip =                [coordinate: 'net.jcip:jcip-annotations', version: '1.0']
+libraries.jgit =                [coordinate: 'org.eclipse.jgit:org.eclipse.jgit', version: '4.5.3.201708160445-r', because: '4.6+ requires Java 8']
+libraries.joda =                [coordinate: 'joda-time:joda-time', version: '2.8.2']
+libraries.jsch =                [coordinate: 'com.jcraft:jsch', version: '0.1.54']
+libraries.jsr305 =              [coordinate: 'com.google.code.findbugs:jsr305', version: '2.0.1']
+libraries.junit =               [coordinate: 'junit:junit', version: '4.12']
+libraries.kryo =                [coordinate: 'com.esotericsoftware.kryo:kryo', version: '2.20']
+libraries.maven3 =              [coordinate: 'org.apache.maven:maven-core', version: '3.0.4']
+libraries.maven3_wagon_file =   [coordinate: 'org.apache.maven.wagon:wagon-file', version: '2.4']
+libraries.maven3_wagon_http =   [coordinate: 'org.apache.maven.wagon:wagon-http', version: libraries.maven3_wagon_file.version]
+libraries.nativePlatform =      [coordinate: 'net.rubygrapefruit:native-platform', version: '0.14']
+libraries.nekohtml =            [coordinate: 'net.sourceforge.nekohtml:nekohtml', version: '1.9.20']
+libraries.objenesis =           [coordinate: 'org.objenesis:objenesis', version: '1.2']
+libraries.plexus_container =    [coordinate: 'org.codehaus.plexus:plexus-container-default', version: '1.5.5']
+libraries.plist =               [coordinate: 'com.googlecode.plist:dd-plist', version: '1.20', because: 'for XCode IDE integration support']
+libraries.pmaven_common =       [coordinate: 'org.sonatype.pmaven:pmaven-common', version: '0.8-20100325']
+libraries.pmaven_groovy =       [coordinate: 'org.sonatype.pmaven:pmaven-groovy', version: libraries.pmaven_common.version]
+libraries.rhino =               [coordinate: 'org.mozilla:rhino', version: '1.7R3']
+libraries.simple =              [coordinate: 'org.simpleframework:simple', version: '4.1.21']
+libraries.testng =              [coordinate: 'org.testng:testng', version: '6.3.1']
+libraries.xerces =              [coordinate: 'xerces:xercesImpl', version: '2.11.0']
+libraries.xmlApis =             [coordinate: 'xml-apis:xml-apis', version: '1.4.01', because: '2.0.x has a POM with relocation Gradle does not handle well']
+libraries.slf4j_api =           [coordinate: 'org.slf4j:slf4j-api', version: '1.7.16']
+libraries.jcl_to_slf4j =        [coordinate: 'org.slf4j:jcl-over-slf4j', version: libraries.slf4j_api.version]
+libraries.jul_to_slf4j =        [coordinate: 'org.slf4j:jul-to-slf4j', version: libraries.slf4j_api.version]
+libraries.log4j_to_slf4j =      [coordinate: 'org.slf4j:log4j-over-slf4j', version: libraries.slf4j_api.version]
 
-versions.commons_io = 'commons-io:commons-io:2.2'
-
-versions.groovy = "2.4.11"
-
-versions.bouncycastle = "1.57"
-
-versions.maven = "3.0.4"
-
-libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
-    dependency 'org.apache.ant:ant-launcher:1.9.6@jar'
-}
-
-libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_ALPHA'
-libraries.cglib = 'cglib:cglib:3.2.5'
-libraries.bndlib = dependencies.module('biz.aQute.bnd:biz.aQute.bndlib:3.4.0')
-libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
-libraries.commons_io = dependencies.module(versions.commons_io)
-libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
-libraries.commons_collections = 'commons-collections:commons-collections:3.2.2@jar'
-libraries.commons_compress = 'org.apache.commons:commons-compress:1.14'
-libraries.jsch = "com.jcraft:jsch:0.1.54"
-libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
-    dependency libraries.jsch
-}
-libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
-libraries.inject = dependencies.module('javax.inject:javax.inject:1')
-
-// Logging
-libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.10')
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.10') {
-    dependency libraries.slf4j_api
-}
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.10') {
-    dependency libraries.slf4j_api
-}
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.10') {
-    dependency libraries.slf4j_api
-}
-libraries.logback_core = dependencies.module('ch.qos.logback:logback-core:1.0.13')
-libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:1.0.13') {
-    dependency libraries.logback_core
-    dependency libraries.slf4j_api
-}
-
-// Jetty
-libraries.servlet_api = "org.mortbay.jetty:servlet-api:2.5-20081211@jar"
-libraries.jetty_util = dependencies.module("org.mortbay.jetty:jetty-util:6.1.26") {
-    dependency libraries.slf4j_api
-    dependency libraries.servlet_api
-}
-libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.26") {
-    dependency libraries.jetty_util
-    dependency libraries.servlet_api
-}
-
-libraries.commons_codec = "commons-codec:commons-codec:1.6@jar"
-libraries.jcifs = "org.samba.jcifs:jcifs:1.3.17@jar"
-libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.4.1') {
-    dependency "org.apache.httpcomponents:httpcore:4.4.4@jar"
-    dependency libraries.jcl_to_slf4j
-    dependency libraries.commons_codec
-    dependency libraries.jcifs
-}
-
-
-libraries += [
-    jatl: 'com.googlecode.jatl:jatl:0.2.2',
-    dom4j: 'dom4j:dom4j:1.6.1@jar',
-    guava: 'com.google.guava:guava-jdk5:17.0@jar',
-    kryo: 'com.esotericsoftware.kryo:kryo:2.20',
-    jsr305: 'com.google.code.findbugs:jsr305:1.3.9@jar',
-    groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
-    jaxen: 'jaxen:jaxen:1.1@jar',
-    jcip: "net.jcip:jcip-annotations:1.0@jar",
-    junit: 'junit:junit:4.12@jar',
-    xmlunit: 'xmlunit:xmlunit:1.3',
-    equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
-    nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
-    xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
-    nativePlatform: 'net.rubygrapefruit:native-platform:0.14',
-    jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
-    xerces: "xerces:xercesImpl:2.9.1",
-    objenesis: 'org.objenesis:objenesis:1.2@jar',
-    jsoup:'org.jsoup:jsoup:1.6.3',
-    jgit: [
-        'org.eclipse.jgit:org.eclipse.jgit:4.5.3.201708160445-r@jar', // 4.6+ requires Java 8
-        libraries.commons_httpclient,
-        libraries.jsch
-    ]
-]
-
-libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
-    dependency "org.apache.maven:maven-settings:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-settings-builder:${versions.maven}@jar"
-
-    //plexus:
-    dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
-    dependency "org.codehaus.plexus:plexus-interpolation:1.14@jar"
-    dependency "org.codehaus.plexus:plexus-component-annotations:1.5.5@jar"
-    dependency "org.codehaus.plexus:plexus-container-default:1.5.5@jar"
-    dependency "org.codehaus.plexus:plexus-classworlds:2.4@jar"
-
-    //sonatype plexus
-    dependency "org.sonatype.plexus:plexus-cipher:1.7@jar"
-    dependency "org.sonatype.plexus:plexus-sec-dispatcher:1.3@jar"
-
-    //core:
-    dependency "org.apache.maven:maven-core:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-compat:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-model-builder:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-model:${versions.maven}@jar"
-
-    //somewhat core:
-    dependency "org.apache.maven:maven-artifact:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-repository-metadata:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-plugin-api:${versions.maven}@jar"
-    dependency "org.apache.maven:maven-aether-provider:${versions.maven}@jar"
-
-    dependency 'org.apache.maven.wagon:wagon-file:2.4@jar'
-    dependency 'org.apache.maven.wagon:wagon-http:2.4@jar'
-    dependency 'org.apache.maven.wagon:wagon-provider-api:2.4@jar'
-    dependency 'org.apache.maven.wagon:wagon-http-shared4:2.4@jar'
-
-    //eather:
-    dependency "org.sonatype.aether:aether-api:1.13.1@jar"
-    dependency "org.sonatype.aether:aether-impl:1.13.1@jar"
-    dependency "org.sonatype.aether:aether-spi:1.13.1@jar"
-    dependency "org.sonatype.aether:aether-util:1.13.1@jar"
-    dependency 'org.sonatype.aether:aether-connector-wagon:1.13.1@jar'
-}
-
-libraries.spock = [
-    'org.spockframework:spock-core:1.0-groovy-2.4@jar',
-    libraries.groovy,
-    libraries.objenesis,
-    libraries.cglib
-]
-libraries.jmock = [
-    'org.jmock:jmock:2.5.1',
-    'org.hamcrest:hamcrest-core:1.3',
-    'org.hamcrest:hamcrest-library:1.3',
-    dependencies.create('org.jmock:jmock-junit4:2.5.1') { exclude group: 'junit', module: 'junit-dep' }, //junit-dep pulls old definitions of core junit types.
-    'org.jmock:jmock-legacy:2.5.1',
-    libraries.objenesis,
-    libraries.cglib
-]
-
-versions.findbugs = "2.0.1"
-libraries.findbugs = dependencies.module("com.google.code.findbugs:findbugs:${versions.findbugs}") {
-    dependency libraries.dom4j
-}
-libraries.bcel = "com.google.code.findbugs:bcel:${versions.findbugs}@jar"
-
-libraries.gson = "com.google.code.gson:gson:2.7"
-libraries.mina = dependencies.module("org.apache.mina:mina-core:2.0.10") {
-    dependency libraries.slf4j_api
-}
-libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:1.2.0") {
-    dependency libraries.slf4j_api
-    dependency libraries.mina
-}
-
-libraries.bouncycastle_provider = "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}@jar"
-libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:${versions.bouncycastle}") {
-    dependency libraries.bouncycastle_provider
-}
-
-libraries.joda = 'joda-time:joda-time:2.8.2@jar'
-
-versions.aws = "1.11.6"
-versions.jackson = "2.6.6"
-libraries.awsS3 = [
-        "com.amazonaws:aws-java-sdk-s3:${versions.aws}@jar",
-        "com.amazonaws:aws-java-sdk-kms:${versions.aws}@jar",
-        "com.amazonaws:aws-java-sdk-core:${versions.aws}@jar",
-        "com.fasterxml.jackson.core:jackson-core:${versions.jackson}@jar",
-        "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
-        "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
-] + libraries.commons_httpclient + libraries.joda
-
-// keep in sync with ScalaLanguagePlugin code
-libraries.zinc = 'com.typesafe.zinc:zinc:0.3.15'
-
-libraries.gcs = [
-        dependencies.create('com.google.apis:google-api-services-storage:v1-rev78-1.22.0') {
-            exclude group: 'commons-logging', module: 'commons-logging'
-        },
-        "com.fasterxml.jackson.core:jackson-core:${versions.jackson}@jar",
-        "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
-        "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
-] + libraries.commons_httpclient + libraries.joda
-
-// for XCode IDE integration support
-libraries.plist = 'com.googlecode.plist:dd-plist:1.20'
-
-allprojects {
-    configurations.all {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'org.ow2.asm') {
-                details.useTarget(libraries.asm)
-            } else if (details.requested.group == 'org.codehaus.groovy') {
-                details.useTarget(libraries.groovy)
-            } else if (details.requested.group == 'cglib') {
-                details.useTarget(libraries.cglib)
-            }
-        }
-    }
-}
+// these are transitive dependencies that are part of the Gradle distribution
+libraries.jetbrains_annotations = [coordinate: 'org.jetbrains:annotations', version: '13.0']
+libraries.ant_launcher = [coordinate: 'org.apache.ant:ant-launcher', version: libraries.ant.version]
+libraries.asm_util = [coordinate: 'org.ow2.asm:asm-util', version: libraries.asm.version]
+libraries.minlog = [coordinate: 'com.esotericsoftware.minlog:minlog', version: '1.2']
+libraries.aether_api = [coordinate: 'org.sonatype.aether:aether-api', version: libraries.aether_connector.version]
+libraries.aether_impl = [coordinate: 'org.sonatype.aether:aether-impl', version: libraries.aether_connector.version]
+libraries.aether_spi = [coordinate: 'org.sonatype.aether:aether-spi', version: libraries.aether_connector.version]
+libraries.aether_util = [coordinate: 'org.sonatype.aether:aether-util', version: libraries.aether_connector.version]
+libraries.google_api_client = [coordinate: 'com.google.api-client:google-api-client', version: '1.23.0']
+libraries.google_http_client = [coordinate: 'com.google.http-client:google-http-client', version: '1.23.0']
+libraries.google_http_client_jackson2 = [coordinate: 'com.google.http-client:google-http-client-jackson2', version: '1.23.0']
+libraries.google_oauth_client = [coordinate: 'com.google.oauth-client:google-oauth-client', version: '1.23.0']
+libraries.hamcrest = [coordinate: 'org.hamcrest:hamcrest-core', version: '1.3']
+libraries.httpcore = [coordinate: 'org.apache.httpcomponents:httpcore', version: '4.4.9']
+libraries.jcommander = [coordinate: 'com.beust:jcommander', version: '1.47']
+libraries.maven3_aether_provider = [coordinate: 'org.apache.maven:maven-aether-provider', version: libraries.maven3.version]
+libraries.maven3_artifact = [coordinate: 'org.apache.maven:maven-artifact', version: libraries.maven3.version]
+libraries.maven3_compat = [coordinate: 'org.apache.maven:maven-compat', version: libraries.maven3.version]
+libraries.maven3_model = [coordinate: 'org.apache.maven:maven-model', version: libraries.maven3.version]
+libraries.maven3_model_builder = [coordinate: 'org.apache.maven:maven-model-builder', version: libraries.maven3.version]
+libraries.maven3_plugin_api = [coordinate: 'org.apache.maven:maven-plugin-api', version: libraries.maven3.version]
+libraries.maven3_repository_metadata = [coordinate: 'org.apache.maven:maven-repository-metadata', version: libraries.maven3.version]
+libraries.maven3_settings = [coordinate: 'org.apache.maven:maven-settings', version: libraries.maven3.version]
+libraries.maven3_settings_builder = [coordinate: 'org.apache.maven:maven-settings-builder', version: libraries.maven3.version]
+libraries.plexus_cipher = [coordinate: 'org.sonatype.plexus:plexus-cipher', version: '1.7']
+libraries.plexus_classworlds = [coordinate: 'org.codehaus.plexus:plexus-classworlds', version: '2.4']
+libraries.plexus_component_annotations = [coordinate: 'org.codehaus.plexus:plexus-component-annotations', version: '1.5.5']
+libraries.plexus_interpolation = [coordinate: 'org.codehaus.plexus:plexus-interpolation', version: '1.14']
+libraries.plexus_sec_dispatcher = [coordinate: 'org.codehaus.plexus:plexus-sec-dispatcher', version: '1.3']
+libraries.plexus_utils = [coordinate: 'org.codehaus.plexus:plexus-utils', version: '3.0.8']
+libraries.snakeyaml = [coordinate: 'org.yaml:snakeyaml:1.6', version: '1.6'] //added by testng, could be avoided with newer TestNG version
+libraries.maven3_wagon_http_shared4 = [coordinate: 'org.apache.maven.wagon:wagon-http-shared4', version: libraries.maven3_wagon_file.version]
+libraries.maven3_wagon_provider_api = [coordinate: 'org.apache.maven.wagon:wagon-provider-api', version: libraries.maven3_wagon_file.version]
+libraries.xbean_reflect = [coordinate: 'org.apache.xbean:xbean-reflect', version: '3.4']

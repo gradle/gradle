@@ -17,7 +17,7 @@
 
 package org.gradle.api.publish.ivy
 
-public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
+class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
     def "publishes nothing without defined publication"() {
         given:
@@ -76,12 +76,19 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(module) == []
+        resolveArtifacts(module) {
+            withoutModuleMetadata {
+                expectFiles()
+            }
+            withModuleMetadata {
+                noComponentPublished()
+            }
+        }
     }
 
     def "can publish simple jar"() {
         given:
-        def module = ivyRepo.module('group', 'root', '1.0')
+        def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -108,19 +115,19 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         succeeds 'assemble'
 
         then: "jar is built but not published"
-        module.assertNotPublished()
+        javaLibrary.assertNotPublished()
         file('build/libs/root-1.0.jar').assertExists()
 
         when:
         succeeds 'publish'
 
         then: "jar is published to defined ivy repository"
-        module.assertPublishedAsJavaModule()
-        module.parsedIvy.status == 'integration'
-        module.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.parsedIvy.status == 'integration'
+        javaLibrary.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
 
         and:
-        resolveArtifacts(module) == ['root-1.0.jar']
+        resolveArtifacts(javaLibrary) { expectFiles 'root-1.0.jar' }
     }
 
     def "reports failure publishing when model validation fails"() {

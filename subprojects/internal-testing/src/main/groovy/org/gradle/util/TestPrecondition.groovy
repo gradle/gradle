@@ -22,9 +22,6 @@ import javax.tools.ToolProvider
 
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
-    SWING({
-        !UNKNOWN_OS.fulfilled
-    }),
     JNA({
         !UNKNOWN_OS.fulfilled
     }),
@@ -132,12 +129,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     CAN_INSTALL_EXECUTABLE({
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
     }),
-    OBJECTIVE_C_SUPPORT({
-        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
-    }),
-    SWIFT_SUPPORT({
-        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
-    }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),
@@ -154,7 +145,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !PULL_REQUEST_BUILD.fulfilled
     }),
     KOTLIN_SCRIPT({
-        JDK8_OR_LATER.fulfilled && FIX_TO_WORK_ON_JAVA9.fulfilled && NOT_JDK_IBM.fulfilled
+        JDK8_OR_LATER.fulfilled && NOT_JDK_IBM.fulfilled
     }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present

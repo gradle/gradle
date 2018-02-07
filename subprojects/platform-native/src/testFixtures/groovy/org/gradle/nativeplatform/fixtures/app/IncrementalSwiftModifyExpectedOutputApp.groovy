@@ -26,7 +26,7 @@ class IncrementalSwiftModifyExpectedOutputApp extends IncrementalSwiftElement {
     private final alternateMain = new SwiftAlternateMain(greeter)
 
     final List<IncrementalElement.Transform> incrementalChanges = [
-        preserve(greeter), preserve(sum), preserve(main), modify(main, alternateMain)]
+        preserve(greeter), preserve(sum), modify(main, alternateMain)]
     final String expectedOutput = main.expectedOutput
     final String expectedAlternateOutput = alternateMain.expectedOutput
     final String moduleName = "App"

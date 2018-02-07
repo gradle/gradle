@@ -16,16 +16,24 @@
 
 package org.gradle.binarycompatibility.rules
 
+import com.github.javaparser.JavaParser
+import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.visitor.GenericVisitorAdapter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
+import japicmp.model.JApiConstructor
+import japicmp.model.JApiField
 import japicmp.model.JApiHasAnnotations
 import japicmp.model.JApiMethod
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
+import org.gradle.api.Incubating
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.ApiChange
+
+import javax.inject.Inject
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
@@ -37,43 +45,99 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     private static boolean isAnnotatedWithIncubating(JApiHasAnnotations member) {
-        member.annotations*.fullyQualifiedName.any { it == 'org.gradle.api.Incubating' }
+        member.annotations*.fullyQualifiedName.any { it == Incubating.name }
     }
 
-    static boolean isIncubating(JApiHasAnnotations member) {
+    private static boolean isAnnotatedWithDeprecated(JApiHasAnnotations member) {
+        member.annotations*.fullyQualifiedName.any { it == Deprecated.name }
+    }
+
+    private static boolean isAnnotatedWithInject(JApiHasAnnotations member) {
+        member.annotations*.fullyQualifiedName.any { it == Inject.name }
+    }
+
+    boolean isInject(JApiHasAnnotations member) {
+        return isAnnotatedWithInject(member)
+    }
+
+    boolean isIncubatingOrDeprecated(JApiHasAnnotations member) {
         if (member instanceof JApiClass) {
-            return isIncubating((JApiClass) member)
+            return isIncubatingOrDeprecated((JApiClass) member)
         } else if (member instanceof JApiMethod) {
-            return isIncubating((JApiMethod) member)
+            return isIncubatingOrDeprecatedOrOverride((JApiMethod) member)
+        } else if (member instanceof JApiField) {
+            return isIncubatingOrDeprecated((JApiField) member)
+        } else if (member instanceof JApiConstructor) {
+            return isIncubatingOrDeprecated((JApiConstructor) member)
         }
         return isAnnotatedWithIncubating(member)
     }
 
-    static boolean isIncubating(JApiClass clazz) {
-        if (isAnnotatedWithIncubating(clazz)) {
-            return true
-        }
-        // all the methods need to be incubating
-        List<JApiMethod> methods = clazz.methods
-        if (methods.empty) {
-            return false
-        }
-        for (JApiMethod method : methods) {
-            if (!isIncubating(method)) {
-                return false
+    boolean isIncubatingOrDeprecated(JApiClass clazz) {
+        return isAnnotatedWithIncubating(clazz) || isAnnotatedWithDeprecated(clazz)
+    }
+
+    boolean isIncubatingOrDeprecated(JApiField field) {
+        return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass) || isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
+    }
+
+    boolean isIncubatingOrDeprecated(JApiConstructor constructor) {
+        return isAnnotatedWithIncubating(constructor) || isAnnotatedWithIncubating(constructor.jApiClass) || isAnnotatedWithDeprecated(constructor) || isAnnotatedWithDeprecated(constructor.jApiClass)
+    }
+
+    boolean isIncubatingOrDeprecatedOrOverride(JApiMethod method) {
+        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method) || isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
+    }
+
+    boolean isDeprecated(JApiClass clazz) {
+        return isAnnotatedWithDeprecated(clazz)
+    }
+
+    boolean isDeprecated(JApiConstructor constructor) {
+        return isAnnotatedWithDeprecated(constructor) || isAnnotatedWithDeprecated(constructor.jApiClass)
+    }
+
+    boolean isDeprecated(JApiField field) {
+        return isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
+    }
+
+    boolean isDeprecated(JApiMethod method) {
+        return isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
+    }
+
+    boolean isOverride(JApiMethod method) {
+        // @Override has source retention - so we need to peek into the sources
+        def visitor = new GenericVisitorAdapter<Object, Void>() {
+            @Override
+            Object visit(MethodDeclaration declaration, Void arg) {
+                if (declaration.name == method.name && declaration.annotations.any { it.name.name == Override.simpleName } ) {
+                    return new Object()
+                }
+                return null
             }
         }
-        return true
+        return JavaParser.parse(sourceFileFor(method.jApiClass.fullyQualifiedName)).accept(visitor, null) != null
     }
 
-    static boolean isIncubating(JApiMethod method) {
-        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass)
+    File sourceFileFor(String className) {
+        List<String> sourceFolders = context.userData.get("apiSourceFolders") as List<String>
+        for (String sourceFolder : sourceFolders) {
+            def sourceFilePath = className.replace('.', '/').replaceAll('\\$.*', '')
+            def sourceFile = new File("$sourceFolder/${sourceFilePath}.java")
+            if (sourceFile.exists()) {
+                return sourceFile
+            }
+        }
+        throw new RuntimeException("No source file found for: $className")
     }
-
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
-        Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
         List<String> changes = member.compatibilityChanges.collect { Violation.describe(it) }
+        return acceptOrReject(member, changes, rejection)
+    }
+
+    Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
+        Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
         def change = new ApiChange(
             context.className,
             Violation.describe(member),
@@ -82,7 +146,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         String acceptationReason = acceptedApiChanges[change]
         if (acceptationReason != null) {
             seenApiChanges.add(change)
-            return Violation.accept(member, acceptationReason)
+            return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
         }
         def acceptanceJson = new LinkedHashMap<String, Object>([
             type: change.type,
@@ -96,7 +160,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def id = "accept" + (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
             member,
-            rejection.getHumanExplanation() + """
+            rejection.getHumanExplanation() + """. If you did this intentionally, please accept the change and provide an explanation:
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#${id}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="${id}">
                   <div class="well">
@@ -108,4 +172,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return violation
     }
 
+    String getCurrentVersion() {
+        return context.getUserData().get("currentVersion")
+    }
 }

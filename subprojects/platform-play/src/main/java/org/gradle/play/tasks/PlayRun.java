@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Classpath;
@@ -48,6 +49,8 @@ public class PlayRun extends ConventionTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayRun.class);
 
     private int httpPort;
+
+    private final DirectoryProperty workingDir = getProject().getLayout().directoryProperty();
 
     @InputFile
     private File applicationJar;
@@ -86,7 +89,7 @@ public class PlayRun extends ConventionTask {
         PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
 
         if (deploymentHandle == null) {
-            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), getHttpPort());
+            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, workingDir.get().getAsFile(), getForkOptions(), getHttpPort());
             PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
             deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
 
@@ -110,6 +113,16 @@ public class PlayRun extends ConventionTask {
 
     public void setHttpPort(int httpPort) {
         this.httpPort = httpPort;
+    }
+
+    /**
+     * The working directory.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public DirectoryProperty getWorkingDir() {
+        return workingDir;
     }
 
     /**

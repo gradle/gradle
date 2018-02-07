@@ -1,7 +1,10 @@
 /**
  * JVM invocation and inspection abstractions.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'classycle'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -10,5 +13,6 @@ dependencies {
     api project(":processServices")
 }
 
-useTestFixtures()
-useClassycle()
+testFixtures {
+    from(':core')
+}

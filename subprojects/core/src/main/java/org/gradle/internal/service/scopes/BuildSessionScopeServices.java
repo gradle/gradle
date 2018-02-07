@@ -18,8 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -36,7 +36,9 @@ import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.model.ObjectFactory;
@@ -44,6 +46,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.VersionStrategy;
@@ -137,8 +140,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOperationListenerManager(listenerManager);
     }
 
-    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager listenerManager) {
-        return new BuildOperationTrace(startParameter, listenerManager);
+    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationlistenerManager) {
+        return new BuildOperationTrace(startParameter, buildOperationlistenerManager);
     }
 
     BuildOperationExecutor createBuildOperationExecutor(
@@ -173,8 +176,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
-    ProjectCacheDir createCacheLayout(StartParameter startParameter) {
-        BuildLayout buildLayout = new BuildLayoutFactory().getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory) {
+        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
         return new ProjectCacheDir(cacheDir);
     }
@@ -220,8 +223,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultClasspathSnapshotter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
     }
 
-    ImmutableAttributesFactory createImmutableAttributesFactory() {
-        return new DefaultImmutableAttributesFactory();
+    DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
+        return new DefaultImmutableAttributesFactory(isolatableFactory, NamedObjectInstantiator.INSTANCE);
     }
 
     ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
@@ -247,5 +250,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
         long currentTime = clock.getCurrentTime();
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
+    }
+
+    FeaturePreviews createExperimentalFeatures(StartParameter startParameter) {
+        return new FeaturePreviews(startParameter);
+    }
+
+    CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
+        return new CleanupActionFactory(buildOperationExecutor);
     }
 }

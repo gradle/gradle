@@ -29,30 +29,35 @@ import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBuildCacheKeyExecuter.class);
+    private static final Logger LOGGER = Logging.getLogger(ResolveBuildCacheKeyExecuter.class);
     private static final String BUILD_OPERATION_NAME = "Snapshot task inputs";
 
     private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean buildCacheDebugLogging;
 
-    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor, boolean buildCacheDebugLogging) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     @Override
@@ -66,12 +71,13 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             This operation represents the work of analyzing the inputs.
             Therefore, it should encompass all of the file IO and compute necessary to do this.
             This effectively happens in the first call to context.getTaskArtifactState().getStates().
-            If build caching is enabled, this is the first time that this will be called so it effectively
+            If build caching is enabled or the build scan plugin is applied, this is the first time that this will be called so it effectively
             encapsulates this work.
 
-            If build cache isn't enabled, this executer isn't in the mix and therefore the work of hashing
+            If build cache isn't enabled and the build scan plugin is not applied,
+            this executer isn't in the mix and therefore the work of hashing
             the inputs will happen later in the executer chain, and therefore they aren't wrapped in an operation.
-            We avoid adding this executer if build caching is not enabled due to concerns of performance impact
+            We avoid adding this executer due to concerns of performance impact.
 
             So, later, we either need always have this executer in the mix or make the input hashing
             an explicit step that always happens earlier and wrap it.
@@ -98,9 +104,10 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     private TaskOutputCachingBuildCacheKey doResolve(TaskInternal task, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
         TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
-        if (task.getOutputs().getHasOutput()) { // A task with no outputs an no cache key.
+        if (context.getTaskProperties().hasDeclaredOutputs()) { // A task with no outputs and no cache key.
             if (cacheKey.isValid()) {
-                LOGGER.info("Build cache key for {} is {}", task, cacheKey.getHashCode());
+                LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
+                LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
             }
         }
         return cacheKey;
@@ -135,6 +142,16 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                     }
                 });
             }
+        }
+
+        @Nullable
+        @Override
+        public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
+            SortedSet<String> inputPropertiesLoadedByUnknownClassLoader = key.getInputs().getInputPropertiesLoadedByUnknownClassLoader();
+            if (inputPropertiesLoadedByUnknownClassLoader == null || inputPropertiesLoadedByUnknownClassLoader.isEmpty()) {
+                return null;
+            }
+            return inputPropertiesLoadedByUnknownClassLoader;
         }
 
         @Nullable

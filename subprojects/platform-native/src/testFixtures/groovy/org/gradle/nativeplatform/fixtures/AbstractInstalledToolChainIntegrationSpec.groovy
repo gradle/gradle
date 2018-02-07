@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.fixtures
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -29,7 +30,7 @@ import org.junit.runner.RunWith
  * Runs a test separately for each installed tool chain.
  */
 @RunWith(SingleToolChainTestRunner.class)
-abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain
     File initScript
 
@@ -50,65 +51,77 @@ allprojects { p ->
         })
     }
 
-    def NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
-        return new NativeInstallationFixture(file(installDir), os)
-    }
-
-    def String executableName(Object path) {
+    String executableName(Object path) {
         return path + OperatingSystem.current().getExecutableSuffix()
     }
 
-    def String getExecutableExtension() {
+    String getExecutableExtension() {
         def suffix = OperatingSystem.current().executableSuffix
         return suffix.empty ? "" : suffix.substring(1)
     }
 
-    def ExecutableFixture executable(Object path) {
+    ExecutableFixture executable(Object path) {
         return toolChain.executable(file(path))
     }
 
-    def LinkerOptionsFixture linkerOptionsFor(String taskName, TestFile projectDir = testDirectory) {
+    LinkerOptionsFixture linkerOptionsFor(String taskName, TestFile projectDir = testDirectory) {
         return toolChain.linkerOptionsFor(projectDir.file("build/tmp/$taskName/options.txt"))
     }
 
-    def TestFile objectFile(Object path) {
+    TestFile objectFile(Object path) {
         return toolChain.objectFile(file(path))
     }
 
-    def String withLinkLibrarySuffix(Object path) {
-        return path + OperatingSystem.current().linkLibrarySuffix
+    String withLinkLibrarySuffix(Object path) {
+        return path + (toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix : OperatingSystem.current().sharedLibrarySuffix)
     }
 
-    def String linkLibraryName(Object path) {
-        return OperatingSystem.current().getLinkLibraryName(path.toString())
+    String linkLibraryName(Object path) {
+        return toolChain.visualCpp ? OperatingSystem.current().getLinkLibraryName(path.toString()) : OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
-    def String getLinkLibrarySuffix() {
-        return OperatingSystem.current().linkLibrarySuffix.substring(1)
+    String getLinkLibrarySuffix() {
+        return toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix.substring(1) : OperatingSystem.current().sharedLibrarySuffix.substring(1)
     }
 
-    def String withSharedLibrarySuffix(Object path) {
+    String staticLibraryName(Object path) {
+        return OperatingSystem.current().getStaticLibraryName(path.toString())
+    }
+
+    String withStaticLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().staticLibrarySuffix
+    }
+
+    String getStaticLibraryExtension() {
+        return OperatingSystem.current().staticLibrarySuffix.substring(1)
+    }
+
+    String withSharedLibrarySuffix(Object path) {
         return path + OperatingSystem.current().sharedLibrarySuffix
     }
 
-    def String sharedLibraryName(Object path) {
+    String sharedLibraryName(Object path) {
         return OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
-    def String getSharedLibraryExtension() {
+    String getSharedLibraryExtension() {
         return OperatingSystem.current().sharedLibrarySuffix.substring(1)
     }
 
-    def SharedLibraryFixture sharedLibrary(Object path) {
+    SharedLibraryFixture sharedLibrary(Object path) {
         return toolChain.sharedLibrary(file(path))
     }
 
-    def StaticLibraryFixture staticLibrary(Object path) {
+    StaticLibraryFixture staticLibrary(Object path) {
         return toolChain.staticLibrary(file(path))
     }
 
-    def NativeBinaryFixture resourceOnlyLibrary(Object path) {
+    NativeBinaryFixture resourceOnlyLibrary(Object path) {
         return toolChain.resourceOnlyLibrary(file(path))
+    }
+
+    NativeBinaryFixture machOBundle(Object path) {
+        return new NativeBinaryFixture(file(path), toolChain)
     }
 
     def objectFileFor(File sourceFile, String rootObjectFilesDir = "build/objs/main/main${sourceType}") {
@@ -116,11 +129,37 @@ allprojects { p ->
     }
 
     def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
-        File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
+        File intermediateFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
             .withObjectFileNameSuffix(intermediateFileSuffix)
             .withOutputBaseFolder(file(intermediateFilesDir))
             .map(file(sourceFile))
-        return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
+        return file(getTestDirectory().toURI().relativize(intermediateFile.toURI()))
+    }
+
+    List<NativeBinaryFixture> objectFiles(def sourceElement, String rootObjectFilesDir = "build/obj/${sourceElement.sourceSetName}/debug") {
+        List<NativeBinaryFixture> result = new ArrayList<NativeBinaryFixture>()
+
+        String sourceSetName = sourceElement.getSourceSetName()
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            def swiftFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
+            result.add(new NativeBinaryFixture(objectFileFor(swiftFile, rootObjectFilesDir), toolChain))
+        }
+
+        return result
+    }
+
+    boolean isNonDeterministicCompilation() {
+        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
+        toolChain.visualCpp || objectiveCWithAslr
+    }
+
+    // compiling Objective-C and Objective-Cpp with clang generates
+    // random different object files (related to ASLR settings)
+    // We saw this behaviour only on linux so far.
+    boolean isObjectiveCWithAslr() {
+        return (sourceType == "Objc" || sourceType == "Objcpp") &&
+            OperatingSystem.current().isLinux() &&
+            toolChain.displayName == "clang"
     }
 
     protected void maybeWait() {

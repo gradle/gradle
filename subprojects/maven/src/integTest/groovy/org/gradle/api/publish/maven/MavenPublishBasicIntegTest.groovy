@@ -15,12 +15,12 @@
  */
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Issue
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -84,14 +84,21 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.scopes.isEmpty()
 
         and:
-        resolveArtifacts(module) == []
+        resolveArtifacts(module) {
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles()
+            }
+        }
     }
 
-    def "can publish simple jar"() {
+    def "can publish simple component"() {
         given:
         using m2
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-        def localModule = localM2Repo.module('group', 'root', '1.0')
+        def repoModule = javaLibrary(mavenRepo.module('group', 'root', '1.0'))
+        def localModule = javaLibrary(localM2Repo.module('group', 'root', '1.0'))
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -126,55 +133,25 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
 
         then: "jar is published to defined maven repository"
-        repoModule.assertPublishedAsJavaModule()
+        repoModule.assertPublished()
         localModule.assertNotPublished()
+
+        and:
+        repoModule.rootMetaData.groupId == "group"
+        repoModule.rootMetaData.artifactId == "root"
+        repoModule.rootMetaData.versions == ["1.0"]
+        repoModule.rootMetaData.releaseVersion == "1.0"
 
         when:
         succeeds 'publishToMavenLocal'
 
         then: "jar is published to maven local repository"
-        localModule.assertPublishedAsJavaModule()
+        localModule.assertPublished()
 
         and:
-        resolveArtifacts(repoModule) == ['root-1.0.jar']
-    }
-
-    @Issue('GRADLE-1574')
-    def "publishes wildcard exclusions for a non-transitive dependency"() {
-        given:
-        using m2
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-        def localModule = localM2Repo.module('group', 'root', '1.0')
-
-        and:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = 'group'
-            version = '1.0'
-
-            dependencies {
-                compile ('commons-collections:commons-collections:3.2.2') { transitive = false }
-            }
-
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds 'publishToMavenLocal'
-
-        then: "wildcard exclusions are applied to the dependency"
-        def pom = localModule.parsedPom
-        def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
-        exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
+        resolveArtifacts(repoModule) {
+            expectFiles 'root-1.0.jar'
+        }
     }
 
     def "can publish to custom maven local repo defined in settings.xml"() {
@@ -205,43 +182,8 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publishToMavenLocal'
 
         then:
-        !localM2Repo.module("group", "root", "1.0").artifactFile(type: "pom").exists()
-        customLocalRepo.module("group", "root", "1.0").assertPublishedAsJavaModule()
-    }
-
-    def "can publish a snapshot version"() {
-        settingsFile << 'rootProject.name = "snapshotPublish"'
-        buildFile << """
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-
-    group = 'org.gradle'
-    version = '1.0-SNAPSHOT'
-
-    publishing {
-        repositories {
-            maven { url "${mavenRepo.uri}" }
-        }
-        publications {
-            pub(MavenPublication) {
-                from components.java
-            }
-        }
-    }
-"""
-
-        when:
-        succeeds 'publish'
-
-        then:
-        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("snapshotPublish-${module.publishArtifactVersion}.jar", "snapshotPublish-${module.publishArtifactVersion}.pom", "maven-metadata.xml")
-
-        and:
-        resolveArtifacts(module) == ["snapshotPublish-${module.publishArtifactVersion}.jar"]
-
-        and:
-        module.parsedPom.version == '1.0-SNAPSHOT'
+        localM2Repo.module("group", "root", "1.0").assertNotPublished()
+        javaLibrary(customLocalRepo.module("group", "root", "1.0")).assertPublished()
     }
 
     def "reports failure publishing when model validation fails"() {

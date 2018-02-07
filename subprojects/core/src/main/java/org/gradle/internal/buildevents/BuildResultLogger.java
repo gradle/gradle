@@ -22,6 +22,7 @@ import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
+import org.gradle.util.SingleMessageLogger;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
@@ -44,6 +45,9 @@ public class BuildResultLogger extends BuildAdapter {
     }
 
     public void buildFinished(BuildResult result) {
+        // Summary of deprecations is considered a part of the build summary
+        SingleMessageLogger.reportSuppressedDeprecations();
+
         boolean buildSucceeded = result.getFailure() == null;
 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);

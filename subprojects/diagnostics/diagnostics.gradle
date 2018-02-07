@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 sourceCompatibility = 1.6
 
 dependencies {
-    api libraries.groovy
+    api libraries.groovy.coordinate
 
     api project(':core')
     api project(':reporting')
@@ -26,19 +28,21 @@ dependencies {
 
     implementation project(':dependencyManagement')
     implementation project(':baseServicesGroovy')
-    implementation libraries.guava
-    implementation libraries.jatl
-    implementation libraries.commons_collections
-    implementation libraries.commons_lang
+    implementation libraries.guava.coordinate
+    implementation libraries.jatl.coordinate
+    implementation libraries.commons_collections.coordinate
+    implementation libraries.commons_lang.coordinate
 
     integTestRuntimeOnly project(':plugins')
     integTestRuntimeOnly project(':platformNative')
     integTestRuntimeOnly project(':languageNative')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':dependencyManagement')
-useTestFixtures(project: ':platformNative', sourceSet: 'testFixtures')
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':core')
+    from(':dependencyManagement')
+    from(':platformNative', 'testFixtures')
+    from(':logging')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

@@ -41,6 +41,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     GradleDistribution current
     final IntegrationTestBuildContext buildContext
+    final ResultsStore resultsStore
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
@@ -63,7 +64,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
     private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+        this.resultsStore = resultsStore
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
@@ -82,7 +84,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), resultsStore))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -103,13 +105,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
-        runVersion(current, perVersionWorkingDirectory('current'), results.current)
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
+        def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion)
+        runVersion(current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
-        baselineVersions.each { it ->
-            def baselineVersion = results.baseline(it)
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+        baselineVersions.each { baselineVersion ->
+            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
         }
 
         results.endTime = clock.getCurrentTime()
@@ -121,8 +123,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return results
     }
 
-    protected File perVersionWorkingDirectory(String version) {
-        def perVersion = new File(workingDir, version.replace('+', ''))
+    protected File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
+        def perVersion = new File(workingDir, sanitizeVersionWorkingDir(version).padRight(maxWorkingDirLength, '_'))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
@@ -131,21 +133,24 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         perVersion
     }
 
+    private static String sanitizeVersionWorkingDir(String version) {
+        version.replace('+', '')
+    }
+
     static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
         Iterable<String> versions
-        boolean addMostRecentFinalRelease = true
+        boolean addMostRecentRelease = true
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
         if (overrideBaselinesProperty) {
             versions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions)
-            addMostRecentFinalRelease = false
+            addMostRecentRelease = false
         } else {
             versions = targetVersions
         }
 
         def baselineVersions = new LinkedHashSet<String>()
 
-        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
-        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
+        def mostRecentRelease = releases.mostRecentRelease.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
 
         for (String version : versions) {
@@ -154,13 +159,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 continue
             }
             if (version == 'last') {
-                addMostRecentFinalRelease = false
-                baselineVersions.add(mostRecentFinalRelease)
+                addMostRecentRelease = false
+                baselineVersions.add(mostRecentRelease)
                 continue
             }
             if (version == 'nightly') {
-                addMostRecentFinalRelease = false
-                baselineVersions.add(mostRecentSnapshot)
+                addMostRecentRelease = false
+                baselineVersions.add(LatestNightlyBuildDeterminer.latestNightlyVersion)
                 continue
             }
             if (version == 'none') {
@@ -181,16 +186,16 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
                 // blindly add it to the list and trust the test author
                 // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
-                addMostRecentFinalRelease = false
+                addMostRecentRelease = false
                 baselineVersions.add(version)
             } else {
                 throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
             }
         }
 
-        if (baselineVersions.empty || addMostRecentFinalRelease) {
+        if (baselineVersions.empty || addMostRecentRelease) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
-            baselineVersions.add(mostRecentFinalRelease)
+            baselineVersions.add(mostRecentRelease)
         }
 
         baselineVersions

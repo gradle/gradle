@@ -33,6 +33,7 @@
 /bin
 /subprojects/*/bin
 atlassian-ide-plugin.xml
+.metadata/
 
 # NetBeans
 # --------
@@ -61,7 +62,7 @@ atlassian-ide-plugin.xml
 # ----
 .java-version
 
-# OS X
+# macOS
 # ----
 .DS_Store
 

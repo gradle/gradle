@@ -43,7 +43,7 @@ class ClassLinkMetaDataTest extends Specification {
         linkMetaData != null
         linkMetaData.style == LinkMetaData.Style.Javadoc
         linkMetaData.displayName == "$SIMPLE_CLASSNAME.${METHOD_NAME}()"
-        linkMetaData.urlFragment == "$METHOD_NAME()"
+        linkMetaData.urlFragment == "$METHOD_NAME--"
 
         when:
         linkMetaData = classLinkMetaData.getMethod("$METHOD_NAME(java.lang.Integer)")
@@ -52,7 +52,7 @@ class ClassLinkMetaDataTest extends Specification {
         linkMetaData != null
         linkMetaData.style == LinkMetaData.Style.Javadoc
         linkMetaData.displayName == "$SIMPLE_CLASSNAME.${METHOD_NAME}(java.lang.Integer)"
-        linkMetaData.urlFragment == "$METHOD_NAME(java.lang.Integer)"
+        linkMetaData.urlFragment == "$METHOD_NAME-java.lang.Integer-"
 
         when:
         linkMetaData = classLinkMetaData.getMethod("$METHOD_NAME(java.lang.Integer, java.lang.String)")
@@ -61,6 +61,6 @@ class ClassLinkMetaDataTest extends Specification {
         linkMetaData != null
         linkMetaData.style == LinkMetaData.Style.Javadoc
         linkMetaData.displayName == "$SIMPLE_CLASSNAME.${METHOD_NAME}(java.lang.Integer, java.lang.String)"
-        linkMetaData.urlFragment == "$METHOD_NAME(java.lang.Integer, java.lang.String)"
+        linkMetaData.urlFragment == "$METHOD_NAME-java.lang.Integer, java.lang.String-"
     }
 }

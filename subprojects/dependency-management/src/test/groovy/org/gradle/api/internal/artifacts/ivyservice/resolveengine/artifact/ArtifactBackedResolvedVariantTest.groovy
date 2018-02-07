@@ -53,10 +53,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         _ * listener.requireArtifactFiles() >> false
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact('<variant>', variant, artifact1)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact2)
+        1 * visitor.visitArtifact('<variant>', variant, artifact2)
         0 * _
 
         when:
@@ -64,7 +64,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         _ * listener.requireArtifactFiles() >> false
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact('<variant>', variant, artifact1)
         0 * _
     }
 
@@ -95,10 +95,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         result.visit(visitor)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact('<variant>', variant, artifact1)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact2)
+        1 * visitor.visitArtifact('<variant>', variant, artifact2)
         0 * _
 
         when:
@@ -116,7 +116,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         result2.visit(visitor)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact('<variant>', variant, artifact1)
         0 * _
     }
 

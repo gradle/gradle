@@ -56,7 +56,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
         if (versionStr.equals("latest")) {
             implicitVersion = true;
-            addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentFinalRelease());
+            addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentRelease());
         } else if (versionStr.equals("all")) {
             implicitVersion = true;
             List<GradleDistribution> previousVersionsToTest = choosePreviousVersionsToTest(releasedVersions);

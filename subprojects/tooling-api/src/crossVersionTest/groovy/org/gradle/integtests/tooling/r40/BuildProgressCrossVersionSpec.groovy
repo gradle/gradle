@@ -207,7 +207,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
             .child "Download http://localhost:${server.port}${projectC.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)")
+        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
 
         cleanup:
@@ -356,7 +356,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+    @Requires([KOTLIN_SCRIPT])
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')
@@ -403,19 +403,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         module.publish()
 
         // module will be published a second time via 'maven-publish'
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.md5.expectPut()
+        module.artifact.expectPublish()
+        module.pom.expectPublish()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.md5.expectPut()
+        module.rootMetaData.expectPublish()
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """

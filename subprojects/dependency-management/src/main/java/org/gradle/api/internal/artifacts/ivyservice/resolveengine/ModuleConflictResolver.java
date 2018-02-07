@@ -15,15 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-
 public interface ModuleConflictResolver {
     /**
      * Selects matching candidate. Returns null if this implementation of the resolver is not able to select a candidate.
      *
-     * @param candidates
-     * @param <T>
+     * @param details the conflict resolution details
+     * @param <T> the candidate type
      */
-    @Nullable <T extends ComponentResolutionState> T select(Collection<? extends T> candidates);
+    <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details);
 }

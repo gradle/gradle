@@ -16,13 +16,14 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
+import com.google.common.collect.ImmutableList
 import org.gradle.language.nativeplatform.internal.Include
 import spock.lang.Specification
 
 
 class DefaultSourceIncludesTest extends Specification {
-    List<Include> includes = [ '"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2" ].collect { DefaultInclude.parse(it, false) }
-    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives(includes)
+    List<Include> includes = [ '"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2" ].collect { IncludeWithSimpleExpression.parse(it, false) }
+    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.of(), ImmutableList.of())
 
     def "can filter includes" () {
         expect:
@@ -33,6 +34,6 @@ class DefaultSourceIncludesTest extends Specification {
 
     def "order is preserved" () {
         expect:
-        sourceIncludes.includesAndImports.collect { it.value } == [ "quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
+        sourceIncludes.all.collect { it.value } == ["quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
     }
 }

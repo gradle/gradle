@@ -26,12 +26,26 @@ import java.util.Map;
  * A repository of module components.
  */
 public interface ModuleComponentRepository {
+    /**
+     * A unique identifier for this repository, based on it's type and attributes.
+     * Two repositories with the same configuration in different projects will share the same id.
+     */
     String getId();
 
+    /**
+     * A user-friendly name for this repository.
+     */
     String getName();
 
+    /**
+     * Accessor that attempts to locate module components without expensive network operations.
+     */
     ModuleComponentRepositoryAccess getLocalAccess();
 
+    /**
+     * Accessor that attempts to locate module components remotely, allowing expensive network operations.
+     * This access will be disabled when Gradle is executed with `--offline`.
+     */
     ModuleComponentRepositoryAccess getRemoteAccess();
 
     ComponentMetadataSupplier createMetadataSupplier();

@@ -17,83 +17,60 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.AbstractBuildableComponentSpec;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.TextConfigFile;
 import org.gradle.ide.visualstudio.TextProvider;
-import org.gradle.ide.visualstudio.VisualStudioProject;
-import org.gradle.ide.visualstudio.VisualStudioSolution;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec implements VisualStudioSolution {
-
-    private final DefaultVisualStudioProject rootProject;
+public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
+    private final String name;
     private final SolutionFile solutionFile;
-    private final VisualStudioProjectResolver vsProjectResolver;
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public DefaultVisualStudioSolution(ComponentSpecIdentifier componentIdentifier, DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
-        super(componentIdentifier, VisualStudioSolution.class);
-        this.rootProject = rootProject;
-        this.vsProjectResolver = vsProjectResolver;
+    public DefaultVisualStudioSolution(String name, PathToFileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry) {
+        this.name = name;
         this.solutionFile = instantiator.newInstance(SolutionFile.class, fileResolver, getName() + ".sln");
+        this.ideArtifactRegistry = ideArtifactRegistry;
+        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectInternal.ARTIFACT_TYPE));
+        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectConfiguration.ARTIFACT_TYPE));
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     public SolutionFile getSolutionFile() {
         return solutionFile;
     }
 
-    public NativeComponentSpec getComponent() {
-        return rootProject.getComponent();
+    @Override
+    public List<LocalComponentArtifactMetadata> getProjectArtifacts() {
+        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectInternal.ARTIFACT_TYPE);
     }
 
-    public Set<VisualStudioProject> getProjects() {
-        Set<VisualStudioProject> projects = new LinkedHashSet<VisualStudioProject>();
-
-        for (VisualStudioProjectConfiguration solutionConfig : getSolutionConfigurations()) {
-            for (VisualStudioProjectConfiguration projectConfig : getProjectConfigurations(solutionConfig)) {
-                projects.add(projectConfig.getProject());
-            }
-        }
-
-        return projects;
+    @Override
+    public List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts() {
+        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectConfiguration.ARTIFACT_TYPE);
     }
 
-    public List<VisualStudioProjectConfiguration> getSolutionConfigurations() {
-        return rootProject.getConfigurations();
+    @Override
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
     }
 
-    public List<VisualStudioProjectConfiguration> getProjectConfigurations(VisualStudioProjectConfiguration solutionConfiguration) {
-        Set<VisualStudioProjectConfiguration> configurations = new LinkedHashSet<VisualStudioProjectConfiguration>();
-        configurations.add(solutionConfiguration);
-        addDependentConfigurations(configurations, solutionConfiguration);
-        return new ArrayList<VisualStudioProjectConfiguration>(configurations);
-    }
-
-    private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
-        for (NativeLibraryBinary library : configuration.getBinary().getDependentBinaries()) {
-            if (library instanceof NativeBinarySpecInternal) {
-                VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration((NativeBinarySpec) library);
-                if (configurations.add(libraryConfiguration)) {
-                    addDependentConfigurations(configurations, libraryConfiguration);
-                }
-            }
-        }
-
-    }
-
-    public final DefaultVisualStudioProject getRootProject() {
-        return rootProject;
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
     }
 
     public static class SolutionFile implements TextConfigFile {

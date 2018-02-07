@@ -19,25 +19,19 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.gradle.api.tasks.FileNormalizer;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public class DefaultFileCollectionSnapshotterRegistry implements FileCollectionSnapshotterRegistry {
-    private final Map<Class<?>, FileCollectionSnapshotter> snapshotters;
+    private final Map<Class<? extends FileNormalizer>, FileCollectionSnapshotter> snapshotters;
 
     public DefaultFileCollectionSnapshotterRegistry(Collection<FileCollectionSnapshotter> snapshotters) {
-        this.snapshotters = ImmutableMap.copyOf(Maps.uniqueIndex(snapshotters, new Function<FileCollectionSnapshotter, Class<?>>() {
+        this.snapshotters = ImmutableMap.copyOf(Maps.uniqueIndex(snapshotters, new Function<FileCollectionSnapshotter, Class<? extends FileNormalizer>>() {
             @Override
-            public Class<?> apply(FileCollectionSnapshotter snapshotter) {
-                Class<? extends FileCollectionSnapshotter> registeredType = snapshotter.getRegisteredType();
-                Class<? extends FileCollectionSnapshotter> type = snapshotter.getClass();
-                if (!registeredType.isAssignableFrom(type)) {
-                    throw new IllegalArgumentException(String.format("Snapshotter registered type '%s' must be a super-type of the actual snapshotter type '%s'", registeredType.getName(), type.getName()));
-                }
-                return registeredType;
+            public Class<? extends FileNormalizer> apply(FileCollectionSnapshotter snapshotter) {
+                return snapshotter.getRegisteredType();
             }
         }));
     }
@@ -48,11 +42,11 @@ public class DefaultFileCollectionSnapshotterRegistry implements FileCollectionS
     }
 
     @Override
-    public <T> T getSnapshotter(Class<? extends T> type) {
+    public FileCollectionSnapshotter getSnapshotter(Class<? extends FileNormalizer> type) {
         FileCollectionSnapshotter snapshotter = snapshotters.get(type);
         if (snapshotter == null) {
             throw new IllegalStateException(String.format("No snapshotter registered with type '%s'", type.getName()));
         }
-        return uncheckedCast(snapshotter);
+        return snapshotter;
     }
 }

@@ -83,9 +83,10 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.gradle.util.Path;
 
 import java.io.File;
 
@@ -141,12 +142,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher);
+    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory) {
+        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory);
     }
 
-    protected DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {
-        return new DefaultExecActionFactory(fileResolver);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory) {
+        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorate());
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -210,7 +211,40 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             get(FileResolver.class),
             get(DependencyMetaDataProvider.class),
             get(ScriptClassPathResolver.class));
-        return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
+        return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
+    }
+
+    private class ScriptScopedContext implements DomainObjectContext {
+        private final DomainObjectContext delegate;
+
+        public ScriptScopedContext(DomainObjectContext delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Path identityPath(String name) {
+            return delegate.identityPath(name);
+        }
+
+        @Override
+        public Path projectPath(String name) {
+            return delegate.projectPath(name);
+        }
+
+        @Override
+        public Path getProjectPath() {
+            return delegate.getProjectPath();
+        }
+
+        @Override
+        public Path getBuildPath() {
+            return delegate.getBuildPath();
+        }
+
+        @Override
+        public boolean isScript() {
+            return true;
+        }
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
@@ -248,7 +282,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver) {
-        return new DefaultProjectLayout(project.getProjectDir(), fileResolver);
+        return new DefaultProjectLayout(project.getProjectDir(), fileResolver, project.getTasks());
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {

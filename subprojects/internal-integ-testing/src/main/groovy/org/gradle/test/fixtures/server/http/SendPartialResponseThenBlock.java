@@ -42,7 +42,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
     SendPartialResponseThenBlock(Lock lock, int timeoutMs, String path, byte[] content) {
         this.lock = lock;
         this.timeoutMs = timeoutMs;
-        this.path = SendFixedContent.removeLeadingSlash(path);
+        this.path = ExpectGetAndSendFixedContent.removeLeadingSlash(path);
         this.content = content;
         condition = lock.newCondition();
     }

@@ -16,48 +16,60 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
+     *
+     * It would be good to remove this from the API, as consumers of this interface generally have no need
+     * for this information. However it _is_ currently used by {@link MavenDependencyDescriptor#selectLegacyConfigurations}
+     * to determine if the target 'runtime' configuration includes the target 'compile' configuration.
      */
-    Set<String> getHierarchy();
+    Collection<String> getHierarchy();
 
     String getName();
 
     DisplayName asDescribable();
 
+    /**
+     * Attributes are immutable on ConfigurationMetadata
+     */
     @Override
-    AttributeContainerInternal getAttributes();
+    ImmutableAttributes getAttributes();
 
     /**
      * Returns the dependencies that apply to this configuration.
+     *
+     * If the implementation supports {@link DependencyMetadataRules}, this method
+     * is responsible for lazily applying the rules the first time it is called.
      */
     List<? extends DependencyMetadata> getDependencies();
 
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
-    Set<? extends ComponentArtifactMetadata> getArtifacts();
+    List<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getVariants();
 
     /**
-     * Returns the exclusions to apply to outgoing dependencies from this configuration.
-     * @param moduleExclusions the module exclusions factory
+     * Returns the exclusions to apply to this configuration:
+     * - Module exclusions apply to all outgoing dependencies from this configuration
+     * - Artifact exclusions apply to artifacts obtained from this configuration
      */
-    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
+    ImmutableList<ExcludeMetadata> getExcludes();
 
     boolean isTransitive();
 

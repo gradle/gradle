@@ -17,7 +17,7 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DirectDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
@@ -31,9 +31,9 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class DependencyNotationParser {
-    public static NotationParser<Object, Dependency> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, ClassPathRegistry classPathRegistry, FileLookup fileLookup, RuntimeShadedJarFactory runtimeShadedJarFactory, CurrentGradleInstallation currentGradleInstallation) {
+    public static NotationParser<Object, DirectDependency> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, ClassPathRegistry classPathRegistry, FileLookup fileLookup, RuntimeShadedJarFactory runtimeShadedJarFactory, CurrentGradleInstallation currentGradleInstallation) {
         return NotationParserBuilder
-            .toType(Dependency.class)
+            .toType(DirectDependency.class)
             .fromCharSequence(new DependencyStringNotationConverter<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class))
             .converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class))
             .fromType(FileCollection.class, new DependencyFilesNotationConverter(instantiator))

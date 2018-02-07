@@ -21,8 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -156,12 +154,6 @@ class BaseDirFileResolverTest {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
     }
 
-    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
-    @Test public void testResolveAbsolutePathOnCaseInsensitiveFileSystemToUri() {
-        String path = baseDir.absolutePath.toLowerCase()
-        assertEquals(baseDir, baseDirConverter.resolve(path))
-    }
-
     @Test public void testResolveRelativeFileURIString() {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve('file:relative'))
         assertEquals(new File(baseDir.parentFile, 'relative'), baseDirConverter.resolve('file:../relative'))
@@ -221,10 +213,6 @@ class BaseDirFileResolverTest {
 
     @Test public void testResolveCallable() {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'} as Callable))
-    }
-
-    @Test public void testResolveFileSource() {
-        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(baseDirConverter.resolveLater('relative')))
     }
 
     @Test public void testResolveNestedClosuresAndCallables() {
@@ -312,14 +300,6 @@ class BaseDirFileResolverTest {
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
-    }
-
-    @Test public void testResolveLater() {
-        String src;
-        Closure cl = { src }
-        org.gradle.internal.Factory<File> source = baseDirConverter.resolveLater(cl)
-        src = 'file1'
-        assertEquals(new File(baseDir, 'file1'), source.create())
     }
 
     @Test public void testCreateFileResolver() {

@@ -41,6 +41,7 @@ import org.gradle.internal.time.Timer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,14 +60,15 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final BinaryStore store;
     private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
-    private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
+    private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory);
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, attributeContainerSerializer);
         this.store = store;
         this.cache = cache;
+        this.componentSelectorSerializer = new ComponentSelectorSerializer();
     }
 
     public ResolutionResult complete() {
@@ -117,7 +119,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitEdges(DependencyGraphNode node) {
         final Long fromComponent = node.getOwner().getResultId();
-        final Set<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges();
+        final Collection<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {

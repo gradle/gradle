@@ -9,15 +9,15 @@ ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestone
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
 if ((milestoneNumber != null && rcNumber != null) ||
-        (rcNumber != null && finalRelease) ||
-        (milestoneNumber != null && finalRelease)) {
+    (rcNumber != null && finalRelease) ||
+    (milestoneNumber != null && finalRelease)) {
     throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
 ext.baseVersion = rootProject.file("version.txt").text.trim()
 
 File incomingBuildReceiptDir = file("incoming-distributions")
-if (new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
+if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
     def incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(incomingBuildReceiptDir)
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
     println "Using timestamp from incoming build receipt: $buildTimestamp"
@@ -28,7 +28,7 @@ if (new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exis
     if (project.hasProperty("buildTimestamp")) {
         buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        if (isCiServer || gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")) {
+        if (isCiServer || ['install', 'installAll'].collectMany { [':' + it, it]}.any { gradle.startParameter.taskNames.contains(it) }) {
             buildTime = new Date()
         } else {
             def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
@@ -97,9 +97,7 @@ task determineCommitId {
 
         // It's a source distribution, we don't know.
         strategies << {
-            if (!file("design-docs").directory) {
-                "<unknown>"
-            }
+            "<unknown>"
         }
 
         for (strategy in strategies) {
@@ -107,9 +105,6 @@ task determineCommitId {
             if (commitId) {
                 break
             }
-        }
-        if (!commitId) {
-            throw new InvalidUserDataException("Could not determine commit id")
         }
     }
 }
@@ -148,4 +143,7 @@ if (finalRelease) {
 
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot)"
+    if (isCiServer) {
+        logger.lifecycle "##teamcity[buildStatus text='{build.status.text}, Promoted version ${version}']"
+    }
 }

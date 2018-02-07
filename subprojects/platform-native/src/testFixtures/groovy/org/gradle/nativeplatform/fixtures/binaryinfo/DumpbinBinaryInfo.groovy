@@ -16,14 +16,10 @@
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
 
-import net.rubygrapefruit.platform.SystemInfo
-import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall
 
 import javax.annotation.Nullable
@@ -46,8 +42,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
     }
 
     static @Nullable VisualStudioInstall findVisualStudio() {
-        def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.instance.get(WindowsRegistry), NativeServices.instance.get(SystemInfo))
-        return vsLocator.locateDefaultVisualStudioInstall().visualStudio
+        return VisualStudioLocatorTestFixture.visualStudioLocator.locateDefaultVisualStudioInstall().visualStudio
     }
 
     private findExe(String exe) {
@@ -58,7 +53,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
         throw new RuntimeException("dumpbin.exe not found")
     }
 
-    private String getDumpbinHeaders() {
+    protected String getDumpbinHeaders() {
         def dumpbin = findExe("dumpbin.exe")
         def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.text
@@ -97,6 +92,14 @@ class DumpbinBinaryInfo implements BinaryInfo {
         def dumpbin = findExe("dumpbin.exe")
         def process = [dumpbin.absolutePath, '/IMPORTS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.readLines()
+    }
+
+    List<BinaryInfo.Symbol> listSymbols() {
+        throw new UnsupportedOperationException("Not yet implemented")
+    }
+
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        throw new UnsupportedOperationException("Not yet implemented")
     }
 
     String getSoName() {

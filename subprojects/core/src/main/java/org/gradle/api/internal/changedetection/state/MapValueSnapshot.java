@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -86,5 +87,11 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
             }
         }
         return map;
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        return null;
     }
 }

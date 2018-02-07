@@ -38,11 +38,13 @@ class MavenSftpModule extends DelegatingMavenModule<MavenSftpModule> implements 
         return new SftpArtifact(server, artifactFile)
     }
 
-    SftpArtifact getMavenMetadata() {
-        return new SftpArtifact(server, metaDataFile)
+    SftpArtifact getModuleMetadata() {
+        return new SftpArtifact(server, backingModule.moduleMetadata.file)
     }
 
-    SftpArtifact getRootMavenMetadata() {
+    @Override
+    SftpArtifact getRootMetaData() {
         return new SftpArtifact(server, backingModule.rootMetaDataFile)
     }
+
 }

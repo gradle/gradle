@@ -17,6 +17,7 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -24,51 +25,36 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.BasicDomainObjectContext;
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
-import org.gradle.plugin.repository.PluginRepositoriesSpec;
-import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
-import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.DefaultPluginRepositoryRegistry;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
+import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
+import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
-import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.service.internal.OfflinePluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
-
-    public static final String CACHE_NAME = "plugin-resolution";
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
@@ -81,77 +67,60 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
     private static class SettingsScopeServices {
 
-        protected PluginRepositoriesSpec createPluginRepositoriesSpec(Instantiator instantiator, PluginRepositoryFactory pluginRepositoryFactory, PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
-            return instantiator.newInstance(DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, fileResolver);
-        }
-
-        protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginRepositoriesSpec pluginRepositoriesSpec, PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoriesSpec, internalPluginResolutionStrategy);
+        protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
+                                                                  PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy);
         }
     }
 
     private static class BuildScopeServices {
-        PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter, SslContextFactory sslContextFactory) {
-            PluginResolutionServiceClient httpClient = startParameter.isOffline()
-                ? new OfflinePluginResolutionServiceClient()
-                : new HttpPluginResolutionServiceClient(sslContextFactory);
-
-            PersistentCache cache = cacheRepository
-                .cache(CACHE_NAME)
-                .withDisplayName("Plugin Resolution Cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None))
-                .open();
-
-            PluginResolutionServiceClient persistentCachingClient = new PersistentCachingPluginResolutionServiceClient(httpClient, cache);
-            PluginResolutionServiceClient inMemoryCachingClient = new InMemoryCachingPluginResolutionServiceClient(persistentCachingClient);
-            return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
+        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
+            return new DefaultAutoAppliedPluginRegistry(buildDefinition);
         }
 
-        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, VersionSelectorScheme versionSelectorScheme,
-                                                                              StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
-                                                                              final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                                              ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
-            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
+        AutoAppliedPluginHandler createAutoAppliedPluginHandler(AutoAppliedPluginRegistry registry) {
+            return new DefaultAutoAppliedPluginHandler(registry);
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
-                                                          DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver, FileLookup fileLookup) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, PluginInspector pluginInspector,
+                                                          DocumentationRegistry documentationRegistry,
+                                                          InjectedClasspathPluginResolver injectedClasspathPluginResolver,
+                                                          PluginDependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
+            return new PluginResolverFactory(pluginRegistry, pluginInspector, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, versionSelectorScheme);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
-            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, internalPluginResolutionStrategy, cachedClasspathTransformer);
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,
+                                                              PluginResolverFactory pluginResolverFactory, PluginResolutionStrategyInternal internalPluginResolutionStrategy,
+                                                              PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
+            return new DefaultPluginRequestApplicator(
+                pluginRegistry, pluginResolverFactory, dependencyResolutionServices.getPluginRepositoriesProvider(),
+                internalPluginResolutionStrategy, pluginInspector, cachedClasspathTransformer);
         }
 
-        InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
+        InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
+                                                                              InjectedPluginClasspath injectedPluginClasspath) {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
-        }
-
-        DefaultPluginRepositoryRegistry createPuginRepositoryRegistry(ListenerManager listenerManager) {
-            return new DefaultPluginRepositoryRegistry(listenerManager);
         }
 
         PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
-        DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
-                                                                     final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
-                                                                     final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
-                                                                     final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-
-            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
-                dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new DefaultPluginRepositoryFactory(pluginResolutionServiceResolver,
-                dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
-                authenticationSchemeRegistry);
+        PluginDependencyResolutionServices createPluginDependencyResolutionServices(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory, FileResolver fileResolver,
+                                                                                    DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider) {
+            return new PluginDependencyResolutionServices(
+                makeDependencyResolutionServicesFactory(buildLayoutFactory, startParameter, fileResolver, dependencyManagementServices, dependencyMetaDataProvider));
         }
 
-        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {
+        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final BuildLayoutFactory buildLayoutFactory, final StartParameter startParameter,
+                                                                                              final FileResolver fileResolver, final DependencyManagementServices dependencyManagementServices,
+                                                                                              final DependencyMetaDataProvider dependencyMetaDataProvider) {
             return new Factory<DependencyResolutionServices>() {
+                @Override
                 public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), new BasicDomainObjectContext());
+                    BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+                    FileResolver capableFileResolver = fileResolver.newResolver(buildLayout.getSettingsDir());
+                    return dependencyManagementServices.create(capableFileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE);
                 }
             };
         }

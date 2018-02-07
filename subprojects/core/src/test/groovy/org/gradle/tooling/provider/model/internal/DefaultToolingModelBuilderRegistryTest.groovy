@@ -18,6 +18,7 @@ package org.gradle.tooling.provider.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
@@ -72,5 +73,23 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         then:
         UnsupportedOperationException e = thrown()
         e.message == "Multiple builders are available to build a model of type 'model'."
+    }
+
+    def "can register parameterized model builder"() {
+        def builder = Mock(ParameterizedToolingModelBuilder)
+
+        given:
+        registy.register(builder)
+
+        and:
+        builder.canBuild("model") >> true
+
+        when:
+        registy.getBuilder("model")
+
+        then:
+        def foundBuilder = registy.getBuilder("model")
+        foundBuilder == builder
+        foundBuilder instanceof ParameterizedToolingModelBuilder
     }
 }

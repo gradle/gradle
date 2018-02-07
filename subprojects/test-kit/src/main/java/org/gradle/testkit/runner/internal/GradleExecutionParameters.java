@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.internal;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class GradleExecutionParameters {
     private final boolean embedded;
     private final OutputStream standardOutput;
     private final OutputStream standardError;
+    private final InputStream standardInput;
 
     public GradleExecutionParameters(
         GradleProvider gradleProvider,
@@ -43,7 +45,8 @@ public class GradleExecutionParameters {
         ClassPath injectedClassPath,
         boolean embedded,
         OutputStream standardOutput,
-        OutputStream standardError
+        OutputStream standardError,
+        InputStream standardInput
     ) {
         this.gradleProvider = gradleProvider;
         this.gradleUserHome = gradleUserHome;
@@ -54,6 +57,7 @@ public class GradleExecutionParameters {
         this.embedded = embedded;
         this.standardOutput = standardOutput;
         this.standardError = standardError;
+        this.standardInput = standardInput;
     }
 
     public GradleProvider getGradleProvider() {
@@ -92,4 +96,7 @@ public class GradleExecutionParameters {
         return standardError;
     }
 
+    public InputStream getStandardInput() {
+        return standardInput;
+    }
 }

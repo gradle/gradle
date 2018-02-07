@@ -47,6 +47,7 @@ import java.util.regex.Pattern
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.instance.lineSeparator
+    private static final String GRADLE_EXECUTABLE = 'gradle'
 
     private Class<?> testClass
     private Description description
@@ -112,7 +113,7 @@ class UserGuideSamplesRunner extends Runner {
             try {
                 cleanup(sampleRun)
                 for (run in sampleRun.runs) {
-                    if (run.brokenForParallel && GradleContextualExecuter.parallel) {
+                    if (run.executable != GRADLE_EXECUTABLE || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
                         continue
                     }
                     runSample(run)
@@ -158,7 +159,7 @@ class UserGuideSamplesRunner extends Runner {
             }
 
             if (run.allowDeprecation) {
-                executer.expectDeprecationWarning()
+                executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
             }
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
@@ -265,6 +266,7 @@ class UserGuideSamplesRunner extends Runner {
         children.eachWithIndex { Node sample, int index ->
             def id = sample.'@id'
             def dir = sample.'@dir'
+            def executable = sample.'@executable' ?: GRADLE_EXECUTABLE
             def args = sample.'@args'
             def outputFile = sample.'@outputFile'
             boolean ignoreExtraLines = Boolean.valueOf(sample.'@ignoreExtraLines')
@@ -272,6 +274,7 @@ class UserGuideSamplesRunner extends Runner {
             boolean expectFailure = Boolean.valueOf(sample.'@expectFailure')
 
             Map params = [subDir          : dir,
+                          executable      : executable,
                           args            : args ? args.split('\\s+') as List : [],
                           outputFile      : outputFile,
                           ignoreExtraLines: ignoreExtraLines,
@@ -295,6 +298,17 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
+        samplesByDir.get('userguide/multiproject/dependencies/java').each {
+            if (it.args.contains('-a')) {
+                it.allowDeprecation = true
+                it.outputFormatter = new Transformer<String, String>() {
+                    @Override
+                    String transform(String s) {
+                        return '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle 5.0.\n' + s
+                    }
+                }
+            }
+        }
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args += ['--build-cache', 'help']
         }
@@ -348,6 +362,7 @@ Please run 'gradle docs:extractSamples' first"""
 
     private class GradleRun {
         String id
+        String executable
         List args = []
         String subDir
         Map envs = [:]

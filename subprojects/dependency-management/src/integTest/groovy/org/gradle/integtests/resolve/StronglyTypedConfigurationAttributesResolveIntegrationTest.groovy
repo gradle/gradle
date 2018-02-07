@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resolve
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -66,9 +67,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         'attribute(flavor, objects.named(Flavor, "paid"))'
     }
 
-    // This documents the current behavior, not necessarily the one we would want. Maybe
-    // we will prefer failing with an error indicating incompatible types
-    def "selects default when two configurations use the same attribute name with different types"() {
+    def "resolution fails when two configurations use the same attribute name with different types"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -99,21 +98,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
-                def flavorString = Attribute.of('flavor', String)
-                def buildTypeString = Attribute.of('buildType', String)
+                def flavorInteger = Attribute.of('flavor', Integer)
+                def buildTypeInteger = Attribute.of('buildType', Integer)
                 dependencies {
                     attributesSchema {
-                        attribute(flavorString)
-                        attribute(buildTypeString)
+                        attribute(flavorInteger)
+                        attribute(buildTypeInteger)
                     }
                 }
                 configurations {
                     create('default')
                     foo {
-                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'debug') } // use String type instead of Flavor/BuildType
+                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 1) }
                     }
                     bar {
-                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'release') } // use String type instead of Flavor/BuildType
+                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 2) }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -135,19 +134,15 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
-  - bar
-  - foo
-All of them match the consumer attributes:""")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
-  - bar
-  - foo
-All of them match the consumer attributes:""")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
@@ -163,7 +158,7 @@ All of them match the consumer attributes:""")
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
-                    assert details.candidateValues*.name == ['ONE', 'TWO']
+                    assert details.candidateValues*.name as Set == ['ONE', 'TWO'] as Set
                     details.candidateValues.each { producerValue ->
                         if (producerValue.name == 'TWO') {
                             details.closestMatch(producerValue)
@@ -1278,7 +1273,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("The constructor for class FlavorSelectionRule should be annotated with @Inject.")
     }
@@ -1350,7 +1345,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }
 }

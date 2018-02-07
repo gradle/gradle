@@ -17,9 +17,11 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -796,5 +798,70 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
         result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() })
+    def "bootclasspath can be set"() {
+        def jdk7 = AvailableJavaHomes.getJdk7()
+        def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
+        def jdk8 = AvailableJavaHomes.getJdk8()
+        def jdk8bootClasspath = TextUtil.escapeString(jdk8.jre.homeDir.absolutePath) + "/lib/rt.jar"
+        buildFile << """
+            apply plugin: 'java'
+            
+            compileJava {
+                if (project.hasProperty("java7")) {
+                    options.bootstrapClasspath = files("$jdk7bootClasspath")
+                } else if (project.hasProperty("java8")) {
+                    options.bootstrapClasspath = files("$jdk8bootClasspath")
+                } 
+            }
+        """
+        file('src/main/java/Main.java') << """
+            import java.nio.file.Files;
+            import java.nio.file.Paths;
+
+            public class Main {
+                public static void main(String... args) throws Exception {
+                    // Use Files.lines() method introduced in Java 8
+                    System.out.println("Line count: " + Files.lines(Paths.get(args[0])));
+                }
+            }
+        """
+
+        expect:
+        executer.withJavaHome jdk8.javaHome
+        succeeds "clean", "compileJava"
+
+        executer.withJavaHome jdk8.javaHome
+        executer.withStacktraceDisabled()
+        fails "-Pjava7", "clean", "compileJava"
+        errorOutput.contains "Main.java:8: error: cannot find symbol"
+
+        executer.withJavaHome jdk8.javaHome
+        succeeds "-Pjava8", "clean", "compileJava"
+
+        executer.withJavaHome jdk7.javaHome
+        succeeds "-Pjava8", "clean", "compileJava"
+    }
+
+    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
+    def "CompileOptions.bootclasspath is deprecated"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
+        buildFile << """
+            apply plugin: 'java'
+            
+            compileJava {
+                options.bootClasspath = "$bootClasspath"
+            }
+        """
+        file('src/main/java/Main.java') << "public class Main {}"
+
+        expect:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        succeeds "compileJava"
+        output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
     }
 }

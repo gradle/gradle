@@ -18,34 +18,55 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(id, componentIdentifier,
-            MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts),
-            ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
-            ImmutableList.<DependencyMetadata>of());
+    private final ImmutableList<Artifact> artifactDefinitions;
+    private final ImmutableMap<String, Configuration> configurationDefinitions;
+    private final ImmutableList<IvyDependencyDescriptor> dependencies;
+
+    private ImmutableList<Exclude> excludes;
+    private ImmutableMap<NamespaceId, String> extraAttributes;
+    private String branch;
+
+    public DefaultMutableIvyModuleResolveMetadata(ImmutableAttributesFactory attributesFactory,
+                                                  ModuleVersionIdentifier id,
+                                                  ModuleComponentIdentifier componentIdentifier,
+                                                  List<IvyDependencyDescriptor> dependencies,
+                                                  Collection<Configuration> configurationDefinitions,
+                                                  Collection<? extends Artifact> artifactDefinitions,
+                                                  Collection<? extends Exclude> excludes) {
+        super(attributesFactory, id, componentIdentifier);
+        this.configurationDefinitions = toMap(configurationDefinitions);
+        this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);
+        this.dependencies = ImmutableList.copyOf(dependencies);
+        this.excludes = ImmutableList.of();
+        this.extraAttributes = ImmutableMap.of();
+        this.excludes = ImmutableList.copyOf(excludes);
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, Collection<Configuration> configurations, Collection<? extends DependencyMetadata> dependencies) {
-        super(id, componentIdentifier, descriptor, toMap(configurations), ImmutableList.copyOf(dependencies));
+    DefaultMutableIvyModuleResolveMetadata(IvyModuleResolveMetadata metadata) {
+        super(metadata);
+        this.configurationDefinitions = metadata.getConfigurationDefinitions();
+        this.artifactDefinitions = metadata.getArtifactDefinitions();
+        this.dependencies = metadata.getDependencies();
+        this.excludes = metadata.getExcludes();
+        this.branch = metadata.getBranch();
+        this.extraAttributes = metadata.getExtraAttributes();
     }
 
-    private static Map<String, Configuration> toMap(Collection<Configuration> configurations) {
+    private static ImmutableMap<String, Configuration> toMap(Collection<Configuration> configurations) {
         ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builder();
         for (Configuration configuration : configurations) {
             builder.put(configuration.getName(), configuration);
@@ -53,12 +74,49 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         return builder.build();
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleComponentResolveMetadata metadata) {
-        super(metadata);
+    @Override
+    public ImmutableMap<String, Configuration> getConfigurationDefinitions() {
+        return configurationDefinitions;
+    }
+
+    @Override
+    public ImmutableList<Artifact> getArtifactDefinitions() {
+        return artifactDefinitions;
+    }
+
+    @Override
+    public ImmutableList<Exclude> getExcludes() {
+        return excludes;
+    }
+
+    @Override
+    public ImmutableMap<NamespaceId, String> getExtraAttributes() {
+        return extraAttributes;
+    }
+
+    @Override
+    public void setExtraAttributes(Map<NamespaceId, String> extraAttributes) {
+        this.extraAttributes = ImmutableMap.copyOf(extraAttributes);
+    }
+
+    @Nullable
+    @Override
+    public String getBranch() {
+        return branch;
+    }
+
+    @Override
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     @Override
     public IvyModuleResolveMetadata asImmutable() {
         return new DefaultIvyModuleResolveMetadata(this);
+    }
+
+    @Override
+    public ImmutableList<IvyDependencyDescriptor> getDependencies() {
+        return dependencies;
     }
 }

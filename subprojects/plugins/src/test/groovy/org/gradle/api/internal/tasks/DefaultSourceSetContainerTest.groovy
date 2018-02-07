@@ -28,7 +28,7 @@ import spock.lang.Unroll
 class DefaultSourceSetContainerTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
-    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"]
+    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
 
     private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestFiles.sourceDirectorySetFactory())
 
@@ -63,10 +63,12 @@ class DefaultSourceSetContainerTest extends Specification {
     }
 
     void assertForbidden(name, message) {
-        if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+        if (name == '') {
+            assert message == "The name is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0."
+        } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
+            assert message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0."""
         } else {
-            assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+            assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0."""
         }
     }
 }

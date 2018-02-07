@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -39,7 +41,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-        UnsupportedJavaRuntimeException.javaDeprecationWarning();
+        checkDeprecations(action.getStartParameter());
         try {
             RootBuildLifecycleListener buildLifecycleListener = contextServices.get(ListenerManager.class).getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
@@ -51,6 +53,15 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             }
         } finally {
             buildController.stop();
+        }
+    }
+
+    private void checkDeprecations(StartParameter startParameter) {
+        UnsupportedJavaRuntimeException.javaDeprecationWarning();
+
+        // This must be done here because DeprecationLogger needs to be initialized properly
+        if (startParameter instanceof StartParameterInternal) {
+            StartParameterInternal.class.cast(startParameter).checkDeprecation();
         }
     }
 }

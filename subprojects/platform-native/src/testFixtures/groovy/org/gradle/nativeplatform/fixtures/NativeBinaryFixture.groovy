@@ -19,10 +19,12 @@ package org.gradle.nativeplatform.fixtures
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
+import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinGccProducedBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestFile.Snapshot
 
@@ -58,24 +60,84 @@ class NativeBinaryFixture {
     // Does nothing when tool chain does not generate a separate debug file
     void assertDebugFileExists() {
         if (toolChain.visualCpp) {
-            getDebugFile().assertIsFile()
+            getSymbolFile().assertIsFile()
         }
     }
 
     // Does nothing when tool chain does not generate a separate debug file
     void assertDebugFileDoesNotExist() {
         if (toolChain.visualCpp) {
-            getDebugFile().assertDoesNotExist()
+            getSymbolFile().assertDoesNotExist()
         }
     }
 
-    private TestFile getDebugFile() {
-        return file.withExtension("pdb")
+    private TestFile getSymbolFile() {
+        if (toolChain?.visualCpp) {
+            return file.withExtension(".pdb")
+        } else {
+            return strippedRuntimeFile.withExtension(SymbolExtractorOsConfig.current().extension)
+        }
     }
 
     boolean assertExistsAndDelete() {
         assertExists()
         file.delete()
+    }
+
+    TestFile getStrippedRuntimeFile() {
+        if (toolChain?.visualCpp) {
+            return file
+        } else {
+            return file.parentFile.file("stripped/${file.name}")
+        }
+    }
+
+    private NativeBinaryFixture getStrippedBinaryFixture() {
+        return new NativeBinaryFixture(strippedRuntimeFile, toolChain)
+    }
+
+    private NativeBinaryFixture getSymbolFileFixture() {
+        return new NativeBinaryFixture(symbolFile, toolChain)
+    }
+
+    void assertHasStrippedDebugSymbolsFor(List<String> sourceFileNames) {
+        if (toolChain?.visualCpp) {
+            // There is not a built-in tool for querying pdb files, so we just check that the debug file exists
+            assertDebugFileExists()
+        } else {
+            assertHasDebugSymbolsFor(sourceFileNames)
+            strippedBinaryFixture.assertDoesNotHaveDebugSymbolsFor(sourceFileNames)
+            symbolFileFixture.assertHasDebugSymbolsFor(sourceFileNames)
+        }
+    }
+
+    void assertHasDebugSymbolsFor(List<String> sourceFileNames) {
+        if (toolChain?.visualCpp) {
+            // There is not a built-in tool for querying pdb files, so we just check that the debug file exists
+            assertDebugFileExists()
+        } else if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
+            // Currently cannot probe the actual symbols yet, just verify that there are some
+            binaryInfo.assertHasDebugSymbols()
+        } else {
+            def symbols = binaryInfo.listDebugSymbols()
+            def symbolNames = symbols.collect { it.name }
+            sourceFileNames.each { sourceFileName ->
+                assert sourceFileName in symbolNames
+            }
+        }
+    }
+
+    void assertDoesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
+        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
+            // Currently cannot probe the actual symbols yet, just verify that there are none
+            binaryInfo.assertDoesNotHaveDebugSymbols()
+        } else if (toolChain?.visualCpp) {
+            def symbols = binaryInfo.listDebugSymbols()
+            def symbolNames = symbols.collect { it.name }
+            sourceFileNames.each { sourceFileName ->
+                assert !(sourceFileName in symbolNames)
+            }
+        }
     }
 
     ArchitectureInternal getArch() {
@@ -95,6 +157,9 @@ class NativeBinaryFixture {
             return new OtoolBinaryInfo(file);
         }
         if (OperatingSystem.current().isWindows()) {
+            if (toolChain.meets(ToolChainRequirement.GCC)) {
+                return new DumpbinGccProducedBinaryInfo(file);
+            }
             return new DumpbinBinaryInfo(file);
         }
         return new ReadelfBinaryInfo(file);

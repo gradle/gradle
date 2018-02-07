@@ -20,8 +20,11 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.language.base.internal.compile.DefaultCompilerVersion;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
+import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
@@ -30,11 +33,16 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
-import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
+import org.gradle.nativeplatform.toolchain.internal.Stripper;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractor;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.gcc.ArStaticLibraryArchiver;
+import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 
 class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
@@ -43,14 +51,33 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ExecActionFactory execActionFactory;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final WorkerLeaseService workerLeaseService;
+    private final SwiftcMetadata swiftcMetaData;
 
-    SwiftPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, SwiftcPlatformToolChain toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService) {
+    SwiftPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, SwiftcPlatformToolChain toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService, SwiftcMetadata swiftcMetaData) {
         super(buildOperationExecutor, targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
+        this.swiftcMetaData = swiftcMetaData;
+    }
+
+    @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        if (toolType == ToolType.SWIFT_COMPILER || toolType == ToolType.LINKER) {
+            return toolSearchPath.locate(toolType, "swiftc");
+        }
+        if (toolType == ToolType.STATIC_LIB_ARCHIVER) {
+            return toolSearchPath.locate(toolType, "ar");
+        }
+        if (toolType == ToolType.SYMBOL_EXTRACTOR) {
+            return toolSearchPath.locate(toolType, SymbolExtractorOsConfig.current().getExecutableName());
+        }
+        if (toolType == ToolType.STRIPPER) {
+            return toolSearchPath.locate(toolType, "strip");
+        }
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -69,9 +96,26 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
 
     protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
         CommandLineToolConfigurationInternal swiftCompilerTool = (CommandLineToolConfigurationInternal) toolRegistry.getSwiftCompiler();
-        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService);
-        // TODO - OutputCleaningCompiler shouldn't be required
-        return new OutputCleaningCompiler<SwiftCompileSpec>(swiftCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService, swiftcMetaData.getVersion());
+        return new VersionAwareCompiler<SwiftCompileSpec>(swiftCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
+    }
+
+    @Override
+    protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
+        CommandLineToolConfigurationInternal staticLibArchiverTool = (CommandLineToolConfigurationInternal) toolRegistry.getStaticLibArchiver();
+        return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(ToolType.STATIC_LIB_ARCHIVER, "ar"), context(staticLibArchiverTool), workerLeaseService);
+    }
+
+    @Override
+    protected Compiler<?> createSymbolExtractor() {
+        CommandLineToolConfigurationInternal symbolExtractor = (CommandLineToolConfigurationInternal) toolRegistry.getSymbolExtractor();
+        return new SymbolExtractor(buildOperationExecutor, commandLineTool(ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.current().getExecutableName()), context(symbolExtractor), workerLeaseService);
+    }
+
+    @Override
+    protected Compiler<?> createStripper() {
+        CommandLineToolConfigurationInternal stripper = (CommandLineToolConfigurationInternal) toolRegistry.getStripper();
+        return new Stripper(buildOperationExecutor, commandLineTool(ToolType.STRIPPER, "strip"), context(stripper), workerLeaseService);
     }
 
     private CommandLineToolInvocationWorker commandLineTool(ToolType key, String exeName) {
@@ -82,5 +126,10 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
         MutableCommandLineToolContext baseInvocation = new DefaultMutableCommandLineToolContext();
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
         return baseInvocation;
+    }
+
+    @Override
+    public SwiftcMetadata getCompilerMetadata() {
+        return swiftcMetaData;
     }
 }

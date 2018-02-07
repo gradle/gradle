@@ -60,4 +60,22 @@ public interface VersionSelector {
      * @param candidate the metadata for the candidate version
      */
     boolean accept(ComponentMetadata candidate);
+
+    /**
+     * Indicates if a version selector can be used to short-circuit selection, whenever a different
+     * version has been selected previously. Typically, an exact version selector can short-circuit,
+     * in the sense that it will always return a correct answer whenever exposed to a version. But a
+     * "latest" selector will give a different answer whether is called first, or starting with a
+     * pre-selected version.
+     *
+     * @return true if this selector can short-circuit
+     */
+    boolean canShortCircuitWhenVersionAlreadyPreselected();
+
+    /**
+     * Returns this selector as a string.
+     *
+     * @return a stringy representation of this selector
+     */
+    String getSelector();
 }

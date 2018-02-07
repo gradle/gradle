@@ -31,5 +31,6 @@ public interface VerificationTask {
      *
      * @return false, when the build should break on failure, true when the failures should be ignored.
      */
+    @Input
     boolean getIgnoreFailures();
 }

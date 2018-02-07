@@ -31,6 +31,10 @@ version = '1.9'
 
 ${mavenCentralRepository()}
 
+configurations.compile {
+    exclude group: "foo", module: "bar"
+}
+
 dependencies {
     compile "commons-collections:commons-collections:3.2.2"
     compileOnly "javax.servlet:servlet-api:2.5"
@@ -54,6 +58,7 @@ uploadArchives {
 
         then:
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
+
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
 
         ivyModule.parsedIvy.dependencies.size() == 4
@@ -61,5 +66,7 @@ uploadArchives {
         ivyModule.parsedIvy.dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
         ivyModule.parsedIvy.dependencies["javax.servlet:servlet-api:2.5"].hasConf("compileOnly->default")
         ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
+
+        ivyModule.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile"]
     }
 }

@@ -29,21 +29,15 @@ import java.util.Set;
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final ServiceRegistry serviceRegistry;
-    private final IncludedBuilds includedBuilds;
     private BuildIdentifier currentBuild;
 
-    public CompositeBuildClassPathInitializer(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
-        this.includedBuilds = includedBuilds;
+    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
         this.includedBuildTaskGraph = includedBuildTaskGraph;
         this.serviceRegistry = serviceRegistry;
     }
 
     @Override
     public void execute(Configuration classpath) {
-        if (includedBuilds.getBuilds().isEmpty()) {
-            return;
-        }
-
         ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
@@ -66,6 +60,7 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
+            assert !requestingBuild.equals(targetBuild);
             Set<String> tasks = compositeBuildArtifact.getTasks();
             for (String taskName : tasks) {
                 includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);

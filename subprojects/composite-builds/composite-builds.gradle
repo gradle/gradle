@@ -8,8 +8,10 @@ dependencies {
     integTestRuntime project(":testKit")
 }
 
-useTestFixtures(project: ':dependencyManagement')
-useTestFixtures(project: ':ide')
-useTestFixtures(project: ':launcher')
+testFixtures {
+    from(':dependencyManagement')
+    from(':ide')
+    from(':launcher')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

@@ -16,35 +16,28 @@
 
 package org.gradle.language.cpp.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -53,93 +46,64 @@ import java.util.concurrent.Callable;
  * @since 4.1
  */
 @Incubating
+@NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+    public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-        final ModelRegistry modelRegistry = project.getModelRegistry();
-        final ProviderFactory providers = project.getProviders();
+        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
-        project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {
+        // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
+        project.getGradle().getStartParameter().setGradleMetadata(true);
+
+        // Create the tasks for each C++ binary that is registered
+        project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
             @Override
-            public void execute(final CppBinary binary) {
-                final Names names = Names.of(binary.getName());
+            public void execute(final DefaultCppBinary binary) {
+                final Names names = binary.getNames();
 
-                CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
+                String language = "cpp";
+                final NativePlatform currentPlatform = binary.getTargetPlatform();
+                // TODO - make this lazy
+                final NativeToolChainInternal toolChain = binary.getToolChain();
+
+                Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                    @Override
+                    public List<File> call() {
+                        PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
+                        if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
+                            return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
+                        }
+                        return ImmutableList.of();
+                    }
+                };
+
+                CppCompile compile = tasks.create(names.getCompileTaskName(language), CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
+                compile.includes(systemIncludes);
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {
                     compile.setDebuggable(true);
-                } else {
+                }
+                if (binary.isOptimized()) {
                     compile.setOptimized(true);
                 }
+                compile.setTargetPlatform(currentPlatform);
+                compile.setToolChain(toolChain);
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
-                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-                compile.setTargetPlatform(currentPlatform);
-
-                // TODO - make this lazy
-                NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-                compile.setToolChain(toolChain);
-
-                if (binary instanceof CppExecutable) {
-                    // Add a link task
-                    LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-                    link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    })));
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    // Add an install task
-                    // TODO - should probably not add this for all executables?
-                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-                    install.setPlatform(link.getTargetPlatform());
-                    install.setToolChain(link.getToolChain());
-                    install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
-                    install.setExecutable(link.getBinaryFile());
-                    // TODO - infer this
-                    install.onlyIf(new Spec<Task>() {
-                        @Override
-                        public boolean isSatisfiedBy(Task element) {
-                            return install.getExecutable().exists();
-                        }
-                    });
-                    install.lib(binary.getRuntimeLibraries());
-                } else if (binary instanceof CppSharedLibrary) {
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-
-                    compile.setPositionIndependentCode(true);
-
-                    // Add a link task
-                    LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(binary.getLinkLibraries());
-                    // TODO - need to set soname
-                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
-                    link.setOutputFile(runtimeFile);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-                }
+                binary.getObjectsDir().set(compile.getObjectFileDir());
+                binary.getCompileTask().set(compile);
+            }
+        });
+        project.getComponents().withType(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
+            @Override
+            public void execute(CppSharedLibrary library) {
+                library.getCompileTask().get().setPositionIndependentCode(true);
             }
         });
     }
-
 }

@@ -23,6 +23,7 @@ import spock.lang.Specification
 import static FileUtils.assertInWindowsPathLengthLimitation
 import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.calculateRoots
+import static org.gradle.internal.FileUtils.withExtension
 
 class FileUtilsTest extends Specification {
 
@@ -73,4 +74,14 @@ class FileUtilsTest extends Specification {
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a")
     }
 
+    def "can transform filenames to alternate extensions"() {
+        expect:
+        withExtension("foo", ".bar") == "foo.bar"
+        withExtension("/some/path/to/foo", ".bar") == "/some/path/to/foo.bar"
+        withExtension("foo.baz", ".bar") == "foo.bar"
+        withExtension("/some/path/to/foo.baz", ".bar") == "/some/path/to/foo.bar"
+        withExtension("\\some\\path\\to\\foo.baz", ".bar") == "\\some\\path\\to\\foo.bar"
+        withExtension("/some/path/to/foo.boo.baz", ".bar") == "/some/path/to/foo.boo.bar"
+        withExtension("/some/path/to/foo.bar", ".bar") == "/some/path/to/foo.bar"
+    }
 }

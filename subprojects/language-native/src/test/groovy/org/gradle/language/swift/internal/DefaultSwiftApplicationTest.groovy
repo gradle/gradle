@@ -16,21 +16,53 @@
 
 package org.gradle.language.swift.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
-
 class DefaultSwiftApplicationTest extends Specification {
-    def "has debug and release variants"() {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def app = new DefaultSwiftApplication("main", project.objects, project)
+
+    def "has implementation dependencies"() {
         expect:
-        def app = new DefaultSwiftApplication("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), Stub(ConfigurationContainer))
-        app.debugExecutable.name == "mainDebug"
-        app.debugExecutable.debuggable
-        app.releaseExecutable.name == "mainRelease"
-        !app.releaseExecutable.debuggable
-        app.developmentBinary == app.debugExecutable
+        app.implementationDependencies == project.configurations['implementation']
+    }
+
+    def "can create executable binary"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
+        expect:
+        def binary = app.addExecutable("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        app.binaries.realizeNow()
+        app.binaries.get() == [binary] as Set
+    }
+
+    def "throws exception when development binary is not available"() {
+        given:
+        app.binaries.realizeNow()
+
+        when:
+        app.developmentBinary.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
     }
 }

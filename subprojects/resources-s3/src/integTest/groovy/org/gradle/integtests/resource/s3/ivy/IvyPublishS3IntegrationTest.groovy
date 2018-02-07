@@ -64,10 +64,12 @@ publishing {
         module.jar.sha1.expectUpload()
         module.ivy.expectUpload()
         module.ivy.sha1.expectUpload()
+        module.moduleMetadata.expectUpload()
+        module.moduleMetadata.sha1.expectUpload()
 
         succeeds 'publish'
 
         then:
-        module.assertPublishedAsJavaModule()
+        javaLibrary(module.backingModule).assertPublishedAsJavaModule()
     }
 }

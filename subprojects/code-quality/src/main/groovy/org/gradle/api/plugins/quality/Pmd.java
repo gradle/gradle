@@ -66,7 +66,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private boolean incrementalAnalysis;
 
     public Pmd() {
         reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
@@ -248,7 +247,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * Example: ignoreFailures = true
      */
-    @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -336,32 +334,5 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @Incubating
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
-    }
-
-    /**
-     * Retrieves wether to use incremental analysis or not.
-     *
-     * This is only supported for PMD 5.6.0 or better.
-     *
-     * @since 4.3
-     */
-    @Input
-    @Incubating
-    public boolean isIncrementalAnalysis() {
-        return incrementalAnalysis;
-    }
-
-    /**
-     * Configures wether to use incremental analysis or not.
-     *
-     * This is only supported for PMD 5.6.0 or better.
-     *
-     * @param incrementalAnalysis True to enable incremental analysis.
-     *
-     * @since 4.3
-     */
-    @Incubating
-    public void setIncrementalAnalysis(boolean incrementalAnalysis) {
-        this.incrementalAnalysis = incrementalAnalysis;
     }
 }

@@ -28,7 +28,6 @@ import java.util.Map;
  *
  * @since 3.0
  */
-@Incubating
 @HasInternalProtocol
 public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskInputs {
     /**
@@ -67,6 +66,14 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
      * @since 3.1
      */
     TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
+
+    /**
+     * Sets the normalizer to use for this property.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
 
     /**
      * Throws {@link UnsupportedOperationException}.

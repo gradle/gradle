@@ -83,7 +83,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     def "handles different target gradle versions concurrently"() {
         given:
-        def last = new ReleasedVersionDistributions().getMostRecentFinalRelease()
+        def last = new ReleasedVersionDistributions().getMostRecentRelease()
         assert dist != last
         println "Combination of versions used: current - $dist, last - $last"
         def oldDistApi = new ToolingApi(last, temporaryFolder)

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.util.internal;
 
+import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
@@ -28,10 +29,20 @@ import org.gradle.api.tasks.util.PatternSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * The basic implementation for converting {@link PatternSet}s to {@link Spec}s.
+ * This implementation only caches the default exclude patterns, as these are always
+ * used, no matter which other includes and excludes a {@link PatternSet} has. For an
+ * implementation that caches all other patterns as well, see {@link CachingPatternSpecFactory}.
+ */
 public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
+    private final List<String> previousDefaultExcludes = Lists.newArrayList();
+    private final Map<Boolean, Spec<FileTreeElement>> defaultExcludeSpecs = new HashMap<Boolean, Spec<FileTreeElement>>(2);
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));
@@ -56,10 +67,7 @@ public class PatternSpecFactory {
             allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
         }
 
-        List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
-        if (!defaultExcludes.isEmpty()) {
-            allExcludeSpecs.add(createSpec(defaultExcludes, false, patternSet.isCaseSensitive()));
-        }
+        allExcludeSpecs.add(getDefaultExcludeSpec(patternSet.isCaseSensitive()));
 
         allExcludeSpecs.addAll(patternSet.getExcludeSpecs());
 
@@ -68,6 +76,27 @@ public class PatternSpecFactory {
         } else {
             return Specs.union(allExcludeSpecs);
         }
+    }
+
+    private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(boolean caseSensitive) {
+        Spec<FileTreeElement> specs = defaultExcludeSpecs.get(caseSensitive);
+        List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
+
+        if (specs == null) {
+            specs = updateDefaultExcludeCache(defaultExcludes, caseSensitive);
+        } else if (!previousDefaultExcludes.equals(defaultExcludes)) {
+            specs = updateDefaultExcludeCache(defaultExcludes, caseSensitive);
+        }
+
+        return specs;
+    }
+
+    private Spec<FileTreeElement> updateDefaultExcludeCache(List<String> defaultExcludes, boolean caseSensitive) {
+        previousDefaultExcludes.clear();
+        previousDefaultExcludes.addAll(defaultExcludes);
+        defaultExcludeSpecs.put(caseSensitive, createSpec(defaultExcludes, false, true));
+        defaultExcludeSpecs.put(caseSensitive, createSpec(defaultExcludes, false, false));
+        return defaultExcludeSpecs.get(caseSensitive);
     }
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {

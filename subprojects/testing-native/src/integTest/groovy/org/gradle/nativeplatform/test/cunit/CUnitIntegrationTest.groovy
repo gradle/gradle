@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
@@ -372,6 +373,8 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
+    // RunTestExecutable is not incremental yet
+    @NotYetImplemented
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -451,11 +454,11 @@ tasks.withType(RunTestExecutable) {
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 
         when:
-        succeeds "helloTestVisualStudio"
+        succeeds "visualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("helloTestExe.sln"))
-        mainSolution.assertHasProjects("helloTestExe")
+        final mainSolution = new SolutionFile(file("test.sln"))
+        mainSolution.assertHasProjects("helloTestExe", "helloDll", "helloLib",)
 
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))

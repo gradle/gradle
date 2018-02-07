@@ -17,13 +17,21 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Unroll
 
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
+ *
+ * https://developer.android.com/studio/releases/build-tools.html
+ * https://developer.android.com/studio/releases/gradle-plugin.html
+ * https://androidstudio.googleblog.com/
+ *
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
-    public static final ANDROID_PLUGIN_VERSION = '2.3.1'
-    public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'
+    public static final ANDROID_BUILD_TOOLS_VERSION = '27.0.3'
+    public static final String STABLE_ANDROID_2X_VERSION = '2.3.3'
+    public static final String STABLE_ANDROID_3X_VERSION = '3.0.1'
+    public static final TESTED_ANDROID_PLUGIN_VERSIONS = [STABLE_ANDROID_2X_VERSION, STABLE_ANDROID_3X_VERSION]
 
     def setup() {
         assertAndroidHomeSet()
@@ -37,7 +45,8 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         '''.stripIndent()
     }
 
-    def "android application plugin"() {
+    @Unroll
+    def "android application plugin #pluginVersion"(String pluginVersion) {
         given:
 
         def basedir='.'
@@ -69,23 +78,28 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
             </manifest>""".stripIndent()
 
-        buildFile << buildscript() << """
+        buildFile << buildscript(pluginVersion) << """
             apply plugin: 'com.android.application'
 
            ${jcenterRepository()}
+           ${googleRepository()}
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
         when:
-        def result = runner('androidDependencies', 'build', '-x', 'lint').build()
+        def result = runner('androidDependencies', 'build', 'connectedAndroidTest', '-x', 'lint').build()
 
         then:
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+
+        where:
+        pluginVersion << TESTED_ANDROID_PLUGIN_VERSIONS
     }
 
-    def "android library plugin"() {
+    @Unroll
+    def "android library plugin #pluginVersion"(String pluginVersion) {
         given:
 
         def app = 'app'
@@ -132,7 +146,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             include ':${library}'
         """
 
-        file('build.gradle') << buildscript() << """
+        file('build.gradle') << buildscript(pluginVersion) << """
             subprojects {
                 ${jcenterRepository()}
             }
@@ -161,6 +175,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assemble').outcome == TaskOutcome.SUCCESS
         result.task(':library:assemble').outcome == TaskOutcome.SUCCESS
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+
+        where:
+        pluginVersion << TESTED_ANDROID_PLUGIN_VERSIONS
     }
 
     private String activityDependency() {
@@ -171,14 +188,14 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """
     }
 
-    private String buildscript() {
+    private String buildscript(String pluginVersion) {
         """
             buildscript {
                 ${jcenterRepository()}
-
+                ${googleRepository()}
 
                 dependencies {
-                    classpath 'com.android.tools.build:gradle:${ANDROID_PLUGIN_VERSION}'
+                    classpath 'com.android.tools.build:gradle:${pluginVersion}'
                 }
             }
 

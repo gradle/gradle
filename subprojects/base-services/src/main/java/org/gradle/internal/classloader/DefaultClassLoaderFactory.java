@@ -23,9 +23,12 @@ import org.gradle.internal.service.ServiceLocator;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.File;
 import java.util.Collections;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
+import static org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass;
+import static org.gradle.internal.classloader.ClasspathUtil.getClasspathForResource;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     // This uses the system classloader and will not release any loaded classes for the life of the daemon process.
@@ -54,10 +57,18 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         // Note that in practise, this is only triggered when running in our tests
 
         if (needJaxpImpl()) {
-            classPath = classPath.plus(Collections.singleton(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory")));
+            classPath = addToClassPath(classPath, getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory"));
+            classPath = addToClassPath(classPath, getClasspathForClass("org.w3c.dom.ElementTraversal"));
         }
 
         return doCreateClassLoader(getIsolatedSystemClassLoader(), classPath);
+    }
+
+    private ClassPath addToClassPath(ClassPath classPath, File file) {
+        if (file != null) {
+            return classPath.plus(Collections.singletonList(file));
+        }
+        return classPath;
     }
 
     @Override

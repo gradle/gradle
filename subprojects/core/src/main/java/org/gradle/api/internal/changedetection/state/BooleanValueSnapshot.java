@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class BooleanValueSnapshot extends AbstractScalarValueSnapshot<Boolean> {
+public class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean> {
     public static final BooleanValueSnapshot TRUE = new BooleanValueSnapshot(true);
     public static final BooleanValueSnapshot FALSE = new BooleanValueSnapshot(false);
 

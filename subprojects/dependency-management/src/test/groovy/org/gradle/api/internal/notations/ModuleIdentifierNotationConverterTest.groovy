@@ -34,7 +34,7 @@ class ModuleIdentifierNotationConverterTest extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory)).toComposite()
+    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory)).toComposite()
 
     def "parses module identifer notation"() {
         expect:
@@ -51,7 +51,7 @@ class ModuleIdentifierNotationConverterTest extends Specification {
     def "reports notation with invalid character"() {
         when: parser.parseNotation("group:module${character}")
         then: thrown(UnsupportedNotationException)
-        where: character << ["+", "*", "[", "]", "(", ")", ","]
+        where: character << ["*", "[", "]", "(", ")", ","]
     }
 
 

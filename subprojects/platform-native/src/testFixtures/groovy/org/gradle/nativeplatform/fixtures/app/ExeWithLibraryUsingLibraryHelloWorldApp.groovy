@@ -17,32 +17,32 @@
 package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestFile
 
-public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
+class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
 
     void writeSources(TestFile mainSourceDir, TestFile librarySourceDir, TestFile greetingsLibrarySourceDir) {
         getExecutable().writeSources(mainSourceDir)
         getLibrary().writeSources(librarySourceDir)
-        getGreetingsHeader().writeToDir(greetingsLibrarySourceDir);
+        getGreetingsHeader().writeToDir(greetingsLibrarySourceDir)
         for (SourceFile sourceFile : greetingsSources) {
-            sourceFile.writeToDir(greetingsLibrarySourceDir);
+            sourceFile.writeToDir(greetingsLibrarySourceDir)
         }
     }
 
 
-    public TestNativeComponent getGreetingsLibrary() {
+    TestNativeComponent getGreetingsLibrary() {
         return new TestNativeComponent() {
             @Override
-            public List<SourceFile> getHeaderFiles() {
+            List<SourceFile> getHeaderFiles() {
                 return Arrays.asList(getGreetingsHeader())
             }
 
             @Override
-            public List<SourceFile> getSourceFiles() {
+            List<SourceFile> getSourceFiles() {
                 return greetingsSources
             }
-        };
+        }
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
             #endif
 
             void DLL_FUNC sayHello();
-        """);
+        """)
     }
 
     List<SourceFile> librarySources = [
@@ -113,7 +113,7 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
             #endif
 
             std::string DLL_FUNC getHello();
-        """);
+        """)
     }
 
     List<SourceFile> greetingsSources = [

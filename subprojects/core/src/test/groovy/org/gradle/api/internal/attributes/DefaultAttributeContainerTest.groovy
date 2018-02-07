@@ -18,15 +18,12 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasAttributes
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultAttributeContainerTest extends Specification {
 
-    private DefaultImmutableAttributesFactory cache
-
-    void setup() {
-        cache = new DefaultImmutableAttributesFactory()
-    }
+    def cache = TestUtil.attributesFactory()
 
     private DefaultMutableAttributeContainer newContainer() {
         return new DefaultMutableAttributeContainer(cache)
@@ -58,24 +55,7 @@ class DefaultAttributeContainerTest extends Specification {
         container.attribute(Attribute.of("a2", String), "2")
 
         when:
-        def copy = container.copy()
-
-        then:
-        copy.keySet().size() == 2
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
-        copy.getAttribute(Attribute.of("a2", String)) == "2"
-    }
-
-    def "changes to attribute container are not seen by mutable copy"() {
-        given:
-        def container = newContainer()
-        container.attribute(Attribute.of("a1", Integer), 1)
-        container.attribute(Attribute.of("a2", String), "2")
-
-        when:
-        def copy = container.copy()
-        container.attribute(Attribute.of("a1", Integer), 2)
-        container.attribute(Attribute.of("a3", Long), 12L)
+        def copy = container.asImmutable()
 
         then:
         copy.keySet().size() == 2
@@ -124,7 +104,6 @@ class DefaultAttributeContainerTest extends Specification {
         child.empty
         child.keySet().empty
         child.asImmutable() == ImmutableAttributes.EMPTY
-        child.copy().empty
         !child.contains(thing)
         child.getAttribute(thing) == null
 
@@ -135,7 +114,6 @@ class DefaultAttributeContainerTest extends Specification {
         child.contains(thing)
         child.getAttribute(thing) == "parent"
         child.asImmutable().keySet() == [thing] as Set
-        child.copy().keySet() == [thing] as Set
 
         child.attribute(thing, "child")
 
@@ -144,13 +122,11 @@ class DefaultAttributeContainerTest extends Specification {
         child.contains(thing)
         child.getAttribute(thing) == "child"
         child.asImmutable().keySet() == [thing] as Set
-        child.copy().keySet() == [thing] as Set
 
         child.attribute(other, "other")
         child.keySet() == [thing, other] as Set
         child.getAttribute(other) == "other"
         child.asImmutable().keySet() == [thing, other] as Set
-        child.copy().keySet() == [thing, other] as Set
 
         def child2 = new DefaultMutableAttributeContainer(cache, newContainer())
         child2.attribute(thing, "child")
@@ -160,7 +136,6 @@ class DefaultAttributeContainerTest extends Specification {
         child2.contains(thing)
         child2.getAttribute(thing) == "child"
         child2.asImmutable().keySet() == [thing] as Set
-        child2.copy().keySet() == [thing] as Set
     }
 
     def "has useful string representation"() {

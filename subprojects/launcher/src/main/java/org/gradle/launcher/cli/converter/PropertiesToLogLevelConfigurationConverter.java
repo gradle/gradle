@@ -18,13 +18,13 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 
 import java.util.List;
 import java.util.Map;
 
 public class PropertiesToLogLevelConfigurationConverter {
-    private final List<BuildOption<LoggingConfiguration>> buildOptions = new LoggingConfigurationBuildOptionFactory().create();
+    private final List<BuildOption<LoggingConfiguration>> buildOptions = LoggingConfigurationBuildOptions.get();
 
     public LoggingConfiguration convert(Map<String, String> properties, LoggingConfiguration loggingConfiguration) {
         for (BuildOption<LoggingConfiguration> option : buildOptions) {

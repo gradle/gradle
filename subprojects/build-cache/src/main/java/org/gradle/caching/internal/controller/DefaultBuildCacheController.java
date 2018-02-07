@@ -88,7 +88,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         } else {
             this.local = NullLocalBuildCacheServiceHandle.INSTANCE;
             this.legacyLocal = toHandle(config.local, config.localPush, BuildCacheServiceRole.LOCAL, buildOperationExecutor, logStackTraces);
-            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"), BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"));
         }
 
         this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
@@ -112,7 +112,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         if (legacyLocal.canLoad() || remote.canLoad()) {
-            tmp.allocateTempFile(command.getKey(), new Action<File>() {
+            tmp.withTempFile(command.getKey(), new Action<File>() {
                 @Override
                 public void execute(File file) {
                     LoadTarget loadTarget = new LoadTarget(file);
@@ -205,7 +205,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         final BuildCacheKey key = command.getKey();
         final Pack pack = new Pack(command);
 
-        tmp.allocateTempFile(command.getKey(), new Action<File>() {
+        tmp.withTempFile(command.getKey(), new Action<File>() {
             @Override
             public void execute(File file) {
                 pack.execute(file);
@@ -282,11 +282,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     private static LocalBuildCacheServiceHandle toHandle(LocalBuildCacheService local, boolean localPush) {
-        if (local == null) {
-            return NullLocalBuildCacheServiceHandle.INSTANCE;
-        } else {
-            return new DefaultLocalBuildCacheServiceHandle(local, localPush);
-        }
+        return new DefaultLocalBuildCacheServiceHandle(local, localPush);
     }
 
 }

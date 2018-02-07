@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
-    compile libraries.groovy
-    compile libraries.commons_io
+    compile libraries.groovy.coordinate
+    compile libraries.commons_io.coordinate
+    compile libraries.snakeyaml.coordinate
     compile project(':core')
     compile project(':platformBase')
     compile project(':diagnostics')
@@ -28,17 +33,19 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':modelCore')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':baseServices')
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':messaging')
+    from(':platformBase')
+    from(':modelCore')
+    from(':diagnostics')
+    from(':baseServices')
+}
 
-strictCompile()
-useClassycle(exclude: ['org/gradle/nativeplatform/plugins/**',
+classycle {
+    excludePatterns = ['org/gradle/nativeplatform/plugins/**',
                        'org/gradle/nativeplatform/tasks/**',
                        'org/gradle/nativeplatform/internal/resolve/**',
-                       'org/gradle/nativeplatform/toolchain/internal/**'])
-
+                       'org/gradle/nativeplatform/toolchain/internal/**']
+}

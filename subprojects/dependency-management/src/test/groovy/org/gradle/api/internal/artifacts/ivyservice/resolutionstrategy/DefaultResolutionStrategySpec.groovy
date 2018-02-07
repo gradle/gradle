@@ -18,15 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.vcs.internal.VcsMappingsInternal
+import org.gradle.vcs.internal.VcsMappingsStore
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
@@ -42,14 +44,15 @@ class DefaultResolutionStrategySpec extends Specification {
     def cachePolicy = Mock(DefaultCachePolicy)
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
-    def vcsMappingsInternal = Mock(VcsMappingsInternal)
+    def componentSelectorConverter = Mock(ComponentSelectorConverter)
+    def vcsMappingsInternal = Mock(VcsMappingsStore)
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory, componentSelectorConverter)
 
     def "allows setting forced modules"() {
         expect:
@@ -96,9 +99,9 @@ class DefaultResolutionStrategySpec extends Specification {
         then:
         _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
-        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
-        _ * details.getOldRequested() >> newSelector("org", "foo", "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", "2.0"), VersionSelectionReasons.FORCED)
+        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
+        _ * details.getOldRequested() >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -110,7 +113,7 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.eachDependency(action)
 
         then:
-        1 * dependencySubstitutions.allWithDependencyResolveDetails(action)
+        1 * dependencySubstitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
     }
 
     def "provides dependency resolve rule with forced modules first and then user specified rules"() {
@@ -124,9 +127,9 @@ class DefaultResolutionStrategySpec extends Specification {
 
         then: //forced modules:
         dependencySubstitutions.ruleAction >> substitutionAction
-        _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
-        _ * details.oldRequested >> newSelector("org", "foo", "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", "2.0"), VersionSelectionReasons.FORCED)
+        _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
+        _ * details.oldRequested >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:

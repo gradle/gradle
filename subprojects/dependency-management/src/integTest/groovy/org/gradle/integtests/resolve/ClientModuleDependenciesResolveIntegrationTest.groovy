@@ -16,12 +16,17 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import spock.lang.Unroll
 
-@LeaksFileHandles
-public class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
+class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    @Unroll
+    def "uses metadata from Client Module and looks up artifact in declared repositories (advancedPomSupport = #advancedPomSupport)"() {
         given:
+        if (advancedPomSupport) {
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        }
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
         def projectAInRepo1 = repo1.module('group', 'projectA', '1.2')
@@ -63,9 +68,69 @@ task listJars {
 
         then:
         succeeds('listJars')
+
+        where:
+        advancedPomSupport << [false, true]
     }
 
-    def "client module dependency ignores published artifact listing and resolves single jar file"() {
+    @Unroll
+    def "can resolve nested Client Module (advancedPomSupport = #advancedPomSupport)"() {
+        given:
+        if (advancedPomSupport) {
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        }
+        def repo = mavenHttpRepo("repo")
+        def projectA = repo.module('test', 'projectA', '1.2').publish()
+        def projectB = repo.module('test', 'projectB', '1.5').publish()
+        def projectC = repo.module('test', 'projectC', '2.0').publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repo.uri}" }
+}
+configurations { compile }
+dependencies {
+    compile module('test:projectA:1.2') {
+        module('test:projectB:1.5') {
+            dependencies('test:projectC:2.0')
+        }
+    }
+}
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-2.0.jar']
+    }
+}
+"""
+
+        when:
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact.expectGet()
+        projectC.pom.expectGet()
+        projectC.artifact.expectGet()
+
+        then:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('listJars')
+
+        where:
+        advancedPomSupport << [false, true]
+    }
+
+    @Unroll
+    def "client module dependency ignores published artifact listing and resolves single jar file (advancedPomSupport = #advancedPomSupport)"() {
+        given:
+        if (advancedPomSupport) {
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        }
         def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
                 .artifact()
                 .artifact(classifier: "extra")
@@ -114,5 +179,8 @@ task listClientModuleJars {
 
         then:
         succeeds('listClientModuleJars')
+
+        where:
+        advancedPomSupport << [false, true]
     }
 }

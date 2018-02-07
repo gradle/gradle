@@ -23,23 +23,35 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
 
     def "prints header of failing tasks red"() {
         setup:
-        def formatter = new PrettyPrefixedLogHeaderFormatter()
+        def formatter = new PrettyPrefixedLogHeaderFormatter(false)
 
         when:
         def formattedText = formatter.format(":test", "", null, "XYZ", true)
 
         then:
-        formattedText[1].style == StyledTextOutput.Style.FailureHeader
+        formattedText[0].style == StyledTextOutput.Style.FailureHeader
     }
 
     def "prints header of not-failing tasks white"() {
         setup:
-        def formatter = new PrettyPrefixedLogHeaderFormatter()
+        def formatter = new PrettyPrefixedLogHeaderFormatter(false)
 
         when:
         def formattedText = formatter.format(":test", "", null, "XYZ", false)
 
         then:
-        formattedText[1].style == StyledTextOutput.Style.Header
+        formattedText[0].style == StyledTextOutput.Style.Header
+    }
+
+    def "prints empty line before header if requested"() {
+        setup:
+        def formatter = new PrettyPrefixedLogHeaderFormatter(true)
+
+        when:
+        def formattedText = formatter.format(":test", "", null, "XYZ", false)
+
+        then:
+        formattedText[0].text == LogHeaderFormatter.EOL
+        formattedText[1].text == "> :test"
     }
 }

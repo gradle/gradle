@@ -121,11 +121,4 @@ class DefaultProviderFactoryTest extends Specification {
         def t = thrown(IllegalStateException)
         t.message == 'No value has been specified for this provider.'
     }
-
-    def "can create a List property"() {
-        expect:
-        def property = providerFactory.listProperty(String)
-        property.present
-        property.get() == []
-    }
 }

@@ -22,17 +22,38 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository() {
-        return "repositories { ${jcenterRepositoryDefinition()} }"
+        return """
+            repositories {
+                ${jcenterRepositoryDefinition()}
+            }
+        """
     }
 
     static String mavenCentralRepository() {
-        return "repositories { ${mavenCentralRepositoryDefinition()} }"
+        return """
+            repositories {
+                ${mavenCentralRepositoryDefinition()}
+            }
+        """
+    }
+
+    static String googleRepository() {
+        return """
+            repositories {
+                ${googleRepositoryDefinition()}
+            }
+        """
     }
 
     static String jcenterRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
         if (repoUrl) {
-            return "maven { name 'jcenter-remote'; url '${repoUrl}' }"
+            return """
+                maven {
+                    name 'jcenter-remote'
+                    url '${repoUrl}'
+                }
+            """
         } else {
             return 'jcenter()'
         }
@@ -41,37 +62,42 @@ class RepoScriptBlockUtil {
     static String mavenCentralRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
         if (repoUrl) {
-            return "maven { name 'repo1-remote'; url '${repoUrl}' }"
+            return """
+                maven {
+                    name 'repo1-remote'
+                    url '${repoUrl}'
+                }
+            """
         } else {
             return 'mavenCentral()'
         }
     }
 
-    static String typesafeMavenRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafemaven')
+    static String lightbendMavenRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.lightbendmaven')
         if (repoUrl) {
             return """
                 maven {
-                    name 'typesafe-maven-release-remote'
+                    name 'lightbend-maven-release-remote'
                     url '${repoUrl}'
                 }
             """
         } else {
             return """
                 maven {
-                    name 'typesafe-maven-release'
-                    url 'https://repo.typesafe.com/typesafe/maven-releases'
+                    name 'lightbend-maven-release'
+                    url 'https://repo.lightbend.com/lightbend/maven-releases'
                 }
             """
         }
     }
 
-    static String typesafeIvyRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
+    static String lightbendIvyRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.lightbendivy')
         if (repoUrl) {
             return """
                 ivy {
-                    name 'typesafe-ivy-release-remote'
+                    name 'lightbend-ivy-release-remote'
                     url '${repoUrl}'
                     layout 'ivy'
                 }
@@ -79,11 +105,25 @@ class RepoScriptBlockUtil {
         } else {
             return """
                 ivy {
-                    name 'typesafe-ivy-release'
-                    url 'https://repo.typesafe.com/typesafe/ivy-releases'
+                    name 'lightbend-ivy-release'
+                    url 'https://repo.lightbend.com/lightbend/ivy-releases'
                     layout 'ivy'
                 }
             """
+        }
+    }
+
+    static String googleRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.google')
+        if (repoUrl) {
+            return """
+                maven {
+                    name 'Google'
+                    url '${repoUrl}'
+                }
+            """
+        } else {
+            return 'google()'
         }
     }
 }

@@ -25,13 +25,15 @@ public class MavenNormalizedPublication {
 
     private final String name;
     private final File pomFile;
+    private final File metadataFile;
     private final MavenProjectIdentity projectIdentity;
     private final Set<MavenArtifact> artifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, File pomFile, File gradleMetadataFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, MavenArtifact mainArtifact) {
         this.name = name;
         this.pomFile = pomFile;
+        this.metadataFile = gradleMetadataFile;
         this.projectIdentity = projectIdentity;
         this.artifacts = artifacts;
         this.mainArtifact = mainArtifact;
@@ -43,6 +45,10 @@ public class MavenNormalizedPublication {
 
     public File getPomFile() {
         return pomFile;
+    }
+
+    public File getMetadataFile() {
+        return metadataFile;
     }
 
     public Set<MavenArtifact> getArtifacts() {

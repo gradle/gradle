@@ -133,9 +133,9 @@ public class EclipseWtpComponent {
     private final XmlFileContentMerger file;
 
     private Set<File> sourceDirs;
-    private Set<Configuration> rootConfigurations = Sets.newHashSet();
-    private Set<Configuration> libConfigurations;
-    private Set<Configuration> minusConfigurations;
+    private Set<Configuration> rootConfigurations = Sets.newLinkedHashSet();
+    private Set<Configuration> libConfigurations = Sets.newLinkedHashSet();
+    private Set<Configuration> minusConfigurations = Sets.newLinkedHashSet();
     private String deployName;
     private List<WbResource> resources = Lists.newArrayList();
     private List<WbProperty> properties = Lists.newArrayList();

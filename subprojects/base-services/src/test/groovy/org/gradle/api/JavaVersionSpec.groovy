@@ -63,7 +63,12 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("1.9.0-internal") == JavaVersion.VERSION_1_9
         JavaVersion.toVersion("1.9.0-ea") == JavaVersion.VERSION_1_9
         JavaVersion.toVersion("9-ea") == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion("9.0.0.15") == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion("9.0.1") == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion("9.1") == JavaVersion.VERSION_1_9
 
+        JavaVersion.toVersion("10.1") == JavaVersion.VERSION_1_10
+        JavaVersion.toVersion("10.1.2") == JavaVersion.VERSION_1_10
         JavaVersion.toVersion("10-ea") == JavaVersion.VERSION_1_10
         JavaVersion.toVersion("10-internal") == JavaVersion.VERSION_1_10
     }
@@ -98,10 +103,6 @@ public class JavaVersionSpec extends Specification {
         conversionFails("1.54");
         conversionFails("2.0");
         conversionFails("1_4");
-        conversionFails("8.1");
-        conversionFails("9.1");
-        conversionFails("9.0.0");
-        conversionFails("10.1.2");
 
         conversionFails("9-");
         conversionFails("11-ea");

@@ -27,6 +27,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 
@@ -95,6 +96,8 @@ import java.util.Set;
  * <li>A {@link TaskDependency} object.</li>
  *
  * <li>A {@link Buildable} object.</li>
+ *
+ * <li>A {@link org.gradle.api.file.RegularFileProperty} or {@link org.gradle.api.file.DirectoryProperty}.</li>
  *
  * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
  * iterable/collection/map/array are recursively converted to tasks.</li>
@@ -240,6 +243,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <li>A {@link org.gradle.api.tasks.TaskReference} object.</li>
      *
      * <li>A {@link Buildable} object.</li>
+     *
+     * <li>A {@link org.gradle.api.file.RegularFileProperty} or {@link org.gradle.api.file.DirectoryProperty}.</li>
      *
      * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
      * iterable/collection/map/array are recursively converted to tasks.</li>
@@ -605,6 +610,14 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Incubating
     @Internal
     TaskDestroyables getDestroyables();
+
+    /**
+     * Returns the local state of this task.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    TaskLocalState getLocalState();
 
     /**
      * <p>Returns a directory which this task can use to write temporary files to. Each task instance is provided with a

@@ -309,15 +309,14 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
     def moduleAvailableViaHttp() {
         module.metaData.expectGet()
         module.pom.expectGet()
-        module.getArtifact().expectGet()
+        module.artifact.expectGet()
     }
 
     def moduleAvailableViaHttpWithoutMetaData() {
         module.metaData.expectGetMissing()
         module.pom.expectGet()
-        module.getArtifact().expectGet()
+        module.artifact.expectGet()
     }
-
 
     private MavenHttpModule publishedMavenModule(withNonUniqueVersion = false) {
         module = repo.module("group", "projectA", "1.0-SNAPSHOT")

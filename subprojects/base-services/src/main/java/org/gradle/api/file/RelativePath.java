@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
@@ -30,7 +31,7 @@ import java.util.ListIterator;
  *
  * <p>{@code RelativePath} instances are immutable.</p>
  */
-public class RelativePath implements Serializable, Comparable<RelativePath> {
+public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence {
     public static final RelativePath EMPTY_ROOT = new RelativePath(false);
     private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
@@ -108,6 +109,45 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
             path.append(segments[i]);
         }
         return path.toString();
+    }
+
+    @Override
+    public int length() {
+        if (segments.length == 0) {
+            return 0;
+        }
+        int length = segments.length - 1;
+        for (String segment : segments) {
+            length += segment.length();
+        }
+        return length;
+    }
+
+    @Override
+    public char charAt(int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
+        int remaining = index;
+        int nextSegment = 0;
+        while (nextSegment < segments.length) {
+            String segment = segments[nextSegment];
+            int length = segment.length();
+            if (remaining < length) {
+                return segment.charAt(remaining);
+            } else if (remaining == length) {
+                return '/';
+            } else {
+                remaining -= length + 1;
+                nextSegment++;
+            }
+        }
+        throw new IndexOutOfBoundsException(String.valueOf(index));
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return CharBuffer.wrap(this, start, end);
     }
 
     public File getFile(File baseDir) {

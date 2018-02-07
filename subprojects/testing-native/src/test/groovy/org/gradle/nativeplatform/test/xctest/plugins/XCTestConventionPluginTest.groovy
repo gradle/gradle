@@ -17,11 +17,17 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.tasks.CreateSwiftBundle
+import org.gradle.language.swift.plugins.SwiftApplicationPlugin
+import org.gradle.language.swift.plugins.SwiftLibraryPlugin
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.tasks.InstallExecutable
+import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestExecutable
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
-import org.gradle.nativeplatform.test.xctest.tasks.XcTest
+import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.Requires
@@ -29,40 +35,104 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-@Requires(TestPrecondition.MAC_OS_X)
 class XCTestConventionPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
 
-    def "adds extension with convention for source layout"() {
+    def "adds extension with convention for source layout and module name"() {
         given:
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         project.xctest instanceof SwiftXCTestSuite
+        project.xctest.module.get() == "TestAppTest"
         project.xctest.swiftSource.files == [src] as Set
     }
 
-    def "registers a component for the test suite"() {
+    def "sets tested component to main component when applying Swift library plugin"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.components.test == project.xctest
-        project.components.testBundle == project.xctest.bundle
+        project.xctest.testedComponent.orNull == null
+
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.evaluate()
+
+        then:
+        project.xctest.testedComponent.orNull == project.library
     }
 
-    def "adds compile, link and install tasks"() {
+    def "sets tested component to main component when applying Swift application plugin"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+
+        then:
+        project.xctest.testedComponent.orNull == null
+
+        when:
+        project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
+
+        then:
+        project.xctest.testedComponent.orNull == project.application
+    }
+
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "registers a test bundle for the test suite on macOS"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
+
+        then:
+        project.components.test == project.xctest
+        project.xctest.binaries.get().name == ['testExecutable']
+        project.components.containsAll(project.xctest.binaries.get())
+
+        and:
+        def binaries = project.xctest.binaries.get()
+        binaries.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestBundle }.size() == 1
+
+        and:
+        project.xctest.testBinary.get() == binaries.first()
+    }
+
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    def "registers a test executable for the test suite"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
+
+        then:
+        project.components.test == project.xctest
+        project.xctest.binaries.get().name == ['testExecutable']
+        project.components.containsAll(project.xctest.binaries.get())
+
+        and:
+        def binaries = project.xctest.binaries.get()
+        binaries.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestExecutable }.size() == 1
+
+        and:
+        project.xctest.testBinary.get() == binaries.first()
+    }
+
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "adds compile, link and install tasks on macOS"() {
         given:
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift
@@ -77,22 +147,53 @@ class XCTestConventionPluginTest extends Specification {
         link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
-        def bundle = project.tasks.bundleSwiftTest
-        bundle instanceof CreateSwiftBundle
-        bundle.outputDir.get().asFile == project.file("build/bundle/test/TestAppTest.xctest")
+        def install = project.tasks.installTest
+        install instanceof InstallXCTestBundle
+        install.installDirectory.get().asFile == project.file("build/install/test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
-        test instanceof XcTest
-        test.workingDir == projectDir.file("build/bundle/test")
-        test.binResultsDir == projectDir.file("build/results/test/bin")
-        test.reports.html.destination == projectDir.file("build/reports/test")
-        test.reports.junitXml.destination == projectDir.file("build/reports/test/xml")
+        test instanceof XCTest
+        test.workingDirectory.get().asFile == projectDir.file("build/install/test")
+    }
+
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    def "adds compile, link and install tasks"() {
+        given:
+        def src = projectDir.file("src/test/swift/test.swift").createFile()
+
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
+
+        then:
+        def compileSwift = project.tasks.compileTestSwift
+        compileSwift instanceof SwiftCompile
+        compileSwift.source.files == [src] as Set
+        compileSwift.objectFileDir.get().asFile == projectDir.file("build/obj/test")
+        compileSwift.debuggable
+        !compileSwift.optimized
+
+        def link = project.tasks.linkTest
+        link instanceof LinkExecutable
+        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.debuggable
+
+        def install = project.tasks.installTest
+        install instanceof InstallExecutable
+        install.installDirectory.get().asFile == project.file("build/install/test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
+
+        def test = project.tasks.xcTest
+        test instanceof XCTest
+        test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
     def "output locations reflects changes to buildDir"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
         project.buildDir = project.file("output")
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift
@@ -101,12 +202,11 @@ class XCTestConventionPluginTest extends Specification {
         def link = project.tasks.linkTest
         link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
 
-        def bundle = project.tasks.bundleSwiftTest
-        bundle.outputDir.get().asFile == project.file("output/bundle/test/TestAppTest.xctest")
+        def install = project.tasks.installTest
+        install.installDirectory.get().asFile == project.file("output/install/test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
-        test.workingDir == projectDir.file("output/bundle/test")
-        test.reports.html.destination == projectDir.file("output/reports/test")
-        test.reports.junitXml.destination == projectDir.file("output/reports/test/xml")
+        test.workingDirectory.get().asFile == projectDir.file("output/install/test")
     }
 }

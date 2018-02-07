@@ -85,4 +85,8 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
     protected CommandLineToolInvocation newInvocation(String name, File workingDirectory, Iterable<String> args, BuildOperationLogger operationLogger) {
         return invocationContext.createInvocation(name, workingDirectory, args, operationLogger);
     }
+
+    protected CommandLineToolInvocation newInvocation(String name, Iterable<String> args, BuildOperationLogger operationLogger) {
+        return invocationContext.createInvocation(name, args, operationLogger);
+    }
 }

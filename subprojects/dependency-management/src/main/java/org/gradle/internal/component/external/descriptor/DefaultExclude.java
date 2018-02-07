@@ -18,11 +18,10 @@ package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class DefaultExclude implements Exclude {
@@ -31,25 +30,25 @@ public class DefaultExclude implements Exclude {
     private final Set<String> configurations;
     private final String patternMatcher;
 
-    public DefaultExclude(ModuleIdentifier id, String artifact, String type, String extension, String[] configurations, String patternMatcher) {
+    public DefaultExclude(ModuleIdentifier id, IvyArtifactName artifact, String[] configurations, @Nullable String patternMatcher) {
         this.moduleId = id;
-        this.artifact = new DefaultIvyArtifactName(artifact, type, extension);
-        this.configurations = ImmutableSet.copyOf(configurations);
+        this.artifact = artifact;
         this.patternMatcher = patternMatcher;
+        this.configurations = ImmutableSet.copyOf(configurations);
     }
 
-    public DefaultExclude(ModuleIdentifier id, String[] configurations, String patternMatcher) {
+    public DefaultExclude(ModuleIdentifier id, String[] configurations, @Nullable String patternMatcher) {
         this.moduleId = id;
-        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
-        this.configurations = ImmutableSet.copyOf(configurations);
+        this.artifact = null;
         this.patternMatcher = patternMatcher;
+        this.configurations = ImmutableSet.copyOf(configurations);
     }
 
     public DefaultExclude(ModuleIdentifier id) {
         this.moduleId = id;
-        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+        this.artifact = null;
+        this.patternMatcher = null;
         this.configurations = ImmutableSet.of();
-        this.patternMatcher = PatternMatchers.EXACT;
     }
 
     @Override
@@ -91,21 +90,21 @@ public class DefaultExclude implements Exclude {
         if (!moduleId.equals(that.moduleId)) {
             return false;
         }
-        if (!artifact.equals(that.artifact)) {
+        if (artifact != null ? !artifact.equals(that.artifact) : that.artifact != null) {
             return false;
         }
         if (!configurations.equals(that.configurations)) {
             return false;
         }
-        return patternMatcher.equals(that.patternMatcher);
+        return patternMatcher != null ? patternMatcher.equals(that.patternMatcher) : that.patternMatcher == null;
     }
 
     @Override
     public int hashCode() {
         int result = moduleId.hashCode();
-        result = 31 * result + artifact.hashCode();
+        result = 31 * result + (artifact != null ? artifact.hashCode() : 0);
         result = 31 * result + configurations.hashCode();
-        result = 31 * result + patternMatcher.hashCode();
+        result = 31 * result + (patternMatcher != null ? patternMatcher.hashCode() : 0);
         return result;
     }
 }

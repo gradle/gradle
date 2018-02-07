@@ -22,7 +22,6 @@ import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.PipedOutputStream;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,8 +54,8 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         }
 
         @Override
-        public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
+        public ExecutionResult assertTasksExecuted(Object... taskPaths) {
+            Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
             assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), new HashSet<String>(getExecutedTasks()), equalTo(expectedTasks));
             return this;
         }

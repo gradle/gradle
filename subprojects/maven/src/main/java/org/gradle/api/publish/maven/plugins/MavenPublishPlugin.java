@@ -19,15 +19,18 @@ package org.gradle.api.publish.maven.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
@@ -53,6 +56,8 @@ import org.gradle.model.RuleSource;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -71,15 +76,20 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FileCollectionFactory fileCollectionFactory;
+    private final FeaturePreviews featurePreviews;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
 
     @Inject
     public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-                              ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory) {
+                              ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+                              FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.featurePreviews = featurePreviews;
+        this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
     public void apply(final Project project) {
@@ -108,10 +118,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
             Task publishLifecycleTask = tasks.get(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
             Task publishLocalLifecycleTask = tasks.get(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
 
-            for (final MavenPublicationInternal publication : publications.withType(MavenPublicationInternal.class)) {
+            NamedDomainObjectSet<MavenPublicationInternal> mavenPublications = publications.withType(MavenPublicationInternal.class);
+            List<Publication> asPublication = new ArrayList<Publication>(publications);
+
+            for (final MavenPublicationInternal publication : mavenPublications) {
                 String publicationName = publication.getName();
 
-                createGenerateMetadataTask(tasks, publication, buildDir);
+                createGenerateMetadataTask(tasks, publication, asPublication, buildDir);
                 createGeneratePomTask(tasks, publication, buildDir);
                 createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
                 createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication);
@@ -167,8 +180,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
             publication.setPomFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
         }
 
-        private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final File buildDir) {
-            if (publication.getComponent() == null || !(publication.getComponent() instanceof ComponentWithVariants)) {
+        private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
+            if (!publication.canPublishModuleMetadata()) {
                 return;
             }
 
@@ -179,16 +192,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                     generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                     generateTask.getPublication().set(publication);
+                    generateTask.getPublications().set(publications);
                     // TODO - should deal with build dir changes
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            GenerateModuleMetadata generatorTask = (GenerateModuleMetadata) tasks.get(descriptorTaskName);
-            MavenArtifact metadataFile = publication.artifact(generatorTask.getOutputFile());
-            // TODO - revisit this
-            metadataFile.setClassifier("module");
-            // TODO - this should be inferred
-            metadataFile.builtBy(generatorTask);
+            publication.setGradleModuleMetadataFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
         }
     }
 
@@ -211,7 +220,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory
+                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
             );
         }
     }

@@ -22,6 +22,7 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         return storage.containsKey(name);
     }
 
+    @Nullable
     public Object get(String name) {
         if (storage.containsKey(name)) {
             return storage.get(name);
@@ -41,10 +43,11 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
     }
 
-    public void set(String name, Object value) {
+    public void set(String name, @Nullable Object value) {
         storage.put(name, value);
     }
 
+    @Nullable
     public Object getProperty(String name) {
         if (name.equals("properties")) {
             return getProperties();
@@ -57,7 +60,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
     }
 
-    public void setProperty(String name, Object newValue) {
+    public void setProperty(String name, @Nullable Object newValue) {
         if (name.equals("properties")) {
             throw new ReadOnlyPropertyException("name", ExtraPropertiesExtension.class);
         }

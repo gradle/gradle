@@ -29,12 +29,9 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -44,12 +41,11 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -57,8 +53,9 @@ import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
-import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -66,8 +63,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -115,18 +110,16 @@ public class EclipsePlugin extends IdePlugin {
         SingleMessageLogger.nagUserOfDiscontinuedMethod("performPostEvaluationActions");
     }
 
-    private static void registerEclipseArtifacts(Project project) {
-        ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-        ProjectComponentIdentifier projectId = newProjectId(project);
+    private void registerEclipseArtifacts(Project project) {
         EclipseProject eclipseProject = project.getExtensions().getByType(EclipseModel.class).getProject();
-        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact(eclipseProject, "project", projectId, project));
-        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact(eclipseProject, "classpath", projectId, project));
+
+        registerIdeArtifact(createArtifact(eclipseProject, "project", project));
+        registerIdeArtifact(createArtifact(eclipseProject, "classpath", project));
     }
 
-    private static LocalComponentArtifactMetadata createArtifact(EclipseProject eclipseProject, String extension, ProjectComponentIdentifier projectId, Project project) {
+    private static PublishArtifact createArtifact(EclipseProject eclipseProject, String extension, Project project) {
         Task byName = project.getTasks().getByName("eclipseProject");
-        PublishArtifact publishArtifact = new EclipseArtifact(eclipseProject, project.getProjectDir(), extension, byName);
-        return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
+        return new EclipseArtifact(eclipseProject, project.getProjectDir(), extension, byName);
     }
 
     private void configureEclipseProject(final Project project, final EclipseModel model) {
@@ -206,7 +199,7 @@ public class EclipsePlugin extends IdePlugin {
         ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
             @Override
             public File call() {
-                return new File(project.getProjectDir(), "bin");
+                return new File(project.getProjectDir(), EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH);
             }
 
         });
@@ -355,6 +348,7 @@ public class EclipsePlugin extends IdePlugin {
     private static String eclipseJavaRuntimeNameFor(JavaVersion version) {
         // Default Eclipse JRE paths:
         // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
+        String eclipseJavaVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(version);
         switch (version) {
             case VERSION_1_1:
                 return "JRE-1.1";
@@ -362,9 +356,9 @@ public class EclipsePlugin extends IdePlugin {
             case VERSION_1_3:
             case VERSION_1_4:
             case VERSION_1_5:
-                return "J2SE-" + version;
+                return "J2SE-" + eclipseJavaVersion;
             default:
-                return "JavaSE-" + version;
+                return "JavaSE-" + eclipseJavaVersion;
         }
     }
 

@@ -111,7 +111,7 @@ public class RepositoryTransportFactory {
         // 1) we don't cache their files
         // 2) we don't do progress logging for "downloading"
         if (schemes.equals(Collections.singleton("file"))) {
-            return new FileTransport(name, fileRepository);
+            return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, cacheLockingManager, producerGuard);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
 

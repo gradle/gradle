@@ -16,14 +16,15 @@
 
 package org.gradle.ide.visualstudio.internal
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
+
+import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
 
 class DefaultVisualStudioProjectTest extends Specification {
     private DirectInstantiator instantiator = DirectInstantiator.INSTANCE
@@ -32,7 +33,7 @@ class DefaultVisualStudioProjectTest extends Specification {
     def vsProject = project("projectName")
 
     def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":", vsProjectName), component, fileResolver, instantiator)
+        new DefaultVisualStudioProject(vsProjectName, component.projectPath, component.getName(), fileResolver, instantiator)
     }
 
     def "names"() {
@@ -48,62 +49,49 @@ class DefaultVisualStudioProjectTest extends Specification {
         vsProject.filtersFile.location == filtersFile
     }
 
-    def "includes source files from all source sets"() {
+    def "includes source, resource, and header files from target binary"() {
         when:
-        def file1 = Mock(File)
-        def file2 = Mock(File)
-        def file3 = Mock(File)
-        def sourceSet1 = sourceSet(file1, file2)
-        def sourceSet2 = sourceSet(file3)
-        vsProject.source([sourceSet1, sourceSet2])
+        def sourcefile1 = Mock(File)
+        def sourcefile2 = Mock(File)
+        def sourcefile3 = Mock(File)
+        def resourcefile1 = Mock(File)
+        def resourcefile2 = Mock(File)
+        def headerfile1 = Mock(File)
+        def headerfile2 = Mock(File)
+        def headerfile3 = Mock(File)
+
+        vsProject.addConfiguration(targetBinary([sourcefile1, sourcefile2], [resourcefile1, resourcefile2], [headerfile1, headerfile2, headerfile3]), Mock(VisualStudioProjectConfiguration))
+        vsProject.addSourceFile(sourcefile3)
 
         then:
-        vsProject.sourceFiles == [file1, file2, file3]
+        vsProject.sourceFiles == [sourcefile1, sourcefile2, sourcefile3] as Set
+        vsProject.resourceFiles == [resourcefile1, resourcefile2] as Set
+        vsProject.headerFiles == [headerfile1, headerfile2, headerfile3] as Set
     }
 
-    def "includes header files from all source sets"() {
+    def "has consistent uuid for same file"() {
         when:
-        def file1 = Mock(File)
-        def file2 = Mock(File)
-        def file3 = Mock(File)
-        def file4 = Mock(File)
-        def sourceSet1 = headerSourceSet([file1, file2])
-        def sourceSet2 = headerSourceSet([file3], [file4])
-        vsProject.source([sourceSet1, sourceSet2])
+        def file = new File("foo")
+        def sameFile = new File("foo")
+        def differentFile = new File("bar")
 
         then:
-        vsProject.headerFiles == [file1, file2, file3, file4]
+        getUUID(file) == getUUID(sameFile)
+        getUUID(file) != getUUID(differentFile)
     }
 
-    def "has consistent uuid for same mapped component"() {
-        when:
-        def sameComponent = Mock(NativeComponentSpec)
-        def otherComponent = Mock(NativeComponentSpec)
-
-        def sameProject = project("projectName", component)
-        def samePath = project("projectName", sameComponent)
-        def differentPath = project("projectName", otherComponent)
-        def differentName = project("otherProject", component)
-
-        and:
-        component.projectPath >> ":projectPath"
-        sameComponent.projectPath >> ":projectPath"
-        otherComponent.projectPath >> ":otherProjectPath"
-
-        then:
-        vsProject.uuid == sameProject.uuid
-        vsProject.uuid == samePath.uuid
-        vsProject.uuid != differentPath.uuid
-        vsProject.uuid != differentName.uuid
+    private VisualStudioTargetBinary targetBinary(List<File> sourceFiles, List<File> resourceFiles, List<File> headerFiles) {
+        def binary = Mock(VisualStudioTargetBinary)
+        2 * binary.sourceFiles >> fileCollection(sourceFiles)
+        2 * binary.resourceFiles >> fileCollection(resourceFiles)
+        2 * binary.headerFiles >> fileCollection(headerFiles)
+        return binary
     }
 
-    private LanguageSourceSet sourceSet(File... files) {
-        def allFiles = files as Set
-        def sourceSet = Mock(LanguageSourceSet)
-        def sourceDirs = Mock(SourceDirectorySet)
-        1 * sourceSet.source >> sourceDirs
-        1 * sourceDirs.files >> allFiles
-        return sourceSet
+    private FileCollection fileCollection(List<File> files) {
+        return Stub(FileCollection) {
+            getFiles() >> files
+        }
     }
 
     private HeaderExportingSourceSet headerSourceSet(List<File> exportedHeaders, List<File> implicitHeaders = []) {

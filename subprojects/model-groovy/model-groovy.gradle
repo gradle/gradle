@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -18,21 +17,25 @@
 /*
  * Groovy specific adaptions to the model management.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
     api project(':modelCore')
-    api libraries.groovy
+    api libraries.groovy.coordinate
 
     implementation project(':baseServicesGroovy')
-    implementation libraries.jcip
-    implementation libraries.guava
+    implementation libraries.jcip.coordinate
+    implementation libraries.guava.coordinate
 }
 
-useTestFixtures()
-useTestFixtures(project: ':modelCore', sourceSet: 'test')
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':modelCore')
+}

@@ -17,32 +17,75 @@
 package org.gradle.testing.performance.generator
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 
 class DependencyGeneratorTest extends Specification {
-
-    def "should generate project dependencies"() {
+    def "can deal with 0 projects"() {
         given:
         def dependencyGenerator = new DependencyGenerator()
-        def numberOfProjects = 150
+        def numberOfProjects = 0
         dependencyGenerator.numberOfProjects = numberOfProjects
+
         when:
         def layerSizes = dependencyGenerator.calculateLayerSizes()
+
         then:
-        layerSizes.size() == dependencyGenerator.numberOfLayers
-        layerSizes.sum() == numberOfProjects
+        layerSizes.isEmpty()
+
         when:
         def projectsInLayer = dependencyGenerator.splitProjectsInLayers(layerSizes)
+
         then:
-        projectsInLayer.size() == dependencyGenerator.numberOfLayers
-        projectsInLayer.collect { it.size() }.sum() == numberOfProjects
+        projectsInLayer.isEmpty()
+
         when:
-        def projectDependencies = dependencyGenerator.createDependencies()
+        def depInfo = dependencyGenerator.createDependencies()
+
+        then:
+        depInfo.dependencies.isEmpty()
+        depInfo.layerSizes.isEmpty()
+    }
+
+    @Unroll
+    def "can generate #num project dependencies"() {
+        given:
+        def dependencyGenerator = new DependencyGenerator()
+        def numberOfProjects = num
+        dependencyGenerator.numberOfProjects = numberOfProjects
+
+        when:
+        def layerSizes = dependencyGenerator.calculateLayerSizes()
+
+        then:
+        layerSizes.size() == distribution.size()
+        layerSizes == distribution
+        layerSizes.sum() == numberOfProjects
+
+        when:
+        def projectsInLayer = dependencyGenerator.splitProjectsInLayers(layerSizes)
+
+        then:
+        projectsInLayer.size() == distribution.size()
+        projectsInLayer.collect { it.size() }.sum() == numberOfProjects
+
+        when:
+        def projectDependencies = dependencyGenerator.createDependencies().dependencies
+        def projectDependencies2 = dependencyGenerator.createDependencies().dependencies
+
         then:
         projectDependencies.size() == numberOfProjects
-        projectDependencies.values().any { it.size() > dependencyGenerator.numberOfDependencies } == false
-        projectDependencies.values().any { it.size() == dependencyGenerator.numberOfDependencies }
         projectDependencies.keySet().every { it >= 1 && it <= numberOfProjects }
         projectDependencies.values().every { dependencyList -> dependencyList.every { it >= 1 && it <= numberOfProjects } }
+        projectDependencies == projectDependencies2
+
+        where:
+        num  | distribution
+        1    | [1]
+        4    | [2, 2]
+        9    | [1, 2, 3, 2, 1]
+        50   | [1, 2, 6, 16, 16, 6, 2, 1]
+        74   | [2, 3, 8, 24, 24, 8, 3, 2]
+        150  | [1, 2, 6, 16, 50, 50, 16, 6, 2, 1]
     }
 }

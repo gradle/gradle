@@ -16,32 +16,54 @@
 
 package org.gradle.language.swift.internal
 
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.provider.Provider
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSwiftBinaryTest extends Specification {
-    def implementation = Stub(Configuration)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def implementation = Stub(ConfigurationInternal)
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
     def configurations = Stub(ConfigurationContainer)
+    def incoming = Mock(ResolvableDependencies)
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.create("swiftImportDebug") >> compile
+        _ * configurations.create("swiftCompileDebug") >> compile
         _ * configurations.create("nativeLinkDebug") >> link
         _ * configurations.create("nativeRuntimeDebug") >> runtime
 
-        binary = new DefaultSwiftBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  configurations, implementation)
+        binary = new DefaultSwiftBinary("mainDebug", project.layout, project.objects, Stub(Provider), true, false,false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
     }
 
-    def "creates configurations for the binary"() {
+    def "compileModules is a transformed view of compile"() {
+        given:
+        compile.incoming >> incoming
+
+        when:
+        binary.compileModules.files
+
+        then:
+        1 * incoming.artifacts >> Stub(ArtifactCollection)
+    }
+
+    def "creates configurations for the binary" () {
         expect:
-        binary.compileImportPath == compile
         binary.linkLibraries == link
         binary.runtimeLibraries == runtime
     }

@@ -1,4 +1,3 @@
-apply plugin: "groovy"
 
 sourceCompatibility = 1.6
 
@@ -15,24 +14,24 @@ dependencies {
     compile project(":core")
     compile project(":resources")
     compile project(":versionControl")
+    compile project(":resourcesHttp")
 
-    compile libraries.asm
-    compile libraries.commons_lang
-    compile libraries.commons_io
-    compile libraries.ivy
-    compile libraries.slf4j_api
-    compile libraries.gson
-    compile libraries.jcip
+    compile libraries.asm.coordinate
+    compile libraries.asm_commons.coordinate
+    compile libraries.asm_util.coordinate
+    compile libraries.commons_lang.coordinate
+    compile libraries.commons_io.coordinate
+    compile libraries.ivy.coordinate
+    compile libraries.slf4j_api.coordinate
+    compile libraries.gson.coordinate
+    compile libraries.jcip.coordinate
 
-    runtime libraries.xbean //maven3 classes dependency
-    runtime libraries.bouncycastle_provider
+    runtime libraries.bouncycastle_provider.coordinate
     runtime project(":installationBeacon")
 
-    compile libraries.maven3
+    compile libraries.maven3.coordinate
 
-    testCompile libraries.nekohtml
-
-    integTestImplementation project(":resourcesHttp")
+    testCompile libraries.nekohtml.coordinate
 
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
@@ -43,9 +42,12 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":modelCore")
+testFixtures {
+    from(':core')
+    from(':messaging')
+    from(':modelCore')
+    from(':versionControl')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

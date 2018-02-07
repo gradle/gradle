@@ -26,14 +26,14 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -60,10 +60,12 @@ import java.util.List;
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
-    private final CompileOptions compileOptions = new CompileOptions();
+    private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
 
     public GroovyCompile() {
+        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
+        this.compileOptions = compileOptions;
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -81,9 +83,8 @@ public class GroovyCompile extends AbstractCompile {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory = getServices().get(IsolatedClassloaderWorkerFactory.class);
-            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             FileResolver fileResolver = getServices().get(FileResolver.class);
-            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, workerDaemonFactory, inProcessWorkerFactory, fileResolver);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, workerDaemonFactory, inProcessWorkerFactory, fileResolver);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
             compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
         }
@@ -112,8 +113,8 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private List<File> calculateAnnotationProcessorClasspath() {
-        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
-        FileCollection processorClasspath = annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
+        FileCollection processorClasspath = annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
         return Lists.newArrayList(processorClasspath);
     }
 

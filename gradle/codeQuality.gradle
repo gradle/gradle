@@ -1,11 +1,18 @@
 apply plugin: 'checkstyle'
 apply plugin: 'codenarc'
 
-plugins.withType(JavaBasePlugin) {
+def validateTaskPropertiesForConfiguration(Configuration configuration) {
     // Apply to all projects depending on :core
-    configurations.compile.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
+    configuration.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
         project.apply from: "$rootDir/gradle/taskProperties.gradle"
     }
+}
+
+plugins.withType(JavaBasePlugin) {
+    validateTaskPropertiesForConfiguration(configurations.compile)
+}
+plugins.withType(JavaLibraryPlugin) {
+    validateTaskPropertiesForConfiguration(configurations.api)
 }
 
 def codeQualityConfigDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
@@ -22,7 +29,22 @@ tasks.withType(CodeNarc) {
     reports.xml.enabled = true
 }
 
-configurations.codenarc.resolutionStrategy.force(libraries.groovy)
+dependencies {
+    codenarc 'org.codenarc:CodeNarc:1.0'
+    components {
+        withModule('org.codenarc:CodeNarc') {
+            allVariants {
+                withDependencies {
+                    it.removeAll { it.group == 'org.codehaus.groovy' }
+                    it.add(libraries.groovy.coordinate) {
+                        version { prefer libraries.groovy.version }
+                        because 'We use groovy-all everywhere'
+                    }
+                }
+            }
+        }
+    }
+}
 
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->

@@ -17,25 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
 
 class InMemoryCachedRepositoryFactoryTest extends Specification {
 
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     def cache = new InMemoryCachedRepositoryFactory()
-
-    def "can be turned off via system property"() {
-        System.properties.setProperty(InMemoryCachedRepositoryFactory.TOGGLE_PROPERTY, "false")
-        def repo = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
-
-        when:
-        def out = cache.cached(repo)
-
-        then:
-        out.is(repo)
-    }
 
     def "wraps repositories"() {
         def repo1 = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
@@ -43,9 +29,9 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
         def repo3 = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
 
         when:
-        ModuleComponentRepository c1 = cache.cached(repo1)
-        ModuleComponentRepository c2 = cache.cached(repo2)
-        ModuleComponentRepository c3 = cache.cached(repo3)
+        ModuleComponentRepository c1 = cache.cacheLocalRepository(repo1)
+        ModuleComponentRepository c2 = cache.cacheLocalRepository(repo2)
+        ModuleComponentRepository c3 = cache.cacheLocalRepository(repo3)
 
         then:
         c1.delegate == repo1
@@ -65,7 +51,7 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
 
     def "cleans cache on close"() {
         when:
-        cache.cached(Mock(ModuleComponentRepository) { getId() >> "x"} )
+        cache.cacheLocalRepository(Mock(ModuleComponentRepository) { getId() >> "x"} )
         cache.stop()
 
         then:

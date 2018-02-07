@@ -36,6 +36,8 @@ public class ExactVersionSelector extends AbstractStringVersionSelector {
     }
 
     public boolean accept(String candidate) {
-        return getSelector().equals(candidate);
+        String selector = getSelector();
+        return selector.isEmpty() || selector.equals(candidate);
     }
+
 }

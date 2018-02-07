@@ -16,44 +16,76 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.ProjectLayout;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.language.swift.SwiftBundle;
-import org.gradle.language.swift.internal.DefaultSwiftBundle;
+import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentDependencies;
+import org.gradle.language.internal.DefaultComponentDependencies;
+import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestExecutable;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
+/**
+ * Abstract software component representing an XCTest suite.
+ */
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
-    private final DefaultSwiftBundle bundle;
-    private final DirectoryVar resourceDirectory;
+    private final ObjectFactory objectFactory;
+    private final Property<SwiftXCTestBinary> testBinary;
+    private final Property<SwiftComponent> testedComponent;
+    private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations, ProjectLayout projectLayout) {
-        super(name, fileOperations, providerFactory, configurations);
+    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
+        super(name, fileOperations, objectFactory);
+        this.testedComponent = objectFactory.property(SwiftComponent.class);
+        this.objectFactory = objectFactory;
+        this.testBinary = objectFactory.property(SwiftXCTestBinary.class);
+        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+    }
 
-        resourceDirectory = projectLayout.newDirectoryVar();
-        resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));
-        bundle = objectFactory.newInstance(DefaultSwiftBundle.class, name + "Bundle", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
+    public SwiftXCTestExecutable addExecutable(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestExecutable result = objectFactory.newInstance(DefaultSwiftXCTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
+        return result;
+    }
+
+    public SwiftXCTestBundle addBundle(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestBundle result = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
+        return result;
     }
 
     @Override
-    public DirectoryVar getResourceDir() {
-        return resourceDirectory;
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
     }
 
     @Override
-    public SwiftBundle getDevelopmentBinary() {
-        return bundle;
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
+    }
+
+    public Property<SwiftComponent> getTestedComponent() {
+        return testedComponent;
     }
 
     @Override
-    public SwiftBundle getBundle() {
-        return bundle;
+    public Property<SwiftXCTestBinary> getTestBinary() {
+        return testBinary;
     }
 }

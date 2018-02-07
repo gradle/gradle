@@ -15,13 +15,49 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def "can resolve unique and non-unique snapshots"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
+}
+"""
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+
+        and:
+        expectModuleServed(uniqueVersionModule)
+        expectModuleServed(nonUniqueVersionModule)
+
+        and:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
+                module("org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT")
+            }
+        }
+    }
 
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         def repo1 = mavenHttpRepo("repo1")
@@ -247,8 +283,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("GRADLE-3524")
-    @NotYetImplemented
-    def "cacheChangingModulesFor inherits to an extension of the configuration"() {
+    def "cacheChangingModulesFor does not apply to extending configurations"() {
         given:
         buildFile << """
 repositories {
@@ -274,22 +309,16 @@ task retrieve(type: Sync) {
 }
 """
 
-        when: "snapshot modules are published"
+        when:
         def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
         def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
-        and: "Server handles requests"
+        and:
         expectModuleServed(uniqueVersionModule)
         expectModuleServed(nonUniqueVersionModule)
 
-        and: "We resolve dependencies"
+        then:
         run 'retrieve'
-
-        then: "Snapshots are downloaded"
-        file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
-        def uniqueJarSnapshot = file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).snapshot()
-        def nonUniqueJarSnapshot = file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).snapshot()
-        server.resetExpectations()
 
         when: "Change the snapshot artifacts directly: do not change the pom"
         uniqueVersionModule.artifactFile << 'more content'
@@ -298,16 +327,10 @@ task retrieve(type: Sync) {
         nonUniqueVersionModule.backingModule.sha1File(nonUniqueVersionModule.artifactFile)
 
         and: "No server requests"
-        expectChangedArtifactServed(uniqueVersionModule)
-        expectChangedArtifactServed(nonUniqueVersionModule)
-
-        and: "Resolve dependencies again"
-        run 'retrieve'
-
-        then:
         server.resetExpectations()
-        file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
-        file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).assertHasChangedSince(nonUniqueJarSnapshot)
+
+        then: "Resolve dependencies again"
+        run 'retrieve'
     }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
@@ -378,6 +401,70 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
         file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).assertHasChangedSince(nonUniqueJarSnapshot);
+    }
+
+    @Issue("gradle/gradle#3019")
+    def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
+        given:
+        buildFile << """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+
+configurations {
+    fresh
+    stale
+}
+configurations.fresh.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+ 
+dependencies {
+    stale "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    fresh "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+}
+
+task resolveStaleThenFresh {
+    doFirst {
+        project.sync {
+            from configurations.stale
+            into 'stale'
+        }
+        project.sync {
+            from configurations.fresh
+            into 'fresh'
+        }
+    }
+}
+"""
+
+        when: "snapshot modules are published"
+        def snapshotModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        snapshotModule.artifactFile.makeOlder()
+
+        and:
+        expectModuleServed(snapshotModule)
+
+        and:
+        run 'resolveStaleThenFresh'
+
+        then:
+        file('stale').assertHasDescendants('unique-1.0-SNAPSHOT.jar')
+        file('fresh').assertHasDescendants('unique-1.0-SNAPSHOT.jar')
+        def firstStaleVersion = file('stale/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile).snapshot()
+        def firstFreshVersion = file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile).snapshot()
+
+        when: "Republish the snapshots"
+        server.resetExpectations()
+        snapshotModule.publishWithChangedContent()
+
+        // Should get the newer snapshot when resolving 'fresh'
+        expectChangedModuleServed(snapshotModule)
+
+        and:
+        run 'resolveStaleThenFresh'
+
+        then:
+        file('fresh/unique-1.0-SNAPSHOT.jar').assertContentsHaveChangedSince(firstFreshVersion)
+        file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
@@ -470,85 +557,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
         file('a/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
-    }
-
-    @Ignore
-    //TODO SF need to rework this test. First step might be turning off in-memory metadata caching for this test.
-    def "can update snapshot artifact during build even if it is locked earlier in build"() {
-        given:
-        def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        module2.pomFile << '    ' // ensure it's a different length to the first one
-        module2.backingModule.sha1File(module2.pomFile)
-        module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
-        module2.backingModule.sha1File(module2.artifactFile)
-        and:
-        settingsFile << "include 'first', 'second'"
-        buildFile << """
-def fileLocks = [:]
-subprojects {
-    repositories {
-        maven { url "http://localhost:${server.port}/repo" }
-    }
-
-    configurations { compile }
-
-    configurations.all {
-        resolutionStrategy.resolutionRules.eachArtifact({ artifact ->
-            artifact.refresh()
-        } as Action)
-    }
-
-    dependencies {
-        compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
-    }
-
-    task lock {
-        doLast {
-            configurations.compile.each { file ->
-                println "locking " + file
-                def lockFile = new RandomAccessFile(file.canonicalPath, 'r')
-                fileLocks[file] = lockFile
-            }
-        }
-    }
-
-    task retrieve(type: Sync) {
-        into 'build'
-        from configurations.compile
-    }
-    retrieve.dependsOn 'lock'
-}
-project('second') {
-    lock.dependsOn ':first:lock'
-    retrieve.dependsOn ':first:retrieve'
-
-    task cleanup {
-        doLast {
-            fileLocks.each { key, value ->
-                println "unlocking " + key
-                value.close()
-            }
-        }
-    }
-    cleanup.dependsOn 'retrieve'
-}
-"""
-        when: "Module is requested once"
-        module.metaData.expectGet()
-        module.pom.expectGet()
-        module.artifact.expectGet()
-
-        module2.artifact.expectHead()
-        module2.artifact.sha1.expectGet()
-        module2.artifact.expectGet()
-
-        then:
-        run 'cleanup'
-
-        and:
-        file('first/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
-        file('second/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
     }
 
     def "avoid redownload unchanged artifact when no checksum available"() {
@@ -775,7 +783,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT).
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -786,7 +794,7 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT).
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
     }

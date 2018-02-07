@@ -21,19 +21,21 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
-import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
-import org.gradle.internal.resource.cached.CachedArtifactIndex
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
@@ -44,35 +46,39 @@ import spock.lang.Subject
 class ResolveIvyFactoryTest extends Specification {
     @Subject ResolveIvyFactory resolveIvyFactory
     ModuleVersionsCache moduleVersionsCache
-    ModuleMetaDataCache moduleMetaDataCache
+    ModuleMetadataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
-    CachedArtifactIndex cachedArtifactIndex
+    ModuleArtifactCache cachedArtifactIndex
+    ModuleRepositoryCacheProvider cacheProvider
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
     VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    RepositoryBlacklister repositoryBlacklister
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
-        moduleMetaDataCache = Mock(ModuleMetaDataCache)
+        moduleMetaDataCache = Mock(ModuleMetadataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
-        cachedArtifactIndex = Mock(CachedArtifactIndex)
+        cachedArtifactIndex = Mock(ModuleArtifactCache)
+        cacheProvider = new ModuleRepositoryCacheProvider(new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex))
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         inMemoryCachedRepositoryFactory = Mock(InMemoryCachedRepositoryFactory) {
-            _ * cached(_) >> { ModuleComponentRepository repository -> repository }
+            _ * cacheLocalRepository(_) >> { ModuleComponentRepository repository -> repository }
+            _ * cacheRemoteRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionSelectorScheme = Mock(VersionSelectorScheme)
         versionComparator = Mock(VersionComparator)
+        repositoryBlacklister = Mock(RepositoryBlacklister)
 
-        resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
-            cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, buildCommencedTimeProvider,
+            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory, repositoryBlacklister)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
@@ -115,9 +121,9 @@ class ResolveIvyFactoryTest extends Specification {
     def externalResourceResolverSpy() {
         ExternalResourceRepository externalResourceRepository = Stub()
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
-        VersionLister versionLister = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
+        ImmutableMetadataSources metadataSources = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
@@ -125,13 +131,14 @@ class ResolveIvyFactoryTest extends Specification {
                 false,
                 externalResourceRepository,
                 cacheAwareExternalResourceAccessor,
-                versionLister,
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,
-                TestFiles.fileRepository()
+                metadataSources,
+                Stub(MetadataArtifactProvider)
             ]
         ) {
+            appendId(_) >> { }
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)
             getRemoteAccess() >> Stub(ModuleComponentRepositoryAccess)
             isM2compatible() >> true

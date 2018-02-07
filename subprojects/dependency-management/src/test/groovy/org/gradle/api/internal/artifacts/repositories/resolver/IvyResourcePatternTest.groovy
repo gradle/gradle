@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
 class IvyResourcePatternTest extends Specification {
@@ -80,6 +80,38 @@ class IvyResourcePatternTest extends Specification {
         group       | module     | expectedPath
         "group"     | "projectA" | 'prefix/group-projectA/[revision]/ivys/[revision]/ivy.xml'
         "org.group" | "projectA" | 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
+    }
+
+    def "computes module version path"() {
+        def ivyPattern = new IvyResourcePattern(pattern)
+        def moduleId = DefaultModuleComponentIdentifier.newId(group, module, version)
+
+        expect:
+        ivyPattern.toModuleVersionPath(moduleId).path == expectedPath
+
+        where:
+        group        | module | version | pattern                                                                                  | expectedPath
+        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])' | 'prefix/org.gradle/test/1.0'
+        'org.gradle' | 'test' | '1.1'   | 'prefix/[organisation]/[module]/[revision]/[artifact]-[revision]-artifact.bin'           | 'prefix/org.gradle/test/1.1'
+        'org.gradle' | 'test' | '1.2'   | 'repo/[organisation]-[module]-[revision]/[artifact]-[revision]-artifact.bin'             | 'repo/org.gradle-test-1.2'
+    }
+
+    def "cannot compute module version path if pattern doesn't end with /[artifact]"() {
+        def ivyPattern = new IvyResourcePattern(pattern)
+        def moduleId = DefaultModuleComponentIdentifier.newId(group, module, version)
+
+        when:
+        ivyPattern.toModuleVersionPath(moduleId).path
+
+        then:
+        UnsupportedOperationException e = thrown()
+        e.message == 'Cannot locate module version for non standard Ivy layout.'
+
+        where:
+        group        | module | version | pattern
+        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[revision]/foo'
+        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[revision]/[revision]'
+        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[artifact]/[revision]'
     }
 
     private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {

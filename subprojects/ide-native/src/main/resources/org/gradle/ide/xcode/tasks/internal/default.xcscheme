@@ -28,10 +28,6 @@
        debugDocumentVersioning = "YES"
        debugServiceExtension = "internal"
        allowLocationSimulation = "YES">
-       <PathRunnable
-          runnableDebuggingMode = "0"
-          FilePath = "">
-       </PathRunnable>
        <AdditionalOptions>
        </AdditionalOptions>
     </LaunchAction>

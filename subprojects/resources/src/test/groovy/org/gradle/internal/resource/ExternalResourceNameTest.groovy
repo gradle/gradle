@@ -51,6 +51,17 @@ class ExternalResourceNameTest extends Specification {
         this.base.toURI().toString() | "a/b/c"                                            | "file:/"            | this.base.toURI().path + "/a/b/c"
     }
 
+    def "can construct a resource name from a file URI with host and a path"() {
+        expect:
+        def base = URI.create("file:////host/")
+        def name = new ExternalResourceName(base, "/a/b/c")
+        name.uri.toASCIIString() == new URI(base.scheme, null, base.host, base.port, "////host/a/b/c", null, null).toASCIIString()
+        name.path == "/a/b/c"
+        name.uri.path == "//host/a/b/c"
+        name.root.uri == URI.create("file:////host/" )
+        name.root == name.root.root
+    }
+
     def "can construct a resource name from a path"() {
         expect:
         def name = new ExternalResourceName(path)
@@ -119,6 +130,7 @@ class ExternalResourceNameTest extends Specification {
         expect:
         def name = new ExternalResourceName(uri)
         name.decoded == expectedDecoded
+        name.resolve("").decoded == expectedDecoded
 
         where:
         uri                              | expectedDecoded
@@ -150,30 +162,49 @@ class ExternalResourceNameTest extends Specification {
         name.uri == URI.create(expectedUri)
 
         where:
-        uri                      | path     | expectedUri
-        "http://host/a/b/c"      | "/z"     | "http://host/z"
-        "http://host:8080/a/b/c" | "/path"  | "http://host:8080/path"
-        base.toURI().toString()  | "/z"     | "file:/z"
-        "/a/b/c"                 | "/z"     | "/z"
-        "a/b/c"                  | "/z"     | "/z"
-        "a/b/c"                  | "/"      | "/"
-        "/"                      | "/a/b/c" | "/a/b/c"
-        ""                       | "/a/b/c" | "/a/b/c"
+        uri                      | path           | expectedUri
+        "http://host/a/b/c"      | "/z"           | "http://host/z"
+        "http://host:8080/a/b/c" | "/path"        | "http://host:8080/path"
+        "http://host:8080/a/b/c" | "/path/"       | "http://host:8080/path/"
+        "http://host:8080/a/b/c" | "/a/./../path" | "http://host:8080/path"
+        "http://host:8080/a/b/c" | "/a/b/../path" | "http://host:8080/a/path"
+        base.toURI().toString()  | "/z"           | "file:/z"
+        "/a/b/c"                 | "/z"           | "/z"
+        "a/b/c"                  | "/z"           | "/z"
+        "a/b/c"                  | "/"            | "/"
+        "/"                      | "/a/b/c"       | "/a/b/c"
+        ""                       | "/a/b/c"       | "/a/b/c"
+        "//host"                 | "/a/b//c"      | "//host/a/b/c"
+        "//host/a/b/c"           | "/z"           | "//host/z"
+        "file:////host"          | "/a/b//c"      | "file:////host/a/b/c"
+        "file:////host/a/b/c"    | "/z"           | "file:////host/z"
     }
 
-    def "can resolve an relative path"() {
+    def "can resolve a relative path"() {
         expect:
         def name = new ExternalResourceName(URI.create(uri)).resolve(path)
         name.uri == URI.create(expectedUri)
 
         where:
-        uri                      | path    | expectedUri
-        "http://host/a/b/c"      | "d"     | "http://host/a/b/c/d"
-        "http://host:8080/a/b/c" | "d/e"   | "http://host:8080/a/b/c/d/e"
-        base.toURI().toString()  | "a/b/c" | new File(base, "a/b/c").toURI().toString()
-        "/a/b/c"                 | "z"     | "/a/b/c/z"
-        "a/b/c"                  | "z"     | "a/b/c/z"
-        "/"                      | "z"     | "/z"
-        ""                       | "z"     | "z"
+        uri                      | path                  | expectedUri
+        "http://host/a/b/c"      | "d"                   | "http://host/a/b/c/d"
+        "http://host:8080/a/b/c" | "d/e"                 | "http://host:8080/a/b/c/d/e"
+        "http://host:8080/a/b/c" | "d/e/"                | "http://host:8080/a/b/c/d/e/"
+        "http://host:8080/a/b/c" | "."                   | "http://host:8080/a/b/c"
+        "http://host:8080/a/b/c" | ".."                  | "http://host:8080/a/b"
+        "http://host:8080/a/b/c" | "../../.."            | "http://host:8080/"
+        "http://host:8080/a/b/c" | ".././.././z/../abc"  | "http://host:8080/a/abc"
+        "http://host:8080/a/b/c" | "z/././//./../z/../d" | "http://host:8080/a/b/c/d"
+        "http://host:8080/"      | "z/././//./../z/../d" | "http://host:8080/d"
+        base.toURI().toString()  | "a/b/c"               | new File(base, "a/b/c").toURI().toString()
+        "/a/b/c"                 | "z"                   | "/a/b/c/z"
+        "/a//b/c"                | "z"                   | "/a/b/c/z"
+        "a/b/c"                  | "z"                   | "a/b/c/z"
+        "/"                      | "z"                   | "/z"
+        ""                       | "z"                   | "z"
+        "//host/a/b"             | "z"                   | "//host/a/b/z"
+        "//host/a//b"            | "z"                   | "//host/a/b/z"
+        "file:////host/a/b"      | "z"                   | "file:////host/a/b/z"
+        "file:////host//a//b"    | "z"                   | "file:////host/a/b/z"
     }
 }

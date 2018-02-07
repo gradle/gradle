@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -22,14 +23,15 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.Gcc;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 
 /**
  * Compiler adapter for GCC.
  */
+@NonNullApi
 public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc {
     public static final String DEFAULT_NAME = "gcc";
 
@@ -43,7 +45,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccVersionResult versionResult) {
+    protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccMetadata versionResult) {
         platformToolChain.setCanUseCommandFile(versionResult.getVersion().getMajor() >= 4);
     }
 }

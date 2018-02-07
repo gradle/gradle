@@ -20,6 +20,7 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
+
     def "can use full Java build cache service implementation"() {
         // No need for caching in `buildSrc`
         file("buildSrc/settings.gradle") << """
@@ -147,7 +148,6 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "compileJava", "--info"
         then:
         executedTasks.contains ":compileJava"
-        output.contains "Build cache is an incubating feature."
         output.contains "Using remote in-memory build cache for the root build."
 
         expect:

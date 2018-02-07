@@ -20,6 +20,7 @@ import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
@@ -92,5 +93,11 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
             }
         }
         return toReturn;
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        return null;
     }
 }

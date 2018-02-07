@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -559,21 +560,12 @@ task someTask(type: SomeTask) {
         """
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-        if (expectToFail) {
-            // Singular null outputs will cause build to fail, but message should still be printed
-            fails "test"
-        } else {
-            succeeds "test"
-        }
+        succeeds "test"
         output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
  - No value has been specified for property 'output'."""
 
         where:
-        method  | expectToFail
-        "file"  | true
-        "files" | false
-        "dir"   | true
-        "dirs"  | false
+        method << ["file", "files", "dir", "dirs"]
     }
 
     @Unroll
@@ -661,5 +653,137 @@ task someTask(type: SomeTask) {
         "files" | "input-dir"      | false        | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
         "dir"   | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
         "dirs"  | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
+    }
+
+    def "can specify null as an input property in ad-hoc task"() {
+        buildFile << """
+            task foo {
+                inputs.property("a", null).optional(true)
+                doLast {}
+            }
+        """
+
+        expect:
+        succeeds "foo"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3366")
+    def "can specify null as an input property in Java task"() {
+        file("buildSrc/src/main/java/Foo.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class Foo extends DefaultTask {
+                public Foo() {
+                    getInputs().property("a", null).optional(true);
+                }
+                
+                @TaskAction
+                public void doSomething() {}
+            }
+        """
+
+        buildFile << """
+            task foo(type: Foo)
+        """
+
+        expect:
+        succeeds "foo"
+    }
+
+    def "input and output properties are not evaluated too often"() {
+        buildFile << """ 
+            @CacheableTask    
+            class CustomTask extends DefaultTask {
+                int outputFileCount = 0
+                int inputFileCount = 0
+                int inputValueCount = 0
+                int nestedInputCount = 0
+                int nestedInputValueCount = 0
+                private NestedBean bean = new NestedBean()
+                
+                @OutputFile
+                File getOutputFile() {
+                    count("outputFile", ++outputFileCount)
+                    return project.file('build/foo.bar')
+                }        
+                
+                @InputFile
+                File getInputFile() {
+                    count("inputFile", ++inputFileCount)
+                    return project.file('input.txt')
+                }
+                
+                @Input
+                String getInput() {
+                    count("inputValue", ++inputValueCount)
+                    return "Input"
+                }
+                
+                @Nested
+                Object getBean() {
+                    count("nestedInput", ++nestedInputCount)
+                    return bean
+                }
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = inputFile.text
+                }
+                
+                void count(String name, int currentValue) {
+                    println "Evaluating \${name} \${currentValue}"                
+                }
+                                
+                class NestedBean {
+                    @Input getFirst() {
+                        count("nestedInputValue", ++nestedInputValueCount)
+                        return "first"
+                    }
+                    
+                    @Input getSecond() {
+                        return "second"
+                    }
+                }
+            }
+            
+            task myTask(type: CustomTask)
+            
+            task assertInputCounts {
+                dependsOn myTask
+                doLast {
+                    ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
+                        assert myTask."\$name" == project.property(name) as Integer                    
+                    }
+                }
+            }
+        """
+        def inputFile = file('input.txt')
+        inputFile.text = "input"
+        def expectedCounts = [inputFile: 3, outputFile: 3, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}"}
+        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}"}
+        def localCache = new TestBuildCache(file('cache-dir'))
+        settingsFile << localCache.localCacheConfiguration()
+
+        expect:
+        succeeds(*arguments)
+        executedAndNotSkipped(':myTask')
+
+        when:
+        inputFile.text = "changed"
+        then:
+        withBuildCache().succeeds(*arguments)
+        executedAndNotSkipped(':myTask')
+        and:
+        succeeds(*upToDateArguments)
+        skipped(':myTask')
+
+        when:
+        file('build').deleteDir()
+        then:
+        withBuildCache().succeeds(*upToDateArguments)
+        skipped(':myTask')
     }
 }

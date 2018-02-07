@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'javascript-base'
+plugins {
+    id 'javascript-base'
+    id 'classycle'
+}
 
 configurations {
     reports
@@ -27,12 +30,12 @@ dependencies {
     reports "jquery:jquery.min:1.11.0@js"
     reports "flot:flot:0.8.1:min@js"
 
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':baseServices')
-    compile libraries.slf4j_api
+    compile libraries.slf4j_api.coordinate
     compile project(':internalIntegTesting')
-    compile libraries.jatl
-    compile 'org.eclipse.jgit:org.eclipse.jgit:3.0.0.201306101825-r'
+    compile libraries.jatl.coordinate
+    compile libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
 
     runtime 'com.h2database:h2:1.4.192'
 }
@@ -44,8 +47,9 @@ task reportResources(type: Copy) {
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
-useTestFixtures(sourceSet: 'main')
-useTestFixtures(project: ':toolingApi', sourceSet: 'main')
-useClassycle()
+testFixtures {
+    from(':core', 'main')
+    from(':toolingApi', 'main')
+}
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

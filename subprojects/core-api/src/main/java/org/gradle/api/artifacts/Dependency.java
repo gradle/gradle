@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 
 /**
@@ -44,6 +46,7 @@ public interface Dependency {
      * Returns the version of this dependency. The version is often required to find the artifacts of a dependency in a
      * repository. For example the version name corresponds to a directory name in a Maven like repository. Might return
      * null.
+     *
      */
     @Nullable
     String getVersion();
@@ -62,4 +65,24 @@ public interface Dependency {
      * @return The copy. Never returns null.
      */
     Dependency copy();
+
+    /**
+     * Returns a reason why this dependency should be used, in particular with regards to its version. The dependency report
+     * will use it to explain why a specific dependency was selected, or why a specific dependency version was used.
+     *
+     * @return a reason to use this dependency
+     *
+     * @since 4.6
+     */
+    @Incubating
+    @Nullable
+    String getReason();
+
+    /**
+     * Sets the reason why this dependency should be used.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    void because(String reason);
 }

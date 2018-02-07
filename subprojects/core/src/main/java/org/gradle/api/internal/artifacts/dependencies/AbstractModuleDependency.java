@@ -99,8 +99,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
-        DependencyArtifact artifact = new DefaultDependencyArtifact();
+        DefaultDependencyArtifact artifact = new DefaultDependencyArtifact();
         configureAction.execute(artifact);
+        artifact.validate();
         artifacts.add(artifact);
         return artifact;
     }
@@ -162,4 +163,5 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             validateMutation();
         }
     }
+
 }

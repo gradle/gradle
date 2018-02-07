@@ -19,7 +19,10 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Incubating;
 
 /**
- * Selects a module version
+ * Selects a module version.
+ * If you need to change this interface, you're probably doing it wrong:
+ * it is superceded by {@link org.gradle.api.artifacts.component.ModuleComponentSelector}, so check this first, and only
+ * add methods here if it's for bridging.
  */
 public interface ModuleVersionSelector {
 
@@ -41,8 +44,18 @@ public interface ModuleVersionSelector {
      * The version of the module
      *
      * @return module version
+     *
      */
     String getVersion();
+
+    /**
+     * Returns the version constraint to be used during selection.
+     * @return the version constraint
+     *
+     * @since 4.4
+     */
+    @Incubating
+    VersionConstraint getVersionConstraint();
 
     /**
      * To match strictly means that the given identifier needs to have

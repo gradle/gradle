@@ -14,7 +14,7 @@ model {
 model {
     binaries {
         all {
-            //on OS X we need different linker settings than on Linux or Windows
+            //on macOS we need different linker settings than on Linux or Windows
             if (targetPlatform.operatingSystem.macOsX) {
                 linker.args "-framework", "Foundation"
             } else {

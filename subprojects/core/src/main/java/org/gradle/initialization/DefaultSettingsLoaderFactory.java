@@ -16,56 +16,59 @@
 
 package org.gradle.initialization;
 
-import org.gradle.composite.internal.IncludedBuildFactory;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
-import org.gradle.internal.composite.CompositeContextBuilder;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final ISettingsFinder settingsFinder;
     private final SettingsProcessor settingsProcessor;
     private final BuildSourceBuilder buildSourceBuilder;
-    private final CompositeContextBuilder compositeContextBuilder;
-    private final IncludedBuildFactory includedBuildFactory;
+    private final NestedBuildFactory nestedBuildFactory;
+    private final IncludedBuildRegistry includedBuildRegistry;
 
     public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder,
-                                        CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory) {
+                                        NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
-        this.compositeContextBuilder = compositeContextBuilder;
-        this.includedBuildFactory = includedBuildFactory;
+        this.nestedBuildFactory = nestedBuildFactory;
+        this.includedBuildRegistry = includedBuildRegistry;
     }
 
     @Override
     public SettingsLoader forTopLevelBuild() {
-        return notifyingSettingsLoader(compositeBuildSettingsLoader());
+        return compositeBuildSettingsLoader();
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
-        return notifyingSettingsLoader(defaultSettingsLoader());
+        return defaultSettingsLoader();
     }
 
     private SettingsLoader compositeBuildSettingsLoader() {
         return new CompositeBuildSettingsLoader(
             defaultSettingsLoader(),
-            compositeContextBuilder,
-            includedBuildFactory
-        );
+            nestedBuildFactory,
+            includedBuildRegistry);
     }
 
     private SettingsLoader defaultSettingsLoader() {
-        return new DefaultSettingsLoader(
+        final DefaultSettingsLoader delegate = new DefaultSettingsLoader(
             settingsFinder,
             settingsProcessor,
             buildSourceBuilder
         );
-    }
-
-
-    private SettingsLoader notifyingSettingsLoader(SettingsLoader settingsLoader) {
-        return new NotifyingSettingsLoader(settingsLoader);
+        return new SettingsLoader() {
+            @Override
+            public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+                SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+                gradle.setSettings(settings);
+                return settings;
+            }
+        };
     }
 
 }

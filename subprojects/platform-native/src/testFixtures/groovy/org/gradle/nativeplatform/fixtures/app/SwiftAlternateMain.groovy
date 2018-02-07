@@ -28,7 +28,7 @@ class SwiftAlternateMain extends SourceFileElement implements AppElement {
     @Override
     SourceFile getSourceFile() {
         sourceFile("swift", "main.swift", """
-            func main() -> Int {
+            public func main() -> Int {
               let greeter = Greeter()
               greeter.sayHello()
               return 0

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.fail;
 
@@ -148,7 +149,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         }
 
         NativeServicesTestFixture.initialize();
-        DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver()) {
+        DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver(), Executors.newCachedThreadPool()) {
             @Override
             public File getWorkingDir() {
                 // Override this, so that the working directory is not canonicalised. Some int tests require that

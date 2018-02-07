@@ -84,7 +84,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.resourceLockCoordinationService = resourceLockCoordinationService;
-        this.fixedSizePool = executorFactory.create("build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
+        this.fixedSizePool = executorFactory.create("Build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
         this.parallelismConfigurationManager = parallelismConfigurationManager;
         this.buildOperationIdFactory = buildOperationIdFactory;
         parallelismConfigurationManager.addListener(this);

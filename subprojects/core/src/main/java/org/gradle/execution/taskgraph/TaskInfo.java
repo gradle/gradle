@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.internal.TaskInternal;
 
+import javax.annotation.Nonnull;
 import java.util.TreeSet;
 
 public class TaskInfo implements Comparable<TaskInfo> {
@@ -67,16 +68,16 @@ public class TaskInfo implements Comparable<TaskInfo> {
 
     public boolean isComplete() {
         return state == TaskExecutionState.EXECUTED
-                || state == TaskExecutionState.SKIPPED
-                || state == TaskExecutionState.UNKNOWN
-                || state == TaskExecutionState.NOT_REQUIRED
-                || state == TaskExecutionState.MUST_NOT_RUN;
+            || state == TaskExecutionState.SKIPPED
+            || state == TaskExecutionState.UNKNOWN
+            || state == TaskExecutionState.NOT_REQUIRED
+            || state == TaskExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isSuccessful() {
         return (state == TaskExecutionState.EXECUTED && !isFailed())
-                || state == TaskExecutionState.NOT_REQUIRED
-                || state == TaskExecutionState.MUST_NOT_RUN;
+            || state == TaskExecutionState.NOT_REQUIRED
+            || state == TaskExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isFailed() {
@@ -207,7 +208,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         shouldSuccessors.remove(toNode);
     }
 
-    public int compareTo(TaskInfo otherInfo) {
+    public int compareTo(@Nonnull TaskInfo otherInfo) {
         return task.compareTo(otherInfo.getTask());
     }
 

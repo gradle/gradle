@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -118,6 +119,7 @@ public interface ExtraPropertiesExtension {
      * @return The value for the property with the given name.
      * @throws UnknownPropertyException if there is no property registered with the given name
      */
+    @Nullable
     Object get(String name) throws UnknownPropertyException;
 
     /**
@@ -139,7 +141,7 @@ public interface ExtraPropertiesExtension {
      * @param name The name of the property to update the value of or create
      * @param value The value to set for the property
      */
-    void set(String name, Object value);
+    void set(String name, @Nullable Object value);
 
     /**
      * Returns all of the registered properties and their current values as a map.

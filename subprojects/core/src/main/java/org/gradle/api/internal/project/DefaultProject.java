@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
@@ -547,14 +548,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public int depthCompare(Project otherProject) {
-        return new Integer(getDepth()).compareTo(otherProject.getDepth());
+        return Ints.compare(getDepth(), otherProject.getDepth());
     }
 
     @Override
     public int compareTo(Project otherProject) {
         int depthCompare = depthCompare(otherProject);
         if (depthCompare == 0) {
-            return getPath().compareTo(otherProject.getPath());
+            return getProjectPath().compareTo(((ProjectInternal) otherProject).getProjectPath());
         } else {
             return depthCompare;
         }
@@ -576,8 +577,18 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public Path getBuildPath() {
+        return gradle.getIdentityPath();
+    }
+
+    @Override
     public Path projectPath(String name) {
         return path.child(name);
+    }
+
+    @Override
+    public boolean isScript() {
+        return false;
     }
 
     @Override

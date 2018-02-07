@@ -15,8 +15,10 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 
 import java.util.List;
 
@@ -29,7 +31,7 @@ import java.util.List;
  */
 @Incubating
 @NonExtensible
-public interface ComponentMetadataDetails extends ComponentMetadata {
+public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigurableAttributes<ComponentMetadataDetails> {
     /**
      * Sets whether the component is changing or immutable.
      *
@@ -52,4 +54,24 @@ public interface ComponentMetadataDetails extends ComponentMetadata {
      * @param statusScheme the status scheme of the component
      */
     void setStatusScheme(List<String> statusScheme);
+
+    /**
+     * Add a rule for adjusting an existing variant of the component.
+     *
+     * @param name name of the variant to adjust (e.g. 'compile')
+     * @param action the action to modify the variant
+     *
+     * @since 4.4
+     */
+    void withVariant(String name, Action<? super VariantMetadata> action);
+
+    /**
+     * Add a rule for adjusting all variants of a component.
+     *
+     * @param action the action to be executed on each variant.
+     *
+     * @since 4.5
+     */
+    void allVariants(Action<? super VariantMetadata> action);
+
 }

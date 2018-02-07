@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 
 public class ResolutionResultPrinter {
     private static void printNode(DependencyResult dep, StringBuilder sb, Set visited, String indent) {

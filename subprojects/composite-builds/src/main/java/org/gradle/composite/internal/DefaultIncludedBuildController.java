@@ -258,7 +258,6 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
         @Override
         public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
-            // TODO:DAZ When scheduling tasks for included build, use an unambiguous task reference (rather than a string)
             for (String task : tasksToExecute) {
                 if (!taskExecutionGraph.hasTask(task)) {
                     throw new GradleException("Task '" + task + "' not found in build '" + includedBuild.getName() + "'.");

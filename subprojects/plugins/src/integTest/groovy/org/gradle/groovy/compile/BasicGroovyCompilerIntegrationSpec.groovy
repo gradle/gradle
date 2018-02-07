@@ -707,7 +707,8 @@ ${compilerConfiguration()}
         writeAnnotationProcessorProject()
         buildFile << """
                 dependencies {
-                    compile project(":processor")
+                    compileOnly project(":processor")
+                    annotationProcessor project(":processor")
                 }
             """
     }

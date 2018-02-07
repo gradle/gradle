@@ -16,6 +16,7 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
@@ -38,6 +39,10 @@ public class TestBuildScopeServices extends BuildScopeServices {
         this.homeDir = homeDir;
     }
 
+    protected BuildDefinition createBuildDefinition(StartParameter startParameter) {
+        return BuildDefinition.fromStartParameter(startParameter);
+    }
+
     protected BuildCancellationToken createBuildCancellationToken() {
         return new DefaultBuildCancellationToken();
     }
@@ -53,12 +58,12 @@ public class TestBuildScopeServices extends BuildScopeServices {
     protected NestedBuildFactory createNestedBuildFactory() {
         return new NestedBuildFactory() {
             @Override
-            public GradleLauncher nestedInstance(StartParameter startParameter) {
+            public GradleLauncher nestedInstance(BuildDefinition buildDefinition) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public BuildController nestedBuildController(StartParameter startParameter) {
+            public BuildController nestedBuildController(BuildDefinition buildDefinition) {
                 throw new UnsupportedOperationException();
             }
         };

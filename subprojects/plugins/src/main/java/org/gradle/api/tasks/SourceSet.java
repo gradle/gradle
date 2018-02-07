@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@code SourceSet} represents a logical group of Java source and resources.
  * <p>
@@ -70,6 +72,30 @@ public interface SourceSet {
      * @param classpath The classpath. Should not be null.
      */
     void setCompileClasspath(FileCollection classpath);
+
+    /**
+     * Returns the classpath used to load annotation processors when compiling this source set.
+     * This path is also used for annotation processor discovery. The classpath can be empty,
+     * which means use the compile classpath; if you want to disable annotation processing,
+     * then use {@code -proc:none} as a compiler argument.
+     *
+     * @return The annotation processor path. Never returns null.
+     * @since 4.6
+     */
+    @Incubating
+    FileCollection getAnnotationProcessorPath();
+
+    /**
+     * Set the classpath to use to load annotation processors when compiling this source set.
+     * This path is also used for annotation processor discovery. The classpath can be empty,
+     * which means use the compile classpath; if you want to disable annotation processing,
+     * then use {@code -proc:none} as a compiler argument.
+     *
+     * @param annotationProcessorPath The annotation processor path. Should not be null.
+     * @since 4.6
+     */
+    @Incubating
+    void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath);
 
     /**
      * Returns the classpath used to execute this source.
@@ -214,7 +240,7 @@ public interface SourceSet {
      * @param target The target, may be null
      * @return The task name, generally of the form ${verb}${name}${noun}
      */
-    String getTaskName(String verb, String target);
+    String getTaskName(@Nullable String verb, @Nullable String target);
 
     /**
      * Returns the name of the compile configuration for this source set.
@@ -245,6 +271,16 @@ public interface SourceSet {
      */
     @Incubating
     String getCompileClasspathConfigurationName();
+
+    /**
+     * Returns the name of the configuration containing annotation processors and their
+     * dependencies needed to compile this source set.
+     *
+     * @return the name of the annotation processor configuration.
+     * @since 4.6
+     */
+    @Incubating
+    String getAnnotationProcessorConfigurationName();
 
     /**
      * Returns the name of the API configuration for this source set. The API configuration

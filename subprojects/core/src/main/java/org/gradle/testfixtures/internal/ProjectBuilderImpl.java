@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -80,7 +81,7 @@ public class ProjectBuilderImpl {
 
         final File homeDir = new File(projectDir, "gradleHome");
 
-        StartParameter startParameter = new StartParameter();
+        StartParameter startParameter = new StartParameterInternal();
 
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         startParameter.setGradleUserHomeDir(userHomeDir);

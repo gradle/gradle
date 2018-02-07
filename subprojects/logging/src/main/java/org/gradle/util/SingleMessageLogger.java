@@ -17,6 +17,8 @@
 package org.gradle.util;
 
 import net.jcip.annotations.ThreadSafe;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -70,16 +72,25 @@ public class SingleMessageLogger {
         FEATURES.clear();
         LOCK.lock();
         try {
-            handler = new LoggingDeprecatedFeatureHandler();
+            handler.reset();
         } finally {
             LOCK.unlock();
         }
     }
 
-    public static void useLocationReporter(UsageLocationReporter reporter) {
+    public static void init(UsageLocationReporter reporter, WarningMode warningMode) {
         LOCK.lock();
         try {
-            handler.setLocationReporter(reporter);
+            handler.init(reporter, warningMode);
+        } finally {
+            LOCK.unlock();
+        }
+    }
+
+    public static void reportSuppressedDeprecations() {
+        LOCK.lock();
+        try {
+            handler.reportSuppressedDeprecations();
         } finally {
             LOCK.unlock();
         }
@@ -212,9 +223,13 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserOfDeprecatedThing(String thing) {
+    public static void nagUserOfDeprecatedThing(String thing, String explanation) {
         if (isEnabled()) {
-            nagUserOfDeprecated(String.format("%s. This", thing));
+            if (StringUtils.isEmpty(explanation)) {
+                nagUserWith(String.format("%s. This %s.", thing, getDeprecationMessage()));
+            } else {
+                nagUserWith(String.format("%s. This %s. %s.", thing, getDeprecationMessage(), explanation));
+            }
         }
     }
 

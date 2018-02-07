@@ -35,11 +35,11 @@ To use the Signing plugin, include the following in your build script:
 
 In order to create OpenPGP signatures, you will need a key pair (instructions on creating a key pair using the https://www.gnupg.org/[GnuPG tools] can be found in the https://www.gnupg.org/documentation/howtos.html[GnuPG HOWTOs]). You need to provide the signing plugin with your key information, which means three things:
 
-* The public key ID (an 8 character hexadecimal string).
-* The absolute path to the secret key ring file containing your private key.
+* The public key ID (The last 8 symbols of the keyId. You can use `gpg -K` to get it).
+* The absolute path to the secret key ring file containing your private key. (Since gpg 2.1, you need to export the keys with command `gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg`).
 * The passphrase used to protect your private key.
 
-These items must be supplied as the values of properties `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` respectively. Given the personal and private nature of these values, a good practice is to store them in the user `gradle.properties` file (described in <<sec:gradle_properties_and_system_properties>>).
+These items must be supplied as the values of properties `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` respectively. Given the personal and private nature of these values, a good practice is to store them in the user `gradle.properties` file (described in <<sec:gradle_system_properties>>).
 
 [source,properties]
 ----
@@ -83,6 +83,48 @@ Note that the presence of a null value for any these three properties will cause
 OpenPGP supports subkeys, which are like the normal keys, except they're bound to a master key pair. One feature of OpenPGP subkeys is that they can be revoked independently of the master keys which makes key management easier. A practical case study of how subkeys can be leveraged in software development can be read on the https://wiki.debian.org/Subkeys[Debian wiki].
 
 The signing plugin supports OpenPGP subkeys out of the box. Just specify a subkey ID as the value in the `signing.keyId` property.
+
+[[sec:using_gpg_agent]]
+=== Using gpg-agent
+
+By default the signing plugin uses a Java-based implementation of PGP for signing. This implementation cannot use the gpg-agent program for managing private keys, though. If you want to use the gpg-agent, you can change the signatory implementation used by the signing plugin:
+
+++++
+<sample id="useGnupg" dir="signing/gnupg-signatory" title="Sign with GnuPG">
+    <sourcefile file="build.gradle" snippet="configure-signatory" />
+</sample>
+++++
+
+This tells the signing plugin to use the `GnupgSignatory` instead of the default api:org.gradle.plugins.signing.signatory.pgp.PgpSignatory[]. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
+
+Without any further configuration the `gpg2` (on Windows: `gpg2.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
+
+
+[[sec:sec:gnupg_signatory_configuration]]
+==== Gnupg signatory configuration
+
+The `GnupgSignatory` supports a number of configuration options for controlling how gpg is invoked. These are typically set in gradle.properties:
+
+++++
+<sample id="configureGnupg" dir="signing/gnupg-signatory" title="Configure the GnupgSignatory">
+    <sourcefile file="gradle.properties" snippet="user-properties" />
+</sample>
+++++
+
+`signing.gnupg.executable`::
+The gpg executable that is invoked for signing. The default value of this property depends on `useLegacyGpg`. If that is `true` then the default value of executable is "gpg" otherwise it is "gpg2".
+`signing.gnupg.useLegacyGpg`::
+Must be `true` if GnuPG version 1 is used and `false` otherwise. The default value of the property is `false`.
+`signing.gnupg.homeDir`::
+Sets the home directory for GnuPG. If not given the default home directory of GnuPG is used.
+`signing.gnupg.optionsFile`::
+Sets a custom options file for GnuPG. If not given GnuPG's default configuration file is used.
+`signing.gnupg.keyName`::
+The id of the key that should be used for signing. If not given then the default key configured in GnuPG will be used.
+`signing.gnupg.passphrase`::
+The passphrase for unlocking the secret key. If not given then the gpg-agent program is used for getting the passphrase.
+
+All configuration properties are optional.
 
 [[sec:specifying_what_to_sign]]
 === Specifying what to sign

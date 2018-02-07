@@ -28,7 +28,9 @@ transformDocument {
 
     head().
             append("<meta charset='utf-8'>").
-            append("<title>Gradle @version@ Release Notes</title>")
+            append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
+            append("<title>Gradle @version@ Release Notes</title>").
+            append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>")
 
     head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
 
@@ -170,12 +172,6 @@ transformDocument {
     body().prepend("<h1>Gradle Release Notes</h1>")
 }
 
-// Add the footer
-transformDocument {
-    def footer = body().append("<section class='footer'/>").children().last()
-    footer.html("Gradle @version@ Release Notes<br />")
-}
-
 // Syntax highlighting
 transformDocument {
     body().select("code").each { code ->
@@ -211,7 +207,7 @@ transformDocument {
 // Wrap the page in a text container to get the margins
 transformDocument {
     def bodyContent = body().children().remove()
-    body().prepend("<div class='text-container'/>")
+    body().prepend("<div class='container'/>")
     body().children()[0].html(bodyContent.outerHtml())
 }
 

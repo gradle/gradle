@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.server.api;
 
+import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.protocol.Command;
 
 import java.util.LinkedList;
@@ -32,6 +32,7 @@ import java.util.List;
  */
 public class DaemonCommandExecution {
 
+    private final DaemonServerConfiguration configuration;
     final private DaemonConnection connection;
     final private Command command;
     final private DaemonContext daemonContext;
@@ -41,7 +42,8 @@ public class DaemonCommandExecution {
     private Throwable exception;
     private Object result;
 
-    public DaemonCommandExecution(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
+    public DaemonCommandExecution(DaemonServerConfiguration configuration, DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
+        this.configuration = configuration;
         this.connection = connection;
         this.command = command;
         this.daemonContext = daemonContext;
@@ -126,7 +128,7 @@ public class DaemonCommandExecution {
      * Informs if this execution is of single-use-daemon type
      */
     public boolean isSingleUseDaemon() {
-        return getCommand() instanceof BuildAndStop;
+        return configuration.isSingleUse();
     }
 
     @Override

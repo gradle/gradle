@@ -30,7 +30,13 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final List<String> SUPPORTED = [
         "1.8",
-        "1.9"
+        "1.9",
+        "1.9.1",
+        "1.10",
+        "1.10.1",
+        "1.10.2",
+        "1.10.3",
+        "1.11"
     ]
 
     @Unroll
@@ -77,13 +83,13 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url "https://plugins.gradle.org/m2" }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:${version}"
                 }
             }
-            
+
             apply plugin: "com.gradle.build-scan"
             buildScan {
                 licenseAgreementUrl = 'https://gradle.com/terms-of-service'
@@ -93,8 +99,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             apply plugin: 'java'
             ${jcenterRepository()}
 
-            dependencies { 
-                testCompile 'junit:junit:4.12' 
+            dependencies {
+                testCompile 'junit:junit:4.12'
             }
         """
 

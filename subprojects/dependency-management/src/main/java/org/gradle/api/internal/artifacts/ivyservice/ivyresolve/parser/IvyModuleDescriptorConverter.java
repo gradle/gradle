@@ -28,20 +28,18 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.IvyDependencyMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -52,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 
 public class IvyModuleDescriptorConverter {
+    private static final IvyArtifactName WILDARD_ARTIFACT = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+
     private static final String CLASSIFIER = "classifier";
     private static final Field DEPENDENCY_CONFIG_FIELD;
     static {
@@ -69,26 +69,20 @@ public class IvyModuleDescriptorConverter {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public ModuleDescriptorState forIvyModuleDescriptor(ModuleDescriptor ivyDescriptor) {
-        ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
-        ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
-        MutableModuleDescriptorState state = new MutableModuleDescriptorState(componentIdentifier, ivyDescriptor.getStatus(), ivyDescriptor.isDefault());
-
-        state.setBranch(moduleRevisionId.getBranch());
-        state.setDescription(ivyDescriptor.getDescription());
-        state.setPublicationDate(ivyDescriptor.getPublicationDate());
-        Map<NamespaceId, String> extraInfo = Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
-        state.getExtraInfo().putAll(extraInfo);
-
-        for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
-            addExcludeRule(state, excludeRule);
-        }
-
-        return state;
+    public Map<NamespaceId, String> extractExtraAttributes(ModuleDescriptor ivyDescriptor) {
+        return Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
     }
 
-    public List<IvyDependencyMetadata> extractDependencies(ModuleDescriptor ivyDescriptor) {
-        List<IvyDependencyMetadata> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
+    public List<Exclude> extractExcludes(ModuleDescriptor ivyDescriptor) {
+        List<Exclude> result = Lists.newArrayListWithCapacity(ivyDescriptor.getAllExcludeRules().length);
+        for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
+            result.add(forIvyExclude(excludeRule));
+        }
+        return result;
+    }
+
+    public List<IvyDependencyDescriptor> extractDependencies(ModuleDescriptor ivyDescriptor) {
+        List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
         for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
             addDependency(result, dependencyDescriptor);
         }
@@ -111,13 +105,9 @@ public class IvyModuleDescriptorConverter {
         result.add(new Configuration(name, transitive, visible, extendsFrom));
     }
 
-    private void addExcludeRule(MutableModuleDescriptorState state, ExcludeRule excludeRule) {
-        state.addExclude(forIvyExclude(excludeRule));
-    }
-
-    private void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {
+    private void addDependency(List<IvyDependencyDescriptor> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
-        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
+        ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
 
         ListMultimap<String, String> configMappings = ArrayListMultimap.create();
         for (Map.Entry<String, List<String>> entry : readConfigMappings(dependencyDescriptor).entrySet()) {
@@ -135,12 +125,12 @@ public class IvyModuleDescriptorConverter {
             excludes.add(forIvyExclude(excludeRule));
         }
 
-        result.add(new IvyDependencyMetadata(
+        result.add(new IvyDependencyDescriptor(
             requested,
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
-            false,
             dependencyDescriptor.isChanging(),
             dependencyDescriptor.isTransitive(),
+            false,
             configMappings,
             artifacts,
             excludes));
@@ -148,12 +138,21 @@ public class IvyModuleDescriptorConverter {
 
     private Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
         ArtifactId id = excludeRule.getId();
+        IvyArtifactName artifactExclusion = artifactForIvyExclude(id);
         return new DefaultExclude(
-            moduleIdentifierFactory.module(id.getModuleId().getOrganisation(), id.getModuleId().getName()), id.getName(), id.getType(), id.getExt(),
-            excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
+            moduleIdentifierFactory.module(id.getModuleId().getOrganisation(), id.getModuleId().getName()), artifactExclusion, excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
     }
 
-    // TODO We should get rid of this reflection (will need to reimplement the parser to create a ModuleDescriptorState directly)
+    private IvyArtifactName artifactForIvyExclude(ArtifactId id) {
+        if (PatternMatchers.ANY_EXPRESSION.equals(id.getName())
+            && PatternMatchers.ANY_EXPRESSION.equals(id.getType())
+            && PatternMatchers.ANY_EXPRESSION.equals(id.getExt())) {
+            return null;
+        }
+        return new DefaultIvyArtifactName(id.getName(), id.getType(), id.getExt());
+    }
+
+    // TODO We should get rid of this reflection (will need to reimplement the parser to act on the metadata directly)
     private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
         if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
             try {

@@ -41,12 +41,13 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
      */
-    ProjectInternal getRootProject();
+    ProjectInternal getRootProject() throws IllegalStateException;
 
     GradleInternal getParent();
 
     GradleInternal getRoot();
 
+    @Nullable
     BuildOperationState getBuildOperation();
     void setBuildOperation(BuildOperationState operation);
 
@@ -66,6 +67,22 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
 
     /**
+     * The settings for this build.
+     *
+     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
+     * @return the settings for this build
+     */
+    SettingsInternal getSettings() throws IllegalStateException;
+
+    /**
+     * Called by the BuildLoader after the settings are loaded.
+     * Until the BuildLoader is executed, {@link #getSettings()} will throw {@link IllegalStateException}.
+     *
+     * @param settings The settings for this build.
+     */
+    void setSettings(SettingsInternal settings);
+
+    /**
      * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
      * is executed, {@link #getDefaultProject()} will return null.
      *
@@ -75,7 +92,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     /**
      * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
-     * is executed, {@link #getRootProject()} will return null.
+     * is executed, {@link #getRootProject()} will throw {@link IllegalStateException}.
      *
      * @param rootProject The root project for this build.
      */
@@ -109,5 +126,4 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     Path findIdentityPath();
 
     void setIdentityPath(Path path);
-
 }

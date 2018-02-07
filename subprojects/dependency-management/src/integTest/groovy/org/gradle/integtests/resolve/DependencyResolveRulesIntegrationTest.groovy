@@ -411,7 +411,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert a.selectionReason.conflictResolution
                     assert a.selectionReason.selectedByRule
                     assert !a.selectionReason.forced
-                    assert a.selectionReason.description == 'selected by rule and conflict resolution'
+                    assert a.selectionReason.descriptions*.description.containsAll(['selected by rule', 'conflict resolution'])
                 }
             }
 """
@@ -687,7 +687,7 @@ Required by:
                     assert b.selectionReason.conflictResolution
                     assert b.selectionReason.selectedByRule
                     assert !b.selectionReason.forced
-                    assert b.selectionReason.description == 'selected by rule and conflict resolution'
+                    assert b.selectionReason.descriptions*.description.containsAll(['selected by rule', 'conflict resolution'])
                 }
             }
 """
@@ -861,6 +861,56 @@ conf
 
         expect:
         run("check")
+    }
+
+    def "custom selection reasons are available in resolution result"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "2.0").publish()
+        mavenRepo.module("org", "baz", "1.0").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency {
+                        switch (it.requested.name) {
+                           case 'foo':
+                              it.because('because I am in control').useVersion('2.0')
+                              break
+                           case 'bar':
+                              it.because('why not?').useTarget('org.test:bar:2.0')
+                              break
+                           default:
+                              useVersion(it.requested.version)
+                        }
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0'
+                conf 'org:bar:1.0'
+                conf 'org:baz:1.0'
+            }
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    assert modules.find { it.id.module == 'foo' }.selectionReason.description == 'because I am in control'
+                    assert modules.find { it.id.module == 'bar' }.selectionReason.description == 'why not?'
+                    assert modules.find { it.id.module == 'baz' }.selectionReason.description == 'selected by rule'
+                }
+            }
+        """
+
+        when:
+        run "check"
+
+        then:
+        noExceptionThrown()
     }
 
     String getCommon() {

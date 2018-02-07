@@ -21,12 +21,12 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
      def util = new AutoTestedSamplesUtil()
 
      void runSamplesFrom(String dir) {
-        util.findSamples(dir) { file, sample ->
+        util.findSamples(dir) { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
-            def buildFile = testFile('build.gradle')
-            buildFile.text = sample
-
-            usingBuildFile(buildFile).withTasks('help').withArguments("-s").run()
+            def fileToTest = tagSuffix == 'Settings' ? testFile('settings.gradle') : testFile('build.gradle')
+            fileToTest.text = sample
+            executer.withTasks('help').withArguments("-s").run()
+            fileToTest.delete()
         }
     }
 

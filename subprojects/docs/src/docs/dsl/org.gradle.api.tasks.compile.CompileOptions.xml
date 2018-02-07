@@ -53,11 +53,19 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>bootstrapClasspath</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>extensionDirs</td>
                 <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>compilerArgs</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>compilerArgumentProviders</td>
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
@@ -70,6 +78,10 @@
             </tr>
             <tr>
                 <td>annotationProcessorPath</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>annotationProcessorGeneratedSourcesDirectory</td>
                 <td><literal>null</literal></td>
             </tr>
         </table>

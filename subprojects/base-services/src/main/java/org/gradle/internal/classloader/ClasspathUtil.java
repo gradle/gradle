@@ -59,15 +59,30 @@ public class ClasspathUtil {
             @Override
             public void visitClassPath(URL[] classPath) {
                 for (URL url : classPath) {
-                    try {
-                        implementationClassPath.add(new File(toURI(url)));
-                    } catch (URISyntaxException e) {
-                        throw new UncheckedException(e);
+                    if (url.getProtocol() != null && url.getProtocol().equals("file")) {
+                        try {
+                            implementationClassPath.add(new File(toURI(url)));
+                        } catch (URISyntaxException e) {
+                            throw new UncheckedException(e);
+                        }
                     }
                 }
             }
         }.visit(classLoader);
         return DefaultClassPath.of(implementationClassPath);
+    }
+
+    public static File getClasspathForClass(String targetClassName) {
+        try {
+            Class clazz = Class.forName(targetClassName);
+            if (clazz.getClassLoader() == null) {
+                return null;
+            } else {
+                return getClasspathForClass(Class.forName(targetClassName));
+            }
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public static File getClasspathForClass(Class<?> targetClass) {

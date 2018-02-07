@@ -32,6 +32,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'project'"
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.start()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     @Unroll

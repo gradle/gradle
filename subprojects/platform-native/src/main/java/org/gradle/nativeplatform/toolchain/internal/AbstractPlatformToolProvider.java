@@ -22,6 +22,8 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativeplatform.internal.StripperSpec;
+import org.gradle.nativeplatform.internal.SymbolExtractorSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -33,7 +35,10 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.util.TreeVisitor;
+
+import static org.gradle.internal.FileUtils.withExtension;
 
 public abstract class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
@@ -64,6 +69,21 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
+    public boolean producesImportLibrary() {
+        return false;
+    }
+
+    @Override
+    public boolean requiresDebugBinaryStripping() {
+        return true;
+    }
+
+    @Override
+    public String getImportLibraryName(String libraryPath) {
+        return getSharedLibraryLinkFileName(libraryPath);
+    }
+
+    @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
@@ -71,6 +91,16 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
+    }
+
+    @Override
+    public String getExecutableSymbolFileName(String libraryPath) {
+        return withExtension(getExecutableName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+    }
+
+    @Override
+    public String getLibrarySymbolFileName(String libraryPath) {
+        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override
@@ -116,6 +146,12 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         if (StaticLibraryArchiverSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createStaticLibraryArchiver());
         }
+        if (SymbolExtractorSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createSymbolExtractor());
+        }
+        if (StripperSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createStripper());
+        }
         throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
     }
 
@@ -140,19 +176,19 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     protected Compiler<?> createObjectiveCppCompiler() {
-        throw unavailableTool("Obj-C++ compiler is not available");
+        throw unavailableTool("Objective-C++ compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCppPCHCompiler() {
-        throw unavailableTool("Obj-C++ pre-compiled header compiler is not available");
+        throw unavailableTool("Objective-C++ pre-compiled header compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCCompiler() {
-        throw unavailableTool("Obj-C compiler is not available");
+        throw unavailableTool("Objective-C compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCPCHCompiler() {
-        throw unavailableTool("Obj-C compiler is not available");
+        throw unavailableTool("Objective-C compiler is not available");
     }
 
     protected Compiler<?> createWindowsResourceCompiler() {
@@ -171,8 +207,21 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         throw unavailableTool("Static library archiver is not available");
     }
 
+    protected Compiler<?> createSymbolExtractor() {
+        throw unavailableTool("Symbol extracter is not available");
+    }
+
+    protected Compiler<?> createStripper() {
+        throw unavailableTool("Stripper is not available");
+    }
+
     @Override
     public String getObjectFileExtension() {
         return targetOperatingSystem.isWindows() ? ".obj" : ".o";
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata() {
+        throw unavailableTool("Compiler is not available");
     }
 }

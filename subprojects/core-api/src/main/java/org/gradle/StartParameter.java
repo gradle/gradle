@@ -25,18 +25,18 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -89,11 +89,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private boolean buildCacheEnabled;
+    private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
     private boolean noBuildScan;
+    private boolean interactive;
+    private boolean advancedPomSupport;
+    private boolean gradleMetadata;
 
     /**
      * {@inheritDoc}
@@ -144,6 +148,22 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public WarningMode getWarningMode() {
+        return loggingConfiguration.getWarningMode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWarningMode(WarningMode warningMode) {
+        loggingConfiguration.setWarningMode(warningMode);
+    }
+
+    /**
      * Sets the project's cache location. Set to null to use the default location.
      */
     public void setProjectCacheDir(@Nullable File projectCacheDir) {
@@ -189,6 +209,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     protected StartParameter prepareNewInstance(StartParameter p) {
         prepareNewBuild(p);
+        p.setWarningMode(getWarningMode());
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
@@ -223,6 +244,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
+        p.setWarningMode(getWarningMode());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
@@ -234,6 +256,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.interactive = interactive;
         return p;
     }
 
@@ -660,7 +683,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 3.5
      */
-    @Incubating
     public boolean isBuildCacheEnabled() {
         return buildCacheEnabled;
     }
@@ -670,32 +692,28 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 3.5
      */
-    @Incubating
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         this.buildCacheEnabled = buildCacheEnabled;
     }
 
     /**
-     * Returns true if task output caching is enabled.
+     * Whether build cache debug logging is enabled.
      *
-     * @deprecated Use {@link #isBuildCacheEnabled()}
+     * @since 4.6
      */
     @Incubating
-    @Deprecated
-    public boolean isTaskOutputCacheEnabled() {
-        return isBuildCacheEnabled();
+    public boolean isBuildCacheDebugLogging() {
+        return buildCacheDebugLogging;
     }
 
     /**
-     * Enables/disables task output caching.
+     * Whether build cache debug logging is enabled.
      *
-     * @deprecated Use {@link #setBuildCacheEnabled(boolean)}
+     * @since 4.6
      */
     @Incubating
-    @Deprecated
-    public void setTaskOutputCacheEnabled(boolean buildCacheEnabled) {
-        SingleMessageLogger.nagUserOfReplacedMethod("StartParameter.setTaskOutputCacheEnabled", "StartParameter.setBuildCacheEnabled");
-        setBuildCacheEnabled(buildCacheEnabled);
+    public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     /**
@@ -748,6 +766,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", interactive=" + interactive
             + '}';
     }
 
@@ -828,4 +847,63 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.noBuildScan = noBuildScan;
     }
 
+    /**
+     * Returns true when console is interactive.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public boolean isInteractive() {
+        return interactive;
+    }
+
+    /**
+     * Specifies whether console is interactive.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setInteractive(boolean interactive) {
+        this.interactive = interactive;
+    }
+
+    /**
+     * Returns true if optional dependencies, compile/runtime scope separation and BOMs are included in dependency resolution.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isAdvancedPomSupport() {
+        return advancedPomSupport;
+    }
+
+    /**
+     * Specifies if optional dependencies, compile/runtime scope separation and BOMs are to be included in dependency resolution.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setAdvancedPomSupport(boolean advancedPomSupport) {
+        this.advancedPomSupport = advancedPomSupport;
+    }
+
+    /**
+     * Returns true if gradle metadata should be use as preferred format for resolving and publishing dependencies.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isGradleMetadata() {
+        return gradleMetadata;
+    }
+
+    /**
+     * Specifies if gradle metadata should be use as preferred format for resolving and publishing dependencies.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setGradleMetadata(boolean gradleMetadata) {
+        this.gradleMetadata = gradleMetadata;
+    }
 }

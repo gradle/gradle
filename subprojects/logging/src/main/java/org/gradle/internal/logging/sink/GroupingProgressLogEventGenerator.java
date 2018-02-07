@@ -47,11 +47,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
-    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
     private final OutputEventListener listener;
     private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
-    private final boolean alwaysRenderTasks;
+    private final boolean verbose;
 
     // Maintain a hierarchy of all build operation ids — heads up: this is a *forest*, not just 1 tree
     private final Map<Object, Object> buildOpIdHierarchy = new HashMap<Object, Object>();
@@ -60,11 +60,11 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private Object lastRenderedBuildOpId;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, Clock clock, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, Clock clock, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
         this.clock = clock;
         this.headerFormatter = headerFormatter;
-        this.alwaysRenderTasks = alwaysRenderTasks;
+        this.verbose = verbose;
     }
 
     public void onOutput(OutputEvent event) {
@@ -233,7 +233,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (alwaysRenderTasks && buildOperationCategory == BuildOperationCategory.TASK);
+            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK);
         }
     }
 }

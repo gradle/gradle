@@ -17,10 +17,28 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultProviderTest extends Specification {
+class DefaultProviderTest extends ProviderSpec<String> {
+    @Override
+    Provider<String> providerWithNoValue() {
+        return new DefaultProvider<String>({ null })
+    }
+
+    @Override
+    Provider<String> providerWithValue(String value) {
+        return new DefaultProvider<String>({ value })
+    }
+
+    @Override
+    String someValue() {
+        return "s1"
+    }
+
+    @Override
+    String someOtherValue() {
+        return "s2"
+    }
 
     @Unroll
     def "can compare string representation with other instance returning value #value"() {
@@ -64,22 +82,6 @@ class DefaultProviderTest extends Specification {
 
         then:
         value
-    }
-
-    def "returns value or null for get or null method"() {
-        when:
-        def provider = createProvider()
-
-        then:
-        !provider.isPresent()
-        provider.getOrNull() == null
-
-        when:
-        provider = createProvider(true)
-
-        then:
-        provider.isPresent()
-        provider.getOrNull()
     }
 
     def "rethrows exception if value calculation throws exception"() {

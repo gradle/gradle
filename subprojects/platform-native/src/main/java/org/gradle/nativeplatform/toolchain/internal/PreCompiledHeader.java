@@ -24,6 +24,8 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
@@ -48,11 +50,14 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     }
 
     @InputFiles
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public FileCollection getPchObjects() {
         return pchObjects;
     }
 
-    @Optional @InputFile
+    @Optional
+    @InputFile
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public File getPrefixHeaderFile() {
         return prefixHeaderFile;
     }

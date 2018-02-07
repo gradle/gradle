@@ -37,12 +37,12 @@ import spock.lang.Unroll
 class NameValidatorTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
-    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"]
+    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
 
     @Shared
     def domainObjectContainersWithValidation = [
-        ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, null)],
-        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, Mock(DomainObjectContext), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, null, null)],
+        ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, TestUtil.attributesFactory())],
+        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, TestUtil.attributesFactory(), null, null)],
         ["flavors",  new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
     ]
 
@@ -84,11 +84,27 @@ class NameValidatorTest extends Specification {
         [name, objectType, domainObjectContainer] << [invalidNames, domainObjectContainersWithValidation].combinations().collect { [it[0], it[1][0], it[1][1]] }
     }
 
+    def "can handle empty names"() {
+        when:
+        NameValidator.validate('', '', '')
+
+        then:
+        noExceptionThrown()
+    }
+
+    private DomainObjectContext domainObjectContext() {
+        def mock = Mock(DomainObjectContext)
+        mock.projectPath(_) >> Mock(Path)
+        mock
+    }
+
     void assertForbidden(name, message) {
-        if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+        if (name == '') {
+            assert message.contains("is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+        } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
+            assert message.contains("' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
         } else {
-            assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+            assert message.contains("""' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.""")
         }
     }
 }

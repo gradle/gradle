@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.hamcrest.Matchers.startsWith
+
 //These tests depend on https://plugins.gradle.org
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
@@ -104,6 +106,52 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
-        failureDescriptionContains("- Gradle Central Plugin Repository (no 'org.gradle.non-existing' plugin available - see https://plugins.gradle.org for available plugins)")
+        failureDescriptionContains("""
+            - Plugin Repositories (could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
+              Searched in the following repositories:
+                Gradle Central Plugin Repository
+        """.stripIndent().trim())
+    }
+
+    def "can resolve and plugin from portal with buildscript notation"() {
+        given:
+        def helloWorldGroup = 'org.gradle'
+        def helloWorldName = 'gradle-hello-world-plugin'
+
+        when:
+        buildScript """
+            buildscript {
+                repositories {
+                    gradlePluginPortal()
+                }
+                dependencies {
+                    classpath "$helloWorldGroup:$helloWorldName:$HELLO_WORLD_PLUGIN_VERSION"
+                }
+            }
+
+            apply plugin: "$HELLO_WORLD_PLUGIN_ID"
+        """
+
+        then:
+        succeeds("helloWorld")
+
+        and:
+        output.contains("Hello World!")
+    }
+
+    def "resolution fails if Gradle is in offline mode"() {
+        given:
+        buildScript """
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
+            }
+        """
+
+        when:
+        args "--offline"
+        fails "help"
+
+        then:
+        failure.assertThatDescription(startsWith("Plugin [id: '$HELLO_WORLD_PLUGIN_ID', version: '$HELLO_WORLD_PLUGIN_VERSION'] was not found"))
     }
 }

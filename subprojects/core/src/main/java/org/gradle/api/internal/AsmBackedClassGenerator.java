@@ -401,7 +401,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception {
+        public void addPropertySetters(PropertyMetaData property, Method getter) throws Exception {
 
             // GENERATE public void set<Name>(Object p) {
             //    ((PropertyInternal)<getter>()).setFromAnyValue(p);

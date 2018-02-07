@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality;
 
 import com.google.common.util.concurrent.Callables;
+import org.apache.tools.ant.Main;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
@@ -72,7 +73,9 @@ public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
             @Override
             public void execute(DependencySet dependencies) {
                 dependencies.add(project.getDependencies().create("jdepend:jdepend:" + extension.getToolVersion()));
-                dependencies.add(project.getDependencies().create("org.apache.ant:ant-jdepend:1.9.6"));
+                Class<Main> antMain = Main.class;
+                String antVersion = antMain.getPackage().getImplementationVersion();
+                dependencies.add(project.getDependencies().create("org.apache.ant:ant-jdepend:" + antVersion));
             }
         });
     }

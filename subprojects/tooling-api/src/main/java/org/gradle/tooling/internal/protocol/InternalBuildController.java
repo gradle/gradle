@@ -19,11 +19,15 @@ package org.gradle.tooling.internal.protocol;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1 to 4.3. It is also used by later consumers when the provider does not
+ * implement newer interfaces.
+ * </p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.8-rc-1.</p>
  *
  * @since 1.8-rc-1
+ * @deprecated 4.4. Use {@link InternalBuildControllerVersion2} instead.
  */
+@Deprecated
 public interface InternalBuildController {
     /**
      * Returns the version-specific build model.
@@ -33,13 +37,17 @@ public interface InternalBuildController {
      *
      * @throws BuildExceptionVersion1 On build failure.
      * @since 1.8-rc-1
+     * @deprecated 4.4
      */
+    @Deprecated
     BuildResult<?> getBuildModel() throws BuildExceptionVersion1;
 
     /**
      * Returns the requested model for a target object.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1 to 4.3. It is also used by later consumers when the provider does not
+     * implement newer interfaces.
+     * </p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.8-rc-1.</p>
      *
      * @param target The target object. May be null, in which case a default target is used.
@@ -47,7 +55,9 @@ public interface InternalBuildController {
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
      * @since 1.8-rc-1
+     * @deprecated 4.4. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, Object)} instead.
      */
+    @Deprecated
     BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,
             InternalUnsupportedModelException;
 }

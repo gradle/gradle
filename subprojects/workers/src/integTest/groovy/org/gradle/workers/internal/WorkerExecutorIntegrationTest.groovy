@@ -19,8 +19,10 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Timeout
 import spock.lang.Unroll
 
+@Timeout(60)
 @Unroll
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
@@ -281,6 +283,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "can set isolation mode using fork mode"() {
+        executer.withWorkerDaemonsExpirationDisabled()
         withRunnableClassInBuildScript()
 
         buildFile << """
