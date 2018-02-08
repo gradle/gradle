@@ -39,8 +39,6 @@ import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
@@ -104,12 +102,10 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 compile.getSourceCompatibility().set(binary.getSourceCompatibility());
                 binary.getModuleFile().set(compile.getModuleFile());
 
-                NativePlatform currentPlatform = binary.getTargetPlatform();
-                compile.setTargetPlatform(currentPlatform);
+                compile.getTargetPlatform().set(binary.getTargetPlatform());
 
                 // TODO - make this lazy
-                NativeToolChainInternal toolChain = binary.getToolChain();
-                compile.setToolChain(toolChain);
+                compile.getToolChain().set(binary.getToolChain());
 
                 binary.getCompileTask().set(compile);
                 binary.getObjectsDir().set(compile.getObjectFileDir());

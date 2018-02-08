@@ -42,6 +42,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -75,9 +76,6 @@ import java.util.Set;
 @Incubating
 @CacheableTask
 public class SwiftCompile extends DefaultTask {
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
-
     private final Property<String> moduleName;
     private final RegularFileProperty moduleFile;
     private final ConfigurableFileCollection modules;
@@ -88,6 +86,8 @@ public class SwiftCompile extends DefaultTask {
     private final ListProperty<String> macros;
     private final Property<Boolean> debug;
     private final Property<Boolean> optimize;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 
@@ -106,6 +106,8 @@ public class SwiftCompile extends DefaultTask {
         this.macros = objectFactory.listProperty(String.class);
         this.debug = objectFactory.property(Boolean.class);
         this.optimize = objectFactory.property(Boolean.class);
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
@@ -114,17 +116,8 @@ public class SwiftCompile extends DefaultTask {
      * @since 4.4
      */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
-    }
-
-    /**
-     * Sets the tool chain to use for compilation.
-     *
-     * @since 4.4
-     */
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
     }
 
     /**
@@ -133,17 +126,8 @@ public class SwiftCompile extends DefaultTask {
      * @since 4.4
      */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
-    }
-
-    /**
-     * Sets the platform being compiled for.
-     *
-     * @since 4.4
-     */
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**
@@ -257,11 +241,14 @@ public class SwiftCompile extends DefaultTask {
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
-        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        return ((VersionAwareCompiler)createCompiler()).getVersion();
+    }
+
+    private Compiler<SwiftCompileSpec> createCompiler() {
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
-        VersionAwareCompiler<?> compiler = (VersionAwareCompiler<?>) toolProvider.newCompiler(SwiftCompileSpec.class);
-        return compiler.getVersion();
+        return toolProvider.newCompiler(SwiftCompileSpec.class);
     }
 
     @TaskAction
@@ -300,16 +287,15 @@ public class SwiftCompile extends DefaultTask {
 
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
-        SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, changedFiles, removedFiles);
-
-        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        Compiler<SwiftCompileSpec> baseCompiler = new IncrementalSwiftCompiler(platformToolProvider.newCompiler(SwiftCompileSpec.class), getOutputs(), compilerOutputFileNamingSchemeFactory);
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, changedFiles, removedFiles, targetPlatform);
+        Compiler<SwiftCompileSpec> baseCompiler = new IncrementalSwiftCompiler(createCompiler(), getOutputs(), compilerOutputFileNamingSchemeFactory);
         Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
         WorkResult result = loggingCompiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 
-    private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> changedFiles, Collection<File> removedFiles) {
+    private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> changedFiles, Collection<File> removedFiles, NativePlatformInternal targetPlatform) {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(moduleName.getOrNull());
         spec.setModuleFile(moduleFile.get().getAsFile());
