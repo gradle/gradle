@@ -48,14 +48,26 @@ class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainInte
     }
 
     protected SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
+        return solutionFile(file(path))
+    }
+
+    protected SolutionFile solutionFile(File file) {
+        return new SolutionFile(file)
     }
 
     protected ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
+        return projectFile(file(path))
+    }
+
+    protected ProjectFile projectFile(File file) {
+        return new ProjectFile(file)
     }
 
     protected FiltersFile filtersFile(String path) {
-        return new FiltersFile(file(path))
+        return filtersFile(file(path))
+    }
+
+    protected FiltersFile filtersFile(File file) {
+        return new FiltersFile(file)
     }
 }

@@ -38,27 +38,29 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         run "visualStudio"
 
         then:
-        final solutionFile = solutionFile(visualStudio.dir.file("vs/visual-studio.sln").absolutePath)
+        final solutionFile = solutionFile(visualStudio.dir.file("vs/visual-studio.sln"))
         solutionFile.assertHasProjects("mainExe", "helloDll", "helloLib")
         solutionFile.content.contains "GlobalSection(SolutionNotes) = postSolution"
         solutionFile.content.contains "Text2 = The projects in this solution are [helloDll, helloLib, mainExe]."
 
-        final dllProjectFile = projectFile(visualStudio.dir.file("vs/helloDll.vcxproj").absolutePath)
+        final dllProjectFile = projectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
         dllProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
 
-        final libProjectFile = projectFile(visualStudio.dir.file("vs/helloLib.vcxproj").absolutePath)
+        final libProjectFile = projectFile(visualStudio.dir.file("vs/helloLib.vcxproj"))
         libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
     }
 
     @Requires(TestPrecondition.MSBUILD)
     def "build generated visual studio solution"() {
+        useMsbuildTool()
+
         given:
         sample visualStudio
         run "visualStudio"
 
         when:
         def resultDebug = msbuild
-            .withSolution(solutionFile(visualStudio.dir.file("vs/visual-studio.sln").absolutePath))
+            .withSolution(solutionFile(visualStudio.dir.file("vs/visual-studio.sln")))
             .withConfiguration("debug")
             .succeeds()
 

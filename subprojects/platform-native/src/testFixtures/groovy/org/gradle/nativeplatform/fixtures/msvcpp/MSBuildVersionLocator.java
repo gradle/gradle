@@ -38,7 +38,7 @@ public class MSBuildVersionLocator {
 
         // TODO: Remove the hardcoded version, see https://github.com/Microsoft/vswhere/issues/74
         TestFile msbuild = installDir.file("MSBuild/15.0/Bin/MSBuild.exe");
-        if (msbuild.exists()) {
+        if (!msbuild.exists()) {
             throw new IllegalStateException("This test requires msbuild to be installed");
         }
         return msbuild;
