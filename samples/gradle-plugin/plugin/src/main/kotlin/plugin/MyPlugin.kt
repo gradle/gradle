@@ -14,6 +14,7 @@ open class MyPlugin : Plugin<Project> {
 
             tasks {
                 "myCopyTask"(Copy::class) {
+                    group = "sample"
                     from("build.gradle.kts")
                     into("build/copy")
                 }
