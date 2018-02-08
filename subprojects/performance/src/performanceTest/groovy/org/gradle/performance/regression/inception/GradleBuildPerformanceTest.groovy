@@ -31,6 +31,7 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -82,6 +83,7 @@ class GradleBuildPerformanceTest extends Specification {
     def measuredBuilds = 40
 
     @Unroll
+    @Ignore("IllegalException: Multiple specifications with display name 'baseline build' on retry")
     def "#tasks on the gradle build comparing the build"() {
 
         given:
