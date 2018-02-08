@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing
 
+import org.gradle.api.internal.tasks.testing.logging.SimpleTestDescriptor
+import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
@@ -26,9 +28,12 @@ import spock.lang.Unroll
 class FailFastTestListenerInternalTest extends Specification {
     TestExecuter testExecuter = Mock()
     TestListenerInternal delegate = Mock()
-    TestDescriptorInternal testDescriptor = Mock()
-    TestResult testResult = Mock()
-    TestCompleteEvent completeEvent = Mock()
+
+    TestDescriptorInternal testDescriptor = new SimpleTestDescriptor()
+    TestStartEvent startEvent = new TestStartEvent(0)
+    TestCompleteEvent completeEvent = new TestCompleteEvent(0)
+    TestResult testResult = new SimpleTestResult()
+    TestOutputEvent event = new SimpleTestOutputEvent()
 
     @Subject
     FailFastTestListenerInternal unit
@@ -38,30 +43,25 @@ class FailFastTestListenerInternalTest extends Specification {
     }
 
     def "started invokes delegate"() {
-        TestStartEvent startEvent = Mock()
-
         when:
         unit.started(testDescriptor, startEvent)
 
         then:
         1 * delegate.started(testDescriptor, startEvent)
-        0 * _
     }
 
     def "output invokes delegate"() {
-        TestOutputEvent event = Mock()
-
         when:
         unit.output(testDescriptor, event)
 
         then:
         1 * delegate.output(testDescriptor, event)
-        0 * _
     }
 
     def "completed calls stopNow on failure"() {
+        testResult.resultType = TestResult.ResultType.FAILURE
+
         when:
-        testResult.getResultType() >> TestResult.ResultType.FAILURE
         unit.completed(testDescriptor, testResult, completeEvent)
 
         then:
@@ -70,8 +70,9 @@ class FailFastTestListenerInternalTest extends Specification {
 
     @Unroll
     def "completed invokes delegate with result #result"() {
+        testResult.resultType = result
+
         when:
-        testResult.getResultType() >> result
         unit.completed(testDescriptor, testResult, completeEvent)
 
         then:
@@ -83,20 +84,18 @@ class FailFastTestListenerInternalTest extends Specification {
 
     @Unroll
     def "after failure completed indicates failure on composite for result #result"() {
-        TestResult failedResult = Mock()
+        TestResult failedResult = new SimpleTestResult()
+        failedResult.resultType = TestResult.ResultType.FAILURE
+        testDescriptor.composite = true
+        testResult.resultType = result
 
-        when:
+        given:
         unit.completed(testDescriptor, failedResult, completeEvent)
 
-        then:
-        1 * failedResult.getResultType() >> TestResult.ResultType.FAILURE
-
         when:
-        testResult.getResultType() >> result
         unit.completed(testDescriptor, testResult, completeEvent)
 
         then:
-        1 * testDescriptor.isComposite() >> true
         1 * delegate.completed(testDescriptor, { it.getResultType() == TestResult.ResultType.FAILURE }, completeEvent)
 
         where:
@@ -105,20 +104,18 @@ class FailFastTestListenerInternalTest extends Specification {
 
     @Unroll
     def "after failure completed indicates skipped on non-composite for result #result"() {
-        TestResult failedResult = Mock()
+        TestResult failedResult = new SimpleTestResult()
+        failedResult.resultType = TestResult.ResultType.FAILURE
+        testDescriptor.composite = false
+        testResult.resultType = result
 
-        when:
+        given:
         unit.completed(testDescriptor, failedResult, completeEvent)
 
-        then:
-        1 * failedResult.getResultType() >> TestResult.ResultType.FAILURE
-
         when:
-        testResult.getResultType() >> result
         unit.completed(testDescriptor, testResult, completeEvent)
 
         then:
-        1 * testDescriptor.isComposite() >> false
         1 * delegate.completed(testDescriptor, { it.getResultType() == TestResult.ResultType.SKIPPED }, completeEvent)
 
         where:
