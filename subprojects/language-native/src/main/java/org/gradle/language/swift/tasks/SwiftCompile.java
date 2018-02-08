@@ -24,6 +24,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -76,8 +77,7 @@ import java.util.Set;
 public class SwiftCompile extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
-    private boolean debug;
-    private boolean optimize;
+
     private final Property<String> moduleName;
     private final RegularFileProperty moduleFile;
     private final ConfigurableFileCollection modules;
@@ -85,19 +85,27 @@ public class SwiftCompile extends DefaultTask {
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection source;
     private final Property<SwiftVersion> sourceCompatibility;
+    private final ListProperty<String> macros;
+    private final Property<Boolean> debug;
+    private final Property<Boolean> optimize;
+
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
-    private final Map<String, String> macros = new LinkedHashMap<String, String>();
 
     @Inject
     public SwiftCompile(CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory) {
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
-        source = getProject().files();
-        compilerArgs = getProject().getObjects().listProperty(String.class);
-        objectFileDir = newOutputDirectory();
-        moduleName = getProject().getObjects().property(String.class);
-        moduleFile = newOutputFile();
-        modules = getProject().files();
-        sourceCompatibility = getProject().getObjects().property(SwiftVersion.class);
+
+        ObjectFactory objectFactory = getProject().getObjects();
+        this.moduleName = objectFactory.property(String.class);
+        this.moduleFile = newOutputFile();
+        this.modules = getProject().files();
+        this.compilerArgs = objectFactory.listProperty(String.class);
+        this.objectFileDir = newOutputDirectory();
+        this.source = getProject().files();
+        this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
+        this.macros = objectFactory.listProperty(String.class);
+        this.debug = objectFactory.property(Boolean.class);
+        this.optimize = objectFactory.property(Boolean.class);
     }
 
     /**
@@ -153,59 +161,33 @@ public class SwiftCompile extends DefaultTask {
     /**
      * Macros that should be defined for the compiler.
      *
-     * @since 4.4
+     * <p>Macros do not have values in Swift; they are either present or absent.</p>
+     *
+     * @since 4.6
      */
     @Input
-    public Map<String, String> getMacros() {
+    public ListProperty<String> getMacros() {
         return macros;
     }
 
     /**
-     * Sets the macros that should be defined when compiling.
-     *
-     * @since 4.4
-     */
-    public void setMacros(Map<String, String> macros) {
-        this.macros.clear();
-        this.macros.putAll(macros);
-    }
-
-    /**
      * Should the compiler generate debuggable code?
      *
-     * @since 4.4
+     * @since 4.6
      */
     @Input
-    public boolean isDebuggable() {
+    public Property<Boolean> isDebuggable() {
         return debug;
     }
 
     /**
-     * Should the compiler generate debuggable code?
-     *
-     * @since 4.4
-     */
-    public void setDebuggable(boolean debug) {
-        this.debug = debug;
-    }
-
-    /**
      * Should the compiler generate optimized code?
      *
-     * @since 4.4
+     * @since 4.6
      */
     @Input
-    public boolean isOptimized() {
+    public Property<Boolean> isOptimized() {
         return optimize;
-    }
-
-    /**
-     * Should the compiler generate optimized code?
-     *
-     * @since 4.4
-     */
-    public void setOptimized(boolean optimize) {
-        this.optimize = optimize;
     }
 
     /**
@@ -345,10 +327,16 @@ public class SwiftCompile extends DefaultTask {
         spec.source(getSource());
         spec.setRemovedSourceFiles(removedFiles);
         spec.setChangedFiles(changedFiles);
-        spec.setMacros(getMacros());
+
+        // Convert Swift-like macros to a Map like NativeCompileSpec expects
+        Map<String, String> macros = new LinkedHashMap<String, String>();
+        for (String macro : getMacros().get()) {
+            macros.put(macro, null);
+        }
+        spec.setMacros(macros);
         spec.args(getCompilerArgs().get());
-        spec.setDebuggable(isDebuggable());
-        spec.setOptimized(isOptimized());
+        spec.setDebuggable(isDebuggable().get());
+        spec.setOptimized(isOptimized().get());
         spec.setIncrementalCompile(isIncremental);
         spec.setOperationLogger(operationLogger);
         spec.setSourceCompatibility(sourceCompatibility.get());
