@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlackli
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
@@ -118,10 +117,6 @@ import java.util.List;
  * The set of dependency management services that are created per build.
  */
 class DependencyManagementBuildScopeServices {
-    InMemoryCachedRepositoryFactory createInMemoryDependencyMetadataCache() {
-        return new InMemoryCachedRepositoryFactory();
-    }
-
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
         return new DefaultDependencyManagementServices(parent);
     }
@@ -290,7 +285,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
-                                              BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
+                                              BuildCommencedTimeProvider buildCommencedTimeProvider,
                                               VersionSelectorScheme versionSelectorScheme,
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {
@@ -299,7 +294,6 @@ class DependencyManagementBuildScopeServices {
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory,
             versionSelectorScheme,
             versionComparator,
             moduleIdentifierFactory,
