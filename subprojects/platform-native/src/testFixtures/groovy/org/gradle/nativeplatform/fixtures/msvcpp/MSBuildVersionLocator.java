@@ -21,9 +21,6 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 public class MSBuildVersionLocator {
     private final VswhereVersionLocator vswhereLocator;
 
@@ -33,13 +30,17 @@ public class MSBuildVersionLocator {
 
     public File getMSBuildInstall() {
         File vswhere = vswhereLocator.getVswhereInstall();
-        assertNotNull(vswhere, "This test requires vswhere to be installed");
+        if (vswhere == null) {
+            throw new IllegalStateException("vswhere tool is required to be installed");
+        }
 
         TestFile installDir = new TestFile(new TestFile(vswhere).exec("-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild", "-property", "installationPath").getOut().trim());
 
         // TODO: Remove the hardcoded version, see https://github.com/Microsoft/vswhere/issues/74
         TestFile msbuild = installDir.file("MSBuild/15.0/Bin/MSBuild.exe");
-        assertTrue(msbuild.exists(), "This test requires msbuild to be installed");
+        if (msbuild.exists()) {
+            throw new IllegalStateException("This test requires msbuild to be installed");
+        }
         return msbuild;
     }
 }

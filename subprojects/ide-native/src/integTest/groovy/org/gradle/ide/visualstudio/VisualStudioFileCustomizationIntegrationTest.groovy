@@ -17,9 +17,6 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.ide.visualstudio.fixtures.FiltersFile
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -194,17 +191,5 @@ tasks.withType(GenerateProjectFileTask) {
         projectFile.projectConfigurations.values().each {
             assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :installMain${it.name.capitalize()}Executable"
         }
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
-    }
-
-    private ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
-    }
-
-    private FiltersFile filtersFile(String path) {
-        return new FiltersFile(file(path))
     }
 }

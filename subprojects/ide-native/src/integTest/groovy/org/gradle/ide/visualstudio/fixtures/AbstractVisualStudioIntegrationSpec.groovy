@@ -21,6 +21,10 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
+    protected static String filePath(String... paths) {
+        return (paths as List).join(';')
+    }
+
     void useMsbuildTool() {
         executer.requireGradleDistribution().requireIsolatedDaemons()
 
@@ -45,5 +49,13 @@ class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainInte
 
     protected SolutionFile solutionFile(String path) {
         return new SolutionFile(file(path))
+    }
+
+    protected ProjectFile projectFile(String path) {
+        return new ProjectFile(file(path))
+    }
+
+    protected FiltersFile filtersFile(String path) {
+        return new FiltersFile(file(path))
     }
 }

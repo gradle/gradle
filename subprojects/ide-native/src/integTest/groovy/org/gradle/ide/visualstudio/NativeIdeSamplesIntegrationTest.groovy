@@ -16,8 +16,6 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
@@ -40,15 +38,15 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         run "visualStudio"
 
         then:
-        final solutionFile = new SolutionFile(visualStudio.dir.file("vs/visual-studio.sln"))
+        final solutionFile = solutionFile(visualStudio.dir.file("vs/visual-studio.sln").absolutePath)
         solutionFile.assertHasProjects("mainExe", "helloDll", "helloLib")
         solutionFile.content.contains "GlobalSection(SolutionNotes) = postSolution"
         solutionFile.content.contains "Text2 = The projects in this solution are [helloDll, helloLib, mainExe]."
 
-        final dllProjectFile = new ProjectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
+        final dllProjectFile = projectFile(visualStudio.dir.file("vs/helloDll.vcxproj").absolutePath)
         dllProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
 
-        final libProjectFile = new ProjectFile(visualStudio.dir.file("vs/helloLib.vcxproj"))
+        final libProjectFile = projectFile(visualStudio.dir.file("vs/helloLib.vcxproj").absolutePath)
         libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
     }
 

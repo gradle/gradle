@@ -16,9 +16,7 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -866,18 +864,6 @@ model {
         mainSolution.assertReferencesProject(exeProject, ['win32', 'x64'])
         mainSolution.assertReferencesProject(dllProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
         mainSolution.assertReferencesProject(libProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
-    }
-
-    private ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
-    }
-
-    private FiltersFile filtersFile(String path) {
-        return new FiltersFile(file(path))
-    }
-
-    private static String filePath(String... paths) {
-        return (paths as List).join(';')
     }
 
     private String[] getLibraryTasks(String libraryName) {
