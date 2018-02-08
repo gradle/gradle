@@ -1,5 +1,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import java.io.File
+
 
 private
 const val testKitDirProperty = "org.gradle.testkit.dir"
@@ -33,3 +35,7 @@ open class IsolatedTestKitDir : ForcefullyDeletedTemporaryFolder() {
     fun restoreTestKitDir() =
         setOrClearProperty(testKitDirProperty, previous)
 }
+
+
+fun withIsolatedTestKitDir(dir: File, action: () -> Unit) =
+    withSystemProperty(testKitDirProperty, dir.absolutePath, action)
