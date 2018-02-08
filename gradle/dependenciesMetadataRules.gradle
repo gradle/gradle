@@ -82,6 +82,9 @@ subprojects {
 
             replaceJCLConstraintWithAdapter(handler, 'org.codehaus.groovy:groovy-all')
 
+            replaceAsmWithOW2Asm(handler, "com.google.code.findbugs:findbugs")
+            replaceAsmWithOW2Asm(handler, "org.parboiled:parboiled-java")
+
             //TODO check if we can upgrade the following dependencies and remove the rules
             downgradeIvy(handler, 'org.codehaus.groovy:groovy-all')
             downgradeTestNG(handler, 'org.codehaus.groovy:groovy-all')
@@ -154,6 +157,19 @@ def replaceJunitDepWithJunit(ComponentMetadataHandler handler, String module) {
                 it.add('junit:junit:4.12') {
                     because 'junit:junit replaced junit:junit-dep'
                 }
+            }
+        }
+    }
+}
+
+def replaceAsmWithOW2Asm(ComponentMetadataHandler handler, String module) {
+    handler.withModule(module) {
+        allVariants {
+            withDependencies { deps ->
+                deps.findAll { it.group == 'asm' }.each {
+                    deps.add(group: 'org.ow2.asm', name: it.name)
+                }
+                deps.removeAll { it.group == 'asm' }
             }
         }
     }

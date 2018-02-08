@@ -46,11 +46,15 @@ dependencies {
         }
         compile("commons-logging:commons-logging") {
             version { rejectAll() }
-            because "We do not want non-slf4j logging compiles on the classpath"
+            because "We do not want non-slf4j logging implementations on the classpath"
         }
         compile("org.sonatype.sisu:sisu-inject-plexus") {
             version { rejectAll() }
             because "We do not wand this dependency injection on the classpath"
+        }
+        compile("asm:asm") {
+            version { rejectAll() }
+            because "We use org.ow2.asm:asm"
         }
     }
 }
