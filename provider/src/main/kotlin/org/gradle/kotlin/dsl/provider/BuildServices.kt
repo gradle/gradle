@@ -59,6 +59,10 @@ object BuildServices {
 
         PluginRequestsHandler(pluginRequestApplicator, autoAppliedPluginHandler)
 
+    @Suppress("unused")
+    fun createClassPathModeExceptionCollector() =
+        ClassPathModeExceptionCollector()
+
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
         { id, creator -> jarCache["$id-$gradleKotlinDslVersion", creator] }

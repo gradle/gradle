@@ -61,7 +61,8 @@ class KotlinBuildScriptCompiler(
     private val baseScope: ClassLoaderScope,
     private val targetScope: ClassLoaderScope,
     private val classPathProvider: KotlinScriptClassPathProvider,
-    private val embeddedKotlinProvider: EmbeddedKotlinProvider) {
+    private val embeddedKotlinProvider: EmbeddedKotlinProvider,
+    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
 
     private
     val scriptResource = scriptSource.resource!!
@@ -324,15 +325,15 @@ class KotlinBuildScriptCompiler(
     private
     fun unexpectedBlockMessage(block: UnexpectedBlock) =
         "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
-}
 
-
-private inline
-fun ignoringErrors(action: () -> Unit) {
-    try {
-        action()
-    } catch (e: Exception) {
-        e.printStackTrace()
+    private inline
+    fun ignoringErrors(action: () -> Unit) {
+        try {
+            action()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            classPathModeExceptionCollector.collect(scriptSource, e)
+        }
     }
 }
 

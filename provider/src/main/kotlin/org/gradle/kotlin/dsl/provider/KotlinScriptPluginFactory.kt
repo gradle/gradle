@@ -35,7 +35,8 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     val kotlinCompiler: CachingKotlinCompiler,
     val classloadingCache: KotlinScriptClassloadingCache,
     val pluginRequestsHandler: PluginRequestsHandler,
-    val embeddedKotlinProvider: EmbeddedKotlinProvider) : ScriptPluginFactory {
+    val embeddedKotlinProvider: EmbeddedKotlinProvider,
+    val classPathModeExceptionCollector: ClassPathModeExceptionCollector) : ScriptPluginFactory {
 
     override fun create(
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
@@ -87,7 +88,8 @@ class KotlinScriptPluginFactory @Inject internal constructor(
             pluginRequestsHandler,
             baseScope,
             targetScope, classPathProvider,
-            embeddedKotlinProvider)
+            embeddedKotlinProvider,
+            classPathModeExceptionCollector)
 
     private
     fun inClassPathMode() =
