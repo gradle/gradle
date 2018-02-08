@@ -192,7 +192,9 @@ public class TaskOutputCacheCommandFactoryV2 {
                 } else {
                     InputStream inputStream = ((FileEntry) entry).read();
                     try {
-                        FileUtils.deleteQuietly(target);
+                        if (incomingSnapshot != null && incomingSnapshot.getType() != FileType.RegularFile) {
+                            FileUtils.forceDelete(target);
+                        }
                         OutputStream outputStream = new FileOutputStream(target);
                         try {
                             IOUtils.copyLarge(inputStream, outputStream, COPY_BUFFERS.get());
@@ -209,8 +211,12 @@ public class TaskOutputCacheCommandFactoryV2 {
                 // TODO Avoid loading directory if its hash is already what we expect here
                 ManifestEntry manifest = (ManifestEntry) entry;
                 ImmutableSortedMap<String, HashCode> childEntries = manifest.getChildren();
-                FileUtils.deleteQuietly(target);
-                FileUtils.forceMkdir(target);
+                if (incomingSnapshot == null || incomingSnapshot.getType() != FileType.Directory) {
+                    if (target.exists()) {
+                        FileUtils.forceDelete(target);
+                    }
+                    FileUtils.forceMkdir(target);
+                }
                 RelativePath relativePath = getChildPath(parent, target, false);
                 for (Map.Entry<String, HashCode> childEntry : childEntries.entrySet()) {
                     load(childEntry.getValue(), new File(target, childEntry.getKey()), relativePath, incomingSnapshots, outgoingSnapshots);
