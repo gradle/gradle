@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
+import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
@@ -57,7 +58,8 @@ private
 data class StandardKotlinBuildScriptModel(
     override val classPath: List<File>,
     override val sourcePath: List<File>,
-    override val implicitImports: List<String>) : KotlinBuildScriptModel, Serializable
+    override val implicitImports: List<String>,
+    override val exceptions: List<Exception>) : KotlinBuildScriptModel, Serializable
 
 
 internal
@@ -135,10 +137,12 @@ data class KotlinScriptTargetModelBuilder<T : Any>(
     fun buildModel(): KotlinBuildScriptModel {
         val accessorsClassPath = accessorsClassPath(scriptClassPath)
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
+        val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
-            implicitImports)
+            implicitImports,
+            classPathModeExceptionCollector.exceptions)
     }
 
     private

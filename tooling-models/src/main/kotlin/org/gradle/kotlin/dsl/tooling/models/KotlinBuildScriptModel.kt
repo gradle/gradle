@@ -23,4 +23,6 @@ interface KotlinBuildScriptModel {
     val classPath: List<File>
     val sourcePath: List<File>
     val implicitImports: List<String>
+
+    val exceptions: List<Exception>
 }
