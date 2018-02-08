@@ -15,13 +15,19 @@
  */
 package org.gradle.ide.visualstudio
 
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.apache.commons.io.FilenameUtils
+import org.gradle.api.Project
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
-class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set
 
     def app = new CppHelloWorldApp()
@@ -38,11 +44,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
                 apply plugin: 'cpp'
 
                 model {
-                    platforms {
-                        win32 {
-                            architecture "i386"
-                        }
-                    }
                     buildTypes {
                         debug
                         release
@@ -87,7 +88,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable")
         }
 
         and:
@@ -96,7 +97,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary")
         }
 
         and:
@@ -105,7 +106,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary")
         }
 
         and:
@@ -184,7 +185,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable")
         }
 
         and:
@@ -193,7 +194,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary")
         }
 
         and:
@@ -202,7 +203,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary")
         }
 
         and:
@@ -285,6 +286,102 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         helloLibProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../greet/src/greetings/headers")
         greetDllProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can build executable that depends on static library in another project from visual studio"() {
+        useMsbuildTool()
+
+        given:
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+
+        settingsFile << """
+            include ':exe', ':lib'
+        """
+        file("exe", "build.gradle") << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+                        }
+                    }
+                }
+            }
+        """
+        file("lib", "build.gradle") << """
+            model {
+                components {
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+        succeeds ":visualStudio"
+
+        when:
+        def resultDebug = msbuild
+            .withSolution(solutionFile('app.sln'))
+            .withConfiguration('debug')
+            .withProject("exe_mainExe")
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
+        resultDebug.assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
+        installation('exe/build/install/main/debug').assertInstalled()
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can clean from visual studio with dependencies"() {
+        useMsbuildTool()
+        def debugBinary = executable('exe/build/exe/main/debug/main')
+
+        given:
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+        settingsFile << """
+            include ':exe', ':lib'
+        """
+        file("exe", "build.gradle") << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+                        }
+                    }
+                }
+            }
+        """
+        file("lib", "build.gradle") << """
+            model {
+                components {
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+        succeeds ":visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('debug')
+            .succeeds()
+
+        then:
+        debugBinary.exec().out == app.englishOutput
+
+        when:
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('debug')
+            .succeeds(MSBuildExecutor.MSBuildAction.CLEAN)
+
+        then:
+        file("exe/build").assertDoesNotExist()
+        file("lib/build").assertDoesNotExist()
     }
 
     def "create visual studio solution where multiple components have same name"() {
@@ -422,9 +519,11 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
+    /** @see IdePlugin#toGradleCommand(Project) */
+    @IgnoreIf({GradleContextualExecuter.daemon})
     def "detects gradle wrapper and uses in vs project"() {
         when:
-        file("gradlew.bat") << "dummy wrapper"
+        hostGradleWrapperFile << "dummy wrapper"
 
         settingsFile << """
             include ':exe'
@@ -444,7 +543,35 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "../gradlew.bat -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../${hostGradleWrapperFile.name}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+        }
+    }
+
+    /** @see IdePlugin#toGradleCommand(Project) */
+    @IgnoreIf({!GradleContextualExecuter.daemon})
+    def "detects executing gradle distribution and uses in vs project"() {
+        when:
+        hostGradleWrapperFile << "dummy wrapper"
+
+        settingsFile << """
+            include ':exe'
+        """
+        buildFile << """
+            project(':exe') {
+                model {
+                    components {
+                        main(NativeExecutableSpec)
+                    }
+                }
+            }
+        """
+        and:
+        run ":visualStudio"
+
+        then:
+        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
+        exeProject.projectConfigurations.values().each {
+            assert it.buildCommand == "\"${FilenameUtils.separatorsToUnix(executer.distribution.gradleHomeDir.file('bin/gradle').absolutePath)}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 
@@ -493,17 +620,5 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         then:
         generatedFiles*.assertDoesNotExist()
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
-    }
-
-    private ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
-    }
-
-    private static String filePath(String... paths) {
-        return (paths as List).join(";")
     }
 }

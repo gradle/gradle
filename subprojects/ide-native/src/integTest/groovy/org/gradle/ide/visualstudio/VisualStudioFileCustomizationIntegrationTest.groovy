@@ -16,14 +16,13 @@
 
 package org.gradle.ide.visualstudio
 
-import org.gradle.ide.visualstudio.fixtures.FiltersFile
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import spock.lang.IgnoreIf
 
-class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
     def app = new CppHelloWorldApp()
 
@@ -53,9 +52,10 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 """
     }
 
+    @IgnoreIf({GradleContextualExecuter.daemon})
     def "can specify location of generated files"() {
         when:
-        file("gradlew.bat") << "dummy wrapper"
+        hostGradleWrapperFile << "dummy wrapper"
         buildFile << '''
     model {
         visualStudio {
@@ -80,7 +80,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
         assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../../../${hostGradleWrapperFile.name}\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")
@@ -191,17 +191,5 @@ tasks.withType(GenerateProjectFileTask) {
         projectFile.projectConfigurations.values().each {
             assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :installMain${it.name.capitalize()}Executable"
         }
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
-    }
-
-    private ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
-    }
-
-    private FiltersFile filtersFile(String path) {
-        return new FiltersFile(file(path))
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
@@ -257,7 +257,7 @@ apply plugin: 'swift-application'
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebug.error.contains("Scheme App is not currently configured for the test action.")
@@ -267,7 +267,7 @@ apply plugin: 'swift-application'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
@@ -277,7 +277,7 @@ apply plugin: 'swift-application'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
@@ -300,7 +300,7 @@ apply plugin: 'swift-library'
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebug.error.contains("Scheme App is not currently configured for the test action.")
@@ -310,7 +310,7 @@ apply plugin: 'swift-library'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
@@ -334,7 +334,7 @@ apply plugin: 'swift-library'
         def resultDebugWithoutXCTest = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
             .withScheme("Greeter")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebugWithoutXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
@@ -345,7 +345,7 @@ apply plugin: 'swift-library'
         def resultDebugWithXCTest = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
             .withScheme("Greeter")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
@@ -373,7 +373,7 @@ apply plugin: 'xctest'
         def resultTestRunner = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
             .withScheme("Greeter")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
@@ -404,7 +404,7 @@ apply plugin: 'xctest'
         def resultTestRunner = xcodebuild
             .withProject(xcodeProject("app.xcodeproj"))
             .withScheme("App")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
@@ -506,7 +506,7 @@ apply plugin: 'swift-application'
         xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App')
-            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+            .succeeds(XcodebuildExecutor.XcodeAction.CLEAN)
         then:
         file("build").assertDoesNotExist()
     }
