@@ -79,9 +79,12 @@ public class MSBuildExecutor {
     }
 
     public ExecutionResult succeeds(MSBuildAction action) {
-        String target = action.toString();
+        String target = "";
         if (projectName != null) {
-            target = projectName + ":" + target;
+            target = projectName;
+        }
+        if (action != MSBuildAction.BUILD) {
+            target += ":" + action.toString();
         }
         withArgument("/t:" + target);
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(testDirectory));
