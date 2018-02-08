@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
 import spock.lang.Specification
@@ -50,10 +51,26 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.testClassStarted("some-test")
 
         when:
-        processor.testClassFinished(null)
+        processor.testClassFinished(null, false)
 
         then:
         1 * target.completed(1, {it.endTime == 1300})
+        0 * target._
+    }
+
+    def "sets result status when test class is skipped"() {
+        given:
+        idGenerator.generateId() >> 1
+        timeProvider.currentTime >>> [1200, 1300]
+
+        and:
+        processor.testClassStarted("some-test")
+
+        when:
+        processor.testClassFinished(null, true)
+
+        then:
+        1 * target.completed(1, {it.endTime == 1300 && it.resultType == TestResult.ResultType.SKIPPED})
         0 * target._
     }
 
@@ -67,7 +84,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.testClassStarted("some-test")
 
         when:
-        processor.testClassFinished(failure)
+        processor.testClassFinished(failure, false)
 
         then:
         1 * target.started({it.id == 2 && it.className == 'some-test' && it.name == 'initializationError'}, !null)
@@ -93,7 +110,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.started(test2, null)
 
         when:
-        processor.testClassFinished(failure)
+        processor.testClassFinished(failure, false)
 
         then:
         1 * target.failure(2, failure)
@@ -118,7 +135,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.completed(2, null)
 
         when:
-        processor.testClassFinished(failure)
+        processor.testClassFinished(failure, false)
 
         then:
         1 * target.started({it.id == 3 && it.className == 'some-test' && it.name == 'executionError'}, !null)
