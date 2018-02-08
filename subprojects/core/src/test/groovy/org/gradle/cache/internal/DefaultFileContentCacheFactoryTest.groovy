@@ -20,7 +20,7 @@ import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
+import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
@@ -159,7 +159,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(TaskOutputsGenerationListener).beforeTaskOutputsGenerated()
+        listenerManager.getBroadcaster(TaskOutputChangesListener).beforeTaskOutputChanged()
         result = cache.get(file)
 
         then:
@@ -190,7 +190,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(TaskOutputsGenerationListener).beforeTaskOutputsGenerated()
+        listenerManager.getBroadcaster(TaskOutputChangesListener).beforeTaskOutputChanged()
         result = cache.get(file)
 
         then:
@@ -222,7 +222,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(TaskOutputsGenerationListener).beforeTaskOutputsGenerated()
+        listenerManager.getBroadcaster(TaskOutputChangesListener).beforeTaskOutputChanged()
         result = cache.get(file)
 
         then:

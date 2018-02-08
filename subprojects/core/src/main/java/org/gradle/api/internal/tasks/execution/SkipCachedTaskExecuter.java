@@ -41,16 +41,16 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private final BuildCacheController buildCache;
     private final TaskExecuter delegate;
-    private final TaskOutputsGenerationListener taskOutputsGenerationListener;
+    private final TaskOutputChangesListener taskOutputChangesListener;
     private final TaskOutputCacheCommandFactory buildCacheCommandFactory;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
-        TaskOutputsGenerationListener taskOutputsGenerationListener,
+        TaskOutputChangesListener taskOutputChangesListener,
         TaskOutputCacheCommandFactory buildCacheCommandFactory,
         TaskExecuter delegate
     ) {
-        this.taskOutputsGenerationListener = taskOutputsGenerationListener;
+        this.taskOutputChangesListener = taskOutputChangesListener;
         this.buildCacheCommandFactory = buildCacheCommandFactory;
         this.buildCache = buildCache;
         this.delegate = delegate;
@@ -77,7 +77,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
                         OriginTaskExecutionMetadata originMetadata = buildCache.load(
-                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskState)
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskState)
                         );
                         if (originMetadata != null) {
                             state.setOutcome(TaskExecutionOutcome.FROM_CACHE);

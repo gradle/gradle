@@ -47,7 +47,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def buildCacheController = Mock(BuildCacheController)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
-    def taskOutputGenerationListener = Mock(TaskOutputsGenerationListener)
+    def taskOutputGenerationListener = Mock(TaskOutputChangesListener)
     def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)

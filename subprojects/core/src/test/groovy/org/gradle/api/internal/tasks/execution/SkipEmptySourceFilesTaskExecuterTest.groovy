@@ -46,11 +46,11 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskArtifactState = Mock(TaskArtifactState)
     final taskExecutionHistory = Mock(TaskExecutionHistory)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    final taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
+    final taskOutputChangesListener = Mock(TaskOutputChangesListener)
     final buildInvocationId = UniqueId.generate()
     final taskExecutionTime = 1L
     final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
-    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputsGenerationListener, target, new BuildInvocationScopeId(buildInvocationId))
+    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputChangesListener, target, new BuildInvocationScopeId(buildInvocationId))
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         when:
@@ -98,7 +98,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the file succeeds'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
@@ -136,7 +136,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the file succeeds'
         1 * previousFile.exists() >> true
@@ -173,7 +173,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> new OverlappingOutputs("outputProperty", "some/path")
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the file succeeds'
         _ * previousFile.exists() >> true
@@ -216,7 +216,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the previous file fails'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
