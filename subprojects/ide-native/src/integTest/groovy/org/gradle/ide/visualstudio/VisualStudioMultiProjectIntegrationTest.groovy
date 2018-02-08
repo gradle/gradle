@@ -323,11 +323,12 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         def resultDebug = msbuild
             .withSolution(solutionFile('app.sln'))
             .withConfiguration('debug')
+            .withProject("exe_mainExe")
             .succeeds()
 
         then:
-        resultDebug.executedTasks as Set == [':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary', ':lib:compileHelloDebugSharedLibraryHelloCpp', ':lib:linkHelloDebugSharedLibrary', ':lib:helloDebugSharedLibrary'] as Set
-        resultDebug.skippedTasks.empty
+        resultDebug.assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary', ':lib:compileHelloDebugSharedLibraryHelloCpp', ':lib:linkHelloDebugSharedLibrary', ':lib:helloDebugSharedLibrary')
+        resultDebug.assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary', ':lib:compileHelloDebugSharedLibraryHelloCpp', ':lib:linkHelloDebugSharedLibrary', ':lib:helloDebugSharedLibrary')
         installation('exe/build/install/main/debug').assertInstalled()
     }
 

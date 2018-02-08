@@ -62,11 +62,12 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         def resultDebug = msbuild
             .withSolution(solutionFile(visualStudio.dir.file("vs/visual-studio.sln")))
             .withConfiguration("debug")
+            .withProject("mainExe")
             .succeeds()
 
         then:
-        resultDebug.executedTasks as Set == [':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloStaticLibraryHelloCpp', ':createHelloStaticLibrary', ':helloStaticLibrary', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary'] as Set
-        resultDebug.skippedTasks.empty
+        resultDebug.assertTasksExecuted(':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloStaticLibraryHelloCpp', ':createHelloStaticLibrary', ':helloStaticLibrary', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary')
+        resultDebug.assertTasksNotSkipped(':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloStaticLibraryHelloCpp', ':createHelloStaticLibrary', ':helloStaticLibrary', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary')
         installation('build/install/main').assertInstalled()
     }
 }

@@ -28,7 +28,13 @@ class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainInte
     void useMsbuildTool() {
         executer.requireGradleDistribution().requireIsolatedDaemons()
 
-        buildFile << IdeCommandLineUtil.generateGradleProbeBuildFile('visualStudio', 'msbuild')
+        initScript << """
+            rootProject {
+                ${IdeCommandLineUtil.generateGradleProbeBuildFile('visualStudio', 'msbuild')}
+            }
+        """
+
+        executer.withArguments('-I', initScript.absolutePath)
     }
 
     File getHostGradleWrapperFile() {

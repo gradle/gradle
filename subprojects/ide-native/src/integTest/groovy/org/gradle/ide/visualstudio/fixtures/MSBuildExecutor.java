@@ -43,6 +43,7 @@ public class MSBuildExecutor {
 
     private final List<String> args = new ArrayList<String>();
     private final TestFile testDirectory;
+    private String projectName;
 
     public MSBuildExecutor(TestFile testDirectory) {
         this.testDirectory = testDirectory;
@@ -56,6 +57,11 @@ public class MSBuildExecutor {
 
     public MSBuildExecutor withConfiguration(String configurationName) {
         return addArguments("/p:Configuration=" + configurationName);
+    }
+
+    public MSBuildExecutor withProject(String projectName) {
+        this.projectName = projectName;
+        return this;
     }
 
     public MSBuildExecutor withArgument(String arg) {
@@ -73,7 +79,11 @@ public class MSBuildExecutor {
     }
 
     public ExecutionResult succeeds(MSBuildAction action) {
-        withArgument("/t:" + action.toString());
+        String target = action.toString();
+        if (projectName != null) {
+            target = projectName + ":" + target;
+        }
+        withArgument("/t:" + target);
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(testDirectory));
         System.out.println(result.getOut());
         return new OutputScrapingExecutionResult(trimLines(result.getOut()), trimLines(result.getError()));
