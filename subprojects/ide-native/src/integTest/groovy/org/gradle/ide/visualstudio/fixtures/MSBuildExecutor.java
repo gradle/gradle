@@ -42,11 +42,16 @@ public class MSBuildExecutor {
     }
 
     private final List<String> args = new ArrayList<String>();
-    private final TestFile testDirectory;
+    private TestFile workingDir;
     private String projectName;
 
-    public MSBuildExecutor(TestFile testDirectory) {
-        this.testDirectory = testDirectory;
+    public MSBuildExecutor(TestFile workingDir) {
+        this.workingDir = workingDir;
+    }
+
+    public MSBuildExecutor withWorkingDir(TestFile workingDir) {
+        this.workingDir = workingDir;
+        return this;
     }
 
     public MSBuildExecutor withSolution(SolutionFile visualStudioSolution) {
@@ -87,7 +92,7 @@ public class MSBuildExecutor {
             target += ":" + action.toString();
         }
         withArgument("/t:" + target);
-        ExecOutput result = findMSBuild().execute(args, buildEnvironment(testDirectory));
+        ExecOutput result = findMSBuild().execute(args, buildEnvironment(workingDir));
         System.out.println(result.getOut());
         return new OutputScrapingExecutionResult(trimLines(result.getOut()), trimLines(result.getError()));
     }
@@ -98,7 +103,7 @@ public class MSBuildExecutor {
 
     public ExecutionFailure fails(MSBuildAction action) {
         withArgument(action.toString());
-        ExecOutput result = findMSBuild().execWithFailure(args, buildEnvironment(testDirectory));
+        ExecOutput result = findMSBuild().execWithFailure(args, buildEnvironment(workingDir));
         System.out.println(result.getOut());
         System.out.println(result.getError());
         return new OutputScrapingExecutionFailure(trimLines(result.getOut()), trimLines(result.getError()));

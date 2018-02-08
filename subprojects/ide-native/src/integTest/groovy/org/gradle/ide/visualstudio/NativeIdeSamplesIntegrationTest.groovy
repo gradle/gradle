@@ -60,6 +60,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
 
         when:
         def resultDebug = msbuild
+            .withWorkingDir(visualStudio.dir)
             .withSolution(solutionFile(visualStudio.dir.file("vs/visual-studio.sln")))
             .withConfiguration("debug")
             .withProject("mainExe")
