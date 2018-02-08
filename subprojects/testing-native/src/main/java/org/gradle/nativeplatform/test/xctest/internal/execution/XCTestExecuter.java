@@ -55,9 +55,6 @@ import java.util.List;
  * - Test probing (so we know which tests exist without executing them)
  */
 public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
-
-    private TestClassProcessor processor;
-
     @Inject
     public ExecHandleFactory getExecHandleFactory() {
         throw new UnsupportedOperationException();
@@ -84,22 +81,20 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
     @Override
     public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
-        final File executable = testExecutionSpec.getRunScript();
-        final File workingDir = testExecutionSpec.getWorkingDir();
-        processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExec(), getIdGenerator());
+        File executable = testExecutionSpec.getRunScript();
+        File workingDir = testExecutionSpec.getWorkingDir();
+        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExec(), getIdGenerator());
 
-        final Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
+        Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
-        final Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
+        Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
     @Override
     public void stopNow() {
-        if (processor != null) {
-            processor.stopNow();
-        }
+        throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
     }
 
     private static class XCTestDetector implements Runnable {
@@ -180,9 +175,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         @Override
         public void stopNow() {
-            if (execHandle != null) {
-                execHandle.abort();
-            }
+            throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
         }
     }
 }
