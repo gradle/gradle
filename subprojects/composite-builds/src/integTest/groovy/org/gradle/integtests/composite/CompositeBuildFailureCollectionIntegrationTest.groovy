@@ -55,12 +55,22 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         """
     }
 
-    def "can collect all test failures"() {
+    def "can collect all build failures"() {
         when:
-        execute(buildA, 'test', '--continue')
+        fails(buildA, 'test', ['--continue'])
 
         then:
-        noExceptionThrown()
+        assertTaskExecuted(":buildB", ":test")
+        assertTaskExecuted(":buildC", ":sub1:test")
+        assertTaskExecuted(":buildC", ":sub2:test")
+        assertTaskExecuted(":buildC", ":sub3:test")
+        assertTaskExecuted(":buildD", ":test")
+        errorOutput.contains('Multiple build failures')
+        errorOutput.contains("Execution failed for task ':buildB:test'")
+        errorOutput.contains("Execution failed for task ':buildC:sub1:test'")
+        errorOutput.contains("Execution failed for task ':buildC:sub2:test'")
+        errorOutput.contains("Execution failed for task ':buildC:sub3:test'")
+        errorOutput.contains("Execution failed for task ':buildD:test'")
     }
 
     private String javaProject() {
