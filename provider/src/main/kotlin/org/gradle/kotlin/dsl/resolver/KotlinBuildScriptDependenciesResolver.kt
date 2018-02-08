@@ -20,8 +20,6 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.kotlin.dsl.concurrent.future
 
-import org.gradle.tooling.ProgressListener
-
 import java.io.File
 
 import java.net.URI
@@ -76,7 +74,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val request = modelRequestFrom(scriptFile, environment)
         log(SubmittedModelRequest(scriptFile, request))
 
-        val response = submit(request, progressLogger(scriptFile))
+        val response = fetchKotlinBuildScriptModelFor(request)
         log(ReceivedModelResponse(scriptFile, response))
 
         val scriptDependencies = dependenciesFrom(response, buildscriptBlockHash)
@@ -105,16 +103,6 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
             options = stringList("gradleOptions"),
             jvmOptions = stringList("gradleJvmOptions"))
     }
-
-    private
-    suspend fun submit(request: KotlinBuildScriptModelRequest, progressListener: ProgressListener): KotlinBuildScriptModel =
-        fetchKotlinBuildScriptModelFor(request) {
-            addProgressListener(progressListener)
-        }
-
-    private
-    fun progressLogger(scriptFile: File?) =
-        ProgressListener { log(ResolutionProgress(scriptFile, it.description)) }
 
     private
     fun gradleInstallationFrom(environment: Environment): GradleInstallation =
