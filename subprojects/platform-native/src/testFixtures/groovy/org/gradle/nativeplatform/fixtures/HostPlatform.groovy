@@ -18,10 +18,14 @@ package org.gradle.nativeplatform.fixtures
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.gradle.test.fixtures.file.TestFile
 
 
 trait HostPlatform {
     NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
+        if (installDir instanceof TestFile) {
+            return new NativeInstallationFixture((TestFile) installDir, os)
+        }
         return new NativeInstallationFixture(file(installDir), os)
     }
 
