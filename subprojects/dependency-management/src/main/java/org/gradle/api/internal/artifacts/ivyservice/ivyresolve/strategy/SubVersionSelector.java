@@ -26,6 +26,10 @@ public class SubVersionSelector extends AbstractStringVersionSelector {
         prefix = selector.substring(0, selector.length() - 1);
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
     public boolean isDynamic() {
         return true;
     }

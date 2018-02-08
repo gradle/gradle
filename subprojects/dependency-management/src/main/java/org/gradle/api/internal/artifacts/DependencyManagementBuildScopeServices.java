@@ -26,10 +26,6 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
@@ -39,10 +35,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultModuleVersionsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
@@ -97,7 +98,6 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -105,8 +105,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.vcs.internal.VcsMappingFactory;
-import org.gradle.vcs.internal.VcsMappingsStore;
+import org.gradle.vcs.internal.VcsResolver;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
@@ -358,12 +357,12 @@ class DependencyManagementBuildScopeServices {
     private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
         private final VcsDependencyResolver vcsDependencyResolver;
         private final ProjectDependencyResolver projectDependencyResolver;
-        private final VcsMappingsStore vcsMappingsStore;
+        private final VcsResolver vcsResolver;
 
-        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsStore vcsMappingsStore) {
+        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
             this.vcsDependencyResolver = vcsDependencyResolver;
             this.projectDependencyResolver = projectDependencyResolver;
-            this.vcsMappingsStore = vcsMappingsStore;
+            this.vcsResolver = vcsResolver;
         }
 
         @Override
@@ -373,15 +372,15 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            return vcsMappingsStore.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
+            return vcsResolver.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsStore, vcsMappingFactory, versionControlSystemFactory, versionSelectorScheme, versionComparator);
+    VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
+        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator);
     }
 
-    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsStore vcsMappingsStore) {
-        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsMappingsStore);
+    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
+        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsResolver);
     }
 }

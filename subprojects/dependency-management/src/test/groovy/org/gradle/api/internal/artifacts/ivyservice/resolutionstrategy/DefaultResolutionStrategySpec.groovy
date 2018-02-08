@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
+
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
@@ -28,10 +29,10 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.vcs.internal.VcsMappingsStore
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.vcs.internal.VcsResolver
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
@@ -45,14 +46,14 @@ class DefaultResolutionStrategySpec extends Specification {
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
-    def vcsMappingsInternal = Mock(VcsMappingsStore)
+    def vcsResolver = Mock(VcsResolver)
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory, componentSelectorConverter)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter)
 
     def "allows setting forced modules"() {
         expect:
