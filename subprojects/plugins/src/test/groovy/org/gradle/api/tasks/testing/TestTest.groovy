@@ -37,6 +37,8 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.util.GFileUtils
 
@@ -78,7 +80,7 @@ class TestTest extends AbstractConventionTaskTest {
         completion.leaseFinish()
     }
 
-    public ConventionTask getTask() {
+    ConventionTask getTask() {
         return test
     }
 
@@ -148,19 +150,19 @@ class TestTest extends AbstractConventionTaskTest {
         configureTask()
         test.useTestFramework(new TestFramework() {
 
-            public TestFrameworkDetector getDetector() {
+            TestFrameworkDetector getDetector() {
                 return null
             }
 
-            public TestFrameworkOptions getOptions() {
+            TestFrameworkOptions getOptions() {
                 return null
             }
 
-            public WorkerTestClassProcessorFactory getProcessorFactory() {
+            WorkerTestClassProcessorFactory getProcessorFactory() {
                 return null
             }
 
-            public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
+            Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
                 return null
             }
         })
@@ -255,6 +257,21 @@ class TestTest extends AbstractConventionTaskTest {
         test.excludes.empty
         test.filter.includePatterns == [TEST_PATTERN_1] as Set
         test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+    }
+
+    def "jvm arg providers are added to java fork options"() {
+        when:
+        test.jvmArgProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["First", "Second"]
+            }
+        }
+        def javaForkOptions = new DefaultJavaForkOptions(project.fileResolver)
+        test.copyTo(javaForkOptions)
+
+        then:
+        javaForkOptions.getJvmArgs() == ['First', 'Second']
     }
 
     private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {

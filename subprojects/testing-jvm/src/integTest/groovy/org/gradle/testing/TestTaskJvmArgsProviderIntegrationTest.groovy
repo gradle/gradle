@@ -60,7 +60,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            test.jvmArgumentProviders << new MyTestSystemProperties(inputFile: file(project.property('inputFile')))
+            test.jvmArgProviders << new MyTestSystemProperties(inputFile: file(project.property('inputFile')))
         """
         file('inputFile.txt').text = "Test"
 

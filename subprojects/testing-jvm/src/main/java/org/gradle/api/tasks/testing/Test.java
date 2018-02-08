@@ -59,6 +59,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ConfigurableJavaForkOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -125,7 +126,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  */
 @NonNullApi
 @CacheableTask
-public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+public class Test extends AbstractTestTask implements ConfigurableJavaForkOptions, PatternFilterable {
 
     private final DefaultJavaForkOptions forkOptions;
 
@@ -137,7 +138,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private List<CommandLineArgumentProvider> jvmArgProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -364,14 +365,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Command line argument providers for the java process of the tests.
-     *
-     * @since 4.6
+     * {@inheritDoc}
      */
-    @Nested
-    @Incubating
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return jvmArgumentProviders;
+    @Override
+    public List<CommandLineArgumentProvider> getJvmArgProviders() {
+        return jvmArgProviders;
     }
 
     /**
@@ -515,7 +513,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
-        for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
+        for (CommandLineArgumentProvider jvmArgumentProvider : getJvmArgProviders()) {
             target.jvmArgs(jvmArgumentProvider.asArguments());
         }
         return this;

@@ -56,6 +56,14 @@
                 "org.gradle.api.tasks.compile.JavaCompile.getGeneralCompileCaches()",
                 "org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Class org.gradle.api.tasks.testing.Test",
+            "acceptation": "Only one method is new in the incubating interface.",
+            "changes": [
+                "org.gradle.process.ConfigurableJavaForkOptions"
+            ]
         }
     ]
 }
