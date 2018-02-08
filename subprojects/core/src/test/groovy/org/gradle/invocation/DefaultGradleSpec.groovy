@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileResolver
@@ -59,6 +60,8 @@ class DefaultGradleSpec extends Specification {
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
+    FeaturePreviews featurePreviews = Mock(FeaturePreviews)
+
     GradleInternal gradle
 
     def setup() {
@@ -76,6 +79,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
+        _ * serviceRegistry.get(FeaturePreviews) >> featurePreviews
 
         gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -409,6 +413,14 @@ class DefaultGradleSpec extends Specification {
         gradle.identityPath == Path.ROOT
         child1.identityPath == Path.path(":child1")
         child2.identityPath == Path.path(":child1:child2")
+    }
+
+    def 'can enable feature previews'() {
+        when:
+        gradle.enableFeaturePreview('IMPROVED_POM_SUPPORT')
+
+        then:
+        1 * featurePreviews.enableFeature('IMPROVED_POM_SUPPORT')
     }
 
     def projectRegistry = new DefaultProjectRegistry()

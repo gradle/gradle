@@ -71,7 +71,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        project.getGradle().getStartParameter().setGradleMetadata(true);
+        project.getGradle().enableFeaturePreview("GRADLE_METADATA");
 
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {

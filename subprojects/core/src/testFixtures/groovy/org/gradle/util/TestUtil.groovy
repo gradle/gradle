@@ -46,6 +46,9 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.rmi.server.UID
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
+import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT
+
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
 
@@ -84,11 +87,15 @@ class TestUtil {
         return NamedObjectInstantiator.INSTANCE
     }
 
-    static FeaturePreviews featurePreviews(boolean advancedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
-        def startParameter = new StartParameterInternal()
-        startParameter.advancedPomSupport = advancedPomSupportEnabled
-        startParameter.gradleMetadata = gradleMetadataEnabled
-        return new FeaturePreviews(startParameter)
+    static FeaturePreviews featurePreviews(boolean improvedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
+        def previews = new FeaturePreviews(new StartParameterInternal())
+        if (improvedPomSupportEnabled) {
+            previews.enableFeature(IMPROVED_POM_SUPPORT)
+        }
+        if (gradleMetadataEnabled) {
+            previews.enableFeature(GRADLE_METADATA)
+        }
+        return previews
     }
 
     static TestUtil create(File rootDir) {
