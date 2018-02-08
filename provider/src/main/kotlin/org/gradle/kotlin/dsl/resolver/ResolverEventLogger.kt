@@ -25,6 +25,7 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
+import java.io.StringWriter
 
 import java.text.SimpleDateFormat
 
@@ -119,6 +120,11 @@ object ResolverEventLogger {
                         "scriptFile" to scriptFile,
                         "response" to prettyPrint(response, indentation = 2)))
 
+            is ResolutionFailure     ->
+                prettyPrint("ResolutionFailure",
+                    sequenceOf(
+                        "scriptFile" to scriptFile,
+                        "failure" to stringForException(failure, indentation = 2)))
             else                     ->
                 prettyPrintAny(this)
         }
@@ -142,7 +148,8 @@ object ResolverEventLogger {
             sequenceOf(
                 "classPath" to compactStringFor(classPath),
                 "sourcePath" to compactStringFor(sourcePath),
-                "implicitImports" to compactStringFor(implicitImports, '.')),
+                "implicitImports" to compactStringFor(implicitImports, '.'),
+                "exceptions" to stringForExceptions(exceptions, indentation)),
             indentation)
     }
 
@@ -156,6 +163,23 @@ object ResolverEventLogger {
             properties.joinToString(prefix = "\n$it", separator = ",\n$it") { (name, value) ->
                 "$name = $value"
             }
+        }
+
+    private
+    fun stringForExceptions(exceptions: List<Exception>, indentation: Int?) =
+        if (exceptions.isNotEmpty())
+            indentationStringFor(indentation).let {
+                exceptions.joinToString(prefix = "[\n$it\t", separator = ",\n$it\t", postfix = "]") { exception ->
+                    stringForException(exception, indentation)
+                }
+            }
+        else "NO ERROR"
+
+    private
+    fun stringForException(exception: Exception, indentation: Int?) =
+        indentationStringFor(indentation).let {
+            StringWriter().also { writer -> exception.printStackTrace(PrintWriter(writer)) }.toString()
+                .prependIndent(it)
         }
 
     private
