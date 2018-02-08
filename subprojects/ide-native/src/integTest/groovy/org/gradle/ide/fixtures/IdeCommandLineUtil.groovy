@@ -27,7 +27,7 @@ import org.gradle.util.GUtil
 abstract class IdeCommandLineUtil {
     private IdeCommandLineUtil() {}
 
-    static String generateGradleProbeBuildFile(String ideTaskName, String ideCommandLineTool) {
+    static String generateGradleProbeInitFile(String ideTaskName, String ideCommandLineTool) {
         return """
             gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
             Properties gatherEnvironment() {
@@ -49,26 +49,28 @@ Actual: \${actual[key]}
                 }
             }
 
-            def gradleEnvironment = file("gradle-environment")
-            tasks.matching { it.name == '$ideTaskName' }.all { ideTask ->
-                ideTask.doLast {
-                    def writer = gradleEnvironment.newOutputStream()
-                    gatherEnvironment().store(writer, null)
-                    writer.close()
+            rootProject {
+                def gradleEnvironment = file("gradle-environment")
+                tasks.matching { it.name == '$ideTaskName' }.all { ideTask ->
+                    ideTask.doLast {
+                        def writer = gradleEnvironment.newOutputStream()
+                        gatherEnvironment().store(writer, null)
+                        writer.close()
+                    }
                 }
-            }
-            gradle.buildFinished {
-                if (!gradleEnvironment.exists()) {
-                    throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
-                } else {
-                    def expectedEnvironment = new Properties()
-                    expectedEnvironment.load(gradleEnvironment.newInputStream())
+                gradle.buildFinished {
+                    if (!gradleEnvironment.exists()) {
+                        throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
+                    } else {
+                        def expectedEnvironment = new Properties()
+                        expectedEnvironment.load(gradleEnvironment.newInputStream())
 
-                    def actualEnvironment = gatherEnvironment()
+                        def actualEnvironment = gatherEnvironment()
 
-                    assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
-                    assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
-                    assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                        assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
+                        assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
+                        assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                    }
                 }
             }
         """

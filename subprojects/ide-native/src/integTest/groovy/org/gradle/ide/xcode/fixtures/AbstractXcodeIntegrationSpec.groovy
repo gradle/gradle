@@ -107,7 +107,12 @@ rootProject.name = "${rootProjectName}"
     void useXcodebuildTool() {
         executer.requireGradleDistribution().requireIsolatedDaemons()
 
-        buildFile << IdeCommandLineUtil.generateGradleProbeBuildFile('xcode', 'xcodebuild')
+        def initScript = file("init.gradle")
+        initScript << IdeCommandLineUtil.generateGradleProbeInitFile('xcode', 'xcodebuild')
+
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
     }
 
     // TODO: Use AbstractInstalledToolChainIntegrationSpec instead once Xcode test are sorted out
