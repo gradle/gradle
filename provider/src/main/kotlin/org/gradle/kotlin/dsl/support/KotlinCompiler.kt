@@ -227,7 +227,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
             return (listOf("Script compilation $errorPlural:") + errors.map { error ->
                 if (error.location != null) {
                     "Line ${error.location.line.toString().padStart(maxLineNumberLen, '0')}: ${error.location.lineContent}\n" +
-                        "${" ".repeat(5 + maxLineNumberLen + 1 + error.location.column)}^- ${error.message}"
+                        "${" ".repeat(5 + maxLineNumberLen + 1 + error.location.column)}^ ${error.message}"
                 } else {
                     error.message
                 }
