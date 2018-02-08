@@ -33,6 +33,7 @@ class VswhereSpec extends Specification {
     def windowsRegistry = Mock(WindowsRegistry)
 
     void vswhereInPath() {
+        x64Registry()
         vswhere = localRoot.createFile("vswhere.exe")
     }
 
