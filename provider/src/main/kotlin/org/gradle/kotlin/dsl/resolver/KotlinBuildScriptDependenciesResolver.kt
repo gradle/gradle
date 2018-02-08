@@ -57,7 +57,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                     previousDependencies
                 }
                 is ResolverAction.RequestNew     -> {
-                    assembleDependenciesFrom(script.file, environment!!, action.buildscriptBlockHash)
+                    assembleDependenciesFrom(script.file, environment!!, previousDependencies, action.buildscriptBlockHash)
                 }
             }
         } catch (e: Exception) {
@@ -70,6 +70,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     suspend fun assembleDependenciesFrom(
         scriptFile: File?,
         environment: Environment,
+        previousDependencies: KotlinScriptExternalDependencies?,
         buildscriptBlockHash: ByteArray?): KotlinScriptExternalDependencies {
 
         val request = modelRequestFrom(scriptFile, environment)
@@ -78,10 +79,18 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val response = fetchKotlinBuildScriptModelFor(request)
         log(ReceivedModelResponse(scriptFile, response))
 
-        val scriptDependencies = dependenciesFrom(response, buildscriptBlockHash)
-        log(ResolvedDependencies(scriptFile, scriptDependencies))
-
-        return scriptDependencies
+        return if (response.exceptions.isEmpty())
+            dependenciesFrom(response, buildscriptBlockHash).also {
+                log(ResolvedDependencies(scriptFile, it))
+            }
+        else if (previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size)
+            previousDependencies.also {
+                log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
+            }
+        else
+            dependenciesFrom(response, buildscriptBlockHash).also {
+                log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
+            }
     }
 
     private
