@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -158,15 +159,16 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         }
 
         String version = constraint.getPreferredVersion();
-        if (version.equals("latest.integration")) {
+        VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
+        if (versionSelector instanceof LatestVersionSelector && ((LatestVersionSelector)versionSelector).getSelectorStatus().equals("integration")) {
             return versionControlSystem.getDefaultBranch(spec);
         }
 
-        VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
         if (versionSelector.requiresMetadata()) {
             // TODO - implement this by moving this resolver to live alongside the external resolvers
             return null;
         }
+
         Set<VersionRef> versions = versionControlSystem.getAvailableVersions(spec);
         Version bestVersion = null;
         VersionRef bestCandidate = null;
