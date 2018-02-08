@@ -64,6 +64,14 @@
             "changes": [
                 "org.gradle.process.ConfigurableJavaForkOptions"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Class org.gradle.api.tasks.JavaExec",
+            "acceptation": "Only one method is new in the incubating interface.",
+            "changes": [
+                "org.gradle.process.ConfigurableJavaForkOptions"
+            ]
         }
     ]
 }
