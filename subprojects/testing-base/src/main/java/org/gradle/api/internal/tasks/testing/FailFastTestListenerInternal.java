@@ -52,7 +52,7 @@ public class FailFastTestListenerInternal implements TestListenerInternal {
 
         delegate.completed(testDescriptor, delegateResult, completeEvent);
 
-        if (testResult.getResultType() == TestResult.ResultType.FAILURE) {
+        if (!failed && testResult.getResultType() == TestResult.ResultType.FAILURE) {
             failed = true;
             testExecuter.stopNow();
         }

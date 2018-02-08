@@ -16,16 +16,19 @@
 
 package org.gradle.testing.fixture
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.FAILED_RESOURCE
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.OTHER_RESOURCE
+import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
 abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
@@ -138,6 +141,29 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         gradleHandle.waitForFailure()
         assert gradleHandle.standardOutput.matches(/(?s).*pkg\.FailedTest.*failTest.*FAILED.*java.lang.RuntimeException at FailedTest.java.*/)
         assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    def "fail fast console output shows test class in work-in-progress"() {
+        given:
+        executer.withConsole(ConsoleOutput.Rich).withArguments('--parallel', "--max-workers=$DEFAULT_MAX_WORKERS")
+        buildFile.text = generator.initBuildFile()
+        generator.withFailingTest()
+        generator.withNonfailingTest()
+        def testExecution = server.expectConcurrentAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
+
+        when:
+        def gradleHandle = executer.withTasks('test', '--fail-fast').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        ConcurrentTestUtil.poll {
+            assert gradleHandle.standardOutput.contains(workInProgressLine('> :test > Executing test pkg.FailedTest'))
+            assert gradleHandle.standardOutput.contains(workInProgressLine('> :test > Executing test pkg.OtherTest'))
+        }
+
+        testExecution.release(FAILED_RESOURCE)
+        gradleHandle.waitForFailure()
     }
 
     abstract String testAnnotationClass()

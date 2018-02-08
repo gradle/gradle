@@ -47,6 +47,7 @@ public class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOf
         lock.lock();
         try {
             expected.clear();
+            super.releaseAll();
         } finally {
             lock.unlock();
         }

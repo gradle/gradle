@@ -23,7 +23,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class FailFastTestListenerTestInternal extends Specification {
+class FailFastTestListenerInternalTest extends Specification {
     TestExecuter testExecuter = Mock()
     TestListenerInternal delegate = Mock()
     TestDescriptorInternal testDescriptor = Mock()
