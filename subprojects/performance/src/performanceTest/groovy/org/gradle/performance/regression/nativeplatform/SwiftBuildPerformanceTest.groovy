@@ -25,7 +25,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.5'
-        runner.targetVersions = ["4.6-20180201071900+0000"]
+        runner.targetVersions = ["4.6-20180129223723+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
@@ -44,8 +44,9 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                       | maxMemory
-        'mediumSwiftMulti'                | '1G'
+        testProject        | maxMemory
+        'mediumSwiftMulti' | '1G'
+        'bigSwiftApp'      | '1G'
     }
 
     @Unroll
@@ -64,6 +65,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         where:
         testProject        | maxMemory
         'mediumSwiftMulti' | '1G'
+        'bigSwiftApp'      | '1G'
     }
 
     @Unroll
@@ -82,7 +84,8 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject        | maxMemory | fileToChange
-        "mediumSwiftMulti" | '1g'      | 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
+        "mediumSwiftMulti" | '1G'      | 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
+        'bigSwiftApp'      | '1G'      | 'src/main/swift//AppImpl54Api3.swift'
     }
 
     private static class ChangeSwiftFileMutator extends AbstractFileChangeMutator {
@@ -96,8 +99,8 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         @Override
         protected void applyChangeTo(StringBuilder text) {
-            def newText = text.replaceFirst(/Lib6Api3Impl2Api \{/, "Lib6Api3Impl2Api {\n    var ${uniqueText} : Int = 0")
-            text.replace(0, text.length(), newText)
+            def location = text.indexOf("public init() { }")
+            text.insert(location, "var ${uniqueText} : Int = 0\n    ")
         }
     }
 

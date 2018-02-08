@@ -325,6 +325,13 @@ task mediumSwiftMulti(type: BuildBuilderGenerator) {
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
 }
 
+task bigSwiftApp(type: BuildBuilderGenerator) {
+    projectType = "swift"
+    projects = 1
+    sourceFiles = 500
+    description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
+}
+
 // === Android ===
 task k9AndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
