@@ -109,9 +109,12 @@ public class MSBuildExecutor {
     private String toTargetArgument(MSBuildAction action) {
         String result = "";
         if (projectName != null) {
-            result = projectName + ":";
+            result = projectName;
         }
         if (!(projectName != null && action == MSBuildAction.BUILD)) {
+            if (projectName != null) {
+                result += ":";
+            }
             result += action.toString();
         }
         return "/t:" + result;
