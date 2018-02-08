@@ -46,13 +46,14 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         previousDependencies: KotlinScriptExternalDependencies?) = future {
 
         try {
+            log(ResolutionRequest(script.file, environment, previousDependencies))
             val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)
             when (action) {
                 is ResolverAction.Return         -> {
                     action.dependencies
                 }
                 is ResolverAction.ReturnPrevious -> {
-                    log(ResolvedToPrevious(script.file, environment, previousDependencies))
+                    log(ResolvedToPrevious(script.file, previousDependencies))
                     previousDependencies
                 }
                 is ResolverAction.RequestNew     -> {
@@ -60,7 +61,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 }
             }
         } catch (e: Exception) {
-            log(ResolutionFailure(script.file, environment, e))
+            log(ResolutionFailure(script.file, e))
             previousDependencies
         }
     }

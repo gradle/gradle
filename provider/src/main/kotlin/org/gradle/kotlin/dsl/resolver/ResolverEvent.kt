@@ -28,9 +28,15 @@ sealed class ResolverEvent
 
 
 internal
-data class ResolutionFailure(
+data class ResolutionRequest(
     val scriptFile: File?,
     val environment: Map<String, Any?>?,
+    val previousDependencies: KotlinScriptExternalDependencies?) : ResolverEvent()
+
+
+internal
+data class ResolutionFailure(
+    val scriptFile: File?,
     val failure: Exception) : ResolverEvent()
 
 
@@ -43,7 +49,6 @@ data class ResolutionProgress(
 internal
 data class ResolvedToPrevious(
     val scriptFile: File?,
-    val environment: Map<String, Any?>?,
     val previousDependencies: KotlinScriptExternalDependencies?) : ResolverEvent()
 
 
