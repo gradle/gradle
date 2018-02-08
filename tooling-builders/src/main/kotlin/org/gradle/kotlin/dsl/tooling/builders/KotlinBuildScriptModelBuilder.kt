@@ -78,7 +78,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         when {
-            parameter.noScript       -> projectScriptModelBuilder(modelRequestProject)
+            parameter.noScriptPath   -> projectScriptModelBuilder(modelRequestProject)
             parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject)
             else                     -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
         }
@@ -158,7 +158,7 @@ data class KotlinScriptTargetModelBuilder<T : Any>(
 
 
 private
-val KotlinBuildScriptModelParameter.noScript
+val KotlinBuildScriptModelParameter.noScriptPath
     get() = scriptPath == null
 
 
