@@ -110,13 +110,14 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         ":run" in nonSkippedTasks
     }
 
-    def "jvm arguments can be passed by using argument providers"() {
+    def "arguments can be passed by using argument providers"() {
         given:
         def inputFile = file("input.txt")
+        def outputFile = file("out.txt")
         buildFile << """
             import org.gradle.process.CommandLineArgumentProvider
 
-            class MyApplicationArguments implements CommandLineArgumentProvider {
+            class MyApplicationJvmArguments implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile
@@ -127,18 +128,27 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
                 }            
             }
             
-            run.outputs.file "out.txt"
-            run.jvmArgProviders << new MyApplicationArguments(inputFile: new File(project.property('inputFile')))
+            class MyApplicationCommandLineArguments implements CommandLineArgumentProvider {
+                @OutputFile
+                File outputFile
+
+                @Override
+                Iterable<String> asArguments() {
+                    return [outputFile.absolutePath]
+                }            
+            }
+            
+            run.jvmArgProviders << new MyApplicationJvmArguments(inputFile: new File(project.property('inputFile')))
+            
+            run.argProviders << new MyApplicationCommandLineArguments(outputFile: new File(project.property('outputFile')))
+             
         """
         inputFile.text = "first"
         mainJavaFile.text = mainClass("""
             try {
-                for (String arg: args) {
-                    System.out.println(arg);
-                }
                 String location = System.getProperty("input.file");
                 String input = Files.readAllLines(Paths.get(location)).get(0);
-                FileWriter out = new FileWriter("out.txt");
+                FileWriter out = new FileWriter(args[args.length - 1], false);
                 out.write(input);
                 out.close();
             } catch (IOException e) {
@@ -148,20 +158,21 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        run "run", "-PinputFile=${inputFile.absolutePath}"
+        run "run", "-PinputFile=${inputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
         then:
         ":run" in nonSkippedTasks
 
         when:
         def secondInputFile = file("second-input.txt")
         secondInputFile.text = inputFile.text
-        run "run", "-PinputFile=${secondInputFile.absolutePath}"
+        run "run", "-PinputFile=${secondInputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
         then:
+        outputFile.text == "first"
         ":run" in skippedTasks
 
         when:
         secondInputFile.text = "different"
-        run "run", "-PinputFile=${secondInputFile.absolutePath}"
+        run "run", "-PinputFile=${secondInputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
         then:
         ":run" in nonSkippedTasks
     }

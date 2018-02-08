@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
@@ -61,6 +62,7 @@ import java.util.Map;
 public class JavaExec extends ConventionTask implements JavaExecSpec, ConfigurableJavaForkOptions {
     private final JavaExecAction javaExecHandleBuilder;
     private List<CommandLineArgumentProvider> jvmArgProviders = new ArrayList<CommandLineArgumentProvider>();
+    private List<CommandLineArgumentProvider> argProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public JavaExec() {
         javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
@@ -88,6 +90,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
 
         execAction.setMain(getMain()); // make convention mapping work (at least for 'main'...
         execAction.setArgs(getArgs());
+        for (CommandLineArgumentProvider commandLineArgumentProvider : getArgProviders()) {
+            execAction.args(commandLineArgumentProvider.asArguments());
+        }
         execAction.setClasspath(getClasspath());
 
         execAction.execute();
@@ -326,6 +331,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
     public JavaExecSpec args(Iterable<?> args) {
         javaExecHandleBuilder.args(args);
         return this;
+    }
+
+    /**
+     * Argument providers for the application.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    @Nested
+    public List<CommandLineArgumentProvider> getArgProviders() {
+        return argProviders;
     }
 
     /**
