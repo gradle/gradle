@@ -31,10 +31,8 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 /**
  * Test Gradle's build performance against current Gradle.
@@ -82,41 +80,39 @@ class GradleBuildPerformanceTest extends Specification {
     def warmupBuilds = 20
     def measuredBuilds = 40
 
-    @Unroll
-    @Ignore("IllegalException: Multiple specifications with display name 'baseline build' on retry")
-    def "#tasks on the gradle build comparing the build"() {
+    def baselineBuildName = 'baseline build'
+    def currentBuildName = 'current build'
 
-        given:
+    def setup() {
         runner.testGroup = 'gradle build'
-        runner.testId = testName.methodName
 
-        and:
-        def baselineBuildName = 'baseline build'
-        def currentBuildName = 'current build'
-
-        and:
         runner.baseline {
             displayName baselineBuildName
             projectName 'gradleBuildBaseline'
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
             invocation {
-                tasksToRun(tasks)
+                tasksToRun("help")
                 useDaemon()
             }
         }
 
-        and:
         runner.buildSpec {
             displayName currentBuildName
             projectName 'gradleBuildCurrent'
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
             invocation {
-                tasksToRun(tasks)
+                tasksToRun("help")
                 useDaemon()
             }
         }
+    }
+
+    def "help on the gradle build comparing the build"() {
+
+        given:
+        runner.testId = testName.methodName
 
         when:
         def results = runner.run()
@@ -134,9 +130,6 @@ class GradleBuildPerformanceTest extends Specification {
         if (baselineResults.fasterThan(currentResults)) {
             throw new AssertionError(speedStats)
         }
-
-        where:
-        tasks << ['help']
     }
 
     private static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {
