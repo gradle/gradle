@@ -70,6 +70,7 @@ import org.gradle.util.SingleMessageLogger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -136,6 +137,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
+    private List<JvmArgumentProvider> jvmArgumentProviders = new ArrayList<JvmArgumentProvider>();
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -362,11 +364,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * {@inheritDoc}
+     * The argument providers for the jvm.
+     *
+     * @since 4.6
      */
-    @Override
+    @Nested
+    @Incubating
     public List<JvmArgumentProvider> getJvmArgumentProviders() {
-        return forkOptions.getJvmArgumentProviders();
+        return jvmArgumentProviders;
     }
 
     /**
@@ -510,6 +515,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
+        for (JvmArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
+            target.jvmArgs(jvmArgumentProvider.asArguments());
+        }
         return this;
     }
 
@@ -519,7 +527,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), this, getMaxParallelForks());
+        DefaultJavaForkOptions javaForkOptions = new DefaultJavaForkOptions(getFileResolver());
+        copyTo(javaForkOptions);
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks());
     }
 
     @TaskAction

@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.JvmArgumentProvider;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -68,11 +67,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public List<String> getJvmArgs() {
         return javaOptions.getJvmArgs();
-    }
-
-    @Override
-    public List<JvmArgumentProvider> getJvmArgumentProviders() {
-        return javaOptions.getJvmArgumentProviders();
     }
 
     public void setJvmArgs(List<String> arguments) {

@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.JvmArgumentProvider;
 
 import java.util.Arrays;
 import java.util.List;
@@ -60,11 +59,6 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     public List<String> getJvmArgs() {
         return options.getJvmArgs();
-    }
-
-    @Override
-    public List<JvmArgumentProvider> getJvmArgumentProviders() {
-        return options.getJvmArgumentProviders();
     }
 
     public void setJvmArgs(List<String> arguments) {

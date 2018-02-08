@@ -21,7 +21,6 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.JvmArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
@@ -101,11 +100,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     public List<String> getJvmArgs() {
         return javaExecHandleBuilder.getJvmArgs();
-    }
-
-    @Override
-    public List<JvmArgumentProvider> getJvmArgumentProviders() {
-        return javaExecHandleBuilder.getJvmArgumentProviders();
     }
 
     /**
