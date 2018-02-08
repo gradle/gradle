@@ -88,7 +88,7 @@ public class MSBuildExecutor {
         if (projectName != null) {
             target = projectName;
         }
-        if (action != MSBuildAction.BUILD) {
+        if (!(projectName != null && action == MSBuildAction.BUILD)) {
             target += ":" + action.toString();
         }
         withArgument("/t:" + target);
