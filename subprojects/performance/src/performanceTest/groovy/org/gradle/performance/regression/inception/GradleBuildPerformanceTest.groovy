@@ -65,27 +65,36 @@ class GradleBuildPerformanceTest extends Specification {
     @Shared
     def resultStore = new CrossBuildResultsStore()
 
-    def runner = new CrossBuildPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
-        resultStore,
-        buildContext) {
-
-        @Override
-        protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-            super.defaultSpec(builder)
-            builder.workingDirectory = tmpDir.testDirectory
-        }
-    }
+    CrossBuildPerformanceTestRunner runner
 
     def warmupBuilds = 20
     def measuredBuilds = 40
 
-    def baselineBuildName = 'baseline build'
-    def currentBuildName = 'current build'
-
     def setup() {
-        runner.testGroup = 'gradle build'
+        runner = new CrossBuildPerformanceTestRunner(
+            new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            resultStore,
+            buildContext) {
 
+            @Override
+            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+                super.defaultSpec(builder)
+                builder.workingDirectory = tmpDir.testDirectory
+            }
+        }
+        runner.testGroup = 'gradle build'
+    }
+
+    def "help on the gradle build comparing the build"() {
+
+        given:
+        runner.testId = testName.methodName
+
+        and:
+        def baselineBuildName = 'baseline build'
+        def currentBuildName = 'current build'
+
+        and:
         runner.baseline {
             displayName baselineBuildName
             projectName 'gradleBuildBaseline'
@@ -97,6 +106,7 @@ class GradleBuildPerformanceTest extends Specification {
             }
         }
 
+        and:
         runner.buildSpec {
             displayName currentBuildName
             projectName 'gradleBuildCurrent'
@@ -107,12 +117,6 @@ class GradleBuildPerformanceTest extends Specification {
                 useDaemon()
             }
         }
-    }
-
-    def "help on the gradle build comparing the build"() {
-
-        given:
-        runner.testId = testName.methodName
 
         when:
         def results = runner.run()
