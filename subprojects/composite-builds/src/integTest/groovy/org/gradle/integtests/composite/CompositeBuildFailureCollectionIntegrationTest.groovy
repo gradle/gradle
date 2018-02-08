@@ -47,17 +47,20 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
             buildFile << javaProject()
             file('src/test/java/SampleTestD.java') << junitTestClass('SampleTestD')
         }
+    }
 
+    def "can collect build failures from multiple included builds"() {
+        when:
         includedBuilds << buildB << buildC << buildD
 
         buildA.buildFile << """
-            test.dependsOn gradle.includedBuilds*.task(':test')
+            task('testAll') {
+                dependsOn gradle.includedBuilds*.task(':test')
+            }
         """
-    }
 
-    def "can collect all build failures"() {
-        when:
-        fails(buildA, 'test', ['--continue'])
+        and:
+        fails(buildA, 'testAll', ['--continue'])
 
         then:
         assertTaskExecuted(":buildB", ":test")
@@ -65,12 +68,40 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildC", ":sub2:test")
         assertTaskExecuted(":buildC", ":sub3:test")
         assertTaskExecuted(":buildD", ":test")
-        errorOutput.contains('Multiple build failures')
         errorOutput.contains("Execution failed for task ':buildB:test'")
         errorOutput.contains("Execution failed for task ':buildC:sub1:test'")
         errorOutput.contains("Execution failed for task ':buildC:sub2:test'")
         errorOutput.contains("Execution failed for task ':buildC:sub3:test'")
         errorOutput.contains("Execution failed for task ':buildD:test'")
+    }
+
+    def "can collect build failure in root and included build"() {
+        when:
+        includedBuilds << buildC
+
+        buildA.buildFile << """
+            ${mavenCentralRepository()}
+            
+            dependencies {
+                testCompile 'junit:junit:4.12'
+            }
+
+            task('testAll') {
+                dependsOn 'test'
+                dependsOn gradle.includedBuilds*.task(':test')
+            }
+        """
+        file("buildA/src/test/java/SampleTestA.java") << junitTestClass('SampleTestA')
+
+        and:
+        fails(buildA, 'testAll', ['--continue'])
+
+        then:
+        !errorOutput.contains('Multiple build failures')
+        errorOutput.contains("Execution failed for task ':test'")
+        errorOutput.contains("Execution failed for task ':buildC:sub1:test'")
+        errorOutput.contains("Execution failed for task ':buildC:sub2:test'")
+        errorOutput.contains("Execution failed for task ':buildC:sub3:test'")
     }
 
     private String javaProject() {
