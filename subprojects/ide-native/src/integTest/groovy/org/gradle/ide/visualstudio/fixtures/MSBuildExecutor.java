@@ -84,14 +84,7 @@ public class MSBuildExecutor {
     }
 
     public ExecutionResult succeeds(MSBuildAction action) {
-        String target = "";
-        if (projectName != null) {
-            target = projectName;
-        }
-        if (!(projectName != null && action == MSBuildAction.BUILD)) {
-            target += ":" + action.toString();
-        }
-        withArgument("/t:" + target);
+        withArgument(toTargetArgument(action));
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(workingDir));
         System.out.println(result.getOut());
         return new OutputScrapingExecutionResult(trimLines(result.getOut()), trimLines(result.getError()));
@@ -102,7 +95,7 @@ public class MSBuildExecutor {
     }
 
     public ExecutionFailure fails(MSBuildAction action) {
-        withArgument(action.toString());
+        withArgument(toTargetArgument(action));
         ExecOutput result = findMSBuild().execWithFailure(args, buildEnvironment(workingDir));
         System.out.println(result.getOut());
         System.out.println(result.getError());
@@ -111,6 +104,17 @@ public class MSBuildExecutor {
 
     private String trimLines(String s) {
         return s.replaceAll("\r?\n\\s+", "\n");
+    }
+
+    private String toTargetArgument(MSBuildAction action) {
+        String result = "";
+        if (projectName != null) {
+            result = projectName + ":";
+        }
+        if (!(projectName != null && action == MSBuildAction.BUILD)) {
+            result += action.toString();
+        }
+        return "/t:" + result;
     }
 
     private TestFile findMSBuild() {

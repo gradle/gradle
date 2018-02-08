@@ -327,8 +327,8 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary', ':lib:compileHelloDebugSharedLibraryHelloCpp', ':lib:linkHelloDebugSharedLibrary', ':lib:helloDebugSharedLibrary')
-        resultDebug.assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary', ':lib:compileHelloDebugSharedLibraryHelloCpp', ':lib:linkHelloDebugSharedLibrary', ':lib:helloDebugSharedLibrary')
+        resultDebug.assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable')
+        resultDebug.assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable')
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
