@@ -15,10 +15,12 @@
  */
 package org.gradle.internal.scripts;
 
-import com.google.common.collect.ImmutableList;
-
 import org.gradle.scripts.ScriptingLanguage;
 
+import javax.annotation.Nullable;
+
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,18 +28,17 @@ import java.util.List;
  */
 public final class ScriptingLanguages {
 
-    private static final ImmutableList<ScriptingLanguage> ALL =
-        ImmutableList.of(
-            scriptingLanguage(".gradle", null),
-            scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"));
-
-    static final ImmutableList<String> EXTENSIONS = extensionsOf(ALL);
+    private static final List<ScriptingLanguage> ALL =
+        Collections.unmodifiableList(
+            Arrays.asList(
+                scriptingLanguage(".gradle", null),
+                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory")));
 
     public static List<ScriptingLanguage> all() {
         return ALL;
     }
 
-    private static ScriptingLanguage scriptingLanguage(final String extension, final String scriptPluginFactory) {
+    private static ScriptingLanguage scriptingLanguage(final String extension, @Nullable final String scriptPluginFactory) {
         return new ScriptingLanguage() {
             @Override
             public String getExtension() {
@@ -49,13 +50,5 @@ public final class ScriptingLanguages {
                 return scriptPluginFactory;
             }
         };
-    }
-
-    private static ImmutableList<String> extensionsOf(List<ScriptingLanguage> scriptingLanguages) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for (ScriptingLanguage language : scriptingLanguages) {
-            builder.add(language.getExtension());
-        }
-        return builder.build();
     }
 }
