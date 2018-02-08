@@ -39,6 +39,36 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot determine the Git URL for dependency on dep:dep.")
     }
 
+    def "export fails when external dependency defines branch and version constraint"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            dependencies {
+                implementation('dep:dep:1.0') { versionConstraint.branch = 'release' }
+            }
+"""
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("dep:dep") {
+                        from(GitVersionControlSpec) {
+                            url = uri('repo')
+                        }
+                    }
+                }
+            }
+"""
+
+        when:
+        fails("generateSwiftPmManifest")
+
+        then:
+        failure.assertHasCause("Cannot map a dependency on dep:dep that defines both a branch (release) and a version constraint (1.0).")
+    }
+
     def "produces manifest for Swift component with source dependencies"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
@@ -209,6 +239,73 @@ let package = Package(
         file("Package.swift").text.contains("""
     dependencies: [
         .package(url: "repo/lib1", .branch("master")),
+    ],
+""")
+        swiftPmBuildSucceeds()
+
+        cleanup:
+        lib1Repo?.close()
+    }
+
+    def "maps dependency on upstream branch"() {
+        given:
+        def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
+        lib1Repo.file("build.gradle") << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+        """
+        lib1Repo.file("settings.gradle") << "rootProject.name = 'lib1'"
+        lib1Repo.file("src/main/swift/Lib1.swift") << """
+            public class Lib1 {
+                public class func thing() { }
+            }
+"""
+        lib1Repo.commit("v1")
+        lib1Repo.createBranch("release")
+        lib1Repo.checkout("release")
+        executer.inDirectory(lib1Repo.workTree).withTasks("generateSwiftPmManifest").run()
+        lib1Repo.commit("v2")
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("dep:lib1") {
+                        from(GitVersionControlSpec) {
+                            url = uri('${lib1Repo.url}')
+                        }
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            dependencies {
+                implementation('dep:lib1') {
+                    versionConstraint.branch = 'release'
+                }
+            }
+        """
+        file("src/main/swift/Lib.swift") << """
+            import Lib1
+            class Lib {
+                init() {
+                    Lib1.thing()
+                }
+            }
+        """
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text.contains("""
+    dependencies: [
+        .package(url: "repo/lib1", .branch("release")),
     ],
 """)
         swiftPmBuildSucceeds()
