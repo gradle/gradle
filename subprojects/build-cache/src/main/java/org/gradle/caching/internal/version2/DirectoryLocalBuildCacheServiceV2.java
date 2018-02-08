@@ -176,20 +176,24 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
         });
     }
 
-    private <T extends CacheEntry> T put(final HashCode key, final PutAction<T> action) {
+    private <T extends CacheEntry> T put(final HashCode hashCode, final PutAction<T> action) {
         return persistentCache.withFileLock(new Factory<T>() {
             @Override
             public T create() {
+                String key = hashCode.toString();
                 lock.writeLock().lock();
                 try {
-                    File tempFile = File.createTempFile("build-cache-", ".temp");
-                    DataOutputStream output = new DataOutputStream(new FileOutputStream(tempFile));
-                    try {
-                        action.writeFile(output);
-                    } finally {
-                        IOUtils.closeQuietly(output);
+                    LocallyAvailableResource resource = fileStore.get(key);
+                    if (resource == null) {
+                        File tempFile = File.createTempFile("build-cache-", ".temp");
+                        DataOutputStream output = new DataOutputStream(new FileOutputStream(tempFile));
+                        try {
+                            action.writeFile(output);
+                        } finally {
+                            IOUtils.closeQuietly(output);
+                        }
+                        resource = fileStore.move(key, tempFile);
                     }
-                    LocallyAvailableResource resource = fileStore.move(key.toString(), tempFile);
                     return action.createEntry(resource.getFile());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
