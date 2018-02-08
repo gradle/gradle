@@ -16,17 +16,38 @@
 
 package org.gradle.swiftpm.internal;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public class VersionDependency extends Dependency {
-    private final String version;
+    private final String lowerBound;
+    private final String upperBound;
+    private final boolean upperInclusive;
 
     public VersionDependency(URI url, String version) {
         super(url);
-        this.version = version;
+        this.lowerBound = version;
+        this.upperBound = null;
+        upperInclusive = false;
     }
 
-    public String getVersion() {
-        return version;
+    public VersionDependency(URI url, String lowerBound, @Nullable String upperBound, boolean upperInclusive) {
+        super(url);
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
+        this.upperInclusive = upperInclusive;
+    }
+
+    public String getLowerBound() {
+        return lowerBound;
+    }
+
+    @Nullable
+    public String getUpperBound() {
+        return upperBound;
+    }
+
+    public boolean isUpperInclusive() {
+        return upperInclusive;
     }
 }

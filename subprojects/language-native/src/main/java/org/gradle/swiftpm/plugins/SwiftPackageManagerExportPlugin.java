@@ -25,6 +25,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.SubVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.language.cpp.CppApplication;
@@ -67,10 +75,12 @@ import java.util.concurrent.Callable;
 @Incubating
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
     private final VcsResolver vcsResolver;
+    private final VersionSelectorScheme versionSelectorScheme;
 
     @Inject
-    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver) {
+    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme) {
         this.vcsResolver = vcsResolver;
+        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
@@ -204,23 +214,53 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     }
                     GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
 
-                    // TODO - need to map version selector to Swift PM selector
                     if (externalDependency.getVersionConstraint().getBranch() != null) {
                         dependencies.add(new BranchDependency(gitSpec.getUrl(), externalDependency.getVersionConstraint().getBranch()));
                         if (externalDependency.getVersion() != null) {
                             throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersionConstraint().getBranch(), externalDependency.getVersion()));
                         }
                     } else {
-                        String versionSelector = externalDependency.getVersion();
-                        if ("latest.integration".equals(versionSelector)) {
-                            dependencies.add(new BranchDependency(gitSpec.getUrl(), "master"));
-                        } else {
-                            dependencies.add(new VersionDependency(gitSpec.getUrl(), versionSelector));
-                        }
+                        dependencies.add(toSwiftPmDependency(externalDependency, gitSpec));
                     }
                     target.getRequiredProducts().add(externalDependency.getName());
                 }
             }
+        }
+
+        private Dependency toSwiftPmDependency(ExternalModuleDependency externalDependency, GitVersionControlSpec gitSpec) {
+            String versionSelectorString = externalDependency.getVersion();
+            VersionSelector versionSelector = versionSelectorScheme.parseSelector(versionSelectorString);
+            if (versionSelector instanceof LatestVersionSelector) {
+                LatestVersionSelector latestVersionSelector = (LatestVersionSelector) versionSelector;
+                if (latestVersionSelector.getSelectorStatus().equals("integration")) {
+                    return new BranchDependency(gitSpec.getUrl(), "master");
+                }
+            } else if (versionSelector instanceof ExactVersionSelector) {
+                return new VersionDependency(gitSpec.getUrl(), versionSelector.getSelector());
+            } else if (versionSelector instanceof VersionRangeSelector) {
+                VersionRangeSelector versionRangeSelector = (VersionRangeSelector) versionSelector;
+                if (versionRangeSelector.isLowerInclusive()) {
+                    return new VersionDependency(gitSpec.getUrl(), versionRangeSelector.getLowerBound(), versionRangeSelector.getUpperBound(), versionRangeSelector.isUpperInclusive());
+                }
+            } else if (versionSelector instanceof SubVersionSelector) {
+                SubVersionSelector subVersionSelector = (SubVersionSelector) versionSelector;
+                String prefix = subVersionSelector.getPrefix();
+                // TODO - take care of this in the selector parser
+                if (prefix.endsWith(".")) {
+                    String versionString = prefix.substring(0, prefix.length() - 1);
+                    Version version = VersionParser.INSTANCE.transform(versionString);
+                    if (version.getNumericParts().length == 1) {
+                        Long part1 = version.getNumericParts()[0];
+                        return new VersionDependency(gitSpec.getUrl(), part1 + ".0.0");
+                    }
+                    if (version.getNumericParts().length == 2) {
+                        Long part1 = version.getNumericParts()[0];
+                        Long part2 = version.getNumericParts()[1];
+                        return new VersionDependency(gitSpec.getUrl(), part1 + "." + part2 + ".0", part1 + "." + (part2+1) + ".0", false);
+                    }
+                }
+            }
+            throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s with version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion()));
         }
     }
 }

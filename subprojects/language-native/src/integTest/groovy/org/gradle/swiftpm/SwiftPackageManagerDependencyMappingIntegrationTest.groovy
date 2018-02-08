@@ -17,6 +17,7 @@
 package org.gradle.swiftpm
 
 import org.gradle.vcs.fixtures.GitFileRepository
+import spock.lang.Unroll
 
 
 class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
@@ -183,6 +184,120 @@ let package = Package(
         cleanup:
         lib1Repo?.close()
         lib2Repo?.close()
+    }
+
+    @Unroll
+    def "maps dependency on #src to #mapped"() {
+        given:
+        def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
+        lib1Repo.file("build.gradle") << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+        """
+        lib1Repo.file("settings.gradle") << "rootProject.name = 'lib1'"
+        lib1Repo.file("src/main/swift/Lib1.swift") << """
+            public class Lib1 {
+                public class func thing() { }
+            }
+"""
+        executer.inDirectory(lib1Repo.workTree).withTasks("generateSwiftPmManifest").run()
+        lib1Repo.commit("v1")
+        lib1Repo.createLightWeightTag("1.2.0")
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("dep:lib1") {
+                        from(GitVersionControlSpec) {
+                            url = uri('${lib1Repo.url}')
+                        }
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            dependencies {
+                implementation 'dep:lib1:${src}'
+            }
+        """
+        file("src/main/swift/Lib.swift") << """
+            import Lib1
+            class Lib {
+                init() {
+                    Lib1.thing()
+                }
+            }
+        """
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text.contains("""
+    dependencies: [
+        .package(url: "repo/lib1", $mapped),
+    ],
+""")
+        swiftPmBuildSucceeds()
+
+        cleanup:
+        lib1Repo?.close()
+
+        where:
+        src              | mapped
+        '1.2.0'          | 'from: "1.2.0"'
+        '1.2.+'          | '"1.2.0"..<"1.3.0"'
+        '1.+'            | 'from: "1.0.0"'
+        '[1.0.0, 2.0.0]' | '"1.0.0"..."2.0.0"'
+        '[1.0.0, 2.0.0)' | '"1.0.0"..<"2.0.0"'
+    }
+
+    @Unroll
+    def "cannot map dependency #src"() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("dep:lib1") {
+                        from(GitVersionControlSpec) {
+                            url = uri('repo')
+                        }
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            dependencies {
+                implementation 'dep:lib1:${src}'
+            }
+        """
+
+        when:
+        fails("generateSwiftPmManifest")
+
+        then:
+        failure.assertHasCause("Cannot map a dependency on dep:lib1 with version constraint ($src).")
+
+        where:
+        src             | _
+        '+'             | _
+        '1+'            | _
+        '1.2+'          | _
+        '1.2.3+'        | _
+        '1.2.3.+'       | _
+        'abc+'          | _
+        '(1.0.0,2.0.0]' | _
+        '(1.0.0,2.0.0)' | _
     }
 
     def "maps dependency on latest.integration to master branch"() {
