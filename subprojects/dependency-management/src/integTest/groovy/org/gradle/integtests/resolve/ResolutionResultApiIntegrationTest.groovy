@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTest {
@@ -226,5 +227,69 @@ baz:1.0 requested
                 }
             }
         }
+    }
+
+    @Unroll
+    def "constraint are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+            dependencies {
+                conf "org:foo:1.0"
+                
+                constraints {
+                    conf("org:foo:1.0") {
+                        version {
+                            rejectAll()
+                        }
+                        if ($useReason) { because("This reason comes from a constraint") }
+                    }
+                }
+            }
+            
+            configurations.all {
+                resolutionStrategy.eachDependency {
+                    if (requested.name == 'foo') {
+                        because("fix comes from component selection rule").useTarget("org:bar:1.0")
+                    }
+                }
+            }
+            
+            task checkWithApi {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    result.allComponents {
+                        if (it.id instanceof ModuleComponentIdentifier) {
+                            println "Module \$it.id"
+                            it.selectionReason.descriptions.each {
+                                println "   \$it.cause : \$it.description"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'checkWithApi'
+
+        then:
+        outputContains("""Module org:bar:1.0
+   REQUESTED : requested
+   SELECTED_BY_RULE : fix comes from component selection rule
+   CONSTRAINT : ${useReason?'This reason comes from a constraint':'constraint'}
+""")
+        where:
+        useReason << [true, false]
     }
 }
