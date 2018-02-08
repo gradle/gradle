@@ -27,6 +27,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -41,7 +43,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Gcc;
-import org.gradle.platform.base.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -53,8 +55,8 @@ import java.io.File;
  */
 @Incubating
 public class InstallExecutable extends DefaultTask {
-    private ToolChain toolChain;
-    private NativePlatform platform;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
     private final DirectoryProperty destinationDir;
     private final RegularFileProperty executable;
     private final RegularFileProperty installedExecutable;
@@ -68,41 +70,40 @@ public class InstallExecutable extends DefaultTask {
      */
     @Inject
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
+        ObjectFactory objectFactory = getProject().getObjects();
         this.workerLeaseService = workerLeaseService;
         this.libs = getProject().files();
-        destinationDir = newOutputDirectory();
-        executable = newInputFile();
-        installedExecutable = newOutputFile();
-        installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
+        this.installedExecutable = newOutputFile();
+        this.installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
             @Override
             public RegularFile transform(Directory directory) {
                 return directory.file(executable.getAsFile().get().getName());
             }
         }));
+        this.destinationDir = newOutputDirectory();
+        this.executable = newInputFile();
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
      * The tool chain used for linking.
+     *
+     * @since 4.6
      */
     @Internal
-    public ToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(ToolChain toolChain) {
-        this.toolChain = toolChain;
-    }
-
     /**
-     * The platform describing the install target.
+     * The platform being linked for.
+     *
+     * @since 4.6
      */
     @Nested
-    public NativePlatform getPlatform() {
-        return platform;
-    }
-
-    public void setPlatform(NativePlatform platform) {
-        this.platform = platform;
+    public Property<NativePlatform> getTargetPlatform() {
+        return targetPlatform;
     }
 
     /**
@@ -232,7 +233,7 @@ public class InstallExecutable extends DefaultTask {
         return destinationDir.file(executable.map(new Transformer<CharSequence, RegularFile>() {
             @Override
             public CharSequence transform(RegularFile regularFile) {
-                OperatingSystem operatingSystem = OperatingSystem.forName(platform.getOperatingSystem().getName());
+                OperatingSystem operatingSystem = OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName());
                 return operatingSystem.getScriptName(regularFile.getAsFile().getName());
             }
         }));
@@ -254,7 +255,7 @@ public class InstallExecutable extends DefaultTask {
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
-                if (platform.getOperatingSystem().isWindows()) {
+                if (targetPlatform.get().getOperatingSystem().isWindows()) {
                     installWindows();
                 } else {
                     installUnix();
