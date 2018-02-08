@@ -228,8 +228,7 @@ model {
             .fails()
 
         then:
-        resultDebug.assertTasksExecuted()
-        resultDebug.assertTasksSkipped()
+        resultDebug.assertOutputContains("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
         file('build').assertDoesNotExist()
     }
 
