@@ -205,11 +205,18 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
 
                     // TODO - need to map version selector to Swift PM selector
-                    String versionSelector = externalDependency.getVersion();
-                    if ("latest.integration".equals(versionSelector)) {
-                        dependencies.add(new BranchDependency(gitSpec.getUrl(), "master"));
+                    if (externalDependency.getVersionConstraint().getBranch() != null) {
+                        dependencies.add(new BranchDependency(gitSpec.getUrl(), externalDependency.getVersionConstraint().getBranch()));
+                        if (externalDependency.getVersion() != null) {
+                            throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersionConstraint().getBranch(), externalDependency.getVersion()));
+                        }
                     } else {
-                        dependencies.add(new VersionDependency(gitSpec.getUrl(), versionSelector));
+                        String versionSelector = externalDependency.getVersion();
+                        if ("latest.integration".equals(versionSelector)) {
+                            dependencies.add(new BranchDependency(gitSpec.getUrl(), "master"));
+                        } else {
+                            dependencies.add(new VersionDependency(gitSpec.getUrl(), versionSelector));
+                        }
                     }
                     target.getRequiredProducts().add(externalDependency.getName());
                 }
