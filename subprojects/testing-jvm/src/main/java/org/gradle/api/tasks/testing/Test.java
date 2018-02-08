@@ -58,8 +58,8 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.JvmArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -137,7 +137,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private List<JvmArgumentProvider> jvmArgumentProviders = new ArrayList<JvmArgumentProvider>();
+    private List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -364,13 +364,13 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * The argument providers for the jvm.
+     * Command line argument providers for the java process of the tests.
      *
      * @since 4.6
      */
     @Nested
     @Incubating
-    public List<JvmArgumentProvider> getJvmArgumentProviders() {
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return jvmArgumentProviders;
     }
 
@@ -515,7 +515,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
-        for (JvmArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
+        for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
             target.jvmArgs(jvmArgumentProvider.asArguments());
         }
         return this;

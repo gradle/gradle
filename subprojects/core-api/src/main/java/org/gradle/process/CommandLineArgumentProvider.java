@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * @since 4.6
  */
 @Incubating
-public interface JvmArgumentProvider {
+public interface CommandLineArgumentProvider {
     /**
      * The arguments which will be provided to the jvm.
      */

@@ -39,7 +39,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("build.gradle") << """
-            import org.gradle.process.JvmArgumentProvider
+            import org.gradle.process.CommandLineArgumentProvider
 
             apply plugin: "java"
 
@@ -49,7 +49,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
                 testCompile "junit:junit:4.12"
             }              
                                    
-            class MyTestSystemProperties implements JvmArgumentProvider {
+            class MyTestSystemProperties implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile
