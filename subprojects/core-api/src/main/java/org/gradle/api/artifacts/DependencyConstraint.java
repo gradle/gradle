@@ -51,13 +51,4 @@ public interface DependencyConstraint extends ModuleVersionSelector {
      * @since 4.6
      */
     void because(String reason);
-
-    /**
-     * Creates and returns a new dependency constraint with the property values of this one.
-     *
-     * @return The copy. Never returns null.
-     *
-     * @since 4.6
-     */
-    DependencyConstraint copy();
 }

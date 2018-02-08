@@ -118,7 +118,6 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         this.reason = reason;
     }
 
-    @Override
     public DependencyConstraint copy() {
         DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(group, name, versionConstraint);
         constraint.reason = reason;
