@@ -220,7 +220,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public JavaForkOptions copyTo(JavaForkOptions options) {
-        throw new UnsupportedOperationException();
+        javaOptions.copyTo(options);
+        return this;
     }
 
     public ExecHandle build() {

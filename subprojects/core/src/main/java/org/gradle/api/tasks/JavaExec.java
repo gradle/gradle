@@ -19,6 +19,8 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ConfigurableJavaForkOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -29,6 +31,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,8 +58,9 @@ import java.util.Map;
  * gradle someJavaExecTask --debug-jvm
  * </pre>
  */
-public class JavaExec extends ConventionTask implements JavaExecSpec {
+public class JavaExec extends ConventionTask implements JavaExecSpec, ConfigurableJavaForkOptions {
     private final JavaExecAction javaExecHandleBuilder;
+    private List<CommandLineArgumentProvider> jvmArgProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public JavaExec() {
         javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
@@ -69,9 +73,24 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     @TaskAction
     public void exec() {
-        setMain(getMain()); // make convention mapping work (at least for 'main'...
-        setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
-        javaExecHandleBuilder.execute();
+        JavaExecAction execAction = getExecActionFactory().newJavaExecAction();
+
+        copyTo((ProcessForkOptions) execAction);
+
+        copyTo(execAction);
+        execAction.setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
+        copyJvmArgProvidersTo(execAction);
+
+        execAction.setIgnoreExitValue(isIgnoreExitValue());
+        execAction.setStandardInput(getStandardInput());
+        execAction.setStandardOutput(getStandardOutput());
+        execAction.setErrorOutput(getErrorOutput());
+
+        execAction.setMain(getMain()); // make convention mapping work (at least for 'main'...
+        execAction.setArgs(getArgs());
+        execAction.setClasspath(getClasspath());
+
+        execAction.execute();
     }
 
     /**
@@ -337,7 +356,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     public JavaExec copyTo(JavaForkOptions options) {
         javaExecHandleBuilder.copyTo(options);
+        copyJvmArgProvidersTo(options);
         return this;
+    }
+
+    private void copyJvmArgProvidersTo(JavaForkOptions options) {
+        for (CommandLineArgumentProvider jvmArgProvider : jvmArgProviders) {
+            options.jvmArgs(jvmArgProvider.asArguments());
+        }
     }
 
     /**
@@ -509,5 +535,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     public List<String> getCommandLine() {
         return javaExecHandleBuilder.getCommandLine();
+    }
+
+    @Override
+    public List<CommandLineArgumentProvider> getJvmArgProviders() {
+        return jvmArgProviders;
     }
 }

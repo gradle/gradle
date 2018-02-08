@@ -18,40 +18,50 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
+    TestFile mainJavaFile
+
     def setup() {
-        file("src", "main", "java").mkdirs()
-
-        file("src", "main", "java", "Driver.java").write """
-            package driver;
-
-            import java.io.*;
-
-            public class Driver {
-                public static void main(String[] args) {
-                    try {
-                        FileWriter out = new FileWriter("out.txt");
-                        out.write(args[0]);
-                        out.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+        mainJavaFile = file('src/main/java/Driver.java')
+        file("src/main/java/Driver.java").text = mainClass("""
+            try {
+                FileWriter out = new FileWriter("out.txt");
+                out.write(args[0]);
+                out.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        """
+        """)
 
 
-        buildFile.write """
+        buildFile.text = """
             apply plugin: "java"
 
             task run(type: JavaExec) {
                 classpath = project.files(compileJava)
                 main "driver.Driver"
                 args "1"
+            }
+        """
+    }
+
+    private static String mainClass(String body) {
+        """
+            package driver;
+
+            import java.io.*;
+            import java.nio.file.*;  
+            import java.lang.System;
+
+            public class Driver {
+                public static void main(String[] args) {
+                ${body}
+                }
             }
         """
     }
@@ -96,6 +106,62 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         and:
         run "run"
 
+        then:
+        ":run" in nonSkippedTasks
+    }
+
+    def "jvm arguments can be passed by using argument providers"() {
+        given:
+        def inputFile = file("input.txt")
+        buildFile << """
+            import org.gradle.process.CommandLineArgumentProvider
+
+            class MyApplicationArguments implements CommandLineArgumentProvider {
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File inputFile
+            
+                @Override
+                Iterable<String> asArguments() {
+                    return ["-Dinput.file=\${inputFile.absolutePath}"]
+                }            
+            }
+            
+            run.outputs.file "out.txt"
+            run.jvmArgProviders << new MyApplicationArguments(inputFile: new File(project.property('inputFile')))
+        """
+        inputFile.text = "first"
+        mainJavaFile.text = mainClass("""
+            try {
+                for (String arg: args) {
+                    System.out.println(arg);
+                }
+                String location = System.getProperty("input.file");
+                String input = Files.readAllLines(Paths.get(location)).get(0);
+                FileWriter out = new FileWriter("out.txt");
+                out.write(input);
+                out.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+        """)
+
+        when:
+        run "run", "-PinputFile=${inputFile.absolutePath}"
+        then:
+        ":run" in nonSkippedTasks
+
+        when:
+        def secondInputFile = file("second-input.txt")
+        secondInputFile.text = inputFile.text
+        run "run", "-PinputFile=${secondInputFile.absolutePath}"
+        then:
+        ":run" in skippedTasks
+
+        when:
+        secondInputFile.text = "different"
+        run "run", "-PinputFile=${secondInputFile.absolutePath}"
         then:
         ":run" in nonSkippedTasks
     }
