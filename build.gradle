@@ -139,7 +139,7 @@ ext {
     }
 
     internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance", "buildScanPerformance"] }
-    groovyProjects = subprojects
+    groovyProjects = subprojects - subprojects.find { it.name == 'distributionsDependencies' }
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'antlr', 'wrapper', 'osgi', 'maven',
