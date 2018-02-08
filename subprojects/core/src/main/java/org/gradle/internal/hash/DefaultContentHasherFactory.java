@@ -17,12 +17,12 @@
 package org.gradle.internal.hash;
 
 public class DefaultContentHasherFactory implements ContentHasherFactory {
-    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultContentHasherFactory.class.getName()).toByteArray();
+    private static final HashCode SIGNATURE = Hashing.md5().hashString(DefaultContentHasherFactory.class.getName());
 
     @Override
     public Hasher create() {
         Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
+        hasher.putHash(SIGNATURE);
         return hasher;
     }
 }

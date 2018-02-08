@@ -75,7 +75,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
             if (it instanceof String) {
                 hasher.putString(it)
             } else if (it instanceof HashCode) {
-                hasher.putBytes(it.toByteArray())
+                hasher.putHash(it)
             } else {
                 throw new AssertionError()
             }
