@@ -440,14 +440,12 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         original.text == "Original"
 
         when:
-        /*
-        The whole setup is as follows:
-        - Both the restore and the backup task have an entry in the task history
-        - The output of the restore path is the input of the backup task.
-          This means when the backup task is up-to-date, then the contents of the output of the restore path is in the file system mirror.
-
-        If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
-         */
+        // The whole setup is as follows:
+        // - Both the restore and the backup task have an entry in the task history
+        // - The output of the restore path is the input of the backup task.
+        //   This means when the backup task is up-to-date, then the contents of the output of the restore path is in the file system mirror.
+        //
+        // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
         run 'backup', 'restore', '--info'
 
