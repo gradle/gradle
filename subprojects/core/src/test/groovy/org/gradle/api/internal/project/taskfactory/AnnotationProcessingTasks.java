@@ -485,10 +485,6 @@ public class AnnotationProcessingTasks {
     public static class TaskWithOptionalNestedBean extends TaskWithAction {
         private final Bean bean;
 
-        public TaskWithOptionalNestedBean() {
-            this(null);
-        }
-
         public TaskWithOptionalNestedBean(Bean bean) {
             this.bean = bean;
         }

@@ -201,7 +201,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "validation succeeds when optional #property is omitted on #type.simpleName"() {
         given:
-        def task = expectTaskCreated(type)
+        def task = expectTaskCreated(type, arguments as Object[])
 
         expect:
         execute(task)
@@ -215,6 +215,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDirs                | 'output-dirs'
         TaskWithOptionalNestedBean                | 'bean'
         TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
+        arguments = type == TaskWithOptionalNestedBean ? [null] : []
     }
 
     def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
@@ -567,7 +568,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithNestedBean                        | "bean.class"      | [null]       | Bean.class
         TaskWithNestedIterable                    | "beans.\$0.class" | [null]       | Bean.class
         TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] | Bean2.class
-        TaskWithOptionalNestedBean                | "bean.class"      | null         | null
+        TaskWithOptionalNestedBean                | "bean.class"      | [null]       | null
         TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null         | null
         TaskWithInput                             | "inputValue"      | ["value"]    | "value"
         TaskWithBooleanInput                      | "inputValue"      | [true]       | true           // https://issues.gradle.org/Browse/GRADLE-2815
@@ -609,7 +610,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithNestedBean                        | [null]                         | ["bean.class"]                                  | ["bean.inputFile"]      | []
         TaskWithNestedIterable                    | [null]                         | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
         TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
-        TaskWithOptionalNestedBean                | null                           | []                                              | []                      | []
+        TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
         TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBeanWithPrivateType | null                           | []                                              | []                      | []
         TaskWithMultipleProperties                | [new File("some")]             | ["bean.class"]                                  | ["bean.inputFile"]      | ["outputFile"]
