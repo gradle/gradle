@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,20 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 
 import javax.annotation.Nullable;
 
-public interface VcsMappingsStore {
-    VcsResolver asResolver();
+public interface VcsResolver {
+    /**
+     * Returns the VCS to use to search for matches to the given selector, or null if no such VCS.
+     */
+    @Nullable
+    VersionControlSpec locateVcsFor(ModuleComponentSelector selector);
 
-    void addRule(Action<? super VcsMapping> rule, Gradle gradle);
-
-    VcsResolver NO_OP = new VcsResolver() {
-        @Nullable
-        @Override
-        public VersionControlSpec locateVcsFor(ModuleComponentSelector selector) {
-            return null;
-        }
-
-        @Override
-        public boolean hasRules() {
-            return false;
-        }
-    };
+    /**
+     * Does this resolver do anything?
+     */
+    boolean hasRules();
 }

@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.language.cpp.CppApplication;
@@ -43,12 +44,9 @@ import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
 import org.gradle.swiftpm.internal.VersionDependency;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
-import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
-import org.gradle.vcs.internal.VcsMappingFactory;
-import org.gradle.vcs.internal.VcsMappingInternal;
-import org.gradle.vcs.internal.VcsMappingsStore;
+import org.gradle.vcs.internal.VcsResolver;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -68,13 +66,11 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
-    private final VcsMappingsStore vcsMappingsStore;
-    private final VcsMappingFactory vcsMappingFactory;
+    private final VcsResolver vcsResolver;
 
     @Inject
-    public SwiftPackageManagerExportPlugin(VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory) {
-        this.vcsMappingsStore = vcsMappingsStore;
-        this.vcsMappingFactory = vcsMappingFactory;
+    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver) {
+        this.vcsResolver = vcsResolver;
     }
 
     @Override
@@ -190,7 +186,6 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
 
         private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, DefaultTarget target) {
             // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
-            Action<VcsMapping> mappingRule = vcsMappingsStore.getVcsMappingRule();
             for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
@@ -202,9 +197,8 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     }
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
-                    VcsMappingInternal mapping = vcsMappingFactory.create(DefaultModuleComponentSelector.newSelector(externalDependency));
-                    mappingRule.execute(mapping);
-                    VersionControlSpec vcsSpec = mapping.getRepository();
+                    ModuleComponentSelector depSelector = DefaultModuleComponentSelector.newSelector(externalDependency);
+                    VersionControlSpec vcsSpec = vcsResolver.locateVcsFor(depSelector);
                     if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
                         throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));
                     }
