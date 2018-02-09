@@ -51,10 +51,10 @@ public class ProjectDependencyPublicationResolver {
         // Ensure target project is configured
         projectConfigurer.configureFully(dependencyProject);
 
-        List<PublicationInternal> publications = new ArrayList<PublicationInternal>();
+        List<ProjectPublication> publications = new ArrayList<ProjectPublication>();
         for (ProjectPublication publication : publicationRegistry.getPublications(dependencyProject.getPath())) {
-            if (publication instanceof PublicationInternal) {
-                publications.add((PublicationInternal) publication);
+            if (!publication.isLegacy()) {
+                publications.add(publication);
             }
         }
 
@@ -65,21 +65,21 @@ public class ProjectDependencyPublicationResolver {
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
         Set<SoftwareComponent> ignored = new HashSet<SoftwareComponent>();
-        for (PublicationInternal publication : publications) {
+        for (ProjectPublication publication : publications) {
             if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
                 ComponentWithVariants parent = (ComponentWithVariants) publication.getComponent();
                 ignored.addAll(parent.getVariants());
             }
         }
-        Set<PublicationInternal> topLevel = new LinkedHashSet<PublicationInternal>();
-        for (PublicationInternal publication : publications) {
+        Set<ProjectPublication> topLevel = new LinkedHashSet<ProjectPublication>();
+        for (ProjectPublication publication : publications) {
             if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
                 topLevel.add(publication);
             }
         }
 
         // See if all entry points have the same identifier
-        Iterator<? extends PublicationInternal> iterator = topLevel.iterator();
+        Iterator<ProjectPublication> iterator = topLevel.iterator();
         ModuleVersionIdentifier candidate = iterator.next().getCoordinates();
         while (iterator.hasNext()) {
             ModuleVersionIdentifier alternative = iterator.next().getCoordinates();
@@ -88,8 +88,8 @@ public class ProjectDependencyPublicationResolver {
                 formatter.node("Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.");
                 formatter.node("Found the following publications in " + dependencyProject.getDisplayName());
                 formatter.startChildren();
-                for (PublicationInternal publication : topLevel) {
-                    formatter.node("Publication '" + publication.getName() + "' with coordinates " + publication.getCoordinates());
+                for (ProjectPublication publication : topLevel) {
+                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates());
                 }
                 formatter.endChildren();
                 throw new UnsupportedOperationException(formatter.toString());

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
+import org.gradle.internal.Describables
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -179,6 +180,7 @@ Found the following publications in <project>:
     private PublicationInternal pub(def name, def group, def module, def version) {
         def publication = Mock(PublicationInternal)
         publication.name >> name
+        publication.displayName >> Describables.of("publication '" + name + "'")
         publication.coordinates >> new DefaultModuleVersionIdentifier(group, module, version)
         return publication
     }
