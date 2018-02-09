@@ -185,7 +185,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             link.getLinkedFile().set(exeLocation);
             link.getTargetPlatform().set(currentPlatform);
             link.getToolChain().set(toolChain);
-            link.isDebuggable().set(binary.isDebuggable());
+            link.getDebuggable().set(binary.isDebuggable());
 
             binary.getExecutableFile().set(link.getLinkedFile());
 

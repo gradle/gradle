@@ -144,8 +144,18 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.6
      */
+    @Internal
+    public boolean isDebuggable() {
+        return debuggable.get();
+    }
+
+    /**
+     * Create a debuggable binary?
+     *
+     * @since 4.6
+     */
     @Input
-    public Property<Boolean> isDebuggable() {
+    public Property<Boolean> getDebuggable() {
         return debuggable;
     }
 
@@ -222,7 +232,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         spec.objectFiles(getSource());
         spec.libraries(getLibs());
         spec.args(getLinkerArgs().get());
-        spec.setDebuggable(isDebuggable().get());
+        spec.setDebuggable(getDebuggable().get());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);

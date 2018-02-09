@@ -82,8 +82,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
                 compile.getModules().from(binary.getCompileModules());
                 compile.getSource().from(binary.getSwiftSource());
-                compile.isDebuggable().set(binary.isDebuggable());
-                compile.isOptimized().set(binary.isOptimized());
+                compile.getDebuggable().set(binary.isDebuggable());
+                compile.getOptimized().set(binary.isOptimized());
                 if (binary.isTestable()) {
                     compile.getCompilerArgs().add("-enable-testing");
                 }

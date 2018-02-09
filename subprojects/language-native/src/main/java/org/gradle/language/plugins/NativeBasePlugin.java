@@ -182,7 +182,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 })));
                 link.getTargetPlatform().set(targetPlatform);
                 link.getToolChain().set(toolChain);
-                link.isDebuggable().set(executable.isDebuggable());
+                link.getDebuggable().set(executable.isDebuggable());
 
                 executable.getLinkTask().set(link);
                 executable.getDebuggerExecutableFile().set(link.getLinkedFile());
@@ -251,7 +251,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 link.getLinkedFile().set(runtimeFile);
                 link.getTargetPlatform().set(targetPlatform);
                 link.getToolChain().set(toolChain);
-                link.isDebuggable().set(library.isDebuggable());
+                link.getDebuggable().set(library.isDebuggable());
 
                 Provider<RegularFile> linkFile = link.getLinkedFile();
                 runtimeFile = link.getLinkedFile();

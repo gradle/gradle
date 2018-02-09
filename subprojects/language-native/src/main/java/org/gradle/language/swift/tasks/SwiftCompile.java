@@ -84,7 +84,7 @@ public class SwiftCompile extends DefaultTask {
     private final ConfigurableFileCollection source;
     private final Property<SwiftVersion> sourceCompatibility;
     private final ListProperty<String> macros;
-    private final Property<Boolean> debug;
+    private final Property<Boolean> debuggable;
     private final Property<Boolean> optimize;
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -104,7 +104,7 @@ public class SwiftCompile extends DefaultTask {
         this.source = getProject().files();
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.macros = objectFactory.listProperty(String.class);
-        this.debug = objectFactory.property(Boolean.class);
+        this.debuggable = objectFactory.property(Boolean.class);
         this.optimize = objectFactory.property(Boolean.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
@@ -159,9 +159,29 @@ public class SwiftCompile extends DefaultTask {
      *
      * @since 4.6
      */
+    @Internal
+    public boolean isDebuggable() {
+        return debuggable.get();
+    }
+
+    /**
+     * Should the compiler generate debuggable code?
+     *
+     * @since 4.6
+     */
     @Input
-    public Property<Boolean> isDebuggable() {
-        return debug;
+    public Property<Boolean> getDebuggable() {
+        return debuggable;
+    }
+
+    /**
+     * Should the compiler generate debuggable code?
+     *
+     * @since 4.6
+     */
+    @Internal
+    public boolean isOptimized() {
+        return optimize.get();
     }
 
     /**
@@ -170,7 +190,7 @@ public class SwiftCompile extends DefaultTask {
      * @since 4.6
      */
     @Input
-    public Property<Boolean> isOptimized() {
+    public Property<Boolean> getOptimized() {
         return optimize;
     }
 
@@ -321,8 +341,8 @@ public class SwiftCompile extends DefaultTask {
         }
         spec.setMacros(macros);
         spec.args(getCompilerArgs().get());
-        spec.setDebuggable(isDebuggable().get());
-        spec.setOptimized(isOptimized().get());
+        spec.setDebuggable(getDebuggable().get());
+        spec.setOptimized(getOptimized().get());
         spec.setIncrementalCompile(isIncremental);
         spec.setOperationLogger(operationLogger);
         spec.setSourceCompatibility(sourceCompatibility.get());
