@@ -15,39 +15,56 @@
  */
 package org.gradle.api.publish.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.publish.PublishingExtension;
+import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.text.TreeFormatter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
- * The start of a service that will resolve a ProjectDependency into publication coordinates, to use for publishing.
+ * A service that will resolve a ProjectDependency into publication coordinates, to use for publishing.
  * For now is a simple implementation, but at some point could utilise components in the dependency project, usage in the referencing project, etc.
  */
 public class ProjectDependencyPublicationResolver {
+    private final ProjectPublicationRegistry publicationRegistry;
+    private final ProjectConfigurer projectConfigurer;
+
+    public ProjectDependencyPublicationResolver(ProjectPublicationRegistry publicationRegistry, ProjectConfigurer projectConfigurer) {
+        this.publicationRegistry = publicationRegistry;
+        this.projectConfigurer = projectConfigurer;
+    }
+
     public ModuleVersionIdentifier resolve(ProjectDependency dependency) {
-        Project dependencyProject = dependency.getDependencyProject();
-        ((ProjectInternal) dependencyProject).evaluate();
+        ProjectInternal dependencyProject = (ProjectInternal) dependency.getDependencyProject();
+        // Ensure target project is configured
+        projectConfigurer.configureFully(dependencyProject);
 
-        PublishingExtension publishing = dependencyProject.getExtensions().findByType(PublishingExtension.class);
+        List<PublicationInternal> publications = new ArrayList<PublicationInternal>();
+        for (ProjectPublication publication : publicationRegistry.getPublications(dependencyProject.getPath())) {
+            if (publication instanceof PublicationBackedProjectPublication) {
+                PublicationBackedProjectPublication projectPublication = (PublicationBackedProjectPublication) publication;
+                publications.add(projectPublication.getPublication());
+            }
+        }
 
-        if (publishing == null || publishing.getPublications().withType(PublicationInternal.class).isEmpty()) {
+        if (publications.isEmpty()) {
             // Project does not apply publishing (or has no publications): simply use the project name in place of the dependency name
             return new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
         }
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
-        Set<? extends PublicationInternal> publications = publishing.getPublications().withType(PublicationInternal.class);
         Set<SoftwareComponent> ignored = new HashSet<SoftwareComponent>();
         for (PublicationInternal publication : publications) {
             if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
