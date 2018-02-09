@@ -121,7 +121,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             
                 @Override
                 Iterable<String> asArguments() {
-                    return ["-Dinput.file=\${inputFile.absolutePath}"]
+                    return ["-Dinput.file=\${inputFile.absolutePath}".toString()]
                 }            
             }
             

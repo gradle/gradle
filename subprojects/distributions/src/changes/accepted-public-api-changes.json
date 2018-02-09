@@ -66,9 +66,9 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.JavaExec",
-            "member": "Class org.gradle.api.tasks.JavaExec",
-            "acceptation": "Only one method is new in the incubating interface.",
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Class org.gradle.process.JavaExecSpec",
+            "acceptation": "Added a new interface with one new method.",
             "changes": [
                 "org.gradle.process.ConfigurableJavaForkOptions"
             ]

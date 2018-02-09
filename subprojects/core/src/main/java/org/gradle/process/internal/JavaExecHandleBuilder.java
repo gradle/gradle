@@ -15,9 +15,11 @@
  */
 package org.gradle.process.internal;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
@@ -39,6 +41,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private FileCollection classpath;
     private final JavaForkOptions javaOptions;
     private final FileResolver fileResolver;
+    private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public JavaExecHandleBuilder(FileResolver fileResolver, Executor executor) {
         super(fileResolver, executor);
@@ -50,6 +54,9 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public List<String> getAllJvmArgs() {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
+        for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
+            Iterables.addAll(allArgs, jvmArgumentProvider.asArguments());
+        }
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
             allArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getFiles()));
@@ -197,6 +204,11 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         return this;
     }
 
+    @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return argumentProviders;
+    }
+
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
         this.classpath = classpath;
         return this;
@@ -216,12 +228,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         List<String> arguments = new ArrayList<String>(getAllJvmArgs());
         arguments.add(mainClass);
         arguments.addAll(getArgs());
+        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
+            Iterables.addAll(arguments, argumentProvider.asArguments());
+        }
         return arguments;
     }
 
     public JavaForkOptions copyTo(JavaForkOptions options) {
-        javaOptions.copyTo(options);
-        return this;
+        throw new UnsupportedOperationException();
     }
 
     public ExecHandle build() {
@@ -235,5 +249,10 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         super.setIgnoreExitValue(ignoreExitValue);
         return this;
+    }
+
+    @Override
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return jvmArgumentProviders;
     }
 }

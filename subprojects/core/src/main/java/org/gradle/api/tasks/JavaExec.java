@@ -16,12 +16,10 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ConfigurableJavaForkOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -32,7 +30,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +56,8 @@ import java.util.Map;
  * gradle someJavaExecTask --debug-jvm
  * </pre>
  */
-public class JavaExec extends ConventionTask implements JavaExecSpec, ConfigurableJavaForkOptions {
+public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
-    private List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
-    private List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public JavaExec() {
         javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
@@ -75,27 +70,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
 
     @TaskAction
     public void exec() {
-        JavaExecAction execAction = getExecActionFactory().newJavaExecAction();
-
-        copyTo(execAction);
-        execAction.setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
-        copyJvmArgumentProvidersTo(jvmArgumentProviders, execAction);
-
-        copyTo((ProcessForkOptions) execAction);
-
-        execAction.setIgnoreExitValue(isIgnoreExitValue());
-        execAction.setStandardInput(getStandardInput());
-        execAction.setStandardOutput(getStandardOutput());
-        execAction.setErrorOutput(getErrorOutput());
-
-        execAction.setMain(getMain()); // make convention mapping work (at least for 'main'...
-        execAction.setArgs(getArgs());
-        for (CommandLineArgumentProvider commandLineArgumentProvider : getArgumentProviders()) {
-            execAction.args(commandLineArgumentProvider.asArguments());
-        }
-        execAction.setClasspath(getClasspath());
-
-        execAction.execute();
+        setMain(getMain()); // make convention mapping work (at least for 'main'...
+        setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
+        javaExecHandleBuilder.execute();
     }
 
     /**
@@ -334,14 +311,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
     }
 
     /**
-     * Argument providers for the application.
-     *
-     * @since 4.6
+     * {@inheritDoc}
      */
-    @Incubating
-    @Nested
+    @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentProviders;
+        return javaExecHandleBuilder.getArgumentProviders();
     }
 
     /**
@@ -372,14 +346,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
      */
     public JavaExec copyTo(JavaForkOptions options) {
         javaExecHandleBuilder.copyTo(options);
-        copyJvmArgumentProvidersTo(jvmArgumentProviders, options);
         return this;
-    }
-
-    private static void copyJvmArgumentProvidersTo(Iterable<CommandLineArgumentProvider> jvmArgProviders, JavaForkOptions options) {
-        for (CommandLineArgumentProvider jvmArgProvider : jvmArgProviders) {
-            options.jvmArgs(jvmArgProvider.asArguments());
-        }
     }
 
     /**
@@ -553,8 +520,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
         return javaExecHandleBuilder.getCommandLine();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return jvmArgumentProviders;
+        return javaExecHandleBuilder.getJvmArgumentProviders();
     }
 }

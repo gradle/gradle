@@ -138,7 +138,7 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();

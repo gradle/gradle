@@ -15,9 +15,11 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 
 import java.util.List;
@@ -25,7 +27,7 @@ import java.util.List;
 /**
  * Specifies the options for executing a Java application.
  */
-public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
+public interface JavaExecSpec extends ConfigurableJavaForkOptions, BaseExecSpec {
     /**
      * Returns the fully qualified name of the Main class to be executed.
      */
@@ -83,6 +85,15 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @return this
      */
     JavaExecSpec setArgs(Iterable<?> args);
+
+    /**
+     * Argument providers for the application.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    @Nested
+    List<CommandLineArgumentProvider> getArgumentProviders();
 
     /**
      * Adds elements to the classpath for executing the main class.
