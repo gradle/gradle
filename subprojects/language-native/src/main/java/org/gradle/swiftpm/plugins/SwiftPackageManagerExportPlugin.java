@@ -213,21 +213,22 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                         throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));
                     }
                     GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
-
-                    if (externalDependency.getVersionConstraint().getBranch() != null) {
-                        dependencies.add(new BranchDependency(gitSpec.getUrl(), externalDependency.getVersionConstraint().getBranch()));
-                        if (externalDependency.getVersion() != null) {
-                            throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersionConstraint().getBranch(), externalDependency.getVersion()));
-                        }
-                    } else {
-                        dependencies.add(toSwiftPmDependency(externalDependency, gitSpec));
-                    }
+                    dependencies.add(toSwiftPmDependency(externalDependency, gitSpec));
                     target.getRequiredProducts().add(externalDependency.getName());
+                } else {
+                    throw new InvalidUserDataException(String.format("Cannot map a dependency of type %s (%s)", dependency.getClass().getSimpleName(), dependency));
                 }
             }
         }
 
         private Dependency toSwiftPmDependency(ExternalModuleDependency externalDependency, GitVersionControlSpec gitSpec) {
+            if (externalDependency.getVersionConstraint().getBranch() != null) {
+                if (externalDependency.getVersion() != null) {
+                    throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersionConstraint().getBranch(), externalDependency.getVersion()));
+                }
+                return new BranchDependency(gitSpec.getUrl(), externalDependency.getVersionConstraint().getBranch());
+            }
+
             String versionSelectorString = externalDependency.getVersion();
             VersionSelector versionSelector = versionSelectorScheme.parseSelector(versionSelectorString);
             if (versionSelector instanceof LatestVersionSelector) {
@@ -256,7 +257,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     if (version.getNumericParts().length == 2) {
                         Long part1 = version.getNumericParts()[0];
                         Long part2 = version.getNumericParts()[1];
-                        return new VersionDependency(gitSpec.getUrl(), part1 + "." + part2 + ".0", part1 + "." + (part2+1) + ".0", false);
+                        return new VersionDependency(gitSpec.getUrl(), part1 + "." + part2 + ".0", part1 + "." + (part2 + 1) + ".0", false);
                     }
                 }
             }
