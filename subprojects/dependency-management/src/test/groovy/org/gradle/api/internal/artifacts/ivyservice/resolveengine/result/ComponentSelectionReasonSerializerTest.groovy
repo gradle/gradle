@@ -43,27 +43,6 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
         check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE.withReason("More details!"))
     }
 
-    def "multiple writes of the same custom reason"() {
-        when:
-        def firstTime = toBytes(withReason("hello"), serializer)
-        def secondTime = toBytes(withReason("hello"), serializer)
-        def thirdTime = toBytes(withReason("hello"), serializer)
-        def fourthTime = toBytes(withReason("how are you?"), serializer)
-        def fifthTime = toBytes(withReason("hello"), serializer)
-
-        then: "first serialization is more expensive than the next one"
-        firstTime.length > secondTime.length
-
-        and: "subsequent serializations use the same amount of data"
-        secondTime.length == thirdTime.length
-
-        and: "adding a different reason will imply serializing the reason"
-        fourthTime.length > thirdTime.length
-
-        and: "remembers the selection reasons"
-        fifthTime.length == thirdTime.length
-    }
-
     void check(ComponentSelectionDescriptor... reasons) {
         def reason = VersionSelectionReasons.of(Arrays.asList(reasons))
         def result = serialize(reason, serializer)
