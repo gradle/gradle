@@ -255,7 +255,7 @@ public class BlockingHttpServer extends ExternalResource {
 
     /**
      * Expects exactly the given number of calls to be made concurrently from any combination of the optionally expected calls. Blocks each call until they are explicitly released.
-     * Since the expectations ore optional, they are still considered "complete" even if not all expected calls have been received.
+     * Since the expectations are optional, they are still considered "complete" even if not all expected calls have been received.
      */
     public BlockingHandler expectOptionalAndBlock(int concurrent, String... optionalExpectedCalls) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
