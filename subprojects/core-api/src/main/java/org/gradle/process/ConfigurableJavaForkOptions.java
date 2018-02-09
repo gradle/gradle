@@ -33,6 +33,6 @@ public interface ConfigurableJavaForkOptions extends JavaForkOptions {
      * Command line argument providers for the java process to fork.
      */
     @Nested
-    List<CommandLineArgumentProvider> getJvmArgProviders();
+    List<CommandLineArgumentProvider> getJvmArgumentProviders();
 
 }

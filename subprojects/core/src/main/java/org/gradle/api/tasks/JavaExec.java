@@ -61,8 +61,8 @@ import java.util.Map;
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec, ConfigurableJavaForkOptions {
     private final JavaExecAction javaExecHandleBuilder;
-    private List<CommandLineArgumentProvider> jvmArgProviders = new ArrayList<CommandLineArgumentProvider>();
-    private List<CommandLineArgumentProvider> argProviders = new ArrayList<CommandLineArgumentProvider>();
+    private List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public JavaExec() {
         javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
@@ -79,7 +79,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
 
         copyTo(execAction);
         execAction.setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
-        copyJvmArgProvidersTo(execAction);
+        copyJvmArgumentProvidersTo(jvmArgumentProviders, execAction);
 
         copyTo((ProcessForkOptions) execAction);
 
@@ -90,7 +90,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
 
         execAction.setMain(getMain()); // make convention mapping work (at least for 'main'...
         execAction.setArgs(getArgs());
-        for (CommandLineArgumentProvider commandLineArgumentProvider : getArgProviders()) {
+        for (CommandLineArgumentProvider commandLineArgumentProvider : getArgumentProviders()) {
             execAction.args(commandLineArgumentProvider.asArguments());
         }
         execAction.setClasspath(getClasspath());
@@ -340,8 +340,8 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
      */
     @Incubating
     @Nested
-    public List<CommandLineArgumentProvider> getArgProviders() {
-        return argProviders;
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return argumentProviders;
     }
 
     /**
@@ -372,11 +372,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
      */
     public JavaExec copyTo(JavaForkOptions options) {
         javaExecHandleBuilder.copyTo(options);
-        copyJvmArgProvidersTo(options);
+        copyJvmArgumentProvidersTo(jvmArgumentProviders, options);
         return this;
     }
 
-    private void copyJvmArgProvidersTo(JavaForkOptions options) {
+    private static void copyJvmArgumentProvidersTo(Iterable<CommandLineArgumentProvider> jvmArgProviders, JavaForkOptions options) {
         for (CommandLineArgumentProvider jvmArgProvider : jvmArgProviders) {
             options.jvmArgs(jvmArgProvider.asArguments());
         }
@@ -554,7 +554,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getJvmArgProviders() {
-        return jvmArgProviders;
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return jvmArgumentProviders;
     }
 }

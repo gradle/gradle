@@ -71,13 +71,13 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
 
         when:
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
@@ -91,13 +91,13 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
 
         when:
         run "run"
 
         then:
-        ":run" in skippedTasks
+        skipped ":run"
 
         when:
         file("out.txt").delete()
@@ -106,7 +106,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
     }
 
     def "arguments can be passed by using argument providers"() {
@@ -114,8 +114,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         def inputFile = file("input.txt")
         def outputFile = file("out.txt")
         buildFile << """
-            import org.gradle.process.CommandLineArgumentProvider
-
             class MyApplicationJvmArguments implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
@@ -137,9 +135,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
                 }            
             }
             
-            run.jvmArgProviders << new MyApplicationJvmArguments(inputFile: new File(project.property('inputFile')))
+            run.jvmArgumentProviders << new MyApplicationJvmArguments(inputFile: new File(project.property('inputFile')))
             
-            run.argProviders << new MyApplicationCommandLineArguments(outputFile: new File(project.property('outputFile')))
+            run.argumentProviders << new MyApplicationCommandLineArguments(outputFile: new File(project.property('outputFile')))
              
         """
         inputFile.text = "first"
@@ -161,7 +159,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "run", "-PinputFile=${inputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
 
         when:
         def secondInputFile = file("second-input.txt")
@@ -169,12 +167,13 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         run "run", "-PinputFile=${secondInputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
         then:
         outputFile.text == "first"
-        ":run" in skippedTasks
+        skipped ":run"
 
         when:
         secondInputFile.text = "different"
         run "run", "-PinputFile=${secondInputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
+        outputFile.text == "different"
     }
 }

@@ -115,7 +115,7 @@ public class JacocoPluginExtension {
             }
         }));
 
-        task.getJvmArgProviders().add(new JacocoAgent(extension));
+        task.getJvmArgumentProviders().add(new JacocoAgent(extension));
 
         // Do not cache the task if we are not writing execution data to a file
         task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {

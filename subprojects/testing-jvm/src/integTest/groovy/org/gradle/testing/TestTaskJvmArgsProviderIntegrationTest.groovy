@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
-    def "jvm args providers are passed to the test worker"() {
+    def "jvm argument providers are passed to the test worker"() {
         file("src/test/java/FooTest.java") << """
             import java.io.*;
             import org.junit.*;
@@ -38,8 +38,6 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("build.gradle") << """
-            import org.gradle.process.CommandLineArgumentProvider
-
             apply plugin: "java"
 
             ${mavenCentralRepository()}
@@ -59,7 +57,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            test.jvmArgProviders << new MyTestSystemProperties(inputFile: file(project.property('inputFile')))
+            test.jvmArgumentProviders << new MyTestSystemProperties(inputFile: file(project.property('inputFile')))
         """
         file('inputFile.txt').text = "Test"
 
@@ -79,5 +77,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "test", "-PinputFile=different-file.txt"
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
     }
 }

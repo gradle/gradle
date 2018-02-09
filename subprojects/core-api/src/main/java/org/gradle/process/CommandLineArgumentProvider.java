@@ -19,14 +19,14 @@ package org.gradle.process;
 import org.gradle.api.Incubating;
 
 /**
- * Provides arguments to a JVM.
+ * Provides arguments to a process.
  *
  * @since 4.6
  */
 @Incubating
 public interface CommandLineArgumentProvider {
     /**
-     * The arguments which will be provided to the jvm.
+     * The arguments which will be provided to the process.
      */
     Iterable<String> asArguments();
 }
