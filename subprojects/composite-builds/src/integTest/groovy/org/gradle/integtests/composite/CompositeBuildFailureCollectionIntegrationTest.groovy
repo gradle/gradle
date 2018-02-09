@@ -54,7 +54,7 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         includedBuilds << buildB << buildC << buildD
 
         buildA.buildFile << """
-            task('testAll') {
+            task testAll {
                 dependsOn gradle.includedBuilds*.task(':test')
             }
         """
@@ -63,11 +63,12 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         fails(buildA, 'testAll', ['--continue'])
 
         then:
-        assertTaskExecuted(":buildB", ":test")
-        assertTaskExecuted(":buildC", ":sub1:test")
-        assertTaskExecuted(":buildC", ":sub2:test")
-        assertTaskExecuted(":buildC", ":sub3:test")
-        assertTaskExecuted(":buildD", ":test")
+        !errorOutput.contains('Multiple build failures')
+        assertTaskExecuted(':buildB', ':test')
+        assertTaskExecuted(':buildC', ':sub1:test')
+        assertTaskExecuted(':buildC', ':sub2:test')
+        assertTaskExecuted(':buildC', ':sub3:test')
+        assertTaskExecuted(':buildD', ':test')
         assertTaskExecutionFailureMessage(errorOutput, ':buildB:test')
         assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub1:test')
         assertTaskExecutionFailureMessage(errorOutput,':buildC:sub2:test')
@@ -81,23 +82,24 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
 
         buildA.buildFile << """
             ${mavenCentralRepository()}
-            
-            dependencies {
-                testCompile 'junit:junit:4.12'
-            }
+            ${junitDependency()}
 
-            task('testAll') {
+            task testAll {
                 dependsOn 'test'
                 dependsOn gradle.includedBuilds*.task(':test')
             }
         """
-        file("buildA/src/test/java/SampleTestA.java") << junitTestClass('SampleTestA')
+        file('buildA/src/test/java/SampleTestA.java') << junitTestClass('SampleTestA')
 
         and:
         fails(buildA, 'testAll', ['--continue'])
 
         then:
         !errorOutput.contains('Multiple build failures')
+        assertTaskExecuted(':', ':test')
+        assertTaskExecuted(':buildC', ':sub1:test')
+        assertTaskExecuted(':buildC', ':sub2:test')
+        assertTaskExecuted(':buildC', ':sub3:test')
         assertTaskExecutionFailureMessage(errorOutput, ':test')
         assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub1:test')
         assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub2:test')
@@ -109,7 +111,12 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
             apply plugin: 'java'
 
             ${mavenCentralRepository()}
-            
+            ${junitDependency()}
+        """
+    }
+
+    static String junitDependency() {
+        """
             dependencies {
                 testCompile 'junit:junit:4.12'
             }
