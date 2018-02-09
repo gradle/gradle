@@ -160,10 +160,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
             runTasks();
             finishBuild();
         } catch (Throwable t) {
-            Throwable collectedFailure = analyzeBuildFailureState();
-            Throwable exceptionToBeThrown = collectedFailure != null ? collectedFailure : t;
-            finishBuild(new BuildResult(upTo.name(), gradle, exceptionToBeThrown));
-            throw new ReportedException(exceptionToBeThrown);
+            Throwable failure = exceptionAnalyser.transform(t);
+            finishBuild(new BuildResult(upTo.name(), gradle, failure));
+            throw new ReportedException(failure);
         }
     }
 
