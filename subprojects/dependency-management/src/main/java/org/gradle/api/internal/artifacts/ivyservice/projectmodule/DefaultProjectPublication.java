@@ -18,14 +18,27 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
 public class DefaultProjectPublication implements ProjectPublication {
+    private final DisplayName displayName;
     private final ModuleVersionIdentifier id;
 
-    public DefaultProjectPublication(ModuleVersionIdentifier id) {
+    public DefaultProjectPublication(DisplayName displayName, ModuleVersionIdentifier id) {
+        this.displayName = displayName;
         this.id = id;
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public boolean isLegacy() {
+        return true;
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
@@ -25,6 +26,8 @@ import javax.annotation.Nullable;
  * Provides information about an external publication of a project.
  */
 public interface ProjectPublication {
+    DisplayName getDisplayName();
+
     ModuleVersionIdentifier getCoordinates();
 
     @Nullable
@@ -35,4 +38,9 @@ public interface ProjectPublication {
      * be considered when converting project dependencies to published metadata.
      */
     boolean isAlias();
+
+    /**
+     * Should this publication be ignored when there are others available?
+     */
+    boolean isLegacy();
 }
