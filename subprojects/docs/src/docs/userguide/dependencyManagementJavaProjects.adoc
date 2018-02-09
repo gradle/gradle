@@ -33,7 +33,7 @@ The api:org.gradle.api.Project#dependencies[] code block declares that Hibernate
 [[sec:module_dependencies_java_tutorial]]
 === Declaring module dependencies
 
-There are various <<dependency_types,types of dependencies>> that you can declare. One such type is an _module dependency_. A <<sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven central, a corporate Maven or Ivy repository, or a directory in the local file system.
+There are various <<dependency_types,types of dependencies>> that you can declare. One such type is an _module dependency_. A <<sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
 To define an module dependency, you add it to a <<sec:configurations_java_tutorial,dependency configuration>>:
 
@@ -51,11 +51,11 @@ To find out more about defining dependencies, have a look at <<declaring_depende
 A api:org.gradle.api.artifacts.Configuration[] is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
 
 Declaring dependencies::
-The plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin.
+A plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin.
 Resolving dependencies::
-The plugin uses configurations to find (and possibly download) inputs to the tasks it defines.
+A plugin uses configurations to find (and possibly download) inputs to the tasks it defines.
 Exposing artifacts for consumption::
-The plugin uses configurations to define what _artifacts_ it generates for other projects to consume.
+A plugin uses configurations to define what _artifacts_ it generates for other projects to consume.
 
 With those three purposes in mind, let's take a look at a few of the <<sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
 
@@ -69,7 +69,7 @@ The dependencies which are part of this project's externally consumable API as w
 Various plugins add further standard configurations. You can also define your own custom configurations in your build via api:org.gradle.api.Project#configurations[]. See <<defining_and_using_configurations>> for the details of defining and customizing dependency configurations.
 
 [[sec:repositories_java_tutorial]]
-=== Declaring repositories
+=== Declaring common Java repositories
 
 How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_. A repository is a collection of modules, organized by `group`, `name` and `version`. Gradle understands different <<repository_types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
 
@@ -106,4 +106,4 @@ Dependency configurations are also used to publish files. Gradle calls these fil
 
 Now, when you run `gradle uploadArchives`, Gradle will build the JAR file, generate a `.pom` file and upload the artifacts.
 
-To find out more about publication, have a look at <<artifact_management>>.
+To learn more about publishing artifacts, have a look at <<artifact_management>>.
