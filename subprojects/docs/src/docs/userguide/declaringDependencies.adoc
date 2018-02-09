@@ -17,7 +17,7 @@
 
 Gradle builds can declare dependencies on modules hosted in repositories, files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
 
-Every dependency needs to be assigned to a configuration when declared in a build script. For more information on the purpose and syntax of configurations, see <<defining_and_using_configurations>>.
+Every dependency needs to be assigned to a configuration when declared in a build script. For more information on the purpose and syntax of configurations, see <<managing_dependency_configurations>>.
 
 [[sec:declaring_dependency_to_module]]
 === Declaring a dependency to a module

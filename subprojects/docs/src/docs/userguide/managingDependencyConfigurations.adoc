@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[defining_and_using_configurations]]
-== Defining and Using Configurations
+[[managing_dependency_configurations]]
+== Managing Dependency Configurations
 
 [[sub:what_is_a_configuration]]
 === What is a configuration?
@@ -35,9 +35,9 @@ For more examples on the usage of configurations to navigate, inspect and post-p
 
 === Defining custom configurations
 
-You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
+You can define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
 
-Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code. It's fairly simply to achieve that goal by introducing a custom configuration and using it in a task.
+Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code. It's fairly simple to achieve that goal by introducing a custom configuration and using it in a task.
 
 ++++
 <sample id="custom-configuration" dir="userguide/dependencyManagement/definingUsingConfigurations/custom" title="Declaring and using a custom configuration">
