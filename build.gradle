@@ -168,7 +168,7 @@ ext {
         project(':resources')
     ]
 
-    projectsRequiresJava8 = [
+    projectsRequiringJava8 = [
         project(':testingJunitPlatform')
     ]
 }

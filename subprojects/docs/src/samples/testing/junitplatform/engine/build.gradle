@@ -13,6 +13,7 @@ dependencies {
 
 test {
     useJUnitPlatform {
-        includeEngines 'junit-jupiter', 'junit-vintage'
+        // includeEngines 'included-engine'
+        // excludeEngines 'excluded-engine'
     }
 }

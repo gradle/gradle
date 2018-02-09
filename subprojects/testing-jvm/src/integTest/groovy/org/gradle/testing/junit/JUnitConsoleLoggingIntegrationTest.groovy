@@ -40,7 +40,7 @@ class JUnitConsoleLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpe
         fails("test")
 
         then:
-        result.normalizedOutput.contains("""
+        outputContains("""
 org.gradle.JUnit4Test > badTest FAILED
     java.lang.RuntimeException at JUnit4Test.groovy:44
 """)
@@ -53,14 +53,14 @@ org.gradle.JUnit4Test > badTest FAILED
         fails("test")
 
         then:
-        result.normalizedOutput.contains("""
+        outputContains("""
 badTest FAILED
     java.lang.RuntimeException: bad
         at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:44)
         at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
 """)
 
-        result.normalizedOutput.contains("ignoredTest SKIPPED")
+        outputContains("ignoredTest SKIPPED")
 
         outputContains("org.gradle.JUnit4Test FAILED")
     }
@@ -71,7 +71,7 @@ badTest FAILED
         fails("test")
 
         then:
-        result.normalizedOutput.contains("""
+        outputContains("""
 org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
     line 1
     line 2
