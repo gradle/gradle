@@ -79,18 +79,20 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val response = fetchKotlinBuildScriptModelFor(request)
         log(ReceivedModelResponse(scriptFile, response))
 
-        return if (response.exceptions.isEmpty())
-            dependenciesFrom(response, buildscriptBlockHash).also {
-                log(ResolvedDependencies(scriptFile, it))
-            }
-        else if (previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size)
-            previousDependencies.also {
-                log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
-            }
-        else
-            dependenciesFrom(response, buildscriptBlockHash).also {
-                log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
-            }
+        return when {
+            response.exceptions.isEmpty()                                                                    ->
+                dependenciesFrom(response, buildscriptBlockHash).also {
+                    log(ResolvedDependencies(scriptFile, it))
+                }
+            previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
+                previousDependencies.also {
+                    log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
+                }
+            else                                                                                             ->
+                dependenciesFrom(response, buildscriptBlockHash).also {
+                    log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
+                }
+        }
     }
 
     private

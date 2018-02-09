@@ -22,9 +22,7 @@ import org.gradle.internal.concurrent.Stoppable
 open class ClassPathModeExceptionCollector : Stoppable {
 
     private
-    val collection by lazy(LazyThreadSafetyMode.NONE) {
-        mutableListOf<Exception>()
-    }
+    val collection = mutableListOf<Exception>()
 
     val exceptions: List<Exception>
         get() = collection
