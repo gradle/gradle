@@ -68,11 +68,11 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildC", ":sub2:test")
         assertTaskExecuted(":buildC", ":sub3:test")
         assertTaskExecuted(":buildD", ":test")
-        errorOutput.contains("Execution failed for task ':buildB:test'")
-        errorOutput.contains("Execution failed for task ':buildC:sub1:test'")
-        errorOutput.contains("Execution failed for task ':buildC:sub2:test'")
-        errorOutput.contains("Execution failed for task ':buildC:sub3:test'")
-        errorOutput.contains("Execution failed for task ':buildD:test'")
+        assertTaskExecutionFailureMessage(errorOutput, ':buildB:test')
+        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub1:test')
+        assertTaskExecutionFailureMessage(errorOutput,':buildC:sub2:test')
+        assertTaskExecutionFailureMessage(errorOutput,':buildC:sub3:test')
+        assertTaskExecutionFailureMessage(errorOutput,':buildD:test')
     }
 
     def "can collect build failure in root and included build"() {
@@ -98,10 +98,10 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
 
         then:
         !errorOutput.contains('Multiple build failures')
-        errorOutput.contains("Execution failed for task ':test'")
-        errorOutput.contains("Execution failed for task ':buildC:sub1:test'")
-        errorOutput.contains("Execution failed for task ':buildC:sub2:test'")
-        errorOutput.contains("Execution failed for task ':buildC:sub3:test'")
+        assertTaskExecutionFailureMessage(errorOutput, ':test')
+        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub1:test')
+        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub2:test')
+        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub3:test')
     }
 
     private String javaProject() {
@@ -133,5 +133,9 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
                 }
             }
         """
+    }
+
+    static void assertTaskExecutionFailureMessage(String errorOutput, String taskPath) {
+        assert errorOutput.contains("Execution failed for task '$taskPath'")
     }
 }
