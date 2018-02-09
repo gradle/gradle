@@ -17,12 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+
+import javax.annotation.Nullable;
 
 /**
- * Provides information on a "logical" publication of a project.
- * The publication could have been declared via `publishing.publications`,
- * an `uploadArchives` task, etc.
+ * Provides information about an external publication of a project.
  */
 public interface ProjectPublication {
-    ModuleVersionIdentifier getId();
+    ModuleVersionIdentifier getCoordinates();
+
+    @Nullable
+    SoftwareComponentInternal getComponent();
+
+    /**
+     * Specifies that this publication is just an alias for another one and should not
+     * be considered when converting project dependencies to published metadata.
+     */
+    boolean isAlias();
 }
