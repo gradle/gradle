@@ -30,10 +30,10 @@ class EmptyFileCollectionSnapshotTest extends Specification {
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], ORDERED, false)
         expect:
-        snapshot.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", false) as List == []
-        snapshot.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", true) as List == [
-            FileChange.added("file1.txt", "test", FileType.Missing),
-            FileChange.added("file2.txt", "test", FileType.Missing)
+        snapshot.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", false).toList() == []
+        snapshot.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", true).toList() == [
+            FileChange.added("file1.txt", "test", FileType.RegularFile),
+            FileChange.added("file2.txt", "test", FileType.RegularFile)
         ]
     }
 
@@ -43,19 +43,19 @@ class EmptyFileCollectionSnapshotTest extends Specification {
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], ORDERED, false)
         expect:
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(snapshot, "test", false) as List == [
-            FileChange.removed("file1.txt", "test", FileType.Missing),
-            FileChange.removed("file2.txt", "test", FileType.Missing)
+        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(snapshot, "test", false).toList() == [
+            FileChange.removed("file1.txt", "test", FileType.RegularFile),
+            FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(snapshot, "test", true) as List == [
-            FileChange.removed("file1.txt", "test", FileType.Missing),
-            FileChange.removed("file2.txt", "test", FileType.Missing)
+        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(snapshot, "test", true).toList() == [
+            FileChange.removed("file1.txt", "test", FileType.RegularFile),
+            FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
     }
 
     def "comparing to itself works"() {
         expect:
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", false) as List == []
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", true) as List == []
+        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", false).toList() == []
+        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", true).toList() == []
     }
 }
