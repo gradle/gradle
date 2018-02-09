@@ -59,7 +59,6 @@ dependencies {
     implementation libraries.nativePlatform.coordinates
     implementation libraries.commons_compress.coordinates
     implementation libraries.xmlApis.coordinates
-    implementation libraries.cfuture.coordinates
 
     runtimeOnly project(":docs")
 
