@@ -19,39 +19,22 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.execution.ProjectConfigurer
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class ProjectDependencyPublicationResolverTest extends Specification {
     def projectDependency = Mock(ProjectDependency)
     def project = Mock(ProjectInternal)
-    def extensions = Mock(ExtensionContainerInternal)
-    def publishing = Mock(PublishingExtension)
-    def publications = new DefaultPublicationContainer(DirectInstantiator.INSTANCE)
+    def publicationRegistry = Mock(ProjectPublicationRegistry)
+    def projectConfigurer = Mock(ProjectConfigurer)
     def publication = Mock(PublicationInternal)
 
-    def "resolves project coordinates if project does not have publishing extension"() {
-        when:
-        projectDependency.dependencyProject >> project
-        project.evaluate() >> project
-        project.extensions >> extensions
-        extensions.findByType(PublishingExtension) >> null
-
-        projectDependency.group >> "dep-group"
-        project.name >> "project-name"
-        projectDependency.version >> "dep-version"
-
-        then:
-        with (resolve()) {
-            group == "dep-group"
-            name == "project-name"
-            version == "dep-version"
-        }
+    def setup() {
+        project.path >> ":path"
     }
 
     def "uses project coordinates when dependent project has no publications"() {
@@ -184,16 +167,13 @@ Found the following publications in <project>:
     }
 
     private ModuleVersionIdentifier resolve() {
-        new ProjectDependencyPublicationResolver().resolve(projectDependency)
+        new ProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer).resolve(projectDependency)
     }
 
     private void dependentProjectHasPublications(PublicationInternal... added) {
         projectDependency.dependencyProject >> project
-        project.evaluate() >> project
-        project.extensions >> extensions
-        extensions.findByType(PublishingExtension) >> publishing
-        publishing.publications >> publications
-        publications.addAll(added)
+        projectConfigurer.configureFully(project)
+        publicationRegistry.getPublications(":path") >> added.collect { new PublicationBackedProjectPublication(it) }
     }
 
     private PublicationInternal pub(def name, def group, def module, def version) {
