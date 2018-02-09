@@ -18,15 +18,15 @@ package org.gradle.integtests.fixtures
 
 class FeaturePreviewsFixture {
 
-    static void enableGradleMetadata(File file) {
-        file << """
-org.gradle.gradlemetadata=true
+    static void enableGradleMetadata(File settings) {
+        settings << """
+gradle.enableFeaturePreview('GRADLE_METADATA')
 """
     }
 
-    static void enableAdvancedPomSupport(File file) {
-        file << """
-org.gradle.advancedpomsupport=true
+    static void enableImprovedPomSupport(File settings) {
+        settings << """
+gradle.enableFeaturePreview('IMPROVED_POM_SUPPORT')
 """
     }
 }
