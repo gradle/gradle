@@ -24,8 +24,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * The JUnit platform specific test options. To be implemented in next step.
+ * The JUnit platform specific test options.
  *
+ * @see <a href="https://junit.org/junit5/docs/current/user-guide">JUnit 5 User Guide</a>
  * @since 4.6
  */
 @Incubating
@@ -38,84 +39,76 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
 
     private Set<String> excludeTags = new LinkedHashSet<String>();
 
-    @Incubating
+    /**
+     * The set of engines to run with. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/EngineFilter.html#includeEngines-java.lang.String...-">EngineFilter.includeEngines</a>.
+     *
+     * @see <a href="https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom">Test Engine</a>
+     */
     public JUnitPlatformOptions includeEngines(String... includeEngines) {
         this.includeEngines.addAll(Arrays.asList(includeEngines));
         return this;
     }
 
-    @Incubating
+    /**
+     * The set of tags to run with. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/TagFilter.html#includeTags-java.util.List-">TagFilter.includeTags</a>.
+     *
+     * @see <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging and Filtering</a>
+     */
     public JUnitPlatformOptions includeTags(String... includeTags) {
         this.includeTags.addAll(Arrays.asList(includeTags));
         return this;
     }
 
-    @Incubating
+    /**
+     * The set of engines to exclude. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/EngineFilter.html#excludeEngines-java.lang.String...-">EngineFilter.excludeEngines</a>.
+     *
+     * @see <a href="https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom">Test Engine</a>
+     */
     public JUnitPlatformOptions excludeEngines(String... excludeEngines) {
         this.excludeEngines.addAll(Arrays.asList(excludeEngines));
         return this;
     }
 
-    @Incubating
+    /**
+     * The set of tags to exclude. Equivalent to invoking <a href="https://junit.org/junit5/docs/current/api/org/junit/platform/launcher/TagFilter.html#excludeTags-java.util.List-">TagFilter.excludeTags</a>.
+     *
+     * @see <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging and Filtering</a>
+     */
     public JUnitPlatformOptions excludeTags(String... excludeTags) {
         this.excludeTags.addAll(Arrays.asList(excludeTags));
         return this;
     }
 
-    /**
-     * The set of engines to run with.
-     */
     @Incubating
     public Set<String> getIncludeEngines() {
         return includeEngines;
     }
 
-    /**
-     * The set of tags to run with.
-     */
     @Incubating
     public Set<String> getIncludeTags() {
         return includeTags;
     }
 
-    /**
-     * The set of engines to run with.
-     */
     public void setIncludeEngines(Set<String> includeEngines) {
         this.includeEngines = includeEngines;
     }
 
-    /**
-     * The set of engines to exclude.
-     */
     public Set<String> getExcludeEngines() {
         return excludeEngines;
     }
 
-    /**
-     * The set of engines to exclude.
-     */
     public void setExcludeEngines(Set<String> excludeEngines) {
         this.excludeEngines = excludeEngines;
     }
 
-    /**
-     * The set of tags to run with.
-     */
     public void setIncludeTags(Set<String> includeTags) {
         this.includeTags = includeTags;
     }
 
-    /**
-     * The set of tags to exclude.
-     */
     public Set<String> getExcludeTags() {
         return excludeTags;
     }
 
-    /**
-     * The set of tags to exclude.
-     */
     public void setExcludeTags(Set<String> excludeTags) {
         this.excludeTags = excludeTags;
     }

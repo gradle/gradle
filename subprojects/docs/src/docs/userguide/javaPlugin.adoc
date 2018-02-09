@@ -658,7 +658,7 @@ If you don't want to use test class detection, you can disable it by setting `sc
 
 [NOTE]
 ====
-When using http://junit.org/junit5/docs/current/user-guide[JUnit Platform], we simply pass all test classes to `JUnit Platform` and let it decide what should be run. In this case, `scanForTestClasses` has no effect.
+With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes`/`excludes` is used to filter test classes, `scanForTestClasses` has no effect.
 ====
 
 [[test_grouping]]

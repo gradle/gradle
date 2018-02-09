@@ -58,9 +58,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
-    // JUnit 5's test case name contains parentheses which might break test assertion, e.g. testMethod() PASSED -> testMethod PASSED
-    private static final Pattern TEST_CASE_RESULT_PATTERN = Pattern.compile("(.*)(\\w+)\\(\\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)");
-
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
@@ -118,10 +115,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                     i++;
                 }
-            } else if (TEST_CASE_RESULT_PATTERN.matcher(line).matches()) {
-                result.append(TEST_CASE_RESULT_PATTERN.matcher(line).replaceFirst("$1$2 $3"));
-                result.append('\n');
-                i++;
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');

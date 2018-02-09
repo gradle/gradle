@@ -72,15 +72,11 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private class CollectAllTestClassesExecutor implements Action<String> {
-        private final List<Class<?>> testClasses = new ArrayList<>();
+        private final List<String> testClasses = new ArrayList<>();
 
         @Override
         public void execute(String testClassName) {
-            Class<?> testClass = loadClass(testClassName);
-            if (testClass != null && testClass.getEnclosingClass() == null) {
-                // Only process top level classes
-                testClasses.add(testClass);
-            }
+            testClasses.add(testClassName);
         }
 
         private void processAllTestClasses() {
@@ -88,18 +84,10 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, executionListener));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
         }
+
     }
 
-    private Class<?> loadClass(String testClassName) {
-        try {
-            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
-            return Class.forName(testClassName, false, applicationClassloader);
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
-    }
-
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<String> testClasses) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());

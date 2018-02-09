@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Assume
 
+import java.util.regex.Pattern
+
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
 
 /**
@@ -35,6 +37,9 @@ import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
  *
  */
 abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
+    // JUnit 5's test case name contains parentheses which might break test assertion, e.g. testMethod() PASSED -> testMethod PASSED
+    private static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
+
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         rewriteProjectDirectory()
@@ -47,6 +52,16 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         rewriteProjectDirectory()
         assertUsingJUnitPlatform()
         super.fails(tasks)
+    }
+
+    @Override
+    void outputContains(String string) {
+        assert getOutput().contains(string.trim())
+    }
+
+    @Override
+    String getOutput() {
+        return outputWithoutTestCaseParentheses()
     }
 
     private void rewriteProjectDirectory() {
@@ -113,5 +128,16 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         } else {
             return version
         }
+    }
+
+    String outputWithoutTestCaseParentheses() {
+        List<String> lines = super.getOutput().split(/\n/)
+        return lines.collect {
+            if (TEST_CASE_RESULT_PATTERN.matcher(it).matches()) {
+                TEST_CASE_RESULT_PATTERN.matcher(it).replaceFirst('$1$2 $3')
+            } else {
+                it
+            }
+        }.join('\n')
     }
 }

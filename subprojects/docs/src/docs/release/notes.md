@@ -91,7 +91,7 @@ If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JU
 You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
 A sample of mixed tests can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.         
 
-Note that JUnit 5 requires Java 8+, so you may need to configure the [`executable`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable) if you're using Java 7.
+Note that JUnit 5 requires Java 8 or higher.
 
 ### Support for optional dependencies in POM consumption
 
