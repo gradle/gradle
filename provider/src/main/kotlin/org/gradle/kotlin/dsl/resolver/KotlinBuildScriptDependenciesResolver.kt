@@ -234,6 +234,8 @@ internal
 fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 
     // TODO:pm remove hardcoded reference to settings.gradle
+    // Using `DefaultScriptFileResolver()` here would do
+    // but that class is not available when this gets run inside IntelliJ
     fun isProjectRoot(dir: File) =
         File(dir, "settings.gradle.kts").isFile
             || File(dir, "settings.gradle").isFile
