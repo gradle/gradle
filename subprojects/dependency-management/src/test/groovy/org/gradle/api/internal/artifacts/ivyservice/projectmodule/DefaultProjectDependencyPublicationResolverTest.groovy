@@ -26,7 +26,7 @@ import org.gradle.internal.Describables
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
-class ProjectDependencyPublicationResolverTest extends Specification {
+class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def projectDependency = Mock(ProjectDependency)
     def project = Mock(ProjectInternal)
     def publicationRegistry = Mock(ProjectPublicationRegistry)
@@ -167,7 +167,7 @@ Found the following publications in <project>:
     }
 
     private ModuleVersionIdentifier resolve() {
-        new ProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer).resolve(projectDependency)
+        new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer).resolve(projectDependency)
     }
 
     private void dependentProjectHasPublications(ProjectPublication... added) {
