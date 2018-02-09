@@ -28,11 +28,12 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.execution.taskgraph.BuildFailureState
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -76,6 +77,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
     private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class)
+    private BuildFailureState buildFailureState = new BuildFailureState()
     private Stoppable otherService = Mock(Stoppable)
     private IncludedBuildControllers includedBuildControllers = Mock()
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -131,7 +133,7 @@ class DefaultGradleLauncherSpec extends Specification {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock, buildLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices, [otherService])
+            buildServices, [otherService], buildFailureState)
     }
 
     void testRun() {
