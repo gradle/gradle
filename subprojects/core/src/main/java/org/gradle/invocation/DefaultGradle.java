@@ -27,7 +27,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -78,7 +77,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
     private BuildOperationState operation;
-    private final FeaturePreviews previews;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -97,8 +95,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                 projectsLoaded = true;
             }
         });
-
-        previews = services.get(FeaturePreviews.class);
 
         if (parent == null) {
             services.get(BuildScanConfigInit.class).init();
@@ -451,10 +447,5 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void enableFeaturePreview(String name) {
-        previews.enableFeature(name);
     }
 }

@@ -63,7 +63,7 @@ class FeaturePreviewsTest extends Specification {
         feature << ['IMPROVED_POM_SUPPORT', 'GRADLE_METADATA']
     }
 
-    def 'fails when activating an unknown feature'() {
+    def 'fails when enabling an unknown feature'() {
         given:
         StartParameter startParameter = Mock()
         def previews = new FeaturePreviews(startParameter)

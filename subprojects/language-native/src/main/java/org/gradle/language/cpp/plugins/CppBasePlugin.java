@@ -23,6 +23,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -46,6 +47,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 /**
  * A common base plugin for the C++ executable and library plugins
@@ -71,7 +74,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        project.getGradle().enableFeaturePreview("GRADLE_METADATA");
+        project.getGradle().getServices().get(FeaturePreviews.class).enableFeature(GRADLE_METADATA);
 
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {

@@ -20,13 +20,13 @@ class FeaturePreviewsFixture {
 
     static void enableGradleMetadata(File settings) {
         settings << """
-gradle.enableFeaturePreview('GRADLE_METADATA')
+enableFeaturePreview('GRADLE_METADATA')
 """
     }
 
     static void enableImprovedPomSupport(File settings) {
         settings << """
-gradle.enableFeaturePreview('IMPROVED_POM_SUPPORT')
+enableFeaturePreview('IMPROVED_POM_SUPPORT')
 """
     }
 }

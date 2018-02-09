@@ -359,11 +359,4 @@ public interface Gradle extends PluginAware {
      */
     @Incubating
     IncludedBuild includedBuild(String name);
-
-    /**
-     * Enables a feature preview by name.
-     *
-     * @param name the name of the feature to enable
-     */
-    void enableFeaturePreview(String name);
 }
