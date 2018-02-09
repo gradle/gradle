@@ -26,29 +26,35 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.List;
 
+@NotThreadSafe
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
+    private final BiMap<String, Integer> descriptions = HashBiMap.create();
+
+    private OperationType lastOperationType = OperationType.read;
+
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
-        BiMap<String, Integer> mapping = HashBiMap.create();
-        List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder, mapping);
+        prepareForOperation(OperationType.read);
+        List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder);
         return VersionSelectionReasons.of(descriptions);
     }
 
-    private List<ComponentSelectionDescriptor> readDescriptions(Decoder decoder, BiMap<String, Integer> mapping) throws IOException {
+    private List<ComponentSelectionDescriptor> readDescriptions(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         ImmutableList.Builder<ComponentSelectionDescriptor> builder = new ImmutableList.Builder<ComponentSelectionDescriptor>();
         for (int i = 0; i < size; i++) {
             ComponentSelectionCause cause = ComponentSelectionCause.values()[decoder.readByte()];
-            String desc = readDescriptionText(decoder, mapping);
+            String desc = readDescriptionText(decoder);
             builder.add(new DefaultComponentSelectionDescriptor(cause, desc));
         }
         return builder.build();
     }
 
-    private String readDescriptionText(Decoder decoder, BiMap<String, Integer> descriptions) throws IOException {
+    private String readDescriptionText(Decoder decoder) throws IOException {
         boolean alreadyKnown = decoder.readBoolean();
         if (alreadyKnown) {
             return descriptions.inverse().get(decoder.readSmallInt());
@@ -60,20 +66,20 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
     }
 
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
-        BiMap<String, Integer> mapping = HashBiMap.create();
+        prepareForOperation(OperationType.write);
         List<ComponentSelectionDescriptor> descriptions = value.getDescriptions();
         encoder.writeSmallInt(descriptions.size());
         for (ComponentSelectionDescriptor description : descriptions) {
-            writeDescription(encoder, description, mapping);
+            writeDescription(encoder, description);
         }
     }
 
-    private void writeDescription(Encoder encoder, ComponentSelectionDescriptor description, BiMap<String, Integer> mapping) throws IOException {
+    private void writeDescription(Encoder encoder, ComponentSelectionDescriptor description) throws IOException {
         encoder.writeByte((byte) description.getCause().ordinal());
-        writeDescriptionText(encoder, description.getDescription(), mapping);
+        writeDescriptionText(encoder, description.getDescription());
     }
 
-    private void writeDescriptionText(Encoder encoder, String description, BiMap<String, Integer> descriptions) throws IOException {
+    private void writeDescriptionText(Encoder encoder, String description) throws IOException {
         Integer index = descriptions.get(description);
         encoder.writeBoolean(index != null); // already known custom reason
         if (index == null) {
@@ -85,4 +91,21 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         }
     }
 
+    /**
+     * This serializer assumes that we are using it alternatively for writes, then reads, in cycles.
+     * After each cycle completed, state has to be reset.
+     *
+     * @param operationType the current operation type
+     */
+    private void prepareForOperation(OperationType operationType) {
+        if (operationType != lastOperationType) {
+            descriptions.clear();
+            lastOperationType = operationType;
+        }
+    }
+
+    private enum OperationType {
+        read,
+        write
+    }
 }
