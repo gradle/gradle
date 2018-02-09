@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
+import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -42,8 +44,13 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded) {
-        return Iterators.emptyIterator();
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded) {
+        return Iterators.transform(oldSnapshot.getContentSnapshots().entrySet().iterator(), new Function<Map.Entry<String, FileContentSnapshot>, TaskStateChange>() {
+            @Override
+            public TaskStateChange apply(Map.Entry<String, FileContentSnapshot> entry) {
+                return FileChange.removed(entry.getKey(), title, entry.getValue().getType());
+            }
+        });
     }
 
     @Override
