@@ -41,9 +41,6 @@ if (testJavaHome) {
                 // Osgi is broken with a NPE in Processor - need to investigate
                 "OsgiPluginIntegrationSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
-                // Attempts to run Gradle 2.8 on Java 9
-                "HeterogeneousCompositeBuildCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-
                 // Broken scala and twirl compilation
                 "MixedPlayAndJvmLibraryProjectIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "PlayAppWithFailingTestsIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
@@ -131,16 +128,6 @@ if (testJavaHome) {
                  Changes in Javadoc generation
                  */
                 "SamplesJavaMultiProjectIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-
-                /*
-                 Caused by: java.lang.IllegalAccessException: class org.mozilla.javascript.MemberBox cannot access class sun.net.www.protocol.http.HttpURLConnection (in module java.base) because module java.base does not export sun.net.www.protocol.http to unnamed module @2afcc5b3
-                    at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:405)
-                    at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:396)
-                    at jdk.internal.reflect.Reflection.ensureMemberAccess(java.base@9-ea/Reflection.java:98)
-                    at org.mozilla.javascript.MemberBox.invoke(MemberBox.java:161)
-                    for "can evaluate content"
-                 */
-                "EnvJsPluginIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
                 /*
                   MaxPermSize as GRADLE_OPTS
