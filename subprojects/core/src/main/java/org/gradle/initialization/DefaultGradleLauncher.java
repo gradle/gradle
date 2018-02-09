@@ -123,11 +123,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public void finishBuild() {
         if (stage != null) {
-            Throwable failure = analyzeBuildFailureState();
-            finishBuild(new BuildResult(stage.name(), gradle, failure));
+            Throwable collectedFailure = analyzeBuildFailureState();
+            finishBuild(new BuildResult(stage.name(), gradle, collectedFailure));
 
-            if (failure != null) {
-                throw new ReportedException(failure);
+            if (collectedFailure != null) {
+                throw new ReportedException(collectedFailure);
             }
         }
     }
@@ -160,9 +160,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
             runTasks();
             finishBuild();
         } catch (Throwable t) {
-            Throwable failure = exceptionAnalyser.transform(t);
-            finishBuild(new BuildResult(upTo.name(), gradle, failure));
-            throw new ReportedException(failure);
+            Throwable collectedFailure = analyzeBuildFailureState();
+            Throwable exceptionToBeThrown = collectedFailure != null ? collectedFailure : t;
+            finishBuild(new BuildResult(upTo.name(), gradle, exceptionToBeThrown));
+            throw new ReportedException(exceptionToBeThrown);
         }
     }
 
