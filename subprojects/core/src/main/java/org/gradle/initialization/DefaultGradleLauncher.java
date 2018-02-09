@@ -30,7 +30,9 @@ import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.taskgraph.BuildFailureState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -68,6 +70,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
+    private final BuildFailureState buildFailureState;
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
@@ -77,7 +80,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStop) {
+                                 BuildScopeServices buildServices, List<?> servicesToStop, BuildFailureState buildFailureState) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -92,6 +95,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
+        this.buildFailureState = buildFailureState;
     }
 
     @Override
@@ -119,8 +123,24 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public void finishBuild() {
         if (stage != null) {
-            finishBuild(new BuildResult(stage.name(), gradle, null));
+            Throwable failure = analyzeBuildFailureState();
+            finishBuild(new BuildResult(stage.name(), gradle, failure));
+
+            if (failure != null) {
+                throw new ReportedException(failure);
+            }
         }
+    }
+
+    private Throwable analyzeBuildFailureState() {
+        Throwable failure = null;
+        List<Throwable> collectedFailures = buildFailureState.getFailures();
+
+        if (!collectedFailures.isEmpty()) {
+            failure = exceptionAnalyser.transform(new MultipleBuildFailures(collectedFailures));
+        }
+
+        return failure;
     }
 
     private void doBuildStages(Stage upTo) {
