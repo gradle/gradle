@@ -100,4 +100,22 @@ class ProjectRootOfTest(private val settingsFileName: String) : FolderBasedTest(
                 importedProjectRoot = folder("root")),
             equalTo(folder("root")))
     }
+
+    @Test
+    fun `given a script file in buildSrc it should return the buildSrc project root`() {
+
+        withFolders {
+            "root" {
+                "buildSrc" {
+                    withFile("build.gradle.kts")
+                }
+            }
+        }
+
+        assertThat(
+            projectRootOf(
+                scriptFile = file("root/buildSrc/build.gradle.kts"),
+                importedProjectRoot = folder("root")),
+            equalTo(folder("root/buildSrc")))
+    }
 }

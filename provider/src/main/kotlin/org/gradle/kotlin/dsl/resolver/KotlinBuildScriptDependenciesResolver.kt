@@ -235,7 +235,9 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 
     // TODO:pm remove hardcoded reference to settings.gradle
     fun isProjectRoot(dir: File) =
-        File(dir, "settings.gradle.kts").isFile || File(dir, "settings.gradle").isFile
+        File(dir, "settings.gradle.kts").isFile
+            || File(dir, "settings.gradle").isFile
+            || dir.name == "buildSrc"
 
     tailrec fun test(dir: File): File =
         when {
