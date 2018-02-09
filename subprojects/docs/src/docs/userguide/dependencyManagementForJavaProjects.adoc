@@ -60,11 +60,11 @@ A plugin uses configurations to define what _artifacts_ it generates for other p
 With those three purposes in mind, let's take a look at a few of the <<sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
 
 implementation::
-The dependencies required to compile the production source of the project which _are not_ part of the API exposed by the project. This configuration is an example of a configuration used for declaring dependencies.
-runtimeClasspath::
-The dependencies required by the production classes at runtime. By default, this includes the dependencies declared in the `api`, `implementation`, and `runtimeOnly` configurations. This configuration is an example of a configuration used for resolving dependencies, and as such, users should never declare dependencies directly in the `runtimeClasspath` configuration.
-apiElements::
-The dependencies which are part of this project's externally consumable API as well as the classes which are defined in this project which should be consumable by other projects. This configuration is an example of exposing artifacts for consumption.
+The dependencies required to compile the production source of the project which _are not_ part of the API exposed by the project. For example the project uses Hibernate for its internal persistence layer implementation.
+api::
+The dependencies required to compile the production source of the project which _are_ part of the API exposed by the project. For example the project uses Guava and exposes public interfaces with Guava classes in their method signatures.
+testImplementation::
+The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
 
 Various plugins add further standard configurations. You can also define your own custom configurations in your build via api:org.gradle.api.Project#configurations[]. See <<defining_and_using_configurations>> for the details of defining and customizing dependency configurations.
 
