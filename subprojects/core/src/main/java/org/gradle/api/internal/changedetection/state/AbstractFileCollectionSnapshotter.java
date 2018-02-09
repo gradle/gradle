@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.Serializers;
 
 import java.io.File;
 import java.util.Collection;
@@ -45,6 +46,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     public void registerSerializers(SerializerRegistry registry) {
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
+        registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
     }
 
     public FileCollectionSnapshot snapshot(FileCollection input, VisitingFileCollectionSnapshotBuilder builder) {

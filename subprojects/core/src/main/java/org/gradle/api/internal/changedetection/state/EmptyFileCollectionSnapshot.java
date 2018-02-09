@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
-    public static final FileCollectionSnapshot INSTANCE = new EmptyFileCollectionSnapshot();
+    public static final EmptyFileCollectionSnapshot INSTANCE = new EmptyFileCollectionSnapshot();
 
     private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyFileCollectionSnapshot.class.getName());
 
