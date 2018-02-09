@@ -618,6 +618,28 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `multiline script compilation error message`() {
+
+        withBuildScript("publishing { }")
+
+        assertThat(
+            buildFailureOutput().convertLineSeparators(),
+            containsString("""
+                * What went wrong:
+                Script compilation errors:
+
+                  Line 1: publishing { }
+                          ^ Expression 'publishing' cannot be invoked as a function. The function 'invoke()' is not found
+
+                  Line 1: publishing { }
+                          ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:${' '}
+                              public val PluginDependenciesSpec.publishing: PluginDependencySpec defined in org.gradle.kotlin.dsl
+
+                2 errors
+            """.replaceIndent()))
+    }
+
+    @Test
     fun `multiple script compilation errors message`() {
         val buildFile = withBuildScript("println(foo)\n\n\n\n\nprintln(\"foo\").bar.bazar\n\n\n\nprintln(cathedral)")
 

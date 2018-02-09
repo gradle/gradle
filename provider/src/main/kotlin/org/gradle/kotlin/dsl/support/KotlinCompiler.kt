@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContribut
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
@@ -220,23 +221,55 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
         require(errors.isNotEmpty())
     }
 
-    override val message: String?
-        get() {
-            val errorPlural = if (errors.size > 1) "errors" else "error"
-            val maxLineNumberLen = errors.mapNotNull { it.location?.line }.max().toString().length
-            return (listOf("Script compilation $errorPlural:") + errors.map { error ->
-                if (error.location != null) {
-                    "Line ${error.location.line.toString().padStart(maxLineNumberLen, '0')}: ${error.location.lineContent}\n" +
-                        "${" ".repeat(5 + maxLineNumberLen + 1 + error.location.column)}^ ${error.message}"
-                } else {
-                    error.message
-                }
-            }.map { it.prependIndent("  ") } + "${errors.size} $errorPlural").joinToString("\n\n")
-        }
-
     val firstErrorLine
-        get() = errors.firstOrNull { it.location != null }?.location!!.line
+        get() = errors.firstNotNullResult { it.location?.line }
+
+    override val message: String
+        get() = (
+            listOf("Script compilation $errorPlural:")
+                + indentedErrorMessages()
+                + "${errors.size} $errorPlural")
+            .joinToString("\n\n")
+
+    private
+    fun indentedErrorMessages() =
+        errors.map(::errorMessage).map(::prependIndent)
+
+    private
+    fun errorMessage(error: ScriptCompilationError): String =
+        error.location?.let { location ->
+            errorAt(location, error.message)
+        } ?: error.message
+
+    private
+    fun errorAt(location: CompilerMessageLocation, message: String): String {
+        val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
+        return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
+            "^ $message".lines().joinToString(
+                prefix = columnIndent,
+                separator = "\n$columnIndent  $indent")
+    }
+
+    private
+    fun lineNumber(location: CompilerMessageLocation) =
+        location.line.toString().padStart(maxLineNumberStringLength, '0')
+
+    private
+    fun prependIndent(it: String) = it.prependIndent(indent)
+
+    private
+    val errorPlural
+        get() = if (errors.size > 1) "errors" else "error"
+
+    private
+    val maxLineNumberStringLength: Int by lazy {
+        errors.mapNotNull { it.location?.line }.max().toString().length
+    }
 }
+
+
+private
+const val indent = "  "
 
 
 internal
