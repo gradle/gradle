@@ -435,25 +435,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * Enables fail fast behavior causing the task to fail on the first failed test.
      */
     @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")
-    public Test failFastOn(boolean ignored) {
-        setFailFast(true);
-        return this;
-    }
-
-    /**
-     * Disables fail fast behavior causing the task to run all tests.
-     */
-    @Option(option = "no-fail-fast", description = "Ensures test execution continues after a failed test.")
-    public Test failFastOff(boolean ignored) {
-        setFailFast(false);
-        return this;
-    }
-
-    /**
-     * Sets the 'failFast' property controlling if this task will fail on the first failed test.
-     *
-     * @param failFast boolean whether the task will fail on the first failed test
-     */
     @Override
     public void setFailFast(boolean failFast) {
         super.setFailFast(failFast);

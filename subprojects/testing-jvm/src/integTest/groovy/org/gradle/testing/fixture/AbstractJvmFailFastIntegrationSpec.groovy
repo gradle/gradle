@@ -65,7 +65,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         description        | taskList                   | buildConfig
         'default config'   | ['test']                   | ''
         'failFast = false' | ['test']                   | 'test { failFast = false }'
-        '--no-fail-fast'   | ['test', '--no-fail-fast'] | ''
     }
 
     @Unroll
