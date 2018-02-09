@@ -20,20 +20,11 @@ Managing dependencies in a project can be challenging. This chapter describes te
 [[sub:version_conflicts]]
 === Resolving version conflicts
 
-Conflicting versions of the same module should be detected and either resolved or cause an exception. If you don't use transitive dependency management, version conflicts are undetected and may influence the order of the classpath determining what version of a dependency will be selected. In short, version conflicts can cause classpath issues and are extremely hard to debug.
-
-Gradle can <<managing_transitive_dependencies,manage transitive dependencies>> for you with the help of the following conflict resolution strategies:
-
-* _Newest_: The newest version of the dependency is used. This is Gradle's default strategy, and is often an appropriate choice as long as versions are backwards-compatible.
-* _Fail_: A version conflict results in a build failure. This strategy requires all version conflicts to be resolved explicitly in the build script. Fore more information, see api:org.gradle.api.artifacts.ResolutionStrategy#failOnVersionConflict()[].
-
-While the strategies introduced above are usually enough to solve most conflicts, Gradle provides more fine-grained mechanisms to resolve version conflicts:
+Gradle resolves version conflicts by picking the newest version of a module. link:https://scans.gradle.com/get-started[Build scans] and the <<sec:identifying_reason_dependency_selection,dependency insight report>> are immensely helpful in identifying why a specific version was selected. If the resolution result is not satisfying (e.g. the selected version of a module is too high) or it fails (because you configured api:org.gradle.api.artifacts.ResolutionStrategy#failOnVersionConflict()[]) you have the following possibilities to fix it.
 
 * Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. See <<sec:enforcing_dependency_version>> for examples.
 * Configuring dependency resolution to _prefer modules that are part of your build_ (transitive or not). This approach is useful if your build contains custom forks of modules (as part of <<multi_project_builds,multi-project builds>> or as include in <<composite_builds,composite builds>>). See api:org.gradle.api.artifacts.ResolutionStrategy#preferProjectModules()[] for more information.
 * Using <<sec:dependency_resolve_rules,dependency resolve rules>> for fine-grained control over the version selected for a particular dependency.
-
-link:https://scans.gradle.com/get-started[Build scans] and <<inspecting_dependencies,dependency reports>> are immensely helpful in identifying and fixing dependency version conflicts. Make sure you are familiar with those tools!
 
 [[sub:dynamic_versions_and_changing_modules]]
 === Using dynamic versions and changing modules
