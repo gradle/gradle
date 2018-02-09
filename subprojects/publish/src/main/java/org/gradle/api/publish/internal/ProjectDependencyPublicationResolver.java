@@ -53,9 +53,8 @@ public class ProjectDependencyPublicationResolver {
 
         List<PublicationInternal> publications = new ArrayList<PublicationInternal>();
         for (ProjectPublication publication : publicationRegistry.getPublications(dependencyProject.getPath())) {
-            if (publication instanceof PublicationBackedProjectPublication) {
-                PublicationBackedProjectPublication projectPublication = (PublicationBackedProjectPublication) publication;
-                publications.add(projectPublication.getPublication());
+            if (publication instanceof PublicationInternal) {
+                publications.add((PublicationInternal) publication);
             }
         }
 

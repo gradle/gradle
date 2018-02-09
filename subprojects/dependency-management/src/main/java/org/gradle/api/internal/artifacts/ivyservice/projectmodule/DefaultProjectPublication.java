@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+
+import javax.annotation.Nullable;
 
 public class DefaultProjectPublication implements ProjectPublication {
     private final ModuleVersionIdentifier id;
@@ -25,18 +28,19 @@ public class DefaultProjectPublication implements ProjectPublication {
         this.id = id;
     }
 
-    public ModuleVersionIdentifier getId() {
+    @Override
+    public ModuleVersionIdentifier getCoordinates() {
         return id;
     }
 
-    public boolean equals(Object other) {
-        if (!(other instanceof ProjectPublication)) {
-            return false;
-        }
-        return id.equals(((ProjectPublication) other).getId());
+    @Nullable
+    @Override
+    public SoftwareComponentInternal getComponent() {
+        return null;
     }
 
-    public int hashCode() {
-        return id.hashCode();
+    @Override
+    public boolean isAlias() {
+        return false;
     }
 }

@@ -53,7 +53,7 @@ class PublicationsBuilder implements ToolingModelBuilder {
         Set<ProjectPublication> projectPublications = publicationRegistry.getPublications(projectIdentifier.getProjectPath());
         for (ProjectPublication projectPublication : projectPublications) {
             gradlePublications.add(new DefaultGradlePublication()
-                    .setId(new DefaultGradleModuleVersion(projectPublication.getId()))
+                    .setId(new DefaultGradleModuleVersion(projectPublication.getCoordinates()))
                     .setProjectIdentifier(projectIdentifier)
             );
         }

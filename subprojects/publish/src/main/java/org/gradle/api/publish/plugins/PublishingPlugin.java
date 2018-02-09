@@ -30,7 +30,6 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
-import org.gradle.api.publish.internal.PublicationBackedProjectPublication;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -88,7 +87,7 @@ public class PublishingPlugin implements Plugin<Project> {
         void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
             for (Publication publication : extension.getPublications()) {
                 PublicationInternal internalPublication = (PublicationInternal) publication;
-                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), new PublicationBackedProjectPublication(internalPublication));
+                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), internalPublication);
             }
         }
 

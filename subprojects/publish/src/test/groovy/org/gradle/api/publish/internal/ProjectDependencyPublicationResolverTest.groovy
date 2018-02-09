@@ -173,7 +173,7 @@ Found the following publications in <project>:
     private void dependentProjectHasPublications(PublicationInternal... added) {
         projectDependency.dependencyProject >> project
         projectConfigurer.configureFully(project)
-        publicationRegistry.getPublications(":path") >> added.collect { new PublicationBackedProjectPublication(it) }
+        publicationRegistry.getPublications(":path") >> (added as LinkedHashSet)
     }
 
     private PublicationInternal pub(def name, def group, def module, def version) {
