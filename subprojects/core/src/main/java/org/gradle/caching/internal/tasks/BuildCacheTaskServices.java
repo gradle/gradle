@@ -133,8 +133,8 @@ public class BuildCacheTaskServices {
         return new TaskOutputCacheCommandFactoryV2(taskOutputOriginFactory, fileSystemMirror, stringInterner, local);
     }
 
-    BuildCacheControllerV2 createBuildCacheControllerV2() {
-        return new DefaultBuildCacheControllerV2();
+    BuildCacheControllerV2 createBuildCacheControllerV2(BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultBuildCacheControllerV2(buildOperationExecutor);
     }
 
     private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {

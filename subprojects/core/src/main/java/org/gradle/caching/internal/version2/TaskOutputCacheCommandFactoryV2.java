@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
@@ -51,6 +52,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -67,6 +69,7 @@ import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("Since15")
+@NonNullApi
 public class TaskOutputCacheCommandFactoryV2 {
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
@@ -96,7 +99,25 @@ public class TaskOutputCacheCommandFactoryV2 {
         return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, taskExecutionTime);
     }
 
-    private class LoadCommand extends AbstractLoadCommand<Void, OriginTaskExecutionMetadata> implements BuildCacheLoadCommandV2<OriginTaskExecutionMetadata> {
+    private static class LoadResult {
+        private final long artifactEntryCount;
+        private final OriginTaskExecutionMetadata metadata;
+
+        public LoadResult(long artifactEntryCount, OriginTaskExecutionMetadata metadata) {
+            this.artifactEntryCount = artifactEntryCount;
+            this.metadata = metadata;
+        }
+
+        public long getArtifactEntryCount() {
+            return artifactEntryCount;
+        }
+
+        public OriginTaskExecutionMetadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    private class LoadCommand extends AbstractLoadCommand<Void, LoadResult> implements BuildCacheLoadCommandV2<OriginTaskExecutionMetadata> {
 
         private final Map<String, Map<String, FileContentSnapshot>> incomingSnapshotsPerProperty;
 
@@ -107,8 +128,22 @@ public class TaskOutputCacheCommandFactoryV2 {
 
         @Override
         public Result<OriginTaskExecutionMetadata> load() {
-            final OriginTaskExecutionMetadata metadata = performLoad(null);
+            LoadResult result = performLoad(null);
+            final OriginTaskExecutionMetadata metadata;
+            final long count;
+            if (result == null) {
+                metadata = null;
+                count = -1;
+            } else {
+                metadata = result.getMetadata();
+                count = result.getArtifactEntryCount();
+            }
             return new Result<OriginTaskExecutionMetadata>() {
+                @Override
+                public long getArtifactEntryCount() {
+                    return count;
+                }
+
                 @Override
                 public OriginTaskExecutionMetadata getMetadata() {
                     return metadata;
@@ -117,7 +152,7 @@ public class TaskOutputCacheCommandFactoryV2 {
         }
 
         @Override
-        protected OriginTaskExecutionMetadata performLoad(Void input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
+        protected LoadResult performLoad(@Nullable Void input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
             HashCode resultKey = HashCode.fromString(getKey().getHashCode());
             CacheEntry entry = local.get(resultKey);
             if (entry == null) {
@@ -164,8 +199,9 @@ public class TaskOutputCacheCommandFactoryV2 {
                 }
             }
             OriginTaskExecutionMetadata originMetadata = reader.execute(result.getOriginMetadata());
-            updateSnapshots(outgoingSnapshotsPerProperty.build(), originMetadata);
-            return originMetadata;
+            ImmutableListMultimap<String, FileSnapshot> outgoingSnapshots = outgoingSnapshotsPerProperty.build();
+            updateSnapshots(outgoingSnapshots, originMetadata);
+            return new LoadResult(outgoingSnapshots.size(), originMetadata);
         }
 
         private Map<String, FileContentSnapshot> getIncomingSnapshots(String propertyName) {
@@ -176,7 +212,7 @@ public class TaskOutputCacheCommandFactoryV2 {
             return new HashMap<String, FileContentSnapshot>(incomingSnapshots);
         }
 
-        private void load(HashCode key, File target, RelativePath parent, Map<String, FileContentSnapshot> incomingSnapshots, Collection<FileSnapshot> outgoingSnapshots) throws IOException {
+        private void load(HashCode key, File target, @Nullable RelativePath parent, Map<String, FileContentSnapshot> incomingSnapshots, Collection<FileSnapshot> outgoingSnapshots) throws IOException {
             CacheEntry entry = local.get(key);
             String absolutePath = target.getAbsolutePath();
             FileSnapshot outgoingSnapshot;
@@ -230,7 +266,7 @@ public class TaskOutputCacheCommandFactoryV2 {
         }
     }
 
-    private static RelativePath getChildPath(RelativePath parent, File target, boolean isFile) {
+    private static RelativePath getChildPath(@Nullable RelativePath parent, File target, boolean isFile) {
         RelativePath relativePath;
         if (parent == null) {
             if (isFile) {
@@ -245,18 +281,23 @@ public class TaskOutputCacheCommandFactoryV2 {
     }
 
     private class StoreCommand implements BuildCacheStoreCommandV2 {
-        private final TaskOutputCachingBuildCacheKey cacheKey;
+        private final TaskOutputCachingBuildCacheKey key;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final Map<String, Map<String, FileContentSnapshot>> outputSnapshots;
         private final TaskInternal task;
         private final long taskExecutionTime;
 
-        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
-            this.cacheKey = cacheKey;
+        private StoreCommand(TaskOutputCachingBuildCacheKey key, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+            this.key = key;
             this.outputProperties = outputProperties;
             this.outputSnapshots = outputSnapshots;
             this.task = task;
             this.taskExecutionTime = taskExecutionTime;
+        }
+
+        @Override
+        public BuildCacheKey getKey() {
+            return key;
         }
 
         @Override
@@ -324,7 +365,7 @@ public class TaskOutputCacheCommandFactoryV2 {
             TaskOutputOriginWriter writer = taskOutputOriginFactory.createWriter(task, taskExecutionTime);
             ByteArrayOutputStream originMetadata = new ByteArrayOutputStream();
             writer.execute(originMetadata);
-            local.put(HashCode.fromString(cacheKey.getHashCode()), outputHashes.build(), originMetadata.toByteArray());
+            local.put(HashCode.fromString(key.getHashCode()), outputHashes.build(), originMetadata.toByteArray());
             return new Result() {
                 @Override
                 public long getArtifactEntryCount() {

@@ -16,7 +16,11 @@
 
 package org.gradle.caching.internal.version2;
 
+import org.gradle.caching.BuildCacheKey;
+
 public interface BuildCacheStoreCommandV2 {
+
+    BuildCacheKey getKey();
 
     /**
      * Called at-most-once to initiate writing the artifact to the output stream.

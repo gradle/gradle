@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -34,12 +35,14 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.SortedSet;
 
+@NonNullApi
 public class TaskOutputCacheCommandFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TaskOutputCacheCommandFactory.class);
@@ -73,6 +76,7 @@ public class TaskOutputCacheCommandFactory {
         @Override
         public Result<OriginTaskExecutionMetadata> load(InputStream inputStream) {
             final TaskOutputPacker.UnpackResult unpackResult = performLoad(inputStream);
+            assert unpackResult != null;
             return new BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -87,7 +91,7 @@ public class TaskOutputCacheCommandFactory {
         }
 
         @Override
-        protected TaskOutputPacker.UnpackResult performLoad(InputStream input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
+        protected TaskOutputPacker.UnpackResult performLoad(@Nullable InputStream input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
             LOGGER.info("Unpacked output for {} from cache.", task);
             TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, reader);
             updateSnapshots(unpackResult.getSnapshots(), unpackResult.getOriginMetadata());
