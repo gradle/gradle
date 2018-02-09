@@ -132,7 +132,7 @@ class AnnotationProcessorDetectorTest extends Specification {
             new AnnotationProcessorDeclaration("InJar", IncrementalAnnotationProcessorType.UNKNOWN),
             new AnnotationProcessorDeclaration("InDir", IncrementalAnnotationProcessorType.UNKNOWN)
         ]
-        2 * logger.warn({ it.contains("non-incremental") }, { it.message.contains("Index: 1, Size: 1") })
+        2 * logger.warn({ it.contains("non-incremental") }, { it instanceof IndexOutOfBoundsException })
     }
 
     def "uses UNKNOWN as the default for processors with future types that this version does not know about"() {
