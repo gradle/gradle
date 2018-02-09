@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.internal
+package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
@@ -32,7 +31,7 @@ class ProjectDependencyPublicationResolverTest extends Specification {
     def project = Mock(ProjectInternal)
     def publicationRegistry = Mock(ProjectPublicationRegistry)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def publication = Mock(PublicationInternal)
+    def publication = Mock(ProjectPublication)
 
     def setup() {
         project.path >> ":path"
@@ -56,7 +55,7 @@ class ProjectDependencyPublicationResolverTest extends Specification {
 
     def "uses coordinates of single publication from dependent project"() {
         when:
-        def publication = Mock(PublicationInternal)
+        def publication = Mock(ProjectPublication)
         publication.name >> 'mock'
         publication.coordinates >> new DefaultModuleVersionIdentifier("pub-group", "pub-name", "pub-version")
 
@@ -171,14 +170,14 @@ Found the following publications in <project>:
         new ProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer).resolve(projectDependency)
     }
 
-    private void dependentProjectHasPublications(PublicationInternal... added) {
+    private void dependentProjectHasPublications(ProjectPublication... added) {
         projectDependency.dependencyProject >> project
         projectConfigurer.configureFully(project)
         publicationRegistry.getPublications(":path") >> (added as LinkedHashSet)
     }
 
-    private PublicationInternal pub(def name, def group, def module, def version) {
-        def publication = Mock(PublicationInternal)
+    private ProjectPublication pub(def name, def group, def module, def version) {
+        def publication = Mock(ProjectPublication)
         publication.name >> name
         publication.displayName >> Describables.of("publication '" + name + "'")
         publication.coordinates >> new DefaultModuleVersionIdentifier(group, module, version)
