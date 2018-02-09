@@ -145,11 +145,6 @@ if (testJavaHome) {
                 "EnvJsPluginIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
                 /*
-                 Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
-                 */
-                "DirectoryScanningIntegTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-
-                /*
                   MaxPermSize as GRADLE_OPTS
                  */
                 "ClientShutdownCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10]
