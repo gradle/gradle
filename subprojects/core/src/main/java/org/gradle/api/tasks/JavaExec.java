@@ -77,11 +77,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Configurab
     public void exec() {
         JavaExecAction execAction = getExecActionFactory().newJavaExecAction();
 
-        copyTo((ProcessForkOptions) execAction);
-
         copyTo(execAction);
         execAction.setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
         copyJvmArgProvidersTo(execAction);
+
+        copyTo((ProcessForkOptions) execAction);
 
         execAction.setIgnoreExitValue(isIgnoreExitValue());
         execAction.setStandardInput(getStandardInput());
