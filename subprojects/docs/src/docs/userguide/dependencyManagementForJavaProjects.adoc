@@ -23,7 +23,7 @@ This chapter explains how to apply basic dependency management concepts to Java-
 Let's have a look at a very simple build script for a Java-based project. It applies the <<java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
 
 ++++
-<sample id="basicDependencyDeclarations" dir="userguide/artifacts/dependencyBasics" title="Dependency declarations for Java-based project">
+<sample id="basicDependencyDeclarations" dir="userguide/artifacts/dependencyBasics" title="Dependency declarations for a Java-based project">
     <sourcefile file="build.gradle"/>
 </sample>
 ++++
@@ -33,7 +33,7 @@ The api:org.gradle.api.Project#dependencies[] code block declares that Hibernate
 [[sec:module_dependencies_java_tutorial]]
 === Declaring module dependencies
 
-There are various <<dependency_types,types of dependencies>> that you can declare. One such type is an _module dependency_. A <<sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
+There are various <<dependency_types,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
 To define an module dependency, you add it to a <<sec:configurations_java_tutorial,dependency configuration>>:
 
@@ -60,7 +60,7 @@ A plugin uses configurations to define what _artifacts_ it generates for other p
 With those three purposes in mind, let's take a look at a few of the <<sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
 
 implementation::
-The dependencies required to compile the production source of the project, but which are not part of the API exposed by the project. This configuration is an example of a configuration used for declaring dependencies.
+The dependencies required to compile the production source of the project which _are not_ part of the API exposed by the project. This configuration is an example of a configuration used for declaring dependencies.
 runtimeClasspath::
 The dependencies required by the production classes at runtime. By default, this includes the dependencies declared in the `api`, `implementation`, and `runtimeOnly` configurations. This configuration is an example of a configuration used for resolving dependencies, and as such, users should never declare dependencies directly in the `runtimeClasspath` configuration.
 apiElements::
