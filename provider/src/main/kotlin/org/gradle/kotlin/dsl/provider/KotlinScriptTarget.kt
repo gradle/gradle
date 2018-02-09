@@ -96,7 +96,7 @@ fun projectScriptTarget(
         })
 
 
-private
+internal
 fun gradleInitScriptTarget(
     gradle: Gradle,
     scriptHandler: ScriptHandler,

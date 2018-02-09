@@ -95,8 +95,12 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun assertClassPathContains(vararg files: File) =
+        assertClassPathContains(canonicalClassPath(), *files)
+
+    protected
+    fun assertClassPathContains(classPath: List<File>, vararg files: File) =
         assertThat(
-            canonicalClassPath().map { it.name },
+            classPath.map { it.name },
             hasItems(*fileNameSetOf(*files)))
 
     protected

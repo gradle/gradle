@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
@@ -29,6 +30,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.compilerMessageFor
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -51,10 +53,28 @@ data class PluginsBlockMetadata(val lineNumber: Int)
 
 
 internal
+class KotlinScriptSource(val source: ScriptSource) {
+
+    private
+    val scriptResource = source.resource!!
+
+    val scriptPath = source.fileName!!
+
+    val script = convertLineSeparators(scriptResource.text!!)
+
+    val displayName: String
+        get() = source.displayName
+
+    fun classLoaderScopeIdFor(stage: String) =
+        "kotlin-dsl:$scriptPath:$stage"
+}
+
+
+internal
 class KotlinBuildScriptCompiler(
     private val kotlinCompiler: CachingKotlinCompiler,
     private val classloadingCache: KotlinScriptClassloadingCache,
-    private val scriptSource: ScriptSource,
+    private val scriptSource: KotlinScriptSource,
     private val scriptTarget: KotlinScriptTarget<out Any>,
     private val scriptHandler: ScriptHandlerInternal,
     private val pluginRequestsHandler: PluginRequestsHandler,
@@ -63,14 +83,6 @@ class KotlinBuildScriptCompiler(
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
-
-    private
-    val scriptResource = scriptSource.resource!!
-
-    private
-    val scriptPath = scriptSource.fileName!!
-
-    val script = convertLineSeparators(scriptResource.text!!)
 
     private
     val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
@@ -124,29 +136,15 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executeBuildscriptBlock() {
-        scriptTarget.buildscriptBlockTemplate?.let { template ->
-            setupEmbeddedKotlinForBuildscript()
-            extractTopLevelSectionFrom(script, scriptTarget.buildscriptBlockName)?.let { buildscriptRange ->
-                executeBuildscriptBlockFrom(buildscriptRange, template)
-            }
-        }
-    }
-
-    private
-    fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
-        loadBuildscriptBlockClass(scriptBlockForBuildscript(buildscriptRange, scriptTemplate))
-            .eval {
-                scriptTarget.evalBuildscriptBlock(scriptClass)
-            }
-
-    private
-    fun setupEmbeddedKotlinForBuildscript() {
-        embeddedKotlinProvider.run {
-            addRepositoryTo(scriptHandler.repositories)
-            pinDependenciesOn(
-                scriptHandler.configurations["classpath"],
-                "stdlib-jdk8", "reflect")
-        }
+        BuildscriptBlockEvaluator(
+            scriptSource,
+            scriptTarget,
+            buildscriptBlockCompilationClassPath,
+            baseScope,
+            kotlinCompiler,
+            embeddedKotlinProvider,
+            classloadingCache,
+            classPathModeExceptionCollector).evaluate()
     }
 
     private
@@ -168,7 +166,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): PluginRequests {
-        val pluginRequestCollector = PluginRequestCollector(scriptSource)
+        val pluginRequestCollector = PluginRequestCollector(scriptSource.source)
         executePluginsBlockOn(pluginRequestCollector, scriptTemplate)
         return pluginRequestCollector.pluginRequests
     }
@@ -203,26 +201,9 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun scriptBlockForBuildscript(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
-        ScriptBlock(
-            "buildscript block '$scriptPath'",
-            scriptTemplate,
-            scriptPath,
-            script.linePreservingSubstring(buildscriptRange),
-            Unit)
-
-    private
-    fun loadBuildscriptBlockClass(scriptBlock: ScriptBlock<Unit>) =
-        classloadingCache.loadScriptClass(
-            scriptBlock,
-            baseScope.exportClassLoader,
-            ::buildscriptBlockClassLoaderScope,
-            ::compileBuildscriptBlock)
-
-    private
-    fun compileBuildscriptBlock(scriptBlock: ScriptBlock<Unit>) =
-        withKotlinCompiler {
-            compileScriptBlock(scriptBlock, buildscriptBlockCompilationClassPath)
+    fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T) =
+        scriptSource.withLocationAwareExceptionHandling {
+            kotlinCompiler.action()
         }
 
     private
@@ -277,14 +258,6 @@ class KotlinBuildScriptCompiler(
     fun scriptBodyClassLoaderScope() = scriptClassLoaderScopeWith(accessorsClassPath)
 
     private
-    fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T): T =
-        try {
-            kotlinCompiler.action()
-        } catch (e: ScriptCompilationException) {
-            throw LocationAwareException(e, scriptSource, e.firstErrorLine)
-        }
-
-    private
     fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
         targetScope
             .createChild(classLoaderScopeIdFor("script"))
@@ -295,16 +268,15 @@ class KotlinBuildScriptCompiler(
         baseScopeFor("plugins")
 
     private
-    fun buildscriptBlockClassLoaderScope() =
-        baseScopeFor("buildscript")
-
-    private
     fun baseScopeFor(stage: String) =
         baseScope.createChild(classLoaderScopeIdFor(stage))
 
     private
     fun classLoaderScopeIdFor(stage: String) =
-        "kotlin-dsl:$scriptPath:$stage"
+        scriptSource.classLoaderScopeIdFor(stage)
+
+    private inline
+    fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
@@ -326,16 +298,154 @@ class KotlinBuildScriptCompiler(
     fun unexpectedBlockMessage(block: UnexpectedBlock) =
         "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
 
-    private inline
-    fun ignoringErrors(action: () -> Unit) {
-        try {
-            action()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            classPathModeExceptionCollector.collect(e)
+    private
+    val scriptPath get() = scriptSource.scriptPath
+
+    private
+    val script get() = scriptSource.script
+}
+
+
+fun initScriptClassPathFor(
+    gradle: GradleInternal,
+    scriptHandler: ScriptHandlerInternal,
+    scriptSource: ScriptSource): ClassPath {
+
+    val baseScope = gradle.classLoaderScope
+    val scriptTarget = gradleInitScriptTarget(gradle, scriptHandler, scriptSource, baseScope)
+    val classPathProvider = gradle.serviceOf<KotlinScriptClassPathProvider>()
+    val gradleKotlinDsl = classPathProvider.gradleKotlinDsl
+
+    BuildscriptBlockEvaluator(
+        KotlinScriptSource(scriptSource),
+        scriptTarget,
+        gradleKotlinDsl,
+        baseScope,
+        gradle.serviceOf(),
+        gradle.serviceOf(),
+        gradle.serviceOf(),
+        gradle.serviceOf()).evaluateForClassPath()
+
+    return gradleKotlinDsl + scriptHandler.scriptClassPath
+}
+
+
+private
+class BuildscriptBlockEvaluator(
+    val scriptSource: KotlinScriptSource,
+    val scriptTarget: KotlinScriptTarget<out Any>,
+    val classPath: ClassPath,
+    val baseScope: ClassLoaderScope,
+    val kotlinCompiler: CachingKotlinCompiler,
+    val embeddedKotlinProvider: EmbeddedKotlinProvider,
+    val classloadingCache: KotlinScriptClassloadingCache,
+    val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
+
+    fun evaluateForClassPath() {
+        ignoringErrors {
+            evaluate()
         }
     }
+
+    fun evaluate() {
+        scriptTarget.buildscriptBlockTemplate?.let { template ->
+            setupEmbeddedKotlinForBuildscript()
+            extractTopLevelSectionFrom(script, buildscriptBlockName)?.let { buildscriptRange ->
+                executeBuildscriptBlockFrom(buildscriptRange, template)
+            }
+        }
+    }
+
+    private
+    fun compileBuildscriptBlock(scriptBlock: ScriptBlock<Unit>) =
+        withKotlinCompiler {
+            compileScriptBlock(scriptBlock, classPath)
+        }
+
+    private inline
+    fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
+
+    private
+    fun buildscriptBlockClassLoaderScope() =
+        baseScopeFor("buildscript")
+
+    private
+    fun baseScopeFor(stage: String) =
+        baseScope.createChild(classLoaderScopeIdFor(stage))
+
+    private
+    fun classLoaderScopeIdFor(stage: String) =
+        scriptSource.classLoaderScopeIdFor(stage)
+
+    private
+    fun loadBuildscriptBlockClass(scriptBlock: ScriptBlock<Unit>) =
+        classloadingCache.loadScriptClass(
+            scriptBlock,
+            baseScope.exportClassLoader,
+            ::buildscriptBlockClassLoaderScope,
+            ::compileBuildscriptBlock)
+
+    private
+    fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
+        loadBuildscriptBlockClass(scriptBlockForBuildscript(buildscriptRange, scriptTemplate))
+            .eval {
+                scriptTarget.evalBuildscriptBlock(scriptClass)
+            }
+
+    private
+    fun scriptBlockForBuildscript(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
+        ScriptBlock(
+            "$buildscriptBlockName block '$scriptPath'",
+            scriptTemplate,
+            scriptPath,
+            script.linePreservingSubstring(buildscriptRange),
+            Unit)
+
+    private
+    fun setupEmbeddedKotlinForBuildscript() {
+        embeddedKotlinProvider.run {
+            addRepositoryTo(scriptTarget.scriptHandler.repositories)
+            pinDependenciesOn(
+                scriptTarget.scriptHandler.configurations["classpath"],
+                "stdlib-jdk8", "reflect")
+        }
+    }
+
+    private
+    fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T): T =
+        scriptSource.withLocationAwareExceptionHandling {
+            action(kotlinCompiler)
+        }
+
+    private
+    val scriptPath get() = scriptSource.scriptPath
+
+    private
+    val script get() = scriptSource.script
+
+    private
+    val buildscriptBlockName get() = scriptTarget.buildscriptBlockName
 }
+
+
+private inline
+fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
+    try {
+        action()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        collect(e)
+    }
+}
+
+
+private inline
+fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
+    try {
+        action()
+    } catch (e: ScriptCompilationException) {
+        throw LocationAwareException(e, source, e.firstErrorLine)
+    }
 
 
 private inline

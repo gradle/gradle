@@ -83,7 +83,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         KotlinBuildScriptCompiler(
             kotlinCompiler,
             classloadingCache,
-            scriptSource,
+            KotlinScriptSource(scriptSource),
             scriptTarget, scriptHandler as ScriptHandlerInternal,
             pluginRequestsHandler,
             baseScope,

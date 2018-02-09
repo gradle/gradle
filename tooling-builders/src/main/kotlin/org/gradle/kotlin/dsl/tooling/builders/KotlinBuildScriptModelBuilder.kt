@@ -22,17 +22,22 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.invocation.Gradle
+import org.gradle.groovy.scripts.TextResourceScriptSource
 
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.provider.initScriptClassPathFor
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
@@ -82,6 +87,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         when {
             parameter.noScriptPath   -> projectScriptModelBuilder(modelRequestProject)
             parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject)
+            parameter.initScript     -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
             else                     -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
         }
 
@@ -95,6 +101,28 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun projectFor(scriptFile: File, modelRequestProject: Project) =
         modelRequestProject.allprojects.find { it.buildFile == scriptFile }
 }
+
+
+private
+fun initScriptModelBuilder(scriptFile: File, project: Project) = project.run {
+
+    val gradleInternal = gradle as GradleInternal
+    val scriptSource = textResourceScriptSource("initialization script", scriptFile)
+    val baseScope = gradleInternal.classLoaderScope
+    val scriptScope = baseScope.createChild("init-${scriptFile.toURI()}")
+    val scriptHandler = gradle.serviceOf<ScriptHandlerFactory>().create(scriptSource, scriptScope)
+
+    KotlinScriptTargetModelBuilder(
+        type = Gradle::class,
+        project = project,
+        scriptClassPath = initScriptClassPathFor(gradleInternal, scriptHandler, scriptSource),
+        sourceLookupScriptHandlers = listOf(scriptHandler))
+}
+
+
+private
+fun textResourceScriptSource(description: String, scriptFile: File) =
+    TextResourceScriptSource(BasicTextResourceLoader().loadFile(description, scriptFile))
 
 
 private
@@ -169,6 +197,11 @@ val KotlinBuildScriptModelParameter.noScriptPath
 private
 val KotlinBuildScriptModelParameter.settingsScript
     get() = scriptFile?.name == "settings.gradle.kts"
+
+
+private
+val KotlinBuildScriptModelParameter.initScript
+    get() = scriptFile?.name?.endsWith(".init.gradle.kts") ?: false
 
 
 private
