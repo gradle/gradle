@@ -249,6 +249,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             // Are all files snapshot after execution accounted for as new entries?
             if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = afterExecution;
+            } else if (newEntryCount == 0) {
+                filesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
             } else {
                 filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.UNORDERED, true);
             }
