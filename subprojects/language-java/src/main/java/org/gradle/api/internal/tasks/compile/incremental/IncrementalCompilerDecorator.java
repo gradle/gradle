@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -96,16 +97,23 @@ public class IncrementalCompilerDecorator {
     }
 
     private List<AnnotationProcessorDeclaration> getNonIncrementalProcessors() {
-        return annotationProcessorDetector.detectProcessors(annotationProcessorPath);
+        List<AnnotationProcessorDeclaration> allProcessors = annotationProcessorDetector.detectProcessors(annotationProcessorPath);
+        List<AnnotationProcessorDeclaration> nonIncrementalProcessors = Lists.newArrayListWithCapacity(allProcessors.size());
+        for (AnnotationProcessorDeclaration processor : allProcessors) {
+            if (!processor.getType().isIncremental()) {
+                nonIncrementalProcessors.add(processor);
+            }
+        }
+        return nonIncrementalProcessors;
     }
 
     private void warnAboutNonIncrementalProcessors(List<AnnotationProcessorDeclaration> nonIncrementalProcessors) {
         if (LOG.isInfoEnabled()) {
             StringBuilder processorListing = new StringBuilder();
             for (AnnotationProcessorDeclaration processor : nonIncrementalProcessors) {
-                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor.getClassName());
+                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor);
             }
-            LOG.info("{} - is not incremental. The following annotation processors were detected:{}", displayName, processorListing);
+            LOG.info("{} - is not incremental. The following annotation processors don't support incremental compilation:{}", displayName, processorListing);
         }
     }
 }

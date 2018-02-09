@@ -18,11 +18,11 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 
-class NonIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
+class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
     @Override
     protected IncrementalAnnotationProcessorType getProcessorType() {
-        return null
+        return IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN
     }
 
     def "all sources are recompiled when any class changes"() {
@@ -49,6 +49,6 @@ class NonIncrementalAnnotationProcessingIntegrationTest extends AbstractIncremen
 
         then:
         output.contains("The following annotation processors don't support incremental compilation:")
-        output.contains("Processor (type: UNKNOWN)")
+        output.contains("Processor (type: MULTIPLE_ORIGIN)")
     }
 }

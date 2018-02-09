@@ -16,6 +16,8 @@
 
 package org.gradle.language.fixtures
 
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
+import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.test.fixtures.file.TestFile
 
 /**
@@ -25,6 +27,7 @@ import org.gradle.test.fixtures.file.TestFile
  */
 class AnnotationProcessorFixture {
     String message = "greetings"
+    IncrementalAnnotationProcessorType type
     private String suffix = ""
 
     void setSuffix(String suffix) {
@@ -126,6 +129,9 @@ class AnnotationProcessorFixture {
                 }
             }
 """
-        projectDir.file('src/main/resources/META-INF/services/javax.annotation.processing.Processor').text = 'Processor'
+        projectDir.file("src/main/resources/$AnnotationProcessorDetector.PROCESSOR_DECLARATION").text = 'Processor'
+        if (type) {
+            projectDir.file("src/main/resources/$AnnotationProcessorDetector.INCREMENTAL_PROCESSOR_DECLARATION").text = "Processor,$type"
+        }
     }
 }
