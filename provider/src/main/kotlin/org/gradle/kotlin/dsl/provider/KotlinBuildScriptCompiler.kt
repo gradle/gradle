@@ -332,7 +332,7 @@ class KotlinBuildScriptCompiler(
             action()
         } catch (e: Exception) {
             e.printStackTrace()
-            classPathModeExceptionCollector.collect(scriptSource, e)
+            classPathModeExceptionCollector.collect(e)
         }
     }
 }

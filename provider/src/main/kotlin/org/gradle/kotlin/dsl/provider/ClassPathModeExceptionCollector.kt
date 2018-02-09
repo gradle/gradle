@@ -15,7 +15,6 @@
  */
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.Stoppable
 
 
@@ -27,7 +26,7 @@ open class ClassPathModeExceptionCollector : Stoppable {
     val exceptions: List<Exception>
         get() = collection
 
-    fun collect(scriptSource: ScriptSource, error: Exception) {
+    fun collect(error: Exception) {
         collection.add(error)
     }
 
