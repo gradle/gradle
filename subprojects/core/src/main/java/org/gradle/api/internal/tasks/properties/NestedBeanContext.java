@@ -19,4 +19,5 @@ package org.gradle.api.internal.tasks.properties;
 public interface NestedBeanContext<T extends BeanNode<T>> {
     T createNode(String propertyName, Object nested);
     void addNested(T node);
+    boolean isIterable(T node);
 }

@@ -86,6 +86,11 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             visitImplementation(node, visitor, specFactory);
             delegate.addNested(node);
         }
+
+        @Override
+        public boolean isIterable(PropertyNode node) {
+            return delegate.isIterable(node);
+        }
     }
 
     private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {

@@ -18,35 +18,37 @@ package org.gradle.api.internal.tasks.properties;
 
 import javax.annotation.Nullable;
 
-abstract class AbstractBeanNode {
-    private final String parentPropertyName;
+abstract class AbstractBeanNode<SELF extends AbstractBeanNode<SELF>> implements BeanNode<SELF> {
+    private final String propertyName;
     private final Class<?> beanClass;
-    private final TypeMetadata typeMetadata;
 
-    public AbstractBeanNode(@Nullable String parentPropertyName, Class<?> beanClass, TypeMetadata typeMetadata) {
-        this.parentPropertyName = parentPropertyName;
+    public AbstractBeanNode(@Nullable String propertyName, Class<?> beanClass) {
+        this.propertyName = propertyName;
         this.beanClass = beanClass;
-        this.typeMetadata = typeMetadata;
     }
 
     public String getQualifiedPropertyName(String propertyName) {
-        return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
+        return this.propertyName == null ? propertyName : this.propertyName + "." + propertyName;
     }
 
+    @Override
     public boolean isRoot() {
-        return parentPropertyName == null;
-    }
-
-    public boolean isIterable() {
-        return !isRoot() && Iterable.class.isAssignableFrom(beanClass) && !typeMetadata.isAnnotated();
+        return propertyName == null;
     }
 
     @Nullable
-    public String getParentPropertyName() {
-        return parentPropertyName;
+    public String getPropertyName() {
+        return propertyName;
     }
 
-    public TypeMetadata getTypeMetadata() {
-        return typeMetadata;
+    @Override
+    public Class<?> getBeanClass() {
+        return beanClass;
+    }
+
+    @Override
+    public String toString() {
+        //noinspection ConstantConditions
+        return isRoot() ? "<root>" : getPropertyName();
     }
 }

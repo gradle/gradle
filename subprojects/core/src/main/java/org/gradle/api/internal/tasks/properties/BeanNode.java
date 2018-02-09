@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 public interface BeanNode<SELF extends BeanNode<SELF>> {
-    boolean isIterable();
+    boolean isRoot();
     Iterable<SELF> asIterable(NestedBeanContext<SELF> context);
+    Class<?> getBeanClass();
 }

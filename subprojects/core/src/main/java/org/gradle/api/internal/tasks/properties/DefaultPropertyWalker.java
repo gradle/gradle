@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
@@ -53,16 +54,17 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
-        Queue<PropertyNode> queue = new ArrayDeque<PropertyNode>();
-        queue.add(new PropertyNode(null, bean, ImmutableMap.<Object, String>of(), propertyMetadataStore.getTypeMetadata(bean.getClass())));
+        Queue<NestedPropertyContext> queue = new ArrayDeque<NestedPropertyContext>();
+        queue.add(new NestedPropertyContext(new PropertyNode(null, bean), queue, ImmutableList.<PropertyNode>of()));
         while (!queue.isEmpty()) {
-            PropertyNode node = queue.remove();
-            visitProperties(node, visitor, specFactory, new NestedPropertyContext(node, queue));
+            NestedPropertyContext context = queue.remove();
+            PropertyNode node = context.getCurrentNode();
+            visitProperties(node, visitor, specFactory, context, propertyMetadataStore.getTypeMetadata(node.getBeanClass()));
         }
     }
 
-    private static void visitProperties(final PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> propertyContext) {
-        for (PropertyMetadata propertyMetadata : node.getTypeMetadata().getPropertiesMetadata()) {
+    private static void visitProperties(final PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> propertyContext, TypeMetadata typeMetadata) {
+        for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             if (propertyValueVisitor == null) {
                 continue;
@@ -157,23 +159,36 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-    private class NestedPropertyContext implements NestedBeanContext<PropertyNode> {
-        private final PropertyNode node;
-        private final Queue<PropertyNode> queue;
+    private class NestedPropertyContext extends AbstractNestedBeanContext<PropertyNode> {
+        private final PropertyNode currentNode;
+        private final Queue<NestedPropertyContext> queue;
+        private final Iterable<PropertyNode> parentNodes;
 
-        public NestedPropertyContext(PropertyNode node, Queue<PropertyNode> queue) {
-            this.node = node;
+        public NestedPropertyContext(PropertyNode currentNode, Queue<NestedPropertyContext> queue, Iterable<PropertyNode> parentNodes) {
+            super(propertyMetadataStore);
+            this.currentNode = currentNode;
             this.queue = queue;
+            this.parentNodes = parentNodes;
+            for (PropertyNode parentNode : parentNodes) {
+                Preconditions.checkState(
+                    currentNode.getBean() != parentNode.getBean(),
+                    "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
+                    parentNode, currentNode);
+            }
         }
 
         @Override
         public PropertyNode createNode(String propertyName, Object nested) {
-            return new PropertyNode(propertyName, nested, node.getSeenBeans(), propertyMetadataStore.getTypeMetadata(nested.getClass()));
+            return new PropertyNode(propertyName, nested);
         }
 
         @Override
         public void addNested(PropertyNode node) {
-            queue.add(node);
+            queue.add(new NestedPropertyContext(node, queue, Iterables.concat(ImmutableList.of(currentNode), parentNodes)));
+        }
+
+        public PropertyNode getCurrentNode() {
+            return currentNode;
         }
     }
 }

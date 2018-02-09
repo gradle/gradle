@@ -16,25 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.collect.Iterables;
+public abstract class AbstractNestedBeanContext<T extends BeanNode<T>> implements NestedBeanContext<T> {
 
-import java.util.ArrayDeque;
-import java.util.Queue;
+    private final PropertyMetadataStore metadataStore;
 
-public class NestedBeanResolver<T extends BeanNode<T>> {
-
-    public void resolve(T initial, NestedBeanContext<T> context) {
-        Queue<T> queue = new ArrayDeque<T>();
-        queue.add(initial);
-
-        while (!queue.isEmpty()) {
-            T nestedNode = queue.remove();
-            if (context.isIterable(nestedNode)) {
-                Iterables.addAll(queue, nestedNode.asIterable(context));
-            } else {
-                context.addNested(nestedNode);
-            }
-        }
+    public AbstractNestedBeanContext(PropertyMetadataStore metadataStore) {
+        this.metadataStore = metadataStore;
     }
 
+    @Override
+    public boolean isIterable(T node) {
+        return !node.isRoot() && Iterable.class.isAssignableFrom(node.getBeanClass()) && !metadataStore.getTypeMetadata(node.getBeanClass()).isAnnotated();
+    }
 }

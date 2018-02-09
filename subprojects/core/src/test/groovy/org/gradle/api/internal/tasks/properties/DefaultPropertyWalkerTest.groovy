@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties
 
+import groovy.transform.EqualsAndHashCode
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
@@ -135,6 +136,18 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         e.message == "Cycles between nested beans are not allowed. Cycle detected between: '<root>' and 'nested.left'."
     }
 
+    def "nested beans can be equal"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = new Tree(value: "root", right: new Tree(value: "right", right: new Tree(value: "right")))
+
+        when:
+        visitProperties(task)
+
+        then:
+        noExceptionThrown()
+        task.nested.right == task.nested.right.right
+    }
+
     def "nested beans can be re-used"() {
         def task = project.tasks.create("myTask", TaskWithNestedObject)
         def subTree = new Tree(value: "left", left: new Tree(value: "left"), right: new Tree(value: "right"))
@@ -152,6 +165,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         Object nested
     }
 
+    @EqualsAndHashCode(includes = "value")
     static class Tree {
         @Input
         String value

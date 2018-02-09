@@ -18,28 +18,20 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 import javax.annotation.Nullable;
 
-public class PropertyNode extends AbstractBeanNode implements BeanNode<PropertyNode> {
+public class PropertyNode extends AbstractBeanNode<PropertyNode> {
     private final Object bean;
-    private final ImmutableMap<Object, String> seenBeans;
 
-    public PropertyNode(@Nullable String parentPropertyName, Object bean, ImmutableMap<Object, String> seenBeans, TypeMetadata typeMetadata) {
-        super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass(), typeMetadata);
-        Preconditions.checkState(!seenBeans.keySet().contains(bean), "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", seenBeans.get(bean), parentPropertyName);
+    public PropertyNode(@Nullable String parentPropertyName, Object bean) {
+        super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass());
         this.bean = bean;
-        this.seenBeans = seenBeans;
     }
 
     public Object getBean() {
         return bean;
-    }
-
-    public ImmutableMap<Object, String> getSeenBeans() {
-        return ImmutableMap.<Object, String>builder().putAll(seenBeans).put(bean, getParentPropertyName() == null ? "<root>" : getParentPropertyName()).build();
     }
 
     public Iterable<PropertyNode> asIterable(final NestedBeanContext<PropertyNode> context) {
