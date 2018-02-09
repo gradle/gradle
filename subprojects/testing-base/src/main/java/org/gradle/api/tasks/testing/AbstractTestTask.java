@@ -550,6 +550,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return this;
     }
 
+    @Internal
     boolean getFailFast() {
         return failFast;
     }
