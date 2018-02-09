@@ -17,23 +17,22 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "jvm args providers are passed to the test worker"() {
         file("src/test/java/FooTest.java") << """
-            import java.io.IOException;
+            import java.io.*;
             import org.junit.*;
-            import java.nio.file.*;
 
             public class FooTest {
                 @Test
                 public void test() throws IOException {
                     String location = System.getProperty("input.path");
-                    Assert.assertEquals("Test", Files.readAllLines(Paths.get(location)).get(0));
+                    BufferedReader reader = new BufferedReader(new FileReader(location));
+                    String input = reader.readLine();
+                    reader.close();
+                    Assert.assertEquals("Test", input);
                 }
             }
         """

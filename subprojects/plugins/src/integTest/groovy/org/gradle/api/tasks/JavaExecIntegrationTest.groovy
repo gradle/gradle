@@ -55,7 +55,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             package driver;
 
             import java.io.*;
-            import java.nio.file.*;  
             import java.lang.System;
 
             public class Driver {
@@ -147,7 +146,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         mainJavaFile.text = mainClass("""
             try {
                 String location = System.getProperty("input.file");
-                String input = Files.readAllLines(Paths.get(location)).get(0);
+                BufferedReader reader = new BufferedReader(new FileReader(location));
+                String input = reader.readLine();
+                reader.close();
                 FileWriter out = new FileWriter(args[args.length - 1], false);
                 out.write(input);
                 out.close();
