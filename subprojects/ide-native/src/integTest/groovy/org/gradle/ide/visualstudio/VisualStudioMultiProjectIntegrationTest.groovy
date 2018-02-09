@@ -520,7 +520,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({GradleContextualExecuter.daemon})
+    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
     def "detects gradle wrapper and uses in vs project"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -548,7 +548,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({!GradleContextualExecuter.daemon})
+    @IgnoreIf({!(GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon)})
     def "detects executing gradle distribution and uses in vs project"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
