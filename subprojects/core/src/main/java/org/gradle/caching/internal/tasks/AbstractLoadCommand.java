@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
@@ -47,6 +48,7 @@ import org.gradle.internal.file.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -54,6 +56,7 @@ import java.util.SortedSet;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
+@NonNullApi
 public abstract class AbstractLoadCommand<I, O> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLoadCommand.class);
     private static final Predicate<? super FileSnapshot> EXCLUDE_ROOT_SNAPSHOTS = new Predicate<FileSnapshot>() {
@@ -89,7 +92,8 @@ public abstract class AbstractLoadCommand<I, O> {
         return key;
     }
 
-    public final O performLoad(I input) {
+    @Nullable
+    public O performLoad(@Nullable I input) {
         taskOutputChangesListener.beforeTaskOutputChanged();
         try {
             TaskOutputOriginReader reader = taskOutputOriginFactory.createReader(task);
@@ -109,7 +113,8 @@ public abstract class AbstractLoadCommand<I, O> {
         }
     }
 
-    protected abstract O performLoad(I input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException;
+    @Nullable
+    protected abstract O performLoad(@Nullable I input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException;
 
     protected void updateSnapshots(Multimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
         ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
@@ -176,7 +181,7 @@ public abstract class AbstractLoadCommand<I, O> {
         }
     }
 
-    private void remove(File file) throws IOException {
+    private void remove(@Nullable File file) throws IOException {
         if (file != null && file.exists()) {
             if (file.isDirectory()) {
                 FileUtils.cleanDirectory(file);

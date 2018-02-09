@@ -16,8 +16,12 @@
 
 package org.gradle.caching.internal.version2;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
 
+import javax.annotation.Nullable;
+
+@NonNullApi
 public interface BuildCacheLoadCommandV2<T> {
 
     BuildCacheKey getKey();
@@ -27,10 +31,21 @@ public interface BuildCacheLoadCommandV2<T> {
     interface Result<T> {
 
         /**
+         * The number of entries in the loaded artifact.
+         *
+         * This is used as a rough metric of the complexity of the archive for processing
+         * (in conjunction with the archive size).
+         *
+         * The meaning of “entry” is intentionally loose.
+         */
+        long getArtifactEntryCount();
+
+        /**
          * Any metadata about the loaded artifact.
          *
          * Value may not be null.
          */
+        @Nullable
         T getMetadata();
     }
 }

@@ -16,15 +16,61 @@
 
 package org.gradle.caching.internal.version2;
 
+import org.gradle.caching.internal.controller.operations.PackOperationDetails;
+import org.gradle.caching.internal.controller.operations.PackOperationResult;
+import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
+import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
+
 public class DefaultBuildCacheControllerV2 implements BuildCacheControllerV2 {
 
-    @Override
-    public <T> T load(BuildCacheLoadCommandV2<T> command) {
-        return command.load().getMetadata();
+    private BuildOperationExecutor buildOperationExecutor;
+
+    public DefaultBuildCacheControllerV2(BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public void store(BuildCacheStoreCommandV2 command) {
-        command.store();
+    public <T> T load(final BuildCacheLoadCommandV2<T> command) {
+        return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                BuildCacheLoadCommandV2.Result<T> result = command.load();
+                context.setResult(new UnpackOperationResult(result.getArtifactEntryCount()));
+                return result.getMetadata();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Load build cache entry " + command.getKey())
+                    .details(new UnpackOperationDetails(command.getKey(), 0))
+                    .progressDisplayName("Load build cache entry");
+            }
+        });
+    }
+
+    @Override
+    public void store(final BuildCacheStoreCommandV2 command) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                BuildCacheStoreCommandV2.Result result = command.store();
+                context.setResult(new PackOperationResult(
+                    result.getArtifactEntryCount(),
+                    0
+                ));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Storing build cache entry in local cache " + command.getKey())
+                    .details(new PackOperationDetails(command.getKey()))
+                    .progressDisplayName("Storing build cache entry");
+            }
+        });
     }
 }
