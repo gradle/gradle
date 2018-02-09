@@ -49,7 +49,7 @@ public class CollectingFileCollectionSnapshotBuilder implements FileCollectionSn
 
     public FileCollectionSnapshot build() {
         if (snapshots.isEmpty()) {
-            return FileCollectionSnapshot.EMPTY;
+            return EmptyFileCollectionSnapshot.INSTANCE;
         }
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, pathNormalizationStrategy.isPathAbsolute());
     }

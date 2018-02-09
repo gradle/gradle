@@ -293,7 +293,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionSnapshot snapshot = FileCollectionSnapshot.EMPTY
+        FileCollectionSnapshot snapshot = EmptyFileCollectionSnapshot.INSTANCE
         FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
         changes(newSnapshot, snapshot, listener)

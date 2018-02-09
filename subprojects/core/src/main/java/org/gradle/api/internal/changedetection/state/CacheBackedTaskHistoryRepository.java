@@ -157,7 +157,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (previousDiscoveredInputs != null) {
             discoveredInputs = snapshotDiscoveredInputs(task, normalizationStrategy, previousDiscoveredInputs.getElements(), snapshotterRegistry, fileCollectionFactory);
         } else {
-            discoveredInputs = FileCollectionSnapshot.EMPTY;
+            discoveredInputs = EmptyFileCollectionSnapshot.INSTANCE;
         }
 
         OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
@@ -203,7 +203,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (taskInputs != null) {
             discoveredFilesSnapshot = snapshotDiscoveredInputs(task, normalizationStrategy, taskInputs.getDiscoveredInputs(), snapshotterRegistry, fileCollectionFactory);
         } else {
-            discoveredFilesSnapshot = FileCollectionSnapshot.EMPTY;
+            discoveredFilesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
         }
         currentExecution.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
@@ -212,7 +212,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileNormalizer.class);
         if (discoveredInputs.isEmpty()) {
             LOGGER.debug("No discovered inputs for {}", task);
-            return FileCollectionSnapshot.EMPTY;
+            return EmptyFileCollectionSnapshot.INSTANCE;
         }
         LOGGER.debug("Snapshotting discovered inputs for {}", task);
         try {
@@ -355,7 +355,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 return afterPreviousExecution;
             }
         }
-        return FileCollectionSnapshot.EMPTY;
+        return EmptyFileCollectionSnapshot.INSTANCE;
     }
 
     @Nullable
