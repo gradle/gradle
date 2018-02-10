@@ -33,10 +33,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.language.cpp.CppApplication;
-import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftLibrary;
@@ -50,6 +50,7 @@ import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.internal.DefaultPackage;
 import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
+import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.swiftpm.internal.VersionDependency;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
 import org.gradle.vcs.VersionControlSpec;
@@ -76,11 +77,13 @@ import java.util.concurrent.Callable;
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
     private final VcsResolver vcsResolver;
     private final VersionSelectorScheme versionSelectorScheme;
+    private final ProjectDependencyPublicationResolver publicationResolver;
 
     @Inject
-    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme) {
+    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme, ProjectDependencyPublicationResolver publicationResolver) {
         this.vcsResolver = vcsResolver;
         this.versionSelectorScheme = versionSelectorScheme;
+        this.publicationResolver = publicationResolver;
     }
 
     @Override
@@ -195,16 +198,11 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
         }
 
         private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, DefaultTarget target) {
-            // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
             for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
-                    for (SwiftLibrary library : projectDependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
-                        target.getRequiredTargets().add(library.getModule().get());
-                    }
-                    for (CppLibrary library : projectDependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
-                        target.getRequiredTargets().add(library.getBaseName().get());
-                    }
+                    SwiftPmTarget identifier = publicationResolver.resolve(SwiftPmTarget.class, projectDependency);
+                    target.getRequiredTargets().add(identifier.getTargetName());
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
                     ModuleComponentSelector depSelector = DefaultModuleComponentSelector.newSelector(externalDependency);

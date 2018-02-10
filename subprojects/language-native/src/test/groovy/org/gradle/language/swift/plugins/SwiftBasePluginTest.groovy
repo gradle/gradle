@@ -37,7 +37,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
-import org.gradle.swiftpm.internal.SwiftPmIdentifier
+import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.VersionNumber
@@ -181,7 +181,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def publications = project.services.get(ProjectPublicationRegistry).getPublications(project.path)
         publications.size() == 1
-        publications.first().getCoordinates(SwiftPmIdentifier).targetName == "SomeApp"
+        publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }
 
     interface SwiftPlatformInternal extends SwiftPlatform, NativePlatformInternal {}

@@ -94,7 +94,7 @@ project(":project3") {
 
         then:
         failure.assertHasCause "Exception thrown while executing model rule: PublishingPlugin.Rules#publishing"
-        failure.assertHasCause """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in project ':project3':
   - Maven publication 'extra' with coordinates extra.group:extra:extra
   - Maven publication 'extraComp' with coordinates extra.group:extra-comp:extra

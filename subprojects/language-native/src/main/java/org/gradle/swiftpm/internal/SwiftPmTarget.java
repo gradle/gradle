@@ -16,10 +16,10 @@
 
 package org.gradle.swiftpm.internal;
 
-public class SwiftPmIdentifier {
+public class SwiftPmTarget {
     private final String targetName;
 
-    public SwiftPmIdentifier(String targetName) {
+    public SwiftPmTarget(String targetName) {
         this.targetName = targetName;
     }
 

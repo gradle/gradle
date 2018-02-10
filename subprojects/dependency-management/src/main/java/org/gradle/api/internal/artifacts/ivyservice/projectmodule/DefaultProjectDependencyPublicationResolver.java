@@ -45,21 +45,26 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     }
 
     @Override
-    public ModuleVersionIdentifier resolve(ProjectDependency dependency) {
+    public <T> T resolve(Class<T> coordsType, ProjectDependency dependency) {
+        // Could probably apply some caching and some immutable types
+
         ProjectInternal dependencyProject = (ProjectInternal) dependency.getDependencyProject();
         // Ensure target project is configured
         projectConfigurer.configureFully(dependencyProject);
 
         List<ProjectPublication> publications = new ArrayList<ProjectPublication>();
         for (ProjectPublication publication : publicationRegistry.getPublications(dependencyProject.getPath())) {
-            if (!publication.isLegacy() && publication.getCoordinates(ModuleVersionIdentifier.class) != null) {
+            if (!publication.isLegacy() && publication.getCoordinates(coordsType) != null) {
                 publications.add(publication);
             }
         }
 
         if (publications.isEmpty()) {
-            // Project does not apply publishing (or has no publications): simply use the project name in place of the dependency name
-            return new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
+            // Project has no publications: simply use the project name in place of the dependency name
+            if (coordsType.isAssignableFrom(ModuleVersionIdentifier.class)) {
+                return coordsType.cast(new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
+            }
+            throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), dependencyProject.getDisplayName()));
         }
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
@@ -79,22 +84,21 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
         // See if all entry points have the same identifier
         Iterator<ProjectPublication> iterator = topLevel.iterator();
-        ModuleVersionIdentifier candidate = iterator.next().getCoordinates(ModuleVersionIdentifier.class);
+        T candidate = iterator.next().getCoordinates(coordsType);
         while (iterator.hasNext()) {
-            ModuleVersionIdentifier alternative = iterator.next().getCoordinates(ModuleVersionIdentifier.class);
+            T alternative = iterator.next().getCoordinates(coordsType);
             if (!candidate.equals(alternative)) {
                 TreeFormatter formatter = new TreeFormatter();
-                formatter.node("Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.");
+                formatter.node("Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.");
                 formatter.node("Found the following publications in " + dependencyProject.getDisplayName());
                 formatter.startChildren();
                 for (ProjectPublication publication : topLevel) {
-                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates(ModuleVersionIdentifier.class));
+                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates(coordsType));
                 }
                 formatter.endChildren();
                 throw new UnsupportedOperationException(formatter.toString());
             }
         }
         return candidate;
-
     }
 }

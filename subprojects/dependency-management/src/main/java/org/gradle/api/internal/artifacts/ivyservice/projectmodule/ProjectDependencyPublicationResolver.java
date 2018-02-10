@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 
 public interface ProjectDependencyPublicationResolver {
-    ModuleVersionIdentifier resolve(ProjectDependency dependency);
+    /**
+     * Determines the coordinates of the given type that should be used to reference the given dependency.
+     */
+    <T> T resolve(Class<T> coordsType, ProjectDependency dependency);
 }

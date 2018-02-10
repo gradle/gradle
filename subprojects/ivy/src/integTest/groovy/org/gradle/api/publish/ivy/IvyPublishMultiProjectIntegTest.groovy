@@ -99,7 +99,7 @@ project(":project3") {
 
         then:
         failure.assertHasDescription "A problem occurred configuring project ':project1'."
-        failure.assertHasCause """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in project ':project3':
   - Ivy publication 'extra' with coordinates extra.org:extra-module-2:extra
   - Ivy publication 'extraComponent' with coordinates extra.org:extra-module:extra
