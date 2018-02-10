@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -75,7 +76,7 @@ public class WindowsResourceCompile extends DefaultTask {
         source = getProject().files();
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
-        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes);
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, Providers.FALSE);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {

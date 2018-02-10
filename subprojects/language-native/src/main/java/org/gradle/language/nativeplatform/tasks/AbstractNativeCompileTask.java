@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -43,6 +44,8 @@ import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompil
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.Clang;
+import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -71,14 +74,20 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public AbstractNativeCompileTask() {
         ObjectFactory objectFactory = getProject().getObjects();
-        includes = getProject().files();
-        source = getTaskFileVarFactory().newInputFileCollection(this);
-        objectFileDir = newOutputDirectory();
-        compilerArgs = getProject().getObjects().listProperty(String.class);
-        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes);
+        this.includes = getProject().files();
+        dependsOn(includes);
+
+        this.source = getTaskFileVarFactory().newInputFileCollection(this);
+        this.objectFileDir = newOutputDirectory();
+        this.compilerArgs = getProject().getObjects().listProperty(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
-        dependsOn(includes);
+        this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
+            @Override
+            public Boolean transform(NativeToolChain nativeToolChain) {
+                return nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang;
+            }
+        }));
     }
 
     @Inject
