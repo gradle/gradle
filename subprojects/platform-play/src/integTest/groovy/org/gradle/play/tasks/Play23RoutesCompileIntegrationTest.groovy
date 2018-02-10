@@ -17,6 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.play.integtest.fixtures.PlayCoverage
 
@@ -50,6 +51,14 @@ class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
             executer.expectDeprecationWarning()
         }
         return super.succeeds(tasks)
+    }
+
+    @Override
+    protected ExecutionFailure fails(String... tasks) {
+        if (isPlay22(version)) {
+            executer.expectDeprecationWarning()
+        }
+        return super.fails(tasks)
     }
 
     def "trying to use injected router with older versions of Play produces reasonable error"() {

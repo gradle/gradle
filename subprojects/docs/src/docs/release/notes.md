@@ -213,9 +213,9 @@ buildCache {
 
 Putting processors on the compile classpath or using an explicit `-processorpath` compiler argument has been deprecated and will be removed in Gradle 5.0. Annotation processors should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of some library you use), use the `-proc:none` compiler argument to ignore it.
 
-### Play 2.2 is deprecated
+### Play 2.2 is deprecated in Play plugin
 
-Play 2.2 is very old and deprecated now. Please try later version of [Play](https://www.playframework.com/).
+The use of Play 2.2 with the the Play plugin has been deprecated and will be removed with Gradle 5.0. It is highly recommended to upgrade to a newer version of [Play](https://www.playframework.com/).
 
 ## Potential breaking changes
 
