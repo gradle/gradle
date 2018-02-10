@@ -55,9 +55,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
     def "uses coordinates of single publication from dependent project"() {
         when:
-        def publication = Mock(ProjectPublication)
-        publication.name >> 'mock'
-        publication.coordinates >> new DefaultModuleVersionIdentifier("pub-group", "pub-name", "pub-version")
+        def publication = pub("mock", "pub-group", "pub-name", "pub-version")
 
         dependentProjectHasPublications(publication)
 
@@ -107,6 +105,23 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
         when:
         dependentProjectHasPublications(publication, publication2, publication3, publication4)
+
+        then:
+        with (resolve()) {
+            group == "pub-group"
+            name == "pub-name"
+            version == "pub-version"
+        }
+    }
+
+    def "ignores components without ModuleVersionIdentifier coordinates"() {
+        when:
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
+        def publication2 = pub('mock', "pub-group", "pub-name", "pub-version")
+        def publication3 = Stub(ProjectPublication)
+        publication3.getCoordinates(_) >> null
+
+        dependentProjectHasPublications(publication, publication3, publication2)
 
         then:
         with (resolve()) {
@@ -180,7 +195,7 @@ Found the following publications in <project>:
         def publication = Mock(ProjectPublication)
         publication.name >> name
         publication.displayName >> Describables.of("publication '" + name + "'")
-        publication.coordinates >> new DefaultModuleVersionIdentifier(group, module, version)
+        publication.getCoordinates(ModuleVersionIdentifier) >> new DefaultModuleVersionIdentifier(group, module, version)
         return publication
     }
 

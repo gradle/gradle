@@ -21,11 +21,16 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
@@ -35,7 +40,9 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
+import org.gradle.swiftpm.internal.SwiftPmIdentifier;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -48,6 +55,13 @@ import java.util.concurrent.Callable;
 @Incubating
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
+    private final ProjectPublicationRegistry publicationRegistry;
+
+    @Inject
+    public CppBasePlugin(ProjectPublicationRegistry publicationRegistry) {
+        this.publicationRegistry = publicationRegistry;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(NativeBasePlugin.class);
@@ -103,6 +117,18 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(CppSharedLibrary library) {
                 library.getCompileTask().get().setPositionIndependentCode(true);
+            }
+        });
+        project.getComponents().withType(ProductionCppComponent.class, new Action<ProductionCppComponent>() {
+            @Override
+            public void execute(final ProductionCppComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        DefaultCppComponent componentInternal = (DefaultCppComponent) component;
+                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmIdentifier(component.getBaseName().get())));
+                    }
+                });
             }
         });
     }

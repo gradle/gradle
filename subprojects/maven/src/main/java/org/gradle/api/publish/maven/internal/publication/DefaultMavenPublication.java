@@ -38,6 +38,7 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -45,7 +46,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -131,7 +131,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public DisplayName getDisplayName() {
-        return Describables.of("Maven publication '" + name + "'");
+        return Describables.withTypeAndName("Maven publication", name);
     }
 
     @Override
@@ -379,6 +379,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
+    }
+
+    @Nullable
+    @Override
+    public <T> T getCoordinates(Class<T> type) {
+        if (type.isAssignableFrom(ModuleVersionIdentifier.class)) {
+            return type.cast(getCoordinates());
+        }
+        return null;
     }
 
     public void publishWithOriginalFileName() {

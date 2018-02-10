@@ -15,12 +15,15 @@
  */
 package org.gradle.api.publish.internal;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 
 public interface PublicationInternal extends Publication, ProjectPublication {
+    ModuleVersionIdentifier getCoordinates();
+
     ImmutableAttributes getAttributes();
 
     void setAlias(boolean alias);

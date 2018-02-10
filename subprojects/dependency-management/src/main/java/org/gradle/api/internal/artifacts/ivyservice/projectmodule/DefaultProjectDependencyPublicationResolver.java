@@ -52,7 +52,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
         List<ProjectPublication> publications = new ArrayList<ProjectPublication>();
         for (ProjectPublication publication : publicationRegistry.getPublications(dependencyProject.getPath())) {
-            if (!publication.isLegacy()) {
+            if (!publication.isLegacy() && publication.getCoordinates(ModuleVersionIdentifier.class) != null) {
                 publications.add(publication);
             }
         }
@@ -79,16 +79,16 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
         // See if all entry points have the same identifier
         Iterator<ProjectPublication> iterator = topLevel.iterator();
-        ModuleVersionIdentifier candidate = iterator.next().getCoordinates();
+        ModuleVersionIdentifier candidate = iterator.next().getCoordinates(ModuleVersionIdentifier.class);
         while (iterator.hasNext()) {
-            ModuleVersionIdentifier alternative = iterator.next().getCoordinates();
+            ModuleVersionIdentifier alternative = iterator.next().getCoordinates(ModuleVersionIdentifier.class);
             if (!candidate.equals(alternative)) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.");
                 formatter.node("Found the following publications in " + dependencyProject.getDisplayName());
                 formatter.startChildren();
                 for (ProjectPublication publication : topLevel) {
-                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates());
+                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates(ModuleVersionIdentifier.class));
                 }
                 formatter.endChildren();
                 throw new UnsupportedOperationException(formatter.toString());
