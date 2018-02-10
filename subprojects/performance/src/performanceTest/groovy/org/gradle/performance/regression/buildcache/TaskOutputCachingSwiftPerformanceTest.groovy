@@ -43,6 +43,7 @@ class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPer
         where:
         testProject        | task       | maxMemory
         'mediumSwiftMulti' | 'assemble' | '1G'
-        'bigSwiftApp'      | 'assemble' | '1G'
+        // TODO: Disable this temporarily
+        // 'bigSwiftApp'      | 'assemble' | '1G'
     }
 }
