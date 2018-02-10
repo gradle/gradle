@@ -118,7 +118,7 @@ public class BuildCacheTaskServices {
     ) {
         String cacheV2Dir = System.getProperty("cacheV2Dir");
         File target = cacheV2Dir == null
-            ? cacheScopeMapping.getBaseDirectory(null, "build-cache-2", VersionStrategy.SharedCache)
+            ? cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache)
             : new File(cacheV2Dir);
         PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target);
         PersistentCache persistentCache = cacheRepository

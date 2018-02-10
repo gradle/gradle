@@ -28,6 +28,7 @@ dependencies {
     implementation libraries.commons_collections.coordinates
     implementation libraries.commons_io.coordinates
     implementation libraries.commons_lang.coordinates
+    implementation libraries.kryo.coordinates
 }
 
 testFixtures {

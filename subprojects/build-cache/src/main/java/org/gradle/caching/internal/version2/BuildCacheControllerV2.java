@@ -16,7 +16,13 @@
 
 package org.gradle.caching.internal.version2;
 
+import org.gradle.api.NonNullApi;
+
+import javax.annotation.Nullable;
+
+@NonNullApi
 public interface BuildCacheControllerV2 {
+    @Nullable
     <T> T load(BuildCacheLoadCommandV2<T> command);
     void store(BuildCacheStoreCommandV2 command);
 }

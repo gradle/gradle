@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.version2;
+package org.gradle.internal.io;
 
-public interface CacheEntry {
+import java.io.IOException;
+
+public interface IoAction<T> {
+    void execute(T t) throws IOException;
 }

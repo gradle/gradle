@@ -17,14 +17,32 @@
 package org.gradle.caching.internal.version2;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoAction;
 
-import java.io.File;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+@NonNullApi
 public interface LocalBuildCacheServiceV2 {
-    CacheEntry get(HashCode key);
+    @Nullable
+    Result getResult(HashCode key);
+    void getContent(HashCode key, ContentProcessor contentProcessor);
 
-    FileEntry put(HashCode key, File file);
-    ManifestEntry put(HashCode key, ImmutableSortedMap<String, HashCode> entries);
-    ResultEntry put(HashCode key, ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata);
+    void putFile(HashCode key, IoAction<OutputStream> writer);
+    void putManifest(HashCode key, ImmutableSortedMap<String, HashCode> entries);
+    void putResult(HashCode key, ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata);
+
+    interface ContentProcessor {
+        void processFile(InputStream inputStream) throws IOException;
+        void processManifest(ImmutableSortedMap<String, HashCode> entries) throws IOException;
+    }
+
+    interface Result {
+        ImmutableSortedMap<String, HashCode> getOutputs();
+        InputStream getOriginMetadata();
+    }
 }
