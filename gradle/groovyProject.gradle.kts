@@ -132,7 +132,7 @@ apply {
     }
 
     from("$rootDir/gradle/distributionTesting.gradle.kts")
-    from("$rootDir/gradle/intTestImage.gradle")
+    plugin("intTestImage")
 }
 
 val compileAll by tasks.creating {

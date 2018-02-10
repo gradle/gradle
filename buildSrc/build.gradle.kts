@@ -58,6 +58,18 @@ gradlePlugin {
             id = "pegdown"
             implementationClass = "org.gradle.plugins.pegdown.PegDownPlugin"
         }
+        "customM2Check" {
+            id = "customM2Check"
+            implementationClass = "org.gradle.plugins.CustomM2CheckPlugin"
+        }
+        "intTestImage" {
+            id = "intTestImage"
+            implementationClass = "org.gradle.plugins.IntTestImagePlugin"
+        }
+        "config" {
+            id = "config"
+            implementationClass = "org.gradle.plugins.config.ConfigPlugin"
+        }
     }
 }
 

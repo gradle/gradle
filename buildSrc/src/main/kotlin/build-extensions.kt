@@ -16,6 +16,7 @@
 import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.config.ConfigExtension
 
 
 // This file contains Kotlin extensions for the gradle/gradle build
@@ -28,6 +29,9 @@ val Project.libraries
 @Suppress("unchecked_cast")
 val Project.testLibraries
     get() = rootProject.extra["testLibraries"] as Map<String, Any>
+
+val Project.config
+    get() = rootProject.the<ConfigExtension>()
 
 fun Project.library(name: String): String =
     libraries[name]!!["coordinate"]!!

@@ -21,8 +21,10 @@ import org.gradle.cleanup.EmptyDirectoryCheck
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 
 plugins {
+    id 'config'
     id 'java-base'
     id 'build-types'
+    id 'customM2Check'
 }
 
 defaultTasks 'assemble'
@@ -112,22 +114,19 @@ buildTypes {
 }
 
 ext {
+    isCiServer = config.isCiServer()
+    useAllDistribution = config.useAllDistribution
+
     gradle_kotlin_dsl_version = '0.15.4'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
-    isCiServer = System.getenv().containsKey("CI")
+
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
         ext.maxParallelForks = 4
-    }
-
-    if (project.hasProperty("useAllDistribution")) {
-        project.useAllDistribution = true
-    } else {
-        ext.useAllDistribution = false
     }
 
     agentNum = 1
@@ -182,7 +181,6 @@ apply from: "gradle/eclipse.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
-apply from: 'gradle/customM2Check.gradle'
 apply from: "gradle/publicApi.gradle"
 apply from: "gradle/updateReleasedVersions.gradle"
 apply from: "gradle/dependenciesCheck.gradle"

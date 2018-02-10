@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.extra
+
 /*
  * Copyright 2010 the original author or authors.
  *
