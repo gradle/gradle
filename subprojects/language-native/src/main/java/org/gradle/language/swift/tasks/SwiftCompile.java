@@ -113,7 +113,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * The tool chain used for compilation.
      *
-     * @since 4.4
+     * @since 4.6
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -123,7 +123,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * The platform being compiled for.
      *
-     * @since 4.4
+     * @since 4.6
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {

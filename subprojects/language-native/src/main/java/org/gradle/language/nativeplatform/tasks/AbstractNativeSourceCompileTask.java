@@ -92,8 +92,8 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
     @Optional
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
-        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain().get();
+        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform().get();
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         Compiler<? extends NativeCompileSpec> compiler = toolProvider.newCompiler(createCompileSpec().getClass());
         if (!(compiler instanceof VersionAwareCompiler)) {

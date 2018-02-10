@@ -118,7 +118,7 @@ class CppUnitTestPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
@@ -139,7 +139,7 @@ class CppUnitTestPluginTest extends Specification {
         compileCpp.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
-        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")

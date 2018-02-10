@@ -215,7 +215,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 install.getTargetPlatform().set(targetPlatform);
                 install.getToolChain().set(toolChain);
                 install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                install.getSourceFile().set(executable.getExecutableFile());
+                install.getExecutableFile().set(executable.getExecutableFile());
                 install.lib(executable.getRuntimeLibraries());
 
                 executable.getInstallTask().set(install);

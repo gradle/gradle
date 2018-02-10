@@ -22,7 +22,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TaskFileVarFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -55,8 +57,8 @@ import java.util.Map;
  */
 @Incubating
 public abstract class AbstractNativeCompileTask extends DefaultTask {
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
     private boolean positionIndependentCode;
     private boolean debug;
     private boolean optimize;
@@ -68,11 +70,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public AbstractNativeCompileTask() {
+        ObjectFactory objectFactory = getProject().getObjects();
         includes = getProject().files();
         source = getTaskFileVarFactory().newInputFileCollection(this);
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getObjects().listProperty(String.class);
         incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes);
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
         dependsOn(includes);
     }
 
@@ -100,7 +105,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public void compile(IncrementalTaskInputs inputs) {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         NativeCompileSpec spec = createCompileSpec();
-        spec.setTargetPlatform(targetPlatform);
+        spec.setTargetPlatform(targetPlatform.get());
         spec.setTempDir(getTemporaryDir());
         spec.setObjectFileDir(objectFileDir.get().getAsFile());
         spec.include(includes);
@@ -115,7 +120,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
         configureSpec(spec);
 
-        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
+        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
+        NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+        PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
         setDidWork(doCompile(spec, platformToolProvider).getDidWork());
     }
 
@@ -134,27 +141,22 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * The tool chain used for compilation.
+     *
+     * @since 4.6
      */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
-        incrementalCompiler.setToolChain(this.toolChain);
-    }
-
     /**
-     * The platform being targeted.
+     * The platform being compiled for.
+     *
+     * @since 4.6
      */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
-    }
-
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**
