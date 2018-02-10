@@ -17,12 +17,18 @@
 package org.gradle.caching.internal.version2;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoAction;
 
-import java.io.File;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+@NonNullApi
 public class DebuggingLocalBuildCacheServiceV2 implements LocalBuildCacheServiceV2 {
     private static final Logger LOGGER = Logging.getLogger(DebuggingLocalBuildCacheServiceV2.class);
     private final LocalBuildCacheServiceV2 delegate;
@@ -31,28 +37,47 @@ public class DebuggingLocalBuildCacheServiceV2 implements LocalBuildCacheService
         this.delegate = delegate;
     }
 
+    @Nullable
     @Override
-    public CacheEntry get(HashCode key) {
-        CacheEntry entry = delegate.get(key);
-        LOGGER.info("Getting entry {}, found: {}", key, entry);
-        return entry;
+    public Result getResult(HashCode key) {
+        Result result = delegate.getResult(key);
+        LOGGER.info("Found result entry {}: {}", key, result);
+        return result;
     }
 
     @Override
-    public FileEntry put(HashCode key, File file) {
-        LOGGER.info("Putting file {}: {}", key, file);
-        return delegate.put(key, file);
+    public void getContent(final HashCode key, final ContentProcessor contentProcessor) {
+        LOGGER.info("Getting content {}", key);
+        delegate.getContent(key, new ContentProcessor() {
+            @Override
+            public void processFile(InputStream inputStream) throws IOException {
+                LOGGER.info("Found a file {}", key);
+                contentProcessor.processFile(inputStream);
+            }
+
+            @Override
+            public void processManifest(ImmutableSortedMap<String, HashCode> entries) throws IOException {
+                LOGGER.info("Found manifest {}: {}", key, entries);
+                contentProcessor.processManifest(entries);
+            }
+        });
     }
 
     @Override
-    public ManifestEntry put(HashCode key, ImmutableSortedMap<String, HashCode> entries) {
+    public void putFile(HashCode key, IoAction<OutputStream> writer) {
+        LOGGER.info("Putting file {}", key);
+        delegate.putFile(key, writer);
+    }
+
+    @Override
+    public void putManifest(HashCode key, ImmutableSortedMap<String, HashCode> entries) {
         LOGGER.info("Putting manifest {}: {}", key, entries);
-        return delegate.put(key, entries);
+        delegate.putManifest(key, entries);
     }
 
     @Override
-    public ResultEntry put(HashCode key, ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata) {
+    public void putResult(HashCode key, ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata) {
         LOGGER.info("Putting results {}: {}", key, outputs);
-        return delegate.put(key, outputs, originMetadata);
+        delegate.putResult(key, outputs, originMetadata);
     }
 }

@@ -16,35 +16,44 @@
 
 package org.gradle.caching.internal.version2;
 
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableSortedMap;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoAction;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+@NonNullApi
 public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheServiceV2 {
-    private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
+    private static final int BUFFER_SIZE = 4096;
+    private static final ThreadLocal<byte[]> ENCODER_BUFFERS = new ThreadLocal<byte[]>() {
         @Override
         protected byte[] initialValue() {
             return new byte[BUFFER_SIZE];
         }
     };
+    private static final int CODE_FILE = 0;
+    private static final int CODE_MANIFEST = 1;
+    private static final int CODE_RESULT = 2;
 
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
@@ -55,11 +64,82 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
         this.persistentCache = persistentCache;
     }
 
-    @Override
-    public CacheEntry get(final HashCode key) {
-        return persistentCache.withFileLock(new Factory<CacheEntry>() {
+    private static Input wrap(InputStream inputStream) {
+        Input input = new Input();
+        input.setBuffer(ENCODER_BUFFERS.get());
+        input.setInputStream(inputStream);
+        return input;
+    }
+
+    private static IoAction<OutputStream> wrap(final IoAction<Output> action) {
+        return new IoAction<OutputStream>() {
             @Override
-            public CacheEntry create() {
+            public void execute(OutputStream outputStream) throws IOException {
+                Output output = new Output();
+                output.setBuffer(ENCODER_BUFFERS.get());
+                output.setOutputStream(outputStream);
+                try {
+                    action.execute(output);
+                } finally {
+                    output.flush();
+                }
+            }
+        };
+    }
+
+    @Nullable
+    @Override
+    public Result getResult(HashCode key) {
+        return get(key, new EntryReader<Result>() {
+            @Override
+            public Result readEntry(int code, InputStream inputStream) {
+                if (code != CODE_RESULT) {
+                    throw new IllegalStateException("Incorrect data: " + code);
+                }
+                Input input = wrap(inputStream);
+                final ImmutableSortedMap<String, HashCode> outputs = readEntries(input);
+                int metadataLength = input.readInt();
+                final byte[] metadata = input.readBytes(metadataLength);
+                return new Result() {
+                    @Override
+                    public ImmutableSortedMap<String, HashCode> getOutputs() {
+                        return outputs;
+                    }
+
+                    @Override
+                    public InputStream getOriginMetadata() {
+                        return new ByteArrayInputStream(metadata);
+                    }
+                };
+            }
+        });
+    }
+
+    @Override
+    public void getContent(HashCode key, final ContentProcessor contentProcessor) {
+        get(key, new EntryReader<Void>() {
+            @Override
+            public Void readEntry(int code, InputStream inputStream) throws IOException {
+                switch (code) {
+                    case CODE_FILE:
+                        contentProcessor.processFile(inputStream);
+                        break;
+                    case CODE_MANIFEST:
+                        contentProcessor.processManifest(readEntries(wrap(inputStream)));
+                        break;
+                    default:
+                        throw new IllegalStateException("Incorrect data: " + code);
+                }
+                return null;
+            }
+        });
+    }
+
+    @Nullable
+    private <T> T get(final HashCode key, final EntryReader<T> entryReader) {
+        return persistentCache.withFileLock(new Factory<T>() {
+            @Override
+            public T create() {
                 lock.readLock().lock();
                 try {
                     LocallyAvailableResource resource = fileStore.get(key.toString());
@@ -67,23 +147,10 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
                         return null;
                     }
                     try {
-                        DataInputStream input = new DataInputStream(new FileInputStream(resource.getFile()));
+                        InputStream input = new FileInputStream(resource.getFile());
                         try {
-                            int type = input.readInt();
-                            switch (type) {
-                                case 0:
-                                    return new DefaultFileEntry(resource.getFile());
-                                case 1:
-                                    return new DefaultManifestEntry(readEntries(input));
-                                case 2:
-                                    ImmutableSortedMap<String, HashCode> entries = readEntries(input);
-                                    int metadataLength = input.readInt();
-                                    byte[] metadata = new byte[metadataLength];
-                                    input.readFully(metadata);
-                                    return new DefaultResultEntry(entries, metadata);
-                                default:
-                                    throw new IllegalStateException("Incorrect data: " + type);
-                            }
+                            int code = input.read();
+                            return entryReader.readEntry(code, input);
                         } finally {
                             IOUtils.closeQuietly(input);
                         }
@@ -97,24 +164,23 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
         });
     }
 
-    private static ImmutableSortedMap<String, HashCode> readEntries(DataInputStream input) throws IOException {
+    private static ImmutableSortedMap<String, HashCode> readEntries(Input input) {
         int count = input.readInt();
         ImmutableSortedMap.Builder<String, HashCode> builder = ImmutableSortedMap.naturalOrder();
         for (int i = 0; i < count; i++) {
-            String name = input.readUTF();
+            String name = input.readString();
             int length = input.readInt();
-            byte[] buffer = new byte[length];
-            input.readFully(buffer);
+            byte[] buffer = input.readBytes(length);
             HashCode hash = HashCode.fromBytes(buffer);
             builder.put(name, hash);
         }
         return builder.build();
     }
 
-    private static void writeEntries(DataOutputStream output, ImmutableSortedMap<String, HashCode> entries) throws IOException {
+    private static void writeEntries(Output output, ImmutableSortedMap<String, HashCode> entries) {
         output.writeInt(entries.size());
         for (Map.Entry<String, HashCode> entry : entries.entrySet()) {
-            output.writeUTF(entry.getKey());
+            output.writeString(entry.getKey());
             byte[] buffer = entry.getValue().toByteArray();
             output.writeInt(buffer.length);
             output.write(buffer);
@@ -122,156 +188,66 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
     }
 
     @Override
-    public FileEntry put(HashCode key, final File file) {
-        return put(key, new PutAction<FileEntry>() {
-            @Override
-            public void writeFile(DataOutputStream output) throws IOException {
-                output.writeInt(0);
-                FileInputStream input = new FileInputStream(file);
-                try {
-                    IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
-                } finally {
-                    IOUtils.closeQuietly(input);
-                }
-            }
-
-            @Override
-            public FileEntry createEntry(File file) {
-                return new DefaultFileEntry(file);
-            }
-        });
+    public void putFile(HashCode key, final IoAction<OutputStream> writer) {
+        put(key, CODE_FILE, writer);
     }
 
     @Override
-    public ManifestEntry put(HashCode key, final ImmutableSortedMap<String, HashCode> children) {
-        return put(key, new PutAction<ManifestEntry>() {
+    public void putManifest(HashCode key, final ImmutableSortedMap<String, HashCode> children) {
+        put(key, CODE_MANIFEST, wrap(new IoAction<Output>() {
             @Override
-            public void writeFile(DataOutputStream output) throws IOException {
-                output.writeInt(1);
+            public void execute(Output output) {
                 writeEntries(output, children);
             }
-
-            @Override
-            public ManifestEntry createEntry(File storedContent) {
-                return new DefaultManifestEntry(children);
-            }
-        });
+        }));
     }
 
     @Override
-    public ResultEntry put(HashCode key, final ImmutableSortedMap<String, HashCode> outputs, final byte[] originMetadata) {
-        return put(key, new PutAction<ResultEntry>() {
+    public void putResult(HashCode key, final ImmutableSortedMap<String, HashCode> outputs, final byte[] originMetadata) {
+        put(key, CODE_RESULT, wrap(new IoAction<Output>() {
             @Override
-            public void writeFile(DataOutputStream output) throws IOException {
-                output.writeInt(2);
+            public void execute(Output output) {
                 writeEntries(output, outputs);
                 output.writeInt(originMetadata.length);
                 output.write(originMetadata);
             }
-
-            @Override
-            public ResultEntry createEntry(File storedContent) {
-                return new DefaultResultEntry(outputs, originMetadata);
-            }
-        });
+        }));
     }
 
-    private <T extends CacheEntry> T put(final HashCode hashCode, final PutAction<T> action) {
-        return persistentCache.withFileLock(new Factory<T>() {
+    private void put(final HashCode hashCode, final int code, final IoAction<OutputStream> action) {
+        persistentCache.withFileLock(new Runnable() {
             @Override
-            public T create() {
+            public void run() {
                 String key = hashCode.toString();
                 lock.writeLock().lock();
+                File tempFile = null;
                 try {
                     LocallyAvailableResource resource = fileStore.get(key);
                     if (resource == null) {
-                        File tempFile = File.createTempFile("build-cache-", ".temp");
-                        DataOutputStream output = new DataOutputStream(new FileOutputStream(tempFile));
+                        tempFile = File.createTempFile("build-cache-", ".temp");
+                        OutputStream output = new FileOutputStream(tempFile);
+                        output.write(code);
                         try {
-                            action.writeFile(output);
+                            action.execute(output);
                         } finally {
                             IOUtils.closeQuietly(output);
                         }
-                        resource = fileStore.move(key, tempFile);
+                        fileStore.move(key, tempFile);
+                        tempFile = null;
                     }
-                    return action.createEntry(resource.getFile());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 } finally {
+                    if (tempFile != null) {
+                        FileUtils.deleteQuietly(tempFile);
+                    }
                     lock.writeLock().unlock();
                 }
             }
         });
     }
 
-    private static class DefaultFileEntry implements FileEntry {
-        private final File file;
-
-        public DefaultFileEntry(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public InputStream read() throws IOException {
-            DataInputStream inputStream = new DataInputStream(new FileInputStream(file));
-            // Skip header byte
-            if (inputStream.readInt() != 0) {
-                throw new IllegalStateException("File entry is missing header");
-            }
-            return inputStream;
-        }
-
-        @Override
-        public String toString() {
-            return "File entry: " + file;
-        }
-    }
-
-    private static class DefaultManifestEntry implements ManifestEntry {
-        private final ImmutableSortedMap<String, HashCode> children;
-
-        public DefaultManifestEntry(ImmutableSortedMap<String, HashCode> children) {
-            this.children = children;
-        }
-
-        @Override
-        public ImmutableSortedMap<String, HashCode> getChildren() {
-            return children;
-        }
-
-        @Override
-        public String toString() {
-            return "Manifest: " + children;
-        }
-    }
-
-    private static class DefaultResultEntry implements ResultEntry {
-        private final ImmutableSortedMap<String, HashCode> outputs;
-        private final byte[] originMetadata;
-
-        public DefaultResultEntry(ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata) {
-            this.outputs = outputs;
-            this.originMetadata = originMetadata.clone();
-        }
-
-        @Override
-        public ImmutableSortedMap<String, HashCode> getOutputs() {
-            return outputs;
-        }
-
-        @Override
-        public InputStream getOriginMetadata() {
-            return new ByteArrayInputStream(originMetadata);
-        }
-
-        @Override
-        public String toString() {
-            return "Result: " + outputs;
-        }
-    }
-
-    private interface PutAction<T extends CacheEntry> {
-        void writeFile(DataOutputStream output) throws IOException;
-        T createEntry(File storedContent);
+    private interface EntryReader<T> {
+        T readEntry(int code, InputStream inputStream) throws IOException;
     }
 }

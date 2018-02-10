@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.version2;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
 import org.gradle.caching.internal.controller.operations.PackOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
@@ -26,6 +27,9 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
+import javax.annotation.Nullable;
+
+@NonNullApi
 public class DefaultBuildCacheControllerV2 implements BuildCacheControllerV2 {
 
     private BuildOperationExecutor buildOperationExecutor;
@@ -37,6 +41,7 @@ public class DefaultBuildCacheControllerV2 implements BuildCacheControllerV2 {
     @Override
     public <T> T load(final BuildCacheLoadCommandV2<T> command) {
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+            @Nullable
             @Override
             public T call(BuildOperationContext context) {
                 BuildCacheLoadCommandV2.Result<T> result = command.load();

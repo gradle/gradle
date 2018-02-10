@@ -51,22 +51,25 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.IoAction;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.SortedSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("Since15")
 @NonNullApi
@@ -152,17 +155,12 @@ public class TaskOutputCacheCommandFactoryV2 {
         }
 
         @Override
-        protected LoadResult performLoad(@Nullable Void input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
+        protected LoadResult performLoad(@Nullable Void input, SortedSet<? extends OutputPropertySpec> outputProperties, final TaskOutputOriginReader reader) throws IOException {
             HashCode resultKey = HashCode.fromString(getKey().getHashCode());
-            CacheEntry entry = local.get(resultKey);
-            if (entry == null) {
+            LocalBuildCacheServiceV2.Result result = local.getResult(resultKey);
+            if (result == null) {
                 return null;
             }
-            if (!(entry instanceof ResultEntry)) {
-                throw new IllegalStateException("Found an entry of unknown type for " + resultKey);
-            }
-
-            ResultEntry result = (ResultEntry) entry;
             Map<String, HashCode> outputs = result.getOutputs();
             ImmutableListMultimap.Builder<String, FileSnapshot> outgoingSnapshotsPerProperty = ImmutableListMultimap.builder();
             for (OutputPropertySpec propertySpec : outputProperties) {
@@ -186,8 +184,17 @@ public class TaskOutputCacheCommandFactoryV2 {
                 if (propertySpec.getOutputType() == OutputType.FILE) {
                     FileUtils.forceMkdir(outputRoot.getParentFile());
                 }
+
+                Queue<EntryToLoad> queue = new ArrayDeque<EntryToLoad>();
+                queue.add(new EntryToLoad(outputKey, null, outputRoot));
                 List<FileSnapshot> outgoingSnapshots = Lists.newArrayListWithExpectedSize(incomingSnapshots.size());
-                load(outputKey, outputRoot, null, incomingSnapshots, outgoingSnapshots);
+                while (true) {
+                    EntryToLoad entryToLoad = queue.poll();
+                    if (entryToLoad == null) {
+                        break;
+                    }
+                    loadEntry(entryToLoad.getKey(), entryToLoad.getTarget(), entryToLoad.getParent(), incomingSnapshots, outgoingSnapshots, queue);
+                }
                 outgoingSnapshotsPerProperty.putAll(propertyName, outgoingSnapshots);
 
                 for (String remainingAbsolutePath : incomingSnapshots.keySet()) {
@@ -212,57 +219,82 @@ public class TaskOutputCacheCommandFactoryV2 {
             return new HashMap<String, FileContentSnapshot>(incomingSnapshots);
         }
 
-        private void load(HashCode key, File target, @Nullable RelativePath parent, Map<String, FileContentSnapshot> incomingSnapshots, Collection<FileSnapshot> outgoingSnapshots) throws IOException {
-            CacheEntry entry = local.get(key);
-            String absolutePath = target.getAbsolutePath();
-            FileSnapshot outgoingSnapshot;
-            FileContentSnapshot incomingSnapshot = incomingSnapshots.remove(absolutePath);
-            if (entry instanceof FileEntry) {
-                FileContentSnapshot outgoingContentSnapshot;
-                if (incomingSnapshot != null
-                    && incomingSnapshot.getType() == FileType.RegularFile
-                    && incomingSnapshot.getContentMd5().equals(key)
-                ) {
-                    outgoingContentSnapshot = incomingSnapshot;
-                } else {
-                    InputStream inputStream = ((FileEntry) entry).read();
-                    try {
-                        if (incomingSnapshot != null && incomingSnapshot.getType() != FileType.RegularFile) {
+        private class EntryToLoad {
+            private final HashCode key;
+            private final RelativePath parent;
+            private final File target;
+
+            public EntryToLoad(HashCode key, @Nullable RelativePath parent, File target) {
+                this.key = key;
+                this.parent = parent;
+                this.target = target;
+            }
+
+            public HashCode getKey() {
+                return key;
+            }
+
+            @Nullable
+            public RelativePath getParent() {
+                return parent;
+            }
+
+            public File getTarget() {
+                return target;
+            }
+        }
+
+        private void loadEntry(final HashCode key, final File target, @Nullable final RelativePath parent, final Map<String, FileContentSnapshot> incomingSnapshots, final Collection<FileSnapshot> outgoingSnapshots, final Queue<EntryToLoad> queue) {
+            final String absolutePath = target.getAbsolutePath();
+            final FileContentSnapshot incomingSnapshot = incomingSnapshots.remove(absolutePath);
+            local.getContent(key, new LocalBuildCacheServiceV2.ContentProcessor() {
+                @Override
+                public void processFile(InputStream inputStream) throws IOException {
+                    FileContentSnapshot outgoingContentSnapshot;
+                    if (incomingSnapshot != null
+                        && incomingSnapshot.getType() == FileType.RegularFile
+                        && incomingSnapshot.getContentMd5().equals(key)
+                        ) {
+                        outgoingContentSnapshot = incomingSnapshot;
+                    } else {
+                        try {
+                            if (incomingSnapshot != null && incomingSnapshot.getType() != FileType.RegularFile) {
+                                FileUtils.forceDelete(target);
+                            }
+                            OutputStream outputStream = new FileOutputStream(target);
+                            try {
+                                IOUtils.copyLarge(inputStream, outputStream, COPY_BUFFERS.get());
+                            } finally {
+                                IOUtils.closeQuietly(outputStream);
+                            }
+                        } finally {
+                            IOUtils.closeQuietly(inputStream);
+                        }
+                        outgoingContentSnapshot = new FileHashSnapshot(key);
+                    }
+                    outgoingSnapshots.add(
+                        new RegularFileSnapshot(absolutePath, getChildPath(parent, target, true), parent == null, outgoingContentSnapshot)
+                    );
+                }
+
+                @Override
+                public void processManifest(ImmutableSortedMap<String, HashCode> entries) throws IOException {
+                    // TODO Avoid loading directory if its hash is already what we expect here
+                    if (incomingSnapshot == null || incomingSnapshot.getType() != FileType.Directory) {
+                        if (target.exists()) {
                             FileUtils.forceDelete(target);
                         }
-                        OutputStream outputStream = new FileOutputStream(target);
-                        try {
-                            IOUtils.copyLarge(inputStream, outputStream, COPY_BUFFERS.get());
-                        } finally {
-                            IOUtils.closeQuietly(outputStream);
-                        }
-                    } finally {
-                        IOUtils.closeQuietly(inputStream);
+                        FileUtils.forceMkdir(target);
                     }
-                    outgoingContentSnapshot = new FileHashSnapshot(key);
-                }
-                outgoingSnapshot = new RegularFileSnapshot(absolutePath, getChildPath(parent, target, true), parent == null, outgoingContentSnapshot);
-            } else if (entry instanceof ManifestEntry) {
-                // TODO Avoid loading directory if its hash is already what we expect here
-                ManifestEntry manifest = (ManifestEntry) entry;
-                ImmutableSortedMap<String, HashCode> childEntries = manifest.getChildren();
-                if (incomingSnapshot == null || incomingSnapshot.getType() != FileType.Directory) {
-                    if (target.exists()) {
-                        FileUtils.forceDelete(target);
+                    RelativePath relativePath = getChildPath(parent, target, false);
+                    for (Map.Entry<String, HashCode> childEntry : entries.entrySet()) {
+                        queue.add(new EntryToLoad(childEntry.getValue(), relativePath, new File(target, childEntry.getKey())));
                     }
-                    FileUtils.forceMkdir(target);
+                    outgoingSnapshots.add(
+                        new DirectoryFileSnapshot(absolutePath, relativePath, parent == null)
+                    );
                 }
-                RelativePath relativePath = getChildPath(parent, target, false);
-                for (Map.Entry<String, HashCode> childEntry : childEntries.entrySet()) {
-                    load(childEntry.getValue(), new File(target, childEntry.getKey()), relativePath, incomingSnapshots, outgoingSnapshots);
-                }
-                outgoingSnapshot = new DirectoryFileSnapshot(absolutePath, relativePath, parent == null);
-            } else if (entry == null) {
-                throw new IllegalStateException("Entry not found: " + key);
-            } else {
-                throw new IllegalStateException("Invalid entry type: " + entry.getClass().getName());
-            }
-            outgoingSnapshots.add(outgoingSnapshot);
+            });
         }
     }
 
@@ -302,9 +334,8 @@ public class TaskOutputCacheCommandFactoryV2 {
 
         @Override
         public Result store() {
-            final AtomicInteger count = new AtomicInteger();
-            ImmutableSortedMap.Builder<String, HashCode> outputHashes = ImmutableSortedMap.naturalOrder();
-            for (final OutputPropertySpec outputProperty : outputProperties) {
+            ImmutableSortedMap.Builder<String, HashCode> outputHashesBuilder = ImmutableSortedMap.naturalOrder();
+            for (OutputPropertySpec outputProperty : outputProperties) {
                 final File outputRoot = outputProperty.getOutputRoot();
                 if (outputRoot == null) {
                     continue;
@@ -354,22 +385,22 @@ public class TaskOutputCacheCommandFactoryV2 {
                     case FILE:
                         FileContentSnapshot fileSnapshot = Iterables.getOnlyElement(outputs.values());
                         outputHash = fileSnapshot.getContentMd5();
-                        local.put(outputHash, outputRoot);
-                        count.incrementAndGet();
+                        new FileSnapshotX(outputHash, outputRoot).put(local);
                         break;
                     default:
                         throw new AssertionError();
                 }
-                outputHashes.put(outputPropertyName, outputHash);
+                outputHashesBuilder.put(outputPropertyName, outputHash);
             }
             TaskOutputOriginWriter writer = taskOutputOriginFactory.createWriter(task, taskExecutionTime);
             ByteArrayOutputStream originMetadata = new ByteArrayOutputStream();
             writer.execute(originMetadata);
-            local.put(HashCode.fromString(key.getHashCode()), outputHashes.build(), originMetadata.toByteArray());
+            final ImmutableSortedMap<String, HashCode> outputHashes = outputHashesBuilder.build();
+            local.putResult(HashCode.fromString(key.getHashCode()), outputHashes, originMetadata.toByteArray());
             return new Result() {
                 @Override
                 public long getArtifactEntryCount() {
-                    return count.get();
+                    return outputHashes.size();
                 }
             };
         }
@@ -411,7 +442,7 @@ public class TaskOutputCacheCommandFactoryV2 {
                     childHashes.put(childName, childHash);
                 }
                 HashCode hashCode = hasher.hash();
-                local.put(hashCode, childHashes.build());
+                local.putManifest(hashCode, childHashes.build());
                 return hashCode;
             }
         }
@@ -427,7 +458,17 @@ public class TaskOutputCacheCommandFactoryV2 {
 
             @Override
             public HashCode put(LocalBuildCacheServiceV2 local) {
-                local.put(hashCode, file);
+                local.putFile(hashCode, new IoAction<OutputStream>() {
+                    @Override
+                    public void execute(OutputStream output) throws IOException {
+                        FileInputStream input = new FileInputStream(file);
+                        try {
+                            IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                        } finally {
+                            IOUtils.closeQuietly(input);
+                        }
+                    }
+                });
                 return hashCode;
             }
         }
