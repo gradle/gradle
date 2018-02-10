@@ -29,6 +29,14 @@ class DefaultCppTestSuiteTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
 
+    def "has display name"() {
+        def testSuite = new DefaultCppTestSuite("test", project.objects, project)
+
+        expect:
+        testSuite.displayName.displayName == "C++ test suite 'test'"
+        testSuite.toString() == "C++ test suite 'test'"
+    }
+
     def "has implementation dependencies"() {
         def testSuite = new DefaultCppTestSuite("test", project.objects, project)
 
