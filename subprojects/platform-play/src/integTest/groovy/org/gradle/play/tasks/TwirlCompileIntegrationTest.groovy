@@ -321,6 +321,8 @@ Binaries
 
     @Unroll
     def "has reasonable error if Twirl template is configured incorrectly with (#template)"() {
+        given:
+        executer.noDeprecationChecks()
         buildFile << """
             model {
                 components {
@@ -336,7 +338,7 @@ Binaries
         """
 
         when:
-        fails("components")
+        result = executer.withTasks('components').runWithFailure()
         then:
         result.error.contains(errorMessage)
 
