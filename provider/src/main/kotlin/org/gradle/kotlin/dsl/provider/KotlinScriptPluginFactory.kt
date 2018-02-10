@@ -54,17 +54,17 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         topLevelScript: Boolean): (Any) -> Unit = { target ->
 
         val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        val script = compile(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)
+        val script = compile(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope)
         script(scriptTarget.`object`)
     }
 
-    private fun compile(
+    private
+    fun compile(
         scriptTarget: KotlinScriptTarget<out Any>,
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
-        baseScope: ClassLoaderScope,
-        topLevelScript: Boolean): KotlinScript =
+        baseScope: ClassLoaderScope): KotlinScript =
 
         compilerFor(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope).run {
 
@@ -96,7 +96,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         System.getProperty(modeSystemPropertyName) == classPathMode
 
     companion object {
-        val modeSystemPropertyName = "org.gradle.kotlin.dsl.provider.mode"
-        val classPathMode = "classpath"
+        const val modeSystemPropertyName = "org.gradle.kotlin.dsl.provider.mode"
+        const val classPathMode = "classpath"
     }
 }

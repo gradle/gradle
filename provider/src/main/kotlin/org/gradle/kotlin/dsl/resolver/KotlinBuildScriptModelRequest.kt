@@ -78,7 +78,7 @@ fun org.gradle.tooling.ProjectConnection.modelBuilderFor(request: KotlinBuildScr
         setJavaHome(request.javaHome)
         setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
         request.scriptFile?.let {
-            withArguments(request.options + "-P${kotlinBuildScriptModelTarget}=${it.canonicalPath}")
+            withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
         } ?: withArguments(request.options)
     }
 
@@ -88,7 +88,7 @@ val modelSpecificJvmOptions =
     listOf("-D${KotlinScriptPluginFactory.Companion.modeSystemPropertyName}=${KotlinScriptPluginFactory.Companion.classPathMode}")
 
 
-val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
+const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
 internal
