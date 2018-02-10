@@ -33,6 +33,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -40,7 +41,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
@@ -114,7 +114,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public DisplayName getDisplayName() {
-        return Describables.of("Ivy publication '" + name + "'");
+        return Describables.withTypeAndName("Ivy publication", name);
     }
 
     @Override
@@ -314,6 +314,15 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getOrganisation(), getModule(), getRevision());
+    }
+
+    @Nullable
+    @Override
+    public <T> T getCoordinates(Class<T> type) {
+        if (type.isAssignableFrom(ModuleVersionIdentifier.class)) {
+            return type.cast(getCoordinates());
+        }
+        return null;
     }
 
     @Override

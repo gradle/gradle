@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.internal.DisplayName;
 
@@ -28,7 +27,11 @@ import javax.annotation.Nullable;
 public interface ProjectPublication {
     DisplayName getDisplayName();
 
-    ModuleVersionIdentifier getCoordinates();
+    /**
+     * Returns the coordinates of the publication in the given namespace.
+     */
+    @Nullable
+    <T> T getCoordinates(Class<T> type);
 
     @Nullable
     SoftwareComponentInternal getComponent();

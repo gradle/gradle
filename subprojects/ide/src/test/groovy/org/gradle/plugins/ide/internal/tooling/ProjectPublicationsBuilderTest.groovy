@@ -27,7 +27,7 @@ class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
 
     def publicationRegistry = Stub(ProjectPublicationRegistry) {
         getPublications(":") >> [Stub(ProjectPublication) {
-            getCoordinates() >> Stub(ModuleVersionIdentifier) {
+            getCoordinates(ModuleVersionIdentifier) >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> "group"
                 getName() >> "name"
                 getVersion() >> "version"
