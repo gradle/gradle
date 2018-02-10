@@ -374,7 +374,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.beginObject();
         if (dependency instanceof ProjectDependency) {
             ProjectDependency projectDependency = (ProjectDependency) dependency;
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(projectDependency);
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
             jsonWriter.name("group");
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");

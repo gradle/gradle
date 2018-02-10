@@ -40,7 +40,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
-import org.gradle.swiftpm.internal.SwiftPmIdentifier;
+import org.gradle.swiftpm.internal.SwiftPmTarget;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -126,7 +126,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     @Override
                     public void execute(Project project) {
                         DefaultCppComponent componentInternal = (DefaultCppComponent) component;
-                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmIdentifier(component.getBaseName().get())));
+                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get()), false));
                     }
                 });
             }

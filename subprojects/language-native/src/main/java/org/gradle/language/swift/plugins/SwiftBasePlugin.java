@@ -42,7 +42,7 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
-import org.gradle.swiftpm.internal.SwiftPmIdentifier;
+import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
@@ -161,7 +161,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     @Override
                     public void execute(Project project) {
                         DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
-                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmIdentifier(component.getModule().get())));
+                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get()), false));
                     }
                 });
             }

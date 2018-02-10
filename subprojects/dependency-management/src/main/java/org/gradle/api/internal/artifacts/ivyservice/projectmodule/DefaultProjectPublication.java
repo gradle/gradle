@@ -24,10 +24,12 @@ import javax.annotation.Nullable;
 public class DefaultProjectPublication implements ProjectPublication {
     private final DisplayName displayName;
     private final Object id;
+    private final boolean legacy;
 
-    public DefaultProjectPublication(DisplayName displayName, Object id) {
+    public DefaultProjectPublication(DisplayName displayName, Object id, boolean legacy) {
         this.displayName = displayName;
         this.id = id;
+        this.legacy = legacy;
     }
 
     @Override
@@ -37,7 +39,7 @@ public class DefaultProjectPublication implements ProjectPublication {
 
     @Override
     public boolean isLegacy() {
-        return true;
+        return legacy;
     }
 
     @Nullable

@@ -35,6 +35,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
     def setup() {
         project.path >> ":path"
+        project.displayName >> "<project>"
     }
 
     def "uses project coordinates when dependent project has no publications"() {
@@ -114,7 +115,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         }
     }
 
-    def "ignores components without ModuleVersionIdentifier coordinates"() {
+    def "ignores components without coordinates of requested type"() {
         when:
         def publication = pub('mock', "pub-group", "pub-name", "pub-version")
         def publication2 = pub('mock', "pub-group", "pub-name", "pub-version")
@@ -132,9 +133,6 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     }
 
     def "resolve fails when target project has multiple publications with different coordinates"() {
-        given:
-        project.displayName >> "<project>"
-
         when:
         def publication = pub('mock', "pub-group", "pub-name", "pub-version")
         def publication2 = pub('pub2', "other-group", "other-name", "other-version")
@@ -146,7 +144,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == TextUtil.toPlatformLineSeparators("""Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        e.message == TextUtil.toPlatformLineSeparators("""Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in <project>:
   - Publication 'mock' with coordinates pub-group:pub-name:pub-version
   - Publication 'pub2' with coordinates other-group:other-name:other-version""")
@@ -157,7 +155,6 @@ Found the following publications in <project>:
         def component1 = Stub(SoftwareComponentInternal)
         def component2 = Stub(SoftwareComponentInternal)
         def component3 = Stub(TestComponent)
-        project.displayName >> "<project>"
 
         when:
         def publication = pub('mock', "pub-group", "pub-name", "pub-version")
@@ -174,15 +171,32 @@ Found the following publications in <project>:
 
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == TextUtil.toPlatformLineSeparators("""Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        e.message == TextUtil.toPlatformLineSeparators("""Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in <project>:
   - Publication 'mock' with coordinates pub-group:pub-name:pub-version
   - Publication 'pub2' with coordinates other-group:other-name1:other-version
   - Publication 'pub3' with coordinates other-group:other-name2:other-version""")
     }
 
+    def "resolve fails when target project has no publications with coordinate of requested type and no default available"() {
+        when:
+        dependentProjectHasPublications()
+
+        and:
+        resolve(String)
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == 'Could not find any publications of type String in <project>.'
+    }
+
     private ModuleVersionIdentifier resolve() {
-        new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer).resolve(projectDependency)
+        return resolve(ModuleVersionIdentifier)
+    }
+
+    private def resolve(Class type) {
+        def resolver = new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer)
+        return resolver.resolve(type, projectDependency)
     }
 
     private void dependentProjectHasPublications(ProjectPublication... added) {
