@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.startsWith
 
@@ -27,10 +29,11 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    def reportsUnloadableExcludeCategory() {
+    @Unroll
+    def 'reports unloadable #type'() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
-        buildFile << "test.useJUnit { excludeCategories 'org.gradle.CategoryA' }"
+        buildFile << "test.useJUnit { ${type} 'org.gradle.CategoryA' }"
 
         when:
         fails("test")
@@ -40,21 +43,9 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
         result.assertTestClassesExecuted('org.gradle.SomeTestClass')
         result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
         result.testClass("org.gradle.SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
-    }
 
-    def reportsUnloadableIncludeCategory() {
-        given:
-        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
-        buildFile << "test.useJUnit { excludeCategories 'org.gradle.CategoryA' }"
-
-        when:
-        fails('test')
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.SomeTestClass')
-        result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
-        result.testClass("org.gradle.SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
+        where:
+        type << ['includeCategories', 'excludeCategories']
     }
 
     def testTaskFailsIfCategoriesNotSupported() {
@@ -75,5 +66,50 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
         def testClass = result.testClass("Not a real class name")
         testClass.assertTestCount(1, 0, 0)
         testClass.assertTestPassed("someTest")
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/3189')
+    def canWorkWithPowerMock() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+
+${mavenCentralRepository()}
+
+dependencies {
+    testCompile "junit:junit:4.12"
+    testCompile "org.powermock:powermock-api-mockito:1.6.5"
+    testCompile "org.powermock:powermock-module-junit4:1.6.5"
+}
+
+test {
+    useJUnit { includeCategories 'FastTest'  }
+}
+"""
+        file('src/test/java/FastTest.java') << '''
+public interface FastTest {
+}
+'''
+        file('src/test/java/MyTest.java') << '''
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.powermock.modules.junit4.PowerMockRunner;
+@RunWith(PowerMockRunner.class)
+@Category(FastTest.class)
+public class MyTest {
+    @Test
+    public void testMyMethod() {
+        assertTrue("This is an error", false);
+    }
+}
+'''
+        when:
+        fails('test')
+
+        then:
+        outputContains('MyTest > testMyMethod FAILED')
     }
 }
