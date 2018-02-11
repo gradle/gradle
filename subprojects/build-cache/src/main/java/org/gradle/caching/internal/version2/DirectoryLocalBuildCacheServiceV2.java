@@ -41,6 +41,8 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 @NonNullApi
 public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheServiceV2 {
@@ -122,7 +124,7 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
             public Void readEntry(int code, InputStream inputStream) throws IOException {
                 switch (code) {
                     case CODE_FILE:
-                        contentProcessor.processFile(inputStream);
+                        contentProcessor.processFile(new GZIPInputStream(inputStream));
                         break;
                     case CODE_MANIFEST:
                         contentProcessor.processManifest(readEntries(wrap(inputStream)));
@@ -189,7 +191,15 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
 
     @Override
     public void putFile(HashCode key, final IoAction<OutputStream> writer) {
-        put(key, CODE_FILE, writer);
+        put(key, CODE_FILE, new IoAction<OutputStream>() {
+            @Override
+            @SuppressWarnings("Since15")
+            public void execute(OutputStream outputStream) throws IOException {
+                GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream, 4096);
+                writer.execute(gzipOutputStream);
+                gzipOutputStream.finish();
+            }
+        });
     }
 
     @Override
