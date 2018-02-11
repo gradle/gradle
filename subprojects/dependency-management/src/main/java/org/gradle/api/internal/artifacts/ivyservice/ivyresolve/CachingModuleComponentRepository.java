@@ -227,7 +227,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private ModuleComponentResolveMetadata getProcessedMetadata(ModuleMetadataCache.CachedMetadata cachedMetadata) {
             ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata();
             if (metadata == null) {
-                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetaData());
+                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 // Save the processed metadata for next time.
                 cachedMetadata.setProcessedMetadata(metadata);
             }
