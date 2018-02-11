@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.SortedSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("Since15")
 @NonNullApi
@@ -334,6 +335,7 @@ public class TaskOutputCacheCommandFactoryV2 {
 
         @Override
         public Result store() {
+            final AtomicLong counter = new AtomicLong();
             ImmutableSortedMap.Builder<String, HashCode> outputHashesBuilder = ImmutableSortedMap.naturalOrder();
             for (OutputPropertySpec outputProperty : outputProperties) {
                 final File outputRoot = outputProperty.getOutputRoot();
@@ -371,10 +373,11 @@ public class TaskOutputCacheCommandFactoryV2 {
                                 Path element = iPathElements.next();
                                 if (iPathElements.hasNext() || snapshot instanceof DirContentSnapshot) {
                                     // This is a directory
-                                    parent = parent.getOrAddDirectory(element.toString());
+                                    parent = parent.getOrAddDirectory(element.toString(), counter);
                                 } else if (snapshot instanceof FileHashSnapshot) {
                                     // This is the final file
                                     parent.addFile(element.toString(), snapshot.getContentMd5(), absoluteFile);
+                                    counter.incrementAndGet();
                                 } else {
                                     throw new IllegalStateException("Invalid content snapshot type: " + snapshot);
                                 }
@@ -386,6 +389,7 @@ public class TaskOutputCacheCommandFactoryV2 {
                         FileContentSnapshot fileSnapshot = Iterables.getOnlyElement(outputs.values());
                         outputHash = fileSnapshot.getContentMd5();
                         new FileSnapshotX(outputHash, outputRoot).put(local);
+                        counter.incrementAndGet();
                         break;
                     default:
                         throw new AssertionError();
@@ -400,7 +404,7 @@ public class TaskOutputCacheCommandFactoryV2 {
             return new Result() {
                 @Override
                 public long getArtifactEntryCount() {
-                    return outputHashes.size();
+                    return counter.get();
                 }
             };
         }
@@ -412,11 +416,12 @@ public class TaskOutputCacheCommandFactoryV2 {
         private class DirectorySnapshotX extends SnapshotX {
             private final Map<String, SnapshotX> children = Maps.newHashMap();
 
-            public DirectorySnapshotX getOrAddDirectory(String name) {
+            public DirectorySnapshotX getOrAddDirectory(String name, AtomicLong counter) {
                 SnapshotX entry = children.get(name);
                 if (entry == null) {
                     DirectorySnapshotX directory = new DirectorySnapshotX();
                     children.put(name, directory);
+                    counter.incrementAndGet();
                     return directory;
                 } else if (entry instanceof DirectorySnapshotX) {
                     return (DirectorySnapshotX) entry;
