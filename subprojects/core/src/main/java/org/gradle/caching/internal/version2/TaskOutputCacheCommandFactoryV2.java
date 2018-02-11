@@ -164,6 +164,7 @@ public class TaskOutputCacheCommandFactoryV2 {
             }
             Map<String, HashCode> outputs = result.getOutputs();
             ImmutableListMultimap.Builder<String, FileSnapshot> outgoingSnapshotsPerProperty = ImmutableListMultimap.builder();
+            long counter = 0;
             for (OutputPropertySpec propertySpec : outputProperties) {
                 String propertyName = propertySpec.getPropertyName();
 
@@ -195,6 +196,7 @@ public class TaskOutputCacheCommandFactoryV2 {
                         break;
                     }
                     loadEntry(entryToLoad.getKey(), entryToLoad.getTarget(), entryToLoad.getParent(), incomingSnapshots, outgoingSnapshots, queue);
+                    counter++;
                 }
                 outgoingSnapshotsPerProperty.putAll(propertyName, outgoingSnapshots);
 
@@ -203,13 +205,14 @@ public class TaskOutputCacheCommandFactoryV2 {
                     File remainingFile = new File(remainingAbsolutePath);
                     if (remainingFile.exists()) {
                         FileUtils.forceDelete(remainingFile);
+                        counter++;
                     }
                 }
             }
             OriginTaskExecutionMetadata originMetadata = reader.execute(result.getOriginMetadata());
             ImmutableListMultimap<String, FileSnapshot> outgoingSnapshots = outgoingSnapshotsPerProperty.build();
             updateSnapshots(outgoingSnapshots, originMetadata);
-            return new LoadResult(outgoingSnapshots.size(), originMetadata);
+            return new LoadResult(counter, originMetadata);
         }
 
         private Map<String, FileContentSnapshot> getIncomingSnapshots(String propertyName) {
@@ -344,7 +347,7 @@ public class TaskOutputCacheCommandFactoryV2 {
                 }
                 String absoluteRootPath = outputRoot.getAbsolutePath();
                 String outputPropertyName = outputProperty.getPropertyName();
-                final Map<String, FileContentSnapshot> outputs = outputSnapshots.get(outputPropertyName);
+                Map<String, FileContentSnapshot> outputs = outputSnapshots.get(outputPropertyName);
                 if (outputs == null) {
                     throw new IllegalStateException("Cannot find outputs for " + outputProperty);
                 }
