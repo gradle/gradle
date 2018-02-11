@@ -22,11 +22,18 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class TaskInfoFactory {
     private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
+    private final List<Throwable> failures;
+
+    // TODO Passing in a list like this isn't good form. Probably should be a 'failure handler' or 'failure collector'.
+    public TaskInfoFactory(List<Throwable> failures) {
+        this.failures = failures;
+    }
 
     public Set<Task> getTasks() {
         return nodes.keySet();
@@ -36,7 +43,7 @@ public class TaskInfoFactory {
         TaskInfo node = nodes.get(task);
         if (node == null) {
             if (task instanceof IncludedBuildTaskResource) {
-                node = new TaskResourceTaskInfo((TaskInternal) task);
+                node = new TaskResourceTaskInfo((TaskInternal) task, failures);
             } else {
                 node = new TaskInfo((TaskInternal) task);
             }
@@ -50,8 +57,12 @@ public class TaskInfoFactory {
     }
 
     private static class TaskResourceTaskInfo extends TaskInfo {
-        public TaskResourceTaskInfo(TaskInternal task) {
+        private final List<Throwable> failures;
+        private boolean failed;
+
+        public TaskResourceTaskInfo(TaskInternal task, List<Throwable> failures) {
             super(task);
+            this.failures = failures;
             doNotRequire();
         }
 
@@ -62,8 +73,23 @@ public class TaskInfoFactory {
 
         @Override
         public boolean isComplete() {
+            if (failed) {
+                return true;
+            }
+
             IncludedBuildTaskResource task = (IncludedBuildTaskResource) getTask();
-            return task.isComplete();
+            try {
+                // TODO Once a task is complete, it will always be. Should remember this rather than asking over and over.
+                return task.isComplete();
+            } catch (Exception e) {
+                // TODO This flag could be a simple 'complete' flag, or even better would use the `state` field in the superclass
+                failed = true;
+
+                // The failures need to be explicitly collected here, since the wrapper task is never added to the execution plan,
+                // and thus doesn't have failures collected in the usual way on execution.
+                failures.add(e);
+                return true;
+            }
         }
     }
 }

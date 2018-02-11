@@ -95,11 +95,11 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
-    private final TaskInfoFactory nodeFactory = new TaskInfoFactory();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final List<Throwable> failures = new ArrayList<Throwable>();
+    private final TaskInfoFactory nodeFactory = new TaskInfoFactory(failures);
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
