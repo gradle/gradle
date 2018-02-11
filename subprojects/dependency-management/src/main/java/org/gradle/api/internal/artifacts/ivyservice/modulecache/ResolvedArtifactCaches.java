@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
+package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -30,39 +31,31 @@ import java.util.Map;
 /**
  * Caches the dependency metadata (descriptors, artifact files) in memory.
  */
-public class InMemoryCachedRepositoryFactory implements Stoppable {
+public class ResolvedArtifactCaches implements Stoppable {
 
-    private final static Logger LOG = Logging.getLogger(InMemoryCachedRepositoryFactory.class);
+    private final static Logger LOG = Logging.getLogger(ResolvedArtifactCaches.class);
 
-    private final Map<String, InMemoryModuleComponentRepositoryCaches> cachePerRepo = new MapMaker().makeMap();
-
-    /**
-     * For a local repository, we provide full in-memory caching services.
-     */
-    public ModuleComponentRepository cacheLocalRepository(ModuleComponentRepository input) {
-        InMemoryModuleComponentRepositoryCaches caches = getInMemoryCaches(input);
-        return new InMemoryCachedModuleComponentRepository(caches, input);
-    }
+    private final Map<String, Map<ComponentArtifactIdentifier, ResolvableArtifact>> cachePerRepo = new MapMaker().makeMap();
 
     /**
      * For a remote repository, the only thing required is a resolved artifact cache.
      * The rest of the in-memory caching is handled by the CachingModuleComponentRepository.
      */
-    public ModuleComponentRepository cacheRemoteRepository(ModuleComponentRepository input) {
-        InMemoryModuleComponentRepositoryCaches caches = getInMemoryCaches(input);
+    public ModuleComponentRepository provideResolvedArtifactCache(ModuleComponentRepository input) {
+        Map<ComponentArtifactIdentifier, ResolvableArtifact> caches = getResolvedArtifactCache(input);
         return new ResolvedArtifactCacheProvidingModuleComponentRepository(caches, input);
     }
 
-    private InMemoryModuleComponentRepositoryCaches getInMemoryCaches(ModuleComponentRepository input) {
-        InMemoryModuleComponentRepositoryCaches caches = cachePerRepo.get(input.getId());
-        if (caches == null) {
+    private Map<ComponentArtifactIdentifier, ResolvableArtifact> getResolvedArtifactCache(ModuleComponentRepository input) {
+        Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactCache = cachePerRepo.get(input.getId());
+        if (resolvedArtifactCache == null) {
             LOG.debug("Creating new in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
-            caches = new InMemoryModuleComponentRepositoryCaches();
-            cachePerRepo.put(input.getId(), caches);
+            resolvedArtifactCache = Maps.newConcurrentMap();
+            cachePerRepo.put(input.getId(), resolvedArtifactCache);
         } else {
             LOG.debug("Reusing in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
         }
-        return caches;
+        return resolvedArtifactCache;
     }
 
     public void stop() {
@@ -73,9 +66,9 @@ public class InMemoryCachedRepositoryFactory implements Stoppable {
 
         private final Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactCache;
 
-        public ResolvedArtifactCacheProvidingModuleComponentRepository(InMemoryModuleComponentRepositoryCaches caches, ModuleComponentRepository delegate) {
+        public ResolvedArtifactCacheProvidingModuleComponentRepository(Map<ComponentArtifactIdentifier, ResolvableArtifact> resolvedArtifactsCache, ModuleComponentRepository delegate) {
             super(delegate);
-            this.resolvedArtifactCache = caches.resolvedArtifactsCache;
+            this.resolvedArtifactCache = resolvedArtifactsCache;
         }
 
         @Override

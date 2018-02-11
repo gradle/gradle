@@ -43,6 +43,7 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -185,6 +186,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         protected void checkErrors() throws ParseException {
             if (!errors.isEmpty()) {
                 throw new ParseException(Joiner.on(TextUtil.getPlatformLineSeparator()).join(errors), 0);
+            }
+            if (getMd().getModuleRevisionId() == null) {
+                throw new MetaDataParseException("Ivy file", getResource(), new GradleException("Not a valid Ivy file"));
             }
         }
 

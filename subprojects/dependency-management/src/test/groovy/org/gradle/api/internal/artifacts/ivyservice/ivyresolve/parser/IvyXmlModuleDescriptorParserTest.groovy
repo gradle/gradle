@@ -301,7 +301,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse Ivy file ${file}"
-        e.cause.message.contains('unknown tag not-an-ivy-file')
+        e.cause.message.contains('Not a valid Ivy file')
     }
 
     def "fails when descriptor does not declare module version id"() {

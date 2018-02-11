@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCa
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.CachedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.CachedArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
@@ -227,7 +228,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private ModuleComponentResolveMetadata getProcessedMetadata(ModuleMetadataCache.CachedMetadata cachedMetadata) {
             ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata();
             if (metadata == null) {
-                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetaData());
+                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 // Save the processed metadata for next time.
                 cachedMetadata.setProcessedMetadata(metadata);
             }
@@ -265,7 +266,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         private void resolveModuleArtifactsFromCache(String contextId, ComponentResolveMetadata component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
-            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getComponentId(), contextId);
+            CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getComponentId(), contextId);
             BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {

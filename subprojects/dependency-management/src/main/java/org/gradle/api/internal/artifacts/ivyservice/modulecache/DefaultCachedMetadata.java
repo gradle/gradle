@@ -26,17 +26,17 @@ import javax.annotation.Nullable;
 class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final ModuleSource moduleSource;
     private final long ageMillis;
-    private final ModuleComponentResolveMetadata metaData;
+    private final ModuleComponentResolveMetadata metadata;
     private ModuleComponentResolveMetadata processedMetadata;
 
-    public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
-        this.metaData = metaData;
+        this.metadata = metadata;
     }
 
     public boolean isMissing() {
-        return metaData == null;
+        return metadata == null;
     }
 
     public ModuleSource getModuleSource() {
@@ -44,11 +44,11 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     public ResolvedModuleVersion getModuleVersion() {
-        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetaData().getId());
+        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getId());
     }
 
-    public ModuleComponentResolveMetadata getMetaData() {
-        return metaData;
+    public ModuleComponentResolveMetadata getMetadata() {
+        return metadata;
     }
 
     public long getAgeMillis() {
