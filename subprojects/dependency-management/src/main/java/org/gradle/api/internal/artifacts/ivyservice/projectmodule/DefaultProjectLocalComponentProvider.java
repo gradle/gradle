@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -38,11 +39,13 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     private final LocalComponentMetadataBuilder metaDataBuilder;
     private final ListMultimap<String, LocalComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final BuildIdentifier thisBuild;
 
-    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.projectRegistry = projectRegistry;
         this.metaDataBuilder = metaDataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.thisBuild = thisBuild;
     }
 
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
@@ -57,7 +60,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     }
 
     private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
-        return projectIdentifier.getBuild().isCurrentBuild();
+        return projectIdentifier.getBuild().equals(thisBuild);
     }
 
     private LocalComponentMetadata getLocalComponentMetaData(ProjectInternal project) {
