@@ -94,7 +94,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
             if (listener.requireArtifactFiles()) {
                 if (artifact.isResolveSynchronously()) {
-                    // Resolve now
+                    // Resolve it now
                     new DownloadArtifactFile(artifact, this, listener).run(null);
                 } else {
                     // Resolve it later

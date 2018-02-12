@@ -20,13 +20,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -119,10 +118,8 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
 
     @Override
     public boolean isResolveSynchronously() {
-        ComponentIdentifier componentIdentifier = artifactId.getComponentIdentifier();
-        if (componentIdentifier instanceof ProjectComponentIdentifier
-                && !((ProjectComponentIdentifier) componentIdentifier).getBuild().isCurrentBuild()) {
-            // Cannot currently build artifacts from other builds in the build tree asynchronously due to various locking problems.
+        if (artifactId instanceof LocalComponentArtifactMetadata) {
+            // Don't bother resolving local components asynchronously
             return true;
         }
         synchronized (this) {
