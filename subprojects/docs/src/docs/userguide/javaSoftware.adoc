@@ -19,11 +19,11 @@
 [NOTE]
 ====
 
-Support for building Java libraries using the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+Support for building Java libraries using the software model will be deprecated. Custom plugins should not rely on the Java software plugins.
 
 ====
 
-The Java software plugins are intended to replace the <<java_plugin,Java plugin>>, and leverage the Gradle <<software_model,software model>> to achieve the best performance, improved expressiveness and support for variant-aware dependency management.
+The Java software plugins leverage the Gradle <<software_model,software model>>.
 
 
 [[sec:java_libraries_features]]
