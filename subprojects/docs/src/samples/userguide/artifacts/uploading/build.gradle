@@ -65,17 +65,3 @@ uploadArchives {
     }
 }
 //END SNIPPET uploading
-
-//START SNIPPET publish-repository
-uploadArchives {
-    repositories {
-        ivy {
-            credentials {
-                username "username"
-                password "pw"
-            }
-            url "http://repo.mycompany.com"
-        }
-    }
-}
-//END SNIPPET publish-repository
