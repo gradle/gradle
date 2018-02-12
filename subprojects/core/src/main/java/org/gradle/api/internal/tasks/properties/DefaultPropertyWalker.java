@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
@@ -55,7 +54,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
         Queue<NestedBeanContext> queue = new ArrayDeque<NestedBeanContext>();
-        queue.add(new NestedBeanContext(new BeanNode(null, bean), queue, ImmutableList.<BeanNode>of()));
+        queue.add(new NestedBeanContext(new BeanNode(null, bean), queue, null));
         while (!queue.isEmpty()) {
             NestedBeanContext context = queue.remove();
             BeanNode node = context.getCurrentNode();
@@ -162,28 +161,45 @@ public class DefaultPropertyWalker implements PropertyWalker {
     private class NestedBeanContext extends AbstractNestedPropertyContext<BeanNode> {
         private final BeanNode currentNode;
         private final Queue<NestedBeanContext> queue;
-        private final Iterable<BeanNode> parentNodes;
+        private final ParentBeanNodeList parentNodes;
 
-        public NestedBeanContext(BeanNode currentNode, Queue<NestedBeanContext> queue, Iterable<BeanNode> parentNodes) {
+        public NestedBeanContext(BeanNode currentNode, Queue<NestedBeanContext> queue, @Nullable ParentBeanNodeList parentNodes) {
             super(propertyMetadataStore);
             this.currentNode = currentNode;
             this.queue = queue;
             this.parentNodes = parentNodes;
-            for (BeanNode parentNode : parentNodes) {
-                Preconditions.checkState(
-                    currentNode.getBean() != parentNode.getBean(),
-                    "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
-                    parentNode, currentNode);
+            if (parentNodes != null) {
+                parentNodes.checkCycles(currentNode);
             }
         }
 
         @Override
         public void addNested(BeanNode node) {
-            queue.add(new NestedBeanContext(node, queue, Iterables.concat(ImmutableList.of(currentNode), parentNodes)));
+            queue.add(new NestedBeanContext(node, queue, new ParentBeanNodeList(parentNodes, currentNode)));
         }
 
         public BeanNode getCurrentNode() {
             return currentNode;
+        }
+    }
+
+    private static class ParentBeanNodeList {
+        private final ParentBeanNodeList parent;
+        private final BeanNode node;
+
+        public ParentBeanNodeList(@Nullable ParentBeanNodeList parent, BeanNode node) {
+            this.parent = parent;
+            this.node = node;
+        }
+
+        public void checkCycles(BeanNode childNode) {
+            Preconditions.checkState(
+                node.getBean() != childNode.getBean(),
+                "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
+                node, childNode);
+            if (parent != null) {
+                parent.checkCycles(childNode);
+            }
         }
     }
 }
