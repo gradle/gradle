@@ -28,13 +28,11 @@ public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifie
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
         String buildName = decoder.readString();
-        boolean current = decoder.readBoolean();
-        return new DefaultBuildIdentifier(buildName, current);
+        return new DefaultBuildIdentifier(buildName);
     }
 
     @Override
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
         encoder.writeString(value.getName());
-        encoder.writeBoolean(value.isCurrentBuild());
     }
 }

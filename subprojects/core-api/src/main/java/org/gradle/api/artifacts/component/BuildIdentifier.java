@@ -27,9 +27,4 @@ public interface BuildIdentifier {
      * The name of the build.
      */
     String getName();
-
-    /**
-     * Is this build the one that's currently executing?
-     */
-    boolean isCurrentBuild();
 }

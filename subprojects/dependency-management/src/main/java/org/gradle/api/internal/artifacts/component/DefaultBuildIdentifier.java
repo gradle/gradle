@@ -21,25 +21,14 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public class DefaultBuildIdentifier implements BuildIdentifier {
     private final String name;
-    private final boolean current;
 
     public DefaultBuildIdentifier(String name) {
-        this(name, false);
-    }
-
-    public DefaultBuildIdentifier(String name, boolean current) {
         this.name = name;
-        this.current = current;
     }
 
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public boolean isCurrentBuild() {
-        return current;
     }
 
     @Override
