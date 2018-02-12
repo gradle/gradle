@@ -101,5 +101,4 @@ class JvmBlockingTestClassGenerator {
             resource
         }
     }
-
 }

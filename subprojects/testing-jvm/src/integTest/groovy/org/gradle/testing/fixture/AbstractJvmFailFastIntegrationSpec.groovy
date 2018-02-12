@@ -99,7 +99,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)
         generator.withFailingTest()
         def otherResources = generator.withNonfailingTests(testOmitted)
-        def testExecution = server.expectOptionalAndBlock(maxWorkers, ([FAILED_RESOURCE ] + otherResources).grep() as String[])
+        def testExecution = server.expectOptionalAndBlock(maxWorkers, ([FAILED_RESOURCE ] + otherResources) as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
