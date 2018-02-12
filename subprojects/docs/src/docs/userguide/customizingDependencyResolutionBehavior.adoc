@@ -17,7 +17,7 @@
 
 In most cases, Gradle's default dependency management will resolve the dependencies that you want in your build. In some cases, however, it can be necessary to tweak dependency resolution to ensure that your build receives exactly the right dependencies.
 
-There are a number of ways that you can influence how Gradle resolves dependencies.
+There are a number of ways that you can influence how Gradle resolves dependencies. All these mechanisms offer an API to define a reason for why they are used. It is recommended to make use of this to make dependency resolution results more understandable. If any customization influenced the resolution result, the provided reason will show up in <<sec:identifying_reason_dependency_selection,dependency insight>> reports.
 
 [[sec:dependency_resolve_rules]]
 === Using dependency resolve rules
