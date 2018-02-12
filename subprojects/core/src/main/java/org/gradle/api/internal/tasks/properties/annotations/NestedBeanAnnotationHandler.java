@@ -88,7 +88,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     private static void visitImplementation(BeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         // The root bean (Task) implementation is currently tracked separately
-        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationDeclaringPropertyValue(getImplementationClass(node.getBean())));
+        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
         implementation.optional(false);
         visitor.visitInputProperty(implementation);
     }
@@ -109,11 +109,11 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         return bean.getClass();
     }
 
-    private static class ImplementationDeclaringPropertyValue implements ValidatingValue {
+    private static class ImplementationPropertyValue implements ValidatingValue {
 
         private final Class<?> beanClass;
 
-        public ImplementationDeclaringPropertyValue(Class<?> beanClass) {
+        public ImplementationPropertyValue(Class<?> beanClass) {
             this.beanClass = beanClass;
         }
 
