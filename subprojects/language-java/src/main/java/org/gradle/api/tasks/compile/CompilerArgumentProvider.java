@@ -23,7 +23,9 @@ import org.gradle.process.CommandLineArgumentProvider;
  * Provides command-line arguments to the compiler.
  *
  * @since 4.5
+ * @deprecated Use {@link CommandLineArgumentProvider} directly.
  */
 @Incubating
+@Deprecated
 public interface CompilerArgumentProvider extends CommandLineArgumentProvider {
 }

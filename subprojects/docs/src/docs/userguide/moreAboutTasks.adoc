@@ -599,7 +599,7 @@ For example, to declare annotation processor arguments, it is possible to do the
 
 [source,groovy]
 ----
-class MyAnnotationProcessor implements CompilerArgumentProvider {
+class MyAnnotationProcessor implements CommandLineArgumentProvider {
     @InputFile
     @PathSensitivite(NONE)
     File inputFile

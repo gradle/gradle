@@ -87,9 +87,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can model annotation processor arguments"() {
         buildFile << """                                                       
-            import org.gradle.api.tasks.compile.CompilerArgumentProvider
-
-            class HelperAnnotationProcessor implements CompilerArgumentProvider {
+            class HelperAnnotationProcessor implements CommandLineArgumentProvider {
                 @Input
                 String message
                 
