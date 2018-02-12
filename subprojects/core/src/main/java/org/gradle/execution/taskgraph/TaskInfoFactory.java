@@ -56,7 +56,7 @@ public class TaskInfoFactory {
 
     private static class TaskResourceTaskInfo extends TaskInfo {
         private final TaskFailureCollector failureCollector;
-        private boolean failed;
+        private boolean complete;
 
         public TaskResourceTaskInfo(TaskInternal task, TaskFailureCollector failureCollector) {
             super(task);
@@ -71,23 +71,22 @@ public class TaskInfoFactory {
 
         @Override
         public boolean isComplete() {
-            if (failed) {
+            if (complete) {
                 return true;
             }
 
             IncludedBuildTaskResource task = (IncludedBuildTaskResource) getTask();
             try {
-                // TODO Once a task is complete, it will always be. Should remember this rather than asking over and over.
-                return task.isComplete();
+                complete = task.isComplete();
             } catch (Exception e) {
-                // TODO This flag could be a simple 'complete' flag, or even better would use the `state` field in the superclass
-                failed = true;
+                complete = true;
 
                 // The failures need to be explicitly collected here, since the wrapper task is never added to the execution plan,
                 // and thus doesn't have failures collected in the usual way on execution.
                 failureCollector.addFailure(e);
-                return true;
             }
+
+            return complete;
         }
     }
 }
