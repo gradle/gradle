@@ -28,7 +28,9 @@ import org.gradle.internal.Pair;
 import java.util.List;
 import java.util.Set;
 
-public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
+public interface IncludedBuildInternal {
+    String getName();
+    ConfigurableIncludedBuild getModel();
     List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 

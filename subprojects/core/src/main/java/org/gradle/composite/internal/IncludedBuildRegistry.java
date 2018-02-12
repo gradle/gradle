@@ -33,12 +33,21 @@ public interface IncludedBuildRegistry {
      */
     Collection<? extends IncludedBuildInternal> getIncludedBuilds();
 
+    /**
+     * Locates a build by {@link BuildIdentifier}, if present.
+     */
     @Nullable
     IncludedBuildInternal getBuild(BuildIdentifier name);
 
     void validateExplicitIncludedBuilds(SettingsInternal settings);
 
+    /**
+     * Registers an included build.
+     */
     IncludedBuildInternal addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
+    /**
+     * Registers a child build that is not an included.
+     */
     IncludedBuildInternal addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 }

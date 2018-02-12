@@ -95,7 +95,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
             // TODO: This shouldn't rely on the state of configuredBuilds to figure out whether or not we should configure this build again
             // This is to prevent a recursive loop through this when we're configuring the build
             configuredBuilds.add(buildIdentifier);
-            IncludedBuildInternal includedBuild = (IncludedBuildInternal) includedBuildRegistry.getBuild(buildIdentifier);
+            IncludedBuildInternal includedBuild = includedBuildRegistry.getBuild(buildIdentifier);
             if (includedBuild != null) {
                 projectMetadata.putAll(dependencyMetadataBuilder.build(includedBuild));
                 registeredProject = projectMetadata.get(project);

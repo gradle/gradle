@@ -37,8 +37,10 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,9 +76,9 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
 
     @Override
     public IncludedBuildInternal getBuild(final BuildIdentifier buildIdentifier) {
-        return CollectionUtils.findFirst(includedBuilds.values(), new Spec<IncludedBuild>() {
+        return CollectionUtils.findFirst(includedBuilds.values(), new Spec<IncludedBuildInternal>() {
             @Override
-            public boolean isSatisfiedBy(IncludedBuild includedBuild) {
+            public boolean isSatisfiedBy(IncludedBuildInternal includedBuild) {
                 return includedBuild.getName().equals(buildIdentifier.getName());
             }
         });
@@ -88,15 +90,19 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
 
         registerRootBuildProjects(settings);
         Collection<IncludedBuildInternal> includedBuilds = getIncludedBuilds();
+        List<IncludedBuild> modelElements = new ArrayList<IncludedBuild>(includedBuilds.size());
+        for (IncludedBuildInternal includedBuild : includedBuilds) {
+            modelElements.add(includedBuild.getModel());
+        }
         // Set the only visible included builds from the root build
-        settings.getGradle().setIncludedBuilds(includedBuilds);
+        settings.getGradle().setIncludedBuilds(modelElements);
         registerProjects(includedBuilds, false);
         registerSubstitutions(includedBuilds);
     }
 
     private void validateIncludedBuilds(SettingsInternal settings) {
         Set<String> names = Sets.newHashSet();
-        for (IncludedBuild build : includedBuilds.values()) {
+        for (IncludedBuildInternal build : includedBuilds.values()) {
             String buildName = build.getName();
             if (!names.add(buildName)) {
                 throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
@@ -111,8 +117,8 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     }
 
     private void registerSubstitutions(Iterable<IncludedBuildInternal> includedBuilds) {
-        for (IncludedBuild includedBuild : includedBuilds) {
-            dependencySubstitutionsBuilder.build((IncludedBuildInternal)includedBuild);
+        for (IncludedBuildInternal includedBuild : includedBuilds) {
+            dependencySubstitutionsBuilder.build(includedBuild);
         }
     }
 
