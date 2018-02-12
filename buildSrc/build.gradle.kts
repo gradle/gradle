@@ -54,10 +54,6 @@ gradlePlugin {
             id = "build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
-        "pegdown" {
-            id = "pegdown"
-            implementationClass = "org.gradle.plugins.pegdown.PegDownPlugin"
-        }
     }
 }
 

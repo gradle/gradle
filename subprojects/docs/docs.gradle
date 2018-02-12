@@ -36,7 +36,6 @@ import javax.xml.transform.stream.StreamSource
 
 plugins {
     id 'base'
-    id 'pegdown'
     id 'jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
