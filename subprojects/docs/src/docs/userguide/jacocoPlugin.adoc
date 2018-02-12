@@ -156,7 +156,7 @@ The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtensi
 | `false`
 |===
 
-While all tasks of type api:org.gradle.api.tasks.testing.Test[] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements api:org.gradle.process.JavaForkOptions[] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
+While all tasks of type api:org.gradle.api.tasks.testing.Test[] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements api:org.gradle.process.ConfigurableJavaForkOptions[] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
 
 For example you can configure your build to generate code coverage using the `application` plugin.
 
