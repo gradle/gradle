@@ -15,7 +15,9 @@ plugins {
 val javaVersion: JavaVersion by rootProject.extra
 
 java {
-    sourceCompatibility = if (javaVersion.isJava9Compatible) JavaVersion.VERSION_1_6 else JavaVersion.VERSION_1_5
+    sourceCompatibility =
+        if (javaVersion.isJava9Compatible) JavaVersion.VERSION_1_6
+        else JavaVersion.VERSION_1_5
 }
 
 dependencies {
