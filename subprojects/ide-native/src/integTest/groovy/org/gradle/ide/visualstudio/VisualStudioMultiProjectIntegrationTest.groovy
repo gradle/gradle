@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWor
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set
@@ -520,7 +519,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
+    @spock.lang.Requires({GradleContextualExecuter.embedded})
     def "detects gradle wrapper and uses in vs project"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -548,8 +547,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({!(GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon)})
+    @spock.lang.Requires({GradleContextualExecuter.daemon})
     def "detects executing gradle distribution and uses in vs project"() {
+        executer.requireGradleDistribution()
         when:
         hostGradleWrapperFile << "dummy wrapper"
 
