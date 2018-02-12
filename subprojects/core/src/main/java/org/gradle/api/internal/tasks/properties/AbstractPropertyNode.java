@@ -38,6 +38,7 @@ abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> imp
     }
 
     @Nullable
+    @Override
     public String getPropertyName() {
         return propertyName;
     }

@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 
 public interface PropertyNode<SELF extends PropertyNode<SELF>> {
     String getQualifiedPropertyName(String propertyName);
+    @Nullable
+    String getPropertyName();
     boolean isRoot();
     Iterator<SELF> getIterator();
     Class<?> getBeanClass();
