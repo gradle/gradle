@@ -57,14 +57,14 @@ class DefaultResolvedArtifactTest extends Specification {
         def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
 
         then:
-        !artifact.resolved
+        !artifact.resolveSynchronously
 
         when:
         def result = artifact.file
 
         then:
         result == file
-        artifact.resolved
+        artifact.resolveSynchronously
 
         and:
         1 * artifactSource.create() >> file
@@ -90,7 +90,7 @@ class DefaultResolvedArtifactTest extends Specification {
         def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
 
         then:
-        !artifact.resolved
+        !artifact.resolveSynchronously
 
         when:
         artifact.file
@@ -100,7 +100,7 @@ class DefaultResolvedArtifactTest extends Specification {
         e == failure
 
         and:
-        artifact.resolved
+        artifact.resolveSynchronously
 
         and:
         1 * artifactSource.create() >> { throw failure }
