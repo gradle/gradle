@@ -19,10 +19,8 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
@@ -32,8 +30,6 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -62,14 +58,13 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
         compositeBuildContext.setIncludedBuildRegistry(this);
     }
 
-    @Override
     public boolean hasIncludedBuilds() {
         return !includedBuilds.isEmpty();
     }
 
     @Override
-    public Collection<IncludedBuild> getIncludedBuilds() {
-        return Cast.uncheckedCast(includedBuilds.values());
+    public Collection<IncludedBuildInternal> getIncludedBuilds() {
+        return includedBuilds.values();
     }
 
     @Override
@@ -78,7 +73,7 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     }
 
     @Override
-    public IncludedBuild getBuild(final BuildIdentifier buildIdentifier) {
+    public IncludedBuildInternal getBuild(final BuildIdentifier buildIdentifier) {
         return CollectionUtils.findFirst(includedBuilds.values(), new Spec<IncludedBuild>() {
             @Override
             public boolean isSatisfiedBy(IncludedBuild includedBuild) {
@@ -88,16 +83,11 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     }
 
     @Override
-    public Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getModuleToProjectMapping(IncludedBuild includedBuild) {
-        return ((IncludedBuildInternal)includedBuild).getAvailableModules();
-    }
-
-    @Override
     public void validateExplicitIncludedBuilds(SettingsInternal settings) {
         validateIncludedBuilds(settings);
 
         registerRootBuildProjects(settings);
-        Collection<IncludedBuild> includedBuilds = getIncludedBuilds();
+        Collection<IncludedBuildInternal> includedBuilds = getIncludedBuilds();
         // Set the only visible included builds from the root build
         settings.getGradle().setIncludedBuilds(includedBuilds);
         registerProjects(includedBuilds, false);
@@ -120,19 +110,19 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
         }
     }
 
-    private void registerSubstitutions(Iterable<IncludedBuild> includedBuilds) {
+    private void registerSubstitutions(Iterable<IncludedBuildInternal> includedBuilds) {
         for (IncludedBuild includedBuild : includedBuilds) {
             dependencySubstitutionsBuilder.build((IncludedBuildInternal)includedBuild);
         }
     }
 
     @Override
-    public ConfigurableIncludedBuild addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildInternal addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
-        ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
+        IncludedBuildInternal includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             includedBuild = registerBuild(buildDefinition, nestedBuildFactory);
-            registerProjects(Collections.<IncludedBuild>singletonList(includedBuild), true);
+            registerProjects(Collections.singletonList(includedBuild), true);
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;
@@ -156,11 +146,11 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
         registerProjects(Path.ROOT, buildIdentifier, settingsProjectRegistry.getAllProjects(), false);
     }
 
-    private void registerProjects(Iterable<IncludedBuild> includedBuilds, boolean isImplicitBuild) {
-        for (IncludedBuild includedBuild : includedBuilds) {
+    private void registerProjects(Iterable<IncludedBuildInternal> includedBuilds, boolean isImplicitBuild) {
+        for (IncludedBuildInternal includedBuild : includedBuilds) {
             Path rootProjectPath = Path.ROOT.child(includedBuild.getName());
             BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(includedBuild.getName());
-            Set<DefaultProjectDescriptor> allProjects = ((IncludedBuildInternal) includedBuild).getLoadedSettings().getProjectRegistry().getAllProjects();
+            Set<DefaultProjectDescriptor> allProjects = includedBuild.getLoadedSettings().getProjectRegistry().getAllProjects();
             registerProjects(rootProjectPath, buildIdentifier, allProjects, isImplicitBuild);
         }
     }
