@@ -84,8 +84,8 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         new DefaultProjectComponentIdentifier(build, path)
     }
 
-    private static buildId(String name, boolean current = (name == ":")) {
-        return new DefaultBuildIdentifier(name, current)
+    private static buildId(String name) {
+        return new DefaultBuildIdentifier(name)
     }
 
 }
