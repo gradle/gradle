@@ -4,6 +4,9 @@
  * Should have a very small set of dependencies, and should be appropriate to embed in an external
  * application (eg as part of the tooling API).
  */
+
+import java.util.concurrent.Callable
+
 plugins {
     `java-library`
     id("classycle")
@@ -42,10 +45,9 @@ testFixtures {
 }
 
 val buildReceiptResource by tasks.creating(Copy::class) {
-    from(tasks.getByPath(":createBuildReceipt").outputs.files)
-    destinationDir = file("${generatedTestResourcesDir}/${buildReceiptPackage}")
+    from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
+    destinationDir = file("$generatedTestResourcesDir/$buildReceiptPackage")
 }
-
 
 java {
     sourceSets {
