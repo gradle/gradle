@@ -22,9 +22,9 @@ import spock.lang.Unroll
 class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Unroll
-    def "uses metadata from Client Module and looks up artifact in declared repositories (advancedPomSupport = #advancedPomSupport)"() {
+    def "uses metadata from Client Module and looks up artifact in declared repositories (improvedPomSupport = #improvedPomSupport)"() {
         given:
-        if (advancedPomSupport) {
+        if (improvedPomSupport) {
             FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def repo1 = ivyHttpRepo("repo1")
@@ -70,13 +70,13 @@ task listJars {
         succeeds('listJars')
 
         where:
-        advancedPomSupport << [false, true]
+        improvedPomSupport << [false, true]
     }
 
     @Unroll
-    def "can resolve nested Client Module (advancedPomSupport = #advancedPomSupport)"() {
+    def "can resolve nested Client Module (improvedPomSupport = #improvedPomSupport)"() {
         given:
-        if (advancedPomSupport) {
+        if (improvedPomSupport) {
             FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def repo = mavenHttpRepo("repo")
@@ -122,13 +122,13 @@ task listJars {
         succeeds('listJars')
 
         where:
-        advancedPomSupport << [false, true]
+        improvedPomSupport << [false, true]
     }
 
     @Unroll
-    def "client module dependency ignores published artifact listing and resolves single jar file (advancedPomSupport = #advancedPomSupport)"() {
+    def "client module dependency ignores published artifact listing and resolves single jar file (improvedPomSupport = #improvedPomSupport)"() {
         given:
-        if (advancedPomSupport) {
+        if (improvedPomSupport) {
             FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
@@ -181,6 +181,6 @@ task listClientModuleJars {
         succeeds('listClientModuleJars')
 
         where:
-        advancedPomSupport << [false, true]
+        improvedPomSupport << [false, true]
     }
 }

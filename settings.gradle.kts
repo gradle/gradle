@@ -18,6 +18,9 @@ apply {
     from("gradle/remoteHttpCacheSettings.gradle")
 }
 
+// TODO enable this once a Gradle build exists with the support for it
+// enableFeaturePreview("IMPROVED_POM_SUPPORT")
+
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
