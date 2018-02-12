@@ -35,7 +35,7 @@ dependencies {
 
     jmh(library("bouncycastle_provider")) {
         version {
-            prefer(libraries["bouncycastle_provider"]!!["version"])
+            prefer(libraryVersion("bouncycastle_provider"))
         }
     }
 }

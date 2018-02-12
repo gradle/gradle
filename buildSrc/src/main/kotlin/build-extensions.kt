@@ -32,6 +32,9 @@ val Project.testLibraries
 fun Project.library(name: String): String =
     libraries[name]!!["coordinate"]!!
 
+fun Project.libraryVersion(name: String): String =
+    libraries[name]!!["version"]!!
+
 fun Project.testLibrary(name: String): Any =
     testLibraries[name]!!
 
