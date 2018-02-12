@@ -1,0 +1,183 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[artifact_dependencies_tutorial]]
+== Dependency Management for Java Projects
+
+This chapter introduces some of the basics of dependency management in Gradle.
+
+
+[[sec:what_is_dependency_management]]
+=== What is dependency management?
+
+Very roughly, dependency management is made up of two pieces. Firstly, Gradle needs to know about the things that your project needs to build or run, in order to find them. We call these incoming files the _dependencies_ of the project. Secondly, Gradle needs to build and upload the things that your project produces. We call these outgoing files the _publications_ of the project. Let's look at these two pieces in more detail:
+
+Most projects are not completely self-contained. They need files built by other projects in order to be compiled or tested and so on. For example, in order to use Hibernate in my project, I need to include some Hibernate jars in the classpath when I compile my source. To run my tests, I might also need to include some additional jars in the test classpath, such as a particular JDBC driver or the Ehcache jars.
+
+These incoming files form the dependencies of the project. Gradle allows you to tell it what the dependencies of your project are, so that it can take care of finding these dependencies, and making them available in your build. The dependencies might need to be downloaded from a remote Maven or Ivy repository, or located in a local directory, or may need to be built by another project in the same multi-project build. We call this process _dependency resolution_.
+
+Note that this feature provides a major advantage over Ant. With Ant, you only have the ability to specify absolute or relative paths to specific jars to load. With Gradle, you simply declare the “names” of your dependencies, and other layers determine where to get those dependencies from. You can get similar behavior from Ant by adding Apache Ivy, but Gradle does it better.
+
+Often, the dependencies of a project will themselves have dependencies. For example, Hibernate core requires several other libraries to be present on the classpath with it runs. So, when Gradle runs the tests for your project, it also needs to find these dependencies and make them available. We call these _transitive dependencies_.
+
+The main purpose of most projects is to build some files that are to be used outside the project. For example, if your project produces a Java library, you need to build a jar, and maybe a source jar and some documentation, and publish them somewhere.
+
+These outgoing files form the publications of the project. Gradle also takes care of this important work for you. You declare the publications of your project, and Gradle take care of building them and publishing them somewhere. Exactly what “publishing” means depends on what you want to do. You might want to copy the files to a local directory, or upload them to a remote Maven or Ivy repository. Or you might use the files in another project in the same multi-project build. We call this process _publication_.
+
+[[sec:declaring_your_dependencies]]
+=== Declaring your dependencies
+
+Let's look at some dependency declarations. Here's a basic build script:
+
+++++
+<sample id="basicDependencyDeclarations" dir="userguide/artifacts/dependencyBasics" title="Declaring dependencies">
+            <sourcefile file="build.gradle"/>
+        </sample>
+++++
+
+What's going on here? This build script says a few things about the project. Firstly, it states that Hibernate core 3.6.7.Final is required to compile the project's production source. By implication, Hibernate core and its dependencies are also required at runtime. The build script also states that any junit &gt;= 4.0 is required to compile the project's tests. It also tells Gradle to look in the Maven central repository for any dependencies that are required. The following sections go into the details.
+
+[[configurations]]
+=== Dependency configurations
+
+A <<managing_dependency_configurations,configuration>> is a named set of dependencies and artifacts. There are three main purposes for a configuration:
+
+Declaring Dependencies::
+The plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin.
+Resolving Dependencies::
+The plugin uses configurations to find (and possibly download) inputs to the tasks it defines.
+Exposing Artifacts for Consumption::
+The plugin uses configurations to define what _artifacts_ it generates for other projects to consume.
+
+
+
+With those three purposes in mind, let's take a look at a few of the standard configurations defined by the Java Library Plugin. You can find more details in <<sec:java_library_configurations_graph>>.
+
+implementation::
+The dependencies required to compile the production source of the project, but which are not part of the api exposed by the project. This configuration is an example of a configuration used for Declaring Dependencies.
+runtimeClasspath::
+The dependencies required by the production classes at runtime. By default, this includes the dependencies declared in the `api`, `implementation`, and `runtimeOnly` configurations. This configuration is an example of a configuration used for Resolving Dependencies, and as such, users should never declare dependencies directly in the `runtimeClasspath` configuration.
+apiElements::
+The dependencies which are part of this project's externally consumable API as well as the classes which are defined in this project which should be consumable by other projects. This configuration is an example of Exposing Artifacts for Consumption.
+
+
+Various plugins add further standard configurations. You can also define your own custom configurations to use in your build. Please see <<managing_dependency_configurations>> for the details of defining and customizing dependency configurations.
+
+[[sec:external_dependencies_tutorial]]
+=== External dependencies
+
+There are various types of dependencies that you can declare. One such type is an _external dependency_. This is a dependency on some files built outside the current build, and stored in a repository of some kind, such as Maven central, or a corporate Maven or Ivy repository, or a directory in the local file system.
+
+To define an external dependency, you add it to a dependency configuration:
+
+++++
+<sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Definition of an external dependency">
+            <sourcefile file="build.gradle" snippet="define-dependency"/>
+        </sample>
+++++
+
+An external dependency is identified using `group`, `name` and `version` attributes. Depending on which kind of repository you are using, `group` and `version` may be optional.
+
+The shortcut form for declaring external dependencies looks like “`__group__:__name__:__version__`”.
+
+++++
+<sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Shortcut definition of an external dependency">
+            <sourcefile file="build.gradle" snippet="define-dependency-shortcut"/>
+        </sample>
+++++
+
+To find out more about defining dependencies, have a look at <<declaring_dependencies>>.
+
+[[sec:repositories_tutorial]]
+=== Repositories
+
+How does Gradle find the files for external dependencies? Gradle looks for them in a _repository_. A repository is really just a collection of files, organized by `group`, `name` and `version`. Gradle understands several different repository formats, such as Maven and Ivy, and several different ways of accessing the repository, such as using the local file system or HTTP.
+
+By default, Gradle does not define any repositories. You need to define at least one before you can use external dependencies. One option is use the Maven central repository:
+
+++++
+<sample id="defineMavenCentral" dir="userguide/artifacts/defineRepository" title="Usage of Maven central repository">
+            <sourcefile file="build.gradle" snippet="maven-central"/>
+        </sample>
+++++
+
+Or Bintray's JCenter:
+
+++++
+<sample id="defineJCenter" dir="userguide/artifacts/defineRepository" title="Usage of JCenter repository">
+            <sourcefile file="build.gradle" snippet="maven-jcenter"/>
+        </sample>
+++++
+
+Or any other remote Maven repository:
+
+++++
+<sample id="defineRemoteMavenRepo" dir="userguide/artifacts/defineRepository" title="Usage of a remote Maven repository">
+            <sourcefile file="build.gradle" snippet="maven-like-repo"/>
+        </sample>
+++++
+
+Or a remote Ivy repository:
+
+++++
+<sample id="defineRemoteIvyRepo" dir="userguide/artifacts/defineRepository" title="Usage of a remote Ivy directory">
+            <sourcefile file="build.gradle" snippet="ivy-repo"/>
+        </sample>
+++++
+
+You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
+
+++++
+<sample id="defineRemoteIvyRepo" dir="userguide/artifacts/defineRepository" title="Usage of a local Ivy directory">
+            <sourcefile file="build.gradle" snippet="local-ivy-repo"/>
+        </sample>
+++++
+
+A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
+
+To find out more about defining repositories, have a look at <<declaring_repositories>>.
+
+[[sec:publishing_artifacts_tutorial]]
+=== Publishing artifacts
+
+Dependency configurations are also used to publish files.footnote:[We think this is confusing, and we are gradually teasing apart the two concepts in the Gradle DSL.] We call these files _publication artifacts_, or usually just _artifacts_.
+
+The plugins do a pretty good job of defining the artifacts of a project, so you usually don't need to do anything special to tell Gradle what needs to be published. However, you do need to tell Gradle where to publish the artifacts. You do this by attaching repositories to the `uploadArchives` task. Here's an example of publishing to a remote Ivy repository:
+
+++++
+<sample id="publishIvyRepository" dir="userguide/artifacts/uploading" title="Publishing to an Ivy repository">
+            <sourcefile file="build.gradle" snippet="publish-repository"/>
+        </sample>
+++++
+
+Now, when you run `gradle uploadArchives`, Gradle will build and upload your Jar. Gradle will also generate and upload an `ivy.xml` as well.
+
+You can also publish to Maven repositories. The syntax is slightly different.footnote:[We are working to make the syntax consistent for resolving from and publishing to Maven repositories.] Note that you also need to apply the Maven plugin in order to publish to a Maven repository. when this is in place, Gradle will generate and upload a `pom.xml`.
+
+++++
+<sample id="publishMavenRepository" dir="userguide/artifacts/maven" title="Publishing to a Maven repository">
+            <sourcefile file="build.gradle" snippet="upload-file"/>
+        </sample>
+++++
+
+To find out more about publication, have a look at <<artifact_management>>.
+
+[[sec:artifacts_tutorial_where_to_next]]
+=== Where to next?
+
+For all the details of dependency resolution, see <<introduction_dependency_management>>, and for artifact publication see <<artifact_management>>.
+
+If you are interested in the DSL elements mentioned here, have a look at api:org.gradle.api.Project#configurations[], api:org.gradle.api.Project#repositories[] and api:org.gradle.api.Project#dependencies[].
+
+Otherwise, continue on to some https://guides.gradle.org[guides].
