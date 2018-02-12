@@ -13,9 +13,6 @@ plugins {
 }
 
 val javaVersion: JavaVersion by rootProject.extra
-val generatedTestResourcesDir: File by extra
-val buildReceiptPackage: String by rootProject.extra
-
 
 java {
     sourceCompatibility = if (javaVersion.isJava9Compatible) JavaVersion.VERSION_1_6 else JavaVersion.VERSION_1_5
@@ -49,6 +46,10 @@ jmh {
         setProperty("include", listOf("HashingAlgorithmsBenchmark"))
     }
 }
+
+val generatedTestResourcesDir: File by extra
+
+val buildReceiptPackage: String by rootProject.extra
 
 val buildReceiptResource by tasks.creating(Copy::class) {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
