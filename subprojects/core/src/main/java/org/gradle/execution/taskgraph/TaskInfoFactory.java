@@ -22,17 +22,15 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class TaskInfoFactory {
     private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
-    private final List<Throwable> failures;
+    private final TaskFailureCollector failureCollector;
 
-    // TODO Passing in a list like this isn't good form. Probably should be a 'failure handler' or 'failure collector'.
-    public TaskInfoFactory(List<Throwable> failures) {
-        this.failures = failures;
+    public TaskInfoFactory(TaskFailureCollector failureCollector) {
+        this.failureCollector = failureCollector;
     }
 
     public Set<Task> getTasks() {
@@ -43,7 +41,7 @@ public class TaskInfoFactory {
         TaskInfo node = nodes.get(task);
         if (node == null) {
             if (task instanceof IncludedBuildTaskResource) {
-                node = new TaskResourceTaskInfo((TaskInternal) task, failures);
+                node = new TaskResourceTaskInfo((TaskInternal) task, failureCollector);
             } else {
                 node = new TaskInfo((TaskInternal) task);
             }
@@ -57,12 +55,12 @@ public class TaskInfoFactory {
     }
 
     private static class TaskResourceTaskInfo extends TaskInfo {
-        private final List<Throwable> failures;
+        private final TaskFailureCollector failureCollector;
         private boolean failed;
 
-        public TaskResourceTaskInfo(TaskInternal task, List<Throwable> failures) {
+        public TaskResourceTaskInfo(TaskInternal task, TaskFailureCollector failureCollector) {
             super(task);
-            this.failures = failures;
+            this.failureCollector = failureCollector;
             doNotRequire();
         }
 
@@ -87,7 +85,7 @@ public class TaskInfoFactory {
 
                 // The failures need to be explicitly collected here, since the wrapper task is never added to the execution plan,
                 // and thus doesn't have failures collected in the usual way on execution.
-                failures.add(e);
+                failureCollector.addFailure(e);
                 return true;
             }
         }
