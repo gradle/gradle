@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
@@ -80,12 +78,6 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return attributes;
     }
 
-    private static boolean isFromIncludedBuild(ResolvableArtifact artifact) {
-        ComponentIdentifier id = artifact.getId().getComponentIdentifier();
-        return id instanceof ProjectComponentIdentifier
-            && !((ProjectComponentIdentifier) id).getBuild().isCurrentBuild();
-    }
-
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
@@ -101,12 +93,8 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
             if (listener.requireArtifactFiles()) {
-                if (isFromIncludedBuild(artifact)) {
-                    // Cannot currently build these artifacts asynchronously due to various locking problems
-                    // Build it now instead
-                    new DownloadArtifactFile(artifact, this, listener).run(null);
-                } else if (artifact.isResolved()) {
-                    // Already resolved. Push the artifact to the listener now, rather than queuing it up
+                if (artifact.isResolveSynchronously()) {
+                    // Resolve now
                     new DownloadArtifactFile(artifact, this, listener).run(null);
                 } else {
                     // Resolve it later
