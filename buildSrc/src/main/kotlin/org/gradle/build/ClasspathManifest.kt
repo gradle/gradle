@@ -63,7 +63,7 @@ open class ClasspathManifest : DefaultTask() {
 
     @get:Input
     val projects: String
-        get() = (input.allDependencies.withType<ProjectDependency>().map { it.dependencyProject.base.archivesBaseName }
+        get() = (input.allDependencies.withType<ProjectDependency>().filter { it.dependencyProject.plugins.hasPlugin("java-base") }.map { it.dependencyProject.base.archivesBaseName }
             + additionalProjects.map { it.base.archivesBaseName })
             .joinForProperties()
 

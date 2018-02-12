@@ -36,6 +36,7 @@ dependencies {
         because 'This is for TestNG'
     }
 
+    integTestRuntime project(':testingJunitPlatform')
 }
 
 test {

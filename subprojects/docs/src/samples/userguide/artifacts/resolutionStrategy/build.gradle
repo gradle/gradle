@@ -1,15 +1,3 @@
-//START SNIPPET dynamic-version-cache-control
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
-}
-//END SNIPPET dynamic-version-cache-control
-
-//START SNIPPET changing-module-cache-control
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 4, 'hours'
-}
-//END SNIPPET changing-module-cache-control
-
 //START SNIPPET releasable-unit
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->

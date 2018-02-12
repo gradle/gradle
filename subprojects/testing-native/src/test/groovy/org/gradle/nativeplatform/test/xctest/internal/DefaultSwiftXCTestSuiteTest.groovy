@@ -29,6 +29,14 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
 
+    def "has display name"() {
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
+        expect:
+        testSuite.displayName.displayName == "XCTest suite 'test'"
+        testSuite.toString() == "XCTest suite 'test'"
+    }
+
     def "has implementation dependencies"() {
         def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 

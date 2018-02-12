@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -106,6 +107,11 @@ class DefaultSwiftComponentTest extends Specification {
     class TestComponent extends DefaultSwiftComponent {
         TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
             super(name, fileOperations, objectFactory)
+        }
+
+        @Override
+        DisplayName getDisplayName() {
+            throw new UnsupportedOperationException()
         }
 
         @Override

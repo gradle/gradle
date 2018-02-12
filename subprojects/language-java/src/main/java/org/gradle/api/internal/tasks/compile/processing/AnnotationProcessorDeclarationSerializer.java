@@ -25,11 +25,13 @@ class AnnotationProcessorDeclarationSerializer implements org.gradle.internal.se
     @Override
     public AnnotationProcessorDeclaration read(Decoder decoder) throws EOFException, Exception {
         String name = decoder.readString();
-        return new AnnotationProcessorDeclaration(name);
+        IncrementalAnnotationProcessorType type = IncrementalAnnotationProcessorType.values()[decoder.readSmallInt()];
+        return new AnnotationProcessorDeclaration(name, type);
     }
 
     @Override
     public void write(Encoder encoder, AnnotationProcessorDeclaration value) throws Exception {
         encoder.writeString(value.getClassName());
+        encoder.writeSmallInt(value.getType().ordinal());
     }
 }

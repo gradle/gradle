@@ -17,11 +17,14 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.internal.provider.LockableProperty
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.language.swift.internal.DefaultSwiftApplication
 import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
@@ -34,6 +37,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
+import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.VersionNumber
@@ -50,7 +54,7 @@ class SwiftBasePluginTest extends Specification {
     def projectDir = tmpDir.createDir("project")
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("test").build()
 
-    def "adds compile task for component"() {
+    def "adds compile task for binary"() {
         def binary = Stub(DefaultSwiftBinary)
         binary.name >> name
         binary.names >> Names.of(name)
@@ -161,6 +165,23 @@ class SwiftBasePluginTest extends Specification {
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == 'Swift language version is unknown for the specified Swift compiler version (99.0.1)'
+    }
+
+    def "registers a Swift PM publication for each production component"() {
+        def component = Stub(DefaultSwiftApplication)
+        def prop = Stub(Property)
+        prop.get() >> "SomeApp"
+        component.module >> prop
+
+        when:
+        project.pluginManager.apply(SwiftBasePlugin)
+        project.components.add(component)
+        project.evaluate()
+
+        then:
+        def publications = project.services.get(ProjectPublicationRegistry).getPublications(project.path)
+        publications.size() == 1
+        publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }
 
     interface SwiftPlatformInternal extends SwiftPlatform, NativePlatformInternal {}

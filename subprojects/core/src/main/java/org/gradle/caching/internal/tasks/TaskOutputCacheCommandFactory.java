@@ -30,6 +30,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
@@ -153,7 +154,7 @@ public class TaskOutputCacheCommandFactory {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
                 if (outputFile == null) {
-                    propertySnapshotsBuilder.put(propertyName, FileCollectionSnapshot.EMPTY);
+                    propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
                     continue;
                 }
                 List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);

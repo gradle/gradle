@@ -33,7 +33,7 @@ public interface ModuleMetadataCache {
     interface CachedMetadata {
         ResolvedModuleVersion getModuleVersion();
 
-        ModuleComponentResolveMetadata getMetaData();
+        ModuleComponentResolveMetadata getMetadata();
 
         long getAgeMillis();
 

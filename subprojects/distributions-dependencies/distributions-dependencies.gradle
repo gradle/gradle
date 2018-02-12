@@ -22,12 +22,12 @@
 // We use strictly here because we do not have any better means to do this at the moment.
 // Ideally we wound be able to say "lock down all the versions of the dependencies resolved for the distribution"
 plugins {
-    id "java-library"
+    id "base"
 }
 dependencies {
     constraints {
         libraries.values().each { lib ->
-            compile(lib.coordinate) {
+            'default'(lib.coordinate) {
                 version {
                     strictly lib.version
                     if (lib.because) { because lib.because }
@@ -36,23 +36,23 @@ dependencies {
         }
 
         // Reject dependencies we do not want completely
-        compile("com.google.collections:google-collections") {
+        'default'("com.google.collections:google-collections") {
             version { rejectAll() }
             because "Guava replaces google collections"
         }
-        compile("junit:junit-dep") {
+        'default'("junit:junit-dep") {
             version { rejectAll() }
             because "junit:junit has replaced junit:junit-dep"
         }
-        compile("commons-logging:commons-logging") {
+        'default'("commons-logging:commons-logging") {
             version { rejectAll() }
             because "We do not want non-slf4j logging implementations on the classpath"
         }
-        compile("org.sonatype.sisu:sisu-inject-plexus") {
+        'default'("org.sonatype.sisu:sisu-inject-plexus") {
             version { rejectAll() }
             because "We do not wand this dependency injection on the classpath"
         }
-        compile("asm:asm") {
+        'default'("asm:asm") {
             version { rejectAll() }
             because "We use org.ow2.asm:asm"
         }

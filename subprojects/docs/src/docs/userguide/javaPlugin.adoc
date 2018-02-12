@@ -656,16 +656,30 @@ Note that abstract classes are not executed. Gradle also scans up the inheritanc
 
 If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
 
+[NOTE]
+====
+With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes`/`excludes` is used to filter test classes, `scanForTestClasses` has no effect.
+====
+
 [[test_grouping]]
 ==== Test grouping
 
-JUnit and TestNG allows sophisticated groupings of test methods.
+JUnit/JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
-For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
+For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
                 <sourcefile file="build.gradle" snippet="test-categories"/>
+            </sample>
+++++
+
+In http://junit.org/junit5/docs/current/user-guide[JUnit Platform], http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] is introduced instead of categories.
+You can specify the included/excluded tags as follows:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitplatformtags" dir="testing/junitplatform/tagging" title="JUnit Platform Tags">
+                <sourcefile file="build.gradle" snippet="test-tags"/>
             </sample>
 ++++
 
