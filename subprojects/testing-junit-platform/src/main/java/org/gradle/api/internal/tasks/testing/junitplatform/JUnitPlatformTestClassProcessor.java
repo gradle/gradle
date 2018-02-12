@@ -160,7 +160,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                         return true;
                     }
                 }
-                if (isVintageDynamicTest(descriptor, source.get())) {
+                if (isVintageDynamicLeafTest(descriptor, source.get())) {
                     return shouldRunVintageDynamicTest(descriptor);
                 }
             }
