@@ -102,7 +102,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestSkipped(String name) {
-        throw new UnsupportedOperationException()
+        assertTestsSkipped(name)
     }
 
     TestClassExecutionResult assertTestsSkipped(String... testNames) {

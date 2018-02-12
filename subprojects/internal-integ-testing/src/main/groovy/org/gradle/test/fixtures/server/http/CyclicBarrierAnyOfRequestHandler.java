@@ -183,6 +183,15 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
             if (!expected.isEmpty()) {
                 throw new IllegalStateException("Expected requests not received, should wait for pending calls first.");
             }
+            doReleaseAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    protected void doReleaseAll() {
+        lock.lock();
+        try {
             int count = 0;
             for (String path : received) {
                 if (!released.contains(path)) {

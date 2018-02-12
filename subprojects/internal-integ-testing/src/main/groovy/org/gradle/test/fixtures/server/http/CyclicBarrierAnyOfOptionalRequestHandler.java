@@ -44,12 +44,6 @@ public class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOf
 
     @Override
     public void releaseAll() {
-        lock.lock();
-        try {
-            expected.clear();
-            super.releaseAll();
-        } finally {
-            lock.unlock();
-        }
+        doReleaseAll();
     }
 }
