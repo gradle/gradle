@@ -593,40 +593,45 @@ This ensures that changes to the implementation of a nested input causes the bui
 By this it is also possible to add user provided code as an input, e.g. by annotating an `@api:org.gradle.api.Action[]` property with `@api:org.gradle.api.tasks.Nested[]`.
 Note that any inputs to such actions should be tracked, either by annotated properties on the action or by manually registering them with the task.
 
-Using nested inputs allows richer modeling and extensibility for tasks, as e.g. shown by `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]`.
+Using nested inputs allows richer modeling and extensibility for tasks, as e.g. shown by `api:org.gradle.api.tasks.testing.Test#getJvmArgumentProviders[]`.
 
-For example, to declare annotation processor arguments, it is possible to do the following:
+This allows us to https://github.com/gradle/gradle/blob/7b047c7cbb4932743243a76123f5347be6d07856/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L138-L157[model the Jacoco Java agent] and add the corresponding inputs and JVM arguments in one go:
 
 [source,groovy]
 ----
-class MyAnnotationProcessor implements CommandLineArgumentProvider {
-    @InputFile
-    @PathSensitivite(NONE)
-    File inputFile
+class JacocoAgent implements CommandLineArgumentProvider {
+    private final JacocoTaskExtension jacoco;
 
-    @OutputFile
-    File outputFile
+    public JacocoAgent(JacocoTaskExtension jacoco) {
+        this.jacoco = jacoco;
+    }
 
-    MyAnnotationProcessor(File inputFile, File outputFile) {
-        this.inputFile = inputFile
-        this.outputFile = outputFile
+    @Nested
+    @Optional
+    public JacocoTaskExtension getJacoco() {
+        return jacoco.isEnabled() ? jacoco : null;
     }
 
     @Override
-    List<String> asArguments() {
-        [
-            "-AinputFile=${inputFile.absolutePath}",
-            "-AoutputFile=${outputFile.absolutePath}"
-        ]
+    public Iterable<String> asArguments() {
+        return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
     }
 }
 
-compileJava.options.compilerArgumentProviders << new MyAnnotationProcessor(inputFile, outputFile)
+test.getJvmArgumentProviders().add(new JacocoAgent(extension))
 ----
 
-This models an annotation processor which requires an input file and generates an output file.
+For this to work, `api:org.gradle.testing.jacoco.plugins.JacocoTaskExtension[]` needs to have the correct input and output annotations.
 
-The approach works for Java compiler arguments, since `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]` is an `Iterable` annotated with `@api:org.gradle.api.tasks.Nested[]`. In the same way, this kind of modelling is available to custom tasks.
+The approach works for Test JVM arguments, since `api:org.gradle.api.tasks.testing.Test#getJvmArgumentProviders[]` is an `Iterable` annotated with `@api:org.gradle.api.tasks.Nested[]`.
+
+There are other task types where this kind of nested inputs are available:
+
+* `api:org.gradle.api.tasks.JavaExec#getArgumentProviders[]` - model e.g. custom tools
+* `api:org.gradle.api.tasks.JavaExec#getJvmArgumentProviders[]` - used for Jacoco Java agent
+* `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]` - model e.g annotation processors
+
+In the same way, this kind of modelling is available to custom tasks.
 
 [[sec:task_input_output_runtime_api]]
 ===== Runtime API
