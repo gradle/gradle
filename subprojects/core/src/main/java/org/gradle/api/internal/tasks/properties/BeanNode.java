@@ -16,8 +16,35 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public interface BeanNode<SELF extends BeanNode<SELF>> {
-    boolean isRoot();
-    Iterable<SELF> asIterable(NestedBeanContext<SELF> context);
-    Class<?> getBeanClass();
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+
+import javax.annotation.Nullable;
+import java.util.Iterator;
+
+public class BeanNode extends AbstractPropertyNode<BeanNode> {
+    private final Object bean;
+
+    public BeanNode(@Nullable String parentPropertyName, Object bean) {
+        super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass());
+        this.bean = bean;
+    }
+
+    public Object getBean() {
+        return bean;
+    }
+
+    @Override
+    public Iterator<BeanNode> getIterator() {
+        return Iterables.transform((Iterable<?>) bean, new Function<Object, BeanNode>() {
+            private int count = 0;
+
+            @Override
+            public BeanNode apply(@Nullable Object input) {
+                String nestedPropertyName = getQualifiedPropertyName("$" + count++);
+                return new BeanNode(nestedPropertyName, Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + nestedPropertyName + "'"));
+            }
+        }).iterator();
+    }
 }

@@ -18,15 +18,16 @@ package org.gradle.api.internal.tasks.properties;
 
 import javax.annotation.Nullable;
 
-abstract class AbstractBeanNode<SELF extends AbstractBeanNode<SELF>> implements BeanNode<SELF> {
+abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> implements PropertyNode<SELF> {
     private final String propertyName;
     private final Class<?> beanClass;
 
-    public AbstractBeanNode(@Nullable String propertyName, Class<?> beanClass) {
+    public AbstractPropertyNode(@Nullable String propertyName, Class<?> beanClass) {
         this.propertyName = propertyName;
         this.beanClass = beanClass;
     }
 
+    @Override
     public String getQualifiedPropertyName(String propertyName) {
         return this.propertyName == null ? propertyName : this.propertyName + "." + propertyName;
     }

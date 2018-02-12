@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
@@ -39,6 +40,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 
@@ -54,25 +56,23 @@ public class PropertyValidationAccess {
         InputDirectory.class, new MissingPathSensitivityValidator()
     );
 
-    private static final NestedBeanResolver<TypeNode> NESTED_BEAN_RESOLVER = new NestedBeanResolver<TypeNode>();
-
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
         DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));
-        Queue<TypeNode> queue = new ArrayDeque<TypeNode>();
-        queue.add(new TypeNode(null, TypeToken.of(topLevelBean)));
+        Queue<BeanTypeNode> queue = new ArrayDeque<BeanTypeNode>();
+        queue.add(new BeanTypeNode(null, TypeToken.of(topLevelBean)));
         boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
 
         while (!queue.isEmpty()) {
-            TypeNode node = queue.remove();
+            BeanTypeNode node = queue.remove();
             validateTaskClass(topLevelBean, cacheable, problems, node, new NestedTypeContext(metadataStore, queue), metadataStore.getTypeMetadata(node.getBeanClass()));
         }
     }
 
-    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, TypeNode node, NestedBeanContext<TypeNode> context, TypeMetadata typeMetadata) {
+    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, BeanTypeNode node, NestedPropertyContext<BeanTypeNode> context, TypeMetadata typeMetadata) {
         for (PropertyMetadata metadata : typeMetadata.getPropertiesMetadata()) {
             String qualifiedPropertyName = node.getQualifiedPropertyName(metadata.getFieldName());
             for (String validationMessage : metadata.getValidationMessages()) {
@@ -92,8 +92,8 @@ public class PropertyValidationAccess {
                 }
             }
             if (metadata.isAnnotationPresent(Nested.class)) {
-                NESTED_BEAN_RESOLVER.resolve(
-                    context.createNode(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())),
+                NestedPropertyUtil.collectNestedProperties(
+                    new BeanTypeNode(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())),
                     context
                 );
             }
@@ -104,21 +104,20 @@ public class PropertyValidationAccess {
         return String.format("Task type '%s': property '%s' %s.", task.getName(), qualifiedPropertyName, validationMessage);
     }
 
-    private static class TypeNode extends AbstractBeanNode<TypeNode> {
+    private static class BeanTypeNode extends AbstractPropertyNode<BeanTypeNode> {
         private final TypeToken<?> beanType;
 
-        public TypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
+        public BeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
             super(parentPropertyName, beanType.getRawType());
             this.beanType = beanType;
         }
 
         @Override
-        public Iterable<TypeNode> asIterable(NestedBeanContext<TypeNode> context) {
-            @SuppressWarnings("unchecked")
-            TypeToken<Iterable> typeToken = (TypeToken<Iterable>) beanType;
+        public Iterator<BeanTypeNode> getIterator() {
+            TypeToken<Iterable> typeToken = Cast.uncheckedCast(beanType);
             ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
             TypeToken<?> nestedType = TypeToken.of(type.getActualTypeArguments()[0]);
-            return ImmutableList.of(context.createNode(getPropertyName() + "*", nestedType));
+            return Iterators.singletonIterator(new BeanTypeNode(getPropertyName() + "*", nestedType));
         }
     }
 
@@ -155,23 +154,17 @@ public class PropertyValidationAccess {
         }
     }
 
-    private static class NestedTypeContext extends AbstractNestedBeanContext<TypeNode> {
+    private static class NestedTypeContext extends AbstractNestedPropertyContext<BeanTypeNode> {
 
-        private final Queue<TypeNode> queue;
+        private final Queue<BeanTypeNode> queue;
 
-        public NestedTypeContext(PropertyMetadataStore metadataStore, Queue<TypeNode> queue) {
+        public NestedTypeContext(PropertyMetadataStore metadataStore, Queue<BeanTypeNode> queue) {
             super(metadataStore);
             this.queue = queue;
         }
 
         @Override
-        public TypeNode createNode(String propertyName, Object nested) {
-            TypeToken<?> beanType = (TypeToken<?>) nested;
-            return new TypeNode(propertyName, beanType);
-        }
-
-        @Override
-        public void addNested(TypeNode node) {
+        public void addNested(BeanTypeNode node) {
             queue.add(node);
         }
     }

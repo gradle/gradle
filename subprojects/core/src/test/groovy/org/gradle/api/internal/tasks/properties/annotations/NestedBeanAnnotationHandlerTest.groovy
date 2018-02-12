@@ -23,8 +23,7 @@ import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.TaskInputPropertySpec
 import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec
-import org.gradle.api.internal.tasks.properties.NestedBeanContext
-import org.gradle.api.internal.tasks.properties.PropertyNode
+import org.gradle.api.internal.tasks.properties.NestedPropertyContext
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import spock.lang.Specification
@@ -37,7 +36,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def task = Stub(TaskInternal)
     def resolver = Mock(FileResolver)
     def specFactory = new DefaultPropertySpecFactory(task, resolver)
-    def context = Mock(NestedBeanContext)
+    def context = Mock(NestedPropertyContext)
 
     @Unroll
     def "correct implementation for #type coerced to Action is tracked"() {
@@ -115,18 +114,17 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def "nested bean is added"() {
         TaskInputPropertySpec taskInputPropertySpec = null
         def nestedBean = new Object()
-        def node = new PropertyNode("name", nestedBean)
+        def nestedPropertyName = "someProperty"
 
         when:
         new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
 
         then:
         1 * propertyValue.value >> nestedBean
-        1 * propertyValue.getPropertyName() >> "name"
-        1 * context.createNode("name", nestedBean) >> node
-        1 * context.isIterable(node) >> false
-        1 * context.addNested(node)
-        1 * propertyVisitor.visitInputProperty({ it.propertyName == "name.class"}) >> { arguments ->
+        1 * propertyValue.getPropertyName() >> nestedPropertyName
+        1 * context.isIterable({ it.propertyName == nestedPropertyName }) >> false
+        1 * context.addNested({ it.propertyName == nestedPropertyName })
+        1 * propertyVisitor.visitInputProperty({ it.propertyName == "${nestedPropertyName}.class"}) >> { arguments ->
             taskInputPropertySpec = arguments[0]
         }
         0 * _

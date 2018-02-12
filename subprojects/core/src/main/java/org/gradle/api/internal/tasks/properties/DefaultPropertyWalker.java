@@ -54,16 +54,16 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
-        Queue<NestedPropertyContext> queue = new ArrayDeque<NestedPropertyContext>();
-        queue.add(new NestedPropertyContext(new PropertyNode(null, bean), queue, ImmutableList.<PropertyNode>of()));
+        Queue<NestedBeanContext> queue = new ArrayDeque<NestedBeanContext>();
+        queue.add(new NestedBeanContext(new BeanNode(null, bean), queue, ImmutableList.<BeanNode>of()));
         while (!queue.isEmpty()) {
-            NestedPropertyContext context = queue.remove();
-            PropertyNode node = context.getCurrentNode();
+            NestedBeanContext context = queue.remove();
+            BeanNode node = context.getCurrentNode();
             visitProperties(node, visitor, specFactory, context, propertyMetadataStore.getTypeMetadata(node.getBeanClass()));
         }
     }
 
-    private static void visitProperties(final PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> propertyContext, TypeMetadata typeMetadata) {
+    private static void visitProperties(BeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedPropertyContext<BeanNode> propertyContext, TypeMetadata typeMetadata) {
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             if (propertyValueVisitor == null) {
@@ -159,17 +159,17 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-    private class NestedPropertyContext extends AbstractNestedBeanContext<PropertyNode> {
-        private final PropertyNode currentNode;
-        private final Queue<NestedPropertyContext> queue;
-        private final Iterable<PropertyNode> parentNodes;
+    private class NestedBeanContext extends AbstractNestedPropertyContext<BeanNode> {
+        private final BeanNode currentNode;
+        private final Queue<NestedBeanContext> queue;
+        private final Iterable<BeanNode> parentNodes;
 
-        public NestedPropertyContext(PropertyNode currentNode, Queue<NestedPropertyContext> queue, Iterable<PropertyNode> parentNodes) {
+        public NestedBeanContext(BeanNode currentNode, Queue<NestedBeanContext> queue, Iterable<BeanNode> parentNodes) {
             super(propertyMetadataStore);
             this.currentNode = currentNode;
             this.queue = queue;
             this.parentNodes = parentNodes;
-            for (PropertyNode parentNode : parentNodes) {
+            for (BeanNode parentNode : parentNodes) {
                 Preconditions.checkState(
                     currentNode.getBean() != parentNode.getBean(),
                     "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
@@ -178,16 +178,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
 
         @Override
-        public PropertyNode createNode(String propertyName, Object nested) {
-            return new PropertyNode(propertyName, nested);
+        public void addNested(BeanNode node) {
+            queue.add(new NestedBeanContext(node, queue, Iterables.concat(ImmutableList.of(currentNode), parentNodes)));
         }
 
-        @Override
-        public void addNested(PropertyNode node) {
-            queue.add(new NestedPropertyContext(node, queue, Iterables.concat(ImmutableList.of(currentNode), parentNodes)));
-        }
-
-        public PropertyNode getCurrentNode() {
+        public BeanNode getCurrentNode() {
             return currentNode;
         }
     }
