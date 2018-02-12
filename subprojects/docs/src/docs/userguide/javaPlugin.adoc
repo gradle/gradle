@@ -583,9 +583,9 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. ???org.gradle.SomeTest???, ???org.gradle.SomeTest.someMethod???
+* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`
 * Wildcard '*' is supported for matching any characters
-* Command line option ???--tests??? is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple ???--tests??? options and tests matching any of those patterns will be included.
+* Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
@@ -629,7 +629,7 @@ gradle test --continuous --tests "com.mypackage.foo.*"
 This mechanism has been superseded by 'Test Filtering', described above.
 ====
 
-Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like ???:sub1:sub2:test??? or just the task name. The __testNamePattern__ will be used to form an include pattern of ???\**/testNamePattern*.class???. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
+Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like `:sub1:sub2:test` or just the task name. The __testNamePattern__ will be used to form an include pattern of `\**/testNamePattern*.class`. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
 
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
@@ -654,7 +654,7 @@ When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
 
-If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
+If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are `\**/*Tests.class`, `*\*/*Test.class` and `*\*/Abstract*.class` for include and exclude, respectively.
 
 [NOTE]
 ====
