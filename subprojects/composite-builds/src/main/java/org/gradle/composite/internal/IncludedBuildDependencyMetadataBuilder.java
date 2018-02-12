@@ -47,7 +47,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects = Maps.newHashMap();
         Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(registeredProjects, build, (ProjectInternal) project);
+            registerProject(registeredProjects, build.getModel(), (ProjectInternal) project);
         }
         return registeredProjects;
     }

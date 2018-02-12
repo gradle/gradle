@@ -20,6 +20,9 @@ import org.gradle.util.Path;
 
 import java.util.Set;
 
+/**
+ * A registry of all of the projects present in a build tree.
+ */
 public interface ProjectPathRegistry {
     /**
      * Returns an path for every project in a build, including projects from included builds.

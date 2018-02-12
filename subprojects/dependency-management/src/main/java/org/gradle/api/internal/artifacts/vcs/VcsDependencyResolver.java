@@ -122,7 +122,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
 
                     if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, entry.right.getProjectPath()), spec.getDisplayName() + " could not be resolved into a usable project."));
+                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild.getModel(), entry.right.getProjectPath()), spec.getDisplayName() + " could not be resolved into a usable project."));
                     } else {
                         result.resolved(componentMetaData);
                     }

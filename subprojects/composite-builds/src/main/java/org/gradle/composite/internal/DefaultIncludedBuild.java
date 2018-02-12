@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -47,7 +48,7 @@ import java.util.Set;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
-public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
+public class DefaultIncludedBuild implements IncludedBuildInternal, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildDefinition buildDefinition;
@@ -67,6 +68,12 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         this.parentLease = parentLease;
     }
 
+    @Override
+    public ConfigurableIncludedBuild getModel() {
+        return this;
+    }
+
+    @Override
     public File getProjectDir() {
         return buildDefinition.getBuildRootDir();
     }
