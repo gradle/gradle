@@ -28,8 +28,8 @@ abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> imp
     }
 
     @Override
-    public String getQualifiedPropertyName(String propertyName) {
-        return this.propertyName == null ? propertyName : this.propertyName + "." + propertyName;
+    public String getQualifiedPropertyName(String childPropertyName) {
+        return propertyName == null ? childPropertyName : propertyName + "." + childPropertyName;
     }
 
     @Override

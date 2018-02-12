@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 
 public interface PropertyNode<SELF extends PropertyNode<SELF>> {
-    String getQualifiedPropertyName(String propertyName);
+    String getQualifiedPropertyName(String childPropertyName);
     @Nullable
     String getPropertyName();
     boolean isRoot();

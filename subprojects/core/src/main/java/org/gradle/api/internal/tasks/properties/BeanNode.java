@@ -26,8 +26,8 @@ import java.util.Iterator;
 public class BeanNode extends AbstractPropertyNode<BeanNode> {
     private final Object bean;
 
-    public BeanNode(@Nullable String parentPropertyName, Object bean) {
-        super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass());
+    public BeanNode(@Nullable String propertyName, Object bean) {
+        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + propertyName + "'").getClass());
         this.bean = bean;
     }
 
@@ -42,8 +42,8 @@ public class BeanNode extends AbstractPropertyNode<BeanNode> {
 
             @Override
             public BeanNode apply(@Nullable Object input) {
-                String nestedPropertyName = getQualifiedPropertyName("$" + count++);
-                return new BeanNode(nestedPropertyName, Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + nestedPropertyName + "'"));
+                String childPropertyName = getQualifiedPropertyName("$" + count++);
+                return new BeanNode(childPropertyName, Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + childPropertyName + "'"));
             }
         }).iterator();
     }
