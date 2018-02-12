@@ -44,6 +44,12 @@ testFixtures {
     from(":core")
 }
 
+jmh {
+    withGroovyBuilder {
+        setProperty("include", listOf("HashingAlgorithmsBenchmark"))
+    }
+}
+
 val buildReceiptResource by tasks.creating(Copy::class) {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
     destinationDir = file("$generatedTestResourcesDir/$buildReceiptPackage")
