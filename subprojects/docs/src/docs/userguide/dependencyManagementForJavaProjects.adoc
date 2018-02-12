@@ -66,7 +66,7 @@ The dependencies required to compile the production source of the project which 
 testImplementation::
 The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
 
-Various plugins add further standard configurations. You can also define your own custom configurations in your build via api:org.gradle.api.Project#configurations[]. See <<defining_and_using_configurations>> for the details of defining and customizing dependency configurations.
+Various plugins add further standard configurations. You can also define your own custom configurations in your build via api:org.gradle.api.Project#configurations[]. See <<managing_dependency_configurations>> for the details of defining and customizing dependency configurations.
 
 [[sec:repositories_java_tutorial]]
 === Declaring common Java repositories
