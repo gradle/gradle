@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -118,8 +119,9 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
 
     @Override
     public boolean isResolveSynchronously() {
-        if (artifactId instanceof ProjectComponentIdentifier
-                && !((ProjectComponentIdentifier) artifactId).getBuild().isCurrentBuild()) {
+        ComponentIdentifier componentIdentifier = artifactId.getComponentIdentifier();
+        if (componentIdentifier instanceof ProjectComponentIdentifier
+                && !((ProjectComponentIdentifier) componentIdentifier).getBuild().isCurrentBuild()) {
             // Cannot currently build artifacts from other builds in the build tree asynchronously due to various locking problems.
             return true;
         }
