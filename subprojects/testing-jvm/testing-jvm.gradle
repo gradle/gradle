@@ -28,9 +28,9 @@ dependencies {
     compile project(':languageJava')
     compile project(':testingBase')
 
-    compile libraries.junit.coordinate
-    compile libraries.testng.coordinate
-    compile libraries.bsh.coordinate
+    compile libraries.junit.coordinates
+    compile libraries.testng.coordinates
+    compile libraries.bsh.coordinates
 
     testCompile ('com.google.inject:guice:2.0') {
         because 'This is for TestNG'

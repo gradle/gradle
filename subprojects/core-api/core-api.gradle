@@ -30,10 +30,10 @@ dependencies {
     api project(":processServices")
     api project(":resources")
 
-    implementation libraries.ant.coordinate
-    implementation libraries.commons_io.coordinate
-    implementation libraries.commons_lang.coordinate
-    implementation libraries.jcip.coordinate
+    implementation libraries.ant.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
 
     testFixturesImplementation project(":internalTesting")
 }

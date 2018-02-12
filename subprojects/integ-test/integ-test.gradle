@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    integTestCompile libraries.groovy.coordinate
-    integTestCompile libraries.ant.coordinate
+    integTestCompile libraries.groovy.coordinates
+    integTestCompile libraries.ant.coordinates
     integTestCompile testLibraries.jsoup
 
     integTestRuntime allTestRuntimeDependencies

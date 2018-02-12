@@ -12,8 +12,8 @@ dependencies {
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
-    publishCompile (libraries.slf4j_api.coordinate) { version { prefer libraries.slf4j_api.version } }
-    compile libraries.jcip.coordinate
+    publishCompile (libraries.slf4j_api.coordinates) { version { prefer libraries.slf4j_api.version } }
+    compile libraries.jcip.coordinates
 
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
