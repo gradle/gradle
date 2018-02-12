@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
@@ -79,5 +80,43 @@ class TestSpec extends Specification {
 """
         expect:
         succeeds("test")
+    }
+
+    def 'can run spock with @Unroll'() {
+        given:
+        file("build.gradle") << """
+apply plugin: 'groovy'
+
+repositories {
+    ${jcenterRepository()}
+}
+
+dependencies {
+    testCompile localGroovy()
+    testCompile '$dependencyNotation', 'org.spockframework:spock-core:1.0-groovy-2.4@jar'
+}
+"""
+        file('src/test/groovy/UnrollTest.groovy') << '''
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class UnrollTest extends Specification {
+    @Unroll
+    def "can test #type"() {
+        expect: type
+
+        where:
+        type << ['1', '2']
+    }
+}
+'''
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass("UnrollTest").assertTestCount(2, 0, 0)
+            .assertTestPassed('can test 1')
+            .assertTestPassed('can test 2')
     }
 }
