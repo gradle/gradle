@@ -16,10 +16,15 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.initialization.StartParameterBuildOptions.ContinueOption
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
-class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+/**
+ * Tests for composite build delegating to tasks in an included build that produce more than one failure.
+ */
+class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
+    private static final String CONTINUE_COMMAND_LINE_OPTION = "--$ContinueOption.LONG_OPTION"
     BuildTestFile buildB
     BuildTestFile buildC
     BuildTestFile buildD
@@ -60,7 +65,7 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         """
 
         and:
-        fails(buildA, 'testAll', ['--continue'])
+        fails(buildA, 'testAll', [CONTINUE_COMMAND_LINE_OPTION])
 
         then:
 //        !errorOutput.contains('Multiple build failures')
@@ -92,7 +97,7 @@ class CompositeBuildFailureCollectionIntegrationTest extends AbstractCompositeBu
         file('buildA/src/test/java/SampleTestA.java') << junitTestClass('SampleTestA')
 
         and:
-        fails(buildA, 'testAll', ['--continue'])
+        fails(buildA, 'testAll', [CONTINUE_COMMAND_LINE_OPTION])
 
         then:
 //        !errorOutput.contains('Multiple build failures')

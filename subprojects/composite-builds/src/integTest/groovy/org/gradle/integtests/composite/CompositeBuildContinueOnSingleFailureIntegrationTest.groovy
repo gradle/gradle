@@ -16,13 +16,16 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.initialization.StartParameterBuildOptions.ContinueOption
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 
 /**
  * Tests for composite build delegating to tasks in an included build.
  */
-class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+
+    private static final String CONTINUE_COMMAND_LINE_OPTION = "--$ContinueOption.LONG_OPTION"
     BuildTestFile buildB
     BuildTestFile buildC
 
@@ -77,7 +80,7 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         dependsOn gradle.includedBuild('buildB').task(':succeeds')
     }
 """
-        executer.withArguments("--continue")
+        executer.withArguments(CONTINUE_COMMAND_LINE_OPTION)
         fails(buildA, ":delegate")
 
         then:
@@ -100,11 +103,11 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         dependsOn delegateWithSuccess, delegateWithFailure
     }
 """
-        executer.withArguments("--continue")
+        executer.withArguments(CONTINUE_COMMAND_LINE_OPTION)
         fails(buildA, ":delegate")
 
         then:
-        outputContains("Using '--continue' with a composite build does not collect all failures.")
+        outputContains("Using '$CONTINUE_COMMAND_LINE_OPTION' with a composite build does not collect all failures.")
         // We attach the single failure in 'buildB' to every delegated task, so ':buildB:succeeds' appears to have failed
         // Thus ":delegateWithSuccess" is never executed.
         assertTaskExecutedOnce(":buildB", ":fails")
@@ -124,11 +127,11 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         dependsOn gradle.includedBuild('buildB').task(':included')
     }
 """
-        executer.withArguments("--continue")
+        executer.withArguments(CONTINUE_COMMAND_LINE_OPTION)
         fails(buildA, ":delegate")
 
         then:
-        outputContains("Using '--continue' with a composite build does not collect all failures.")
+        outputContains("Using '$CONTINUE_COMMAND_LINE_OPTION' with a composite build does not collect all failures.")
         outputContains("continueOnFailure = true")
 
         assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
@@ -149,7 +152,7 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         execute(buildA, ":assemble")
 
         then:
-        outputContains("Using '--continue' with a composite build does not collect all failures.")
+        outputContains("Using '$CONTINUE_COMMAND_LINE_OPTION' with a composite build does not collect all failures.")
         outputContains("continueOnFailure = true")
 
         assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
