@@ -16,7 +16,31 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.collect.Iterators;
+
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 public abstract class AbstractNestedPropertyContext<T extends PropertyNode<T>> implements NestedPropertyContext<T> {
+
+    /**
+     * Successively iterates nested properties of an initial {@link PropertyNode}.
+     *
+     * All non-iterable {@link PropertyNode}s found by this process are collected via {@link NestedPropertyContext#addNested(PropertyNode)}.
+     */
+    public static <T extends PropertyNode<T>> void collectNestedProperties(T initial, NestedPropertyContext<T> context) {
+        Queue<T> queue = new ArrayDeque<T>();
+        queue.add(initial);
+
+        while (!queue.isEmpty()) {
+            T nestedNode = queue.remove();
+            if (context.isIterable(nestedNode)) {
+                Iterators.addAll(queue, nestedNode.getIterator());
+            } else {
+                context.addNested(nestedNode);
+            }
+        }
+    }
 
     private final PropertyMetadataStore metadataStore;
 

@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.properties.AbstractNestedPropertyContext;
 import org.gradle.api.internal.tasks.properties.BeanNode;
 import org.gradle.api.internal.tasks.properties.NestedPropertyContext;
-import org.gradle.api.internal.tasks.properties.NestedPropertyUtil;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Nested;
@@ -55,7 +55,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             return;
         }
         if (nested != null) {
-            NestedPropertyUtil.collectNestedProperties(
+            AbstractNestedPropertyContext.collectNestedProperties(
                 new BeanNode(propertyValue.getPropertyName(), nested),
                 new ImplementationDeclaringPropertyContext(context, visitor, specFactory));
         } else if (!propertyValue.isOptional()) {

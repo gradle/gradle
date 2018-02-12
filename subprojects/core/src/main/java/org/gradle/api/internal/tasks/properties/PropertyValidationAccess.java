@@ -92,7 +92,7 @@ public class PropertyValidationAccess {
                 }
             }
             if (metadata.isAnnotationPresent(Nested.class)) {
-                NestedPropertyUtil.collectNestedProperties(
+                AbstractNestedPropertyContext.collectNestedProperties(
                     new BeanTypeNode(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())),
                     context
                 );
