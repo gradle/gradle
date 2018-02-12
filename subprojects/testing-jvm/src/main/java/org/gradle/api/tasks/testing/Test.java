@@ -138,7 +138,7 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -369,6 +369,9 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
      */
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        if (jvmArgumentProviders == null) {
+            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+        }
         return jvmArgumentProviders;
     }
 
@@ -513,8 +516,10 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
-        for (CommandLineArgumentProvider jvmArgumentProvider : getJvmArgumentProviders()) {
-            target.jvmArgs(jvmArgumentProvider.asArguments());
+        if (jvmArgumentProviders != null) {
+            for (CommandLineArgumentProvider jvmArgumentProvider : getJvmArgumentProviders()) {
+                target.jvmArgs(jvmArgumentProvider.asArguments());
+            }
         }
         return this;
     }
