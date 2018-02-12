@@ -110,7 +110,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     ClassLoaderScope getClassLoaderScope();
 
-    void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
+    void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds);
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.
