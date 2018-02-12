@@ -18,8 +18,13 @@ apply {
     from("gradle/remoteHttpCacheSettings.gradle")
 }
 
-// TODO enable this once a Gradle build exists with the support for it
-// enableFeaturePreview("IMPROVED_POM_SUPPORT")
+try {
+    settings.withGroovyBuilder {
+        "enableFeaturePreview"("IMPROVED_POM_SUPPORT")
+    }
+} catch (e: Exception ){
+    // Ignore - indicates this is run with Gradle < 4.6
+}
 
 include("distributionsDependencies")
 include("distributions")

@@ -28,7 +28,7 @@ class FeaturePreviewsTest extends Specification {
     def 'has no features enabled by default'() {
         given:
         StartParameter startParameter = Mock()
-        def previews = new FeaturePreviews(startParameter)
+        def previews = new FeaturePreviews()
         when:
         def result = previews.isFeatureEnabled(feature)
         then:
@@ -41,7 +41,7 @@ class FeaturePreviewsTest extends Specification {
     def "can enable #feature"() {
         given:
         StartParameter startParameter = Mock()
-        def previews = new FeaturePreviews(startParameter)
+        def previews = new FeaturePreviews()
         when:
         previews.enableFeature(feature)
         then:
@@ -54,7 +54,7 @@ class FeaturePreviewsTest extends Specification {
     def "can enable #feature as String"() {
         given:
         StartParameter startParameter = Mock()
-        def previews = new FeaturePreviews(startParameter)
+        def previews = new FeaturePreviews()
         when:
         previews.enableFeature(feature)
         then:
@@ -66,7 +66,7 @@ class FeaturePreviewsTest extends Specification {
     def 'fails when enabling an unknown feature'() {
         given:
         StartParameter startParameter = Mock()
-        def previews = new FeaturePreviews(startParameter)
+        def previews = new FeaturePreviews()
         when:
         previews.enableFeature('UNKNOWN_FEATURE')
         then:
@@ -77,7 +77,7 @@ class FeaturePreviewsTest extends Specification {
     def 'fails when querying an unknown feature'() {
         given:
         StartParameter startParameter = Mock()
-        def previews = new FeaturePreviews(startParameter)
+        def previews = new FeaturePreviews()
         when:
         previews.isFeatureEnabled('UNKNOWN_FEATURE')
         then:
@@ -88,7 +88,7 @@ class FeaturePreviewsTest extends Specification {
     def 'lists active features'() {
         given:
         StartParameter startParameter = Mock()
-        def previews = new FeaturePreviews(startParameter)
+        def previews = new FeaturePreviews()
         expect:
         previews.getActiveFeatures() == [IMPROVED_POM_SUPPORT, GRADLE_METADATA] as Set
     }

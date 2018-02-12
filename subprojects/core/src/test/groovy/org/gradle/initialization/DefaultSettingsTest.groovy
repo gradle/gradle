@@ -84,7 +84,7 @@ class DefaultSettingsTest {
         settingsScriptHandler = context.mock(ScriptHandler.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        previews = new FeaturePreviews(new StartParameter())
+        previews = new FeaturePreviews()
 
         def settingsServices = context.mock(ServiceRegistry.class)
         context.checking {

@@ -252,8 +252,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    FeaturePreviews createExperimentalFeatures(StartParameter startParameter) {
-        return new FeaturePreviews(startParameter);
+    FeaturePreviews createExperimentalFeatures() {
+        return new FeaturePreviews();
     }
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {

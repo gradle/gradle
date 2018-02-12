@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.StartParameter;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
 public class FeaturePreviews {
+
+    /**
+     * Feature previews that can be turned on.
+     * A feature that is no longer relevant will have the {@code active} flag set to {@code false}.
+     */
     public enum Feature {
         IMPROVED_POM_SUPPORT(true),
         GRADLE_METADATA(true);
@@ -49,7 +52,7 @@ public class FeaturePreviews {
     private final Set<Feature> activeFeatures;
     private final EnumSet<Feature> enabledFeatures = EnumSet.noneOf(Feature.class);
 
-    public FeaturePreviews(StartParameter startParameter) {
+    public FeaturePreviews() {
         EnumSet<Feature> tmpActiveSet = EnumSet.noneOf(Feature.class);
         for (Feature feature : Feature.values()) {
             if (feature.isActive()) {
@@ -57,13 +60,6 @@ public class FeaturePreviews {
             }
         }
         activeFeatures = Collections.unmodifiableSet(tmpActiveSet);
-
-        if (startParameter.isAdvancedPomSupport()) {
-            enabledFeatures.add(Feature.IMPROVED_POM_SUPPORT);
-        }
-        if (startParameter.isGradleMetadata()) {
-            enabledFeatures.add(Feature.GRADLE_METADATA);
-        }
     }
 
     public void enableFeature(Feature feature) {

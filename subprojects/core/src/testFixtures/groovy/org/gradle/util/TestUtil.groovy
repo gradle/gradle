@@ -21,7 +21,6 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
@@ -88,7 +87,7 @@ class TestUtil {
     }
 
     static FeaturePreviews featurePreviews(boolean improvedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
-        def previews = new FeaturePreviews(new StartParameterInternal())
+        def previews = new FeaturePreviews()
         if (improvedPomSupportEnabled) {
             previews.enableFeature(IMPROVED_POM_SUPPORT)
         }
