@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.artifacts;
 
-
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 
 /**
- * Implementations of this interface always describe direct dependencies and not
- * constraints may optionally considered as dependency.
+ * A set of dependency constraint definitions that are associated with a configuration.
  *
- * @since 4.5
+ * @since 4.6
  */
 @Incubating
-public interface DirectDependency extends Dependency {
+public interface DependencyConstraintSet extends DomainObjectSet<DependencyConstraint> {
 }
