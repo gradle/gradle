@@ -67,6 +67,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
+    @LeaksFileHandles
     def "changing custom Kotlin task implementation in buildSrc doesn't invalidate built-in task"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")

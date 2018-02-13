@@ -38,10 +38,12 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVswhereVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.SystemPathVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VswhereVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.WindowsRegistryVersionLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -86,8 +88,12 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
             return new WindowsRegistryVersionLocator(windowsRegistry);
         }
 
-        CommandLineToolVersionLocator createCommandLineVersionLocator(ExecActionFactory execActionFactory, WindowsRegistry windowsRegistry, OperatingSystem os, VisualCppMetadataProvider visualCppMetadataProvider) {
-            return new CommandLineToolVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider);
+        CommandLineToolVersionLocator createCommandLineVersionLocator(ExecActionFactory execActionFactory, VisualCppMetadataProvider visualCppMetadataProvider, VswhereVersionLocator vswhereLocator) {
+            return new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator);
+        }
+
+        VswhereVersionLocator createVswhereVersionLocator(WindowsRegistry windowsRegistry, OperatingSystem os) {
+            return new DefaultVswhereVersionLocator(windowsRegistry, os);
         }
 
         SystemPathVersionLocator createSystemPathVersionLocator(OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {

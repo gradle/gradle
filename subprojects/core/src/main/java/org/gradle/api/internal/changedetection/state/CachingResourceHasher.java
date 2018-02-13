@@ -32,14 +32,14 @@ import java.util.zip.ZipEntry;
 public class CachingResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;
-    private final byte[] delegateConfigurationHash;
+    private final HashCode delegateConfigurationHash;
 
     public CachingResourceHasher(ResourceHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         delegate.appendConfigurationToHasher(hasher);
-        this.delegateConfigurationHash = hasher.hash().toByteArray();
+        this.delegateConfigurationHash = hasher.hash();
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.StartParameter;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
@@ -25,19 +26,26 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 
+import static org.gradle.initialization.StartParameterBuildOptions.ContinueOption;
+
 public class CompositeBuildSettingsLoader implements SettingsLoader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompositeBuildSettingsLoader.class);
     private final SettingsLoader delegate;
     private final NestedBuildFactory nestedBuildFactory;
     private final IncludedBuildRegistry includedBuildRegistry;
+    private final StartParameter startParameter;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry, StartParameter startParameter) {
         this.delegate = delegate;
         this.nestedBuildFactory = nestedBuildFactory;
         this.includedBuildRegistry = includedBuildRegistry;
+        this.startParameter = startParameter;
     }
 
     @Override
@@ -47,6 +55,8 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
+            maybeInformAboutContinueOnFailureLimitation(startParameter);
+
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 // TODO: Allow builds to inject into explicitly included builds
                 ConfigurableIncludedBuild includedBuild = includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
@@ -64,5 +74,11 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         includedBuildRegistry.validateExplicitIncludedBuilds(settings);
 
         return settings;
+    }
+
+    private void maybeInformAboutContinueOnFailureLimitation(StartParameter startParameter) {
+        if (startParameter.isContinueOnFailure()) {
+            LOGGER.warn("Using '--{}' with a composite build does not collect all failures.", ContinueOption.LONG_OPTION);
+        }
     }
 }

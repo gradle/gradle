@@ -20,9 +20,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -38,8 +39,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
-import org.gradle.internal.resource.cached.CachedArtifactIndex
-import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -53,13 +54,14 @@ class CachingModuleComponentRepositoryTest extends Specification {
         getRemoteAccess() >> realRemoteAccess
     }
     def moduleResolutionCache = Stub(ModuleVersionsCache)
-    def moduleDescriptorCache = Mock(ModuleMetaDataCache)
+    def moduleDescriptorCache = Mock(ModuleMetadataCache)
     def moduleArtifactsCache = Mock(ModuleArtifactsCache)
-    def artifactAtRepositoryCache = Mock(CachedArtifactIndex)
+    def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
-    def repo = new CachingModuleComponentRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
+    def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
+    def repo = new CachingModuleComponentRepository(realRepo, caches,
             cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleIdentifierFactory)
 
     @Unroll

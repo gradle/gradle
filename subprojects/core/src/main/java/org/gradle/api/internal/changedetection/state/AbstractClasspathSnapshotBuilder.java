@@ -36,7 +36,7 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
     private final StringInterner stringInterner;
     private final ResourceSnapshotterCacheService cacheService;
     private final JarHasher jarHasher;
-    private final byte[] jarHasherConfigurationHash;
+    private final HashCode jarHasherConfigurationHash;
 
     public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         this.builder = new CollectingFileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
@@ -46,7 +46,7 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
         this.jarHasher = new JarHasher();
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
-        this.jarHasherConfigurationHash = hasher.hash().toByteArray();
+        this.jarHasherConfigurationHash = hasher.hash();
     }
 
     protected abstract void visitNonJar(RegularFileSnapshot file);

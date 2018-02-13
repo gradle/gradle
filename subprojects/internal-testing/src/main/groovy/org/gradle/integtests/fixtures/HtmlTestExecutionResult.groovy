@@ -21,6 +21,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Assert
 
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+
 class HtmlTestExecutionResult implements TestExecutionResult {
 
     private File htmlReportDirectory
@@ -83,20 +85,20 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         private void parseTestClassFile() {
             html.select("tr > td.success:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
+                def testName = removeParentheses(it.textNodes().first().wholeText.trim())
                 testsExecuted << testName
                 testsSucceeded << testName
 
             }
             html.select("tr > td.failures:eq(0)").each {
                 def testName = it.textNodes().first().wholeText.trim()
-                testsExecuted << testName
-                def failures = getFailureMessages(testName);
-                testsFailures[it.text()] = failures
+                testsExecuted << removeParentheses(testName)
+                def failures = getFailureMessages(testName)
+                testsFailures[removeParentheses(it.text())] = failures
             }
 
             html.select("tr > td.skipped:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
+                def testName = removeParentheses(it.textNodes().first().wholeText.trim())
                 testsSkipped << testName
                 testsExecuted << testName
             }

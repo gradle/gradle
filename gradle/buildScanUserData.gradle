@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+def run(String commandLine) {
+    def process = commandLine.execute([], rootDir)
+    assert process.waitFor() == 0
+    process.text.trim()
+}
 
 def execAsync = { Runnable f ->
     def latch = new java.util.concurrent.CountDownLatch(1)
@@ -50,9 +55,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         buildScan.tag "LOCAL"
 
         execAsync {
-            setCommitId 'git rev-parse --verify HEAD'.execute().text.trim()
+            def commitId = run('git rev-parse --verify HEAD')
+            setCommitId commitId
 
-            def status = 'git status --porcelain'.execute().text
+            def status = run 'git status --porcelain'
             if (status) {
                 buildScan.tag "dirty"
                 buildScan.value "Git Status", status
@@ -61,7 +67,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
     }
 
     execAsync {
-        def branchName = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+        def branchName = run 'git rev-parse --abbrev-ref HEAD'
         if (branchName && branchName != 'HEAD') {
             buildScan.tag branchName
             buildScan.value "Git Branch Name", branchName

@@ -17,6 +17,10 @@ import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 val runtimeShadedPath = "$buildDir/runtime-api-info"
 
+dependencies {
+    compile(project(":distributionsDependencies"))
+}
+
 tasks {
     val generateGradleApiPackageList by creating(PackageListGenerator::class) {
         classpath = files(

@@ -18,7 +18,6 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.cached.ivy.AbstractCachedIndex;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.serialize.Decoder;

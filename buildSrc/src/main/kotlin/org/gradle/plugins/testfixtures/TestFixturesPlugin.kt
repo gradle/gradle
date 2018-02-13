@@ -24,8 +24,9 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import accessors.*
-import libraries
 import library
+import testLibraries
+import testLibrary
 import org.gradle.kotlin.dsl.*
 
 
@@ -94,8 +95,15 @@ open class TestFixturesPlugin : Plugin<Project> {
             outputDirs(testFixtures.output)
             testFixturesUsageCompile(project(path))
             testFixturesCompile(library("junit"))
-            libraries("jmock").forEach { testFixturesCompile(it) }
-            libraries("spock").forEach { testFixturesCompile(it) }
+            testFixturesCompile(testLibrary("spock"))
+            testLibraries("jmock").forEach { testFixturesCompile(it) }
+
+            constraints {
+                testFixturesCompile("cglib:cglib-nodep") {
+                    version { prefer("3.2.5") }
+                    because("We need to upgrade to a Java8 compatible version")
+                }
+            }
         }
 
         plugins.withType<IdeaPlugin> {

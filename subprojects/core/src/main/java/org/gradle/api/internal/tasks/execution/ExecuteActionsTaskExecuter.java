@@ -49,13 +49,13 @@ import java.util.List;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
-    private final TaskOutputsGenerationListener outputsGenerationListener;
+    private final TaskOutputChangesListener outputsGenerationListener;
     private final TaskActionListener listener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId) {
+    public ExecuteActionsTaskExecuter(TaskOutputChangesListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId) {
         this.outputsGenerationListener = outputsGenerationListener;
         this.listener = taskActionListener;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -66,7 +66,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         listener.beforeActions(task);
         if (!task.getTaskActions().isEmpty()) {
-            outputsGenerationListener.beforeTaskOutputsGenerated();
+            outputsGenerationListener.beforeTaskOutputChanged();
         }
         state.setExecuting(true);
         try {

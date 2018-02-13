@@ -17,22 +17,17 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
-
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 /**
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot extends Snapshot {
-    FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), new DefaultBuildCacheHasher().hash(), UNORDERED, true);
 
     boolean isEmpty();
 

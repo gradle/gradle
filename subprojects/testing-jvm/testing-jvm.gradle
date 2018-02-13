@@ -28,12 +28,15 @@ dependencies {
     compile project(':languageJava')
     compile project(':testingBase')
 
-    compile libraries.junit
-    compile libraries.testng
-    compile libraries.bsh
+    compile libraries.junit.coordinates
+    compile libraries.testng.coordinates
+    compile libraries.bsh.coordinates
 
-    testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
+    testCompile ('com.google.inject:guice:2.0') {
+        because 'This is for TestNG'
+    }
 
+    integTestRuntime project(':testingJunitPlatform')
 }
 
 test {

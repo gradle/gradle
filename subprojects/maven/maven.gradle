@@ -15,21 +15,25 @@
  */
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
 
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':plugins')
     compile project(':pluginUse')
     compile project(':publish')
-    compile libraries.slf4j_api
+    compile libraries.slf4j_api.coordinates
 
-    compile libraries.maven3
-    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
-    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
-    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+    compile libraries.maven3.coordinates
+    compile libraries.pmaven_common.coordinates
+    compile libraries.pmaven_groovy.coordinates
 
-    testCompile libraries.xmlunit
+    implementation libraries.maven3_wagon_file.coordinates
+    implementation libraries.maven3_wagon_http.coordinates
+    implementation libraries.plexus_container.coordinates
+    implementation libraries.aether_connector.coordinates
+
+    testCompile testLibraries.xmlunit
 
     integTestCompile project(":ear")
     integTestRuntime project(":resourcesS3")

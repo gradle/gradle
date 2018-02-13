@@ -17,7 +17,7 @@
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
 
     compile project(':core')
     compile project(':workers')
@@ -30,13 +30,13 @@ dependencies {
     compile project(':diagnostics')
     compile project(':testingJvm')
 
-    compile libraries.ant
-    compile libraries.asm
-    compile libraries.commons_io
-    compile libraries.commons_lang
-    compile libraries.slf4j_api
+    compile libraries.ant.coordinates
+    compile libraries.asm.coordinates
+    compile libraries.commons_io.coordinates
+    compile libraries.commons_lang.coordinates
+    compile libraries.slf4j_api.coordinates
 
-    runtime libraries.commons_cli
+    runtime libraries.commons_cli.coordinates
 
     // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
@@ -44,7 +44,7 @@ dependencies {
 
     testFixturesCompile project(":internalIntegTesting")
 
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
 
     integTestRuntime project(":maven")
 }

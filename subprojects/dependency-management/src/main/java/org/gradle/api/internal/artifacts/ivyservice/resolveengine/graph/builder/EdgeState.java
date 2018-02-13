@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
@@ -200,11 +199,6 @@ class EdgeState implements DependencyGraphEdge {
             return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
         }
         return null;
-    }
-
-    @Override
-    public Iterable<? extends DependencyGraphNode> getTargets() {
-        return targetNodes;
     }
 
     @Override

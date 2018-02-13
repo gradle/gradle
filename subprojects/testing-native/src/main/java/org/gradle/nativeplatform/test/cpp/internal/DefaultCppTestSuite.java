@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
@@ -54,6 +56,11 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         this.testBinary.set(testBinary);
         getBinaries().add(testBinary);
         return testBinary;
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("C++ test suite", getName());
     }
 
     @Override

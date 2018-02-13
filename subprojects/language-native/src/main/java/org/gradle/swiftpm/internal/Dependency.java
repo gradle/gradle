@@ -19,20 +19,14 @@ package org.gradle.swiftpm.internal;
 import java.io.Serializable;
 import java.net.URI;
 
-public class Dependency implements Serializable {
+abstract public class Dependency implements Serializable {
     private final URI url;
-    private final String version;
 
-    public Dependency(URI url, String version) {
+    public Dependency(URI url) {
         this.url = url;
-        this.version = version;
     }
 
     public URI getUrl() {
         return url;
-    }
-
-    public String getVersion() {
-        return version;
     }
 }

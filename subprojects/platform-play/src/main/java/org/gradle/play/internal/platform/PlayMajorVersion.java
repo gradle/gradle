@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.VersionNumber;
 
 import java.util.List;
@@ -43,8 +44,8 @@ public enum PlayMajorVersion {
     public void validateCompatible(ScalaPlatform scalaPlatform) {
         if (!compatibleScalaVersions.contains(scalaPlatform.getScalaCompatibilityVersion())) {
             throw new InvalidUserDataException(
-                    String.format("Play versions %s are not compatible with Scala platform %s. Compatible Scala platforms are %s.",
-                            name, scalaPlatform.getScalaCompatibilityVersion(), compatibleScalaVersions));
+                String.format("Play versions %s are not compatible with Scala platform %s. Compatible Scala platforms are %s.",
+                    name, scalaPlatform.getScalaCompatibilityVersion(), compatibleScalaVersions));
         }
     }
 
@@ -60,6 +61,9 @@ public enum PlayMajorVersion {
     public static PlayMajorVersion forPlayVersion(String playVersion) {
         VersionNumber versionNumber = VersionNumber.parse(playVersion);
         if (versionNumber.getMajor() == 2) {
+            if (versionNumber.getMinor() == 2) {
+                DeprecationLogger.nagUserWith("Play 2.2 support " + DeprecationLogger.getDeprecationMessage() + ". Please upgrade your Play.");
+            }
             int index = versionNumber.getMinor() - 2;
             if (index < 0 || index >= values().length) {
                 throw invalidVersion(playVersion);

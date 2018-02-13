@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -88,7 +87,7 @@ public class PublishingPlugin implements Plugin<Project> {
         void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
             for (Publication publication : extension.getPublications()) {
                 PublicationInternal internalPublication = (PublicationInternal) publication;
-                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
+                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), internalPublication);
             }
         }
 

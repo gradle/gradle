@@ -107,6 +107,7 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         fails(buildA, ":delegate")
 
         then:
+        outputContains("Using '--continue' with a composite build does not collect all failures.")
         // We attach the single failure in 'buildB' to every delegated task, so ':buildB:succeeds' appears to have failed
         // Thus ":delegateWithSuccess" is never executed.
         assertTaskExecutedOnce(":buildB", ":fails")
@@ -131,6 +132,7 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         fails(buildA, ":delegate")
 
         then:
+        outputContains("Using '--continue' with a composite build does not collect all failures.")
         outputContains("continueOnFailure = true")
 
         assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
@@ -151,6 +153,7 @@ class CompositeBuildContinueOnFailureIntegrationTest extends AbstractCompositeBu
         execute(buildA, ":assemble")
 
         then:
+        outputContains("Using '--continue' with a composite build does not collect all failures.")
         outputContains("continueOnFailure = true")
 
         assertTaskExecutedOnce(":buildB", ":checkContinueFlag")

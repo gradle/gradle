@@ -18,14 +18,18 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.Matchers.*
 
-class TestReportIntegrationTest extends AbstractIntegrationSpec {
+// https://github.com/junit-team/junit5/issues/1285
+@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, 'Vintage:5.1.0-M2') })
+class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
     def "report includes results of most recent invocation"() {
@@ -82,9 +86,10 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "merges report with duplicated classes and methods"() {
         given:
+        ignoreWhenJupiter()
         buildFile << """
 $junitSetup
 test {

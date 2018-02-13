@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
@@ -54,12 +54,12 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     }
 
     private static class DependencyManagementBuildSessionServices {
-        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData artifactCacheMetaData) {
-            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetaData);
+        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata) {
+            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata);
         }
 
-        TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {
-            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
+        TransformedFileCache createTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {
+            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }

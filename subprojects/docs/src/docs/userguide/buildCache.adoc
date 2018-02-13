@@ -15,7 +15,7 @@
 [[build_cache]]
 == Build Cache
 
-NOTE: The build cache feature described here is different from the http://tools.android.com/tech-docs/build-cache[Android plugin build cache].
+NOTE: The build cache feature described here is different from the https://developer.android.com/studio/build/build-cache.html[Android plugin build cache].
 
 [[sec:build_cache_intro]]
 === Overview
@@ -157,10 +157,17 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 
+[[sec:task_output_caching_cacheable_3rd_party]]
+===== Third party plugins
+
+There are third party plugins that work well with the build cache.
+The most prominent examples are the https://developer.android.com/studio/releases/gradle-plugin.html[Android plugin 3.1+] and the https://blog.gradle.org/kotlin-build-cache-use[Kotlin plugin 1.2.21+].
+For other third party plugins, check their documentation to find out whether they support the build cache.
+
 [[sec:task_output_caching_non_cacheable_tasks]]
 ===== Non-cacheable tasks
 
-All other tasks are currently not cacheable, but this may change in the future for other languages (Kotlin) or domains (native, Android, Play).
+All other built-in tasks are currently not cacheable, but this may change in the future as we improve caching for some domains like native.
 Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
 It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
 

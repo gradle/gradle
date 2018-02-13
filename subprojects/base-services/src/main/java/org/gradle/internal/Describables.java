@@ -48,6 +48,34 @@ public class Describables {
     }
 
     /**
+     * Returns a describable for an object that has a type and name.
+     */
+    public static DisplayName withTypeAndName(final String type, final String name) {
+        return new AbstractDescribable() {
+            @Override
+            public String getCapitalizedDisplayName() {
+                StringBuilder result = asMutable();
+                result.setCharAt(0, Character.toUpperCase(result.charAt(0)));
+                return result.toString();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return asMutable().toString();
+            }
+
+            private StringBuilder asMutable() {
+                StringBuilder result = new StringBuilder(type.length() + name.length() + 3);
+                result.append(type);
+                result.append(" '");
+                result.append(name);
+                result.append('\'');
+                return result;
+            }
+        };
+    }
+
+    /**
      * Returns a describable that calculates the display name of the given describable when first requested and reuses the result.
      */
     public static DisplayName memoize(Describable describable) {

@@ -320,7 +320,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
-                                                                IncludedBuildRegistry includedBuildRegistry) {
+                                                                IncludedBuildRegistry includedBuildRegistry,
+                                                                StartParameter startParameter) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(buildLayoutFactory),
             settingsProcessor,
@@ -334,7 +335,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
             nestedBuildFactory,
-            includedBuildRegistry);
+            includedBuildRegistry,
+            startParameter);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {

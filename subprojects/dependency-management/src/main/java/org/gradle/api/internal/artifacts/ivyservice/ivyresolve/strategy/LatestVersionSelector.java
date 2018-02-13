@@ -25,6 +25,10 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
         selectorStatus = selector.substring("latest.".length());
     }
 
+    public String getSelectorStatus() {
+        return selectorStatus;
+    }
+
     public boolean isDynamic() {
         return true;
     }

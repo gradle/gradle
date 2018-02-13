@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
 import org.gradle.cache.internal.CacheScopeMapping;
 
 public class DependencyManagementGradleUserHomeScopeServices {
-    DefaultArtifactCacheMetaData createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
-        return new DefaultArtifactCacheMetaData(cacheScopeMapping);
+    DefaultArtifactCacheMetadata createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
+        return new DefaultArtifactCacheMetadata(cacheScopeMapping);
     }
 }

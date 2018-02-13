@@ -15,19 +15,23 @@
  */
 package org.gradle.ide.visualstudio
 
-import org.gradle.ide.visualstudio.fixtures.FiltersFile
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.app.*
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
 
     def app = new CppHelloWorldApp()
@@ -124,7 +128,7 @@ model {
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand.endsWith("gradle\" :installMain${it.name.capitalize()}Executable")
             assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/main/${it.outputDir}/lib/main")
         }
 
@@ -132,6 +136,137 @@ model {
         final mainSolution = solutionFile("app.sln")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can build executable from visual studio"() {
+        useMsbuildTool()
+        def debugBinary = executable("build/exe/main/win32/debug/main")
+
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
+        resultDebug.assertTasksNotSkipped(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
+        debugBinary.assertExists()
+        installation('build/install/main/win32/debug').assertInstalled()
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can build library from visual studio"() {
+        useMsbuildTool()
+        def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
+        def debugBinaryDll = sharedLibrary("build/libs/main/shared/win32/debug/main")
+
+        given:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+model {
+    components {
+        main(NativeLibrarySpec)
+    }
+}
+"""
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinaryLib.assertDoesNotExist()
+        debugBinaryDll.assertDoesNotExist()
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary', ':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
+        resultDebug.assertTasksNotSkipped(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary', ':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
+        debugBinaryLib.assertExists()
+        debugBinaryDll.assertExists()
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can detect build failure from visual studio"() {
+        useMsbuildTool()
+
+        given:
+        app.writeSources(file("src/main"))
+        file('src/main/cpp/broken.cpp') << 'Broken!'
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .fails()
+
+        then:
+        resultDebug.assertOutputContains("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can clean from visual studio"() {
+        useMsbuildTool()
+        def debugBinary = executable('build/exe/main/win32/debug/main')
+
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds()
+
+        then:
+        debugBinary.exec().out == app.englishOutput
+
+        when:
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds(MSBuildExecutor.MSBuildAction.CLEAN)
+
+        then:
+        file("build").assertDoesNotExist()
     }
 
     def "create visual studio solution for library"() {
@@ -157,7 +292,7 @@ model {
         dllProjectFile.projectConfigurations.keySet() == projectConfigurations
         dllProjectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :main${it.name.capitalize()}SharedLibrary"
+            assert it.buildCommand.endsWith("gradle\" :main${it.name.capitalize()}SharedLibrary")
             assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/libs/main/shared/${it.outputDir}/main")
         }
 
@@ -167,7 +302,7 @@ model {
         libProjectFile.projectConfigurations.keySet() == projectConfigurations
         libProjectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :main${it.name.capitalize()}StaticLibrary"
+            assert it.buildCommand.endsWith("gradle\" :main${it.name.capitalize()}StaticLibrary")
             assert it.outputFile == OperatingSystem.current().getStaticLibraryName("build/libs/main/static/${it.outputDir}/main")
         }
 
@@ -727,22 +862,6 @@ model {
         mainSolution.assertReferencesProject(exeProject, ['win32', 'x64'])
         mainSolution.assertReferencesProject(dllProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
         mainSolution.assertReferencesProject(libProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
-    }
-
-    private ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
-    }
-
-    private FiltersFile filtersFile(String path) {
-        return new FiltersFile(file(path))
-    }
-
-    private static String filePath(String... paths) {
-        return (paths as List).join(';')
     }
 
     private String[] getLibraryTasks(String libraryName) {

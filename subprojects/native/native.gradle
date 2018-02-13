@@ -10,12 +10,12 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.nativePlatform
+    api libraries.nativePlatform.coordinates
 
-    implementation libraries.commons_io
-    implementation libraries.slf4j_api
-    implementation libraries.jansi
-    implementation libraries.guava
+    implementation libraries.commons_io.coordinates
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.jansi.coordinates
+    implementation libraries.guava.coordinates
 }
 
 testFixtures {

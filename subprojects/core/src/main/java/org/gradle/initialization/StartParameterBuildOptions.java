@@ -119,8 +119,10 @@ public class StartParameterBuildOptions {
     }
 
     public static class ContinueOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "continue";
+
         public ContinueOption() {
-            super(null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Continue task execution after a task failure."));
         }
 
         @Override

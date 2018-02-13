@@ -16,11 +16,12 @@
 
 package org.gradle.api.publish.internal;
 
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class PublishServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(ProjectDependencyPublicationResolver.class);
+        registration.add(DefaultProjectDependencyPublicationResolver.class);
     }
 }
