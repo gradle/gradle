@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 import org.hamcrest.Matchers
 import spock.lang.Unroll
@@ -55,22 +56,20 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
                 }
             }
         """.stripIndent()
-        generator.withFailingTest()
-        def otherResources = generator.withNonfailingTests(5)
-        def testExecution = server.expectOptionalAndBlock(maxWorkers * threadCount, ([FAILED_RESOURCE ] + otherResources).grep() as String[])
+        def resourceForTest = generator.withFailingTests(6)
+        def testExecution = server.expectOptionalAndBlock(maxWorkers * threadCount, resourceForTest.values() as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
         testExecution.waitForAllPendingCalls()
 
         then:
-        testExecution.release(FAILED_RESOURCE)
+        testExecution.release(1)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        if (result.getTotalNumberOfTestClassesExecuted() != 1) {
-            result.testClassStartsWith("pkg.OtherTest").assertTestCount(0, 0, 0)
-        }
+        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', Matchers.anything()) }
+        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount != 0 }
+        assert 5 >= resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount == 0 }
 
         where:
         parallel    | threadCount | maxWorkers

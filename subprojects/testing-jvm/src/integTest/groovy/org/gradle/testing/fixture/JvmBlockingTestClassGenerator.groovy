@@ -101,4 +101,22 @@ class JvmBlockingTestClassGenerator {
             resource
         }
     }
+
+    Map<String, String> withFailingTests(int num) {
+        (1..num).collectEntries() {
+            final testName = "OtherTest_${it}" as String
+            final resource = "test_${it}" as String
+            root.file("src/test/java/OtherTest_${it}.java") << """
+                import $testAnnotationClass;
+                public class ${testName} {
+                    @Test
+                    public void failedTest() {
+                        ${server.callFromBuild("$resource")}
+                        throw new RuntimeException();
+                    }
+                }
+            """.stripIndent()
+            [(testName): resource]
+        }
+    }
 }

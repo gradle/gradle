@@ -97,22 +97,20 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)
-        generator.withFailingTest()
-        def otherResources = generator.withNonfailingTests(testOmitted)
-        def testExecution = server.expectOptionalAndBlock(maxWorkers, ([FAILED_RESOURCE ] + otherResources) as String[])
+        def resourceForTest = generator.withFailingTests(6)
+        def testExecution = server.expectOptionalAndBlock(maxWorkers, resourceForTest.values() as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
         testExecution.waitForAllPendingCalls()
 
         then:
-        testExecution.release(FAILED_RESOURCE)
+        testExecution.release(1)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        if (result.getTotalNumberOfTestClassesExecuted() != 1) {
-            result.testClassStartsWith("pkg.OtherTest").assertTestCount(0, 0, 0)
-        }
+        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', Matchers.anything()) }
+        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount != 0 }
+        assert 5 >= resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount == 0 }
 
         where:
         forkEvery | maxWorkers | testOmitted

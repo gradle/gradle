@@ -63,6 +63,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    int getTestCount() {
+        return testClassNode.@tests.toInteger()
+    }
+
     TestClassExecutionResult withResult(Closure action) {
         action(testClassNode)
         this
@@ -86,6 +90,26 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             Assert.assertThat(failures[i].@message.text(), messageMatchers[i])
         }
         this
+    }
+
+    boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+        Map<String, Node> testMethods = findTests()
+        if (!testMethods.keySet().contains(name)) {
+            return false
+        }
+
+        def failures = testMethods[name].failure
+        if (failures.size() != messageMatchers.length) {
+            return false
+        }
+
+        for (int i = 0; i < messageMatchers.length; i++) {
+            if (!messageMatchers[i].matches(failures[i].@message.text())) {
+                return false
+            }
+        }
+
+        return true
     }
 
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {

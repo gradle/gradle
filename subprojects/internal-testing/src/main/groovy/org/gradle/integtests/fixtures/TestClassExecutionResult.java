@@ -26,6 +26,8 @@ public interface TestClassExecutionResult {
 
     TestClassExecutionResult assertTestCount(int tests, int failures, int errors);
 
+    int getTestCount();
+
     /**
      * Asserts that the given tests (and only the given tests) were skipped for the given test class.
      */
@@ -40,6 +42,11 @@ public interface TestClassExecutionResult {
      * Asserts that the given test failed.
      */
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
+
+    /**
+     *
+     */
+    boolean testFailed(String name, Matcher<? super String>... messageMatchers);
 
     /**
      * Asserts that the given test was skipped.
