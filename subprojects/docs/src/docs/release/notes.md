@@ -237,9 +237,9 @@ Previous versions of Gradle would only generate Visual Studio solution files for
 ### Support for modelling Java agents
 
 Gradle 4.5 enabled plugin authors to model annotation processors as a [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html) for `JavaCompile` tasks.
-Now we introduce the same ability for Java agents by adding `getJvmArgumentProviders()` for `Test` and `JavaExec`.
+Now we introduce the same ability for Java agents by adding `getJvmArgumentProviders()` to [`Test`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders) and [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders).
 
-For example, the built-in `jacoco` plugin [uses this new feature](https://github.com/gradle/gradle/blob/12a25cce43317e28690183097f8f87130a67318e/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L137-L156) to declare the inputs and outputs of the JaCoCo agent added to the test task.
+For example, the built-in [`jacoco`](userguide/jacoco_plugin.html) plugin [uses this new feature](https://github.com/gradle/gradle/blob/12a25cce43317e28690183097f8f87130a67318e/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L137-L156) to declare the inputs and outputs of the JaCoCo agent added to the test task.
 
     class JacocoAgent implements CommandLineArgumentProvider {
 
@@ -265,6 +265,8 @@ For example, the built-in `jacoco` plugin [uses this new feature](https://github
     task.getJvmArgumentProviders().add(new JacocoAgent(extension));
     
 For this to work, [JacocoTaskExtension](dsl/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html) needs to have the correct input and output annotations.
+
+See the [documentation](userguide/more_about_tasks.html#sec:task_input_nested_inputs) for information how to leverage this feature in custom plugins.
 
 ## Promoted features
 
