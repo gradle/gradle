@@ -104,7 +104,7 @@ The other tasks have not been loaded from the build cache since they are not cac
 and `:jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-==== Cacheable tasks
+=== Cacheable tasks
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
@@ -124,7 +124,7 @@ Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subcla
 Custom task types are _not_ cacheable by default.
 
 [[sec:task_output_caching_cacheable_tasks]]
-===== Built-in cacheable tasks
+==== Built-in cacheable tasks
 
 Currently, the following built-in Gradle tasks are cacheable:
 
@@ -154,23 +154,21 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.testing.jacoco.tasks.JacocoMerge[],
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
 * Other tasks:
-    api:org.gradle.api.plugins.antlr.AntlrTask[]
+    api:org.gradle.api.plugins.antlr.AntlrTask[],
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 
+All other built-in tasks are currently not cacheable.
+
+Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
+It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
+
 [[sec:task_output_caching_cacheable_3rd_party]]
-===== Third party plugins
+==== Third party plugins
 
 There are third party plugins that work well with the build cache.
 The most prominent examples are the https://developer.android.com/studio/releases/gradle-plugin.html[Android plugin 3.1+] and the https://blog.gradle.org/kotlin-build-cache-use[Kotlin plugin 1.2.21+].
 For other third party plugins, check their documentation to find out whether they support the build cache.
-
-[[sec:task_output_caching_non_cacheable_tasks]]
-===== Non-cacheable tasks
-
-All other built-in tasks are currently not cacheable, but this may change in the future as we improve caching for some domains like native.
-Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
-It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
 
 [[sec:task_output_caching_inputs]]
 ==== Declaring task inputs and outputs
@@ -194,7 +192,7 @@ We suggest adding tests to ensure that the task inputs are relocatable, i.e. tha
 In order to handle volatile inputs for your tasks consider <<sec:configure_input_normalization,configuring input normalization>>.
 
 [[sec:task_output_caching_known_issues]]
-==== Known issues with task output caching
+=== Known issues with task output caching
 
 The task output caching feature has known issues that may impact the correctness of your build when using the build cache,
 and there are some caveats to keep in mind which may reduce the number of cache hits you get between machines.
@@ -209,7 +207,7 @@ https://github.com/gradle/gradle/issues?utf8=%E2%9C%93&amp;q=is%3Aopen%20label%3
 NOTE: When https://github.com/gradle/gradle/issues/new?labels=in:build-cache[reporting issues with the build cache], please check if your issue is a known issue or related to a known issue.
 
 [[sec:task_output_caching_known_issues_correctness]]
-===== Correctness issues
+==== Correctness issues
 
 These issues may affect the correctness of your build when using the build cache. Please consider these issues carefully.
 
@@ -240,7 +238,7 @@ These issues may affect the correctness of your build when using the build cache
 |===
 
 [[sec:task_output_caching_known_issues_caveats]]
-===== Caveats
+==== Caveats
 
 These issues may affect the number of cache hits you get between machines.
 
