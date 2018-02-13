@@ -676,8 +676,7 @@ compile - Dependencies for source set 'main' (deprecated, use 'implementation ' 
 """
     }
 
-    def "reports external dependency replaced with project dependency"()
-    {
+    def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
         file("settings.gradle") << "include 'client', 'api2', 'impl'"
