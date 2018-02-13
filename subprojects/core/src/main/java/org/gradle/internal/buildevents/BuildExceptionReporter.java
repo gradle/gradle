@@ -213,7 +213,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
     private void writeGeneralTips(StyledTextOutput resolution) {
         resolution.println();
-        resolution.text("* Get more help at https://help.gradle.org");
+        resolution.text("* Get more help at ");
+        resolution.withStyle(UserInput).text("https://help.gradle.org");
         resolution.println();
     }
 
