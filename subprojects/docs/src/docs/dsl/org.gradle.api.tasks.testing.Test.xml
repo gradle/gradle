@@ -21,14 +21,6 @@
                 <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
             </tr>
             <tr>
-                <td>executable</td>
-                <td><command>java</command> command for the current JVM.</td>
-            </tr>
-            <tr>
-                <td>environment</td>
-                <td>environment of the current process</td>
-            </tr>
-            <tr>
                 <td>workingDir</td>
                 <td><literal>project.projectDir</literal></td>
             </tr>
@@ -43,6 +35,50 @@
             <tr>
                 <td>maxParallelForks</td>
                 <td><literal>1</literal></td>
+            </tr>
+            <tr>
+                <td>executable</td>
+                <td><command>java</command> command for the current JVM.</td>
+            </tr>
+            <tr>
+                <td>systemProperties</td>
+                <td><literal>[:]</literal></td>
+            </tr>
+            <tr>
+                <td>bootstrapClasspath</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>maxHeapSize</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>minHeapSize</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>jvmArgs</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>jvmArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>enableAssertions</td>
+                <td><literal><literal>true</literal></literal></td>
+            </tr>
+            <tr>
+                <td>debug</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>allJvmArgs</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>environment</td>
+                <td>environment of the current process</td>
             </tr>
             <tr>
                 <td>ignoreFailures</td>
@@ -90,13 +126,25 @@
                 <td>workingDir</td>
             </tr>
             <tr>
-                <td>options</td>
-            </tr>
-            <tr>
                 <td>executable</td>
             </tr>
             <tr>
+                <td>systemProperties</td>
+            </tr>
+            <tr>
+                <td>bootstrapClasspath</td>
+            </tr>
+            <tr>
+                <td>jvmArgs</td>
+            </tr>
+            <tr>
                 <td>environment</td>
+            </tr>
+            <tr>
+                <td>copyTo</td>
+            </tr>
+            <tr>
+                <td>options</td>
             </tr>
         </table>
     </section>
