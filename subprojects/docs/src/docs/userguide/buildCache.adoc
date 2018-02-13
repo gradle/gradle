@@ -141,6 +141,7 @@ Currently, the following built-in Gradle tasks are cacheable:
 * Native toolchain:
     api:org.gradle.language.cpp.tasks.CppCompile[],
     api:org.gradle.language.c.tasks.CCompile[]
+    api:org.gradle.language.swift.tasks.SwiftCompile[]
 * Testing:
     api:org.gradle.api.tasks.testing.Test[]
 * Code quality tasks:
