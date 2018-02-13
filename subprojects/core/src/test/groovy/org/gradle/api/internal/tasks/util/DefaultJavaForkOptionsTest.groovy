@@ -849,7 +849,7 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         def thrown = thrown(UnsupportedOperationException)
-        thrown.message.contains('Cannot compare options which have jvmArgumentProviders configured.')
+        thrown.message.contains('Cannot compare options with jvmArgumentProviders.')
 
         where:
         currentHasProviders | otherHasProviders
@@ -951,7 +951,7 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         def thrown = thrown(UnsupportedOperationException)
-        thrown.message.contains('Cannot merge options which have jvmArgumentProviders configured.')
+        thrown.message.contains('Cannot merge options with jvmArgumentProviders.')
 
         where:
         currentHasProviders | otherHasProviders

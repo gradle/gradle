@@ -49,7 +49,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     public List<String> getAllJvmArgs() {
-        if (jvmArgumentProviders != null) {
+        if (hasJvmArgumentProviders(this)) {
             JvmOptions copy = options.createCopy();
             for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
                 copy.jvmArgs(jvmArgumentProvider.asArguments());
@@ -62,14 +62,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     public void setAllJvmArgs(List<String> arguments) {
         options.setAllJvmArgs(arguments);
-        if (jvmArgumentProviders != null) {
+        if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
         }
     }
 
     public void setAllJvmArgs(Iterable<?> arguments) {
         options.setAllJvmArgs(arguments);
-        if (jvmArgumentProviders != null) {
+        if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
         }
     }
@@ -189,7 +189,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
         if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
-            throw new UnsupportedOperationException("Cannot merge options which have jvmArgumentProviders configured.");
+            throw new UnsupportedOperationException("Cannot merge options with jvmArgumentProviders.");
         }
         JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver);
 
@@ -237,7 +237,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public boolean isCompatibleWith(JavaForkOptions options) {
         if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
-            throw new UnsupportedOperationException("Cannot compare options which have jvmArgumentProviders configured.");
+            throw new UnsupportedOperationException("Cannot compare options with jvmArgumentProviders.");
         }
         return getDebug() == options.getDebug()
                 && getEnableAssertions() == options.getEnableAssertions()
@@ -253,11 +253,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {
-        if (!(forkOptions instanceof DefaultJavaForkOptions)) {
-            return false;
-        }
-        DefaultJavaForkOptions defaultJavaForkOptions = (DefaultJavaForkOptions) forkOptions;
-        return defaultJavaForkOptions.jvmArgumentProviders != null && !defaultJavaForkOptions.jvmArgumentProviders.isEmpty();
+        return forkOptions instanceof DefaultJavaForkOptions
+            && hasJvmArgumentProviders((DefaultJavaForkOptions) forkOptions);
+    }
+
+    private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
+        return forkOptions.jvmArgumentProviders != null && !forkOptions.jvmArgumentProviders.isEmpty();
     }
 
 }
