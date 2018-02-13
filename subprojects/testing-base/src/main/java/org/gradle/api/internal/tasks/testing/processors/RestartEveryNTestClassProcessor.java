@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.internal.Factory;
 
 public class RestartEveryNTestClassProcessor implements TestClassProcessor {
     private final Factory<TestClassProcessor> factory;
@@ -41,13 +41,11 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-//        System.out.println("processTestClass " + this + " " + testClass.getTestClassName());
         if (stoppedNow) {
             return;
         }
 
         if (processor == null) {
-//            System.out.println("create " + this);
             processor = factory.create();
             processor.startProcessing(resultProcessor);
         }
@@ -60,7 +58,6 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stop() {
-//        System.out.println("stop " + this);
         if (processor != null) {
             endBatch();
         }
@@ -68,7 +65,6 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
-//        System.out.println("stopNow " + this);
         stoppedNow = true;
         if (processor != null) {
             processor.stopNow();
@@ -76,7 +72,6 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
     }
 
     private void endBatch() {
-//        System.out.println("endBatch " + this);
         try {
             processor.stop();
         } finally {

@@ -73,8 +73,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-//        System.out.println("FTCP.processTestClass " + this + " " + testClass.getTestClassName());
-
         lock.lock();
         try {
             if (stoppedNow) {
@@ -143,7 +141,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     public void stop() {
         if (remoteProcessor != null) {
             try {
-//                System.out.println("FTCP.stop() before lock " + this);
                 lock.lock();
                 try {
                     if (!stoppedNow) {
@@ -152,7 +149,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 } finally {
                     lock.unlock();
                 }
-//                System.out.println("FTCP.stop() after lock " + this);
                 workerProcess.waitForStop();
             } catch (ExecException e) {
                 if (!stoppedNow) {
@@ -169,17 +165,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
-//        System.out.println("FTCP.stopNow() before lock " + this);
         lock.lock();
         try {
             stoppedNow = true;
-//            System.out.println("  remoteProcessor is " + remoteProcessor + " " + this);
             if (remoteProcessor != null) {
                 workerProcess.stopNow();
             }
         } finally {
             lock.unlock();
         }
-//        System.out.println("FTCP.stopNow() after lock " + this);
     }
 }
