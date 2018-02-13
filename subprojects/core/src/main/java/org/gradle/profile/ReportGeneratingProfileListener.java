@@ -52,6 +52,10 @@ public class ReportGeneratingProfileListener extends BuildAdapter implements Pro
         textOutput.println();
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(reportFile);
         textOutput.formatln("See the profiling report at: %s", reportUrl);
+        textOutput.text("A fine-grained performance profile is available: use the ");
+        textOutput.withStyle(StyledTextOutput.Style.UserInput).text("--scan");
+        textOutput.text(" option.");
+        textOutput.println();
     }
 }
 
