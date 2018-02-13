@@ -21,7 +21,6 @@ import org.apache.tools.ant.taskdefs.Delete
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
-import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
 import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.AvailableJavaHomes
