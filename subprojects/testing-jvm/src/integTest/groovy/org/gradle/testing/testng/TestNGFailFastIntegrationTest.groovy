@@ -17,12 +17,9 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 import org.hamcrest.Matchers
 import spock.lang.Unroll
-
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.FAILED_RESOURCE
 
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
