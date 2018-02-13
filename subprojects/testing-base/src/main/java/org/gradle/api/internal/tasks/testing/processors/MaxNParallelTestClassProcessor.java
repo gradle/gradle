@@ -43,6 +43,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private List<TestClassProcessor> rawProcessors = new ArrayList<TestClassProcessor>();
     private List<Actor> actors = new ArrayList<Actor>();
     private Actor resultProcessorActor;
+    private volatile boolean stoppedNow;
 
     public MaxNParallelTestClassProcessor(int maxProcessors, Factory<TestClassProcessor> factory, ActorFactory actorFactory) {
         this.maxProcessors = maxProcessors;
@@ -59,6 +60,10 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
+        if (stoppedNow) {
+            return;
+        }
+
         TestClassProcessor processor;
         if (processors.size() < maxProcessors) {
             processor = factory.create();
@@ -86,6 +91,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
+        stoppedNow = true;
         for (TestClassProcessor processor : rawProcessors) {
             processor.stopNow();
         }
