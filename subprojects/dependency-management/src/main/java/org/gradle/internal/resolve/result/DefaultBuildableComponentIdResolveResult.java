@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -95,7 +96,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         metaData = null;
         id = null;
         moduleVersionId = null;
-        selectionDescription = VersionSelectionReasons.REQUESTED;
+        selectionDescription = selectionDescription == null || selectionDescription.getCause() != ComponentSelectionCause.CONSTRAINT ? VersionSelectionReasons.REQUESTED : VersionSelectionReasons.CONSTRAINT;
         versionConstraint = null;
     }
 

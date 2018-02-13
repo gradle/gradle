@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.file.DefaultFileHierarchySet;
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * See {@link DefaultFileSystemSnapshotter} for some more details
  */
-public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGenerationListener, RootBuildLifecycleListener {
+public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChangesListener, RootBuildLifecycleListener {
     // Maps from interned absolute path for a file to known details for the file.
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
@@ -115,7 +115,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGen
     }
 
     @Override
-    public void beforeTaskOutputsGenerated() {
+    public void beforeTaskOutputChanged() {
         // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
         // This is intentionally very simple, to be improved later
         files.clear();

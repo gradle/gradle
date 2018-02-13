@@ -22,11 +22,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.DisplayName;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class DefaultNativeComponent {
+public abstract class DefaultNativeComponent {
     private final ConfigurableFileCollection source;
     private final FileOperations fileOperations;
 
@@ -35,6 +36,12 @@ public class DefaultNativeComponent {
         this.fileOperations = fileOperations;
 
         source = fileOperations.files();
+    }
+
+    public abstract DisplayName getDisplayName();
+
+    public String toString() {
+        return getDisplayName().getDisplayName();
     }
 
     public ConfigurableFileCollection getSource() {

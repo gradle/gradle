@@ -16,14 +16,19 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     def canRunTestsWithCustomSystemClassLoader() {

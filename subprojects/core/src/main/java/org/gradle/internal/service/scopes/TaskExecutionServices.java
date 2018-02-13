@@ -54,7 +54,7 @@ import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileSnapshottingPropertyAnnotationHandler;
@@ -111,10 +111,10 @@ public class TaskExecutionServices {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
-        TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
+        TaskOutputChangesListener taskOutputChangesListener = listenerManager.getBroadcaster(TaskOutputChangesListener.class);
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            taskOutputsGenerationListener,
+            taskOutputChangesListener,
             listenerManager.getBroadcaster(TaskActionListener.class),
             buildOperationExecutor,
             asyncWorkTracker,
@@ -124,7 +124,7 @@ public class TaskExecutionServices {
         if (taskOutputCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,
-                taskOutputsGenerationListener,
+                taskOutputChangesListener,
                 taskOutputCacheCommandFactory,
                 executer
             );
@@ -135,9 +135,9 @@ public class TaskExecutionServices {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, startParameter.isBuildCacheDebugLogging());
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer, buildInvocationScopeId);
+        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputChangesListener, executer, buildInvocationScopeId);
         executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
+        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, taskOutputChangesListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);

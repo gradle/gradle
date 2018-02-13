@@ -36,6 +36,12 @@ class DefaultCppLibraryTest extends Specification {
         library = new DefaultCppLibrary("main", project.objects, project, project.configurations)
     }
 
+    def "has display name"() {
+        expect:
+        library.displayName.displayName == "C++ library 'main'"
+        library.toString() == "C++ library 'main'"
+    }
+
     def "has implementation configuration"() {
         expect:
         library.implementationDependencies == project.configurations.implementation

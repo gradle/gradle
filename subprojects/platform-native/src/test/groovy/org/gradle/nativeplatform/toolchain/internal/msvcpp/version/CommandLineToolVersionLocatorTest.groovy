@@ -16,122 +16,27 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 
-import net.rubygrapefruit.platform.MissingRegistryEntryException
-import net.rubygrapefruit.platform.WindowsRegistry
-
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.gradle.util.VersionNumber
-import org.junit.Rule
-import spock.lang.Specification
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.*
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.LEGACY
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.VS2017_OR_LATER
 
-
-class CommandLineToolVersionLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    File vswhere
-    def localRoot = tmpDir.createDir("root")
-    def programFiles = localRoot.createDir("Program Files")
-    def programFilesX86 = localRoot.createDir("Program Files (X86)")
-    def os = Mock(OperatingSystem)
-    def windowsRegistry = Mock(WindowsRegistry)
+class CommandLineToolVersionLocatorTest extends VswhereSpec {
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)
     def execActionFactory = Mock(ExecActionFactory)
     def execAction = Mock(ExecAction)
-    def locator = new CommandLineToolVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider)
+    def vswhereLocator = Mock(VswhereVersionLocator)
+    def locator = new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator)
 
     def setup() {
         _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> { args -> visualCppMetadata(new File(args[0], "VC/Tools/MSVC/1.2.3.4"), "1.2.3.4") }
 
         _ * visualCppMetadataProvider.getVisualCppFromRegistry(_) >> { args -> visualCppMetadata(localRoot.createDir("Program Files/Microsoft Visual Studio ${args[0]}/VC"), args[0]) }
-    }
-
-    def "finds vswhere executable in Program Files"() {
-        given:
-        vswhereInProgramFiles()
-        vswhereResults(vsWhereManyVersions(localRoot))
-
-        when:
-        locator.getVisualStudioInstalls()
-
-        then:
-        1 * execAction.executable(vswhere.absolutePath)
-    }
-
-    def "finds vswhere executable in Program Files (X86)"() {
-        given:
-        vswhereInProgramFilesX86()
-        vswhereResults(vsWhereManyVersions(localRoot))
-
-        when:
-        locator.getVisualStudioInstalls()
-
-        then:
-        1 * execAction.executable(vswhere.absolutePath)
-    }
-
-    def "finds vswhere executable in system path"() {
-        given:
-        vswhereInPath()
-        vswhereResults(vsWhereManyVersions(localRoot))
-
-        when:
-        locator.getVisualStudioInstalls()
-
-        then:
-        1 * execAction.executable(vswhere.absolutePath)
-    }
-
-    def "finds vswhere executable in system path if vswhere executable in Program Files is not a file"() {
-        def programFilesVswhere = programFiles.createDir("Microsoft Visual Studio/Installer").createDir("vswhere.exe")
-
-        given:
-        vswhereInPath()
-        assert vswhere.absolutePath != programFilesVswhere.absolutePath
-        vswhereResults(vsWhereManyVersions(localRoot))
-
-        when:
-        locator.getVisualStudioInstalls()
-
-        then:
-        1 * execAction.executable(vswhere.absolutePath)
-    }
-
-    def "prefers vswhere executable from Program Files if also available in system path"() {
-        def pathVswhere = localRoot.createFile("vswhere.exe")
-
-        given:
-        vswhereInProgramFiles()
-        _ * os.findInPath("vswhere.exe") >> pathVswhere
-        assert pathVswhere.absolutePath != vswhere.absolutePath
-        vswhereResults(vsWhereManyVersions(localRoot))
-
-        when:
-        locator.getVisualStudioInstalls()
-
-        then:
-        1 * execAction.executable(vswhere.absolutePath)
-    }
-
-    def "prefers vswhere executable from Program Files (X86) if also available in system path"() {
-        def pathVswhere = localRoot.createFile("vswhere.exe")
-
-        given:
-        vswhereInProgramFilesX86()
-        _ * os.findInPath("vswhere.exe") >> pathVswhere
-        assert pathVswhere.absolutePath != vswhere.absolutePath
-        vswhereResults(vsWhereManyVersions(localRoot))
-
-        when:
-        locator.getVisualStudioInstalls()
-
-        then:
-        1 * execAction.executable(vswhere.absolutePath)
+        _ * vswhereLocator.getVswhereInstall() >> { vswhere }
     }
 
     def "finds all versions of visual studio using vswhere"() {
@@ -199,6 +104,7 @@ class CommandLineToolVersionLocatorTest extends Specification {
         then:
         versionMetadata != null
         versionMetadata.size() == 0
+        _ * vswhereLocator.getVswhereInstall() >> { new DefaultVswhereVersionLocator(windowsRegistry, os).getVswhereInstall() }
     }
 
     def "returns empty list if Program Files (X86) cannot be found in registry"() {
@@ -228,8 +134,7 @@ class CommandLineToolVersionLocatorTest extends Specification {
         locator.getVisualStudioInstalls()
 
         then:
-        0 * windowsRegistry.getStringValue(_, _, _)
-        0 * os.findInPath(_)
+        0 * vswhereLocator.getVswhereInstall()
         0 * execAction.execute()
     }
 
@@ -245,42 +150,6 @@ class CommandLineToolVersionLocatorTest extends Specification {
             outputStream.write(jsonResult.bytes)
             return Stub(ExecResult)
         }
-    }
-
-    void vswhereInPath() {
-        x64Registry()
-        vswhere = localRoot.createFile("vswhere.exe")
-        1 * os.findInPath(_) >> vswhere
-    }
-
-    void vswhereInProgramFiles() {
-        x86Registry()
-        vswhere = programFiles.createDir("Microsoft Visual Studio/Installer").createFile("vswhere.exe")
-    }
-
-    void vswhereInProgramFilesX86() {
-        x64Registry()
-        vswhere = programFilesX86.createDir("Microsoft Visual Studio/Installer").createFile("vswhere.exe")
-    }
-
-    void vswhereNotFound() {
-        x64Registry()
-        1 * os.findInPath(_) >> null
-    }
-
-    void vswhereNotFoundX86Registry() {
-        x86Registry()
-        1 * os.findInPath(_) >> null
-    }
-
-    void x64Registry() {
-        _ * windowsRegistry.getStringValue(_, _, "ProgramFilesDir") >> programFiles.absolutePath
-        _ * windowsRegistry.getStringValue(_, _, "ProgramFilesDir (x86)") >> programFilesX86.absolutePath
-    }
-
-    void x86Registry() {
-        _ * windowsRegistry.getStringValue(_, _, "ProgramFilesDir") >> programFiles.absolutePath
-        _ * windowsRegistry.getStringValue(_, _, "ProgramFilesDir (x86)") >> { throw new MissingRegistryEntryException("not found") }
     }
 
     VisualCppMetadata visualCppMetadata(File visualCppDir, String version) {

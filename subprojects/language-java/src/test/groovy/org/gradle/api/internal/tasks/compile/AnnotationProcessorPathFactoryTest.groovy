@@ -21,14 +21,13 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.api.internal.tasks.compile.processing.DefaultProcessorPath
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.JarUtils
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -37,8 +36,10 @@ import spock.lang.Unroll
 class AnnotationProcessorPathFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), new AnnotationProcessorDetector(new TestFileContentCacheFactory()))
-    def options = new CompileOptions(Mock(ObjectFactory))
+
+    AnnotationProcessorDetector detector = Mock(AnnotationProcessorDetector)
+    CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+    AnnotationProcessorPathFactory factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), detector)
 
     def "uses path defined on Java compile options, as a FileCollection"() {
         def cp = files("lib.jar")
@@ -98,9 +99,9 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
 
         where:
-        scenario                            | annotationProcessorPath
-        'null'                              | null
-        'an empty default processor path'   | Mock(DefaultProcessorPath) { isEmpty() >> true }
+        scenario                          | annotationProcessorPath
+        'null'                            | null
+        'an empty default processor path' | Mock(DefaultProcessorPath) { isEmpty() >> true }
     }
 
     @Unroll
@@ -119,9 +120,9 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         e.message == 'No path provided for compiler argument -processorpath in requested compiler args: -Xthing -processorpath'
 
         where:
-        scenario                            | annotationProcessorPath
-        'null'                              | null
-        'an empty default processor path'   | Mock(DefaultProcessorPath) { isEmpty() >> true }
+        scenario                          | annotationProcessorPath
+        'null'                            | null
+        'an empty default processor path' | Mock(DefaultProcessorPath) { isEmpty() >> true }
     }
 
     def "uses empty path when processing disabled"() {
@@ -134,22 +135,6 @@ class AnnotationProcessorPathFactoryTest extends Specification {
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
-    }
-
-    @Unroll
-    def "uses compile classpath when directory contains service resource (where options.annotationProcessorPath is #scenario)"() {
-        given:
-        def dir = tmpDir.file("classes-dir")
-        dir.file("META-INF/services/javax.annotation.processing.Processor") << "MyProcessor"
-        def cp = files(dir)
-
-        expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
-
-        where:
-        scenario                 | annotationProcessorPath
-        'null'                   | null
-        'an empty configuration' | Mock(Configuration) { isEmpty() >> true }
     }
 
     @Issue("gradle/gradle#1471")
@@ -210,11 +195,12 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     }
 
     @Unroll
-    def "uses compile classpath when jar contains service resource (where options.annotationProcessorPath is #scenario)"() {
+    def "uses compile classpath when it contains processors (where options.annotationProcessorPath is #scenario)"() {
         given:
         def jar = tmpDir.file("classes.jar")
-        jar << JarUtils.jarWithContents("META-INF/services/javax.annotation.processing.Processor": "MyProcessor")
-        def cp = files(jar)
+        def dir = tmpDir.file("classes-dir")
+        def cp = files(jar, dir)
+        detector.detectProcessors(cp) >> [Mock(AnnotationProcessorDeclaration)]
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
@@ -229,10 +215,9 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     def "uses empty path when compile classpath does not include any processors (where options.annotationProcessorPath is #scenario)"() {
         given:
         def dir = tmpDir.file("classes-dir")
-        dir.file("Thing.class").createFile()
         def jar = tmpDir.file("classes.jar")
-        jar << JarUtils.jarWithContents("Other.class": "other")
         def cp = files(dir, jar)
+        detector.detectProcessors(cp) >> []
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty

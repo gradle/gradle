@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnn
 import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.NestedBeanAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler;
@@ -53,7 +54,6 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -96,8 +96,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         new InputPropertyAnnotationHandler(),
         new DestroysPropertyAnnotationHandler(),
         new LocalStatePropertyAnnotationHandler(),
-        // Nested is handled as part of the PropertyWalker
-        new NoOpPropertyAnnotationHandler(Nested.class),
+        new NestedBeanAnnotationHandler(),
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
         new NoOpPropertyAnnotationHandler(Internal.class),
@@ -111,7 +110,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         .weakKeys()
         .build(new CacheLoader<Class<?>, TypeMetadata>() {
             @Override
-            public TypeMetadata load(@Nonnull Class<?> type) throws Exception {
+            public TypeMetadata load(@Nonnull Class<?> type) {
                 return createTypeMetadata(type);
             }
         });

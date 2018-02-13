@@ -31,10 +31,8 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 /**
  * Test Gradle's build performance against current Gradle.
@@ -67,27 +65,29 @@ class GradleBuildPerformanceTest extends Specification {
     @Shared
     def resultStore = new CrossBuildResultsStore()
 
-    def runner = new CrossBuildPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
-        resultStore,
-        buildContext) {
-
-        @Override
-        protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-            super.defaultSpec(builder)
-            builder.workingDirectory = tmpDir.testDirectory
-        }
-    }
+    CrossBuildPerformanceTestRunner runner
 
     def warmupBuilds = 20
     def measuredBuilds = 40
 
-    @Unroll
-    @Ignore("IllegalException: Multiple specifications with display name 'baseline build' on retry")
-    def "#tasks on the gradle build comparing the build"() {
+    def setup() {
+        runner = new CrossBuildPerformanceTestRunner(
+            new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            resultStore,
+            buildContext) {
+
+            @Override
+            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+                super.defaultSpec(builder)
+                builder.workingDirectory = tmpDir.testDirectory
+            }
+        }
+        runner.testGroup = 'gradle build'
+    }
+
+    def "help on the gradle build comparing the build"() {
 
         given:
-        runner.testGroup = 'gradle build'
         runner.testId = testName.methodName
 
         and:
@@ -101,7 +101,7 @@ class GradleBuildPerformanceTest extends Specification {
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
             invocation {
-                tasksToRun(tasks)
+                tasksToRun("help")
                 useDaemon()
             }
         }
@@ -113,7 +113,7 @@ class GradleBuildPerformanceTest extends Specification {
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
             invocation {
-                tasksToRun(tasks)
+                tasksToRun("help")
                 useDaemon()
             }
         }
@@ -134,9 +134,6 @@ class GradleBuildPerformanceTest extends Specification {
         if (baselineResults.fasterThan(currentResults)) {
             throw new AssertionError(speedStats)
         }
-
-        where:
-        tasks << ['help']
     }
 
     private static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {

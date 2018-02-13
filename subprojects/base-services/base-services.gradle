@@ -14,16 +14,16 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 dependencies {
     compile project(':distributionsDependencies')
 
-    api libraries.guava.coordinate
-    api libraries.jsr305.coordinate
-    api libraries.fastutil.coordinate
+    api libraries.guava.coordinates
+    api libraries.jsr305.coordinates
+    api libraries.fastutil.coordinates
 
-    implementation libraries.slf4j_api.coordinate
-    implementation libraries.commons_lang.coordinate
-    implementation libraries.commons_io.coordinate
-    implementation libraries.jcip.coordinate
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.jcip.coordinates
 
-    jmh(libraries.bouncycastle_provider.coordinate) { version { prefer libraries.bouncycastle_provider.version } }
+    jmh(libraries.bouncycastle_provider.coordinates) { version { prefer libraries.bouncycastle_provider.version } }
 }
 
 testFixtures {

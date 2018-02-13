@@ -14,61 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.compile;
+package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 
-class NonIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
+class NonIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
-    CompilationOutputsFixture outputs
-
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-
-        outputs = new CompilationOutputsFixture(file("build/classes"))
-
-        def annotationProcessorProjectDir = testDirectory.file("annotation-processor").createDir()
-
-        settingsFile << """
-            include "annotation-processor"
-        """
-        buildFile << """
-            apply plugin: 'java'
-            
-            dependencies {
-                compileOnly project(":annotation-processor")
-                annotationProcessor project(":annotation-processor")
-            }
-            
-            compileJava {
-                compileJava.options.incremental = true
-                options.fork = true
-            }
-        """
-
-        annotationProcessorProjectDir.file("build.gradle") << """
-            apply plugin: "java"
-        """
-
-        def fixture = new AnnotationProcessorFixture()
-        fixture.writeSupportLibraryTo(annotationProcessorProjectDir)
-        fixture.writeApiTo(annotationProcessorProjectDir)
-        fixture.writeAnnotationProcessorTo(annotationProcessorProjectDir)
-    }
-
-    private File java(String... classBodies) {
-        File out
-        for (String body : classBodies) {
-            def className = (body =~ /(?s).*?class (\w+) .*/)[0][1]
-            assert className: "unable to find class name"
-            def f = file("src/main/java/${className}.java")
-            f.createFile()
-            f.text = body
-            out = f
-        }
-        out
+    @Override
+    protected IncrementalAnnotationProcessorType getProcessorType() {
+        return null
     }
 
     def "all sources are recompiled when any class changes"() {
@@ -94,7 +48,7 @@ class NonIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrat
         run "compileJava", "--info"
 
         then:
-        output.contains("The following annotation processors were detected:")
-        output.contains("Processor")
+        output.contains("The following annotation processors don't support incremental compilation:")
+        output.contains("Processor (type: UNKNOWN)")
     }
 }

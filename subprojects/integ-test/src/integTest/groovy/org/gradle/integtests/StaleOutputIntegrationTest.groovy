@@ -168,17 +168,19 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds("myTask")
 
         when:
-        // Now that we produce this, we can detect the situation where
-        // someone builds with Gradle 4.3, then 4.2 and then 4.3 again.
-        file(".gradle/buildOutputCleanup/cache.properties").text = """
-            gradle.version=1.0
-        """
-        // recreate the output
+        invalidateBuildOutputCleanupState()
         dirInBuildDir.createDir()
         staleFileInDir.touch()
         fileInBuildDir.touch()
         then:
         succeeds("myTask")
+    }
+
+    // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
+    private void invalidateBuildOutputCleanupState() {
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
     }
 
     def "stale #type is removed before task executes"(String type, Closure creationCommand) {
@@ -390,6 +392,69 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         // FIXME This should be localStateHasBeenRemoved(), and the task should not be skipped
         taskWithLocalState.localStateHasNotBeenRemoved()
         skipped(taskWithLocalState.taskPath)
+    }
+
+    def "up-to-date checks detect removed stale outputs"() {
+        buildFile << """                                    
+            plugins {
+                id 'base'
+            }
+
+            def originalDir = file('build/original')
+            def backupDir = file('backup')
+
+            task backup {
+                inputs.files(originalDir)
+                outputs.dir(backupDir)
+                doLast {
+                    copy {
+                        from originalDir
+                        into backupDir
+                    }
+                }
+            }
+            
+            task restore {
+                inputs.files(backupDir)
+                outputs.dir(originalDir)
+                doLast {
+                    copy {
+                        from backupDir
+                        into originalDir
+                    }
+                }
+            }
+        """
+
+        def original = file('build/original/original.txt')
+        original.text = "Original"
+        def backup = file('backup/original.txt')
+
+        when:
+        run 'backup', 'restore'
+
+        then:
+        executedAndNotSkipped(':backup')
+        executedAndNotSkipped(':restore')
+        original.text == backup.text
+        original.text == "Original"
+
+        when:
+        // The whole setup is as follows:
+        // - Both the restore and the backup task have an entry in the task history
+        // - The output of the restore path is the input of the backup task.
+        //   This means when the backup task is up-to-date, then the contents of the output of the restore path is in the file system mirror.
+        //
+        // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
+        invalidateBuildOutputCleanupState()
+        run 'backup', 'restore', '--info'
+
+        then:
+        output.contains("Deleting stale output file: ${original.parentFile.absolutePath}")
+        skipped ':backup'
+        executedAndNotSkipped(':restore')
+        original.text == backup.text
+        original.text == "Original"
     }
 
     class TaskWithLocalState {

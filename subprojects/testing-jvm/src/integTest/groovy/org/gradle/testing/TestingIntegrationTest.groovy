@@ -16,9 +16,10 @@
 package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
@@ -26,10 +27,14 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
-class TestingIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -236,6 +241,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     "can clean test after extracting class file with #framework"() {
         when:
+        ignoreWhenJUnitPlatform()
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
@@ -262,6 +268,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")
     def "test class detection works for custom test tasks"() {
         given:
+        ignoreWhenJupiter()
         buildFile << """
                 apply plugin:'java'
                 ${mavenCentralRepository()}

@@ -110,6 +110,9 @@ class SelectorState implements DependencyGraphSelector {
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
+            if (dependencyMetadata.isPending()) {
+                idResolveResult.setSelectionDescription(CONSTRAINT);
+            }
             resolver.resolve(dependencyMetadata, idResolveResult);
         }
 
@@ -121,9 +124,6 @@ class SelectorState implements DependencyGraphSelector {
         selected = resolveState.getRevision(idResolveResult.getModuleVersionId());
         selected.selectedBy(this);
         selected.addCause(idResolveResult.getSelectionDescription());
-        if (dependencyMetadata.isPending()) {
-            selected.addCause(CONSTRAINT);
-        }
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());
         }
@@ -143,9 +143,6 @@ class SelectorState implements DependencyGraphSelector {
         }
         List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(isConstraint && hasRuleDescriptor ? 3 : 2);
         descriptors.add(description);
-        if (isConstraint) {
-            descriptors.add(CONSTRAINT);
-        }
         if (hasRuleDescriptor) {
             descriptors.add(dependencyState.getRuleDescriptor());
         }

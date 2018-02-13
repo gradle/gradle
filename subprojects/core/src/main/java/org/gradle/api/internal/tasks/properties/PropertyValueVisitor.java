@@ -19,5 +19,5 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 
 public interface PropertyValueVisitor {
-    void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory);
+    void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedPropertyContext<BeanNode> context);
 }

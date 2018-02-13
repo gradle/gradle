@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.properties.BeanNode;
+import org.gradle.api.internal.tasks.properties.NestedPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
@@ -34,7 +36,7 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedPropertyContext<BeanNode> context) {
     }
 
 }

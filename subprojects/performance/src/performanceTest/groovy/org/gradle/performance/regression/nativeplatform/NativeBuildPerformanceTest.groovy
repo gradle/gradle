@@ -87,9 +87,9 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject   | maxMemory
-        "bigCppApp"   | '256m'
-        "bigCppMulti" | '1g'
+        testProject        | maxMemory
+        "bigCppApp"        | '256m'
+        "bigCppMulti"      | '1g'
     }
 
     @Unroll

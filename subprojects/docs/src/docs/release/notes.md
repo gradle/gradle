@@ -21,6 +21,78 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
 
 In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
 
+### JUnit Platform and JUnit Jupiter/Vintage Engine (a.k.a. JUnit 5) support
+
+[JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of the well-known `JUnit` test framework. JUnit 5 is composed of several modules:
+
+    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+    
+The `JUnit Platform` serves as a foundation for launching testing frameworks on the JVM. `JUnit Jupiter` is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
+ and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. `JUnit Vintage` provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
+    
+Gradle now provides native support for `JUnit Jupiter/Vintage Engine` on top of `JUnit Platform`. To enable `JUnit Platform` support, you just need to add one line to your `build.gradle`:
+
+    test {
+        useJUnitPlatform()
+    }
+
+Moreover, [Tagging and Filtering](http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering) can be enabled via:
+
+    test {
+        useJUnitPlatform {
+            // includeTags 'fast'
+            excludeTags 'slow'
+            
+            // includeEngines 'junit-jupiter', 'junit-vintage'
+            // excludeEngines 'custom-engine'
+        }
+    }  
+    
+You can find samples of tagged tests at `samples/testing/junitplatform/tagging` in the '-all' distribution of Gradle.         
+    
+#### JUnit Jupiter Engine
+    
+To enable `JUnit Jupiter` support, add the following dependencies:
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.3'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
+    }      
+
+Put your first `Jupiter` test into `src/test/java/foo/bar`:
+
+    package foo.bar;
+    
+    import org.junit.jupiter.api.Test;
+    
+    public class JUnitJupiterTest {
+        @Test
+        public void ok() { 
+        }
+    }
+    
+Now you can run `gradle test` to see the results of your JUnit 5 tests! 
+
+You can find a sample of test with `JUnit Jupiter` at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle. 
+
+#### JUnit Vintage Engine
+
+If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JUnit Vintage Engine` dependency:
+
+    test {
+        useJUnitPlatform()
+    }
+    
+    dependencies {
+        testCompileOnly 'junit:junit:4.12' 
+        testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:4.12.3' 
+    }
+    
+You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
+A sample of mixed tests can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.         
+
+Note that JUnit 5 requires Java 8 or higher.
+
 ### Support for optional dependencies in POM consumption
 
 Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
@@ -74,7 +146,16 @@ Gradle now allows you to explicitly state for [which metadata files](userguide/r
 
 This avoids a 2nd request for the JAR file when the POM is missing, making dependency resolution from Maven repositories faster in this case.
 
-You can also use this to programmatically opt-in to using the new Gradle metadata format for one repository using `metadataSources { gradleMetadata() }`.
+### Specifying reasons for dependency declaration and resolution rules
+
+In complex builds, dependency resolution results can be hard to interpret. Sometimes the reason why a [dependency declaration](userguide/customizing_dependency_resolution_behavior.html) or a [rule](userguide/inspecting_dependencies.html#sec:dependency_declaration_reasons) was added to the build script can get lost. To improve on this situation, we extended all the corresponding APIs with the capability to define a _reason_ for each declaration or rule. These reasons are shown in dependency insight reports and error messages if the corresponding declaration or rule influenced the resolution result. In the future, they will also be shown in build scans.
+
+    dependencies {
+        implementation('org.ow2.asm:asm:6.0') {
+            because 'we require a JDK 9 compatible bytecode generator'
+        }
+    }
+    
 
 ### Default JaCoCo version upgraded to 0.8.0
 
@@ -212,6 +293,10 @@ buildCache {
 ### Putting annotation processors on the compile classpath or explicit `-processorpath` compiler argument
 
 Putting processors on the compile classpath or using an explicit `-processorpath` compiler argument has been deprecated and will be removed in Gradle 5.0. Annotation processors should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of some library you use), use the `-proc:none` compiler argument to ignore it.
+
+### Play 2.2 is deprecated in Play plugin
+
+The use of Play 2.2 with the the Play plugin has been deprecated and will be removed with Gradle 5.0. It is highly recommended to upgrade to a newer version of [Play](https://www.playframework.com/).
 
 ## Potential breaking changes
 

@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.language.ComponentDependencies;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
@@ -43,6 +45,11 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(SwiftExecutable.class);
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("Swift application", getName());
     }
 
     @Override

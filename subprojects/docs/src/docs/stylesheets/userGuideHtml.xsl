@@ -100,7 +100,6 @@
                                             <li><a href="/userguide/web_project_tutorial.html">Web Application Quickstart</a></li>
                                             <li><a href="https://guides.gradle.org/writing-gradle-tasks/">Writing Custom Script Tasks</a></li>
                                             <li><a href="/userguide/custom_tasks.html">Writing Custom Task Classes</a></li>
-                                            <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management for Java Projects</a></li>
                                         </ul>
                                     </li>
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#java-plugins-reference" aria-expanded="false" aria-controls="java-plugins-reference">Plugins Reference</a>
@@ -130,6 +129,7 @@
                                         </ul>
                                     </li>
                                     <li><a href="/userguide/ant.html">Using Ant from Gradle</a></li>
+                                    <li><a href="/userguide/dependency_management_for_java_projects.html">Dependency Management for Java Projects</a></li>
                                 </ul>
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#building-cpp-projects" aria-expanded="false" aria-controls="building-native-projects">C++ Projects</a>
@@ -174,7 +174,7 @@
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
                                     <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
-                                    <li><a href="/userguide/defining_using_configurations.html">Defining and Using Configurations</a></li>
+                                    <li><a href="/userguide/managing_dependency_configurations.html">Managing Dependency Configurations</a></li>
                                     <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
                                     <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
                                     <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>

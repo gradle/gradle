@@ -18,14 +18,11 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
-import net.rubygrapefruit.platform.MissingRegistryEntryException;
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -40,33 +37,23 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
     private static final Logger LOGGER = Logging.getLogger(CommandLineToolVersionLocator.class);
 
     private final ExecActionFactory execActionFactory;
-    private final WindowsRegistry windowsRegistry;
-    private final OperatingSystem os;
     private final VisualCppMetadataProvider visualCppMetadataProvider;
+    private final VswhereVersionLocator vswhereLocator;
 
-    private static final String[] PROGRAM_FILES_KEYS = {
-        "ProgramFilesDir",
-        "ProgramFilesDir (x86)"
-    };
-
-    private static final String REGISTRY_PATH_WINDOWS = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion";
-    private static final String VISUAL_STUDIO_INSTALLER = "Microsoft Visual Studio/Installer";
-    private static final String VSWHERE_EXE = "vswhere.exe";
     private static final String INSTALLATION_PATH_KEY = "installationPath";
     private static final String INSTALLATION_VERSION_KEY = "installationVersion";
 
-    public CommandLineToolVersionLocator(ExecActionFactory execActionFactory, WindowsRegistry windowsRegistry, OperatingSystem os, VisualCppMetadataProvider visualCppMetadataProvider) {
+    public CommandLineToolVersionLocator(ExecActionFactory execActionFactory, VisualCppMetadataProvider visualCppMetadataProvider, VswhereVersionLocator vswhereLocator) {
         this.execActionFactory = execActionFactory;
-        this.windowsRegistry = windowsRegistry;
-        this.os = os;
         this.visualCppMetadataProvider = visualCppMetadataProvider;
+        this.vswhereLocator = vswhereLocator;
     }
 
     @Override
     protected List<VisualStudioMetadata> locateInstalls() {
         List<VisualStudioMetadata> installs = Lists.newArrayList();
 
-        File vswhereBinary = findVswhereBinary();
+        File vswhereBinary = vswhereLocator.getVswhereInstall();
         if (vswhereBinary != null) {
             List<String> args = Lists.newArrayList("-all", "-legacy", "-format", "json");
             String json = getVswhereOutput(vswhereBinary, args);
@@ -79,25 +66,6 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
     @Override
     public String getSource() {
         return "command line tool";
-    }
-
-    private File findVswhereBinary() {
-        for (String programFilesKey : PROGRAM_FILES_KEYS) {
-            File programFilesDir;
-            try {
-                programFilesDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_PATH_WINDOWS, programFilesKey));
-            } catch (MissingRegistryEntryException e) {
-                // We'll get this when we try to look up "ProgramFilesDir (x86)" on a 32-bit OS
-                continue;
-            }
-
-            File candidate = new File(programFilesDir, VISUAL_STUDIO_INSTALLER + "/" + VSWHERE_EXE);
-            if (candidate.exists() && candidate.isFile()) {
-                return candidate;
-            }
-        }
-
-        return os.findInPath(VSWHERE_EXE);
     }
 
     private String getVswhereOutput(File vswhereBinary, List<String> args) {

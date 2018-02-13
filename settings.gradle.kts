@@ -84,6 +84,7 @@ include("buildCacheHttp")
 include("testingBase")
 include("testingNative")
 include("testingJvm")
+include("testingJunitPlatform")
 include("platformPlay")
 include("testKit")
 include("installationBeacon")
@@ -171,6 +172,7 @@ val groovyBuildScriptProjects = listOf(
     "testing-base",
     "testing-native",
     "testing-jvm",
+    "testing-junit-platform",
     "platform-play",
     "test-kit",
     "soak",

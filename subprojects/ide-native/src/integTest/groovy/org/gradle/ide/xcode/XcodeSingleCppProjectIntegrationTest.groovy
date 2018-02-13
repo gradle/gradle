@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -111,7 +111,7 @@ apply plugin: 'cpp-application'
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebug.error.contains("Scheme App is not currently configured for the test action.")
@@ -121,7 +121,7 @@ apply plugin: 'cpp-application'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
@@ -131,7 +131,7 @@ apply plugin: 'cpp-application'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
@@ -154,7 +154,7 @@ apply plugin: 'cpp-library'
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebug.error.contains("Scheme App is not currently configured for the test action.")
@@ -164,7 +164,7 @@ apply plugin: 'cpp-library'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
@@ -174,7 +174,7 @@ apply plugin: 'cpp-library'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
