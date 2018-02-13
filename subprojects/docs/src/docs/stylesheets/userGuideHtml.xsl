@@ -66,22 +66,47 @@
 
                         <h3 id="using-gradle-builds">Using Gradle Builds</h3>
                         <ul>
-                            <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
-                            <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
-                            <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
-                            <li><a href="/userguide/build_environment.html">Build Environment</a></li>
-                            <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
-                            <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
                             <li><a href="/userguide/build_cache.html">Build Cache</a></li>
+                            <li><a href="/userguide/build_environment.html">Build Environment</a></li>
+                            <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
+                            <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
                             <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
                             <li><a href="/userguide/continuous_build.html">Continuous Build</a></li>
-                            <li><a href="/userguide/gradle_daemon.html">Daemon</a></li>
-                            <li><a href="/userguide/troubleshooting.html">Troubleshooting</a></li>
                             <li><a href="/userguide/embedding.html">Embedding Gradle</a></li>
+                            <li><a href="/userguide/gradle_daemon.html">Gradle Daemon</a></li>
+                            <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
+                            <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
+                            <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
+                            <li><a href="/userguide/troubleshooting.html">Troubleshooting</a></li>
                         </ul>
 
                         <h3 id="writing-gradle-builds">Authoring Gradle Builds</h3>
                         <ul>
+                            <li><a class="nav-dropdown" data-toggle="collapse" href="#building-android-projects" aria-expanded="false" aria-controls="building-android-projects">Android Projects</a>
+                                <ul id="building-android-projects">
+                                    <li><a href="https://guides.gradle.org/building-android-apps/">Building Android Apps</a></li>
+                                </ul>
+                            </li>
+                            <li><a class="nav-dropdown" data-toggle="collapse" href="#building-cpp-projects" aria-expanded="false" aria-controls="building-native-projects">C++ Projects</a>
+                                <ul id="building-cpp-projects">
+                                    <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-tutorials" aria-expanded="false" aria-controls="cpp-tutorials">C++ Tutorials</a>
+                                        <ul id="cpp-tutorials">
+                                            <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Executables</a></li>
+                                            <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Libraries</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="/userguide/native_software.html">Building Native Software</a></li>
+                                    <li><a href="/userguide/software_model_concepts.html">Software Model Concepts</a></li>
+                                    <li><a href="/userguide/software_model.html">Rule-based Model Configuration</a></li>
+                                    <li><a href="/userguide/rule_source.html">Implementing Model Rules in a Plugin</a></li>
+                                    <li><a href="/userguide/software_model_extend.html">Extending the Software Model</a></li>
+                                </ul>
+                            </li>
+                            <li><a class="nav-dropdown" data-toggle="collapse" href="#building-javascript-projects" aria-expanded="false" aria-controls="building-javascript-projects">JavaScript Projects</a>
+                                <ul id="building-javascript-projects">
+                                    <li><a href="https://guides.gradle.org/running-webpack-with-gradle/">Running Webpack with Gradle</a></li>
+                                </ul>
+                            </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#building-jvm-projects" aria-expanded="false" aria-controls="building-jvm-projects">JVM Projects</a>
                                 <ul id="building-jvm-projects">
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#java-tutorials" aria-expanded="false" aria-controls="java-tutorials">JVM Tutorials</a>
@@ -132,31 +157,9 @@
                                     <li><a href="/userguide/dependency_management_for_java_projects.html">Dependency Management for Java Projects</a></li>
                                 </ul>
                             </li>
-                            <li><a class="nav-dropdown" data-toggle="collapse" href="#building-cpp-projects" aria-expanded="false" aria-controls="building-native-projects">C++ Projects</a>
-                                <ul id="building-cpp-projects">
-                                    <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-tutorials" aria-expanded="false" aria-controls="cpp-tutorials">C++ Tutorials</a>
-                                        <ul id="cpp-tutorials">
-                                            <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Executables</a></li>
-                                            <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Libraries</a></li>
-                                        </ul>
-                                    </li>
-                                    <li><a href="/userguide/native_software.html">Building Native Software</a></li>
-                                    <li><a href="/userguide/software_model_concepts.html">Software Model Concepts</a></li>
-                                    <li><a href="/userguide/software_model.html">Rule-based Model Configuration</a></li>
-                                    <li><a href="/userguide/rule_source.html">Implementing Model Rules in a Plugin</a></li>
-                                    <li><a href="/userguide/software_model_extend.html">Extending the Software Model</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="nav-dropdown" data-toggle="collapse" href="#building-android-projects" aria-expanded="false" aria-controls="building-android-projects">Android Projects</a>
-                                <ul id="building-android-projects">
-                                    <li><a href="https://guides.gradle.org/building-android-apps/">Building Android Apps</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="nav-dropdown" data-toggle="collapse" href="#building-javascript-projects" aria-expanded="false" aria-controls="building-javascript-projects">JavaScript Projects</a>
-                                <ul id="building-javascript-projects">
-                                    <li><a href="https://guides.gradle.org/running-webpack-with-gradle/">Bundling JavaScript with Webpack</a></li>
-                                </ul>
-                            </li>
+                        </ul>
+                        <p><!--  --></p>
+                        <ul>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-build-scripts" aria-expanded="false" aria-controls="authoring-build-scripts">Authoring Build Scripts</a>
                                 <ul id="authoring-build-scripts">
                                     <li><a href="/userguide/tutorial_using_tasks.html">Build Script Basics</a></li>
@@ -170,6 +173,13 @@
                                     <li><a href="/userguide/working_with_files.html">Working with Files</a></li>
                                     <li><a href="/userguide/build_lifecycle.html">Build Lifecycle</a></li>
                                     <li><a href="/userguide/feature_lifecycle.html">Feature Lifecycle</a></li></ul></li>
+                            <li><a class="nav-dropdown" data-toggle="collapse" href="#best-practices" aria-expanded="false" aria-controls="best-practices">Best Practices</a>
+                                <ul id="best-practices">
+                                    <li><a href="/userguide/organizing_build_logic.html">Organizing Build Logic</a></li>
+                                    <li><a href="https://guides.gradle.org/performance/">Optimizing Build Performance</a></li>
+                                    <li><a href="https://guides.gradle.org/using-build-cache/">Using the Build Cache</a></li>
+                                </ul>
+                            </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Managing Dependencies</a>
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
@@ -191,19 +201,12 @@
                                     </li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
-                                    <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
                                     <li><a href="/userguide/distribution_plugin.html">Distribution Plugin</a></li>
                                     <li><a href="/userguide/maven_plugin.html">Maven Plugin</a></li>
                                     <li><a href="/userguide/publishing_maven.html">Maven Publish Plugin</a></li>
                                     <li><a href="/userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
+                                    <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
                                     <li><a href="/userguide/signing_plugin.html">Signing Plugin</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="nav-dropdown" data-toggle="collapse" href="#best-practices" aria-expanded="false" aria-controls="best-practices">Best Practices</a>
-                                <ul id="best-practices">
-                                    <li><a href="/userguide/organizing_build_logic.html">Organizing Build Logic</a></li>
-                                    <li><a href="https://guides.gradle.org/performance/">Optimizing Build Performance</a></li>
-                                    <li><a href="https://guides.gradle.org/using-build-cache/">Using the Build Cache</a></li>
                                 </ul>
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Sample Gradle Builds</a>
