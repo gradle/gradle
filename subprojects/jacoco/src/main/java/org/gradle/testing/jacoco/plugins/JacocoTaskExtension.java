@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -289,13 +290,15 @@ public class JacocoTaskExtension {
     }
 
     /**
-     * The Jacoco agent jar.
+     * The Jacoco agent configuration.
+     *
+     * This contains only one file - the agent jar.
      *
      * @since 4.6
      */
     @Classpath
-    public File getAgentJar() {
-        return agent.getJar();
+    public FileCollection getAgentConf() {
+        return agent.getAgentConf();
     }
 
     /**
