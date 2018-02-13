@@ -36,6 +36,8 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerLeaseRegistry.WorkerLease currentWorkerLease;
@@ -45,6 +47,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
+    private final Lock lock = new ReentrantLock();
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
@@ -129,8 +132,13 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     public void stop() {
         if (remoteProcessor != null) {
             try {
-                if (!stoppedNow) {
-                    remoteProcessor.stop();
+                lock.lock();
+                try {
+                    if (!stoppedNow) {
+                        remoteProcessor.stop();
+                    }
+                } finally {
+                    lock.unlock();
                 }
                 workerProcess.waitForStop();
             } catch (ExecException e) {
@@ -148,9 +156,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
-        stoppedNow = true;
-        if (remoteProcessor != null) {
-            workerProcess.stopNow();
+        lock.lock();
+        try {
+            stoppedNow = true;
+            if (remoteProcessor != null) {
+                workerProcess.stopNow();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }
