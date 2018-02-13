@@ -41,6 +41,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -216,10 +217,14 @@ public class DependencyInsightReportTask extends DefaultTask {
             if (!last) {
                 output.println();
             }
-
         }
 
         legendRenderer.printLegend();
+
+        output.println();
+        output.text("A web-based, searchable dependency tree is available: use the ");
+        output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        output.println(" option.");
     }
 
     private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainerInternal requestedAttributes) {
