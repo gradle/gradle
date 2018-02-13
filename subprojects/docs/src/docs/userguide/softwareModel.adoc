@@ -33,7 +33,7 @@ Rule based model configuration facilitates easier domain modelling: communicatin
 
 As well as helping humans, a strong domain model also helps the dutiful machines. Plugins can more effectively collaborate around a strong domain model (e.g. plugins can say something about Java applications, such as providing conventions). Very importantly, by having a model of the _what_ instead of the _how_ Gradle can make intelligent choices on just how to do the how.
 
-Gradle's support for building <<native_software,native software>> and <<play_plugin,Play Framework applications>> already uses this configuration model. Gradle also includes some initial support for building <<java_software,Java libraries>> using this configuration model.
+Gradle's support for building <<native_software,native software>> and <<play_plugin,Play Framework applications>> already uses this configuration model.
 
 [[sec:motivations_for_change]]
 === Motivations for change
