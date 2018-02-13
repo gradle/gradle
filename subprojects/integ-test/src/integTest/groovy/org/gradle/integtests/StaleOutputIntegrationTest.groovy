@@ -457,6 +457,50 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         original.text == "Original"
     }
 
+    def "task with file tree output can be up-to-date"() {
+        buildFile << """                                     
+            plugins {
+                id 'base'
+            }
+
+            class TaskWithFileTreeOutput extends DefaultTask {
+                @Input
+                String input
+                
+                @Internal
+                File outputDir
+                
+                @OutputFiles
+                FileCollection getOutputFileTree() {
+                    project.fileTree(outputDir).include('**/myOutput.txt')
+                }
+                
+                @TaskAction
+                void generateOutputs() {
+                    outputDir.mkdirs()
+                    new File(outputDir, 'myOutput.txt').text = input
+                }
+            }
+            
+            task custom(type: TaskWithFileTreeOutput) {
+                outputDir = file('build/outputs')
+                input = 'input'
+            }
+        """
+        def taskPath = ':custom'
+
+        when:
+        run taskPath
+        then:
+        executedAndNotSkipped taskPath
+
+        when:
+        run taskPath, '--info'
+
+        then:
+        skipped taskPath
+    }
+
     class TaskWithLocalState {
         String localStateDir = "build/state"
         String outputFile = "build/output.txt"
