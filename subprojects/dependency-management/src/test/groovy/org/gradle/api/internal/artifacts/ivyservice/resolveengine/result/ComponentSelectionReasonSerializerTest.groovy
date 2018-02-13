@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
+import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 
 class ComponentSelectionReasonSerializerTest extends SerializerSpec {
@@ -68,11 +69,16 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
         def reason = VersionSelectionReasons.of(Arrays.asList(reasons))
         def result = serialize(reason, serializer)
         assert result == reason
-        serializer.reset()
     }
 
     private static ComponentSelectionReasonInternal withReason(String reason) {
         VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE.withReason(reason)])
     }
 
+    @Override
+    def <T> T serialize(T value, Serializer<T> serializer) {
+        def bytes = toBytes(value, serializer)
+        serializer.reset()
+        return fromBytes(bytes, serializer)
+    }
 }
