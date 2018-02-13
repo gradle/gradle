@@ -21,8 +21,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.*;
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final FileResolver resolver;
     private final JvmOptions options;
+    private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
     public DefaultJavaForkOptions(FileResolver resolver) {
         this(resolver, Jvm.current());
@@ -46,15 +49,29 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     public List<String> getAllJvmArgs() {
-        return options.getAllJvmArgs();
+        if (jvmArgumentProviders != null) {
+            JvmOptions copy = options.createCopy();
+            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
+                copy.jvmArgs(jvmArgumentProvider.asArguments());
+            }
+            return copy.getAllJvmArgs();
+        } else {
+            return options.getAllJvmArgs();
+        }
     }
 
     public void setAllJvmArgs(List<String> arguments) {
         options.setAllJvmArgs(arguments);
+        if (jvmArgumentProviders != null) {
+            jvmArgumentProviders.clear();
+        }
     }
 
     public void setAllJvmArgs(Iterable<?> arguments) {
         options.setAllJvmArgs(arguments);
+        if (jvmArgumentProviders != null) {
+            jvmArgumentProviders.clear();
+        }
     }
 
     public List<String> getJvmArgs() {
@@ -77,6 +94,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     public JavaForkOptions jvmArgs(Object... arguments) {
         jvmArgs(Arrays.asList(arguments));
         return this;
+    }
+
+    @Override
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        if (jvmArgumentProviders == null) {
+            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+        }
+        return jvmArgumentProviders;
     }
 
     public Map<String, Object> getSystemProperties() {
@@ -153,11 +178,19 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         options.copyTo(target);
+        if (jvmArgumentProviders != null) {
+            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
+                target.jvmArgs(jvmArgumentProvider.asArguments());
+            }
+        }
         return this;
     }
 
     @Override
     public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
+        if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
+            throw new UnsupportedOperationException("Cannot merge options which have jvmArgumentProviders configured.");
+        }
         JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver);
 
         if (!canBeMerged(getExecutable(), options.getExecutable())) {
@@ -203,6 +236,9 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Override
     public boolean isCompatibleWith(JavaForkOptions options) {
+        if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
+            throw new UnsupportedOperationException("Cannot compare options which have jvmArgumentProviders configured.");
+        }
         return getDebug() == options.getDebug()
                 && getEnableAssertions() == options.getEnableAssertions()
                 && normalized(getExecutable()).equals(normalized(options.getExecutable()))
@@ -215,4 +251,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
                 && containsAll(getEnvironment(), options.getEnvironment())
                 && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
     }
+
+    private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {
+        if (!(forkOptions instanceof DefaultJavaForkOptions)) {
+            return false;
+        }
+        DefaultJavaForkOptions defaultJavaForkOptions = (DefaultJavaForkOptions) forkOptions;
+        return defaultJavaForkOptions.jvmArgumentProviders != null && !defaultJavaForkOptions.jvmArgumentProviders.isEmpty();
+    }
+
 }

@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ConfigurableJavaForkOptions;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
@@ -104,7 +103,7 @@ public class JacocoPluginExtension {
      * @param task the task to apply Jacoco to.
      * @see JacocoPluginExtension#TASK_EXTENSION_NAME
      */
-    public <T extends Task & ConfigurableJavaForkOptions> void applyTo(final T task) {
+    public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
@@ -161,7 +160,7 @@ public class JacocoPluginExtension {
      *
      * @param tasks the tasks to apply Jacoco to
      */
-    public <T extends Task & ConfigurableJavaForkOptions> void applyTo(TaskCollection<T> tasks) {
+    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
         ((TaskCollection) tasks).withType(JavaForkOptions.class, new Action<T>() {
             @Override
             public void execute(T task) {

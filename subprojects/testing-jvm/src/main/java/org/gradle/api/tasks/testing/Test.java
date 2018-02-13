@@ -59,7 +59,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ConfigurableJavaForkOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -71,7 +70,6 @@ import org.gradle.util.SingleMessageLogger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,7 +124,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  */
 @NonNullApi
 @CacheableTask
-public class Test extends AbstractTestTask implements ConfigurableJavaForkOptions, PatternFilterable {
+public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final DefaultJavaForkOptions forkOptions;
 
@@ -138,7 +136,6 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -369,10 +366,7 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
      */
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        if (jvmArgumentProviders == null) {
-            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
-        }
-        return jvmArgumentProviders;
+        return forkOptions.getJvmArgumentProviders();
     }
 
     /**
@@ -516,11 +510,6 @@ public class Test extends AbstractTestTask implements ConfigurableJavaForkOption
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
-        if (jvmArgumentProviders != null) {
-            for (CommandLineArgumentProvider jvmArgumentProvider : getJvmArgumentProviders()) {
-                target.jvmArgs(jvmArgumentProvider.asArguments());
-            }
-        }
         return this;
     }
 

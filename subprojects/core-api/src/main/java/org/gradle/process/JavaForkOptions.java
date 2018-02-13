@@ -16,10 +16,12 @@
 
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -153,6 +155,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return this
      */
     JavaForkOptions jvmArgs(Object... arguments);
+
+    /**
+     * Command line argument providers for the java process to fork.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    @Nested
+    List<CommandLineArgumentProvider> getJvmArgumentProviders();
 
     /**
      * Returns the bootstrap classpath to use for the process. The default bootstrap classpath for the JVM is used when

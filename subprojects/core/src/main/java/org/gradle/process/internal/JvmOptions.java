@@ -319,6 +319,21 @@ public class JvmOptions {
         target.systemProperties(immutableSystemProperties);
     }
 
+    public JvmOptions createCopy() {
+        JvmOptions target = new JvmOptions(resolver);
+        target.setJvmArgs(extraJvmArgs);
+        target.setSystemProperties(mutableSystemProperties);
+        target.setMinHeapSize(minHeapSize);
+        target.setMaxHeapSize(maxHeapSize);
+        if (bootstrapClasspath != null) {
+            target.setBootstrapClasspath(getBootstrapClasspath());
+        }
+        target.setEnableAssertions(assertionsEnabled);
+        target.setDebug(debug);
+        target.systemProperties(immutableSystemProperties);
+        return target;
+    }
+
     public static List<String> fromString(String input) {
         return ArgumentsSplitter.split(input);
     }

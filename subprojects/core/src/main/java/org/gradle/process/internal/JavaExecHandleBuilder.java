@@ -41,7 +41,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private FileCollection classpath;
     private final JavaForkOptions javaOptions;
     private final FileResolver fileResolver;
-    private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public JavaExecHandleBuilder(FileResolver fileResolver, Executor executor) {
@@ -54,9 +53,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public List<String> getAllJvmArgs() {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
-        for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-            Iterables.addAll(allArgs, jvmArgumentProvider.asArguments());
-        }
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
             allArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getFiles()));
@@ -253,6 +249,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return jvmArgumentProviders;
+        return javaOptions.getJvmArgumentProviders();
     }
 }

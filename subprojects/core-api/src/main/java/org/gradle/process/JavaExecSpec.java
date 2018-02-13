@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Specifies the options for executing a Java application.
  */
-public interface JavaExecSpec extends ConfigurableJavaForkOptions, BaseExecSpec {
+public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the fully qualified name of the Main class to be executed.
      */
