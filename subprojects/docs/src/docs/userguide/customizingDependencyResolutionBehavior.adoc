@@ -114,7 +114,7 @@ The module to be replaced can be declared with or without a version specified.
                 </sample>
 ++++
 
-Note that a project that is substituted must be included in the multi-project build (via settings.gradle). Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
+Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
 
 [[sec:project_to_module_substitution]]
 ==== Substituting a project dependency with a module replacement
@@ -136,7 +136,7 @@ When a project dependency has been replaced with a module dependency, that proje
 
 A common use case for dependency substitution is to allow more flexible assembly of sub-projects within a multi-project build. This can be useful for developing a local, patched version of an external dependency or for building a subset of the modules within a large multi-project build.
 
-The following example uses a dependency substitution rule to replace any module dependency with the group "org.example", but only if a local project matching the dependency name can be located.
+The following example uses a dependency substitution rule to replace any module dependency with the group `org.example`, but only if a local project matching the dependency name can be located.
 
 ++++
 <sample id="project_substitution" dir="dependency-substitution" title="Conditionally substituting a dependency">
@@ -144,7 +144,7 @@ The following example uses a dependency substitution rule to replace any module 
                 </sample>
 ++++
 
-Note that a project that is substituted must be included in the multi-project build (via settings.gradle). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
+Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
 
 [[sec:configuration_defaults]]
 === Specifying default dependencies for a configuration
@@ -196,7 +196,7 @@ The next example demonstrates `latest` selectors based on a custom status scheme
             </sample>
 ++++
 
-Component metadata rules can be applied to a specified module. Modules must be specified in the form of "group:module".
+Component metadata rules can be applied to a specified module. Modules must be specified in the form of `group:module`.
 
 ++++
 <sample id="customStatusSchemeModule" dir="componentMetadataRules" title="Custom status scheme by module">
@@ -247,9 +247,9 @@ The following example shows a rule that disallows a particular version of a modu
             </sample>
 ++++
 
-Note that version selection is applied starting with the highest version first. The version selected will be the first version found that all component selection rules accept. A version is considered accepted no rule explicitly rejects it.
+Note that version selection is applied starting with the highest version first. The version selected will be the first version found that all component selection rules accept. A version is considered accepted if no rule explicitly rejects it.
 
-Similarly, rules can be targeted at specific modules. Modules must be specified in the form of "group:module".
+Similarly, rules can be targeted at specific modules. Modules must be specified in the form of `group:module`.
 
 ++++
 <sample id="componentSelectionRulesTarget" dir="componentSelectionRules" title="Component selection rule with module target">
@@ -285,16 +285,16 @@ This method:
 [[sec:module_replacement]]
 === Module replacement rules
 
-Module replacement rules allow a build to declare that a legacy library has been replaced by a new one. A good example when a new library replaced a legacy one is the "google-collections" -&gt; "guava" migration. The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava". This is a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates. Renaming of the module coordinates has impact on conflict resolution.
+Module replacement rules allow a build to declare that a legacy library has been replaced by a new one. A good example when a new library replaced a legacy one is the `google-collections` -&gt; `guava` migration. The team that created google-collections decided to change the module name from `com.google.collections:google-collections` into `com.google.guava:guava`. This is a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates. Renaming of the module coordinates has impact on conflict resolution.
 
-To explain the impact on conflict resolution, let's consider the "google-collections" -&gt; "guava" scenario. It may happen that both libraries are pulled into the same dependency graph. For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections. This can cause runtime errors, for example during test or application execution. Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict". It's because the module coordinates for both libraries are completely different and conflict resolution is activated when "group" and "name" coordinates are the same but there are different versions available in the dependency graph (for more info, refer to the section on conflict resolution). Traditional remedies to this problem are:
+To explain the impact on conflict resolution, let's consider the "`google-collections` -&gt; `guava`" scenario. It may happen that both libraries are pulled into the same dependency graph. For example, _our project_ depends on `guava` but some of _our dependencies_ pull in a legacy version of `google-collections`. This can cause runtime errors, for example during test or application execution. Gradle does not automatically resolve the "`google-collections` -&gt; `guava`" conflict because it is not considered as a _version conflict_. It's because the module coordinates for both libraries are completely different and conflict resolution is activated when `group` and `module` coordinates are the same but there are different versions available in the dependency graph (for more info, refer to the section on conflict resolution). Traditional remedies to this problem are:
 
-* Declare exclusion rule to avoid pulling in "google-collections" to graph. It is probably the most popular approach.
+* Declare exclusion rule to avoid pulling in `google-collections` to graph. It is probably the most popular approach.
 * Avoid dependencies that pull in legacy libraries.
 * Upgrade the dependency version if the new version no longer pulls in a legacy library.
-* Downgrade to "google-collections". It's not recommended, just mentioned for completeness.
+* Downgrade to `google-collections`. It's not recommended, just mentioned for completeness.
 
-Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the google-collections VS guava conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
+Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the "`google-collections` -&gt; `guava`" conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
 ++++
 <sample id="module_replacement_declaration" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
                     <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
@@ -303,6 +303,6 @@ Traditional approaches work but they are not general enough. For example, an org
 
 For more examples and detailed API, refer to the DSL reference for api:org.gradle.api.artifacts.dsl.ComponentMetadataHandler[].
 
-What happens when we declare that "google-collections" are replaced by "guava"? Gradle can use this information for conflict resolution. Gradle will consider every version of "guava" newer/better than any version of "google-collections". Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Note that if only "google-collections" appears in the dependency graph (e.g. no "guava") Gradle will not eagerly replace it with "guava". Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
+What happens when we declare that `google-collections` is replaced by `guava`? Gradle can use this information for conflict resolution. Gradle will consider every version of `guava` newer/better than any version of `google-collections`. Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Note that if only `google-collections` appears in the dependency graph (e.g. no `guava`) Gradle will not eagerly replace it with `guava`. Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only `google-collections` or only `guava` in the graph) the replacement information is not used.
 
-Currently it is not possible to declare that certain modules is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
+Currently it is not possible to declare that a given module is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
