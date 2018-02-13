@@ -84,3 +84,20 @@ Every Gradle project provides the task `dependencyInsight` to render the so-call
     <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
 </sample>
 ++++
+
+[[sec:dependency_declaration_reasons]]
+=== Justifying dependency declarations with custom reasons
+
+When you declare a <<declaring_dependencies,dependency>> or a <<sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes your build script and the dependency insight report easier to comprehend.
+
+++++
+<sample id="dependencyReason" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" title="Giving a reason for choosing a certain module version in a dependency declaration">
+    <sourcefile file="build.gradle" snippet="dependency-reason" />
+</sample>
+++++
+
+++++
+<sample id="dependencyReasonReport" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" title="Using the dependency insight report with custom reasons">
+    <output args="-q dependencyInsight --dependency asm"/>
+</sample>
+++++
