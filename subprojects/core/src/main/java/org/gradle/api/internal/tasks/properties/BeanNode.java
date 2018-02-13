@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -37,7 +37,7 @@ public class BeanNode extends AbstractPropertyNode<BeanNode> {
 
     @Override
     public Iterator<BeanNode> getIterator() {
-        return Iterables.transform((Iterable<?>) bean, new Function<Object, BeanNode>() {
+        return Iterators.transform(((Iterable<?>) bean).iterator(), new Function<Object, BeanNode>() {
             private int count = 0;
 
             @Override
@@ -45,6 +45,6 @@ public class BeanNode extends AbstractPropertyNode<BeanNode> {
                 String childPropertyName = getQualifiedPropertyName("$" + count++);
                 return new BeanNode(childPropertyName, Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + childPropertyName + "'"));
             }
-        }).iterator();
+        });
     }
 }
