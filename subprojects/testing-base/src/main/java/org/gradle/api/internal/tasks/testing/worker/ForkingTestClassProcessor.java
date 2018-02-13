@@ -53,7 +53,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private DocumentationRegistry documentationRegistry;
-    private volatile boolean stoppedNow;
+    private boolean stoppedNow;
 
     public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
         this.currentWorkerLease = parentWorkerLease;
