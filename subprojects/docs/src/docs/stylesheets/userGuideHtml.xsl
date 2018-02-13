@@ -117,7 +117,6 @@
                                             <li><a href="/userguide/java_plugin.html">Java Plugin</a></li>
                                             <li><a href="/userguide/java_library_plugin.html">Java Library Plugin</a></li>
                                             <li><a href="/userguide/java_library_distribution_plugin.html">Java Library Distribution Plugin</a></li>
-                                            <li><a href="/userguide/java_software.html">Java Software Model</a></li>
                                             <li><a href="/userguide/jetty_plugin.html">Jetty Plugin</a></li>
                                             <li><a href="/userguide/jdepend_plugin.html">JDepend Plugin</a></li>
                                             <li><a href="/userguide/osgi_plugin.html">OSGi Plugin</a></li>
