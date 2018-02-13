@@ -292,4 +292,55 @@ baz:1.0 requested
         where:
         useReason << [true, false]
     }
+
+    void "expired cache entry doesn't break reading reasons from cache"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+            dependencies {
+                conf("org:foo:1.0") {
+                    because 'first reason' // must have custom reasons to show the problem
+                }
+                conf("org:bar:1.0") {
+                    because 'second reason'
+                }
+            }
+            
+            task resolveTwice {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    result.allComponents { 
+                        it.selectionReason.descriptions.each {
+                           println "\${it.cause} : \${it.description}"
+                        }
+                    }
+                    println 'Waiting 10s for the cache to expire'
+                    Thread.sleep(10100) // must be > 10s
+                    println 'Read result again'
+                    result.allComponents {
+                        it.selectionReason.descriptions.each {
+                           println "\${it.cause} : \${it.description}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'resolveTwice'
+
+        then:
+        noExceptionThrown()
+
+    }
 }
