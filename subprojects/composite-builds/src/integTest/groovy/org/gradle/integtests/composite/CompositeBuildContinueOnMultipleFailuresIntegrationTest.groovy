@@ -68,17 +68,17 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         fails(buildA, 'testAll', [CONTINUE_COMMAND_LINE_OPTION])
 
         then:
-//        !errorOutput.contains('Multiple build failures')
+        !errorOutput.contains('Multiple build failures')
         assertTaskExecuted(':buildB', ':test')
         assertTaskExecuted(':buildC', ':sub1:test')
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
         assertTaskExecuted(':buildD', ':test')
-        assertTaskExecutionFailureMessage(errorOutput, ':buildB:test')
-        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub1:test')
-        assertTaskExecutionFailureMessage(errorOutput,':buildC:sub2:test')
-        assertTaskExecutionFailureMessage(errorOutput,':buildC:sub3:test')
-        assertTaskExecutionFailureMessage(errorOutput,':buildD:test')
+        assertTaskExecutionFailureMessage(errorOutput, 1, ':buildB:test')
+        assertTaskExecutionFailureMessage(errorOutput, 2, ':buildC:sub1:test')
+        assertTaskExecutionFailureMessage(errorOutput, 3, ':buildC:sub2:test')
+        assertTaskExecutionFailureMessage(errorOutput, 4, ':buildC:sub3:test')
+        assertTaskExecutionFailureMessage(errorOutput, 5, ':buildD:test')
     }
 
     def "can collect build failure in root and included build"() {
@@ -100,15 +100,15 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         fails(buildA, 'testAll', [CONTINUE_COMMAND_LINE_OPTION])
 
         then:
-//        !errorOutput.contains('Multiple build failures')
+        !errorOutput.contains('Multiple build failures')
         assertTaskExecuted(':', ':test')
         assertTaskExecuted(':buildC', ':sub1:test')
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
-        assertTaskExecutionFailureMessage(errorOutput, ':test')
-        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub1:test')
-        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub2:test')
-        assertTaskExecutionFailureMessage(errorOutput, ':buildC:sub3:test')
+        assertTaskExecutionFailureMessage(errorOutput, 1, ':test')
+        assertTaskExecutionFailureMessage(errorOutput, 2, ':buildC:sub1:test')
+        assertTaskExecutionFailureMessage(errorOutput, 3, ':buildC:sub2:test')
+        assertTaskExecutionFailureMessage(errorOutput, 4, ':buildC:sub3:test')
     }
 
     private String javaProject() {
@@ -147,7 +147,10 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         """
     }
 
-    static void assertTaskExecutionFailureMessage(String errorOutput, String taskPath) {
-        assert errorOutput.contains("Execution failed for task '$taskPath'")
+    static void assertTaskExecutionFailureMessage(String errorOutput, int errorNumber, String taskPath) {
+        assert errorOutput.contains("""$errorNumber: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task '$taskPath'.""")
     }
 }
