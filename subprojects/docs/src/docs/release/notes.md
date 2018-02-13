@@ -146,8 +146,6 @@ Gradle now allows you to explicitly state for [which metadata files](userguide/r
 
 This avoids a 2nd request for the JAR file when the POM is missing, making dependency resolution from Maven repositories faster in this case.
 
-You can also use this to programmatically opt-in to using the new Gradle metadata format for one repository using `metadataSources { gradleMetadata() }`.
-
 ### Specifying reasons for dependency declaration and resolution rules
 
 In complex builds, dependency resolution results can be hard to interpret. Sometimes the reason why a [dependency declaration](userguide/customizing_dependency_resolution_behavior.html) or a [rule](userguide/inspecting_dependencies.html#sec:dependency_declaration_reasons) was added to the build script can get lost. To improve on this situation, we extended all the corresponding APIs with the capability to define a _reason_ for each declaration or rule. These reasons are shown in dependency insight reports and error messages if the corresponding declaration or rule influenced the resolution result. In the future, they will also be shown in build scans.
