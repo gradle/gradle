@@ -324,8 +324,9 @@ baz:1.0 requested
                            println "\${it.cause} : \${it.description}"
                         }
                     }
-                    println 'Waiting 10s for the cache to expire'
-                    Thread.sleep(10100) // must be > 10s
+                    println 'Waiting for the cache to expire'
+                    // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
+                    Thread.sleep(800) // must be > cache expiry
                     println 'Read result again'
                     result.allComponents {
                         it.selectionReason.descriptions.each {
@@ -335,6 +336,7 @@ baz:1.0 requested
                 }
             }
         """
+        executer.withArgument('-Dorg.gradle.api.internal.artifacts.ivyservice.resolveengine.store.cacheExpiryMs=500')
 
         when:
         run 'resolveTwice'
