@@ -87,7 +87,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        result.output.contains("The buildScan extension 'licenseAgree' value must be exactly the string 'yes' (without quotes).")
+        result.output.contains("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
         result.output.contains("The value given was 'no'.")
     }
 
