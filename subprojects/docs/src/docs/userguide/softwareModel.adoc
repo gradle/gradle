@@ -29,20 +29,13 @@ Rule based model configuration enables _configuration logic to itself have depen
 [[sec:background]]
 === Background
 
-Rule based model configuration facilitates easier domain modelling: communicating intent (i.e. the what) over mechanics (i.e. the how). Domain modelling is a core tenet of Gradle and provides Gradle with several advantages over prior generation build tools such as Apache Ant that focus on the execution model. It allows humans to understand builds at a level that is meaningful to them.
+In a nutshell, the Software Model is a very declarative way to describe how a piece of software is built and the other components it needs as dependencies in the process. It also provides a new, rule-based engine for configuring a Gradle build. When we started to implement the software model we set ourselves the following goals:
 
-As well as helping humans, a strong domain model also helps the dutiful machines. Plugins can more effectively collaborate around a strong domain model (e.g. plugins can say something about Java applications, such as providing conventions). Very importantly, by having a model of the _what_ instead of the _how_ Gradle can make intelligent choices on just how to do the how.
+* Improve configuration and execution time performance.
+* Make customizations of builds with complex tool chains easier.
+* Provide a richer, more standardized way to model different software ecosystems.
 
-Gradle's support for building <<native_software,native software>> and <<play_plugin,Play Framework applications>> already uses this configuration model.
-
-[[sec:motivations_for_change]]
-=== Motivations for change
-
-Domain modelling in Gradle isn't new. The Java plugin's api:org.gradle.api.tasks.SourceSet[] concept is an example of domain modelling, as is the modelling of api:org.gradle.nativeplatform.NativeBinary[] in the native plugin suite.
-
-A distinguishing characteristic of Gradle compared to other build tools that also embrace modelling is that Gradle's model is open and collaborative. Gradle is fundamentally a tool for modelling software construction and then realizing the model, via tasks such as compilation etc. Different domain plugins (e.g. Java, C++, Android) provide models that other plugins can collaborate with and build upon.
-
-By defining build tasks as effectively a graph of dependent functions with explicit inputs and outputs, Gradle is able to order, cache, parallelize and apply other optimizations to the work. Using a “graph of tasks” for the production of software is a long established idea, and necessary given the complexity of software production. The task graph effectively defines the _rules_ of execution that Gradle must follow. The term “Rule based model configuration” refers to applying the same concepts to building the model that builds the task graph.
+Gradle drastically improved configuration performance through other measures. There is no longer any need for a drastic, incompatible change in how Gradle builds are configured. Gradle's support for building <<native_software,native software>> and <<play_plugin,Play Framework applications>> still use the configuration model.
 
 [[sec:basic_concepts]]
 === Basic Concepts
