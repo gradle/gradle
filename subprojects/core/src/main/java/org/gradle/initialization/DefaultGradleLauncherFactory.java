@@ -30,6 +30,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.taskgraph.BuildFailureState;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.ProjectEvaluationLogger;
@@ -195,7 +196,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
-            servicesToStop
+            servicesToStop,
+            serviceRegistry.get(BuildFailureState.class)
         );
         nestedBuildFactory.setParent(gradleLauncher);
         return gradleLauncher;

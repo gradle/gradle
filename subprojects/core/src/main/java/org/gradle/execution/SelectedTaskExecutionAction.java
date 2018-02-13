@@ -22,10 +22,17 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.taskgraph.BuildFailureState;
 
 import java.util.Set;
 
 public class SelectedTaskExecutionAction implements BuildExecutionAction {
+    private final BuildFailureState buildFailureState;
+
+    public SelectedTaskExecutionAction(BuildFailureState buildFailureState) {
+        this.buildFailureState = buildFailureState;
+    }
+
     public void execute(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         TaskGraphExecuter taskGraph = gradle.getTaskGraph();
@@ -37,9 +44,9 @@ public class SelectedTaskExecutionAction implements BuildExecutionAction {
         taskGraph.execute();
     }
 
-    private static class ContinueOnFailureHandler implements TaskFailureHandler {
+    private class ContinueOnFailureHandler implements TaskFailureHandler {
         public void onTaskFailure(Task task) {
-            // Do nothing
+            buildFailureState.addFailure(task.getState().getFailure());
         }
     }
 

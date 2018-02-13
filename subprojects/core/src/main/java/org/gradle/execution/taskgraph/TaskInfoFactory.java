@@ -50,6 +50,8 @@ public class TaskInfoFactory {
     }
 
     private static class TaskResourceTaskInfo extends TaskInfo {
+        private Exception caughtException;
+
         public TaskResourceTaskInfo(TaskInternal task) {
             super(task);
             doNotRequire();
@@ -63,7 +65,18 @@ public class TaskInfoFactory {
         @Override
         public boolean isComplete() {
             IncludedBuildTaskResource task = (IncludedBuildTaskResource) getTask();
-            return task.isComplete();
+
+            try {
+                return task.isComplete();
+            } catch (Exception e) {
+                caughtException = e;
+                return true;
+            }
+        }
+
+        @Override
+        public Throwable getTaskFailure() {
+            return caughtException != null ? caughtException : super.getTaskFailure();
         }
     }
 }

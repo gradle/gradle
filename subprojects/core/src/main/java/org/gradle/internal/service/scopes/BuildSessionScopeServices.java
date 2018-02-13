@@ -51,6 +51,7 @@ import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
+import org.gradle.execution.taskgraph.BuildFailureState;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -258,5 +259,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
         return new CleanupActionFactory(buildOperationExecutor);
+    }
+
+    BuildFailureState createBuildFailureState() {
+        return new BuildFailureState();
     }
 }

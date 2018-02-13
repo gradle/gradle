@@ -19,10 +19,12 @@ import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.tasks.TaskState
+import org.gradle.execution.taskgraph.BuildFailureState
 import spock.lang.Specification
 
 class SelectedTaskExecutionActionTest extends Specification {
-    final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction()
+    final BuildFailureState buildFailureState = new BuildFailureState()
+    final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction(buildFailureState)
     final BuildExecutionContext context = Mock()
     final TaskGraphExecuter executer = Mock()
     final GradleInternal gradleInternal = Mock()
@@ -43,6 +45,7 @@ class SelectedTaskExecutionActionTest extends Specification {
 
         then:
         1 * executer.execute()
+        buildFailureState.failures.empty
     }
 
     def "executes selected tasks when continue specified"() {
@@ -55,6 +58,7 @@ class SelectedTaskExecutionActionTest extends Specification {
         then:
         1 * executer.useFailureHandler(!null)
         1 * executer.execute()
+        buildFailureState.failures.empty
     }
 
     def "adds failure handler that does not abort execution when continue specified"() {
@@ -70,6 +74,7 @@ class SelectedTaskExecutionActionTest extends Specification {
         then:
         1 * executer.useFailureHandler(!null) >> { handler = it[0] }
         1 * executer.execute() >> { handler.onTaskFailure(brokenTask(failure)) }
+        buildFailureState.failures.size() == 1
     }
 
     def brokenTask(Throwable failure) {

@@ -29,6 +29,7 @@ import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
+import org.gradle.execution.taskgraph.BuildFailureState
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
@@ -81,6 +82,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(WorkerLeaseRegistry) >> Stub(WorkerLeaseRegistry)
         parent.get(ParallelismConfigurationManager) >> new ParallelismConfigurationManagerFixture(DefaultParallelismConfiguration.DEFAULT)
         parent.get(StyledTextOutputFactory) >> new TestStyledTextOutputFactory()
+        parent.get(BuildFailureState) >> new BuildFailureState()
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }

@@ -50,6 +50,7 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.taskgraph.BuildFailureState;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
@@ -125,10 +126,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory) {
+    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildFailureState buildFailureState) {
         return new DefaultBuildExecuter(
             asList(new DryRunBuildExecutionAction(textOutputFactory),
-                new SelectedTaskExecutionAction()));
+                new SelectedTaskExecutionAction(buildFailureState)));
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
