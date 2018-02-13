@@ -32,7 +32,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         useXcodebuildTool()
     }
 
-    def "can create xcode project for C++ executable"() {
+    def "can create xcode project for C++ application"() {
         given:
         settingsFile << """
             include 'app', 'greeter'
@@ -89,7 +89,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
-    def "can create xcode project for C++ executable with transitive dependencies"() {
+    def "can create xcode project for C++ application with transitive dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
@@ -166,7 +166,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
-    def "can create xcode project for C++ executable with binary-specific dependencies"() {
+    def "can create xcode project for C++ application with binary-specific dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
@@ -252,7 +252,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Ignore
-    def "can create xcode project for C++ executable inside composite build"() {
+    def "can create xcode project for C++ application inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'
