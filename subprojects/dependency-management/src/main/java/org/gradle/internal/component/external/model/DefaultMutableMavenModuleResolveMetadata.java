@@ -35,7 +35,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
 
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
-    private final boolean advancedPomSupportEnabled;
+    private final boolean improvedPomSupportEnabled;
 
     private String packaging = "jar";
     private boolean relocated;
@@ -44,17 +44,17 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies,
                                                     ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
-                                                    boolean advancedPomSupportEnabled) {
+                                                    boolean improvedPomSupportEnabled) {
         super(attributesFactory, id, componentIdentifier);
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
-        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
+        this.improvedPomSupportEnabled = improvedPomSupportEnabled;
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata,
                                              ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
-                                             boolean advancedPomSupportEnabled) {
+                                             boolean improvedPomSupportEnabled) {
         super(metadata);
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
@@ -62,12 +62,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.dependencies = metadata.getDependencies();
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
-        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
+        this.improvedPomSupportEnabled = improvedPomSupportEnabled;
     }
 
     @Override
     public MavenModuleResolveMetadata asImmutable() {
-        return new DefaultMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, advancedPomSupportEnabled);
+        return new DefaultMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, improvedPomSupportEnabled);
     }
 
     @Override

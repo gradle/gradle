@@ -46,7 +46,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @Unroll
-    def "resolve large dependency graph (advanced pom support = #advancedPomSupport, parallel = #parallel)"() {
+    def "resolve large dependency graph (improvedPomSupport = #improvedPomSupport, parallel = #parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 
@@ -59,8 +59,8 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         if (parallel) {
             runner.args += '--parallel'
         }
-        if (advancedPomSupport) {
-            runner.args += '-Porg.gradle.advancedpomsupport=true'
+        if (improvedPomSupport) {
+            runner.args += '-Porg.gradle.advancedpomsupport=true -PimprovedPomSupport=true'
         }
 
         when:
@@ -73,7 +73,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         stopServer()
 
         where:
-        parallel | advancedPomSupport
+        parallel | improvedPomSupport
         true     | true
         true     | false
         false    | true

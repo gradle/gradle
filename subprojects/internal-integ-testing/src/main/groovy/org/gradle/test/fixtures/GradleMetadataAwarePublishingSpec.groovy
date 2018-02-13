@@ -19,6 +19,7 @@ package org.gradle.test.fixtures
 import groovy.transform.CompileStatic
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -32,7 +33,7 @@ trait GradleMetadataAwarePublishingSpec {
     void prepare() {
         executer.beforeExecute {
             if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.gradlemetadata=true")
+                FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
             }
         }
     }

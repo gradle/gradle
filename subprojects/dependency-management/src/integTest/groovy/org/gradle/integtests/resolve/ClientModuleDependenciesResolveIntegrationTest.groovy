@@ -22,10 +22,10 @@ import spock.lang.Unroll
 class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Unroll
-    def "uses metadata from Client Module and looks up artifact in declared repositories (advancedPomSupport = #advancedPomSupport)"() {
+    def "uses metadata from Client Module and looks up artifact in declared repositories (improvedPomSupport = #improvedPomSupport)"() {
         given:
-        if (advancedPomSupport) {
-            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        if (improvedPomSupport) {
+            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
@@ -70,14 +70,14 @@ task listJars {
         succeeds('listJars')
 
         where:
-        advancedPomSupport << [false, true]
+        improvedPomSupport << [false, true]
     }
 
     @Unroll
-    def "can resolve nested Client Module (advancedPomSupport = #advancedPomSupport)"() {
+    def "can resolve nested Client Module (improvedPomSupport = #improvedPomSupport)"() {
         given:
-        if (advancedPomSupport) {
-            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        if (improvedPomSupport) {
+            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def repo = mavenHttpRepo("repo")
         def projectA = repo.module('test', 'projectA', '1.2').publish()
@@ -122,14 +122,14 @@ task listJars {
         succeeds('listJars')
 
         where:
-        advancedPomSupport << [false, true]
+        improvedPomSupport << [false, true]
     }
 
     @Unroll
-    def "client module dependency ignores published artifact listing and resolves single jar file (advancedPomSupport = #advancedPomSupport)"() {
+    def "client module dependency ignores published artifact listing and resolves single jar file (improvedPomSupport = #improvedPomSupport)"() {
         given:
-        if (advancedPomSupport) {
-            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        if (improvedPomSupport) {
+            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
                 .artifact()
@@ -181,6 +181,6 @@ task listClientModuleJars {
         succeeds('listClientModuleJars')
 
         where:
-        advancedPomSupport << [false, true]
+        improvedPomSupport << [false, true]
     }
 }

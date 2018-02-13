@@ -97,7 +97,7 @@ Note that JUnit 5 requires Java 8 or higher.
 
 Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### BOM import
 
@@ -114,7 +114,7 @@ Gradle now [provides support](userguide/managing_transitive_dependencies.html#se
 
 Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### Compile/runtime scope separation in POM consumption
 
@@ -125,7 +125,7 @@ Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java c
 
 Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 <!--
 ### Example new and noteworthy

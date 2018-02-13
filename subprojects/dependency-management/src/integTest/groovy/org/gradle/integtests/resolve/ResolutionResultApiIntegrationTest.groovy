@@ -100,7 +100,7 @@ baz:1.0 requested
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         when:
         file("build.gradle") << """
@@ -158,8 +158,8 @@ baz:1.0 requested
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
-        file('settings.gradle') << """rootProject.name='test'"""
+        settingsFile << """rootProject.name='test'"""
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         file("build.gradle") << """
             configurations {
                 conf {
