@@ -201,7 +201,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     private void cleanup() {
         CompositeStoppable stoppable;
-        execHandle.abort();
         lock.lock();
         try {
             stoppable = CompositeStoppable.stoppable(acceptor, connection);
@@ -211,5 +210,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
         stoppable.stop();
+        execHandle.abort();
     }
 }
