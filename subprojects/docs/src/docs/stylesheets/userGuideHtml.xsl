@@ -162,17 +162,17 @@
                         <ul>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-build-scripts" aria-expanded="false" aria-controls="authoring-build-scripts">Authoring Build Scripts</a>
                                 <ul id="authoring-build-scripts">
-                                    <li><a href="/userguide/tutorial_using_tasks.html">Build Script Basics</a></li>
                                     <li><a href="/userguide/more_about_tasks.html">Authoring Tasks</a></li>
-                                    <li><a href="/userguide/logging.html">Logging</a></li>
-                                    <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
                                     <li><a href="/userguide/multi_project_builds.html">Authoring Multi-Project Builds</a></li>
-                                    <li><a href="/userguide/standard_plugins.html">Standard Gradle Plugins</a></li>
-                                    <li><a href="/userguide/plugins.html">Using Gradle Plugins</a></li>
-                                    <li><a href="/userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
-                                    <li><a href="/userguide/working_with_files.html">Working with Files</a></li>
                                     <li><a href="/userguide/build_lifecycle.html">Build Lifecycle</a></li>
+                                    <li><a href="/userguide/tutorial_using_tasks.html">Build Script Basics</a></li>
                                     <li><a href="/userguide/feature_lifecycle.html">Feature Lifecycle</a></li></ul></li>
+                                    <li><a href="/userguide/logging.html">Logging</a></li>
+                                    <li><a href="/userguide/standard_plugins.html">Standard Gradle Plugins</a></li>
+                                    <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
+                                    <li><a href="/userguide/working_with_files.html">Working with Files</a></li>
+                                    <li><a href="/userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
+                                    <li><a href="/userguide/plugins.html">Using Gradle Plugins</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#best-practices" aria-expanded="false" aria-controls="best-practices">Best Practices</a>
                                 <ul id="best-practices">
                                     <li><a href="/userguide/organizing_build_logic.html">Organizing Build Logic</a></li>
@@ -184,13 +184,13 @@
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
                                     <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
-                                    <li><a href="/userguide/managing_dependency_configurations.html">Managing Dependency Configurations</a></li>
                                     <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
-                                    <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
-                                    <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>
-                                    <li><a href="/userguide/working_with_dependencies.html">Working with Dependencies</a></li>
                                     <li><a href="/userguide/customizing_dependency_resolution_behavior.html">Customizing Dependency Resolution Behavior</a></li>
+                                    <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
+                                    <li><a href="/userguide/managing_dependency_configurations.html">Managing Dependency Configurations</a></li>
+                                    <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>
                                     <li><a href="/userguide/troubleshooting_dependency_resolution.html">Troubleshooting Dependency Resolution</a></li>
+                                    <li><a href="/userguide/working_with_dependencies.html">Working with Dependencies</a></li>
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management-glossary" aria-expanded="false" aria-controls="dependency-management-glossary">Glossary</a>
                                         <ul id="dependency-management-glossary">
                                             <li><a href="/userguide/dependency_management_terminology.html">Dependency Management Terminology</a></li>
