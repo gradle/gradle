@@ -68,6 +68,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
         def reason = VersionSelectionReasons.of(Arrays.asList(reasons))
         def result = serialize(reason, serializer)
         assert result == reason
+        serializer.reset()
     }
 
     private static ComponentSelectionReasonInternal withReason(String reason) {
