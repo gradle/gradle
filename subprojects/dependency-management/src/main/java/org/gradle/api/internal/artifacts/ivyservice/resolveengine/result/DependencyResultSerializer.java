@@ -59,4 +59,8 @@ public class DependencyResultSerializer {
             componentSelectionReasonSerializer.write(encoder, value.getReason());
         }
     }
+
+    public void reset() {
+        componentSelectionReasonSerializer.reset();
+    }
 }

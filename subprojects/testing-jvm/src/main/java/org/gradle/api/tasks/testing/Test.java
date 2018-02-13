@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -59,6 +60,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -67,6 +69,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
@@ -123,6 +126,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * </pre>
 
  */
+@NonNullApi
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
@@ -365,6 +369,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * {@inheritDoc}
      */
     @Override
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return forkOptions.getJvmArgumentProviders();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setJvmArgs(List<String> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -511,7 +523,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), this, getMaxParallelForks());
+        DefaultJavaForkOptions javaForkOptions = new DefaultJavaForkOptions(getFileResolver());
+        copyTo(javaForkOptions);
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks());
     }
 
     @TaskAction
@@ -652,6 +666,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Deprecated
     @Internal
+    @Nullable
     public File getTestClassesDir() {
         SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
         if (testClassesDirs==null || testClassesDirs.isEmpty()) {
@@ -762,7 +777,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return testFramework(null);
     }
 
-    public TestFramework testFramework(Closure testFrameworkConfigure) {
+    public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
         if (testFramework == null) {
             useJUnit(testFrameworkConfigure);
         }
@@ -807,7 +822,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return useTestFramework(testFramework, null);
     }
 
-    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, Action<? super T> testFrameworkConfigure) {
+    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
         }
@@ -834,7 +849,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
-    public void useJUnit(Closure testFrameworkConfigure) {
+    public void useJUnit(@Nullable Closure testFrameworkConfigure) {
         useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
@@ -939,7 +954,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
      */
-    public void setForkEvery(Long forkEvery) {
+    public void setForkEvery(@Nullable Long forkEvery) {
         if (forkEvery != null && forkEvery < 0) {
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }

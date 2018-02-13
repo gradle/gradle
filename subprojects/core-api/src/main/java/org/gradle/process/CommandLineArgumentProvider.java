@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.compile;
+package org.gradle.process;
 
 import org.gradle.api.Incubating;
-import org.gradle.process.CommandLineArgumentProvider;
 
 /**
- * Provides command-line arguments to the compiler.
+ * Provides arguments to a process.
  *
- * @since 4.5
- * @deprecated Use {@link CommandLineArgumentProvider} directly.
+ * @since 4.6
  */
 @Incubating
-@Deprecated
-public interface CompilerArgumentProvider extends CommandLineArgumentProvider {
+public interface CommandLineArgumentProvider {
+    /**
+     * The arguments which will be provided to the process.
+     */
+    Iterable<String> asArguments();
 }

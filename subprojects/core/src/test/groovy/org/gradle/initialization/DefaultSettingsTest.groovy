@@ -23,6 +23,7 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -41,6 +42,7 @@ import org.junit.runner.RunWith
 
 import java.lang.reflect.Type
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -62,6 +64,7 @@ class DefaultSettingsTest {
     ScriptHandlerFactory scriptHandlerFactory
     ScriptHandler settingsScriptHandler
     DefaultPluginManager pluginManager
+    FeaturePreviews previews
 
     @Before
     public void setUp() {
@@ -81,6 +84,7 @@ class DefaultSettingsTest {
         settingsScriptHandler = context.mock(ScriptHandler.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+        previews = new FeaturePreviews()
 
         def settingsServices = context.mock(ServiceRegistry.class)
         context.checking {
@@ -95,6 +99,8 @@ class DefaultSettingsTest {
             will(returnValue(scriptHandlerFactory));
             allowing(settingsServices).get((Type)ProjectDescriptorRegistry.class);
             will(returnValue(projectDescriptorRegistry));
+            allowing(settingsServices).get(FeaturePreviews.class)
+            will(returnValue(previews))
             allowing(settingsServices).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
 
@@ -232,5 +238,11 @@ class DefaultSettingsTest {
     @Test
     public void testHasUsefulToString() {
         assertEquals('settings \'root\'', settings.toString())
+    }
+
+    @Test
+    public void testCanEnableFeaturePreview() {
+        settings.enableFeaturePreview("GRADLE_METADATA")
+        assertTrue(previews.isFeatureEnabled(GRADLE_METADATA))
     }
 }

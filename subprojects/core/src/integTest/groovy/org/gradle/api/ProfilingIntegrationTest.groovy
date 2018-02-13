@@ -45,5 +45,6 @@ allprojects {
         document.text().contains("build fooTask")
         document.text().contains("-x barTask")
         output.contains("See the profiling report at:")
+        output.contains("A fine-grained performance profile is available: use the --scan option.")
     }
 }

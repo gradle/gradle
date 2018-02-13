@@ -97,7 +97,7 @@ Note that JUnit 5 requires Java 8 or higher.
 
 Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### BOM import
 
@@ -114,7 +114,7 @@ Gradle now [provides support](userguide/managing_transitive_dependencies.html#se
 
 Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### Compile/runtime scope separation in POM consumption
 
@@ -125,7 +125,7 @@ Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java c
 
 Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 <!--
 ### Example new and noteworthy
@@ -234,6 +234,40 @@ This does not happen anymore and the info logs should be much cleaner now when t
 
 Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build.  This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
 
+### Support for modelling Java agents
+
+Gradle 4.5 enabled plugin authors to model annotation processors as a [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html) for `JavaCompile` tasks.
+Now we introduce the same ability for Java agents by adding `getJvmArgumentProviders()` to [`Test`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders) and [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders).
+
+For example, the built-in [`jacoco`](userguide/jacoco_plugin.html) plugin [uses this new feature](https://github.com/gradle/gradle/blob/12a25cce43317e28690183097f8f87130a67318e/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L137-L156) to declare the inputs and outputs of the JaCoCo agent added to the test task.
+
+    class JacocoAgent implements CommandLineArgumentProvider {
+
+        private final JacocoTaskExtension jacoco;
+
+        public JacocoAgent(JacocoTaskExtension jacoco) {
+            this.jacoco = jacoco;
+        }
+
+        @Nested
+        @Optional
+        public JacocoTaskExtension getJacoco() {
+            return jacoco.isEnabled() ? jacoco : null;
+        }
+
+        @Override
+        public Iterable<String> asArguments() {
+            return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
+        }
+
+    }
+
+    task.getJvmArgumentProviders().add(new JacocoAgent(extension));
+    
+For this to work, [JacocoTaskExtension](dsl/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html) needs to have the correct input and output annotations.
+
+See the [documentation](userguide/more_about_tasks.html#sec:task_input_nested_inputs) for information how to leverage this feature in custom plugins.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -297,6 +331,11 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 ### Play 2.2 is deprecated in Play plugin
 
 The use of Play 2.2 with the the Play plugin has been deprecated and will be removed with Gradle 5.0. It is highly recommended to upgrade to a newer version of [Play](https://www.playframework.com/).
+
+### `CompilerArgumentProvider` replaced by `CommandLineArgumentProvider`
+
+The interface [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html) has been deprecated.
+Use [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html) instead.
 
 ## Potential breaking changes
 

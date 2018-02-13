@@ -71,6 +71,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
+
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
     /*
@@ -404,7 +406,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return featurePreviews.isGradleMetadataEnabled();
+        return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
     }
 
     @Override
