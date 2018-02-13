@@ -72,11 +72,11 @@
                             <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
                             <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
                             <li><a href="/userguide/continuous_build.html">Continuous Build</a></li>
-                            <li><a href="/userguide/embedding.html">Embedding Gradle</a></li>
                             <li><a href="/userguide/gradle_daemon.html">Gradle Daemon</a></li>
                             <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
                             <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
                             <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
+                            <li><a href="/userguide/embedding.html">Tooling API</a></li>
                             <li><a href="/userguide/troubleshooting.html">Troubleshooting</a></li>
                         </ul>
 
