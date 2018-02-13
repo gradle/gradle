@@ -97,7 +97,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)
-        def resourceForTest = generator.withFailingTests(6)
+        def resourceForTest = generator.withFailingTests(testOmitted + 1)
         def testExecution = server.expectOptionalAndBlock(maxWorkers, resourceForTest.values() as String[])
 
         when:
@@ -110,7 +110,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         def result = new DefaultTestExecutionResult(testDirectory)
         assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', Matchers.anything()) }
         assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount != 0 }
-        assert 5 >= resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount == 0 }
+        assert testOmitted >= resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount == 0 }
 
         where:
         forkEvery | maxWorkers | testOmitted
