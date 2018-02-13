@@ -90,6 +90,10 @@ public class Help extends DefaultTask {
         output.text("To see more detail about a task, run ");
         metaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
         output.println();
+        output.println();
+        output.text("For troubleshooting, visit ");
+        output.withStyle(UserInput).text("https://help.gradle.org");
+        output.println();
     }
 
     @Option(option = "task", description = "The task to show help for.")
