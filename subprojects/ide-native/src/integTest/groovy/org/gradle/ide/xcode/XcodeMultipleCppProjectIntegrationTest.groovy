@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependen
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
@@ -250,6 +251,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
+    @Ignore
     def "can create xcode project for C++ executable inside composite build"() {
         given:
         settingsFile.text = """
