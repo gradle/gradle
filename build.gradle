@@ -365,3 +365,9 @@ gradle.buildFinished { result ->
 }
 
 apply from: "gradle/ciReporting.gradle"
+
+allprojects {
+    tasks.withType(Test) {
+        useJUnitPlatform()
+    }
+}

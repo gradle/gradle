@@ -46,7 +46,8 @@ when (testJavaHome) {
 
 dependencies {
     val testCompile by configurations
-    testCompile(library("junit"))
+    testCompile(library("junitVintage"))
+    testCompile(library("junitPlatform"))
     testCompile(library("groovy"))
     testCompile(testLibrary("spock"))
     testLibraries("jmock").forEach { testCompile(it) }

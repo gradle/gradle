@@ -34,7 +34,7 @@ import org.gradle.internal.os.OperatingSystem
  */
 @CompileStatic
 class DistributionTest extends Test {
-    
+
     private Map<String, File> fileSystemProperties = [:]
     private Set<String> ignoredSystemProperties = [] as Set
 
@@ -42,6 +42,7 @@ class DistributionTest extends Test {
         dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
         dependsOn { requiresBinZip ? ':distributions:binZip' : null }
         dependsOn { requiresLibsRepo ? ':toolingApi:publishLocalArchives' : null }
+        useJUnitPlatform()
     }
 
     @Input

@@ -75,7 +75,7 @@ dependencies {
     compile("commons-lang:commons-lang:2.6")
     compile(localGroovy())
     compile("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
-    testCompile("junit:junit:4.12")
+    testCompile("org.junit.vintage:junit-vintage-engine:5.1.0-M2")
     testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
     testCompile("cglib:cglib-nodep:3.2.5")
     testCompile("org.objenesis:objenesis:2.4")
@@ -157,4 +157,8 @@ tasks {
 
     val build by getting
     build.dependsOn(checkSameDaemonArgs)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
