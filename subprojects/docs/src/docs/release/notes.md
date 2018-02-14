@@ -279,6 +279,14 @@ For this to work, [JacocoTaskExtension](dsl/org.gradle.testing.jacoco.plugins.Ja
 
 See the [documentation](userguide/more_about_tasks.html#sec:task_input_nested_inputs) for information how to leverage this feature in custom plugins.
 
+### Honour cache-expiry settings in the presence of detached configurations
+
+Gradle allows dependency cache expiry (i.e `cacheChangingModulesFor`) to be set on a per-configuration basis. However, due to a bug in previous versions of Gradle, if a dependency was first resolved via a configuration using the default (24hr) expiry settings, any other resolve _in the same build invocation_ would get the same result.
+
+Normally this wouldn't be a big deal, since most users set the same expiry everywhere using `configurations.all`. The catch is that plugins like `io.spring.dependency-management` use _detached configurations_, which are excluded from `configurations.all`. If a build was using one of these plugins, the _detached configuration_ could be resolved first, causing later resolves to obtain the same (possibly stale) result.
+
+This [nasty cache-expiry bug](https://github.com/gradle/gradle/issues/3019) has now been fixed. Users can trust that Gradle will return the most up-to-date `SNAPSHOT` or version available as long as the [dependency cache expiry is set](userguide/troubleshooting_dependency_resolution.html#sec:controlling_dependency_caching_programmatically) correctly.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
