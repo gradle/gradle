@@ -174,6 +174,12 @@ public abstract class JacocoReportBase extends JacocoBase {
                     }
                 });
                 mustRunAfter(task);
+            } else {
+                getLogger().warn(
+                    "Asked to configure this task with execution data from task {} but {} was not present. " +
+                    "Perhaps you forgot to call `jacoco { applyTo(task) }` before attempting to use it to configure this task.",
+                    task,
+                    JacocoTaskExtension.class.getSimpleName());
             }
         }
     }
