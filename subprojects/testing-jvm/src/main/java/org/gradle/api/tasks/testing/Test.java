@@ -113,6 +113,9 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  *      logger.lifecycle("Running test: " + descriptor)
  *   }
  *
+ *   // Fail the 'test' task on the first test failure
+ *   failFast = true
+ *
  *   // listen to standard out and standard error of the test JVM(s)
  *   onOutput { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
@@ -438,6 +441,25 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
+    }
+
+    /**
+     * Enables fail fast behavior causing the task to fail on the first failed test.
+     */
+    @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")
+    @Override
+    public void setFailFast(boolean failFast) {
+        super.setFailFast(failFast);
+    }
+
+    /**
+     * Indicates if this task will fail on the first failed test
+     *
+     * @return whether this task will fail on the first failed test
+     */
+    @Override
+    public boolean getFailFast() {
+        return super.getFailFast();
     }
 
     /**

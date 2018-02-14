@@ -93,6 +93,16 @@ A sample of mixed tests can be found at `samples/testing/junitplatform/engine` i
 
 Note that JUnit 5 requires Java 8 or higher.
 
+### Fail fast on `test` task
+
+Gradle now supports failing the `test` task after the first failed test. Projects with large test suite can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To enable this fail fast behavior in your build file, you should set the `failFast` property:
+
+    test {
+        failFast = true
+    }
+
+In addition, this behavior can be enabled from the command line for individual build invocations. An invocation would look like `gradle test --fail-fast`.
+
 ### Support for optional dependencies in POM consumption
 
 Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).

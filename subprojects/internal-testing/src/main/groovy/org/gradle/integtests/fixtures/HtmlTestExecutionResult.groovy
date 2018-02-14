@@ -56,6 +56,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
     }
 
+    boolean testClassExists(String testClass) {
+        return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"))
     }
@@ -121,6 +125,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             return this
         }
 
+        int getTestCount() {
+            return testsExecuted.size()
+        }
+
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
             assert testsSkipped == testNames as Set
             return this
@@ -139,6 +147,23 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 assert messageMatchers[i].matches(messages[i])
             }
             return this
+        }
+
+        boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+            if (!testsFailures.containsKey(name)) {
+                return false
+            }
+
+            def messages = testsFailures[name].collect { it.readLines().first() }
+            if (messages.size() != messageMatchers.length) {
+                return false
+            }
+            for (int i = 0; i < messageMatchers.length; i++) {
+                if (!messageMatchers[i].matches(messages[i])) {
+                    return false
+                }
+            }
+            return true
         }
 
         TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {

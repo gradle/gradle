@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.testing.junit
 
-public interface TestExecuter<T extends TestExecutionSpec> {
-    void execute(T testExecutionSpec, TestResultProcessor testResultProcessor);
+import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 
-    /**
-     * Stops any {@link TestClassProcessor} utilized by this {@code TestExecuter}.
-     */
-    void stopNow();
+class JUnitFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
+    @Override
+    String testAnnotationClass() {
+        'org.junit.Test'
+    }
+
+    @Override
+    String testDependency() {
+        'junit:junit:4.12'
+    }
+
+    @Override
+    String testFrameworkConfiguration() {
+        ''
+    }
 }

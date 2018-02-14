@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.dispatch.DispatchException;
 
 import java.util.ArrayList;
@@ -40,8 +40,10 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private TestResultProcessor resultProcessor;
     private int pos;
     private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
+    private List<TestClassProcessor> rawProcessors = new ArrayList<TestClassProcessor>();
     private List<Actor> actors = new ArrayList<Actor>();
     private Actor resultProcessorActor;
+    private volatile boolean stoppedNow;
 
     public MaxNParallelTestClassProcessor(int maxProcessors, Factory<TestClassProcessor> factory, ActorFactory actorFactory) {
         this.maxProcessors = maxProcessors;
@@ -58,9 +60,14 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
+        if (stoppedNow) {
+            return;
+        }
+
         TestClassProcessor processor;
         if (processors.size() < maxProcessors) {
             processor = factory.create();
+            rawProcessors.add(processor);
             Actor actor = actorFactory.createActor(processor);
             processor = actor.getProxy(TestClassProcessor.class);
             actors.add(actor);
@@ -79,6 +86,14 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();
         } catch (DispatchException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        stoppedNow = true;
+        for (TestClassProcessor processor : rawProcessors) {
+            processor.stopNow();
         }
     }
 }

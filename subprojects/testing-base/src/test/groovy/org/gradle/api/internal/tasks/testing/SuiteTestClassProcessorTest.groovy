@@ -110,6 +110,14 @@ class SuiteTestClassProcessorTest extends Specification {
         }
         1 * resultProcessor.completed('id', !null)
     }
+
+    def "stopNow not supported"() {
+        when:
+        processor.stopNow()
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
 }
 
 
