@@ -33,7 +33,15 @@ public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
         scripts.addAll(found);
     }
 
+    protected File resolveScriptFile(File dir, String basename) {
+        return resolver().resolveScriptFile(dir, basename);
+    }
+
     private List<File> initScriptsIn(File initScriptsDir) {
-        return new DefaultScriptFileResolver().findScriptsIn(initScriptsDir);
+        return resolver().findScriptsIn(initScriptsDir);
+    }
+
+    private DefaultScriptFileResolver resolver() {
+        return new DefaultScriptFileResolver();
     }
 }
