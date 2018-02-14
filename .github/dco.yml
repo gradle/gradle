@@ -1,0 +1,3 @@
+# Disable sign-off chcecking for members of the Gradle GitHub organization
+require:
+  members: false
