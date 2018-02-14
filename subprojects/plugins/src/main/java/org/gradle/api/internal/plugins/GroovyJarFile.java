@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GroovyJarFile {
-    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)((?:-indy)|(?:-grooid))?.jar");
 
     private final File file;
     private final Matcher matcher;
@@ -50,13 +50,23 @@ public class GroovyJarFile {
     }
 
     public boolean isIndy() {
-        return matcher.group(3) != null;
+        return "indy".equals(matcher.group(3));
+    }
+    
+    public boolean isGrooid() {
+        return "grooid".equals(matcher.group(3));
+    }
+    
+    @Nullable
+    public String getClassifier() {
+        return matcher.group(3);
     }
 
     public String getDependencyNotation() {
         String result = "org.codehaus.groovy:" + getBaseName() + ":" + getVersion();
-        if (isIndy()) {
-            result += ":indy";
+        String classifier = getClassifier();
+        if (classifier != null) {
+            result += ":" + classifier;
         }
         return result;
     }
