@@ -23,8 +23,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
+import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
+import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.Filterable;
@@ -66,6 +68,9 @@ public class JUnitTestClassExecutor implements Action<String> {
 
     private void runTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
+        if (isInnerClassInsideEnclosedRunner(testClass)) {
+            return;
+        }
         List<Filter> filters = new ArrayList<Filter>();
         if (options.hasCategoryConfiguration()) {
             verifyJUnitCategorySupport();
@@ -114,6 +119,21 @@ public class JUnitTestClassExecutor implements Action<String> {
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);
+    }
+
+    // https://github.com/gradle/gradle/issues/2319
+    private boolean isInnerClassInsideEnclosedRunner(Class<?> testClass) {
+        if (testClass.getEnclosingClass() == null) {
+            return false;
+        }
+
+        Class<?> outermostClass = testClass;
+        while (outermostClass.getEnclosingClass() != null) {
+            outermostClass = outermostClass.getEnclosingClass();
+        }
+
+        RunWith runWith = outermostClass.getAnnotation(RunWith.class);
+        return runWith != null && Enclosed.class.equals(runWith.value());
     }
 
     private void verifyJUnitCategorySupport() {
