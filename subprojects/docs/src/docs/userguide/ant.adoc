@@ -81,7 +81,7 @@ To make custom tasks available in your build, you can use the `taskdef` (usually
             </sample>
 ++++
 
-You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in <<sec:declaring_dependencies>>.
+You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in <<declaring_dependencies>>.
 
 ++++
 <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for a custom Ant task">
