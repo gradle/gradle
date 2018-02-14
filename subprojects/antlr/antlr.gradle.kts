@@ -15,15 +15,15 @@
  */
 
 dependencies {
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':workers')
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":workers"))
 
-    compileOnly "antlr:antlr:2.7.7"
+    compileOnly("antlr:antlr:2.7.7")
 
-    compile libraries.slf4j_api.coordinates
+    compile(library("slf4j_api"))
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
