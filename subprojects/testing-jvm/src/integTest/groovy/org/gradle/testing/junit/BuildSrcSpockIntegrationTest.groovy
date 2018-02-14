@@ -19,6 +19,7 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
@@ -82,8 +83,7 @@ class TestSpec extends Specification {
         succeeds("test")
     }
 
-    def 'can run spock with @Unroll'() {
-        given:
+    private void writeSpockDependencies() {
         file("build.gradle") << """
 apply plugin: 'groovy'
 
@@ -96,6 +96,11 @@ dependencies {
     testCompile '$dependencyNotation', 'org.spockframework:spock-core:1.0-groovy-2.4@jar'
 }
 """
+    }
+
+    def 'can run spock with @Unroll'() {
+        given:
+        writeSpockDependencies()
         file('src/test/groovy/UnrollTest.groovy') << '''
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -118,5 +123,32 @@ class UnrollTest extends Specification {
             .testClass("UnrollTest").assertTestCount(2, 0, 0)
             .assertTestPassed('can test 1')
             .assertTestPassed('can test 2')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4358')
+    def 'can run spock test with same method name in super class and base class'() {
+        given:
+        writeSpockDependencies()
+        file('src/test/groovy/Base.groovy') << '''
+import spock.lang.Specification
+
+abstract class Base extends Specification {
+    def ok() {
+        expect: "success"
+    }
+}
+
+class Sub extends Base {
+    def ok() {
+        expect: "success"
+    }
+}
+'''
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass("Sub").assertTestCount(2, 0, 0)
     }
 }
