@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.api.Action
+import org.gradle.api.initialization.Settings
 
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -39,6 +40,10 @@ class ScriptApiTest {
         assertScriptApiOf<KotlinSettingsScript>()
 
     @Test
+    fun `settings script template implements Settings#enableFeaturePreview`() =
+        assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
+
+    @Test
     fun `init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
 }
@@ -46,9 +51,15 @@ class ScriptApiTest {
 
 private inline
 fun <reified T> assertScriptApiOf() =
+    assertApiOf<T>(ScriptApi::class)
+
+
+private inline
+fun <reified T> assertApiOf(expectedApi: KClass<*>) =
     assertThat(
-        ScriptApi::class.apiMembers.missingMembersFrom(T::class),
+        expectedApi.apiMembers.missingMembersFrom(T::class),
         equalTo(emptyList()))
+
 
 private
 typealias ScriptApiMembers = Collection<KCallable<*>>
@@ -61,14 +72,19 @@ val KClass<*>.apiMembers: ScriptApiMembers
 
 private
 fun ScriptApiMembers.missingMembersFrom(scriptTemplate: KClass<*>): List<KCallable<*>> =
-    candidateMembersOf(scriptTemplate).let { scriptTemplateMembers ->
+    scriptTemplate.publicMembers.let { scriptTemplateMembers ->
         filterNot(scriptTemplateMembers::containsMemberCompatibleWith)
     }
 
 
 private
-fun candidateMembersOf(scriptTemplate: KClass<*>) =
-    scriptTemplate.members.filter { it.visibility == KVisibility.PUBLIC }
+fun KClass<*>.implements(api: KCallable<*>) =
+    publicMembers.containsMemberCompatibleWith(api)
+
+
+private
+val KClass<*>.publicMembers
+    get() = members.filter { it.visibility == KVisibility.PUBLIC }
 
 
 private
@@ -87,7 +103,9 @@ fun KCallable<*>.isCompatibleWith(api: KCallable<*>) =
 
 private
 fun KProperty<*>.isCompatibleWith(api: KCallable<*>) =
-    this::class == api::class && name == api.name && returnType == api.returnType
+    this::class == api::class
+        && name == api.name
+        && returnType == api.returnType
 
 
 private
@@ -108,7 +126,9 @@ fun KFunction<*>.isCompatibleWithGetterOf(api: KProperty<*>) =
 
 private
 fun KFunction<*>.isCompatibleWith(api: KFunction<*>) =
-    name == api.name && returnType == api.returnType && valueParameters.isCompatibleWith(api.valueParameters)
+    name == api.name
+        && returnType == api.returnType
+        && valueParameters.isCompatibleWith(api.valueParameters)
 
 
 private
@@ -123,10 +143,10 @@ fun List<KParameter>.isCompatibleWith(api: List<KParameter>) =
 private
 fun KParameter.isCompatibleWith(api: KParameter) =
     when {
-        isVarargCompatibleWith(api)       -> true
-        isGradleActionCompatibleWith(api) -> true
-        type == api.type                  -> true
-        else                              -> false
+        isVarargCompatibleWith(api)                  -> true
+        isGradleActionCompatibleWith(api)            -> true
+        type.isParameterTypeCompatibleWith(api.type) -> true
+        else                                         -> false
     }
 
 
