@@ -55,6 +55,7 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
@@ -315,6 +316,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                 linkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
                 linkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
+                linkElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) component.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
                 if (component.getLinkage() != null) {
                     linkElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
                 }
@@ -334,6 +336,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                 runtimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
                 runtimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
+                runtimeElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) component.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
                 if (component.getLinkage() != null) {
                     runtimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
                 }
