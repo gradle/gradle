@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
@@ -115,6 +116,15 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     public List<String> getArgs() {
         return execAction.getArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nested
+    @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return execAction.getArgumentProviders();
     }
 
     /**
