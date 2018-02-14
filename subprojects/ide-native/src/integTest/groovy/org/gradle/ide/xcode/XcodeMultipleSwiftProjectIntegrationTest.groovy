@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
@@ -464,6 +465,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         sharedLib("log/build/lib/main/debug/Log").assertExists()
     }
 
+    @Ignore
     def "can create xcode project for Swift application inside composite build"() {
         requireSwiftToolChain()
 

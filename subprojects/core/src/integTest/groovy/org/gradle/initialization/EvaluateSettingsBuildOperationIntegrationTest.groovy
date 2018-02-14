@@ -102,6 +102,15 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         operations()[1].details.buildPath == ":nested"
     }
 
+    def 'can configure feature preview in settings'() {
+        given:
+        settingsFile << '''
+enableFeaturePreview('IMPROVED_POM_SUPPORT')
+'''
+        expect:
+        succeeds('help')
+    }
+
     private List<BuildOperationRecord> operations() {
         buildOperations.all(EvaluateSettingsBuildOperationType)
     }

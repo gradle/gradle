@@ -30,7 +30,7 @@ val Project.testLibraries
     get() = rootProject.extra["testLibraries"] as Map<String, Any>
 
 fun Project.library(name: String): String =
-    libraries[name]!!["coordinate"]!!
+    libraries[name]!!["coordinates"]!!
 
 fun Project.libraryVersion(name: String): String =
     libraries[name]!!["version"]!!

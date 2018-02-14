@@ -38,7 +38,7 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
     def "can download from googles repo (gradleMetadata=#gradleMetadata)"() {
         given:
         if (gradleMetadata) {
-            FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
+            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         }
         addGoogleRepoScript(buildFile)
 
@@ -74,7 +74,7 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
     def "can download from gradleJs repo (gradleMetadata=#gradleMetadata)"() {
         given:
         if (gradleMetadata) {
-            FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
+            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         }
         addGradlePublicJsRepoScript(buildFile)
 

@@ -35,10 +35,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
 
     private final BiMap<String, Integer> descriptions = HashBiMap.create();
 
-    private OperationType lastOperationType = OperationType.read;
-
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
-        prepareForOperation(OperationType.read);
         List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder);
         return VersionSelectionReasons.of(descriptions);
     }
@@ -66,7 +63,6 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
     }
 
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
-        prepareForOperation(OperationType.write);
         List<ComponentSelectionDescriptor> descriptions = value.getDescriptions();
         encoder.writeSmallInt(descriptions.size());
         for (ComponentSelectionDescriptor description : descriptions) {
@@ -91,21 +87,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         }
     }
 
-    /**
-     * This serializer assumes that we are using it alternatively for writes, then reads, in cycles.
-     * After each cycle completed, state has to be reset.
-     *
-     * @param operationType the current operation type
-     */
-    private void prepareForOperation(OperationType operationType) {
-        if (operationType != lastOperationType) {
-            descriptions.clear();
-            lastOperationType = operationType;
-        }
-    }
-
-    private enum OperationType {
-        read,
-        write
+    public void reset() {
+        descriptions.clear();
     }
 }

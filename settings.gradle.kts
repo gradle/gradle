@@ -18,6 +18,14 @@ apply {
     from("gradle/remoteHttpCacheSettings.gradle")
 }
 
+try {
+    settings.withGroovyBuilder {
+        "enableFeaturePreview"("IMPROVED_POM_SUPPORT")
+    }
+} catch (e: Exception ){
+    // Ignore - indicates this is run with Gradle < 4.6
+}
+
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
@@ -84,6 +92,7 @@ include("buildCacheHttp")
 include("testingBase")
 include("testingNative")
 include("testingJvm")
+include("testingJunitPlatform")
 include("platformPlay")
 include("testKit")
 include("installationBeacon")
@@ -169,6 +178,7 @@ val groovyBuildScriptProjects = listOf(
     "testing-base",
     "testing-native",
     "testing-jvm",
+    "testing-junit-platform",
     "platform-play",
     "test-kit",
     "soak",

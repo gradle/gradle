@@ -40,7 +40,26 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot determine the Git URL for dependency on dep:dep.")
     }
 
-    def "export fails when external dependency defines branch and version constraint"() {
+    def "export fails when file dependency is present"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            dependencies {
+                implementation files("abc.swiftmodule")
+            }
+"""
+
+        when:
+        fails("generateSwiftPmManifest")
+
+        then:
+        failure.assertHasCause("Cannot map a dependency of type ")
+    }
+
+    def "export fails when external dependency defines both branch and version constraint"() {
         given:
         buildFile << """
             plugins { 
@@ -70,7 +89,7 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot map a dependency on dep:dep that defines both a branch (release) and a version constraint (1.0).")
     }
 
-    def "produces manifest for Swift component with source dependencies"() {
+    def "produces manifest for Swift component with dependencies on multiple repositories"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
         lib1Repo.file("build.gradle") << """
@@ -109,6 +128,127 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
 
         and:
         settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("test:lib1") {
+                        from(GitVersionControlSpec) {
+                            url = uri('${lib1Repo.url}')
+                        }
+                    }
+                    withModule("test:lib2") {
+                        from(GitVersionControlSpec) {
+                            url = uri('${lib2Repo.url}')
+                        }
+                    }
+                }
+            }
+"""
+        buildFile << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+            dependencies {
+                api "test:lib1:1.0.0"
+                implementation "test:lib2:2.0.0"
+            }
+"""
+        file("src/main/swift/Lib.swift") << """
+            import Lib1
+            import Lib2
+            class Lib {
+                init() {
+                    Lib1.thing()
+                    Lib2.thing()
+                }
+            }
+        """
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "test", type: .dynamic, targets: ["Test"]),
+    ],
+    dependencies: [
+        .package(url: "repos/lib2", from: "2.0.0"),
+        .package(url: "repos/lib1", from: "1.0.0"),
+    ],
+    targets: [
+        .target(
+            name: "Test",
+            dependencies: [
+                .product(name: "lib2"),
+                .product(name: "lib1"),
+            ],
+            path: ".",
+            sources: [
+                "src/main/swift/Lib.swift",
+            ]
+        ),
+    ]
+)
+"""
+        swiftPmBuildSucceeds()
+
+        cleanup:
+        lib1Repo?.close()
+        lib2Repo?.close()
+    }
+
+    def "produces manifest for Swift component with dependencies on libraries provided by included builds"() {
+        given:
+        def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
+        lib1Repo.file("build.gradle") << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+        """
+        lib1Repo.file("settings.gradle") << "rootProject.name = 'lib1'"
+        lib1Repo.file("src/main/swift/Lib1.swift") << """
+            public class Lib1 {
+                public class func thing() { }
+            }
+"""
+        executer.inDirectory(lib1Repo.workTree).withTasks("generateSwiftPmManifest").run()
+        lib1Repo.commit("v1")
+        lib1Repo.createLightWeightTag("1.0.0")
+        lib1Repo.commit("v2")
+
+        and:
+        def lib2Repo = GitFileRepository.init(testDirectory.file("repos/lib2"))
+        lib2Repo.file("build.gradle") << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+        """
+        lib2Repo.file("settings.gradle") << "rootProject.name = 'lib2'"
+        lib2Repo.file("src/main/swift/Lib2.swift") << """
+            public class Lib2 {
+                public class func thing() { }
+            }
+        """
+        executer.inDirectory(lib2Repo.workTree).withTasks("generateSwiftPmManifest").run()
+        lib2Repo.commit("v2")
+        lib2Repo.createLightWeightTag("2.0.0")
+        lib2Repo.commit("v3")
+
+        and:
+        settingsFile << """
+            includeBuild 'repos/lib1'
+            includeBuild 'repos/lib2'
+
             sourceControl {
                 vcsMappings {
                     withModule("test:lib1") {

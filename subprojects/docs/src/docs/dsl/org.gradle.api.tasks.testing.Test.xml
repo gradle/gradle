@@ -61,6 +61,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>jvmArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
                 <td>enableAssertions</td>
                 <td><literal><literal>true</literal></literal></td>
             </tr>

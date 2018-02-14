@@ -48,7 +48,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
             androidBuildToolsVersion: androidBuildToolsVersion)
 
         when:
-        def build = runner('clean', 'testDebugUnitTestCoverage').build()
+        def build = runner('clean', 'testDebugUnitTestCoverage').forwardOutput().build()
 
         then:
         build.task(':testDebugUnitTestCoverage').outcome == SUCCESS

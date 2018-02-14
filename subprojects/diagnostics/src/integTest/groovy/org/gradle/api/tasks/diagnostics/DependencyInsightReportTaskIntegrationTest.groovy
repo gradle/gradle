@@ -1581,7 +1581,7 @@ org:foo:$displayVersion -> $selected
         bom.dependencyConstraint(leaf)
         bom.publish()
 
-        FeaturePreviewsFixture.enableAdvancedPomSupport(file('gradle.properties'))
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -1625,7 +1625,7 @@ org:leaf -> 1.0
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'

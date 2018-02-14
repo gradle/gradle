@@ -28,10 +28,16 @@ javaGroovyCompileTasks.all {
 if (java7Home) {
     jvmForCompilation = Jvm.forHome(file(java7Home))
     javaInstallationProbe.checkJdk(file(java7Home)).configure(javaInstallationForCompilation)
-    javaGroovyCompileTasks.all {
-        options.with {
-            fork = true
-            forkOptions.javaHome = jvmForCompilation.javaHome
+    tasks.withType(AbstractCompile) {
+        if (it instanceof JavaCompile || it instanceof GroovyCompile) {
+            options.with {
+                fork = true
+                if (project in rootProject.findProperty('projectsRequiringJava8')) {
+                    compilerArgs += ['-source', '8']
+                } else {
+                    forkOptions.javaHome = jvmForCompilation.javaHome
+                }
+            }
         }
     }
 }

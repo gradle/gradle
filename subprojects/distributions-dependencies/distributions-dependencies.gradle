@@ -27,7 +27,7 @@ plugins {
 dependencies {
     constraints {
         libraries.values().each { lib ->
-            'default'(lib.coordinate) {
+            'default'(lib.coordinates) {
                 version {
                     strictly lib.version
                     if (lib.because) { because lib.because }

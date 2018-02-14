@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,7 @@
 package org.gradle.testing.performance.generator.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
 
 abstract class ProjectGeneratorTask extends DefaultTask {
-    @OutputDirectory
-    File destDir
 
-    @InputDirectory
-    File templateDirectory
-
-    @InputDirectory
-    @Optional
-    File sharedTemplateDirectory
-
-    ProjectGeneratorTask() {
-        destDir = project.file("${project.buildDir}/${name}")
-        templateDirectory = project.file("src/templates")
-    }
-
-    protected File resolveTemplate(String templateName) {
-        File templateFile = new File(templateDirectory, templateName)
-        if (!templateFile.exists()) {
-            if (sharedTemplateDirectory?.exists()) {
-                templateFile = new File(sharedTemplateDirectory, templateName)
-            }
-        }
-        templateFile
-    }
 }

@@ -93,7 +93,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 
         Runnable detector;
-        if (testExecutionSpec.isScanForTestClasses()) {
+        if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(testExecutionSpec.getTestClassesDirs().getFiles());
             testFrameworkDetector.setTestClasspath(classpath);

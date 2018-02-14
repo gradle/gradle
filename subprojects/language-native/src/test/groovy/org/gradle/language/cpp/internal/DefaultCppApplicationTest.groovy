@@ -30,6 +30,12 @@ class DefaultCppApplicationTest extends Specification {
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     def application = new DefaultCppApplication("main", project.objects, project)
 
+    def "has display name"() {
+        expect:
+        application.displayName.displayName == "C++ application 'main'"
+        application.toString() == "C++ application 'main'"
+    }
+
     def "has implementation dependencies"() {
         expect:
         application.implementationDependencies == project.configurations['implementation']

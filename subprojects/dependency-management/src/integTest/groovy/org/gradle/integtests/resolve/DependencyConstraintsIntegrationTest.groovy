@@ -135,7 +135,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 module("org:bar:1.0") {
                     edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
                 }
-                module("org:foo:1.1")
+                edgeFromConstraint("org:foo:1.1", "org:foo:1.1")
             }
         }
     }
@@ -168,7 +168,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 module("org:bar:1.0") {
                     edge("org:foo:[1.0,1.2]", "org:foo:1.1").byReason('tested versions')
                 }
-                edge("org:foo:[1.0,1.1]", "org:foo:1.1").byReason('tested versions')
+                edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byReason('tested versions')
             }
         }
     }
@@ -412,6 +412,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:foo:1.1") {
+                    graph.constraints.add(delegate)
                     artifact(classifier: 'shaded')
                 }
                 module("org:bar:1.0") {

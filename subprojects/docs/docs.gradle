@@ -69,7 +69,7 @@ dependencies {
     testCompile testLibraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.3"
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
-    testCompile libraries.commons_httpclient.coordinate
+    testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
 }

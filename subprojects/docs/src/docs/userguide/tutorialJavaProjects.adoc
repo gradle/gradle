@@ -91,7 +91,7 @@ Let's add some dependencies. Here, we will declare that our production classes h
             </sample>
 ++++
 
-You can find out more in <<artifact_dependencies_tutorial>>.
+You can find out more in <<dependency_management_for_java_projects>>.
 
 [[sec:customizing_the_project]]
 ==== Customizing the project
@@ -234,5 +234,5 @@ We also add a distribution, that gets shipped to the client:
 
 In this chapter, you have seen how to do some of the things you commonly need to build a Java based project. This chapter is not exhaustive, and there are many other things you can do with Java projects in Gradle. You can find out more about the Java plugin in <<java_plugin>>, and you can find more sample Java projects in the `samples/java` directory in the Gradle distribution.
 
-Otherwise, continue on to <<artifact_dependencies_tutorial>>.
+Otherwise, continue on to <<dependency_management_for_java_projects>>.
 

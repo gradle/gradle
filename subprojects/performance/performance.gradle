@@ -19,7 +19,7 @@ apply from: 'templates.gradle'
 dependencies {
     compile project(':distributionsDependencies')
 
-    performanceTestImplementation libraries.commons_compress.coordinate
+    performanceTestImplementation libraries.commons_compress.coordinates
 
     // so that all Gradle features are available
     performanceTestRuntime allTestRuntimeDependencies

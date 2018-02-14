@@ -100,7 +100,7 @@ baz:1.0 requested
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         when:
         file("build.gradle") << """
@@ -158,8 +158,8 @@ baz:1.0 requested
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
-        file('settings.gradle') << """rootProject.name='test'"""
+        settingsFile << """rootProject.name='test'"""
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         file("build.gradle") << """
             configurations {
                 conf {
@@ -291,5 +291,58 @@ baz:1.0 requested
 """)
         where:
         useReason << [true, false]
+    }
+
+    void "expired cache entry doesn't break reading reasons from cache"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+            dependencies {
+                conf("org:foo:1.0") {
+                    because 'first reason' // must have custom reasons to show the problem
+                }
+                conf("org:bar:1.0") {
+                    because 'second reason'
+                }
+            }
+            
+            task resolveTwice {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    result.allComponents { 
+                        it.selectionReason.descriptions.each {
+                           println "\${it.cause} : \${it.description}"
+                        }
+                    }
+                    println 'Waiting for the cache to expire'
+                    // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
+                    Thread.sleep(800) // must be > cache expiry
+                    println 'Read result again'
+                    result.allComponents {
+                        it.selectionReason.descriptions.each {
+                           println "\${it.cause} : \${it.description}"
+                        }
+                    }
+                }
+            }
+        """
+        executer.withArgument('-Dorg.gradle.api.internal.artifacts.ivyservice.resolveengine.store.cacheExpiryMs=500')
+
+        when:
+        run 'resolveTwice'
+
+        then:
+        noExceptionThrown()
+
     }
 }

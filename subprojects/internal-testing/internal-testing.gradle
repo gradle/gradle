@@ -22,18 +22,18 @@ plugins {
 }
 
 dependencies {
-    compile libraries.groovy.coordinate
+    compile libraries.groovy.coordinates
 
     compile project(":baseServices")
     compile project(":native")
-    compile libraries.slf4j_api.coordinate
-    compile libraries.guava.coordinate
-    compile libraries.commons_lang.coordinate
-    compile libraries.commons_io.coordinate
-    compile libraries.ant.coordinate
-    compile libraries.asm.coordinate
-    compile libraries.asm_tree.coordinate
-    compile libraries.junit.coordinate
+    compile libraries.slf4j_api.coordinates
+    compile libraries.guava.coordinates
+    compile libraries.commons_lang.coordinates
+    compile libraries.commons_io.coordinates
+    compile libraries.ant.coordinates
+    compile libraries.asm.coordinates
+    compile libraries.asm_tree.coordinates
+    compile libraries.junit.coordinates
     compile testLibraries.jmock
     compile testLibraries.spock
     compile testLibraries.jsoup

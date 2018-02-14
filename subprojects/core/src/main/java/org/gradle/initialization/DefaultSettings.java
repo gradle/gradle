@@ -23,6 +23,7 @@ import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -313,5 +314,10 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Inject
     public SourceControl getSourceControl() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void enableFeaturePreview(String name) {
+        services.get(FeaturePreviews.class).enableFeature(name);
     }
 }

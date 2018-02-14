@@ -15,6 +15,7 @@
  */
 package org.gradle.api
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -45,5 +46,6 @@ allprojects {
         document.text().contains("build fooTask")
         document.text().contains("-x barTask")
         output.contains("See the profiling report at:")
+        output.contains("A fine-grained performance profile is available: use the --${StartParameterBuildOptions.BuildScanOption.LONG_OPTION} option.")
     }
 }

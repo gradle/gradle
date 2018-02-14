@@ -29,6 +29,8 @@ import org.gradle.internal.component.external.model.MutableMavenModuleResolveMet
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT;
+
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ImmutableAttributesFactory attributesFactory;
@@ -47,7 +49,7 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     @Override
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator, featurePreviews.isAdvancedPomSupportEnabled());
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator, featurePreviews.isFeatureEnabled(IMPROVED_POM_SUPPORT));
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
@@ -63,6 +65,6 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, featurePreviews.isAdvancedPomSupportEnabled());
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, featurePreviews.isFeatureEnabled(IMPROVED_POM_SUPPORT));
     }
 }

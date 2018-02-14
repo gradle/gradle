@@ -73,6 +73,8 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
+
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final static Factory<ComponentMetadataSupplier> NO_METADATA_SUPPLIER = new Factory<ComponentMetadataSupplier>() {
         @Override
@@ -348,7 +350,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
         void setDefaults(FeaturePreviews featurePreviews) {
             ivyDescriptor();
-            if (featurePreviews.isGradleMetadataEnabled()) {
+            if (featurePreviews.isFeatureEnabled(GRADLE_METADATA)) {
                 gradleMetadata();
             } else {
                 artifact();

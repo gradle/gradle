@@ -29,7 +29,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
     void "dependency constraint is ignored when feature is not enabled"() {
         given:
         // Do not enable feature
-        propertiesFile.text = ''
+        settingsFile.text = "rootProject.name = '$rootProjectName'"
 
         repository {
             'org:foo:1.0'()

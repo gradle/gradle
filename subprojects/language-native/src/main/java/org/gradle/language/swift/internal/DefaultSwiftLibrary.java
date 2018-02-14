@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.language.LibraryDependencies;
 import org.gradle.language.internal.DefaultLibraryDependencies;
 import org.gradle.language.swift.SwiftBinary;
@@ -55,6 +57,11 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         linkage.add(Linkage.SHARED);
 
         dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("Swift library", getName());
     }
 
     @Override
