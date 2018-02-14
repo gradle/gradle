@@ -84,11 +84,11 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 JULRedirector.checkDeprecatedProperty(options);
                 remoteProcessor = forkProcess();
             }
+
+            remoteProcessor.processTestClass(testClass);
         } finally {
             lock.unlock();
         }
-
-        remoteProcessor.processTestClass(testClass);
     }
 
     RemoteTestClassProcessor forkProcess() {
