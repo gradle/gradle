@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
@@ -32,6 +33,9 @@ import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.nativeplatform.platform.OperatingSystem;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 
@@ -72,15 +76,29 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+                application.getOperatingSystems().lockNow();
+                if (application.getOperatingSystems().get().isEmpty()) {
+                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                }
 
-                CppExecutable debugExecutable = application.addExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                boolean isHostCompatible = CollectionUtils.any(application.getOperatingSystems().get(), new Spec<OperatingSystem>() {
+                    @Override
+                    public boolean isSatisfiedBy(OperatingSystem element) {
+                        return DefaultNativePlatform.getCurrentOperatingSystem().equals(element);
+                    }
+                });
 
-                // Use the debug variant as the development binary
-                application.getDevelopmentBinary().set(debugExecutable);
+                if (isHostCompatible) {
+                    ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
-                application.getBinaries().realizeNow();
+                    CppExecutable debugExecutable = application.addExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+                    // Use the debug variant as the development binary
+                    application.getDevelopmentBinary().set(debugExecutable);
+
+                    application.getBinaries().realizeNow();
+                }
             }
         });
 
