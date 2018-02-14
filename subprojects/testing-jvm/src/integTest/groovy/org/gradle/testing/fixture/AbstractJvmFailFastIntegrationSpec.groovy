@@ -24,12 +24,14 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
+@Ignore
 abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
