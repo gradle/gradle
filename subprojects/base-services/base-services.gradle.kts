@@ -58,10 +58,8 @@ val buildReceiptResource by tasks.creating(Copy::class) {
     destinationDir = file("$generatedTestResourcesDir/$buildReceiptPackage")
 }
 
-java {
-    sourceSets {
-        "main" {
-            output.dir(mapOf("builtBy" to buildReceiptResource), generatedTestResourcesDir)
-        }
+java.sourceSets {
+    "main" {
+        output.dir(mapOf("builtBy" to buildReceiptResource), generatedTestResourcesDir)
     }
 }
