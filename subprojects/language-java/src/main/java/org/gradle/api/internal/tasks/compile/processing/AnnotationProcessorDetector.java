@@ -43,7 +43,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Inspects a classpath to find annotation processors contained in it.
+ * Inspects a classpath to find annotation processors contained in it. If several versions of the same annotation processor are found,
+ * the first one is returned, mimicking the behavior of {@link java.util.ServiceLoader}.
  */
 public class AnnotationProcessorDetector {
 
@@ -60,10 +61,15 @@ public class AnnotationProcessorDetector {
         this.logStackTraces = logStackTraces;
     }
 
-    public List<AnnotationProcessorDeclaration> detectProcessors(Iterable<File> processorPath) {
-        List<AnnotationProcessorDeclaration> processors = Lists.newArrayList();
+    public Map<String, AnnotationProcessorDeclaration> detectProcessors(Iterable<File> processorPath) {
+        Map<String, AnnotationProcessorDeclaration> processors = Maps.newLinkedHashMap();
         for (File jarOrClassesDir : processorPath) {
-            processors.addAll(cache.get(jarOrClassesDir));
+            for (AnnotationProcessorDeclaration declaration : cache.get(jarOrClassesDir)) {
+                String className = declaration.getClassName();
+                if (!processors.containsKey(className)) {
+                    processors.put(className, declaration);
+                }
+            }
         }
         return processors;
     }

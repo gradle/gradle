@@ -16,31 +16,40 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     protected CompilationOutputsFixture outputs
+
+    private TestFile annotationProjectDir
+    private TestFile libraryProjectDir
+    private TestFile processorProjectDir
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
 
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
-        def annotationProcessorProjectDir = testDirectory.file("annotation-processor").createDir()
+        annotationProjectDir = testDirectory.file("annotation").createDir()
+        libraryProjectDir = testDirectory.file("library").createDir()
+        processorProjectDir = testDirectory.file("processor").createDir()
 
         settingsFile << """
-            include "annotation-processor"
+            include "annotation", "library", "processor"
         """
+
         buildFile << """
-            apply plugin: 'java'
+            allprojects {
+                apply plugin: 'java'
+            }
             
             dependencies {
-                compileOnly project(":annotation-processor")
-                annotationProcessor project(":annotation-processor")
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
             }
             
             compileJava {
@@ -49,18 +58,19 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             }
         """
 
-        annotationProcessorProjectDir.file("build.gradle") << """
-            apply plugin: "java"
+        processorProjectDir.file("build.gradle") << """
+            dependencies {
+                implementation project(":annotation")
+                implementation project(":library")
+            }
         """
-
-        def fixture = new AnnotationProcessorFixture()
-        fixture.type = getProcessorType()
-        fixture.writeSupportLibraryTo(annotationProcessorProjectDir)
-        fixture.writeApiTo(annotationProcessorProjectDir)
-        fixture.writeAnnotationProcessorTo(annotationProcessorProjectDir)
     }
 
-    protected abstract IncrementalAnnotationProcessorType getProcessorType()
+    protected void withProcessor(AnnotationProcessorFixture processor) {
+        processor.writeSupportLibraryTo(libraryProjectDir)
+        processor.writeApiTo(annotationProjectDir)
+        processor.writeAnnotationProcessorTo(processorProjectDir)
+    }
 
     protected final File java(String... classBodies) {
         File out
@@ -73,5 +83,16 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             out = f
         }
         out
+    }
+
+    def "explicit -processor option overrides automatic detection"() {
+        buildFile << """
+            compileJava.options.compilerArgs << "-processor" << "unknown.Processor"
+        """
+        java "class A {}"
+
+        expect:
+        fails("compileJava")
+        errorOutput.contains("java.lang.ClassNotFoundException: unknown.Processor")
     }
 }

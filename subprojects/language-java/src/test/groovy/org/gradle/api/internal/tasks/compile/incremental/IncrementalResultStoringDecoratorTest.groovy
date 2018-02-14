@@ -23,14 +23,14 @@ import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 import spock.lang.Subject
 
-class IncrementalCompilationFinalizerTest extends Specification {
+class IncrementalResultStoringDecoratorTest extends Specification {
 
     def compiler = Mock(Compiler)
     def writer = Mock(JarClasspathSnapshotWriter)
     def infoUpdater = Mock(ClassSetAnalysisUpdater)
     def compileSpec = Stub(JavaCompileSpec)
 
-    @Subject finalizer = new IncrementalCompilationFinalizer(compiler, writer, infoUpdater)
+    @Subject finalizer = new IncrementalResultStoringDecorator(compiler, writer, infoUpdater)
 
     def "performs finalization"() {
         when:

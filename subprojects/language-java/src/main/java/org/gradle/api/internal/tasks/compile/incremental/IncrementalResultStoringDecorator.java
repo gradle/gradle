@@ -21,14 +21,16 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapsho
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
-class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
+/**
+ * Stores the incremental class dependency analysis after compilation has finished.
+ */
+class IncrementalResultStoringDecorator implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
     private final JarClasspathSnapshotWriter writer;
     private final ClassSetAnalysisUpdater updater;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer,
-                                           ClassSetAnalysisUpdater updater) {
+    public IncrementalResultStoringDecorator(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater) {
         this.delegate = delegate;
         this.writer = writer;
         this.updater = updater;
@@ -39,8 +41,6 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
         WorkResult out = delegate.execute(spec);
 
         if (!(out instanceof RecompilationNotNecessary)) {
-            //if recompilation was skipped
-            //there's no point in updating because we have exactly the same output classes)
             updater.updateAnalysis(spec);
         }
 
