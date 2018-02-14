@@ -21,8 +21,10 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
@@ -143,13 +145,22 @@ public class EarPlugin implements Plugin<Project> {
             }
         }
         ear.setGroup(BasePlugin.BUILD_GROUP);
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(ear));
+        ArchivePublishArtifact earArtifact = new ArchivePublishArtifact(ear);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(earArtifact);
+        ConfigurationPublications publications = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION).getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(earArtifact);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, Ear.EAR_EXTENSION);
 
         project.getTasks().withType(Ear.class, new Action<Ear>() {
             public void execute(Ear task) {
                 task.getLib().from(new Callable<FileCollection>() {
                     public FileCollection call() throws Exception {
-                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME);
+                        // Ensure that deploy jars are not also added into lib folder.
+                        // Allows the user to get transitive dependencies for a bean artifact by adding it to both earlib and deploy but only having the file once in the ear.
+                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME)
+                            .minus(project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME));
                     }
                 });
                 task.from(new Callable<FileCollection>() {
@@ -186,8 +197,5 @@ public class EarPlugin implements Plugin<Project> {
                 .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
         Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
                 .setDescription("Classpath for module dependencies.");
-
-        configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-                .extendsFrom(moduleConfiguration, earlibConfiguration);
     }
 }
