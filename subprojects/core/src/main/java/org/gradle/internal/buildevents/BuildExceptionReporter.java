@@ -34,6 +34,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
@@ -67,23 +68,33 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
     public void execute(Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
-            renderMultipleBuildExceptions((MultipleBuildFailures) failure);
+            List<Throwable> flattenedFailures = new ArrayList<Throwable>();
+            flattenMultipleBuildFailures((MultipleBuildFailures) failure, flattenedFailures);
+            renderMultipleBuildExceptions(flattenedFailures);
             return;
         }
 
         renderSingleBuildException(failure);
     }
 
-    private void renderMultipleBuildExceptions(MultipleBuildFailures multipleFailures) {
-        List<? extends Throwable> causes = multipleFailures.getCauses();
+    private void flattenMultipleBuildFailures(MultipleBuildFailures multipleFailures, List<Throwable> flattenedFailures) {
+        for (Throwable cause : multipleFailures.getCauses()) {
+            if (cause instanceof MultipleBuildFailures) {
+                flattenMultipleBuildFailures((MultipleBuildFailures)cause, flattenedFailures);
+            } else {
+                flattenedFailures.add(cause);
+            }
+        }
+    }
 
+    private void renderMultipleBuildExceptions(List<Throwable> flattenedFailures) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
-        output.withStyle(Failure).format("FAILURE: Build completed with %s failures.", causes.size());
+        output.withStyle(Failure).format("FAILURE: Build completed with %s failures.", flattenedFailures.size());
         output.println();
 
-        for (int i = 0; i < causes.size(); i++) {
-            Throwable cause = causes.get(i);
+        for (int i = 0; i < flattenedFailures.size(); i++) {
+            Throwable cause = flattenedFailures.get(i);
             FailureDetails details = constructFailureDetails("Task", cause);
 
             output.println();
