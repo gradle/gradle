@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,6 +41,9 @@ public class VersionSelectionReasons {
         return new DefaultComponentSelectionReason(REQUESTED);
     }
 
+    public static ComponentSelectionReasonInternal empty() {
+        return new DefaultComponentSelectionReason(Collections.<ComponentSelectionDescriptor>emptyList());
+    }
 
     public static ComponentSelectionReason root() {
         return new DefaultComponentSelectionReason(ROOT);
@@ -126,6 +130,11 @@ public class VersionSelectionReasons {
         @Override
         public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
             if (!descriptions.contains(description)) {
+                ComponentSelectionCause cause = description.getCause();
+                if (descriptions.isEmpty() && cause != ComponentSelectionCause.REQUESTED && cause != ComponentSelectionCause.ROOT) {
+                    // initial reason must always be either root or requested
+                    descriptions.add(REQUESTED);
+                }
                 descriptions.add((ComponentSelectionDescriptorInternal) description);
             }
             return this;

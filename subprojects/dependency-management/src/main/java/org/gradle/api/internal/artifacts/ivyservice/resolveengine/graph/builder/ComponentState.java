@@ -50,7 +50,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
-    private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.requested();
+    private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.empty();
     private volatile ComponentResolveMetadata metaData;
 
     private ModuleState state = ModuleState.Selectable;
