@@ -234,10 +234,11 @@ This does not happen anymore and the info logs should be much cleaner now when t
 
 Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build.  This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
 
-### Support for modelling Java agents
+### Rich arguments for exec like tasks
 
-Gradle 4.5 enabled plugin authors to model annotation processors as a [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html) for `JavaCompile` tasks.
-Now we introduce the same ability for Java agents by adding `getJvmArgumentProviders()` to [`Test`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders) and [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders).
+Gradle 4.5 added the possibility to add [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html)s to [`CompileOptions`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders), thus enabling plugin authors to model e.g. annotation processors.
+
+Now we introduce `CommandLineArgumentProvider`s to [`Exec`](dsl/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders), [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders) and [`Test`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders), both to model command line arguments (`Exec` and `JavaExec`) as well as JVM options (`JavaExec` and `Test`).
 
 For example, the built-in [`jacoco`](userguide/jacoco_plugin.html) plugin [uses this new feature](https://github.com/gradle/gradle/blob/12a25cce43317e28690183097f8f87130a67318e/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L137-L156) to declare the inputs and outputs of the JaCoCo agent added to the test task.
 
