@@ -293,6 +293,62 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
+    @Unroll
+    def "direct dependency reasons are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+            dependencies {
+                conf("org:foo:1.0") {
+                    if ($useReason) { because("This is a direct dependency reason") }
+                }
+            }
+            
+            configurations.all {
+                resolutionStrategy.eachDependency {
+                    if (requested.name == 'foo') {
+                        because("fix comes from component selection rule").useTarget("org:bar:1.0")
+                    }
+                }
+            }
+            
+            task checkWithApi {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    result.allComponents {
+                        if (it.id instanceof ModuleComponentIdentifier) {
+                            println "Module \$it.id"
+                            it.selectionReason.descriptions.each {
+                                println "   \$it.cause : \$it.description"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'checkWithApi'
+
+        then:
+        outputContains("""Module org:bar:1.0
+   REQUESTED : ${useReason?'This is a direct dependency reason':'requested'}
+   SELECTED_BY_RULE : fix comes from component selection rule
+""")
+        where:
+        useReason << [true, false]
+    }
+
     void "expired cache entry doesn't break reading reasons from cache"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
