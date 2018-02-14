@@ -17,7 +17,8 @@
 package org.gradle.api.component;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.provider.Provider;
 
 public interface ComponentWithCoordinates extends SoftwareComponent {
-    ModuleVersionIdentifier getCoordinates();
+    Provider<ModuleVersionIdentifier> getCoordinates();
 }

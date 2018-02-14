@@ -19,6 +19,7 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Usage;
@@ -45,7 +46,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
+public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary/*, ComponentWithCoordinates*/ {
     private final Provider<String> baseName;
     private final boolean debuggable;
     private final boolean optimized;
@@ -58,6 +59,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
     private final Property<CppCompile> compileTaskProperty;
+    private final Property<ModuleVersionIdentifier> coordinates;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, objects, projectLayout, componentImplementation);
@@ -69,6 +71,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.compileTaskProperty = objects.property(CppCompile.class);
+        this.coordinates = objects.property(ModuleVersionIdentifier.class);
 
         Names names = getNames();
 
@@ -176,6 +179,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     public PlatformToolProvider getPlatformToolProvider() {
         return platformToolProvider;
     }
+
+//    @Override
+//    public Provider<ModuleVersionIdentifier> getCoordinates() {
+//        return coordinates;
+//    }
 
     private class IncludePath implements MinimalFileSet {
         private final Configuration includePathConfig;

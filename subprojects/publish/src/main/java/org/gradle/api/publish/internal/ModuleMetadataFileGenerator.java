@@ -196,7 +196,7 @@ public class ModuleMetadataFileGenerator {
             for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
                 ModuleVersionIdentifier childCoordinates;
                 if (childComponent instanceof ComponentWithCoordinates) {
-                    childCoordinates = ((ComponentWithCoordinates)childComponent).getCoordinates();
+                    childCoordinates = ((ComponentWithCoordinates)childComponent).getCoordinates().get();
                 } else {
                     ComponentData componentData = componentCoordinates.get(childComponent);
                     childCoordinates = componentData == null ? null : componentData.coordinates;

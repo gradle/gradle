@@ -45,6 +45,7 @@ import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
@@ -348,6 +349,23 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
             }
         });
 
+//        components.withType(CppComponent.class, new Action<CppComponent>() {
+//            @Override
+//            public void execute(final CppComponent component) {
+//                component.getBinaries().configureEach(ComponentWithCoordinates.class, new Action<ComponentWithCoordinates>() {
+//                    @Override
+//                    public void execute(final ComponentWithCoordinates binary) {
+//                        binary.getCoordinates().set(providers.provider(new Callable<ModuleVersionIdentifier>() {
+//                            @Override
+//                            public ModuleVersionIdentifier call() throws Exception {
+//                                return new DefaultModuleVersionIdentifier(project.getGroup().toString(), component.getBaseName().get() + "_" + GUtil.toWords(binary.getName(), '_'), project.getVersion().toString());
+//                            }
+//                        }));
+//                    }
+//                });
+//            }
+//        });
+
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
@@ -370,17 +388,19 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                     }
                                 });
                                 for (final SoftwareComponent child : mainVariant.getVariants()) {
-                                    publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                        @Override
-                                        public void execute(MavenPublication publication) {
-                                            // TODO - should track changes to these properties
-                                            publication.setGroupId(project.getGroup().toString());
-                                            publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(child.getName(), '_'));
-                                            publication.setVersion(project.getVersion().toString());
-                                            publication.from(child);
-                                            ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                        }
-                                    });
+                                    if (!(child instanceof CppApplicationPlugin.SterlingNativeVariant)) {
+                                        publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                            @Override
+                                            public void execute(MavenPublication publication) {
+                                                // TODO - should track changes to these properties
+                                                publication.setGroupId(project.getGroup().toString());
+                                                publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(child.getName(), '_'));
+                                                publication.setVersion(project.getVersion().toString());
+                                                publication.from(child);
+                                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         });
