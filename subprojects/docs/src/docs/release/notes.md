@@ -40,6 +40,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### Removed incubating method `BuildIdentifier.isCurrentBuild()`
+
+TBD - This method is not longer available, so that a `BuildIdentifier` instance may be used to represent a build from anywhere in the Gradle invocation.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
