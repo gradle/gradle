@@ -22,8 +22,6 @@ import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
@@ -66,7 +64,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             version = '1.2'
             application {
                 baseName = 'test'
-                operatingSystems = [${DefaultNativePlatform.canonicalName}.getCurrentOperatingSystem(), new ${DefaultOperatingSystem.canonicalName}('mac os x'), new ${DefaultOperatingSystem.canonicalName}('linux')]
+                operatingSystems.addAll provider { [objects.named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS), objects.named(OperatingSystemFamily, OperatingSystemFamily.MAC_OS), objects.named(OperatingSystemFamily, OperatingSystemFamily.LINUX)] }
             }
             publishing {
                 repositories { maven { url '$repo.uri' } }

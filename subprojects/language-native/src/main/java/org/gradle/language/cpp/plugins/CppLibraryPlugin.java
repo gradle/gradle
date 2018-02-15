@@ -17,7 +17,7 @@
 package org.gradle.language.cpp.plugins;
 
 import com.google.common.collect.Sets;
-import com.sun.xml.internal.ws.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -49,18 +49,14 @@ import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.*;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -121,10 +117,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                 Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
-                for (OperatingSystem operatingSystem : library.getOperatingSystems().get()) {
+                for (OperatingSystemFamily operatingSystem : library.getOperatingSystems().get()) {
                     String operatingSystemSuffix = "";
                     if (library.getOperatingSystems().get().size() > 1) {
-                        operatingSystemSuffix = StringUtils.capitalize(((OperatingSystemInternal) operatingSystem).toFamilyName());
+                        operatingSystemSuffix = StringUtils.capitalize(operatingSystem.getName());
                     }
 
                     for (Linkage linkage : library.getLinkage().get()) {
@@ -152,14 +148,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         attributesDebugRuntime.attribute(DEBUGGABLE_ATTRIBUTE, true);
                         attributesDebugRuntime.attribute(OPTIMIZED_ATTRIBUTE, false);
                         attributesDebugRuntime.attribute(LINKAGE_ATTRIBUTE, linkage);
-                        attributesDebugRuntime.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
+                        attributesDebugRuntime.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                         AttributeContainer attributesDebugLink = attributesFactory.mutable();
                         attributesDebugLink.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                         attributesDebugLink.attribute(DEBUGGABLE_ATTRIBUTE, true);
                         attributesDebugLink.attribute(OPTIMIZED_ATTRIBUTE, false);
                         attributesDebugLink.attribute(LINKAGE_ATTRIBUTE, linkage);
-                        attributesDebugLink.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
+                        attributesDebugLink.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                         Set<? extends UsageContext> usageContextsDebug = Sets.newHashSet(new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebugRuntime), new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesDebugLink));
 
@@ -172,14 +168,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         attributesReleaseRuntime.attribute(DEBUGGABLE_ATTRIBUTE, true);
                         attributesReleaseRuntime.attribute(OPTIMIZED_ATTRIBUTE, true);
                         attributesReleaseRuntime.attribute(LINKAGE_ATTRIBUTE, linkage);
-                        attributesReleaseRuntime.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
+                        attributesReleaseRuntime.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                         AttributeContainer attributesReleaseLink = attributesFactory.mutable();
                         attributesReleaseLink.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                         attributesReleaseLink.attribute(DEBUGGABLE_ATTRIBUTE, true);
                         attributesReleaseLink.attribute(OPTIMIZED_ATTRIBUTE, true);
                         attributesReleaseLink.attribute(LINKAGE_ATTRIBUTE, linkage);
-                        attributesReleaseLink.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
+                        attributesReleaseLink.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                         Set<? extends UsageContext> usageContextsRelease = Sets.newHashSet(new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesReleaseRuntime), new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesReleaseLink));
 
@@ -188,7 +184,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         library.getMainPublication().addVariant(releaseVariant);
 
 
-                        if (DefaultNativePlatform.getCurrentOperatingSystem().equals(operatingSystem)) {
+                        if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                             if (linkage == Linkage.SHARED) {

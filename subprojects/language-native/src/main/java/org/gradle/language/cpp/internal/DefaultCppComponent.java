@@ -32,7 +32,7 @@ import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.nativeplatform.platform.OperatingSystem;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
@@ -49,7 +49,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Property<String> baseName;
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
-    private final LockableSetProperty<OperatingSystem> operatingSystems;
+    private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -62,8 +62,8 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         baseName = objectFactory.property(String.class);
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
-        operatingSystems = new LockableSetProperty<OperatingSystem>(objectFactory.setProperty(OperatingSystem.class));
-        operatingSystems.set(Collections.singleton(DefaultNativePlatform.getCurrentOperatingSystem()));
+        operatingSystems = new LockableSetProperty<OperatingSystemFamily>(objectFactory.setProperty(OperatingSystemFamily.class));
+        operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
     }
 
     @Override
@@ -128,7 +128,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public LockableSetProperty<OperatingSystem> getOperatingSystems() {
+    public LockableSetProperty<OperatingSystemFamily> getOperatingSystems() {
         return operatingSystems;
     }
 }

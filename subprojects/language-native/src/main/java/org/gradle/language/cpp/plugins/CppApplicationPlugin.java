@@ -37,9 +37,7 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -94,10 +92,10 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                 }
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-                for (OperatingSystem operatingSystem : application.getOperatingSystems().get()) {
+                for (OperatingSystemFamily operatingSystem : application.getOperatingSystems().get()) {
                     String operatingSystemSuffix = "";
                     if (application.getOperatingSystems().get().size() > 1) {
-                        operatingSystemSuffix = StringUtils.capitalize(((OperatingSystemInternal) operatingSystem).toFamilyName());
+                        operatingSystemSuffix = StringUtils.capitalize(operatingSystem.getName());
                     }
 
                     Provider<String> group = project.provider(new Callable<String>() {
@@ -118,7 +116,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     attributesDebug.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                     attributesDebug.attribute(DEBUGGABLE_ATTRIBUTE, true);
                     attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
-                    attributesDebug.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
+                    attributesDebug.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                     Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
@@ -130,7 +128,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     attributesRelease.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                     attributesRelease.attribute(DEBUGGABLE_ATTRIBUTE, true);
                     attributesRelease.attribute(OPTIMIZED_ATTRIBUTE, true);
-                    attributesRelease.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
+                    attributesRelease.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                     Set<? extends UsageContext> usageContextsRelease = Collections.singleton(new LightweightUsageContext("release" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesRelease));
 
@@ -139,7 +137,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     application.getMainPublication().addVariant(releaseVariant);
 
 
-                    if (DefaultNativePlatform.getCurrentOperatingSystem().equals(operatingSystem)) {
+                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                         CppExecutable debugExecutable = application.addExecutable("debug" + operatingSystemSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
