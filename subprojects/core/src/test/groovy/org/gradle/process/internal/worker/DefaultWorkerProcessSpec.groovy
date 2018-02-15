@@ -193,7 +193,7 @@ class DefaultWorkerProcessSpec extends Specification {
         then:
         1 * execHandle.start()
         0 * execHandle.waitForFinish()
-        1 * execHandle.abort(false)
+        1 * execHandle.abort(true)
         1 * acceptor.requestStop()
         1 * connection.stop()
     }
