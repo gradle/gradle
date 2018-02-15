@@ -108,7 +108,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         when:
         execHandle.start();
-        execHandle.abort();
+        execHandle.abort(false);
         then:
         execHandle.state == ExecHandleState.ABORTED
         and:
@@ -121,7 +121,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.start().waitForFinish();
 
         when:
-        execHandle.abort();
+        execHandle.abort(false);
 
         then:
         execHandle.state == ExecHandleState.SUCCEEDED
@@ -136,7 +136,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.start().waitForFinish();
 
         when:
-        execHandle.abort();
+        execHandle.abort(false);
 
         then:
         execHandle.state == ExecHandleState.FAILED
@@ -149,10 +149,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         given:
         def execHandle = handle().args(args(SlowApp.class)).build();
         execHandle.start();
-        execHandle.abort();
+        execHandle.abort(false);
 
         when:
-        execHandle.abort();
+        execHandle.abort(false);
 
         then:
         execHandle.state == ExecHandleState.ABORTED
@@ -261,7 +261,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.DETACHED
 
         cleanup:
-        execHandle.abort()
+        execHandle.abort(false)
     }
 
     @Ignore //not yet implemented
@@ -277,7 +277,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.DETACHED
 
         when:
-        execHandle.abort()
+        execHandle.abort(false)
         def result = execHandle.waitForFinish()
 
         then:
@@ -300,7 +300,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener.executionFinished(_, _)
 
         cleanup:
-        execHandle.abort()
+        execHandle.abort(false)
     }
 
     @Ignore //not yet implemented

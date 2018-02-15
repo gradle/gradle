@@ -22,11 +22,11 @@ import org.gradle.process.internal.streams.ForwardStdinStreamsHandler
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
-import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 
 @UsesNativeServices
 class DefaultExecHandleBuilderTest extends Specification {
-    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver(), Mock(Executor))
+    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver(), Mock(ExecutorService))
 
     def defaultsToEmptyStandardInput() {
         expect:

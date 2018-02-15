@@ -21,12 +21,12 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
-import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 
 import static java.util.Arrays.asList
 
 class JavaExecHandleBuilderTest extends Specification {
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), Mock(Executor))
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), Mock(ExecutorService))
 
     public void cannotSetAllJvmArgs() {
         when:
