@@ -25,6 +25,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import spock.lang.Unroll
 
+@Timeout(60)
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     static final EXPIRATION_CHECK_FREQUENCY = 50
     public static final String EXPIRATION_EVENT = "expiration_event.txt"
@@ -126,7 +127,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         !file(EXPIRATION_EVENT).exists()
     }
 
-    @Timeout(60)
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {
         given:
         buildFile << """
