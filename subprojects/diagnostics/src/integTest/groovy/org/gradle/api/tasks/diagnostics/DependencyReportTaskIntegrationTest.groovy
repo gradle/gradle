@@ -338,7 +338,7 @@ conf
 """
     }
 
-    def "mentions web-based dependency report after legend"() {
+    def "mentions web-bsed dependency report after legend"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
@@ -363,18 +363,9 @@ conf
         run "dependencies"
 
         then:
-        output.contains """
-conf
-\\--- org:top:1.0
-     +--- org:middle:1.0
-     |    +--- org:leaf1:1.0
-     |    \\--- org:leaf2:1.0
-     \\--- org:leaf2:1.0
- 
-(*) - dependencies omitted (listed previously)
- 
-A web-based, searchable dependency report is available by adding the --scan option.
-"""
+        output.contains """(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency report is available by adding the --scan option."""
     }
 
     def "shows selected versions in case of a multi-phase conflict"() {
