@@ -47,6 +47,7 @@ import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
@@ -144,7 +145,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                         Map<Attribute<?>, Object> attributesDebug = new HashMap<Attribute<?>, Object>();
                         attributesDebug.put(DEBUGGABLE_ATTRIBUTE, true);
                         attributesDebug.put(OPTIMIZED_ATTRIBUTE, false);
-                        attributesDebug.put(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) operatingSystem).getInternalOs().getFamilyName());
+                        attributesDebug.put(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
                         final String nameDebug = application.getName() + StringUtils.capitalize("debug" + os);
                         application.getMainPublication().addVariant(new SterlingNativeVariant(project.provider(new Callable<ModuleVersionIdentifier>() {
                                     @Override
@@ -156,7 +157,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                         Map<Attribute<?>, Object> attributesRelease = new HashMap<Attribute<?>, Object>();
                         attributesRelease.put(DEBUGGABLE_ATTRIBUTE, true);
                         attributesRelease.put(OPTIMIZED_ATTRIBUTE, true);
-                        attributesRelease.put(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) operatingSystem).getInternalOs().getFamilyName());
+                        attributesRelease.put(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
                         final String nameRelease = application.getName() + StringUtils.capitalize("release" + os);
                         application.getMainPublication().addVariant(new SterlingNativeVariant(project.provider(new Callable<ModuleVersionIdentifier>() {
                                     @Override

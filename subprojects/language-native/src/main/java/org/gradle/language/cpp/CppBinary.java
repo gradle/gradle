@@ -52,13 +52,6 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
     Attribute<Linkage> LINKAGE_ATTRIBUTE = Attribute.of("org.gradle.native.linkage", Linkage.class);
 
     /**
-     * The dependency resolution attribute use to indicate which operating system a binary targets.
-     *
-     * @since 4.7
-     */
-    Attribute<String> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", String.class);
-
-    /**
      * Returns the C++ source files of this binary.
      */
     FileCollection getCppSource();

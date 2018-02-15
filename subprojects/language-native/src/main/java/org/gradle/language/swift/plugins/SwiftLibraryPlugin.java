@@ -38,6 +38,7 @@ import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.util.GUtil;
 
@@ -119,7 +120,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
                             apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
                             apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
-                            apiElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) sharedLibrary.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
+                            apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) sharedLibrary.getTargetPlatform().getOperatingSystem()).toFamilyName()));
                             apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
                         }
                     });
@@ -151,7 +152,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
                             apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
                             apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
-                            apiElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) staticLibrary.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
+                            apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) staticLibrary.getTargetPlatform().getOperatingSystem()).toFamilyName()));
                             apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
                         }
                     });

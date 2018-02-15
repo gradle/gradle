@@ -34,13 +34,13 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPERATING_SYSTEM_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
@@ -108,7 +108,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
                         apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, executable.isDebuggable());
                         apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, executable.isOptimized());
-                        apiElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) executable.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
+                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) executable.getTargetPlatform().getOperatingSystem()).toFamilyName()));
                         apiElements.getOutgoing().artifact(executable.getModuleFile());
                     }
                 });

@@ -55,6 +55,7 @@ import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStat
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
@@ -299,7 +300,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
         // Add outgoing configurations and publications
 
-        ObjectFactory objectFactory = project.getObjects();
+        final ObjectFactory objectFactory = project.getObjects();
         final ConfigurationContainer configurations = project.getConfigurations();
         final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
@@ -317,7 +318,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                 linkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
                 linkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
-                linkElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) component.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
+                linkElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) component.getTargetPlatform().getOperatingSystem()).toFamilyName()));
                 if (component.getLinkage() != null) {
                     linkElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
                 }
@@ -337,7 +338,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                 runtimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
                 runtimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
-                runtimeElements.getAttributes().attribute(OPERATING_SYSTEM_ATTRIBUTE, ((OperatingSystemInternal) component.getTargetPlatform().getOperatingSystem()).getInternalOs().getFamilyName());
+                runtimeElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) component.getTargetPlatform().getOperatingSystem()).toFamilyName()));
                 if (component.getLinkage() != null) {
                     runtimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
                 }
