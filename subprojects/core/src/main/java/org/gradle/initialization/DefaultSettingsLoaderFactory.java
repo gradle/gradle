@@ -16,7 +16,6 @@
 
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
@@ -29,16 +28,14 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final BuildSourceBuilder buildSourceBuilder;
     private final NestedBuildFactory nestedBuildFactory;
     private final IncludedBuildRegistry includedBuildRegistry;
-    private final StartParameter startParameter;
 
     public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder,
-                                        NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry, StartParameter startParameter) {
+                                        NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
         this.nestedBuildFactory = nestedBuildFactory;
         this.includedBuildRegistry = includedBuildRegistry;
-        this.startParameter = startParameter;
     }
 
     @Override
@@ -55,8 +52,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         return new CompositeBuildSettingsLoader(
             defaultSettingsLoader(),
             nestedBuildFactory,
-            includedBuildRegistry,
-            startParameter);
+            includedBuildRegistry);
     }
 
     private SettingsLoader defaultSettingsLoader() {
