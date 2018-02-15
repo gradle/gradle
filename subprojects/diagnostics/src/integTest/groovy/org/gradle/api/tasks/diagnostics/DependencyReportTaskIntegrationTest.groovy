@@ -370,10 +370,10 @@ conf
      |    +--- org:leaf1:1.0
      |    \\--- org:leaf2:1.0
      \\--- org:leaf2:1.0
-
+ 
 (*) - dependencies omitted (listed previously)
-
-A web-based, searchable dependency report is available by adding the  --scan option.
+ 
+A web-based, searchable dependency report is available by adding the --scan option.
 """
     }
 
