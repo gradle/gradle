@@ -70,7 +70,7 @@ class DistributionTestExecHandleBuilder {
                 waitForFinish()
             } finally {
                 try {
-                    abort()
+                    abort(false)
                 } catch (IllegalStateException e) {
                     // Ignore if process is already not running
                     println "Did not abort play process since current state is: ${state.toString()}"
