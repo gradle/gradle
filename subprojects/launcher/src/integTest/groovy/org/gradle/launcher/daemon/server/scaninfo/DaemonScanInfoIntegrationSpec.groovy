@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.util.GFileUtils
 import spock.lang.IgnoreIf
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
@@ -125,6 +126,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         !file(EXPIRATION_EVENT).exists()
     }
 
+    @Timeout(60)
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {
         given:
         buildFile << """
