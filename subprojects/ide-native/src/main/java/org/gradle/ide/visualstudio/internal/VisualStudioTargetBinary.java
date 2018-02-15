@@ -95,10 +95,6 @@ public interface VisualStudioTargetBinary {
      */
     List<File> getIncludePaths();
 
-    /**
-     * Returns the dependencies of this binary
-     */
-    Iterable<VisualStudioTargetBinary> getDependencies();
 
     enum ProjectType {
         EXE("Exe"), LIB("Lib"), DLL("Dll"), NONE("");

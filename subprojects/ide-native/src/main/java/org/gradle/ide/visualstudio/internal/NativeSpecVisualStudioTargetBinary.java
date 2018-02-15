@@ -227,16 +227,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
         return new ArrayList<File>(includes);
     }
 
-    @Override
-    public Iterable<VisualStudioTargetBinary> getDependencies() {
-        Set<VisualStudioTargetBinary> targetBinaries = Sets.newHashSet();
-        for (NativeLibraryBinary dependency : binary.getDependentBinaries()) {
-            if (dependency instanceof NativeBinarySpecInternal) {
-                targetBinaries.add(new NativeSpecVisualStudioTargetBinary((NativeBinarySpec) dependency));
-            }
-        }
-        return targetBinaries;
-    }
+
 
     @Override
     public boolean equals(Object o) {
