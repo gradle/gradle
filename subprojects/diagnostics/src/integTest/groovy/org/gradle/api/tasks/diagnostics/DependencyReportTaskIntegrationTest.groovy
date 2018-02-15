@@ -338,6 +338,45 @@ conf
 """
     }
 
+    def "mentions web-based dependency report after legend"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        run "dependencies"
+
+        then:
+        output.contains """
+conf
+\\--- org:top:1.0
+     +--- org:middle:1.0
+     |    +--- org:leaf1:1.0
+     |    \\--- org:leaf2:1.0
+     \\--- org:leaf2:1.0
+
+(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency tree is available: use the --scan option.
+"""
+    }
+
     def "shows selected versions in case of a multi-phase conflict"() {
         given:
         mavenRepo.module("foo", "foo", "1.0").publish()

@@ -28,6 +28,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
@@ -112,6 +113,12 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     @Override
     public void complete() {
         legendRenderer.printLegend();
+
+        getTextOutput().println();
+        getTextOutput().text("A web-based, searchable dependency report is available by adding the ");
+        getTextOutput().withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        getTextOutput().println(" option.");
+
         super.complete();
     }
 
