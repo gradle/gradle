@@ -20,34 +20,42 @@ open class GradleCompilePlugin : Plugin<Project> {
         if (rootProject == project) {
             val projectInternal = project as ProjectInternal
             val javaInstallationProbe = projectInternal.services.get(JavaInstallationProbe::class.java)
-            val javaHomes = when {
-                project.hasProperty("java7Home") -> listOf(project.property("java7Home"))
-                System.getProperty("java7Home") != null -> listOf(System.getProperty("java7Home"))
-                else -> emptyList()
-            }
-            project.extensions.create("availableJdks", AvailableJdks::class.java, javaHomes, javaInstallationProbe)
+            project.extensions.create(
+                "availableJavaInstallations",
+                AvailableJavaInstallations::class.java,
+                listOfNotNull(resolveJavaHomePath("java7Home", project)),
+                resolveJavaHomePath("testJavaHome", project),
+                javaInstallationProbe
+            )
         }
 
-        val availableJdks = rootProject.the<AvailableJdks>()
+        val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
         project.tasks.withType<JavaCompile> {
             options.isIncremental = true
-            configureCompileTask(this, options, availableJdks)
+            configureCompileTask(this, options, availableJavaInstallations)
         }
         project.tasks.withType<GroovyCompile> {
-            configureCompileTask(this, options, availableJdks)
+            groovyOptions.encoding = "utf-8"
+            configureCompileTask(this, options, availableJavaInstallations)
         }
     }
 
-    private fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJdks: AvailableJdks) {
+    private fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
         val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
-        val jdkForCompilation = availableJdks.jdkFor(targetJdkVersion)
+        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(targetJdkVersion)
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
         compileTask.inputs.property("javaInstallation", jdkForCompilation.displayName)
+    }
+
+    private fun resolveJavaHomePath(propertyName: String, project: Project): String? = when {
+        project.hasProperty(propertyName) -> project.property(propertyName) as String
+        System.getProperty(propertyName) != null -> System.getProperty(propertyName)
+        else -> null
     }
 }
