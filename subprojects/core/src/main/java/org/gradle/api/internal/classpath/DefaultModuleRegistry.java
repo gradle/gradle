@@ -180,6 +180,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         String projectDirName = matcher.group(1);
         String projectName = toCamelCase(projectDirName);
         suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/out/production/classes").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/classes/main").replace('/', File.separatorChar));
