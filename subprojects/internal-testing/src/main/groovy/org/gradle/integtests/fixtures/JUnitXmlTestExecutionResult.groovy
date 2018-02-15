@@ -50,6 +50,11 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         xml.@'name'.text()
     }
 
+    boolean testClassExists(String testClass) {
+        def classes = findClasses()
+        return (classes.keySet().contains(testClass))
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         return new JUnitTestClassExecutionResult(findTestClass(testClass), testClass, outputAssociation)
     }

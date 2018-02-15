@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
@@ -57,6 +58,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T commandLine(Object... arguments) {
         execAction.commandLine(arguments);
         return taskType.cast(this);
@@ -65,6 +67,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T commandLine(Iterable<?> args) {
         execAction.commandLine(args);
         return taskType.cast(this);
@@ -73,6 +76,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T args(Object... args) {
         execAction.args(args);
         return taskType.cast(this);
@@ -81,6 +85,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T args(Iterable<?> args) {
         execAction.args(args);
         return taskType.cast(this);
@@ -89,6 +94,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T setArgs(List<String> arguments) {
         execAction.setArgs(arguments);
         return taskType.cast(this);
@@ -97,6 +103,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T setArgs(Iterable<?> arguments) {
         execAction.setArgs(arguments);
         return taskType.cast(this);
@@ -106,6 +113,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Optional @Input
+    @Override
     public List<String> getArgs() {
         return execAction.getArgs();
     }
@@ -113,7 +121,17 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Nested
+    @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return execAction.getArgumentProviders();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Internal
+    @Override
     public List<String> getCommandLine() {
         return execAction.getCommandLine();
     }
@@ -121,6 +139,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setCommandLine(List<String> args) {
         execAction.setCommandLine(args);
     }
@@ -128,6 +147,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setCommandLine(Iterable<?> args) {
         execAction.setCommandLine(args);
     }
@@ -135,6 +155,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setCommandLine(Object... args) {
         execAction.setCommandLine(args);
     }
@@ -143,6 +164,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Optional @Input
+    @Override
     public String getExecutable() {
         return execAction.getExecutable();
     }
@@ -150,6 +172,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setExecutable(String executable) {
         execAction.setExecutable(executable);
     }
@@ -157,6 +180,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setExecutable(Object executable) {
         execAction.setExecutable(executable);
     }
@@ -164,6 +188,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T executable(Object executable) {
         execAction.executable(executable);
         return taskType.cast(this);
@@ -181,6 +206,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setWorkingDir(File dir) {
         execAction.setWorkingDir(dir);
     }
@@ -188,6 +214,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setWorkingDir(Object dir) {
         execAction.setWorkingDir(dir);
     }
@@ -195,6 +222,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T workingDir(Object dir) {
         execAction.workingDir(dir);
         return taskType.cast(this);
@@ -204,6 +232,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public Map<String, Object> getEnvironment() {
         return execAction.getEnvironment();
     }
@@ -211,6 +240,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setEnvironment(Map<String, ?> environmentVariables) {
         execAction.setEnvironment(environmentVariables);
     }
@@ -218,6 +248,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T environment(String name, Object value) {
         execAction.environment(name, value);
         return taskType.cast(this);
@@ -226,6 +257,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T environment(Map<String, ?> environmentVariables) {
         execAction.environment(environmentVariables);
         return taskType.cast(this);
@@ -234,6 +266,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T copyTo(ProcessForkOptions target) {
         execAction.copyTo(target);
         return taskType.cast(this);
@@ -242,6 +275,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T setStandardInput(InputStream inputStream) {
         execAction.setStandardInput(inputStream);
         return taskType.cast(this);
@@ -251,6 +285,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public InputStream getStandardInput() {
         return execAction.getStandardInput();
     }
@@ -258,6 +293,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T setStandardOutput(OutputStream outputStream) {
         execAction.setStandardOutput(outputStream);
         return taskType.cast(this);
@@ -267,6 +303,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public OutputStream getStandardOutput() {
         return execAction.getStandardOutput();
     }
@@ -274,6 +311,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T setErrorOutput(OutputStream outputStream) {
         execAction.setErrorOutput(outputStream);
         return taskType.cast(this);
@@ -283,6 +321,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Internal
+    @Override
     public OutputStream getErrorOutput() {
         return execAction.getErrorOutput();
     }
@@ -290,6 +329,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
     public T setIgnoreExitValue(boolean ignoreExitValue) {
         execAction.setIgnoreExitValue(ignoreExitValue);
         return taskType.cast(this);
@@ -299,6 +339,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Input
+    @Override
     public boolean isIgnoreExitValue() {
         return execAction.isIgnoreExitValue();
     }

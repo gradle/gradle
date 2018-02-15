@@ -27,19 +27,27 @@ import java.util.List;
 
 class VintageTestNameAdapter {
     private static final String VINTAGE_DESCRIPTOR_CLASS_NAME = "VintageTestDescriptor";
+    private static final String VINTAGE_ENGINE = "[engine:junit-vintage]";
 
-    static boolean isVintageEngine(TestIdentifier testIdentifier) {
-        return testIdentifier.getUniqueId().contains("[engine:junit-vintage]");
+    static boolean isVintageDynamicLeafTest(TestIdentifier test) {
+        return test.getParentId().isPresent()
+            && !VINTAGE_ENGINE.equals(test.getParentId().get())
+            && isClassAndTest(test);
     }
 
-    static boolean isVintageDynamicTest(TestIdentifier test) {
-        return isVintageEngine(test)
-            && test.getSource().isPresent()
+    private static boolean isClassAndTest(TestIdentifier test) {
+        return test.getSource().isPresent()
             && test.getSource().get() instanceof ClassSource
             && test.isTest();
     }
 
-    static boolean isVintageDynamicTest(TestDescriptor test, TestSource source) {
+    static boolean isVintageDynamicTestClass(TestIdentifier test) {
+        return test.getParentId().isPresent()
+            && VINTAGE_ENGINE.equals(test.getParentId().get())
+            && isClassAndTest(test);
+    }
+
+    static boolean isVintageDynamicLeafTest(TestDescriptor test, TestSource source) {
         return test.isTest()
             && source instanceof ClassSource
             && VINTAGE_DESCRIPTOR_CLASS_NAME.equals(test.getClass().getSimpleName());

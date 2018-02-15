@@ -80,12 +80,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private boolean isLeafTest(TestIdentifier identifier) {
-        return identifier.isTest();
+        return identifier.isTest() && !isVintageDynamicTestClass(identifier);
     }
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        if (isLeafMethodOrFailedContainer(testIdentifier, testExecutionResult)) {
+        if (isLeafTestOrFailedContainer(testIdentifier, testExecutionResult)) {
             if (!isLeafTest(testIdentifier)) {
                 // only leaf methods triggered start events previously
                 // so here we need to add the missing start events
@@ -121,7 +121,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         currentRunningTestClass.end(className(testIdentifier));
     }
 
-    private boolean isLeafMethodOrFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
+    private boolean isLeafTestOrFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
         // Generally, there're 2 kinds of identifier:
         // 1. A container (test engine/class/repeated tests). It is not tracked unless it fails/aborts.
         // 2. A test "leaf" method. It's always tracked.
@@ -135,10 +135,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private TestDescriptorInternal getDescriptor(final TestIdentifier test) {
         if (isMethod(test)) {
             return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());
-        } else if (isVintageDynamicTest(test)) {
+        } else if (isVintageDynamicLeafTest(test)) {
             UniqueId uniqueId = UniqueId.parse(test.getUniqueId());
             return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(uniqueId), vintageDynamicMethodName(uniqueId));
-        } else if (isClass(test)) {
+        } else if (isClass(test) || isVintageDynamicTestClass(test)) {
             return new DefaultTestDescriptor(idGenerator.generateId(), className(test), "classMethod");
         } else {
             return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());

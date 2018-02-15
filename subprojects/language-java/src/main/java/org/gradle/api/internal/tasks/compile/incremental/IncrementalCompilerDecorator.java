@@ -34,6 +34,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.TextUtil;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Decorates a non-incremental Java compiler (like javac) so that it can be invoked incrementally.
@@ -70,7 +71,8 @@ public class IncrementalCompilerDecorator {
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
         Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
+        IncrementalResultStoringDecorator compilationFinalizer = new IncrementalResultStoringDecorator(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
+        return new IncrementalAnnotationProcessingCompiler(compilationFinalizer, annotationProcessorDetector);
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
@@ -97,9 +99,9 @@ public class IncrementalCompilerDecorator {
     }
 
     private List<AnnotationProcessorDeclaration> getNonIncrementalProcessors() {
-        List<AnnotationProcessorDeclaration> allProcessors = annotationProcessorDetector.detectProcessors(annotationProcessorPath);
+        Map<String, AnnotationProcessorDeclaration> allProcessors = annotationProcessorDetector.detectProcessors(annotationProcessorPath);
         List<AnnotationProcessorDeclaration> nonIncrementalProcessors = Lists.newArrayListWithCapacity(allProcessors.size());
-        for (AnnotationProcessorDeclaration processor : allProcessors) {
+        for (AnnotationProcessorDeclaration processor : allProcessors.values()) {
             if (!processor.getType().isIncremental()) {
                 nonIncrementalProcessors.add(processor);
             }

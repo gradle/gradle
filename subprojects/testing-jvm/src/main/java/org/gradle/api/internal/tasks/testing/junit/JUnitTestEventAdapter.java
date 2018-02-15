@@ -29,7 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JUnitTestEventAdapter extends RunListener {
-    private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
+    private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
     private final IdGenerator<?> idGenerator;
     private final GenericJUnitTestEventAdapter<Description> adapter;
 

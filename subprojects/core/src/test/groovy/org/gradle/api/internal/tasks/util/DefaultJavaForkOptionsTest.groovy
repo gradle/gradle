@@ -17,10 +17,12 @@
 
 package org.gradle.api.internal.tasks.util
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.UsesNativeServices
@@ -63,6 +65,35 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         options.jvmArgs == ['12', '3']
+    }
+
+    def "setAllJvmArgs cleans jvmArgumentProviders"() {
+        def jvmArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
+
+        when:
+        options.jvmArgumentProviders << jvmArgumentProvider
+        then:
+        options.allJvmArgs == ['argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.allJvmArgs = ['arg1']
+        then:
+        options.allJvmArgs == ['arg1', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.jvmArgumentProviders << jvmArgumentProvider
+        then:
+        options.allJvmArgs == ['arg1', 'argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.setAllJvmArgs(ImmutableSet.of("arg2"))
+        then:
+        options.allJvmArgs == ['arg2', fileEncodingProperty(), *localeProperties()]
     }
 
     def "can add jvmArgs"() {
@@ -137,6 +168,26 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), *localeProperties()]
+    }
+
+    def "allJvmArgs include jvmArgumentProviders"() {
+        when:
+        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider1', 'argFromProvider2']
+            }
+        }
+        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider3']
+            }
+        }
+        options.jvmArgs('arg1')
+
+        then:
+        options.allJvmArgs == ['arg1', 'argFromProvider1', 'argFromProvider2', 'argFromProvider3', fileEncodingProperty(), *localeProperties()]
     }
 
     def "minHeapSize is updated when set using jvmArgs"() {
@@ -337,6 +388,12 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.systemProperties(key: 12)
         options.minHeapSize = '64m'
         options.maxHeapSize = '1g'
+        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
 
         when:
         options.copyTo(target)
@@ -350,6 +407,9 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.setBootstrapClasspath(options.bootstrapClasspath)
         1 * target.setEnableAssertions(false)
         1 * target.setDebug(false)
+
+        then:
+        1 * target.jvmArgs(['argFromProvider'])
     }
 
     def "defaults are compatible"() {
@@ -769,6 +829,36 @@ class DefaultJavaForkOptionsTest extends Specification {
         !options.isCompatibleWith(other2)
     }
 
+    def "cannot determine compatibility with jvmArgumentProviders"() {
+        def other = new DefaultJavaForkOptions(resolver)
+        def argumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
+        if (currentHasProviders) {
+            options.jvmArgumentProviders << argumentProvider
+        }
+        if (otherHasProviders) {
+            other.jvmArgumentProviders << argumentProvider
+        }
+
+        when:
+        options.isCompatibleWith(other)
+
+        then:
+        def thrown = thrown(UnsupportedOperationException)
+        thrown.message.contains('Cannot compare options with jvmArgumentProviders.')
+
+        where:
+        currentHasProviders | otherHasProviders
+        true                | false
+        false               | true
+        true                | true
+
+    }
+
     def "can merge options"() {
         def other = new DefaultJavaForkOptions(resolver)
 
@@ -838,6 +928,36 @@ class DefaultJavaForkOptionsTest extends Specification {
         where:
         settings1 << [{executable = "foo"}, {workingDir = new File("foo")}, {defaultCharacterEncoding = "foo"}]
         settings2 << [{executable = "bar"}, {workingDir = new File("bar")}, {defaultCharacterEncoding = "bar"}]
+    }
+
+    def "cannot merge options with jvmArgumentProviders"() {
+        def other = new DefaultJavaForkOptions(resolver)
+        def argumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['Hello']
+            }
+        }
+        if (currentHasProviders) {
+            options.jvmArgumentProviders << argumentProvider
+        }
+        if (otherHasProviders) {
+            other.jvmArgumentProviders << argumentProvider
+        }
+
+
+        when:
+        options.mergeWith(other)
+
+        then:
+        def thrown = thrown(UnsupportedOperationException)
+        thrown.message.contains('Cannot merge options with jvmArgumentProviders.')
+
+        where:
+        currentHasProviders | otherHasProviders
+        true                | false
+        false               | true
+        true                | true
     }
 
     private static String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {

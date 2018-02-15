@@ -63,6 +63,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
+
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
@@ -302,7 +304,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return featurePreviews.isGradleMetadataEnabled();
+        return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
     }
 
     private static File assertDescriptorFile(FileCollection ref) {

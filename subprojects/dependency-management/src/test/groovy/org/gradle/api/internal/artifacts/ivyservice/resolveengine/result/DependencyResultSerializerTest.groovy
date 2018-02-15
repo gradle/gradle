@@ -78,6 +78,7 @@ class DependencyResultSerializerTest extends Specification {
         encoder.flush()
         Map<ModuleComponentSelector, ModuleVersionResolveException> map = new HashMap<>()
         map.put(requested, failure)
+        serializer.reset()
         def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [4L: requested], map)
 
         then:

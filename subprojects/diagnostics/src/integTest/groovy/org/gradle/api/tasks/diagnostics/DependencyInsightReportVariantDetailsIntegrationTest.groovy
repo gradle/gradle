@@ -74,7 +74,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'

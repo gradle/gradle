@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -216,6 +217,11 @@ public class DaemonForkOptionsBuilder {
 
         @Override
         public JavaForkOptions jvmArgs(Object... arguments) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
             throw new UnsupportedOperationException();
         }
 

@@ -18,6 +18,14 @@ apply {
     from("gradle/remoteHttpCacheSettings.gradle")
 }
 
+try {
+    settings.withGroovyBuilder {
+        "enableFeaturePreview"("IMPROVED_POM_SUPPORT")
+    }
+} catch (e: Exception ){
+    // Ignore - indicates this is run with Gradle < 4.6
+}
+
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
@@ -110,7 +118,6 @@ rootProject.name = "gradle"
 val groovyBuildScriptProjects = listOf(
     "distributions-dependencies",
     "distributions",
-    "base-services",
     "base-services-groovy",
     "logging",
     "process-services",
@@ -134,7 +141,6 @@ val groovyBuildScriptProjects = listOf(
     "osgi",
     "maven",
     "code-quality",
-    "antlr",
     "tooling-api",
     "tooling-api-builders",
     "docs",

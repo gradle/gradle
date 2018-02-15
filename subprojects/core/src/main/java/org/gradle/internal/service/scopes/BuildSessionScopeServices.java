@@ -140,8 +140,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOperationListenerManager(listenerManager);
     }
 
-    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationlistenerManager) {
-        return new BuildOperationTrace(startParameter, buildOperationlistenerManager);
+    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, ListenerManager listenerManager) {
+        return new BuildOperationTrace(startParameter, listenerManager);
     }
 
     BuildOperationExecutor createBuildOperationExecutor(
@@ -252,8 +252,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    FeaturePreviews createExperimentalFeatures(StartParameter startParameter) {
-        return new FeaturePreviews(startParameter);
+    FeaturePreviews createExperimentalFeatures() {
+        return new FeaturePreviews();
     }
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {

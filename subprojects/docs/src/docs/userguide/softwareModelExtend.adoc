@@ -18,12 +18,12 @@
 
 [NOTE]
 ====
- 
+
 Support for the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
- 
+
 ====
 
-One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support domains like <<java_software,Java>>, <<play_plugin,Play Framework>> or <<native_software,native software development>>. Before reading this you should be familiar with the Gradle software model <<software_model,rule based configuration>> and <<software_model_concepts,concepts>>.
+One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support domains like the <<play_plugin,Play Framework>> or <<native_software,native software development>>. Before reading this you should be familiar with the Gradle software model <<software_model,rule based configuration>> and <<software_model_concepts,concepts>>.
 
 The following build script is an example of using a custom software model for building Markdown based documentation:
 
@@ -66,12 +66,12 @@ Components are composed of other components. A source set is just a special kind
 [[sec:components]]
 === Components
 
-To declare a custom component type one must extend api:org.gradle.platform.base.ComponentSpec[], or one of the following, depending on the use case: 
+To declare a custom component type one must extend api:org.gradle.platform.base.ComponentSpec[], or one of the following, depending on the use case:
 
 * api:org.gradle.platform.base.SourceComponentSpec[] represents a component which has sources
 * api:org.gradle.platform.base.VariantComponentSpec[] represents a component which generates different binaries based on context (target platforms, build flavors, ...). Such a component generally produces multiple binaries.
 * api:org.gradle.platform.base.GeneralComponentSpec[] is a convenient base interface for components that are built from sources and variant-aware. This is the typical case for a lot of software components, and therefore it should be in most of the cases the base type to be extended.
- 
+
 
 The core software model includes more types that can be used as base for extension. For example: api:org.gradle.platform.base.LibrarySpec[] and api:org.gradle.platform.base.ApplicationSpec[] can also be extended in this manner. Theses are no-op extensions of `GeneralComponentSpec` used to describe a software model better by distinguishing libraries and applications components. api:org.gradle.testing.base.TestSuiteSpec[] should be used for all components that describe a test suite.
 

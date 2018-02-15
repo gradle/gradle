@@ -28,6 +28,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
+import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
@@ -106,6 +107,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
+    private boolean failFast;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -454,9 +456,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
 
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
-
         TestExecuter testExecuter = createTestExecuter();
+        TestListenerInternal resultProcessorDelegate = getTestListenerInternalBroadcaster().getSource();
+        if (failFast) {
+            resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
+        }
+
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
 
         try {
             testExecuter.execute(createTestExecutionSpec(), resultProcessor);
@@ -542,6 +548,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
+    }
+
+    @Internal
+    boolean getFailFast() {
+        return failFast;
+    }
+
+    void setFailFast(boolean failFast) {
+        this.failFast = failFast;
     }
 
     /**

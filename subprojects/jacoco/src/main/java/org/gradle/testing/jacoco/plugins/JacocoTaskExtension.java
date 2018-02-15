@@ -20,8 +20,15 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.RelativePathUtil;
@@ -88,6 +95,7 @@ public class JacocoTaskExtension {
     /**
      * Whether or not the task should generate execution data. Defaults to {@code true}.
      */
+    @Input
     public boolean isEnabled() {
         return enabled;
     }
@@ -99,6 +107,8 @@ public class JacocoTaskExtension {
     /**
      * The path for the execution data to be written to.
      */
+    @OutputFile
+    @Optional
     public File getDestinationFile() {
         return destinationFile.getOrNull();
     }
@@ -120,6 +130,7 @@ public class JacocoTaskExtension {
     /**
      * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
      */
+    @Input
     public boolean isAppend() {
         return append;
     }
@@ -131,6 +142,8 @@ public class JacocoTaskExtension {
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
+    @Input
+    @Optional
     public List<String> getIncludes() {
         return includes;
     }
@@ -142,6 +155,8 @@ public class JacocoTaskExtension {
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
      */
+    @Input
+    @Optional
     public List<String> getExcludes() {
         return excludes;
     }
@@ -153,6 +168,8 @@ public class JacocoTaskExtension {
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      */
+    @Input
+    @Optional
     public List<String> getExcludeClassLoaders() {
         return excludeClassLoaders;
     }
@@ -166,6 +183,7 @@ public class JacocoTaskExtension {
      *
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
      */
+    @Input
     public boolean isIncludeNoLocationClasses() {
         return includeNoLocationClasses;
     }
@@ -177,6 +195,8 @@ public class JacocoTaskExtension {
     /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      */
+    @Input
+    @Optional
     public String getSessionId() {
         return sessionId;
     }
@@ -188,6 +208,7 @@ public class JacocoTaskExtension {
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
      */
+    @Input
     public boolean isDumpOnExit() {
         return dumpOnExit;
     }
@@ -199,6 +220,7 @@ public class JacocoTaskExtension {
     /**
      * The type of output to generate. Defaults to {@link Output#FILE}.
      */
+    @Input
     public Output getOutput() {
         return output;
     }
@@ -210,6 +232,8 @@ public class JacocoTaskExtension {
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
      */
+    @Input
+    @Optional
     public String getAddress() {
         return address;
     }
@@ -221,6 +245,8 @@ public class JacocoTaskExtension {
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
+    @Input
+    @Optional
     public int getPort() {
         return port;
     }
@@ -234,6 +260,8 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
+    @LocalState
+    @Optional
     public File getClassDumpDir() {
         return classDumpDir;
     }
@@ -252,6 +280,7 @@ public class JacocoTaskExtension {
      *
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
      */
+    @Input
     public boolean isJmx() {
         return jmx;
     }
@@ -261,10 +290,23 @@ public class JacocoTaskExtension {
     }
 
     /**
+     * The Jacoco agent configuration.
+     *
+     * This contains only one file - the agent jar.
+     *
+     * @since 4.6
+     */
+    @Classpath
+    public FileCollection getAgentConf() {
+        return agent.getAgentConf();
+    }
+
+    /**
      * Gets all properties in the format expected of the agent JVM argument.
      *
      * @return state of extension in a JVM argument
      */
+    @Internal
     public String getAsJvmArg() {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());

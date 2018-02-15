@@ -40,7 +40,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 doLast {
-                    assert jvmArgs.every { !it.contains("javaagent") }
+                    assert allJvmArgs.every { !it.contains("javaagent") }
                 }
             }
         """

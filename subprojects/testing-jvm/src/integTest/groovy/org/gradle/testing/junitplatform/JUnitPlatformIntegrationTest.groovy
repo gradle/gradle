@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.hamcrest.Matchers.containsString
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -209,5 +209,46 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
             .assertTestPassed('partialSkip 1/3')
             .assertTestsSkipped('partialSkip 2/3')
             .assertTestPassed('partialSkip 3/3')
+    }
+
+    def 'can filter nested tests'() {
+        given:
+        file('src/test/java/org/gradle/NestedTest.java') << '''
+package org.gradle;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.EmptyStackException;
+import java.util.Stack;
+
+import org.junit.jupiter.api.*;
+
+class NestedTest {
+    @Test
+    void outerTest() {
+    }
+
+    @Nested
+    class Inner {
+        @Test
+        void innerTest() {
+        }
+    }
+}
+'''
+        buildFile << '''
+test {
+    filter {
+        includeTestsMatching "*innerTest*"
+    }
+}
+'''
+        when:
+        succeeds('test')
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.NestedTest$Inner')
+        result.testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
+            .assertTestPassed('innerTest')
     }
 }

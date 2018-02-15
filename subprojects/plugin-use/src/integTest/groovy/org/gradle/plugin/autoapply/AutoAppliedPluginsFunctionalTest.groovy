@@ -29,12 +29,12 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 @LeaksFileHandles
 class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
-    private static final String BUILD_SCAN_LICENSE_QUESTION = 'Publishing a build scan to scans.gradle.com requires accepting the Terms of Service defined at https://scans.gradle.com/terms-of-service. Do you accept these terms?'
+    private static final String BUILD_SCAN_LICENSE_QUESTION = 'Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service defined at https://gradle.com/terms-of-service. Do you accept these terms?'
     private static final String BUILD_SCAN_SUCCESSFUL_PUBLISHING = 'Publishing build scan'
     private static final String BUILD_SCAN_PLUGIN_CONFIG_PROBLEM = 'The build scan was not published due to a configuration problem.'
-    private static final String BUILD_SCAN_LICENSE_NOTE = 'The Gradle Cloud Services license agreement has not been agreed to.'
-    private static final String BUILD_SCAN_LICENSE_ACCEPTANCE = 'Gradle Cloud Services license agreement accepted.'
-    private static final String BUILD_SCAN_LICENSE_DECLINATION = 'Gradle Cloud Services license agreement not accepted.'
+    private static final String BUILD_SCAN_LICENSE_NOTE = 'The Gradle Terms of Service have not been agreed to.'
+    private static final String BUILD_SCAN_LICENSE_ACCEPTANCE = 'Gradle Terms of Service accepted.'
+    private static final String BUILD_SCAN_LICENSE_DECLINATION = 'Gradle Terms of Service not accepted.'
     private static final String BUILD_SCAN_WARNING = 'WARNING: The build scan plugin was applied after other plugins.'
 
     def "can auto-apply build scan plugin but does not ask for license acceptance in non-interactive console"() {
@@ -87,7 +87,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        result.output.contains("The buildScan extension 'licenseAgree' value must be exactly the string 'yes' (without quotes).")
+        result.output.contains("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
         result.output.contains("The value given was 'no'.")
     }
 
