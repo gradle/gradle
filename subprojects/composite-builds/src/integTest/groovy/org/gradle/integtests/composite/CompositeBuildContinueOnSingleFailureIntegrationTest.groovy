@@ -107,7 +107,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         fails(buildA, ":delegate")
 
         then:
-        outputContains("Using '$CONTINUE_COMMAND_LINE_OPTION' with a composite build does not collect all failures.")
         // We attach the single failure in 'buildB' to every delegated task, so ':buildB:succeeds' appears to have failed
         // Thus ":delegateWithSuccess" is never executed.
         assertTaskExecutedOnce(":buildB", ":fails")
@@ -131,7 +130,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         fails(buildA, ":delegate")
 
         then:
-        outputContains("Using '$CONTINUE_COMMAND_LINE_OPTION' with a composite build does not collect all failures.")
         outputContains("continueOnFailure = true")
 
         assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
@@ -152,7 +150,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         execute(buildA, ":assemble")
 
         then:
-        outputContains("Using '$CONTINUE_COMMAND_LINE_OPTION' with a composite build does not collect all failures.")
         outputContains("continueOnFailure = true")
 
         assertTaskExecutedOnce(":buildB", ":checkContinueFlag")
