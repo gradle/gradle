@@ -67,7 +67,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     @Override
     public void stopNow() {
         // cleanup() will abort the process as desired
-        cleanup();
+        cleanup(true);
     }
 
     public void setExecHandle(ExecHandle execHandle) {
@@ -148,7 +148,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         try {
             doStart();
         } catch (Throwable t) {
-            cleanup();
+            cleanup(false);
             throw UncheckedException.throwAsUncheckedException(t);
         }
         return this;
@@ -195,11 +195,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         try {
             return execHandle.waitForFinish().assertNormalExitValue();
         } finally {
-            cleanup();
+            cleanup(false);
         }
     }
 
-    private void cleanup() {
+    private void cleanup(boolean terminatingEarly) {
         CompositeStoppable stoppable;
         lock.lock();
         try {
@@ -210,6 +210,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
         stoppable.stop();
-        execHandle.abort();
+        execHandle.abort(terminatingEarly);
     }
 }

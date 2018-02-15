@@ -168,7 +168,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         @Override
         public void stop() {
             if (execHandle != null) {
-                execHandle.abort();
+                execHandle.abort(false);
                 execHandle.waitForFinish();
             }
         }

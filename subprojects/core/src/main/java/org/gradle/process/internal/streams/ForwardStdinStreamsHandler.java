@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Forwards the contents of an {@link InputStream} to the process' stdin
@@ -32,15 +34,16 @@ import java.util.concurrent.Executor;
 public class ForwardStdinStreamsHandler implements StreamsHandler {
     private final InputStream input;
     private final CountDownLatch completed = new CountDownLatch(1);
-    private Executor executor;
-    private ExecOutputHandleRunner standardInputWriter;
+    private ExecutorService executor;
+    private volatile ExecOutputHandleRunner standardInputWriter;
+    private volatile Future<?> future;
 
     public ForwardStdinStreamsHandler(InputStream input) {
         this.input = input;
     }
 
     @Override
-    public void connectStreams(Process process, String processName, Executor executor) {
+    public void connectStreams(Process process, String processName, ExecutorService executor) {
         this.executor = executor;
 
         /*
@@ -53,7 +56,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     }
 
     public void start() {
-        executor.execute(standardInputWriter);
+        future = executor.submit(standardInputWriter);
     }
 
     public void stop() {
@@ -66,6 +69,17 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
             completed.await();
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        standardInputWriter.stopNow();
+        try {
+            future.cancel(true);
+            standardInputWriter.closeInput();
+        } catch (IOException ioe) {
+            // do nothing
         }
     }
 }

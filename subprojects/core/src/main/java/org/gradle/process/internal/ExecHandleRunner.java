@@ -20,7 +20,7 @@ import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,13 +31,13 @@ public class ExecHandleRunner implements Runnable {
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
     private final ProcessLauncher processLauncher;
-    private final Executor executor;
+    private final ExecutorService executor;
 
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, ExecutorService executor) {
         this.processLauncher = processLauncher;
         this.executor = executor;
         if (execHandle == null) {
@@ -48,9 +48,12 @@ public class ExecHandleRunner implements Runnable {
         this.execHandle = execHandle;
     }
 
-    public void abortProcess() {
+    public void abortProcess(boolean terminatingEarly) {
         lock.lock();
         try {
+            if (terminatingEarly) {
+                streamsHandler.stopNow();
+            }
             aborted = true;
             if (process != null) {
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
