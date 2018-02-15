@@ -45,7 +45,10 @@ import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.plugins.CppApplicationPlugin;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
@@ -388,21 +391,73 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                         ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                     }
                                 });
-                                for (final SoftwareComponent child : mainVariant.getVariants()) {
-                                    if (!(child instanceof CppApplicationPlugin.SterlingNativeVariant)) {
-                                        publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                            @Override
-                                            public void execute(MavenPublication publication) {
-                                                // TODO - should track changes to these properties
-                                                publication.setGroupId(project.getGroup().toString());
-                                                publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(child.getName(), '_'));
-                                                publication.setVersion(project.getVersion().toString());
-                                                publication.from(child);
-                                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                            }
-                                        });
+                            }
+                        });
+                    }
+                });
+
+
+                components.withType(CppExecutable.class, new Action<CppExecutable>() {
+                    @Override
+                    public void execute(final CppExecutable component) {
+                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+                            @Override
+                            public void execute(PublishingExtension publishing) {
+                                publishing.getPublications().create(component.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                    @Override
+                                    public void execute(MavenPublication publication) {
+                                        // TODO - should track changes to these properties
+                                        publication.setGroupId(project.getGroup().toString());
+                                        publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(((DefaultCppExecutable)component).identity.getName(), '_'));
+                                        publication.setVersion(project.getVersion().toString());
+                                        publication.from(component);
+                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                     }
-                                }
+                                });
+                            }
+                        });
+                    }
+                });
+
+                components.withType(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
+                    @Override
+                    public void execute(final CppSharedLibrary component) {
+                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+                            @Override
+                            public void execute(PublishingExtension publishing) {
+                                publishing.getPublications().create(component.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                    @Override
+                                    public void execute(MavenPublication publication) {
+                                        // TODO - should track changes to these properties
+                                        publication.setGroupId(project.getGroup().toString());
+                                        publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(component.getName(), '_'));
+                                        publication.setVersion(project.getVersion().toString());
+                                        publication.from(component);
+                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+
+                components.withType(CppStaticLibrary.class, new Action<CppStaticLibrary>() {
+                    @Override
+                    public void execute(final CppStaticLibrary component) {
+                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+                            @Override
+                            public void execute(PublishingExtension publishing) {
+                                publishing.getPublications().create(component.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                    @Override
+                                    public void execute(MavenPublication publication) {
+                                        // TODO - should track changes to these properties
+                                        publication.setGroupId(project.getGroup().toString());
+                                        publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(component.getName(), '_'));
+                                        publication.setVersion(project.getVersion().toString());
+                                        publication.from(component);
+                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                    }
+                                });
                             }
                         });
                     }

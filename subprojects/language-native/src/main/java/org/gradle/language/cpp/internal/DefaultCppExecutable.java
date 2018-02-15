@@ -24,6 +24,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -37,21 +39,24 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.testng.collections.Sets;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Set;
 
-public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage {
+public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installationDirectory;
     private final Property<InstallExecutable> installTaskProperty;
     private final Property<LinkExecutable> linkTaskProperty;
     private final Property<Configuration> runtimeElementsProperty;
     private final ConfigurableFileCollection outputs;
+    public final NativeVariantIdentity identity;
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
         this.debuggerExecutableFile = projectLayout.fileProperty();
@@ -60,6 +65,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
         this.runtimeElementsProperty = objectFactory.property(Configuration.class);
         this.outputs = fileOperations.files();
+        this.identity = identity;
     }
 
     @Override
@@ -111,5 +117,14 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Override
     public boolean hasRuntimeFile() {
         return true;
+    }
+
+    @Override
+    public Set<? extends UsageContext> getUsages() {
+        Set<UsageContext> result = Sets.newHashSet();
+        for (UsageContext usageContext : identity.getUsages()) {
+            result.add(new DefaultUsageContext(usageContext.getName(), usageContext.getUsage(), runtimeElementsProperty.get().getAllArtifacts(), runtimeElementsProperty.get()));
+        }
+        return result;
     }
 }
