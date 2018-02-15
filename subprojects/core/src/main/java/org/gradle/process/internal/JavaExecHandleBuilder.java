@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Use {@link JavaExecHandleFactory} instead.
@@ -43,7 +43,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final FileResolver fileResolver;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, Executor executor) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, ExecutorService executor) {
         super(fileResolver, executor);
         this.fileResolver = fileResolver;
         javaOptions = new DefaultJavaForkOptions(fileResolver);
