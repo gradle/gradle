@@ -19,6 +19,7 @@ class DefaultJavaInstallation(val current: Boolean) : LocalJavaInstallation {
     override fun setJavaVersion(javaVersion: JavaVersion) { this.javaVersion = javaVersion }
     override fun getJavaHome() = javaHome
     override fun setJavaHome(javaHome: File) { this.javaHome = javaHome }
+    fun getToolsJar(): File? = Jvm.forHome(javaHome).toolsJar
 
     override fun toString(): String = "${displayName} (${javaHome.absolutePath})"
 }
