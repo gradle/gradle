@@ -287,6 +287,10 @@ Normally this wouldn't be a big deal, since most users set the same expiry every
 
 This [nasty cache-expiry bug](https://github.com/gradle/gradle/issues/3019) has now been fixed. Users can trust that Gradle will return the most up-to-date `SNAPSHOT` or version available as long as the [dependency cache expiry is set](userguide/troubleshooting_dependency_resolution.html#sec:controlling_dependency_caching_programmatically) correctly.
 
+### Gradle Kotlin DSL upgraded to v0.15.6
+
+See the [Gradle Kotlin DSL v0.15.6](https://github.com/gradle/kotlin-dsl/releases/tag/v0.15.6) release notes for more information.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -385,6 +389,10 @@ Use `StartParameter.buildCacheEnabled` instead.
 ### HttpClient library upgraded to version 4.5.5
 
 Gradle has been upgraded to embed [HttpClient version 4.5.5](https://archive.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.5.x.txt) over 4.4.1.
+
+### Kotlin Standard Library for Java 8 artifact changes
+
+Gradle now bundles the Kotlin Standard Library Java 8 artifact `kotlin-stdlib-jdk8` instead of `kotlin-stdlib-jre8` as a follow up to the upgrade to Kotlin 1.2. This change might affect your build, please see the [Kotlin documentation](http://kotlinlang.org/docs/reference/whatsnew12.html#kotlin-standard-library-artifacts-and-split-packages) about this change.
 
 <!--
 ### Example breaking change
