@@ -20,10 +20,10 @@ open class GradleCompilePlugin : Plugin<Project> {
         if (rootProject == project) {
             val projectInternal = project as ProjectInternal
             val javaInstallationProbe = projectInternal.services.get(JavaInstallationProbe::class.java)
-            val javaHomes = if (project.hasProperty("java7Home")) {
-                listOf(project.property("java7Home"))
-            } else {
-                emptyList()
+            val javaHomes = when {
+                project.hasProperty("java7Home") -> listOf(project.property("java7Home"))
+                System.getProperty("java7Home") != null -> listOf(System.getProperty("java7Home"))
+                else -> emptyList()
             }
             project.extensions.create("availableJdks", AvailableJdks::class.java, javaHomes, javaInstallationProbe)
         }
