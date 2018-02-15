@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
@@ -42,9 +42,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
-    private ExecutorService executor;
+    private Executor executor;
 
-    AbstractExecHandleBuilder(PathToFileResolver fileResolver, ExecutorService executor) {
+    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
         super(fileResolver);
         this.executor = executor;
         standardOutput = SafeStreams.systemOut();

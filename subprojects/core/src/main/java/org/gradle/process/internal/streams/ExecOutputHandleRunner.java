@@ -58,7 +58,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private void forwardContent() {
         byte[] buffer = new byte[bufferSize];
         try {
-            while (!Thread.interrupted() && !stoppedNow) {
+            while (!stoppedNow) {
                 int nread = inputStream.read(buffer);
                 if (nread < 0) {
                     break;

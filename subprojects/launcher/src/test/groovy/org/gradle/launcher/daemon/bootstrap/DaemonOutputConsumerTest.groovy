@@ -24,7 +24,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         def process = process('hey Joe!')
 
         when:
-        consumer.connectStreams(process, "cool process", managedExecutor)
+        consumer.connectStreams(process, "cool process", executor)
         consumer.start()
         consumer.stop()
         then:
@@ -45,7 +45,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         consumer.startupCommunication.containsGreeting({ it.contains "Come visit Krakow" }) >> true
 
         when:
-        consumer.connectStreams(process, "cool process", managedExecutor)
+        consumer.connectStreams(process, "cool process", executor)
         consumer.start()
         consumer.stop()
 
@@ -61,7 +61,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
 
     def "starting is required"() {
         when:
-        consumer.connectStreams(process(""), "cool process", managedExecutor)
+        consumer.connectStreams(process(""), "cool process", executor)
 
         then:
         illegalStateReportedWhen { consumer.processOutput }

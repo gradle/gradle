@@ -26,6 +26,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
@@ -103,62 +104,78 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         e.message == "A problem occurred starting process 'awesome'"
     }
 
-    void "aborts process"() {
+    @Unroll
+    void "aborts process when terminatingEarly #terminatingEarly"() {
         def execHandle = handle().args(args(SlowApp.class)).build();
 
         when:
         execHandle.start();
-        execHandle.abort(false);
+        execHandle.abort(terminatingEarly);
         then:
         execHandle.state == ExecHandleState.ABORTED
         and:
         execHandle.waitForFinish().exitValue != 0
+
+        where:
+        terminatingEarly << [ false, true ]
     }
 
-    void "can abort after process has completed"() {
+    @Unroll
+    void "can abort after process has completed when terminatingEarly #terminatingEarly"() {
         given:
         def execHandle = handle().args(args(TestApp.class)).build();
         execHandle.start().waitForFinish();
 
         when:
-        execHandle.abort(false);
+        execHandle.abort(terminatingEarly);
 
         then:
         execHandle.state == ExecHandleState.SUCCEEDED
 
         and:
         execHandle.waitForFinish().exitValue == 0
+
+        where:
+        terminatingEarly << [ false, true ]
     }
 
-    void "can abort after process has failed"() {
+    @Unroll
+    void "can abort after process has failed when terminatingEarly #terminatingEarly"() {
         given:
         def execHandle = handle().args(args(BrokenApp.class)).build();
         execHandle.start().waitForFinish();
 
         when:
-        execHandle.abort(false);
+        execHandle.abort(terminatingEarly);
 
         then:
         execHandle.state == ExecHandleState.FAILED
 
         and:
         execHandle.waitForFinish().exitValue == 72
+
+        where:
+        terminatingEarly << [ false, true ]
     }
 
-    void "can abort after process has been aborted"() {
+    @Unroll
+    void "can abort after process has been aborted when terminatingEarly #terminatingEarly"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).build();
         execHandle.start();
-        execHandle.abort(false);
+        execHandle.abort(terminatingEarly);
 
         when:
-        execHandle.abort(false);
+        execHandle.abort(terminatingEarly);
 
         then:
         execHandle.state == ExecHandleState.ABORTED
 
         and:
         execHandle.waitForFinish().exitValue != 0
+
+        where:
+        terminatingEarly << [ false, true ]
     }
 
     void "clients can listen to notifications"() {
@@ -265,7 +282,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     @Ignore //not yet implemented
-    void "aborts daemon"() {
+    @Unroll
+    void "aborts daemon when terminatingEarly #terminatingEarly"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
 
@@ -277,12 +295,15 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.DETACHED
 
         when:
-        execHandle.abort(false)
+        execHandle.abort(terminatingEarly)
         def result = execHandle.waitForFinish()
 
         then:
         execHandle.state == ExecHandleState.ABORTED
         result.exitValue != 0
+
+        where:
+        terminatingEarly << [ false, true ]
     }
 
     void "detaching does not trigger 'finished' notification"() {
@@ -419,7 +440,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.resolver(), managedExecutor)
+        new DefaultExecHandleBuilder(TestFiles.resolver(), executor)
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getTestDirectory());

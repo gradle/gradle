@@ -24,8 +24,7 @@ import org.gradle.util.DisconnectableInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executor;
 
 /**
  * Forwards the contents of an {@link InputStream} to the process' stdin
@@ -33,16 +32,15 @@ import java.util.concurrent.Future;
 public class ForwardStdinStreamsHandler implements StreamsHandler {
     private final InputStream input;
     private final CountDownLatch completed = new CountDownLatch(1);
-    private ExecutorService executor;
+    private Executor executor;
     private volatile ExecOutputHandleRunner standardInputWriter;
-    private volatile Future<?> future;
 
     public ForwardStdinStreamsHandler(InputStream input) {
         this.input = input;
     }
 
     @Override
-    public void connectStreams(Process process, String processName, ExecutorService executor) {
+    public void connectStreams(Process process, String processName, Executor executor) {
         this.executor = executor;
 
         /*
@@ -55,7 +53,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     }
 
     public void start() {
-        future = executor.submit(standardInputWriter);
+        executor.execute(standardInputWriter);
     }
 
     public void stop() {
@@ -75,7 +73,6 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     public void stopNow() {
         standardInputWriter.stopNow();
         try {
-            future.cancel(true);
             standardInputWriter.closeInput();
         } catch (IOException ioe) {
             // do nothing

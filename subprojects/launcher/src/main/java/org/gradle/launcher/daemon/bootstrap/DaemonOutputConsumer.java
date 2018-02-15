@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 public class DaemonOutputConsumer implements StreamsHandler {
 
@@ -35,7 +35,7 @@ public class DaemonOutputConsumer implements StreamsHandler {
     private InputStream processStdOutput;
 
     @Override
-    public void connectStreams(Process process, String processName, ExecutorService executor) {
+    public void connectStreams(Process process, String processName, Executor executor) {
         processStdOutput = process.getInputStream();
     }
 

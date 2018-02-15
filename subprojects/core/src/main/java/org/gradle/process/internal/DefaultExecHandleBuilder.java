@@ -27,7 +27,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Use {@link ExecHandleFactory} instead.
@@ -36,7 +36,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     private final List<Object> arguments = new ArrayList<Object>();
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, ExecutorService executor) {
+    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
         super(fileResolver, executor);
     }
 

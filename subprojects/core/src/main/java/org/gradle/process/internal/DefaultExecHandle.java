@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -95,7 +95,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final Lock lock;
     private final Condition stateChanged;
 
-    private final ExecutorService executor;
+    private final Executor executor;
 
     /**
      * State of this ExecHandle.
@@ -116,7 +116,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
-                      ExecutorService executor) {
+                      Executor executor) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -406,7 +406,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private class CompositeStreamsHandler implements StreamsHandler {
         @Override
-        public void connectStreams(Process process, String processName, ExecutorService executor) {
+        public void connectStreams(Process process, String processName, Executor executor) {
             inputHandler.connectStreams(process, processName, executor);
             outputHandler.connectStreams(process, processName, executor);
         }
