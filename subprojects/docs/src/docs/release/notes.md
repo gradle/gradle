@@ -1,13 +1,39 @@
+The Gradle team is pleased to announce Gradle 4.6.
+
+First and foremost, this release of Gradle features extensive improvements to dependency management. You can now [declare transitive dependency constraints](#transitive-dependency-constraints) and avoid problems caused by oft-hidden upstream dependency changes. 
+
+This release of Gradle also includes crucial experimental features for Maven dependency compatibility: support for [importing BOMs](#experimental-bom-import), [optional dependencies](#experimental-support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#experimental-compile/runtime-scope-separation-in-pom-consumption). You can enable these experimental features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ or _settings.gradle.kts_ file. Please try these features so they can be promoted to stable for Gradle 5.0 later this year.
+
+Next, this release of Gradle includes built-in support for JUnit Platform and the JUnit Jupiter/Vintage Engine, also known as [JUnit 5 support](#junit-5-support). You can use the new filtering and engines functionality in JUnit 5 using the examples provided below and in the documentation.
+
+Also regarding testing, you can now improve your testing feedback loop when running JVM-based tests using the [new fail-fast option for `Test` tasks](#fail-fast-option-for-test-tasks), which stops the build immediately after the first test failure.
+
+This version of Gradle also comes with a couple especially useful new APIs for task development. You can now [declare custom command-line flags for your custom tasks](#tasks-api-allows-custom-command-line-options), for example: `gradle myCustomTask --myfoo=bar`. In addition, [tasks that extend `Exec` or `JavaExec` can declare rich arguments](#rich-command-line-arguments-for-exec-and-javaexec-tasks) for invoking the underlying executable. This allows for better modeling by tools like annotation processors.
+
+Speaking of annotation processors, it is now more convenient to declare dependencies that are annotation processors through the [new `annotationProcessor` dependency configuration](#convenient-declaration-of-annotation-processor-dependencies). Using a separate dependency configuration for annotation processors is a best practice for improving performance.
+
+[Kotlin DSL v0.15.6](https://github.com/gradle/kotlin-dsl/releases/tag/v0.15.6) is included in this release of Gradle, and features  initialization scripts support, nicer script compilation error reporting, performance improvements, and better IntelliJ IDEA integration. Details are available in the linked release notes.
+
+We hope you will build happiness with Gradle 4.6, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
+
+## Upgrade instructions
+
+Switch your build to use Gradle 4.6 RC1 quickly by updating your wrapper properties:
+
+`gradle wrapper --gradle-version=4.6-rc-1`
+
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### Dependency constraints
+### Transitive dependency constraints
 
 With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In the future, Gradle will also allow you to publish dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) that is currently under development. This means that, as a library author, you can share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
 
     dependencies {
-        implementation 'org.apache.httpcomponents:httpclient'  
+        implementation 'org.apache.httpcomponents:httpclient'
     }
 
     dependencies {
@@ -19,13 +45,47 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
         }
     }
 
-In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
+In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at least `1.11` and Gradle will now pick that version during dependency resolution.
 
-### JUnit Platform and JUnit Jupiter/Vintage Engine (a.k.a. JUnit 5) support
+### Experimental BOM import
+
+Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
+
+    dependencies {
+        // import a BOM
+        implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
+    
+        // define dependencies without versions
+        implementation 'com.google.code.gson:gson'
+        implementation 'dom4j:dom4j'
+    }
+
+Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+
+### Experimental support for optional dependencies in POM consumption
+
+Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+
+### Experimental compile/runtime scope separation in POM consumption
+
+Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
+
+- The compile classpath is much larger than it needs to be, slowing down compilation.
+- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
+
+Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+
+### JUnit 5 support
 
 [JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of the well-known `JUnit` test framework. JUnit 5 is composed of several modules:
 
-    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+> JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
     
 The `JUnit Platform` serves as a foundation for launching testing frameworks on the JVM. `JUnit Jupiter` is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
  and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. `JUnit Vintage` provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
@@ -46,9 +106,9 @@ Moreover, [Tagging and Filtering](http://junit.org/junit5/docs/current/user-guid
             // includeEngines 'junit-jupiter', 'junit-vintage'
             // excludeEngines 'custom-engine'
         }
-    }  
+    }
     
-You can find samples of tagged tests at `samples/testing/junitplatform/tagging` in the '-all' distribution of Gradle.         
+You can find more information on [test grouping and filtering in the Java Plugin documentation](userguide/java_plugin.html#test_grouping).
     
 #### JUnit Jupiter Engine
     
@@ -91,57 +151,27 @@ If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JU
 You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
 A sample of mixed tests can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.         
 
-Note that JUnit 5 requires Java 8 or higher.
+**Note:** Use of JUnit 5 features requires Java 8 or higher.
 
-### Fail fast on `test` task
+### Fail fast option for Test tasks
 
-Gradle now supports failing the `test` task after the first failed test. Projects with large test suite can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To enable this fail fast behavior in your build file, you should set the `failFast` property:
+Gradle now supports stopping [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) tasks after the first failed test. Projects with large test suites can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To enable this fail fast behavior in your build file, set the `failFast` property to `true`:
 
     test {
         failFast = true
     }
 
-In addition, this behavior can be enabled from the command line for individual build invocations. An invocation would look like `gradle test --fail-fast`.
+In addition, this behavior can be enabled from the command line for individual build invocations. An invocation looks like:
 
-### Support for optional dependencies in POM consumption
+    gradle integTest --fail-fast
 
-Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
-
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
-
-### BOM import
-
-Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
-
-    dependencies {
-        // import a BOM
-        implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
-    
-        // define dependencies without versions
-        implementation 'com.google.code.gson:gson'
-        implementation 'dom4j:dom4j'
-    }
-
-Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
-
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
-
-### Compile/runtime scope separation in POM consumption
-
-Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
-
-- The compile classpath is much larger than it needs to be, slowing down compilation.
-- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
-
-Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
-
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+More information is available in the [Java Plugin documentation for test execution](userguide/java_plugin.html#sec:test_execution).
 
 <!--
 ### Example new and noteworthy
 -->
 
-### Specifying metadata sources for repositories
+### Customizable metadata file resolution
 
 Gradle now allows you to explicitly state for [which metadata files](userguide/repository_types.html#sub:supported_metadata_sources) it should search in a repository. Use the following to configure Gradle to fail-fast resolving a dependency if a POM file is not found first.
 
@@ -156,9 +186,11 @@ Gradle now allows you to explicitly state for [which metadata files](userguide/r
 
 This avoids a 2nd request for the JAR file when the POM is missing, making dependency resolution from Maven repositories faster in this case.
 
-### Ability to specify custom reasons for dependency declarations and resolution rules
+### Allow declared reasons for dependency and resolution rules
 
-In complex builds, it can become hard to interpret dependency resolution results and why a [dependency declaration](userguide/customizing_dependency_resolution_behavior.html) or a [rule](userguide/inspecting_dependencies.html#sec:dependency_declaration_reasons) was added to a build script. To improve on this situation, we extended all the corresponding APIs with the capability to define a _reason_ for each declaration or rule. These reasons are shown in dependency insight reports and error messages if the corresponding declaration or rule influenced the resolution result. In the future, they will also be shown in build scans.
+In complex builds, it can become hard to interpret dependency resolution results and why a [dependency declaration](userguide/customizing_dependency_resolution_behavior.html) or a [rule](userguide/inspecting_dependencies.html#sec:dependency_declaration_reasons) was added to a build script. To improve on this situation, we extended all the corresponding APIs with the capability to define a _reason_ for each declaration or rule. 
+
+These reasons are shown in dependency insight reports and error messages if the corresponding declaration or rule influenced the resolution result. In the future, they will also be shown in build scans.
 
     dependencies {
         implementation('org.ow2.asm:asm:6.0') {
@@ -167,27 +199,22 @@ In complex builds, it can become hard to interpret dependency resolution results
     }
     
 
-### Default JaCoCo version upgraded to 0.8.0
+### Convenient declaration of annotation processor dependencies
 
-[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+It is now even easier to add annotation processors to your Java projects. Simply add them to the `annotationProcessor` configuration:
 
-### Annotation processor configurations
+    dependencies {
+        annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
+        implementation 'com.google.dagger:dagger:2.8'
+    }
 
-It is now even easier to add annotation processors to your Java projects. Simply add them to the `annotationProcessor` configuration.
+Declaring annotation processors on a [separate configuration improves performance](https://blog.gradle.org/incremental-compiler-avoidance#about-annotation-processors) by preserving incremental compilation for tasks that don't require annotation processors.
 
-```
-dependencies {
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
-    implementation 'com.google.dagger:dagger:2.8'
-}
-
-```
-
-### Public API for defining command line options for tasks
+### Tasks API allows custom command-line options
 
 Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
 
-The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
+The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [documentation on declaring command-line options](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
 
     import org.gradle.api.tasks.options.Option;
 
@@ -212,41 +239,9 @@ The following examples exposes a command line parameter `--url` for the custom t
         }
     }
 
-### Caching for Scala compilation when using the `play` plugin
+### Rich command-line arguments for Exec and JavaExec tasks
 
-The task `PlatformScalaCompile` is now cacheable.
-This means that [Play projects](userguide/play_plugin.html) now also benefit from the [build cache](userguide/build_cache.html)!
-
-### New property for debugging the build cache
-
-With Gradle 4.6 we introduce the Gradle property [`org.gradle.caching.debug`](userguide/build_environment.html#sec:gradle_configuration_properties) which causes individual input property hashes to be logged on the console.
-For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --build-cache` the output would be:
-
-    :compileJava
-    Appending taskClass to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated
-    Appending classLoaderHash to build cache key: 0e1119759d236086191ff6fbd26c610f
-    Appending actionType to build cache key: _BuildScript_$_run_closure1_769114ba780efdb8aed68d70a323d160
-    Appending actionClassLoaderHash to build cache key: c383666cbb0f1bf25d832b944f228c44
-    Appending actionType to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated
-    Appending actionClassLoaderHash to build cache key: 0e1119759d236086191ff6fbd26c610f
-    Appending inputPropertyHash for 'options.class' to build cache key: 74824162f3f111308fa9dc95c82b65a6
-    Appending inputPropertyHash for 'options.compilerArgs' to build cache key: 8222d82255460164427051d7537fa305
-    ...
-    Appending inputPropertyHash for 'source' to build cache key: 55786645cf0e6dcf6a3d48b1b43bf687
-    Appending outputPropertyName to build cache key: destinationDir
-    Build cache key for task ':compileJava' is 2221655c6648a7e9baf61a6234de8658
-
-In earlier versions of Gradle, this output was logged on the `INFO` log level.
-This does not happen anymore and the info logs should be much cleaner now when the build cache is enabled.
-
-
-### Better Visual Studio IDE support for multi-project builds
-
-Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build.  This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
-
-### Rich arguments for exec like tasks
-
-Gradle 4.5 added the possibility to add [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html)s to [`CompileOptions`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders), thus enabling plugin authors to model e.g. annotation processors.
+Gradle 4.5 added the possibility to add [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html)s to [`CompileOptions`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders), thus enabling plugin authors to better model tools like annotation processors.
 
 Now we introduce `CommandLineArgumentProvider`s to [`Exec`](dsl/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders), [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders) and [`Test`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders), both to model command line arguments (`Exec` and `JavaExec`) as well as JVM options (`JavaExec` and `Test`).
 
@@ -277,7 +272,38 @@ For example, the built-in [`jacoco`](userguide/jacoco_plugin.html) plugin [uses 
     
 For this to work, [JacocoTaskExtension](dsl/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html) needs to have the correct input and output annotations.
 
-See the [documentation](userguide/more_about_tasks.html#sec:task_input_nested_inputs) for information how to leverage this feature in custom plugins.
+See the [documentation about tasks with nested inputs](userguide/more_about_tasks.html#sec:task_input_nested_inputs) for information how to leverage this feature in custom plugins.
+
+### Logging options for debugging build caching
+
+This version of Gradle introduces a property [`org.gradle.caching.debug`](userguide/build_environment.html#sec:gradle_configuration_properties) which causes individual input property hashes to be logged on the console.
+For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --build-cache` the output would be:
+
+    > Task :compileJava
+    Appending taskClass to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated
+    Appending classLoaderHash to build cache key: 0e1119759d236086191ff6fbd26c610f
+    Appending actionType to build cache key: _BuildScript_$_run_closure1_769114ba780efdb8aed68d70a323d160
+    Appending actionClassLoaderHash to build cache key: c383666cbb0f1bf25d832b944f228c44
+    Appending actionType to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated
+    Appending actionClassLoaderHash to build cache key: 0e1119759d236086191ff6fbd26c610f
+    Appending inputPropertyHash for 'options.class' to build cache key: 74824162f3f111308fa9dc95c82b65a6
+    Appending inputPropertyHash for 'options.compilerArgs' to build cache key: 8222d82255460164427051d7537fa305
+    ...
+    Appending inputPropertyHash for 'source' to build cache key: 55786645cf0e6dcf6a3d48b1b43bf687
+    Appending outputPropertyName to build cache key: destinationDir
+    Build cache key for task ':compileJava' is 2221655c6648a7e9baf61a6234de8658
+
+In earlier versions of Gradle, this output was logged on the `INFO` log level.
+This does not happen anymore, and the `--info` logs should be much less verbose now while the build cache is enabled.
+
+### Caching for Scala compilation when using the `play` plugin
+
+The task `PlatformScalaCompile` is now cacheable. 
+This means that [Play projects](userguide/play_plugin.html) written in Scala now also benefit from the [build cache](userguide/build_cache.html)!
+
+### Improved Visual Studio IDE support for multi-project builds
+
+Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build. This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
 
 ### Honour cache-expiry settings in the presence of detached configurations
 
@@ -287,9 +313,9 @@ Normally this wouldn't be a big deal, since most users set the same expiry every
 
 This [nasty cache-expiry bug](https://github.com/gradle/gradle/issues/3019) has now been fixed. Users can trust that Gradle will return the most up-to-date `SNAPSHOT` or version available as long as the [dependency cache expiry is set](userguide/troubleshooting_dependency_resolution.html#sec:controlling_dependency_caching_programmatically) correctly.
 
-### Gradle Kotlin DSL upgraded to v0.15.6
+### Default JaCoCo version upgraded to 0.8.0
 
-See the [Gradle Kotlin DSL v0.15.6](https://github.com/gradle/kotlin-dsl/releases/tag/v0.15.6) release notes for more information.
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
 ## Promoted features
 
@@ -302,21 +328,21 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
-### TestKit becomes public feature
-
-TestKit was first introduced in Gradle 2.6 to support developers with writing and executing functional tests for plugins. In the course of the Gradle 2.x releases, a lot of new functionality was added. This version of Gradle removes the incubating status and makes TestKit a public feature.
-
-### `CompileOptions.annotationProcessorPath` property
-
-The `CompileOptions.annotationProcessorPath` property has been promoted and is now stable.
-
-### Build cache and task output caching
+### Build cache and task output caching marked stable
 
 The [build cache](userguide/build_cache.html) and [task output caching](userguide/build_cache.html#sec:task_output_caching) were first introduced in Gradle 3.5.
 They are used in production by different teams, including the Gradle team itself, with great results.
 As of Gradle 4.6, the build cache and task output caching are no longer incubating and considered public features.
 
 Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating.
+
+### TestKit marked stable
+
+[TestKit](userguide/test_kit.html) was first introduced in Gradle 2.6 to support developers with writing and executing functional tests for plugins. In the course of the Gradle 2.x releases, a lot of new functionality was added. This version of Gradle removes the incubating status and makes TestKit a stable feature.
+
+### `CompileOptions.annotationProcessorPath` property
+
+The `CompileOptions.annotationProcessorPath` property has been promoted and is now stable.
 
 ## Fixed issues
 
@@ -330,22 +356,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 <!--
 ### Example deprecation
 -->
-
-### Local build cache directory cleanup is now time-based
-
-Previously, Gradle would clean up the [local build cache directory](userguide/build_cache.html#sec:build_cache_configure_local) only if the size of its contents reached 5 GB, or whatever was configured in `targetSizeInMB`.
-From now on Gradle will instead clean up everything older than 7 days, regardless of the size of the cache directory.
-As a consequence `targetSizeInMB` is now deprecated, and changing its value has no effect.
-
-The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
-
-```
-buildCache {
-    local {
-        removeUnusedEntriesAfterDays = 30
-    }
-}
-```
 
 ### Putting annotation processors on the compile classpath or explicit `-processorpath` compiler argument
 
@@ -362,6 +372,20 @@ Use [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgume
 
 ## Potential breaking changes
 
+### Local build cache directory cleanup is now time-based
+
+Previously, Gradle would clean up the [local build cache directory](userguide/build_cache.html#sec:build_cache_configure_local) only if the size of its contents reached 5 GB, or whatever was configured in `targetSizeInMB`.
+From now on Gradle will instead clean up everything older than 7 days, regardless of the size of the cache directory.
+As a consequence `targetSizeInMB` is now deprecated, and changing its value has no effect.
+
+The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
+
+    buildCache {
+        local {
+            removeUnusedEntriesAfterDays = 30
+        }
+    }
+
 ### Added annotationProcessor configurations
 
 The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`.
@@ -376,7 +400,6 @@ The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` conf
             }
         }
     }
-
 
 ### Removed Visual Studio IDE tasks
 There are no longer tasks to generate Visual Studio solution files for each component in the build.  There is now only a single task (`visualStudio`) in the root project that generates a solution containing all components in the build.
