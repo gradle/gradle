@@ -7,7 +7,8 @@ import java.io.File
 import java.nio.charset.Charset
 
 @CacheableTask
-class PegDown : DefaultTask() {
+open class PegDown : DefaultTask() {
+
     @Input
     val inputEncoding = Charset.defaultCharset()
 
@@ -29,5 +30,3 @@ class PegDown : DefaultTask() {
         destination.writeText(html, outputEncoding)
     }
 }
-
-
