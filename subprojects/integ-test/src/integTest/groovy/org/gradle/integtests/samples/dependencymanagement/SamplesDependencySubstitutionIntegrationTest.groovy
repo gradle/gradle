@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -22,14 +22,14 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-
 class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'dependency-substitution')
 
-    @UsesSample("dependency-substitution")
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
+
+    @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
     def "can run sample with all external dependencies" () {
-        given:
-        inDirectory "dependency-substitution"
+        executer.inDirectory(sample.dir)
 
         when:
         succeeds "showJarFiles"
@@ -43,10 +43,9 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project3/1.0/project3-1.0.jar")
     }
 
-    @UsesSample("dependency-substitution")
+    @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
     def "can run sample with some internal projects" () {
-        given:
-        inDirectory "dependency-substitution"
+        executer.inDirectory(sample.dir)
 
         when:
         args("-DuseLocal=project1,project2")
