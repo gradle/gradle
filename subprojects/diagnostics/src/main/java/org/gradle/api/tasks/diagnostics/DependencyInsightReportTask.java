@@ -222,7 +222,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         legendRenderer.printLegend();
 
         output.println();
-        output.text("A web-based, searchable dependency tree is available: use the ");
+        output.text("A web-based, searchable dependency report is available by adding the ");
         output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
         output.println(" option.");
     }

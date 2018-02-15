@@ -373,7 +373,7 @@ conf
 
 (*) - dependencies omitted (listed previously)
 
-A web-based, searchable dependency tree is available: use the --scan option.
+A web-based, searchable dependency report is available by adding the  --scan option.
 """
     }
 
