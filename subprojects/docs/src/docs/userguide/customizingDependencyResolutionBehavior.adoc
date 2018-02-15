@@ -38,7 +38,7 @@ A build depending on both `module-a` and `module-b` will obtain different versio
 
 Dependency resolve rules give you the power to enforce releasable units in your build. Imagine a releasable unit defined by all libraries that have `org.gradle` group. We can force all of these libraries to use a consistent version:
 ++++
-<sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
+<sample id="releasable-unit" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Forcing consistent version for a group of libraries">
     <sourcefile file="build.gradle" snippet="releasable-unit"/>
 </sample>
 ++++
@@ -53,7 +53,7 @@ In some corporate environments, the list of module versions that can be declared
 
 This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
 ++++
-<sample id="custom-versioning-scheme" dir="userguide/artifacts/resolutionStrategy" title="Using a custom versioning scheme">
+<sample id="custom-versioning-scheme" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Using a custom versioning scheme">
     <sourcefile file="build.gradle" snippet="custom-versioning-scheme"/>
 </sample>
 ++++
@@ -66,7 +66,7 @@ Dependency resolve rules provide a mechanism for blacklisting a particular versi
 In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`. The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`. Note that this is different from a forced version as described above, in that any other versions of this module would not be affected. This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
 
 ++++
-<sample id="blacklisting_version" dir="userguide/artifacts/resolutionStrategy" title="Blacklisting a version with a replacement">
+<sample id="blacklisting_version" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Blacklisting a version with a replacement">
     <sourcefile file="build.gradle" snippet="blacklisting_version"/>
 </sample>
 ++++
@@ -78,7 +78,7 @@ In example below, imagine that version `1.2.1` contains important fixes and shou
 At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `groovy` in place of `groovy-all`, or using `log4j-over-slf4j` instead of `log4j`. You can make these substitutions using dependency resolve rules:
 
 ++++
-<sample id="module_substitution" dir="userguide/artifacts/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
+<sample id="module_substitution" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
     <sourcefile file="build.gradle" snippet="module_substitution"/>
 </sample>
 ++++
@@ -109,7 +109,7 @@ One use case for dependency substitution is to use a locally developed version o
 The module to be replaced can be declared with or without a version specified.
 
 ++++
-<sample id="module_to_project_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a module with a project">
+<sample id="module_to_project_substitution" dir="userguide/dependencyManagement/customizingResolution/substitutionRule" title="Substituting a module with a project">
     <sourcefile file="build.gradle" snippet="module_to_project_substitution"/>
 </sample>
 ++++
@@ -124,7 +124,7 @@ Another way to use substitution rules is to replace a project dependency with a 
 The module to be used as a replacement must be declared with a version specified.
 
 ++++
-<sample id="project_to_module_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a project with a module">
+<sample id="project_to_module_substitution" dir="userguide/dependencyManagement/customizingResolution/substitutionRule" title="Substituting a project with a module">
     <sourcefile file="build.gradle" snippet="project_to_module_substitution"/>
 </sample>
 ++++
@@ -139,7 +139,7 @@ A common use case for dependency substitution is to allow more flexible assembly
 The following example uses a dependency substitution rule to replace any module dependency with the group `org.example`, but only if a local project matching the dependency name can be located.
 
 ++++
-<sample id="project_substitution" dir="dependency-substitution" title="Conditionally substituting a dependency">
+<sample id="project_substitution" dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule" title="Conditionally substituting a dependency">
     <sourcefile file="build.gradle" snippet="project_substitution"/>
 </sample>
 ++++
@@ -152,7 +152,7 @@ Note that a project that is substituted must be included in the multi-project bu
 A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration. A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override. By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
 
 ++++
-<sample id="configuration_default_dependencies" dir="userguide/artifacts/defineConfiguration" title="Specifying default dependencies on a configuration">
+<sample id="configuration_default_dependencies" dir="userguide/dependencyManagement/customizingResolution/defaultDependency" title="Specifying default dependencies on a configuration">
     <sourcefile file="build.gradle" snippet="configuration-default-dependencies"/>
 </sample>
 ++++
@@ -166,7 +166,7 @@ Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic 
 To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
 
 ++++
-<sample id="dynamicResolveMode" dir="userguide/artifacts/defineRepository" title="Enabling dynamic resolve mode">
+<sample id="dynamicResolveMode" dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode" title="Enabling dynamic resolve mode">
     <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
 </sample>
 ++++
@@ -182,7 +182,7 @@ One piece of module metadata that Gradle understands is a module's _status schem
 A module's status and status scheme are taken into consideration when a `latest` version selector is resolved. Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status. For example, with the default status scheme in place, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status), whereas `latest.release` will select the highest module version with status `release`. Here is what this looks like in code:
 
 ++++
-<sample id="latestSelector" dir="componentMetadataRules" title="'Latest' version selector">
+<sample id="latestSelector" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="'Latest' version selector">
     <sourcefile file="build.gradle" snippet="latest-selector"/>
     <output args="-q listConfigs"/>
 </sample>
@@ -191,7 +191,7 @@ A module's status and status scheme are taken into consideration when a `latest`
 The next example demonstrates `latest` selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
 
 ++++
-<sample id="customStatusScheme" dir="componentMetadataRules" title="Custom status scheme">
+<sample id="customStatusScheme" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Custom status scheme">
     <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
 </sample>
 ++++
@@ -199,7 +199,7 @@ The next example demonstrates `latest` selectors based on a custom status scheme
 Component metadata rules can be applied to a specified module. Modules must be specified in the form of `group:module`.
 
 ++++
-<sample id="customStatusSchemeModule" dir="componentMetadataRules" title="Custom status scheme by module">
+<sample id="customStatusSchemeModule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Custom status scheme by module">
     <sourcefile file="build.gradle" snippet="custom-status-scheme-module"/>
 </sample>
 ++++
@@ -207,7 +207,7 @@ Component metadata rules can be applied to a specified module. Modules must be s
 Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository. Values from the Ivy descriptor are made available via the api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[] interface.
 
 ++++
-<sample id="ivyComponentMetadataRule" dir="componentMetadataRules" title="Ivy component metadata rule">
+<sample id="ivyComponentMetadataRule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Ivy component metadata rule">
     <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule"/>
 </sample>
 ++++
@@ -223,7 +223,7 @@ This method:
 * may have an additional parameter of type api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
 
 ++++
-<sample id="ruleSourceComponentMetadataRule" dir="componentMetadataRules" title="Rule source component metadata rule">
+<sample id="ruleSourceComponentMetadataRule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Rule source component metadata rule">
     <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule"/>
 </sample>
 ++++
@@ -242,7 +242,7 @@ Rules are configured via the api:org.gradle.api.artifacts.ComponentSelectionRule
 The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate.
 
 ++++
-<sample id="componentSelectionRulesReject" dir="componentSelectionRules" title="Component selection rule">
+<sample id="componentSelectionRulesReject" dir="userguide/dependencyManagement/customizingResolution/selectionRule" title="Component selection rule">
     <sourcefile file="build.gradle" snippet="reject-version-1.1"/>
 </sample>
 ++++
@@ -252,7 +252,7 @@ Note that version selection is applied starting with the highest version first. 
 Similarly, rules can be targeted at specific modules. Modules must be specified in the form of `group:module`.
 
 ++++
-<sample id="componentSelectionRulesTarget" dir="componentSelectionRules" title="Component selection rule with module target">
+<sample id="componentSelectionRulesTarget" dir="userguide/dependencyManagement/customizingResolution/selectionRule" title="Component selection rule with module target">
     <sourcefile file="build.gradle" snippet="targeted-component-selection"/>
 </sample>
 ++++
@@ -260,7 +260,7 @@ Similarly, rules can be targeted at specific modules. Modules must be specified 
 Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are api:org.gradle.api.artifacts.ComponentMetadata[] and api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
 
 ++++
-<sample id="componentSelectionRulesMetadata" dir="componentSelectionRules" title="Component selection rule with metadata">
+<sample id="componentSelectionRulesMetadata" dir="userguide/dependencyManagement/customizingResolution/selectionRule" title="Component selection rule with metadata">
     <sourcefile file="build.gradle" snippet="component-selection-with-metadata"/>
 </sample>
 ++++
@@ -276,7 +276,7 @@ This method:
 * may have additional parameters of type api:org.gradle.api.artifacts.ComponentMetadata[] and/or api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
 
 ++++
-<sample id="componentSelectionRulesRuleSource" dir="componentSelectionRules" title="Component selection rule using a rule source object">
+<sample id="componentSelectionRulesRuleSource" dir="userguide/dependencyManagement/customizingResolution/selectionRule" title="Component selection rule using a rule source object">
     <sourcefile file="build.gradle" snippet="api-component-selection"/>
 </sample>
 ++++
@@ -296,7 +296,7 @@ To explain the impact on conflict resolution, let's consider the `google-collect
 Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the `google-collections` -&gt; `guava` conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
 
 ++++
-<sample id="module_replacement_declaration" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
+<sample id="module_replacement_declaration" dir="userguide/dependencyManagement/customizingResolution/replacementRule" title="Declaring module replacement">
     <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
 </sample>
 ++++
