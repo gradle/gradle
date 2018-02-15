@@ -50,7 +50,7 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
                   capability('cglib') {
                      providedBy 'cglib:cglib'
                      providedBy 'cglib:cglib-nodep'
-                     prefer 'cglib:cglib' ${customReason?"because '$customReason'":""}
+                     prefer 'cglib:cglib' ${customReason ? "because '$customReason'" : ""}
                   }
                }
             }
@@ -67,8 +67,8 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('cglib:cglib:3.2.5').byReason(customReason?:'capability cglib is provided by cglib:cglib-nodep and cglib:cglib')
-                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason(customReason?:'capability cglib is provided by cglib:cglib-nodep and cglib:cglib')
+                module('cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib-nodep and cglib:cglib')
+                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib-nodep and cglib:cglib')
             }
         }
 
@@ -237,5 +237,33 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
                 }
             }
         }
+    }
+
+    @Unroll
+    def "provides a reasonable error message when module notation is wrong (providedBy=#providedBy, prefer=#prefer)"() {
+        buildFile << """
+            dependencies {
+               capabilities {
+                  capability('foo') {
+                     providedBy '$providedBy'
+                  
+                     prefer '$prefer'
+                  }
+               }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause('Cannot convert the provided notation to an object of type ModuleIdentifier:')
+
+        where:
+        providedBy  | prefer
+        'foo'       | 'foo:bar'
+        'foo:bar'   | 'foo'
+        'foo:bar:1' | 'foo:bar'
+        'foo:bar'   | 'foo:bar:1'
     }
 }

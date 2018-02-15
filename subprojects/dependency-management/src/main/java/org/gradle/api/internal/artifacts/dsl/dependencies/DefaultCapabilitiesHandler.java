@@ -21,9 +21,14 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentModuleMetadata;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,9 +36,11 @@ import java.util.Set;
 public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
     private final ComponentModuleMetadataHandler metadataHandler;
     private final Map<String, DefaultCapability> capabilities = Maps.newHashMap();
+    private final NotationParser<Object, ModuleIdentifier> notationParser;
 
-    public DefaultCapabilitiesHandler(ComponentModuleMetadataHandler metadataHandler) {
+    public DefaultCapabilitiesHandler(ComponentModuleMetadataHandler metadataHandler, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.metadataHandler = metadataHandler;
+        this.notationParser = parser(moduleIdentifierFactory);
     }
 
     @Override
@@ -49,7 +56,7 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
     public void convertToReplacementRules() {
         for (Map.Entry<String, DefaultCapability> capabilityEntry : capabilities.entrySet()) {
             DefaultCapability capabilityValue = capabilityEntry.getValue();
-            final String prefer = capabilityValue.prefer;
+            final ModuleIdentifier prefer = capabilityValue.prefer;
             if (prefer != null) {
                 final String because;
                 if (capabilityValue.reason != null) {
@@ -58,7 +65,7 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
                     because = "capability " + capabilityEntry.getKey() + " is provided by " + Joiner.on(" and ").join(capabilityValue.providedBy);
                 }
 
-                for (String module : capabilityValue.providedBy) {
+                for (ModuleIdentifier module : capabilityValue.providedBy) {
                     if (!module.equals(prefer)) {
                         metadataHandler.module(module, new Action<ComponentModuleMetadata>() {
                             @Override
@@ -72,10 +79,17 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
         }
     }
 
-    private final static class DefaultCapability implements CapabilityHandler {
+    private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return NotationParserBuilder
+            .toType(ModuleIdentifier.class)
+            .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+            .toComposite();
+    }
+
+    private final class DefaultCapability implements CapabilityHandler, CapabilityInternal {
         private final String id;
-        private final Set<String> providedBy = Sets.newHashSet();
-        private String prefer;
+        private final Set<ModuleIdentifier> providedBy = Sets.newHashSet();
+        private ModuleIdentifier prefer;
         private String reason;
 
         private DefaultCapability(String id) {
@@ -84,12 +98,12 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
 
         @Override
         public void providedBy(String moduleIdentifier) {
-            providedBy.add(moduleIdentifier);
+            providedBy.add(notationParser.parseNotation(moduleIdentifier));
         }
 
         @Override
-        public Preference prefer(String moduleIdentifer) {
-            prefer = moduleIdentifer;
+        public Preference prefer(String moduleIdentifier) {
+            prefer = notationParser.parseNotation(moduleIdentifier);
             return new Preference() {
                 @Override
                 public Preference because(String reason) {
@@ -97,6 +111,26 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
                     return this;
                 }
             };
+        }
+
+        @Override
+        public String getCapabilityId() {
+            return id;
+        }
+
+        @Override
+        public Set<ModuleIdentifier> getProvidedBy() {
+            return providedBy;
+        }
+
+        @Override
+        public ModuleIdentifier getPrefer() {
+            return prefer;
+        }
+
+        @Override
+        public String getReason() {
+            return reason;
         }
     }
 }
