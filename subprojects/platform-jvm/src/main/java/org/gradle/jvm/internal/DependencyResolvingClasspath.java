@@ -16,10 +16,13 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
+import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -66,6 +69,12 @@ import java.util.List;
 import java.util.Set;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
+    private final static CapabilitiesHandler NO_CAPABILITIES = new CapabilitiesHandler() {
+        @Override
+        public void capability(String identifier, Action<? super CapabilityHandler> configureAction) {
+        }
+    };
+
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
     private final BinarySpecInternal binary;
@@ -185,7 +194,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             public ArtifactTypeContainer create() {
                 throw new UnsupportedOperationException();
             }
-        });
+        }, NO_CAPABILITIES);
         return result;
     }
 
