@@ -58,6 +58,10 @@ gradlePlugin {
             id = "pegdown"
             implementationClass = "org.gradle.plugins.pegdown.PegDownPlugin"
         }
+        "performanceTest" {
+            id = "performanceTest"
+            implementationClass = "org.gradle.plugins.PerformanceTestPlugin"
+        }
     }
 }
 
