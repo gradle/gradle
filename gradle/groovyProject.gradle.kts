@@ -3,6 +3,7 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.DistributionTest
 
 import java.util.concurrent.Callable
@@ -58,6 +59,15 @@ apply { from("$rootDir/gradle/compile.gradle") }
 val classpathManifest by tasks.creating(ClasspathManifest::class)
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), generatedResourcesDir)
+
+plugins.withType<IdeaPlugin> {
+    configure<IdeaModel> {
+        module {
+            sourceDirs = generatedSourceDirs + generatedResourcesDir
+            testSourceDirs = testSourceDirs + generatedTestResourcesDir
+        }
+    }
+}
 
 val isCiServer: Boolean by rootProject.extra
 
