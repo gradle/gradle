@@ -48,6 +48,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -394,6 +395,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void visitTree(FileTreeInternal fileTree) {
+                DeprecationLogger.nagUserOfDeprecated("Adding file trees which are not directory trees as output files", "Outputs should always be actual files");
                 addAllPaths(fileTree, declaredOutputFilePaths, stringInterner);
             }
 
