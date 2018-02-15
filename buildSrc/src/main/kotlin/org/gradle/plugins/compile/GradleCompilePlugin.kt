@@ -10,7 +10,8 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
 
 
 open class GradleCompilePlugin : Plugin<Project> {
@@ -29,23 +30,23 @@ open class GradleCompilePlugin : Plugin<Project> {
 
         val availableJdks = rootProject.the<AvailableJdks>()
 
-        project.tasks.withType(AbstractCompile::class.java) {
-            val options = getOptions(this)
-            options.isFork = true
-            options.encoding = "utf-8"
-            options.compilerArgs = listOf("-Xlint:-options", "-Xlint:-path")
-            val targetJdkVersion = maxOf(project.java.targetCompatibility, JavaVersion.VERSION_1_7)
-            val jdkForCompilation = availableJdks.jdkFor(targetJdkVersion)
-            if (!jdkForCompilation.current) {
-                options.forkOptions.javaHome = jdkForCompilation.javaHome
-            }
-            inputs.property("javaInstallation", jdkForCompilation.displayName)
+        project.tasks.withType<JavaCompile> {
+            configureCompileTask(this, options, availableJdks)
+        }
+        project.tasks.withType<GroovyCompile> {
+            configureCompileTask(this, options, availableJdks)
         }
     }
 
-    private fun getOptions(compileTask: AbstractCompile): CompileOptions = when (compileTask) {
-            is JavaCompile -> compileTask.options
-            is GroovyCompile -> compileTask.options
-            else -> throw IllegalArgumentException("$compileTask is not Groovy or Java compile")
+    private fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJdks: AvailableJdks) {
+        options.isFork = true
+        options.encoding = "utf-8"
+        options.compilerArgs = listOf("-Xlint:-options", "-Xlint:-path")
+        val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
+        val jdkForCompilation = availableJdks.jdkFor(targetJdkVersion)
+        if (!jdkForCompilation.current) {
+            options.forkOptions.javaHome = jdkForCompilation.javaHome
+        }
+        compileTask.inputs.property("javaInstallation", jdkForCompilation.displayName)
     }
 }
