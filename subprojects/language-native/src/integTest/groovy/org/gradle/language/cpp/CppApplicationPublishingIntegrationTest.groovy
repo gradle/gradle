@@ -57,6 +57,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         def app = new CppApp()
 
         given:
+        println testDirectory.file('repo').absolutePath
         buildFile << """
             apply plugin: 'cpp-application'
             apply plugin: 'maven-publish'

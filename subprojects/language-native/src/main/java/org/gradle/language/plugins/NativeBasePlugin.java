@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
@@ -49,6 +50,8 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
@@ -70,7 +73,6 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.util.GUtil;
 
 import java.util.concurrent.Callable;
 
@@ -407,9 +409,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                     @Override
                                     public void execute(MavenPublication publication) {
                                         // TODO - should track changes to these properties
-                                        publication.setGroupId(project.getGroup().toString());
-                                        publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(((DefaultCppExecutable)component).identity.getName(), '_'));
-                                        publication.setVersion(project.getVersion().toString());
+                                        ModuleVersionIdentifier coordinates = ((DefaultCppExecutable)component).identity.getCoordinates();
+                                        publication.setGroupId(coordinates.getGroup());
+                                        publication.setArtifactId(coordinates.getName());
+                                        publication.setVersion(coordinates.getVersion());
                                         publication.from(component);
                                         ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                     }
@@ -429,9 +432,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                     @Override
                                     public void execute(MavenPublication publication) {
                                         // TODO - should track changes to these properties
-                                        publication.setGroupId(project.getGroup().toString());
-                                        publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(component.getName(), '_'));
-                                        publication.setVersion(project.getVersion().toString());
+                                        ModuleVersionIdentifier coordinates = ((DefaultCppSharedLibrary)component).identity.getCoordinates();
+                                        publication.setGroupId(coordinates.getGroup());
+                                        publication.setArtifactId(coordinates.getName());
+                                        publication.setVersion(coordinates.getVersion());
                                         publication.from(component);
                                         ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                     }
@@ -451,9 +455,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                     @Override
                                     public void execute(MavenPublication publication) {
                                         // TODO - should track changes to these properties
-                                        publication.setGroupId(project.getGroup().toString());
-                                        publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(component.getName(), '_'));
-                                        publication.setVersion(project.getVersion().toString());
+                                        ModuleVersionIdentifier coordinates = ((DefaultCppStaticLibrary)component).identity.getCoordinates();
+                                        publication.setGroupId(coordinates.getGroup());
+                                        publication.setArtifactId(coordinates.getName());
+                                        publication.setVersion(coordinates.getVersion());
                                         publication.from(component);
                                         ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                     }

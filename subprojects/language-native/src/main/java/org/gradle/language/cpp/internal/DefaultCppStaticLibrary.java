@@ -51,7 +51,7 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     private final Property<Configuration> linkElements;
     private final Property<Configuration> runtimeElements;
     private final ConfigurableFileCollection outputs;
-    private final NativeVariantIdentity identity;
+    public final NativeVariantIdentity identity;
 
     @Inject
     public DefaultCppStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {

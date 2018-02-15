@@ -120,9 +120,9 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
                     attributesDebug.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
 
-                    Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext(application.getNames().withSuffix("debug" + operatingSystemSuffix) + "-runtime", runtimeUsage, attributesDebug));
+                    Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
-                    NativeVariantIdentity debugVariant = new NativeVariantIdentity(application.getNames().withSuffix("debug" + operatingSystemSuffix), application.getBaseName(), group, version, usageContextsDebug);
+                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, usageContextsDebug);
                     application.getMainPublication().addVariant(debugVariant);
 
 
@@ -132,10 +132,10 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     attributesRelease.attribute(OPTIMIZED_ATTRIBUTE, true);
                     attributesRelease.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
 
-                    Set<? extends UsageContext> usageContextsRelease = Collections.singleton(new LightweightUsageContext(application.getNames().withSuffix("release" + operatingSystemSuffix) + "-runtime", runtimeUsage, attributesRelease));
+                    Set<? extends UsageContext> usageContextsRelease = Collections.singleton(new LightweightUsageContext("release" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesRelease));
 
 
-                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity(application.getNames().withSuffix("release" + operatingSystemSuffix), application.getBaseName(), group, version, usageContextsRelease);
+                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, usageContextsRelease);
                     application.getMainPublication().addVariant(releaseVariant);
 
 

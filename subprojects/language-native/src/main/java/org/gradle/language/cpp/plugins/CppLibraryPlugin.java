@@ -161,9 +161,9 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         attributesDebugLink.attribute(LINKAGE_ATTRIBUTE, linkage);
                         attributesDebugLink.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
 
-                        Set<? extends UsageContext> usageContextsDebug = Sets.newHashSet(new LightweightUsageContext(library.getNames().withSuffix("debug" + linkageSuffix + operatingSystemSuffix) + "-runtime", runtimeUsage, attributesDebugRuntime), new LightweightUsageContext(library.getNames().withSuffix("debug" + linkageSuffix + operatingSystemSuffix) + "-link", linkUsage, attributesDebugLink));
+                        Set<? extends UsageContext> usageContextsDebug = Sets.newHashSet(new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebugRuntime), new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesDebugLink));
 
-                        NativeVariantIdentity debugVariant = new NativeVariantIdentity(library.getNames().withSuffix("debug" + linkageSuffix + operatingSystemSuffix), library.getBaseName(), group, version, usageContextsDebug);
+                        NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, usageContextsDebug);
                         library.getMainPublication().addVariant(debugVariant);
 
 
@@ -181,10 +181,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         attributesReleaseLink.attribute(LINKAGE_ATTRIBUTE, linkage);
                         attributesReleaseLink.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) operatingSystem).toFamilyName()));
 
-                        Set<? extends UsageContext> usageContextsRelease = Sets.newHashSet(new LightweightUsageContext(library.getNames().withSuffix("release" + linkageSuffix + operatingSystemSuffix) + "-runtime", runtimeUsage, attributesReleaseRuntime), new LightweightUsageContext(library.getNames().withSuffix("release" + linkageSuffix + operatingSystemSuffix) + "-link", linkUsage, attributesReleaseLink));
+                        Set<? extends UsageContext> usageContextsRelease = Sets.newHashSet(new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesReleaseRuntime), new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesReleaseLink));
 
 
-                        NativeVariantIdentity releaseVariant = new NativeVariantIdentity(library.getNames().withSuffix("release" + linkageSuffix + operatingSystemSuffix), library.getBaseName(), group, version, usageContextsRelease);
+                        NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, usageContextsRelease);
                         library.getMainPublication().addVariant(releaseVariant);
 
 
