@@ -30,12 +30,11 @@ import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.*
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
@@ -125,13 +124,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
-        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve files of :compile")
-        resolveArtifactsInRoot.child("Resolve a.jar (project :a)")
+        applyRootBuildScript.child("Resolve files of :compile")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
-        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve files of :a:compile")
-        resolveArtifactsInProjectA.child("Resolve b.jar (project :b)")
+        applyProjectABuildScript.child("Resolve files of :a:compile")
 
         resolveCompileA.child("Configure project :b")
     }
@@ -199,7 +196,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def resolveArtifacts = applyBuildScript.child("Resolve files of :compile")
-        resolveArtifacts.child("Resolve a.jar (project :a)").children.isEmpty()
 
         resolveArtifacts.child("Resolve projectB.jar (group:projectB:1.0)")
             .child "Download http://localhost:${server.port}${projectB.artifactPath}"
