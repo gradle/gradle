@@ -42,8 +42,6 @@ if (java7Home) {
     }
 }
 
-rootProject.ext.java7HomeSet = java7Home as boolean
-
 tasks.withType(JavaCompile) {
     options.encoding = 'utf-8'
     // We need to ignore the path warning since the launcher.jar references

@@ -54,6 +54,10 @@ gradlePlugin {
             id = "build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
+        "gradleCompile" {
+            id = "gradleCompile"
+            implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
+        }
     }
 }
 

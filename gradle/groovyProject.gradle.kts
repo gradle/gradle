@@ -9,6 +9,7 @@ import java.util.concurrent.Callable
 import java.util.jar.Attributes
 
 apply { plugin("groovy") }
+apply { plugin("gradleCompile") }
 
 val base = the<BasePluginConvention>()
 val java = the<JavaPluginConvention>()
@@ -64,9 +65,6 @@ dependencies {
         }
     }
 }
-
-// Extracted as it's also used by buildSrc
-apply { from("$rootDir/gradle/compile.gradle") }
 
 val classpathManifest by tasks.creating(ClasspathManifest::class)
 
