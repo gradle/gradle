@@ -31,6 +31,7 @@ open class GradleCompilePlugin : Plugin<Project> {
         val availableJdks = rootProject.the<AvailableJdks>()
 
         project.tasks.withType<JavaCompile> {
+            options.isIncremental = true
             configureCompileTask(this, options, availableJdks)
         }
         project.tasks.withType<GroovyCompile> {
@@ -41,7 +42,7 @@ open class GradleCompilePlugin : Plugin<Project> {
     private fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJdks: AvailableJdks) {
         options.isFork = true
         options.encoding = "utf-8"
-        options.compilerArgs = listOf("-Xlint:-options", "-Xlint:-path")
+        options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
         val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
         val jdkForCompilation = availableJdks.jdkFor(targetJdkVersion)
         if (!jdkForCompilation.current) {

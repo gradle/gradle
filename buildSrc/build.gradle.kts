@@ -115,8 +115,18 @@ tasks {
 
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
-apply {
-    from("../gradle/compile.gradle")
+fun configureCompileTask(options: CompileOptions) {
+    options.isFork = true
+    options.encoding = "utf-8"
+    options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+}
+
+tasks.withType<JavaCompile> {
+    options.isIncremental = true
+    configureCompileTask(options)
+}
+tasks.withType<GroovyCompile> {
+    configureCompileTask(options)
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
