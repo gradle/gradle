@@ -72,9 +72,12 @@ task nestedSpecs(type: Copy) {
     into 'build/explodedWar'
     exclude '**/*staging*'
     from('src/dist') {
-        include '**/*.html'
+        include '**/*.html', '**/*.png', '**/*.jpg'
     }
-    into('libs') {
+    from(sourceSets.main.output) {
+        into 'WEB-INF/classes'
+    }
+    into('WEB-INF/libs') {
         from configurations.runtime
     }
 }

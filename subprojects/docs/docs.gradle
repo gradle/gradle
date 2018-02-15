@@ -120,7 +120,8 @@ tasks.withType(CacheableAsciidoctorTask) {
         }
     }
 
-    attributes website: 'http://www.gradle.org'
+    attributes website: 'http://www.gradle.org',
+               javaApi: 'https://docs.oracle.com/javase/8/docs/api'
 
     doLast {
         outputDir.eachFileMatch(~/.*.xml/) { File file ->
