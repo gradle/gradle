@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 4.6.
 
-First and foremost, this release of Gradle features extensive improvements to dependency management. You can now [declare transitive dependency constraints](#transitive-dependency-constraints) and avoid problems caused by oft-hidden upstream dependency changes. 
+First and foremost, this release of Gradle features extensive improvements to dependency management. You can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
 
 This release of Gradle also includes crucial experimental features for Maven dependency compatibility: support for [importing BOMs](#experimental-bom-import), [optional dependencies](#experimental-support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#experimental-compile/runtime-scope-separation-in-pom-consumption). You can enable these experimental features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ or _settings.gradle.kts_ file. Please try these features so they can be promoted to stable for Gradle 5.0 later this year.
 
