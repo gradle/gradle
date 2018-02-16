@@ -105,7 +105,7 @@ apply {
     }
 
     if (file("src/performanceTest").isDirectory) {
-        plugin("performanceTest")
+        plugin("performance-test")
     }
 
     if (file("src/jmh").isDirectory) {

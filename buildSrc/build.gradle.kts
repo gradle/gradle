@@ -61,7 +61,7 @@ gradlePlugin {
             implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
         "performanceTest" {
-            id = "performanceTest"
+            id = "performance-test"
             implementationClass = "org.gradle.plugins.PerformanceTestPlugin"
         }
     }
