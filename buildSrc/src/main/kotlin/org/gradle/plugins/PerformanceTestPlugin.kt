@@ -195,7 +195,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             tasks.getByName("clean${name.capitalize()}").dependsOn(cleanTestResultsZipTask)
         }
 
-        tasks.create<Delete>("clean${task.name.capitalize()}") {
+        tasks.getByName("clean${task.name.capitalize()}") {
             delete(task.outputs)
             dependsOn("clean${performanceReportTask.name.capitalize()}")
         }
