@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
@@ -24,9 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.util.Set;
@@ -39,9 +38,12 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final boolean debuggable;
     private final boolean optimized;
     private final OperatingSystemFamily operatingSystemFamily;
-    private final Set<? extends UsageContext> usageContexts;
+    private final UsageContext linkUsage;
+    private final UsageContext runtimeUsage;
+    private final Set<UsageContext> usageContexts;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, OperatingSystemFamily operatingSystemFamily, Set<? extends UsageContext> usageContexts) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, OperatingSystemFamily operatingSystemFamily,
+        UsageContext linkUsage, UsageContext runtimeUsage) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
@@ -49,7 +51,15 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         this.debuggable = debuggable;
         this.optimized = optimized;
         this.operatingSystemFamily = operatingSystemFamily;
-        this.usageContexts = usageContexts;
+        this.linkUsage = null;
+        this.runtimeUsage = null;
+        this.usageContexts = Sets.newLinkedHashSet();
+        if (linkUsage!=null) {
+            usageContexts.add(linkUsage);
+        }
+        if (runtimeUsage!=null) {
+            usageContexts.add(runtimeUsage);
+        }
     }
 
     public boolean isDebuggable() {
@@ -69,22 +79,18 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         return new DefaultModuleVersionIdentifier(group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
     }
 
+    public Usage getRuntimeUsage() {
+        return runtimeUsage.getUsage();
+    }
     public AttributeContainer getRuntimeAttributes() {
-        return CollectionUtils.findFirst(usageContexts, new Spec<UsageContext>() {
-            @Override
-            public boolean isSatisfiedBy(UsageContext element) {
-                return element.getUsage().getName().equals(Usage.NATIVE_RUNTIME);
-            }
-        }).getAttributes();
+        return runtimeUsage.getAttributes();
     }
 
+    public Usage getLinkUsage() {
+        return runtimeUsage.getUsage();
+    }
     public AttributeContainer getLinkAttributes() {
-        return CollectionUtils.findFirst(usageContexts, new Spec<UsageContext>() {
-            @Override
-            public boolean isSatisfiedBy(UsageContext element) {
-                return element.getUsage().getName().equals(Usage.NATIVE_LINK);
-            }
-        }).getAttributes();
+        return linkUsage.getAttributes();
     }
 
     @Override

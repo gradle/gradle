@@ -175,6 +175,10 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         return platformToolProvider;
     }
 
+    public NativeVariantIdentity getIdentity() {
+        return identity;
+    }
+
     private class IncludePath implements MinimalFileSet {
         private final Configuration includePathConfig;
         private Set<File> result;

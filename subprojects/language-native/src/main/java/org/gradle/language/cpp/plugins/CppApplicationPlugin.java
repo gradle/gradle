@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -26,7 +25,6 @@ import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -122,10 +120,9 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                         runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
                         runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
-                        Set<? extends UsageContext> usageContexts = Sets.newHashSet(
+                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                            null,
                             new LightweightUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
-
-                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem, usageContexts);
 
                         if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);

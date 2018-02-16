@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -28,7 +27,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -157,11 +155,9 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                             linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
-                            Set<? extends UsageContext> usageContexts = Sets.newHashSet(
-                                new LightweightUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes),
-                                new LightweightUsageContext(variantName + "-link", linkUsage, linkAttributes));
-
-                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem, usageContexts);
+                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                                new LightweightUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
+                                new LightweightUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
 
                             if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);

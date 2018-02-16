@@ -53,7 +53,6 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     private final Property<Configuration> linkElements;
     private final Property<Configuration> runtimeElements;
     private final ConfigurableFileCollection outputs;
-    private final NativeVariantIdentity identity;
 
     @Inject
     public DefaultCppStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
@@ -63,7 +62,6 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
         this.outputs = fileOperations.files();
-        this.identity = identity;
     }
 
     @Override
@@ -109,29 +107,24 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        Set<UsageContext> result = Sets.newHashSet();
-        for (UsageContext usageContext : identity.getUsages()) {
-            if (usageContext.getName().contains("-link")) {
-                result.add(new DefaultUsageContext(usageContext.getName(), usageContext.getUsage(), linkElements.get().getAllArtifacts(), linkElements.get()));
-            } else {
-                result.add(new DefaultUsageContext(usageContext.getName(), usageContext.getUsage(), runtimeElements.get().getAllArtifacts(), runtimeElements.get()));
-            }
-        }
-        return result;
+        return Sets.newHashSet(
+            new DefaultUsageContext(getIdentity().getName() + "-link", getIdentity().getLinkUsage(), linkElements.get().getAllArtifacts(), linkElements.get()),
+            new DefaultUsageContext(getIdentity().getName() + "-runtime", getIdentity().getRuntimeUsage(), runtimeElements.get().getAllArtifacts(), runtimeElements.get())
+        );
     }
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return identity.getLinkAttributes();
+        return getIdentity().getLinkAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return identity.getRuntimeAttributes();
+        return getIdentity().getRuntimeAttributes();
     }
 
     @Override
     public ModuleVersionIdentifier getCoordinates() {
-        return identity.getCoordinates();
+        return getIdentity().getCoordinates();
     }
 }

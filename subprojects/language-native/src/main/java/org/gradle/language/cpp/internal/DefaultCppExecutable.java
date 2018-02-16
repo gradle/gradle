@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -45,6 +44,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.Set;
 
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
@@ -54,7 +54,6 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final Property<LinkExecutable> linkTaskProperty;
     private final Property<Configuration> runtimeElementsProperty;
     private final ConfigurableFileCollection outputs;
-    private final NativeVariantIdentity identity;
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
@@ -67,7 +66,6 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
         this.runtimeElementsProperty = objectFactory.property(Configuration.class);
         this.outputs = fileOperations.files();
-        this.identity = identity;
     }
 
     @Override
@@ -123,20 +121,16 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        Set<UsageContext> result = Sets.newHashSet();
-        for (UsageContext usageContext : identity.getUsages()) {
-            result.add(new DefaultUsageContext(usageContext.getName(), usageContext.getUsage(), runtimeElementsProperty.get().getAllArtifacts(), runtimeElementsProperty.get()));
-        }
-        return result;
+        return Collections.singleton(new DefaultUsageContext(getIdentity().getName() + "-runtime", getIdentity().getRuntimeUsage(), runtimeElementsProperty.get().getAllArtifacts(), runtimeElementsProperty.get()));
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return identity.getRuntimeAttributes();
+        return getIdentity().getRuntimeAttributes();
     }
 
     @Override
     public ModuleVersionIdentifier getCoordinates() {
-        return identity.getCoordinates();
+        return getIdentity().getCoordinates();
     }
 }

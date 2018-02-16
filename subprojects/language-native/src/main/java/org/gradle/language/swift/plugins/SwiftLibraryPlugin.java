@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -53,7 +52,6 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
@@ -153,11 +151,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
-                            Set<? extends UsageContext> usageContexts = Sets.newHashSet(
-                                new LightweightUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes),
-                                new LightweightUsageContext(variantName + "-link", linkUsage, linkAttributes));
-
-                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem, usageContexts);
+                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                                new LightweightUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
+                                new LightweightUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
                             // TODO: publish Swift libraries
                             // library.getMainPublication().addVariant(variantIdentity);
 
