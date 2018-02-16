@@ -1,5 +1,3 @@
-import org.gradle.api.artifacts.component.ModuleComponentSelector
-
 /*
  * This sample demonstrates the ability to selectively include projects
  * from the local directory rather than using an external dependency.
