@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
@@ -53,6 +55,10 @@ gradlePlugin {
         "buildTypes" {
             id = "build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
+        }
+        "gradleCompile" {
+            id = "gradle-compile"
+            implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
     }
 }
@@ -111,8 +117,21 @@ tasks {
 
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
-apply {
-    from("../gradle/compile.gradle")
+fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
+    options.isFork = true
+    options.encoding = "utf-8"
+    options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+    val vendor = System.getProperty("java.vendor")
+    task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
+}
+
+tasks.withType<JavaCompile> {
+    options.isIncremental = true
+    configureCompileTask(this, options)
+}
+tasks.withType<GroovyCompile> {
+    groovyOptions.encoding = "utf-8"
+    configureCompileTask(this, options)
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {

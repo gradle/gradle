@@ -15,14 +15,13 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.build.DefaultJavaInstallation
 import org.gradle.cleanup.EmptyDirectoryCheck
-
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.modules.PatchExternalModules
 
 plugins {
     id 'java-base'
     id 'build-types'
+    id 'gradle-compile'
 }
 
 defaultTasks 'assemble'
@@ -288,8 +287,6 @@ dependencies {
 
 ext.allCoreRuntimeExtensions = configurations.coreRuntimeExtensions.allDependencies
 
-import org.gradle.modules.PatchExternalModules
-
 task patchExternalModules(type: PatchExternalModules) {
     allModules = configurations.externalModulesRuntime
     coreModules = configurations.coreRuntime
@@ -302,23 +299,14 @@ task verifyIsProductionBuildEnvironment {
         assert javaVersion.java8:
             "Must use a Java 8 compatible JVM to perform this build. Current JVM is ${jvm}"
 
-        def javaHomeProperty = { propertyName -> project.findProperty(propertyName) ?: System.getProperty(propertyName) }
-        def assertJavaHomeVersion = { propertyName, javaVersion ->
-            def javaInstallationPath = javaHomeProperty(propertyName)
-            assert javaInstallationPath:
-                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Currently unset. Set -P$propertyName=/path/to/jvm/$javaVersion"
-            def javaInstallation = new DefaultJavaInstallation()
-            gradle.services.get(JavaInstallationProbe).checkJdk(file(javaInstallationPath)).configure(javaInstallation)
+        def assertJavaHomeVersion = { propertyName, javaInstallation, javaVersion ->
             assert javaInstallation.javaVersion == javaVersion:
                 "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Is currently ${javaInstallation.displayName} at $javaInstallationPath. Set -P$propertyName=/path/to/jvm/$javaVersion"
+                    "Is currently ${javaInstallation.displayName} at $javaInstallation.javaHome. Set -P$propertyName=/path/to/jvm/$javaVersion"
         }
 
-        assertJavaHomeVersion("java7Home", JavaVersion.VERSION_1_7)
-        if (javaHomeProperty("testJavaHome")) {
-            assertJavaHomeVersion("testJavaHome", JavaVersion.VERSION_1_8)
-        }
+        assertJavaHomeVersion("java7Home", availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7), JavaVersion.VERSION_1_7)
+        assertJavaHomeVersion("testJavaHome", availableJavaInstallations.javaInstallationForTest, JavaVersion.VERSION_1_8)
 
         def systemCharset = java.nio.charset.Charset.defaultCharset().name()
         assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
@@ -359,7 +347,7 @@ subprojects { prj ->
 
 gradle.buildFinished { result ->
     def rootProject = result.gradle.rootProject
-    if (rootProject.remoteBuildCacheEnabled && !rootProject.java7HomeSet) {
+    if (!rootProject.availableJavaInstallations.validBuildCacheConfiguration) {
         logger.warn("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
     }
 }

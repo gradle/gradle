@@ -3,12 +3,14 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
 
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 
 apply { plugin("groovy") }
+apply { plugin("gradle-compile") }
 
 val base = the<BasePluginConvention>()
 val java = the<JavaPluginConvention>()
@@ -21,28 +23,10 @@ val javaInstallationProbe = (gradle as GradleInternal).services.get(JavaInstalla
 
 val compileTasks by extra { tasks.matching { it is JavaCompile || it is GroovyCompile } }
 val testTasks by extra { tasks.withType<Test>() }
-val javaInstallationForTest = DefaultJavaInstallation()
 val generatedResourcesDir by extra { file("$buildDir/generated-resources/main") }
 val generatedTestResourcesDir by extra { file("$buildDir/generated-resources/test") }
 val jarTasks by extra { tasks.withType<Jar>() }
-
-if (!hasProperty("testJavaHome")) {
-    extra["testJavaHome"] = System.getProperty("testJavaHome")
-}
-val testJavaHome: String? by extra
-
-when (testJavaHome) {
-    is String -> {
-        val testJavaHomeFile = File(testJavaHome)
-        javaInstallationForTest.javaHome = testJavaHomeFile
-        javaInstallationProbe.checkJdk(testJavaHomeFile).configure(javaInstallationForTest)
-    }
-    else -> {
-        val jvm: Jvm by rootProject.extra
-        javaInstallationForTest.javaHome = jvm.javaHome
-        javaInstallationProbe.current(javaInstallationForTest)
-    }
-}
+val javaInstallationForTest = rootProject.the<AvailableJavaInstallations>().javaInstallationForTest
 
 dependencies {
     val testCompile by configurations
@@ -64,9 +48,6 @@ dependencies {
         }
     }
 }
-
-// Extracted as it's also used by buildSrc
-apply { from("$rootDir/gradle/compile.gradle") }
 
 val classpathManifest by tasks.creating(ClasspathManifest::class)
 
