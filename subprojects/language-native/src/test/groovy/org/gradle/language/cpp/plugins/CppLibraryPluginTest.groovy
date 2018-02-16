@@ -16,12 +16,16 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.CppSharedLibrary
+import org.gradle.language.cpp.CppStaticLibrary
 import org.gradle.language.cpp.tasks.CppCompile
+import org.gradle.nativeplatform.Linkage
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -49,7 +53,7 @@ class CppLibraryPluginTest extends Specification {
         project.library.publicHeaderDirs.files == [publicHeaders] as Set
     }
 
-    def "registers a component for the library"() {
+    def "registers a component for the library with default linkage"() {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
         project.evaluate()
@@ -68,7 +72,49 @@ class CppLibraryPluginTest extends Specification {
         project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
     }
 
-    def "adds compile and link tasks"() {
+    def "registers a component for the library with static linkage"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        project.components.main == project.library
+        project.library.binaries.get().name == ['mainDebug', 'mainRelease']
+        project.components.containsAll(project.library.binaries.get())
+
+        and:
+        def binaries = project.library.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof CppStaticLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppStaticLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppStaticLibrary }
+    }
+
+    def "registers a component for the library with both linkage"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.library.linkage = [Linkage.SHARED, Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        project.components.main == project.library
+        project.library.binaries.get().name as Set == ['mainDebugShared', 'mainReleaseShared', 'mainDebugStatic', 'mainReleaseStatic'] as Set
+        project.components.containsAll(project.library.binaries.get())
+
+        and:
+        def binaries = project.library.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof CppSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && it.optimized && it instanceof CppStaticLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppStaticLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
+    }
+
+    def "adds compile and link tasks for default linkage"() {
         given:
         def src = projectDir.file("src/main/cpp/lib.cpp").createFile()
         def publicHeaders = projectDir.file("src/main/public").createDir()
@@ -104,6 +150,118 @@ class CppLibraryPluginTest extends Specification {
         linkRelease instanceof LinkSharedLibrary
         linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkRelease.debuggable
+    }
+
+    def "adds compile and link tasks for both linkage"() {
+        given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.library.linkage = [Linkage.SHARED, Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        def compileDebug = project.tasks.compileDebugSharedCpp
+        compileDebug instanceof CppCompile
+        compileDebug.source.files == [src] as Set
+        compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/shared")
+        compileDebug.debuggable
+        !compileDebug.optimized
+
+        def linkDebug = project.tasks.linkDebugShared
+        linkDebug instanceof LinkSharedLibrary
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.debuggable
+
+        def compileRelease = project.tasks.compileReleaseSharedCpp
+        compileRelease instanceof CppCompile
+        compileRelease.source.files == [src] as Set
+        compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/shared")
+        compileRelease.debuggable
+        compileRelease.optimized
+
+        def linkRelease = project.tasks.linkReleaseShared
+        linkRelease instanceof LinkSharedLibrary
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.debuggable
+
+        and:
+        def compileDebugStatic = project.tasks.compileDebugStaticCpp
+        compileDebugStatic instanceof CppCompile
+        compileDebugStatic.source.files == [src] as Set
+        compileDebugStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/static")
+        compileDebugStatic.debuggable
+        !compileDebugStatic.optimized
+
+        def createDebugStatic = project.tasks.createDebugStatic
+        createDebugStatic instanceof CreateStaticLibrary
+        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+
+        def compileReleaseStatic = project.tasks.compileReleaseStaticCpp
+        compileReleaseStatic instanceof CppCompile
+        compileReleaseStatic.source.files == [src] as Set
+        compileReleaseStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/static")
+        compileReleaseStatic.debuggable
+        compileReleaseStatic.optimized
+
+        def createReleaseStatic = project.tasks.createReleaseStatic
+        createReleaseStatic instanceof CreateStaticLibrary
+        createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+    }
+
+    def "adds compile and link tasks for static linkage only"() {
+        given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        project.tasks.withType(CppCompile).name == ['compileDebugCpp', 'compileReleaseCpp']
+        project.tasks.withType(LinkSharedLibrary).empty
+
+        and:
+        def compileDebug = project.tasks.compileDebugCpp
+        compileDebug instanceof CppCompile
+        compileDebug.source.files == [src] as Set
+        compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.debuggable
+        !compileDebug.optimized
+
+        def createDebug = project.tasks.createDebug
+        createDebug instanceof CreateStaticLibrary
+        createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+
+        def compileRelease = project.tasks.compileReleaseCpp
+        compileRelease instanceof CppCompile
+        compileRelease.source.files == [src] as Set
+        compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
+        compileRelease.debuggable
+        compileRelease.optimized
+
+        def createRelease = project.tasks.createRelease
+        createRelease instanceof CreateStaticLibrary
+        createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+    }
+
+    def "cannot change the library linkages after binaries have been calculated"() {
+        given:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.library.binaries.configureEach {
+            project.library.linkage.add(Linkage.SHARED)
+        }
+
+        when:
+        project.evaluate()
+
+        then:
+        def e = thrown(ProjectConfigurationException)
+        e.cause instanceof IllegalStateException
+        e.cause.message == 'This property is locked and cannot be changed.'
     }
 
     def "output locations are calculated using base name defined on extension"() {
