@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+import static java.util.Collections.emptyList;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**
@@ -78,7 +79,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     public void generate() {
         Properties properties = new Properties();
 
-        if (!getPluginClasspath().isEmpty()) {
+        if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
         }
 
@@ -111,7 +112,10 @@ public class PluginUnderTestMetadata extends DefaultTask {
     }
 
     private Iterable<File> classpathFiles() {
-        return getPluginClasspath();
+        if (getPluginClasspath() != null) {
+            return getPluginClasspath();
+        }
+        return emptyList();
     }
 
 }
