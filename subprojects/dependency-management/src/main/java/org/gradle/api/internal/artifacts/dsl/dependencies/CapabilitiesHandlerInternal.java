@@ -15,8 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.collect.Multimap;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 
+import java.util.Collection;
+
 public interface CapabilitiesHandlerInternal extends CapabilitiesHandler {
-    void convertToReplacementRules();
+    void recordCapabilities(ModuleIdentifier module, Multimap<String, ModuleIdentifier> capabilityToModules);
+
+    ModuleIdentifier getPreferred(String capability);
+
+    boolean hasCapabilities();
+
+    Collection<? extends CapabilityInternal> getCapabilities(ModuleIdentifier module);
 }

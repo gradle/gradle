@@ -266,4 +266,78 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
         'foo:bar:1' | 'foo:bar'
         'foo:bar'   | 'foo:bar:1'
     }
+
+
+    def "fails with a reasonable error message when 2 modules provide the same capability"() {
+        given:
+        repository {
+            'cglib:cglib-nodep:3.2.5'()
+            'cglib:cglib:3.2.5'()
+        }
+
+        buildFile << """
+            dependencies {
+               conf "cglib:cglib-nodep:3.2.5"
+               conf "cglib:cglib:3.2.5"
+            
+                  capabilities {
+                     capability('cglib') {
+                        providedBy 'cglib:cglib'
+                        providedBy 'cglib:cglib-nodep'
+                     }
+                  }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause('Cannot choose between cglib:cglib-nodep or cglib:cglib because they provide the same capability: cglib')
+    }
+
+    @Unroll
+    def "doesn't fail when 2 modules provide the same capability but only one is found in the graph"() {
+        given:
+        repository {
+            'cglib:cglib-nodep:3.2.5'()
+            'cglib:cglib:3.2.5'()
+        }
+
+        buildFile << """
+            dependencies {
+               conf "cglib:$variant:3.2.5"
+            
+               capabilities {
+                  capability('cglib') {
+                     providedBy 'cglib:cglib'
+                     providedBy 'cglib:cglib-nodep'
+                  }
+               }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            group('cglib') {
+                module(variant) {
+                    version('3.2.5') {
+                        expectResolve()
+                    }
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("cglib:$variant:3.2.5")
+            }
+        }
+
+        where:
+        variant << ['cglib', 'cglib-nodep']
+    }
 }
+
