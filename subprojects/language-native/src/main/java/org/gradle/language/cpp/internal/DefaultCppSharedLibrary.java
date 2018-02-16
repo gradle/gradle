@@ -18,6 +18,7 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
@@ -116,5 +117,15 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
             }
         }
         return result;
+    }
+
+    @Override
+    public AttributeContainer getLinkAttributes() {
+        return identity.getLinkAttributes();
+    }
+
+    @Override
+    public AttributeContainer getRuntimeAttributes() {
+        return identity.getRuntimeAttributes();
     }
 }

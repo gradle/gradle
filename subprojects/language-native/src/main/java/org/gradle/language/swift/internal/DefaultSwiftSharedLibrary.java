@@ -18,6 +18,7 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
@@ -97,5 +98,15 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     @Override
     public boolean hasRuntimeFile() {
         return true;
+    }
+
+    @Override
+    public AttributeContainer getLinkAttributes() {
+        return null;
+    }
+
+    @Override
+    public AttributeContainer getRuntimeAttributes() {
+        return null;
     }
 }

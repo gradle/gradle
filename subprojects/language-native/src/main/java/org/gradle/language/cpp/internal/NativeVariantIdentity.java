@@ -17,11 +17,15 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.util.Set;
@@ -56,6 +60,24 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     @Override
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
+    }
+
+    public AttributeContainer getRuntimeAttributes() {
+        return CollectionUtils.findFirst(usageContexts, new Spec<UsageContext>() {
+            @Override
+            public boolean isSatisfiedBy(UsageContext element) {
+                return element.getUsage().getName().equals(Usage.NATIVE_RUNTIME);
+            }
+        }).getAttributes();
+    }
+
+    public AttributeContainer getLinkAttributes() {
+        return CollectionUtils.findFirst(usageContexts, new Spec<UsageContext>() {
+            @Override
+            public boolean isSatisfiedBy(UsageContext element) {
+                return element.getUsage().getName().equals(Usage.NATIVE_LINK);
+            }
+        }).getAttributes();
     }
 
     @Override
