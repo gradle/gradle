@@ -28,9 +28,9 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 
 Here are the new features introduced in this Gradle release.
 
-### Transitive dependency constraints
+### Dependency constraints for transitive dependencies
 
-With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In the future, Gradle will also allow you to publish dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) that is currently under development. This means that, as a library author, you can share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
+With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In the future, Gradle will also allow you to publish dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) that is currently under development and, as a library author, you will then be able to share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
 
     dependencies {
         implementation 'org.apache.httpcomponents:httpclient'
