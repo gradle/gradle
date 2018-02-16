@@ -89,7 +89,7 @@ class DefaultWorkerProcessSpec extends Specification {
         1 * execHandle.start()
         1 * execHandle.getState() >> ExecHandleState.STARTED
         1 * execHandle.toString() >> 'ExecHandle'
-        1 * execHandle.abort()
+        1 * execHandle.abort(false)
         1 * acceptor.stop()
     }
 
@@ -119,7 +119,7 @@ class DefaultWorkerProcessSpec extends Specification {
         1 * execHandle.start()
         1 * execResult.rethrowFailure() >> execResult
         1 * execResult.assertNormalExitValue() >> execResult
-        1 * execHandle.abort()
+        1 * execHandle.abort(false)
         1 * acceptor.stop()
     }
 
@@ -149,7 +149,7 @@ class DefaultWorkerProcessSpec extends Specification {
 
         then:
         1 * execHandle.start()
-        1 * execHandle.abort()
+        1 * execHandle.abort(false)
         1 * acceptor.stop()
     }
 
@@ -172,7 +172,7 @@ class DefaultWorkerProcessSpec extends Specification {
         1 * execHandle.start()
         1 * execHandle.waitForFinish() >> execResult
         1 * execResult.assertNormalExitValue() >> execResult
-        1 * execHandle.abort()
+        1 * execHandle.abort(false)
         1 * acceptor.requestStop()
         1 * connection.stop()
     }
@@ -193,7 +193,7 @@ class DefaultWorkerProcessSpec extends Specification {
         then:
         1 * execHandle.start()
         0 * execHandle.waitForFinish()
-        1 * execHandle.abort()
+        1 * execHandle.abort(true)
         1 * acceptor.requestStop()
         1 * connection.stop()
     }

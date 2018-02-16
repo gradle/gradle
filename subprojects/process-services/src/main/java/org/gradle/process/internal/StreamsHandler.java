@@ -36,4 +36,11 @@ public interface StreamsHandler extends Stoppable {
      */
     @Override
     void stop();
+
+    /**
+     * Stops doing work with the process's streams.
+     *
+     * This method indicates that the underlying process may purposefully be terminated prematurely, and no errors should be reported by this handler.
+     */
+    void stopNow();
 }

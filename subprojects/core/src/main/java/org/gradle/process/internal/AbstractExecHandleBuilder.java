@@ -20,8 +20,8 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
-import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
+import org.gradle.process.internal.streams.SafeStreams;
 
 import java.io.InputStream;
 import java.io.OutputStream;

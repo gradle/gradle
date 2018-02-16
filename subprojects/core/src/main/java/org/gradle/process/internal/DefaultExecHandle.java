@@ -54,7 +54,7 @@ import static java.lang.String.format;
  * State is controlled on all control methods:
  * <ul>
  * <li>{@link #start()} allowed when state is INIT</li>
- * <li>{@link #abort()} allowed when state is STARTED or DETACHED</li>
+ * <li>{@link #abort(boolean)} allowed when state is STARTED or DETACHED</li>
  * </ul>
  */
 public class DefaultExecHandle implements ExecHandle, ProcessSettings {
@@ -270,7 +270,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         return this;
     }
 
-    public void abort() {
+    public void abort(boolean terminatingEarly) {
         lock.lock();
         try {
             if (stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED, ExecHandleState.ABORTED)) {
@@ -280,7 +280,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw new IllegalStateException(
                     format("Cannot abort process '%s' because it is not in started or detached state", displayName));
             }
-            this.execHandleRunner.abortProcess();
+            this.execHandleRunner.abortProcess(terminatingEarly);
             this.waitForFinish();
         } finally {
             lock.unlock();
@@ -421,6 +421,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         public void stop() {
             inputHandler.stop();
             outputHandler.stop();
+        }
+
+        @Override
+        public void stopNow() {
+            inputHandler.stopNow();
+            outputHandler.stopNow();
         }
     }
 }

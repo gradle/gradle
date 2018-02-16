@@ -43,8 +43,10 @@ public interface ExecHandle {
 
     /**
      * Aborts the process, blocking until the process has exited. Does nothing if the process has already completed.
+     *
+     * @param terminatingEarly indicates if the underlying process is terminating before it has finished
      */
-    void abort();
+    void abort(boolean terminatingEarly);
 
     /**
      * Waits for the process to finish. Returns immediately if the process has already completed.

@@ -33,7 +33,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     private final InputStream input;
     private final CountDownLatch completed = new CountDownLatch(1);
     private Executor executor;
-    private ExecOutputHandleRunner standardInputWriter;
+    private volatile ExecOutputHandleRunner standardInputWriter;
 
     public ForwardStdinStreamsHandler(InputStream input) {
         this.input = input;
@@ -66,6 +66,16 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
             completed.await();
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        standardInputWriter.stopNow();
+        try {
+            standardInputWriter.closeInput();
+        } catch (IOException ioe) {
+            // do nothing
         }
     }
 }

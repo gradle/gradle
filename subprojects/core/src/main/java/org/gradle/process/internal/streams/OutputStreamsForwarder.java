@@ -33,8 +33,8 @@ public class OutputStreamsForwarder implements StreamsHandler {
     private final boolean readErrorStream;
     private final CountDownLatch completed;
     private Executor executor;
-    private ExecOutputHandleRunner standardOutputReader;
-    private ExecOutputHandleRunner standardErrorReader;
+    private volatile ExecOutputHandleRunner standardOutputReader;
+    private volatile ExecOutputHandleRunner standardErrorReader;
 
     public OutputStreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, boolean readErrorStream) {
         this.standardOutput = standardOutput;
@@ -69,5 +69,11 @@ public class OutputStreamsForwarder implements StreamsHandler {
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
         }
+    }
+
+    @Override
+    public void stopNow() {
+        standardOutputReader.stopNow();
+        standardErrorReader.stopNow();
     }
 }

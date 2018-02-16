@@ -48,9 +48,12 @@ public class ExecHandleRunner implements Runnable {
         this.execHandle = execHandle;
     }
 
-    public void abortProcess() {
+    public void abortProcess(boolean terminatingEarly) {
         lock.lock();
         try {
+            if (terminatingEarly) {
+                streamsHandler.stopNow();
+            }
             aborted = true;
             if (process != null) {
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
