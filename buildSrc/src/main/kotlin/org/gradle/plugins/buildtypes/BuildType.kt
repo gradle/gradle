@@ -23,6 +23,9 @@ class BuildType(val name: String) {
     }
 
     fun projectProperties(projectProperties: ProjectProperties) {
+        // this is so that when we configure the active buildType,
+        // the project properties set for that buildType immediately
+        // become active in the build
         if (active) onProjectProperties(projectProperties)
     }
 }
