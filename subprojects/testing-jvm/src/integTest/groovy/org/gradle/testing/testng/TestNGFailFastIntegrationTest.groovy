@@ -19,10 +19,8 @@ package org.gradle.testing.testng
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 import org.hamcrest.Matchers
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
     String testAnnotationClass() {
