@@ -111,8 +111,26 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
         final SoftwareComponentContainer components = project.getComponents();
 
-        // Add lifecycle tasks
+        addLifecycleTasks(tasks, components);
 
+        // Add tasks to build various kinds of components
+
+        addTasksForComponentWithExecutable(tasks, providers, buildDirectory, components);
+        addTasksForComponentWithSharedLibrary(tasks, providers, buildDirectory, components);
+        addTasksForComponentWithStaticLibrary(tasks, providers, buildDirectory, components);
+
+        // Add outgoing configurations and publications
+        final ConfigurationContainer configurations = project.getConfigurations();
+
+        project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
+
+        addOutgoingConfigurationForLinkUsage(components, configurations);
+        addOutgoingConfigurationForRuntimeUsage(components, configurations);
+
+        addPublicationsFromVariants(project, components);
+    }
+
+    private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
             @Override
             public void execute(final ComponentWithBinaries component) {
@@ -141,9 +159,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+    }
 
-        // Add tasks to build various kinds of components
-
+    private void addTasksForComponentWithExecutable(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithExecutable.class, new Action<ConfigurableComponentWithExecutable>() {
             @Override
             public void execute(final ConfigurableComponentWithExecutable executable) {
@@ -206,6 +224,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 executable.getOutputs().from(executable.getInstallDirectory());
             }
         });
+    }
+
+    private void addTasksForComponentWithSharedLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithSharedLibrary library) {
@@ -271,6 +292,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(library.getRuntimeFile());
             }
         });
+    }
+    
+    private void addTasksForComponentWithStaticLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithStaticLibrary library) {
@@ -296,12 +320,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(library.getLinkFile());
             }
         });
+    }
 
-        // Add outgoing configurations and publications
-        final ConfigurationContainer configurations = project.getConfigurations();
-
-        project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
-
+    private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
         components.withType(ConfigurableComponentWithLinkUsage.class, new Action<ConfigurableComponentWithLinkUsage>() {
             @Override
             public void execute(ConfigurableComponentWithLinkUsage component) {
@@ -318,6 +339,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 component.getLinkElements().set(linkElements);
             }
         });
+    }
+
+    private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, new Action<ConfigurableComponentWithRuntimeUsage>() {
             @Override
             public void execute(ConfigurableComponentWithRuntimeUsage component) {
@@ -337,7 +361,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 component.getRuntimeElements().set(runtimeElements);
             }
         });
+    }
 
+    private void addPublicationsFromVariants(final ProjectInternal project, final SoftwareComponentContainer components) {
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
