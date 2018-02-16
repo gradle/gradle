@@ -15,18 +15,19 @@
 [[working_with_files]]
 == Working With Files
 
-Almost every Gradle build works with files: think source files, library dependencies, reports and so on. That's why Gradle comes with a comprehensive API that makes it simple to achieve common tasks.
+Almost every Gradle build interacts with files in some way: think source files, file dependencies, reports and so on. That's why Gradle comes with a comprehensive API that makes it simple to perform the file operations you need.
 
 The API has two parts to it:
 
  * Specifying which files and directories to process
  * Specifying what to do with them
 
-We look at these parts in more detail later in the chapter, but we'll start with how you accomplish some of the most common tasks users need.
+The <<sec:locating_files,File Paths in Depth>> section covers the first of these in detail, while subsequent sections, like <<sec:,File Copying in Depth>>, cover the second. To begin with, we'll show you examples of the most common scenarios that users encounter.
 
+[[sec:copying_single_file_example]]
 === Copying a single file
 
-You copy a file by creating an instance of Gradle's builtin api:org.gradle.api.tasks.Copy[] task and configuring it with the location of the file and where you want to put it. This example mimics copying a generated report into a directory that will be packed into an archive (zip, tarball, or whatever):
+You copy a file by creating an instance of Gradle's builtin api:org.gradle.api.tasks.Copy[] task and configuring it with the location of the file and where you want to put it. This example mimics copying a generated report into a directory that will be packed into an archive, such as a ZIP or TAR:
 
 ----
 task copyReport(type: Copy) {
@@ -35,9 +36,9 @@ task copyReport(type: Copy) {
 }
 ----
 
-The api:org.gradle.api.Project#file(java.lang.Object)[file()] method is used to create a file or directory path relative to the current project and is a common way to locate files in the project directory.
+The api:org.gradle.api.Project#file(java.lang.Object)[file()] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using api:org.gradle.api.tasks.Copy#from(java.lang.Object...)[] and which directory to copy it to using api:org.gradle.api.tasks.Copy#into(java.lang.Object)[].
 
-You can even use the path directly without the `file()` method:
+You can even use the path directly without the `file()` method, as explained early in the section <<sec:copying_files,File Copying in Depth>>:
 
 ----
 task copyReport(type: Copy) {
@@ -46,23 +47,18 @@ task copyReport(type: Copy) {
 }
 ----
 
-TODO: Link this to a later section that explains how this implicit file path works
-
-Note that hardcoding paths like this makes the build brittle. It's better to use the task that generates a file as the source of the file's location. In this modified example, we use a report task defined elsewhere that has the report's location stored in the `outputFile` property:
+Although hard-coded paths make for simple examples, they also make the build brittle. It's better to use a reliable, single source of truth, such as a task or shared project property. In the following modified example, we use a report task defined elsewhere that has the report's location stored in its `outputFile` property:
 
 ----
-ext.archiveDir = file("${buildDir}/toArchive")
-
 task copyReport(type: Copy) {
     from myReportTask.outputFile
-    into archiveDir
+    into archiveReportsTask.dirToArchive
 }
 ----
 
-We also moved the hardcoded archive directory into a project property, which only needs to be changed in one place to apply to the whole build.
+We have also assumed that the reports will be archived by `archiveReportsTask`, which provides us with the directory that will be archived and hence where we want to put the copies of the reports.
 
-TODO: Link to more detailed coverage of `from()` arguments
-
+[[sec:copying_multiple_files_example]]
 === Copying multiple files
 
 You can extend the previous examples to multiple files very easily by providing multiple arguments to `from()`:
@@ -74,7 +70,7 @@ task copyReports(type: Copy) {
 }
 ----
 
-Now two files are copied into the archive directory.
+Now two files are copied into the archive directory. You can also use multiple `from()` statements to do the same thing, as shown in the first example of the section <<File Copying in Depth,sec:copying_files>>.
 
 What if you want to copy all the PDFs in a directory without having to specify each one? You can easily attach both inclusion and exclusion patterns to the copy specification. Here we use a pattern to include only PDFs:
 
@@ -86,7 +82,7 @@ task copyReports(type: Copy) {
 }
 ----
 
-One thing to note in this example is that only PDFs directly in the `reports` directory are copied. If there are PDFs in subdirectories of `reports`, they'll be left out. You can change that by using an Ant-style glob pattern:
+One thing to note in this example is that only PDFs directly in the `reports` directory are copied. If there are PDFs in subdirectories of `reports`, they'll be left out. You can change that by using an Ant-style glob pattern (`\**/*`):
 
 ----
 task copyReports(type: Copy) {
@@ -96,10 +92,11 @@ task copyReports(type: Copy) {
 }
 ----
 
-This approach has the side effect of copying the directory structure below `reports` as well as the files. This may be what you want. It may not be. Copying files includes many such decisions and there are too many to cover here, but know that there are very few requirements that can't be handled elegantly by Gradle copy specifications.
+This approach has the side effect of copying the directory structure below `reports` as well as the files. This may be what you want. It may not be. There are many such decisions you need to make when copying files, but rest assured that there are very few requirements that can't be handled elegantly by Gradle copy specifications.
 
-Head over to ~TODO~ in order to learn all the different options available for getting the exact behavior you want.
+Read the in-depth sections later in the chapter for more detail on how the file operations work in Gradle and what options you have for configuring them.
 
+[[sec:copying_directories_example]]
 === Copying directory hierarchies
 
 You may have the need to copy not just files, but the directory structure they reside in as well. This is, in fact, the default behavior when you specify a directory as the `from()` argument. So the following will copy everything in the `reports` directory, including all its subdirectories:
@@ -111,7 +108,7 @@ task copyReports(type: Copy) {
 }
 ----
 
-The key aspect that users struggle with is controlling how much of the directory structure goes to the destination. In the above example, do you get a `toArchive/reports` directory or does everything in `reports` go straight into `toArchive`? The answer is the latter. If a directory is part of the `from()` path, then it *won't* appear in the destination.
+The key aspect that users struggle with is controlling how much of the directory structure goes to the destination. In the above example, do you get a `toArchive/reports` directory or does everything in `reports` go straight into `toArchive`? The answer is the latter. If a directory is part of the `from()` path, then it _won't_ appear in the destination.
 
 So how do you ensure that `reports` itself is copied across, but not any other directory in `$buildDir`? The answer is to add it as an include pattern:
 
@@ -126,13 +123,14 @@ task copyReports(type: Copy) {
 
 You'll get the same behavior as before except with one extra level of directory in the destination, i.e. `toArchive/reports`.
 
-One thing to note is how the `include()` directive applies only to the `from()`, whereas the directive in the previous section applied to the whole task. These different levels of granularity in the copy specification allow you to easily handle most requirements that you will come across. TODO: Link to more details on copy specs.
+One thing to note is how the `include()` directive applies only to the `from()`, whereas the directive in the previous section applied to the whole task. These different levels of granularity in the copy specification allow you to easily handle most requirements that you will come across. You can learn more about this in the section on <<Using child specifications,child specifications>>.
 
+[[sec:creating_archives_example]]
 === Creating archives (zip, tar, etc.)
 
-From the perspective of Gradle, packing files into a single archive is effectively a copy in which the destination is an archive file instead of a directory on the file system. This means that archiving files looks a lot like copying, with all of the same features!
+From the perspective of Gradle, packing files into an archive is effectively a copy in which the destination is the archive file rather than a directory on the file system. This means that creating archives looks a lot like copying, with all of the same features!
 
-The simplest case involves packing all the contents of a directory into an archive, such as a zip in this example:
+The simplest case involves archiving the entire contents of a directory, which this example demonstrates by creating a ZIP of the `toArchive` directory:
 
 ----
 task packageDistribution(type: Zip) {
@@ -143,15 +141,20 @@ task packageDistribution(type: Zip) {
 }
 ----
 
-Each type of archive has its own task type, the most common ones being api:org.gradle.api.tasks.bundling.Zip[], api:org.gradle.api.tasks.bundling.Tar[] and api:org.gradle.api.tasks.bundling.Jar[]. And instead of having an `into()` setting like `Copy`, you configure the location and name of the destination archive file. In many cases you don't even need to do that as `destinationDir` defaults to `${buildDir}/distributions` and many plugins provide conventions for `archiveName`.
+Notice how we specify the destination and name of the archive instead of an `into()`. These are both required, although the `base` plugin provides some conventional values for these, meaning you will often not see them set explicitly. The next example demonstrates this and you can learn more in the <<sec:archive_naming,archive naming>> section.
 
-The archiving tasks share most of the configuration options of `Copy`, including filtering and renaming. One of the most common options people use allows you to create a subdirectory in the destination to copy the files into. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
+Each type of archive has its own task type, the most common ones being api:org.gradle.api.tasks.bundling.Zip[], api:org.gradle.api.tasks.bundling.Tar[] and api:org.gradle.api.tasks.bundling.Jar[]. They all share most of the configuration options of `Copy`, including filtering and renaming.
+
+One of the most common scenarios involves copying files into specified subdirectories of the archive. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
 
 ----
-task packageDistribution(type: Zip) {
-    archiveName = "my-distribution.zip"
-    destinationDir = file("${buildDir}/dist")
+plugins {
+    id 'base'
+}
 
+version = "1.0.0"
+
+task packageDistribution(type: Zip) {
     from("${buildDir}/toArchive") {
         exclude "**/*.pdf"
     }
@@ -163,12 +166,12 @@ task packageDistribution(type: Zip) {
 }
 ----
 
-As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration.
+As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration. See <<Using child specifications>> for more information on this feature.
 
 [[sec:unpacking_archives_example]]
 === Unpacking archives
 
-Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system into a directory (or even another archive). Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files known as file trees (TODO: link to an in-depth discussion of file trees).
+Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system into a directory (or even another archive). Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files known as <<File trees,file trees>>.
 
 The two functions of interest are api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree[], which produce a api:org.gradle.api.file.FileTree[] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
@@ -181,7 +184,9 @@ task unpackFiles(type: Copy) {
 
 As with a normal copy, you can control which files are unpacked via filters and even rename files as they are unpacked.
 
-[[sec:creating_archives_example]]
+If you're a Java developer and are wondering why there is no `jarTree()` method, that's because `zipTree()` works perfectly well for JARs, WARs and EARs.
+
+[[sec:creating_directories_example]]
 === Creating directories
 
 Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<sec:up_to_date_checks,incremental build>> section of the user guide. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
@@ -243,6 +248,32 @@ task copyWithTruncate(type: Copy) {
 ----
 
 As with filtering, you can also apply renaming to a subset of files to copy by configuring it on a `from()` instead of at the task level.
+
+[[sec:deleting_files_example]]
+=== Deleting files and directories
+
+You can easily delete files and directories using either the api:org.gradle.api.tasks.Delete[] task or the api:org.gradle.api.Project#delete(org.gradle.api.Action)[] method. In both cases, you specify which files and directories to delete in a way supported by the api:org.gradle.api.Project#files(java.lang.Object...)[] method.
+
+For example, the following task deletes the entire contents of a build's output directory:
+
+----
+task myClean(type: Delete) {
+    delete buildDir
+}
+----
+
+If you want more control over which files are deleted, you can't use inclusions and exclusions in the same way as for copying files. Instead, you have to use the builtin filtering mechanisms of `files()` and `fileTree()`. The following example does just that to clear out temporary files from a source directory:
+
+----
+task cleanTempFiles(type: Delete) {
+    delete fileTree("src").matching {
+        include "**/*.tmp"
+    }
+}
+----
+
+
+You'll learn more about file collections and file trees in the next section.
 
 [[sec:locating_files]]
 === File paths in depth
@@ -649,6 +680,8 @@ Here is an example which maintains a copy of the project's runtime dependencies 
     <test args="libs"/>
 </sample>
 ++++
+
+You can also perform the same function in your own tasks with the api:org.gradle.api.Project#sync(org.gradle.api.Action)[] method.
 
 [[sec:archives]]
 === Archive creation in depth
