@@ -164,7 +164,7 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
         for (DefaultProjectDescriptor project : allProjects) {
             Path projectIdentityPath = rootPath.append(project.path());
             ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
-            projectRegistry.add(projectIdentityPath, projectComponentIdentifier, isImplicitBuild);
+            projectRegistry.add(projectIdentityPath, project.getName(), projectComponentIdentifier, isImplicitBuild);
         }
     }
 
