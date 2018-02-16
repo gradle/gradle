@@ -43,7 +43,6 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;

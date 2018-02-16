@@ -19,6 +19,8 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -208,6 +210,74 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         final mainSolution = solutionFile("lib.sln")
         mainSolution.assertHasProjects("libLib", "libDll")
         mainSolution.assertReferencesProject(dllProjectFile, projectConfigurations)
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can build executable from visual studio"() {
+        useMsbuildTool()
+        def debugBinary = executable("build/install/main/debug/lib/app")
+
+        given:
+        app.writeSources(file("src/main"))
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+        buildFile << """
+            apply plugin: 'cpp-application'
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('Debug')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':installDebug')
+        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':installDebug')
+        debugBinary.assertExists()
+        installation('build/install/main/debug').assertInstalled()
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "can build library from visual studio"() {
+        useMsbuildTool()
+        def debugBinaryLib = staticLibrary("build/lib/main/debug/static/lib")
+        def debugBinaryDll = sharedLibrary("build/lib/main/debug/shared/lib")
+
+        given:
+        app.library.writeSources(file("src/main"))
+        settingsFile << """
+            rootProject.name = 'lib'
+        """
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            library {
+                linkage = [Linkage.STATIC, Linkage.SHARED]
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinaryLib.assertDoesNotExist()
+        debugBinaryDll.assertDoesNotExist()
+        def resultDebug = msbuild
+            .withSolution(solutionFile("lib.sln"))
+            .withConfiguration('Debug')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugStaticCpp', ':compileDebugSharedCpp', ':createDebugStatic', ':linkDebugShared')
+        resultDebug.assertTasksNotSkipped(':compileDebugStaticCpp', ':compileDebugSharedCpp', ':createDebugStatic', ':linkDebugShared')
+        debugBinaryLib.assertExists()
+        debugBinaryDll.assertExists()
     }
 
     private String[] getProjectTasks(String exeName) {
