@@ -307,6 +307,12 @@ This means that [Play projects](userguide/play_plugin.html) written in Scala now
 
 Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build. This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
 
+### Improvements in gradle-native plugins
+
+The `gradle-native` has been working on adding new features for building with native languages (like C++). As mentioned above, Gradle now generates a single Visual Studio solution for a multi-project build. Other unannounced features have continued to be developed, which we hope to detail in a future [blog post](https://blog.gradle.org/).
+
+Highlights to the `gradle-native` plugins will continue to be mentioned in Gradle's release notes, but more information will be provided in the [gradle-native release notes](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-46).
+
 ### Honour cache-expiry settings in the presence of detached configurations
 
 Gradle allows dependency cache expiry (i.e `cacheChangingModulesFor`) to be set on a per-configuration basis. However, due to a bug in previous versions of Gradle, if a dependency was first resolved via a configuration using the default (24hr) expiry settings, any other resolve _in the same build invocation_ would get the same result.
