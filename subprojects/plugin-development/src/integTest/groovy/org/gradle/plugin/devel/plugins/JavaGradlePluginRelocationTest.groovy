@@ -89,6 +89,6 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
 
     @Override
     protected extractResultsFrom(TestFile projectDir) {
-        return null
+        return projectDir.file("build/${JavaGradlePluginPlugin.GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME}/org.example.plugin.properties").text
     }
 }
