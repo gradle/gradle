@@ -70,8 +70,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
-        plugins.withType(EclipsePlugin::class.java) {
-            the<EclipseModel>().apply {
+        plugins.withType<EclipsePlugin> {
+            configure<EclipseModel> {
                 classpath {
                     plusConfigurations.add(configurations["performanceTestCompile"])
                     plusConfigurations.add(configurations["performanceTestRuntime"])
@@ -79,8 +79,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
         }
 
-        plugins.withType(IdeaPlugin::class.java) {
-            the<IdeaModel>().apply {
+        plugins.withType<IdeaPlugin> {
+            configure<IdeaModel> {
                 module {
                     testSourceDirs.plus(performanceTestSourceSet.withConvention(GroovySourceSet::class) { groovy.srcDirs })
                     testSourceDirs.plus(performanceTestSourceSet.resources.srcDirs)
@@ -110,7 +110,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private fun Project.createDistributedPerformanceTestTask(name: String, performanceSourceSet: SourceSet,
                                                              prepareSamplesTask: Task, performanceReportTask: PerformanceReport): DistributedPerformanceTest {
-        return tasks.create(name, DistributedPerformanceTest::class.java) {
+        return tasks.create<DistributedPerformanceTest>(name) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
             scenarioList = file("$buildDir/$performanceTestScenarioListFileName")
             scenarioReport = file("$buildDir$performanceTestScenarioReportFileName")
@@ -151,7 +151,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private fun Project.createLocalPerformanceTestTask(name: String, performanceSourceSet: SourceSet,
                                                        prepareSamplesTask: Task, performanceReportTask: PerformanceReport): PerformanceTest {
-        val task = tasks.create(name, PerformanceTest::class.java) {
+        val task = tasks.create<PerformanceTest>(name) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
             if (project.hasProperty(yourkitProperty)) {
                 testLogging.showStandardStreams = true
@@ -166,7 +166,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
 
             val junitXmlDir = reports.junitXml.destination
-            val testResultsZipTask = tasks.create("${name}ResultsZip", Zip::class.java) {
+            val testResultsZipTask = tasks.create<Zip>("${name}ResultsZip") {
                 from(junitXmlDir) {
                     include("**/TEST-*.xml")
                     includeEmptyDirs = false
@@ -189,13 +189,13 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             }
             finalizedBy(testResultsZipTask)
-            val cleanTestResultsZipTask = tasks.create("clean${testResultsZipTask.name.capitalize()}", Delete::class.java) {
+            val cleanTestResultsZipTask = tasks.create<Delete>("clean${testResultsZipTask.name.capitalize()}") {
                 delete(testResultsZipTask.archivePath)
             }
             tasks.getByName("clean${name.capitalize()}").dependsOn(cleanTestResultsZipTask)
         }
 
-        tasks.create("clean${task.name.capitalize()}", Delete::class.java) {
+        tasks.create<Delete>("clean${task.name.capitalize()}") {
             delete(task.outputs)
             dependsOn("clean${performanceReportTask.name.capitalize()}")
         }
@@ -221,9 +221,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
 
             dependsOn(prepareSamplesTask)
-            mustRunAfter(tasks.withType(ProjectGeneratorTask::class.java))
-            mustRunAfter(tasks.withType(RemoteProject::class.java))
-            mustRunAfter(tasks.withType(JavaExecProjectGeneratorTask::class.java))
+            mustRunAfter(tasks.withType<ProjectGeneratorTask>())
+            mustRunAfter(tasks.withType<RemoteProject>())
+            mustRunAfter(tasks.withType<JavaExecProjectGeneratorTask>())
 
             doFirst {
                 if (channel != null) {
@@ -254,7 +254,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private fun Project.createPerformanceReportTask(performanceTestSourceSet: SourceSet): PerformanceReport {
-        return tasks.create("performanceReport", PerformanceReport::class.java) {
+        return tasks.create<PerformanceReport>("performanceReport") {
             systemProperties(propertiesForPerformanceDb())
             classpath = performanceTestSourceSet.runtimeClasspath
             resultStoreClass = resultsStoreClassName
@@ -264,10 +264,10 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private fun Project.createCleanSamplesTask(): Task {
-        return tasks.create("cleanSamples", Delete::class.java) {
-            delete { tasks.withType(ProjectGeneratorTask::class.java).map { it.outputs } }
-            delete { tasks.withType(RemoteProject::class.java).map { it.outputDirectory } }
-            delete { tasks.withType(JavaExecProjectGeneratorTask::class.java).map { it.outputs } }
+        return tasks.create<Delete>("cleanSamples") {
+            delete { tasks.withType<ProjectGeneratorTask>().map { it.outputs } }
+            delete { tasks.withType<RemoteProject>().map { it.outputDirectory } }
+            delete { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } }
         }
     }
 
@@ -275,25 +275,25 @@ class PerformanceTestPlugin : Plugin<Project> {
         return tasks.create("prepareSamples") {
             group = "Project Setup"
             description = "Generates all sample projects for automated performance tests"
-            dependsOn(tasks.withType(ProjectGeneratorTask::class.java))
-            dependsOn(tasks.withType(RemoteProject::class.java))
-            dependsOn(tasks.withType(JavaExecProjectGeneratorTask::class.java))
+            dependsOn(tasks.withType<ProjectGeneratorTask>())
+            dependsOn(tasks.withType<RemoteProject>())
+            dependsOn(tasks.withType<JavaExecProjectGeneratorTask>())
         }
     }
 
     private fun Project.configureGeneratorTasks(project: Project) {
-        tasks.withType(ProjectGeneratorTask::class.java) {
+        tasks.withType<ProjectGeneratorTask> {
             group = "Project setup"
         }
-        tasks.withType(TemplateProjectGeneratorTask::class.java) {
+        tasks.withType<TemplateProjectGeneratorTask> {
             sharedTemplateDirectory = project.project(":internalPerformanceTesting").file("src/templates")
         }
-        tasks.withType(AbstractProjectGeneratorTask::class.java) {
+        tasks.withType<AbstractProjectGeneratorTask> {
             if (project.hasProperty("maxProjects")) {
                     project.extra.set("projects", project.property("maxProjects") as Int)
             }
         }
-        tasks.withType(JvmProjectGeneratorTask::class.java) {
+        tasks.withType<JvmProjectGeneratorTask> {
             testDependencies = configurations["junit"]
         }
     }
