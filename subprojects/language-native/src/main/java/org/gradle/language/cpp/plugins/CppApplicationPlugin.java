@@ -120,7 +120,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
                     Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
-                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, usageContextsDebug);
+                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, true, false, usageContextsDebug);
                     application.getMainPublication().addVariant(debugVariant);
 
 
@@ -133,15 +133,15 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     Set<? extends UsageContext> usageContextsRelease = Collections.singleton(new LightweightUsageContext("release" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesRelease));
 
 
-                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, usageContextsRelease);
+                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, true, true, usageContextsRelease);
                     application.getMainPublication().addVariant(releaseVariant);
 
 
                     if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
-                        CppExecutable debugExecutable = application.addExecutable("debug" + operatingSystemSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
-                        application.addExecutable("release" + operatingSystemSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
+                        CppExecutable debugExecutable = application.addExecutable("debug" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
+                        application.addExecutable("release" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
 
                         // Use the debug variant as the development binary
                         application.getDevelopmentBinary().set(debugExecutable);

@@ -19,7 +19,6 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Usage;
@@ -47,10 +46,8 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary/*, ComponentWithCoordinates*/ {
+public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
-    private final boolean debuggable;
-    private final boolean optimized;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
@@ -60,19 +57,17 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary/*
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
     private final Property<CppCompile> compileTaskProperty;
-    private final Property<ModuleVersionIdentifier> coordinates;
+    private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(name, objects, projectLayout, componentImplementation);
         this.baseName = baseName;
-        this.debuggable = debuggable;
-        this.optimized = optimized;
         this.sourceFiles = sourceFiles;
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.compileTaskProperty = objects.property(CppCompile.class);
-        this.coordinates = objects.property(ModuleVersionIdentifier.class);
+        this.identity = identity;
 
         Names names = getNames();
 
@@ -81,24 +76,24 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary/*
         Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
-        includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
+        includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
         includePathConfig.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily.class, ((OperatingSystemInternal) getTargetPlatform().getOperatingSystem()).toFamilyName()));
         includePathConfig.extendsFrom(getImplementationDependencies());
 
         Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
-        nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
-        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
+        nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
         nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily.class, ((OperatingSystemInternal) getTargetPlatform().getOperatingSystem()).toFamilyName()));
         nativeLink.extendsFrom(getImplementationDependencies());
 
         Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
-        nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
-        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
+        nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
         nativeRuntime.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily.class, ((OperatingSystemInternal) getTargetPlatform().getOperatingSystem()).toFamilyName()));
         nativeRuntime.extendsFrom(getImplementationDependencies());
 
@@ -130,12 +125,12 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary/*
 
     @Override
     public boolean isDebuggable() {
-        return debuggable;
+        return identity.isDebuggable();
     }
 
     @Override
     public boolean isOptimized() {
-        return optimized;
+        return identity.isOptimized();
     }
 
     @Override
@@ -180,11 +175,6 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary/*
     public PlatformToolProvider getPlatformToolProvider() {
         return platformToolProvider;
     }
-
-//    @Override
-//    public Provider<ModuleVersionIdentifier> getCoordinates() {
-//        return coordinates;
-//    }
 
     private class IncludePath implements MinimalFileSet {
         private final Configuration includePathConfig;

@@ -159,7 +159,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
                         Set<? extends UsageContext> usageContextsDebug = Sets.newHashSet(new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebugRuntime), new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesDebugLink));
 
-                        NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, usageContextsDebug);
+                        NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, true, false, usageContextsDebug);
                         library.getMainPublication().addVariant(debugVariant);
 
 
@@ -180,7 +180,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         Set<? extends UsageContext> usageContextsRelease = Sets.newHashSet(new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesReleaseRuntime), new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesReleaseLink));
 
 
-                        NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, usageContextsRelease);
+                        NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, true, true, usageContextsRelease);
                         library.getMainPublication().addVariant(releaseVariant);
 
 
@@ -188,14 +188,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                             if (linkage == Linkage.SHARED) {
-                                CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageSuffix + operatingSystemSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
-                                library.addSharedLibrary("release" + linkageSuffix + operatingSystemSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
+                                CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageSuffix + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
+                                library.addSharedLibrary("release" + linkageSuffix + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
 
                                 // Use the debug shared library as the development binary
                                 library.getDevelopmentBinary().set(debugSharedLibrary);
                             } else {
-                                CppStaticLibrary debugStaticLibrary = library.addStaticLibrary("debug" + linkageSuffix + operatingSystemSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
-                                library.addStaticLibrary("release" + linkageSuffix + operatingSystemSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
+                                CppStaticLibrary debugStaticLibrary = library.addStaticLibrary("debug" + linkageSuffix + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
+                                library.addStaticLibrary("release" + linkageSuffix + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
 
                                 if (!library.getLinkage().get().contains(Linkage.SHARED)) {
                                     // Use the debug static library as the development binary

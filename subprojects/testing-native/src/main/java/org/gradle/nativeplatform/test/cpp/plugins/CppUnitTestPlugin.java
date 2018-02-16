@@ -76,7 +76,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(final Project project) {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), null);
 
                 final TaskContainer tasks = project.getTasks();
                 final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");

@@ -76,14 +76,14 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         mainVariant = new MainLibraryVariant("api", apiUsage, apiElements);
     }
 
-    public DefaultCppSharedLibrary addSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppSharedLibrary addSharedLibrary(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
 
-    public DefaultCppStaticLibrary addStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppStaticLibrary addStaticLibrary(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }

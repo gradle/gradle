@@ -32,6 +32,7 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -54,8 +55,8 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        super(name, projectLayout, objects, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(name, projectLayout, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.testedComponent = testedComponent;
         this.executableFile = projectLayout.fileProperty();
         this.debuggerExecutableFile = projectLayout.fileProperty();

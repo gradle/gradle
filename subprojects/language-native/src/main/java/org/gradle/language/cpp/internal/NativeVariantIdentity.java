@@ -31,14 +31,26 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final Provider<String> baseName;
     private final Provider<String> group;
     private final Provider<String> version;
+    private final boolean debuggable;
+    private final boolean optimized;
     private final Set<? extends UsageContext> usageContexts;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, Set<? extends UsageContext> usageContexts) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, Set<? extends UsageContext> usageContexts) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
         this.version = version;
+        this.debuggable = debuggable;
+        this.optimized = optimized;
         this.usageContexts = usageContexts;
+    }
+
+    public boolean isDebuggable() {
+        return debuggable;
+    }
+
+    public boolean isOptimized() {
+        return optimized;
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
@@ -51,8 +52,8 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
-    public CppTestExecutable addExecutable(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
+    public CppTestExecutable addExecutable(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider, identity);
         this.testBinary.set(testBinary);
         getBinaries().add(testBinary);
         return testBinary;
