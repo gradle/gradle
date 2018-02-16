@@ -563,7 +563,17 @@ The task has an `ignoreFailures` property to control the behavior when tests fai
 
 The `testLogging` property allows you to configure which test events are going to be logged and at which detail level. By default, a concise message will be logged for every failed test. See api:org.gradle.api.tasks.testing.logging.TestLoggingContainer[] for how to tune test logging to your preferences.
 
-Projects with large test suite can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To short circuit this behavior, the api:org.gradle.api.tasks.testing.Test#getFailFast()[`failFast`] property allows you to cause the `test` task to fail after the first test failure instead of running all tests. When this property is true, the resulting output will only show the results of tests that have completed up to and including the failure. The `--fail-fast` command line option enables the behavior from the command line. The default value for the `failFast` property is false.
+Projects with large test suites can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To short circuit this behavior, the api:org.gradle.api.tasks.testing.Test#getFailFast()[`failFast`] property allows you to cause the `test` task to fail after the first test failure instead of running all tests. When this property is true, the resulting output will only show the results of tests that have completed up to and including the failure. To enable this fail fast behavior in your build file, set the `failFast` property to `true`:
+
+    test {
+        failFast = true
+    }
+
+The `--fail-fast` command line option enables the behavior from the command line. An invocation looks like:
+
+    gradle integTest --fail-fast
+
+The default value for the `failFast` property is false.
 
 [[sec:debugging]]
 ==== Debugging
