@@ -79,15 +79,39 @@ class DefaultCppLibraryTest extends Specification {
     }
 
     def "can add shared library"() {
+        def targetPlatform = Stub(CppPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        def binary = library.addSharedLibrary('debug', Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), identity)
+        def binary = library.addSharedLibrary('debug', targetPlatform, toolChain, platformToolProvider, identity)
         binary.name == 'mainDebug'
+        binary.debuggable
+        !binary.optimized
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
     }
 
     def "can add static library"() {
+        def targetPlatform = Stub(CppPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        def binary = library.addStaticLibrary('debug', Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), identity)
+        def binary = library.addStaticLibrary('debug', targetPlatform, toolChain, platformToolProvider, identity)
         binary.name == 'mainDebug'
+        binary.debuggable
+        !binary.optimized
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
     }
 
     def "compile include path includes public and private header dirs"() {
@@ -159,6 +183,8 @@ class DefaultCppLibraryTest extends Specification {
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
             getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+            isDebuggable() >> true
+            isOptimized() >> false
         }
     }
 
