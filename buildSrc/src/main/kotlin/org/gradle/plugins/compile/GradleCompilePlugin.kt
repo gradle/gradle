@@ -29,15 +29,17 @@ open class GradleCompilePlugin : Plugin<Project> {
             )
         }
 
-        val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
+        project.afterEvaluate {
+            val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
-        project.tasks.withType<JavaCompile> {
-            options.isIncremental = true
-            configureCompileTask(this, options, availableJavaInstallations)
-        }
-        project.tasks.withType<GroovyCompile> {
-            groovyOptions.encoding = "utf-8"
-            configureCompileTask(this, options, availableJavaInstallations)
+            tasks.withType<JavaCompile> {
+                options.isIncremental = true
+                configureCompileTask(this, options, availableJavaInstallations)
+            }
+            tasks.withType<GroovyCompile> {
+                groovyOptions.encoding = "utf-8"
+                configureCompileTask(this, options, availableJavaInstallations)
+            }
         }
     }
 

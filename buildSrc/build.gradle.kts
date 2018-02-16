@@ -126,6 +126,7 @@ tasks.withType<JavaCompile> {
     configureCompileTask(options)
 }
 tasks.withType<GroovyCompile> {
+    groovyOptions.encoding = "utf-8"
     configureCompileTask(options)
 }
 
