@@ -54,32 +54,49 @@ class DefaultCapabilitiesModuleConflictResolver implements ModuleConflictResolve
     }
 
     private <T extends ComponentResolutionState> void tryPreferredCapabilityProvider(ConflictResolverDetails<T> details, Collection<? extends T> candidates, Multimap<String, ModuleIdentifier> capabilitiesToCandidates) {
+        ModuleIdentifier selected = null;
+        String selectedCapability = null;
         for (String capability : capabilitiesToCandidates.keySet()) {
-            Collection<ModuleIdentifier> allModulesProvidingCapability = capabilitiesToCandidates.get(capability);
-            int inConflict = 0;
-            for (ModuleIdentifier participant : details.getParticipants()) {
-                if (allModulesProvidingCapability.contains(participant)) {
-                    inConflict++;
-                }
-            }
+            int inConflict = countEffectiveConflicts(details, capabilitiesToCandidates, capability);
             if (inConflict > 1) {
                 // there's a conflict between different modules with the same capability
                 ModuleIdentifier preferred = capabilitiesHandler.getPreferred(capability);
                 if (preferred == null) {
                     throw new RuntimeException("Cannot choose between " + Joiner.on(" or ").join(details.getParticipants()) + " because they provide the same capability: " + capability);
+                } else if (selected != null && !selected.equals(preferred)) {
+                    // in case there are more than one capability, we must choose the same preferred version for each, or we fail
+                    throw new RuntimeException("Cannot choose between " + Joiner.on(" or ").join(details.getParticipants()) + " because they provide the same capabilities (" + selectedCapability + " and " + capability + ") but disagree on the preferred module");
                 }
-                // todo: handle case when there are more than one capabilities
-                for (Iterator<? extends T> iterator = candidates.iterator(); iterator.hasNext(); ) {
-                    T candidate = iterator.next();
-                    if (!candidate.getId().getModule().equals(preferred)) {
-                        // this resolver doesn't select a version, it only removes the ones which are not valid
-                        // we do this because we still want version conflict to happen after this one, so it
-                        // only narrows the selection.
-                        // however, this should probably be handled in a different way, recognizing that resolvers
-                        // may cooperate to find the best solution
-                        iterator.remove();
-                    }
-                }
+                selected = preferred;
+                selectedCapability = capability;
+            }
+        }
+        if (selected != null) {
+            rejectCandidates(candidates, selected);
+        }
+    }
+
+    private <T extends ComponentResolutionState> int countEffectiveConflicts(ConflictResolverDetails<T> details, Multimap<String, ModuleIdentifier> capabilitiesToCandidates, String capability) {
+        Collection<ModuleIdentifier> allModulesProvidingCapability = capabilitiesToCandidates.get(capability);
+        int inConflict = 0;
+        for (ModuleIdentifier participant : details.getParticipants()) {
+            if (allModulesProvidingCapability.contains(participant)) {
+                inConflict++;
+            }
+        }
+        return inConflict;
+    }
+
+    private <T extends ComponentResolutionState> void rejectCandidates(Collection<? extends T> candidates, ModuleIdentifier selected) {
+        for (Iterator<? extends T> iterator = candidates.iterator(); iterator.hasNext();) {
+            T candidate = iterator.next();
+            if (!candidate.getId().getModule().equals(selected)) {
+                // this resolver doesn't select a version, it only removes the ones which are not valid
+                // we do this because we still want version conflict to happen after this one, so it
+                // only narrows the selection.
+                // however, this should probably be handled in a different way, recognizing that resolvers
+                // may cooperate to find the best solution
+                iterator.remove();
             }
         }
     }
