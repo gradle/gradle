@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -46,6 +47,7 @@ import static org.gradle.internal.FileUtils.hasExtension;
  * <p>
  * This file store also provides searching via relative ant path patterns.
  */
+@NonNullApi
 public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
     /*

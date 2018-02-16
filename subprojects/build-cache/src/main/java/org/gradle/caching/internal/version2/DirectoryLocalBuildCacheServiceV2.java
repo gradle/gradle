@@ -19,8 +19,8 @@ package org.gradle.caching.internal.version2;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableSortedMap;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentCache;
@@ -230,27 +230,24 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
             public void run() {
                 String key = hashCode.toString();
                 lock.writeLock().lock();
-                File tempFile = null;
                 try {
-                    LocallyAvailableResource resource = fileStore.get(key);
-                    if (resource == null) {
-                        tempFile = File.createTempFile("build-cache-", ".temp");
-                        OutputStream output = new FileOutputStream(tempFile);
-                        output.write(code);
-                        try {
-                            action.execute(output);
-                        } finally {
-                            IOUtils.closeQuietly(output);
+                    fileStore.add(key, new Action<File>() {
+                        @Override
+                        public void execute(File file) {
+                            try {
+                                OutputStream output = new FileOutputStream(file);
+                                try {
+                                    output.write(code);
+                                    action.execute(output);
+                                } finally {
+                                    IOUtils.closeQuietly(output);
+                                }
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
                         }
-                        fileStore.move(key, tempFile);
-                        tempFile = null;
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    });
                 } finally {
-                    if (tempFile != null) {
-                        FileUtils.deleteQuietly(tempFile);
-                    }
                     lock.writeLock().unlock();
                 }
             }
