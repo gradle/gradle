@@ -52,7 +52,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     private final Property<Configuration> linkElements;
     private final Property<Configuration> runtimeElements;
     private final ConfigurableFileCollection outputs;
-    public final NativeVariantIdentity identity;
+    private final NativeVariantIdentity identity;
 
     @Inject
     public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {

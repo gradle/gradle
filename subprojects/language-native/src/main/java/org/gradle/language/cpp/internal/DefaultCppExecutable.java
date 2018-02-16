@@ -54,7 +54,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final Property<LinkExecutable> linkTaskProperty;
     private final Property<Configuration> runtimeElementsProperty;
     private final ConfigurableFileCollection outputs;
-    public final NativeVariantIdentity identity;
+    private final NativeVariantIdentity identity;
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
