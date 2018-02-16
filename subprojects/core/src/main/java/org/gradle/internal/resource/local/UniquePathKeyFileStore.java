@@ -42,10 +42,9 @@ public class UniquePathKeyFileStore extends DefaultPathKeyFileStore {
     }
 
     @Override
-    protected LocallyAvailableResource doAdd(File destination, Action<File> action) {
-        if (destination.exists()) {
-            return entryAt(destination);
+    protected void doAdd(File destination, Action<File> action) {
+        if (!destination.exists()) {
+            super.doAdd(destination, action);
         }
-        return super.doAdd(destination, action);
     }
 }

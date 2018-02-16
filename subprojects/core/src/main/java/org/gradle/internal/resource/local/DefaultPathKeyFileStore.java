@@ -67,12 +67,12 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
     @Override
     public LocallyAvailableResource move(String path, File source) {
-        return saveIntoFileStore(source, getFile(path), true);
+        return saveIntoFileStore(source, path, true);
     }
 
     @Override
     public LocallyAvailableResource copy(String path, File source) {
-        return saveIntoFileStore(source, getFile(path), false);
+        return saveIntoFileStore(source, path, false);
     }
 
     private File getFile(String path) {
@@ -100,7 +100,7 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     @Override
     public LocallyAvailableResource add(final String path, final Action<File> addAction) {
         try {
-            return doAdd(getFile(path), new Action<File>() {
+            return doAdd(path, new Action<File>() {
                 @Override
                 public void execute(File file) {
                     try {
@@ -117,15 +117,15 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         }
     }
 
-    protected LocallyAvailableResource saveIntoFileStore(final File source, final File destination, final boolean isMove) {
+    private LocallyAvailableResource saveIntoFileStore(final File source, String path, final boolean isMove) {
         String verb = isMove ? "move" : "copy";
 
         if (!source.exists()) {
-            throw new FileStoreException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
+            throw new FileStoreException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, path));
         }
 
         try {
-            return doAdd(destination, new Action<File>() {
+            return doAdd(path, new Action<File>() {
                 public void execute(File file) {
                     if (isMove) {
                         if (source.isDirectory()) {
@@ -143,11 +143,17 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
                 }
             });
         } catch (Throwable e) {
-            throw new FileStoreException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
+            throw new FileStoreException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, path), e);
         }
     }
 
-    protected LocallyAvailableResource doAdd(File destination, Action<File> action) {
+    protected LocallyAvailableResource doAdd(String path, Action<File> action) {
+        File destination = getFile(path);
+        doAdd(destination, action);
+        return entryAt(path);
+    }
+
+    protected void doAdd(File destination, Action<File> action) {
         GFileUtils.parentMkdirs(destination);
         File inProgressMarkerFile = getInProgressMarkerFile(destination);
         GFileUtils.touch(inProgressMarkerFile);
@@ -160,7 +166,6 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         } finally {
             FileUtils.deleteQuietly(inProgressMarkerFile);
         }
-        return entryAt(destination);
     }
 
     @Override
