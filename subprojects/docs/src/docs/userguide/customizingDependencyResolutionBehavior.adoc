@@ -71,7 +71,6 @@ In example below, imagine that version `1.2.1` contains important fixes and shou
 </sample>
 ++++
 
-
 [[sec:module_substitution]]
 ==== Substituting a dependency module with a compatible replacement
 
@@ -82,7 +81,6 @@ At times a completely different module can serve as a replacement for a requeste
     <sourcefile file="build.gradle" snippet="module_substitution"/>
 </sample>
 ++++
-
 
 [[sec:dependency_substitution_rules]]
 === Using dependency substitution rules
@@ -99,7 +97,6 @@ To explain:
 * Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.
 
 In the absence of dependency substitution rules, Gradle knows that an external module dependency will never transitively reference a project dependency. This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal. With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
-
 
 [[sec:module_to_project_substitution]]
 ==== Substituting an external module dependency with a project dependency
@@ -144,33 +141,7 @@ The following example uses a dependency substitution rule to replace any module 
 </sample>
 ++++
 
-Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
-
-[[sec:configuration_defaults]]
-=== Specifying default dependencies for a configuration
-
-A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration. A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override. By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
-
-++++
-<sample id="configuration_default_dependencies" dir="userguide/dependencyManagement/customizingResolution/defaultDependency" title="Specifying default dependencies on a configuration">
-    <sourcefile file="build.gradle" snippet="configuration-default-dependencies"/>
-</sample>
-++++
-
-
-[[sec:ivy_dynamic_resolve_mode]]
-=== Enabling Ivy dynamic resolve mode
-
-Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file. In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition. If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
-
-To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
-
-++++
-<sample id="dynamicResolveMode" dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode" title="Enabling dynamic resolve mode">
-    <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
-</sample>
-++++
-
+Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build
 
 [[sec:component_metadata_rules]]
 === Using component metadata rules
@@ -227,7 +198,6 @@ This method:
     <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule"/>
 </sample>
 ++++
-
 
 [[sec:component_selection_rules]]
 === Using component selection rules
@@ -306,3 +276,27 @@ For more examples and detailed API, refer to the DSL reference for api:org.gradl
 What happens when we declare that `google-collections` is replaced by `guava`? Gradle can use this information for conflict resolution. Gradle will consider every version of `guava` newer/better than any version of `google-collections`. Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Note that if only `google-collections` appears in the dependency graph (e.g. no `guava`) Gradle will not eagerly replace it with `guava`. Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only `google-collections` or only `guava` in the graph) the replacement information is not used.
 
 Currently it is not possible to declare that a given module is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
+
+[[sec:configuration_defaults]]
+=== Specifying default dependencies for a configuration
+
+A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration. A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override. By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
+
+++++
+<sample id="configuration_default_dependencies" dir="userguide/dependencyManagement/customizingResolution/defaultDependency" title="Specifying default dependencies on a configuration">
+    <sourcefile file="build.gradle" snippet="configuration-default-dependencies"/>
+</sample>
+++++
+
+[[sec:ivy_dynamic_resolve_mode]]
+=== Enabling Ivy dynamic resolve mode
+
+Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file. In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition. If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
+
+To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
+
+++++
+<sample id="dynamicResolveMode" dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode" title="Enabling dynamic resolve mode">
+    <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
+</sample>
+++++
