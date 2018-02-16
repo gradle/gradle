@@ -28,6 +28,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
@@ -69,7 +70,12 @@ import java.util.List;
 import java.util.Set;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
-    private final static CapabilitiesHandler NO_CAPABILITIES = new CapabilitiesHandler() {
+    private final static CapabilitiesHandler NO_CAPABILITIES = new CapabilitiesHandlerInternal() {
+        @Override
+        public void convertToReplacementRules() {
+
+        }
+
         @Override
         public void capability(String identifier, Action<? super CapabilityHandler> configureAction) {
         }
