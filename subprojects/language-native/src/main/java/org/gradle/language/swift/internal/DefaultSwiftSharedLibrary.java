@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
@@ -47,16 +48,18 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final Property<Configuration> linkElements;
     private final Property<Configuration> runtimeElements;
     private final ConfigurableFileCollection outputs;
+    private final NativeVariantIdentity identity;
 
     @Inject
-    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(name, projectLayout, objectFactory, module, identity.isDebuggable(), identity.isOptimized(), testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
         this.outputs = fileOperations.files();
+        this.identity = identity;
     }
 
     @Override
@@ -102,11 +105,11 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return null;
+        return identity.getLinkAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return null;
+        return identity.getRuntimeAttributes();
     }
 }
