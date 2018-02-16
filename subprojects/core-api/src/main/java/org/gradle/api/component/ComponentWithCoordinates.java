@@ -16,8 +16,18 @@
 
 package org.gradle.api.component;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
+/**
+ * Represents a component that determines its publication coordinates.
+ *
+ * @since 4.7
+ */
+@Incubating
 public interface ComponentWithCoordinates extends SoftwareComponent {
+    /**
+     * The publication coordinates for this component.
+     */
     ModuleVersionIdentifier getCoordinates();
 }
