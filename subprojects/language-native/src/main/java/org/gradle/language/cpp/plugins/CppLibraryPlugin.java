@@ -190,8 +190,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                     }
                 }
 
-                // All ligthweight variants created...
-
                 final MainLibraryVariant mainVariant = library.getMainPublication();
 
                 final Configuration apiElements = library.getApiElements();

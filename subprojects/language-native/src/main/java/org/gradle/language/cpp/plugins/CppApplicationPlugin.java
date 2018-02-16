@@ -16,9 +16,11 @@
 
 package org.gradle.language.cpp.plugins;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeContainer;
@@ -40,7 +42,8 @@ import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -87,73 +90,103 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(final Project project) {
                 application.getOperatingSystems().lockNow();
-                if (application.getOperatingSystems().get().isEmpty()) {
+                Set<OperatingSystemFamily> operatingSystemFamilies = application.getOperatingSystems().get();
+                if (operatingSystemFamilies.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the application.");
                 }
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-                for (OperatingSystemFamily operatingSystem : application.getOperatingSystems().get()) {
-                    String operatingSystemSuffix = "";
-                    if (application.getOperatingSystems().get().size() > 1) {
-                        operatingSystemSuffix = StringUtils.capitalize(operatingSystem.getName());
-                    }
 
-                    Provider<String> group = project.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return project.getGroup().toString();
+                for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
+                    for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
+                        String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
+                        String variantName = buildType.getName() + operatingSystemSuffix;
+
+                        Provider<String> group = project.provider(new Callable<String>() {
+                            @Override
+                            public String call() throws Exception {
+                                return project.getGroup().toString();
+                            }
+                        });
+
+                        Provider<String> version = project.provider(new Callable<String>() {
+                            @Override
+                            public String call() throws Exception {
+                                return project.getVersion().toString();
+                            }
+                        });
+
+                        AttributeContainer runtimeAttributes = attributesFactory.mutable();
+                        runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                        runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                        runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                        runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+
+                        Set<? extends UsageContext> usageContexts = Sets.newHashSet(
+                            new LightweightUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+
+                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem, usageContexts);
+
+                        if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+
+                            CppExecutable executable = application.addExecutable(variantName, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
+
+                            // Use the debug variant as the development binary
+                            if (buildType == BuildType.DEBUG) {
+                                application.getDevelopmentBinary().set(executable);
+                            }
+
+                            application.getMainPublication().addVariant(executable);
+
+                        } else {
+                            // Known, but not buildable
+                            application.getMainPublication().addVariant(variantIdentity);
                         }
-                    });
-
-                    Provider<String> version = project.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return project.getVersion().toString();
-                        }
-                    });
-
-                    AttributeContainer attributesDebug = attributesFactory.mutable();
-                    attributesDebug.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                    attributesDebug.attribute(DEBUGGABLE_ATTRIBUTE, true);
-                    attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
-                    attributesDebug.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
-
-                    Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
-
-                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, true, false, operatingSystem, usageContextsDebug);
-
-
-                    AttributeContainer attributesRelease = attributesFactory.mutable();
-                    attributesRelease.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                    attributesRelease.attribute(DEBUGGABLE_ATTRIBUTE, true);
-                    attributesRelease.attribute(OPTIMIZED_ATTRIBUTE, true);
-                    attributesRelease.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
-
-                    Set<? extends UsageContext> usageContextsRelease = Collections.singleton(new LightweightUsageContext("release" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesRelease));
-
-
-                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, true, true, operatingSystem, usageContextsRelease);
-
-                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
-                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-
-                        CppExecutable debugExecutable = application.addExecutable("debug" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
-                        CppExecutable releaseExecutable = application.addExecutable("release" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
-
-                        // Use the debug variant as the development binary
-                        application.getDevelopmentBinary().set(debugExecutable);
-
-                        application.getMainPublication().addVariant(debugExecutable);
-                        application.getMainPublication().addVariant(releaseExecutable);
-                    } else {
-                        application.getMainPublication().addVariant(debugVariant);
-                        application.getMainPublication().addVariant(releaseVariant);
                     }
                 }
-
-                // All ligthweight variants created...
                 application.getBinaries().realizeNow();
             }
         });
+    }
+
+    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+        if (isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+        }
+        return "";
+    }
+
+    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+        return multivalueProperty.size() > 1;
+    }
+
+    private static final class BuildType implements Named {
+        private static final BuildType DEBUG = new BuildType("debug", true, false);
+        private static final BuildType RELEASE = new BuildType("release", true, true);
+        public static final Collection<BuildType> DEFAULT_BUILD_TYPES = Arrays.asList(DEBUG, RELEASE);
+
+        private final boolean debuggable;
+        private final boolean optimized;
+        private final String name;
+
+        private BuildType(String name, boolean debuggable, boolean optimized) {
+            this.debuggable = debuggable;
+            this.optimized = optimized;
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        public boolean isDebuggable() {
+            return debuggable;
+        }
+
+        public boolean isOptimized() {
+            return optimized;
+        }
     }
 }
