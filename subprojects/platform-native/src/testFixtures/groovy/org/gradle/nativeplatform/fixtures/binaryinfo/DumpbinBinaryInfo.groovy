@@ -42,7 +42,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
     }
 
     static @Nullable VisualStudioInstall findVisualStudio() {
-        return VisualStudioLocatorTestFixture.visualStudioLocator.locateDefaultVisualStudioInstall().visualStudio
+        return VisualStudioLocatorTestFixture.visualStudioLocator.locateComponent(null).component
     }
 
     private findExe(String exe) {

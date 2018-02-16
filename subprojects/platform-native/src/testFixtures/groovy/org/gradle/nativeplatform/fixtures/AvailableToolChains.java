@@ -33,7 +33,6 @@ import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadataProvider;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
@@ -61,6 +60,7 @@ public class AvailableToolChains {
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
+     *
      * @return null if there is no such tool chain.
      */
     @Nullable
@@ -136,16 +136,13 @@ public class AvailableToolChains {
 
     static private List<ToolChainCandidate> findVisualCpps() {
         // Search in the standard installation locations
-        final List<VisualStudioLocator.SearchResult> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllVisualStudioVersions();
+        final List<? extends VisualStudioInstall> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllComponents();
 
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
 
-        for (VisualStudioLocator.SearchResult searchResult : searchResults) {
-            if (searchResult.isAvailable()) {
-                VisualStudioInstall install = searchResult.getVisualStudio();
-                if (isTestableVisualStudioVersion(install.getVersion())) {
-                    toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
-                }
+        for (VisualStudioInstall install : searchResults) {
+            if (isTestableVisualStudioVersion(install.getVersion())) {
+                toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
             }
         }
 
@@ -259,7 +256,7 @@ public class AvailableToolChains {
 
         public abstract void resetEnvironment();
 
-   }
+    }
 
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);

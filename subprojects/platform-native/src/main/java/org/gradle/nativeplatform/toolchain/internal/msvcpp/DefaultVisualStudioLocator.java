@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
@@ -32,8 +31,12 @@ import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*;
 
@@ -61,35 +64,19 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     @Override
-    public List<SearchResult> locateAllVisualStudioVersions() {
+    public List<? extends VisualStudioInstall> locateAllComponents() {
         initializeVisualStudioInstalls();
 
-        List<VisualStudioInstall> sortedInstalls = CollectionUtils.sort(foundInstalls.values(), new Comparator<VisualStudioInstall>() {
+        return CollectionUtils.sort(foundInstalls.values(), new Comparator<VisualStudioInstall>() {
             @Override
             public int compare(VisualStudioInstall o1, VisualStudioInstall o2) {
                 return o2.getVersion().compareTo(o1.getVersion());
             }
         });
-
-        if (sortedInstalls.isEmpty()) {
-            return Lists.newArrayList((SearchResult)new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path."));
-        } else {
-            return CollectionUtils.collect(sortedInstalls, new Transformer<SearchResult, VisualStudioInstall>() {
-                @Override
-                public SearchResult transform(VisualStudioInstall visualStudioInstall) {
-                    return new InstallFound(visualStudioInstall);
-                }
-            });
-        }
     }
 
     @Override
-    public SearchResult locateDefaultVisualStudioInstall() {
-        return locateDefaultVisualStudioInstall(null);
-    }
-
-    @Override
-    public SearchResult locateDefaultVisualStudioInstall(File candidate) {
+    public SearchResult<VisualStudioInstall> locateComponent(@Nullable File candidate) {
         if (candidate != null) {
             return locateUserSpecifiedInstall(candidate);
         }
@@ -143,7 +130,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    private SearchResult locateUserSpecifiedInstall(File candidate) {
+    private SearchResult<VisualStudioInstall> locateUserSpecifiedInstall(File candidate) {
         VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
 
         if (install != null && addInstallIfValid(install, "user provided path")) {
@@ -155,7 +142,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version, Compatibility compatibility) {
-        switch(compatibility) {
+        switch (compatibility) {
             case LEGACY:
                 return buildLegacyVisualCppInstall(name, vsPath, basePath, version);
             case VS2017_OR_LATER:
@@ -222,7 +209,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new VisualCppInstall(name, version, descriptors);
     }
 
-    private SearchResult determineDefaultInstall() {
+    private SearchResult<VisualStudioInstall> determineDefaultInstall() {
         initializeVisualStudioInstalls();
 
         VisualStudioInstall candidate = null;
@@ -237,7 +224,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private static boolean isValidInstall(VisualStudioMetadata install) {
-        switch(install.getCompatibility()) {
+        switch (install.getCompatibility()) {
             case LEGACY:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
                     && isLegacyVisualCpp(install.getVisualCppDir());
@@ -257,7 +244,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new File(candidate, PATH_BIN + VS2017_COMPILER_FILENAME).isFile();
     }
 
-    private static class InstallFound implements SearchResult {
+    private static class InstallFound implements SearchResult<VisualStudioInstall> {
         private final VisualStudioInstall install;
 
         public InstallFound(VisualStudioInstall install) {
@@ -265,7 +252,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         @Override
-        public VisualStudioInstall getVisualStudio() {
+        public VisualStudioInstall getComponent() {
             return install;
         }
 
@@ -279,7 +266,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    private static class InstallNotFound implements SearchResult {
+    private static class InstallNotFound implements SearchResult<VisualStudioInstall> {
         private final String message;
 
         private InstallNotFound(String message) {
@@ -287,7 +274,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         @Override
-        public VisualStudioInstall getVisualStudio() {
+        public VisualStudioInstall getComponent() {
             return null;
         }
 

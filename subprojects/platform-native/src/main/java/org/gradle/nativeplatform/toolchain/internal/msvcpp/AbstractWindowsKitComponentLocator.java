@@ -39,7 +39,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitComponent> implements WindowsKitComponentLocator<T> {
+public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitComponent> implements WindowsComponentLocator<T> {
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
     private final Map<File, Set<T>> foundComponents = new HashMap<File, Set<T>>();
@@ -68,7 +68,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
     }
 
     @Override
-    public WindowsKitComponentLocator.SearchResult<T> locateComponents(File candidate) {
+    public SearchResult<T> locateComponent(File candidate) {
         initializeComponents();
 
         if (candidate != null) {
@@ -96,7 +96,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
         }
     }
 
-    private WindowsKitComponentLocator.SearchResult<T> locateDefaultComponent() {
+    private SearchResult<T> locateDefaultComponent() {
         T selected = getBestComponent();
         return selected == null
             ? new ComponentNotFound("Could not locate a " + getDisplayName() + " installation using the Windows registry.")
@@ -144,7 +144,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
         }
     }
 
-    private WindowsKitComponentLocator.SearchResult<T> locateUserSpecifiedComponent(File candidate) {
+    private SearchResult<T> locateUserSpecifiedComponent(File candidate) {
         File windowsKitDir = FileUtils.canonicalize(candidate);
         String[] versionDirs = getComponentVersionDirs(windowsKitDir);
         if (isValidComponentBaseDir(windowsKitDir) && versionDirs.length > 0) {
@@ -228,7 +228,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
 
     abstract T newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType);
 
-    private class ComponentFound implements WindowsKitComponentLocator.SearchResult<T> {
+    private class ComponentFound implements SearchResult<T> {
         private final T component;
 
         public ComponentFound(T component) {
@@ -247,7 +247,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
         }
     }
 
-    private class ComponentNotFound implements WindowsKitComponentLocator.SearchResult<T> {
+    private class ComponentNotFound implements SearchResult<T> {
         private final String message;
 
         private ComponentNotFound(String message) {

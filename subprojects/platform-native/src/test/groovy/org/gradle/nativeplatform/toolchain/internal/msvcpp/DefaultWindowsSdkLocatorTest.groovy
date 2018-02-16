@@ -21,30 +21,31 @@ import spock.lang.Specification
 
 
 class DefaultWindowsSdkLocatorTest extends Specification {
-    final WindowsSdkLocator.SearchResult legacySdkLookup = Stub(WindowsSdkLocator.SearchResult)
+    final SearchResult<WindowsSdk> legacySdkLookup = Stub(SearchResult)
     final WindowsSdkLocator legacyWindowsSdkLocator = Stub(WindowsSdkLocator) {
-        locateWindowsSdks(_) >> legacySdkLookup
+        locateComponent(_) >> legacySdkLookup
     }
-    final WindowsKitComponentLocator.SearchResult windowsKitLookup = Stub(WindowsKitComponentLocator.SearchResult)
-    WindowsKitComponentLocator windowsKitSdkLocator = Stub(WindowsKitComponentLocator) {
-        locateComponents(_) >> windowsKitLookup
+    final SearchResult windowsKitLookup = Stub(SearchResult)
+    WindowsComponentLocator windowsKitSdkLocator = Stub(WindowsComponentLocator) {
+        locateComponent(_) >> windowsKitLookup
     }
 
     WindowsSdkLocator locator = new DefaultWindowsSdkLocator(legacyWindowsSdkLocator, windowsKitSdkLocator)
 
     def "prefers a windows kit sdk over a legacy sdk"() {
         def sdk = Mock(WindowsKitWindowsSdk)
+
         given:
         legacySdkLookup.available >> true
         windowsKitLookup.available >> true
         windowsKitLookup.component >> sdk
 
         when:
-        def result = locator.locateWindowsSdks(null)
+        def result = locator.locateComponent(null)
 
         then:
         result.available
-        result.sdk == sdk
+        result.component == sdk
     }
 
     def "finds a legacy sdk when a windows kit sdk cannot be found"() {
@@ -52,16 +53,16 @@ class DefaultWindowsSdkLocatorTest extends Specification {
 
         given:
         legacySdkLookup.available >> true
-        legacySdkLookup.sdk >> sdk
+        legacySdkLookup.component >> sdk
         windowsKitLookup.available >> false
         windowsKitLookup.component >> null
 
         when:
-        def result = locator.locateWindowsSdks(null)
+        def result = locator.locateComponent(null)
 
         then:
         result.available
-        result.sdk == sdk
+        result.component == sdk
     }
 
     def "does not find an sdk if neither locator is successful"() {
@@ -75,11 +76,11 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         windowsKitLookup.component >> null
 
         when:
-        def result = locator.locateWindowsSdks(null)
+        def result = locator.locateComponent(null)
 
         then:
         !result.available
-        result.sdk == null
+        result.component == null
 
         when:
         result.explain(visitor)
