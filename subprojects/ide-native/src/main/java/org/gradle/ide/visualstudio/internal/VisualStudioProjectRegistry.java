@@ -33,13 +33,13 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(VisualStudioTargetBinary targetBinary) {
-        String projectName = targetBinary.getProjectName();
+        String projectName = targetBinary.getVisualStudioProjectName();
         return getByName(projectName).getConfiguration(targetBinary);
     }
 
     public VisualStudioProjectConfiguration addProjectConfiguration(VisualStudioTargetBinary nativeBinary) {
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), nativeBinary.getProjectName(), nativeBinary.getComponentName());
-        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getConfigurationName());
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName());
+        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getVisualStudioConfigurationName());
         project.addConfiguration(nativeBinary, configuration);
         ideArtifactRegistry.registerIdeArtifact(configuration.getPublishArtifact());
         return configuration;

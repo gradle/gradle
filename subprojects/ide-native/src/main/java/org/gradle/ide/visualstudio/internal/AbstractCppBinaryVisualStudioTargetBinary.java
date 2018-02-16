@@ -17,8 +17,8 @@
 package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
@@ -28,12 +28,13 @@ import java.util.List;
 import java.util.Set;
 
 abstract public class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
+    protected final String projectName;
+    private final String projectPath;
+    private final CppComponent component;
 
-    protected final Project project;
-    protected final CppComponent component;
-
-    public AbstractCppBinaryVisualStudioTargetBinary(Project project, CppComponent component) {
-        this.project = project;
+    public AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component) {
+        this.projectName = projectName;
+        this.projectPath = projectPath;
         this.component = component;
     }
 
@@ -41,28 +42,35 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public String getProjectPath() {
-        return project.getPath();
+        return projectPath;
     }
 
     @Override
     public String getComponentName() {
-        return project.getName();
+        return projectName;
     }
 
     @Override
-    public String getProjectName() {
-        return project.getName() + getProjectType().getSuffix();
+    public String getVisualStudioProjectName() {
+        return projectName + getProjectType().getSuffix();
     }
 
     @Override
-    public String getConfigurationName() {
+    public String getVisualStudioConfigurationName() {
         // TODO: this is terrible
         if (getBinary().isOptimized()) {
             return "release";
         } else {
             return "debug";
         }
+    }
 
+    protected String taskPath(final String taskName) {
+        if (":".equals(projectPath)) {
+            return ":" + taskName;
+        }
+
+        return projectPath + ":" + taskName;
     }
 
     @Override
@@ -77,7 +85,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public FileCollection getResourceFiles() {
-        return project.files();
+        return new SimpleFileCollection();
     }
 
     @Override
@@ -87,7 +95,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public String getCleanTaskPath() {
-        return project.getPath() + ":clean";
+        return taskPath("clean");
     }
 
     @Override

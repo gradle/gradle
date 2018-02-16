@@ -107,8 +107,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         targetBinary.getResourceFiles() >> fileCollection()
         targetBinary.projectPath >> ":"
         targetBinary.componentName >> "main"
-        targetBinary.projectName >> "mainExe"
-        targetBinary.configurationName >> variant
+        targetBinary.visualStudioProjectName >> "mainExe"
+        targetBinary.visualStudioConfigurationName >> variant
         targetBinary.projectType >> VisualStudioTargetBinary.ProjectType.EXE
         targetBinary.variantDimensions >> [variant]
         return targetBinary

@@ -286,8 +286,8 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     }
 
     private static checkNames(VisualStudioTargetBinary binary, def projectName, def configurationName) {
-        assert binary.getProjectName() == projectName
-        assert binary.getConfigurationName() == configurationName
+        assert binary.getVisualStudioProjectName() == projectName
+        assert binary.getVisualStudioConfigurationName() == configurationName
         true
     }
 

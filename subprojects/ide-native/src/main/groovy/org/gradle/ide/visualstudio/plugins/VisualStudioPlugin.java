@@ -84,7 +84,7 @@ public class VisualStudioPlugin extends IdePlugin {
                         cppApplication.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                             @Override
                             public void execute(CppBinary cppBinary) {
-                                extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(target, cppApplication, (CppExecutable) cppBinary));
+                                extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(target.getName(), target.getPath(), cppApplication, (CppExecutable) cppBinary));
                             }
                         });
                     }
@@ -96,10 +96,10 @@ public class VisualStudioPlugin extends IdePlugin {
                             @Override
                             public void execute(CppBinary cppBinary) {
                                 if (cppBinary instanceof CppSharedLibrary) {
-                                    extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(target, cppLibrary, (CppSharedLibrary) cppBinary));
+                                    extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(target.getName(), target.getPath(), cppLibrary, (CppSharedLibrary) cppBinary));
                                 }
                                 if (cppBinary instanceof CppStaticLibrary) {
-                                    extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project, cppLibrary, (CppStaticLibrary) cppBinary));
+                                    extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(target.getName(), target.getPath(), cppLibrary, (CppStaticLibrary) cppBinary));
                                 }
                             }
                         });

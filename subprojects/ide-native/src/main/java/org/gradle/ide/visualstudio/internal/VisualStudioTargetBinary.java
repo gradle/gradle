@@ -39,12 +39,12 @@ public interface VisualStudioTargetBinary {
     /**
      * Returns the visual studio project name associated with this binary
      */
-    String getProjectName();
+    String getVisualStudioProjectName();
 
     /**
      * Returns the visual studio project configuration name associated with this binary
      */
-    String getConfigurationName();
+    String getVisualStudioConfigurationName();
 
     /**
      * Returns the project suffix to use when naming Visual Studio projects
