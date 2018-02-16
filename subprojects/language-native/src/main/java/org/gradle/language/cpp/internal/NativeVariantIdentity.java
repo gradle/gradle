@@ -25,6 +25,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -37,15 +38,17 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final Provider<String> version;
     private final boolean debuggable;
     private final boolean optimized;
+    private final OperatingSystemFamily operatingSystemFamily;
     private final Set<? extends UsageContext> usageContexts;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, Set<? extends UsageContext> usageContexts) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, OperatingSystemFamily operatingSystemFamily, Set<? extends UsageContext> usageContexts) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
         this.version = version;
         this.debuggable = debuggable;
         this.optimized = optimized;
+        this.operatingSystemFamily = operatingSystemFamily;
         this.usageContexts = usageContexts;
     }
 
@@ -55,6 +58,10 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
 
     public boolean isOptimized() {
         return optimized;
+    }
+
+    public OperatingSystemFamily getOperatingSystemFamily() {
+        return operatingSystemFamily;
     }
 
     @Override

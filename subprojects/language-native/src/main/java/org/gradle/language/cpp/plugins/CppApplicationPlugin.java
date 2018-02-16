@@ -120,7 +120,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
                     Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
-                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, true, false, usageContextsDebug);
+                    NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, true, false, operatingSystem, usageContextsDebug);
                     application.getMainPublication().addVariant(debugVariant);
 
 
@@ -133,7 +133,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     Set<? extends UsageContext> usageContextsRelease = Collections.singleton(new LightweightUsageContext("release" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesRelease));
 
 
-                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, true, true, usageContextsRelease);
+                    NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, true, true, operatingSystem, usageContextsRelease);
                     application.getMainPublication().addVariant(releaseVariant);
 
 

@@ -159,7 +159,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
                         Set<? extends UsageContext> usageContextsDebug = Sets.newHashSet(new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebugRuntime), new LightweightUsageContext("debug" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesDebugLink));
 
-                        NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, true, false, usageContextsDebug);
+                        NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, true, false, operatingSystem, usageContextsDebug);
                         library.getMainPublication().addVariant(debugVariant);
 
 
@@ -180,7 +180,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         Set<? extends UsageContext> usageContextsRelease = Sets.newHashSet(new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-runtime", runtimeUsage, attributesReleaseRuntime), new LightweightUsageContext("release" + linkageSuffix + operatingSystemSuffix + "-link", linkUsage, attributesReleaseLink));
 
 
-                        NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, true, true, usageContextsRelease);
+                        NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + linkageSuffix + operatingSystemSuffix, library.getBaseName(), group, version, true, true, operatingSystem, usageContextsRelease);
                         library.getMainPublication().addVariant(releaseVariant);
 
 
