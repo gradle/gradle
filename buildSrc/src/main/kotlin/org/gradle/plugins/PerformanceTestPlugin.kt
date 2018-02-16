@@ -332,16 +332,14 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.createPerformanceTestSourceSet(): SourceSet {
-        val main by java.sourceSets.getting
-        val test by java.sourceSets.getting
-
-        val performanceTest by java.sourceSets.creating {
+    private fun Project.createPerformanceTestSourceSet(): SourceSet = java.sourceSets.run {
+        val main by getting
+        val test by getting
+        val performanceTest by creating {
             compileClasspath += main.output + test.output
             runtimeClasspath += main.output + test.output
         }
-
-        return performanceTest
+        performanceTest
     }
 }
 
