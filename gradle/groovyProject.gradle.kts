@@ -10,7 +10,7 @@ import java.util.concurrent.Callable
 import java.util.jar.Attributes
 
 apply { plugin("groovy") }
-apply { plugin("gradleCompile") }
+apply { plugin("gradle-compile") }
 
 val base = the<BasePluginConvention>()
 val java = the<JavaPluginConvention>()

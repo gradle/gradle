@@ -21,7 +21,7 @@ import org.gradle.modules.PatchExternalModules
 plugins {
     id 'java-base'
     id 'build-types'
-    id 'gradleCompile'
+    id 'gradle-compile'
 }
 
 defaultTasks 'assemble'

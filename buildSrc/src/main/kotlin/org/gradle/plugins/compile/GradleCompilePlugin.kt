@@ -16,34 +16,36 @@ import org.gradle.kotlin.dsl.withType
 
 open class GradleCompilePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val rootProject = project.rootProject
-        if (rootProject == project) {
-            val projectInternal = project as ProjectInternal
-            val javaInstallationProbe = projectInternal.services.get(JavaInstallationProbe::class.java)
-            project.extensions.create(
-                "availableJavaInstallations",
-                AvailableJavaInstallations::class.java,
-                listOfNotNull(resolveJavaHomePath("java7Home", project)),
-                resolveJavaHomePath("testJavaHome", project),
-                javaInstallationProbe
-            )
-        }
-
-        project.afterEvaluate {
-            val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
-
-            tasks.withType<JavaCompile> {
-                options.isIncremental = true
-                configureCompileTask(this, options, availableJavaInstallations)
+        project.run {
+            if (rootProject == project) {
+                val projectInternal = project as ProjectInternal
+                val javaInstallationProbe = projectInternal.services.get(JavaInstallationProbe::class.java)
+                extensions.create(
+                    "availableJavaInstallations",
+                    AvailableJavaInstallations::class.java,
+                    listOfNotNull(resolveJavaHomePath("java7Home", project)),
+                    resolveJavaHomePath("testJavaHome", project),
+                    javaInstallationProbe
+                )
             }
-            tasks.withType<GroovyCompile> {
-                groovyOptions.encoding = "utf-8"
-                configureCompileTask(this, options, availableJavaInstallations)
+
+            afterEvaluate {
+                val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
+
+                tasks.withType<JavaCompile> {
+                    options.isIncremental = true
+                    configureCompileTask(this, options, availableJavaInstallations)
+                }
+                tasks.withType<GroovyCompile> {
+                    groovyOptions.encoding = "utf-8"
+                    configureCompileTask(this, options, availableJavaInstallations)
+                }
             }
         }
     }
 
-    private fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
+    private
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
@@ -58,7 +60,8 @@ open class GradleCompilePlugin : Plugin<Project> {
         }.displayName)
     }
 
-    private fun resolveJavaHomePath(propertyName: String, project: Project): String? = when {
+    private
+    fun resolveJavaHomePath(propertyName: String, project: Project): String? = when {
         project.hasProperty(propertyName) -> project.property(propertyName) as String
         System.getProperty(propertyName) != null -> System.getProperty(propertyName)
         else -> null

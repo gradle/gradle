@@ -6,11 +6,13 @@ import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.jvm.toolchain.internal.LocalJavaInstallation
 import java.io.File
 
-class DefaultJavaInstallation(val current: Boolean) : LocalJavaInstallation {
-    private lateinit var name: String
-    private lateinit var javaVersion: JavaVersion
-    private lateinit var javaHome: File
-    private lateinit var displayName: String
+class DefaultJavaInstallation(val current: Boolean, private val javaHome: File) : LocalJavaInstallation {
+    private
+    lateinit var name: String
+    private
+    lateinit var javaVersion: JavaVersion
+    private
+    lateinit var displayName: String
 
     override fun getName() = name
     override fun getDisplayName() = displayName
@@ -18,45 +20,44 @@ class DefaultJavaInstallation(val current: Boolean) : LocalJavaInstallation {
     override fun getJavaVersion() = javaVersion
     override fun setJavaVersion(javaVersion: JavaVersion) { this.javaVersion = javaVersion }
     override fun getJavaHome() = javaHome
-    override fun setJavaHome(javaHome: File) { this.javaHome = javaHome }
-    fun getToolsJar(): File? = Jvm.forHome(javaHome).toolsJar
+    override fun setJavaHome(javaHome: File) { throw UnsupportedOperationException("JavaHome cannot be changed") }
+    val toolsJar: File? by lazy { Jvm.forHome(javaHome).toolsJar }
 
     override fun toString(): String = "${displayName} (${javaHome.absolutePath})"
 }
 
-fun detectJavaInstallation(javaHome: String, javaInstallationProbe: JavaInstallationProbe): DefaultJavaInstallation {
-    val javaInstallation = DefaultJavaInstallation(false)
-    javaInstallation.javaHome = File(javaHome)
-    javaInstallationProbe.checkJdk(File(javaHome)).configure(javaInstallation)
-    return javaInstallation
-}
-
-fun findJavaInstallations(javaHomes: List<String>, javaInstallationProbe: JavaInstallationProbe): Map<JavaVersion, DefaultJavaInstallation> =
-    javaHomes.map { detectJavaInstallation(it, javaInstallationProbe) }.associateBy { it.javaVersion }
-
-open class AvailableJavaInstallations(javaHomesForCompilation: List<String>, javaHomeForTest: String?, javaInstallationProbe: JavaInstallationProbe) {
-    private val javaInstallations: Map<JavaVersion, DefaultJavaInstallation> = findJavaInstallations(javaHomesForCompilation, javaInstallationProbe)
+open class AvailableJavaInstallations(javaHomesForCompilation: List<String>, javaHomeForTest: String?, private val javaInstallationProbe: JavaInstallationProbe) {
+    private val javaInstallations: Map<JavaVersion, DefaultJavaInstallation> = findJavaInstallations(javaHomesForCompilation)
     val currentJavaInstallation: DefaultJavaInstallation
     val javaInstallationForTest: DefaultJavaInstallation
+
     init {
-        val current = DefaultJavaInstallation(true)
-        javaInstallationProbe.current(current)
-        current.javaHome = Jvm.current().javaHome
-        currentJavaInstallation = current
+        currentJavaInstallation = DefaultJavaInstallation(true, Jvm.current().javaHome).apply {
+            javaInstallationProbe.current(this)
+        }
         javaInstallationForTest = when (javaHomeForTest) {
             null -> currentJavaInstallation
-            else -> detectJavaInstallation(javaHomeForTest, javaInstallationProbe)
+            else -> detectJavaInstallation(javaHomeForTest)
         }
     }
 
-    fun jdkForCompilation(javaVersion: JavaVersion): DefaultJavaInstallation = when {
+    fun jdkForCompilation(javaVersion: JavaVersion) = when {
         javaVersion == currentJavaInstallation.javaVersion -> currentJavaInstallation
         javaInstallations.containsKey(javaVersion) -> javaInstallations[javaVersion]!!
         javaVersion <= currentJavaInstallation.javaVersion -> currentJavaInstallation
         else -> throw IllegalArgumentException("No Java installation found which supports Java version $javaVersion")
     }
 
-    fun isValidBuildCacheConfiguration(): Boolean {
-        return !jdkForCompilation(JavaVersion.VERSION_1_7).current && jdkForCompilation(JavaVersion.VERSION_1_8).current
-    }
+    val validBuildCacheConfiguration
+        get() = !jdkForCompilation(JavaVersion.VERSION_1_7).current && jdkForCompilation(JavaVersion.VERSION_1_8).current
+
+    private
+    fun findJavaInstallations(javaHomes: List<String>) =
+        javaHomes.map(::detectJavaInstallation).associateBy { it.javaVersion }
+
+    private
+    fun detectJavaInstallation(javaHomePath: String) =
+        DefaultJavaInstallation(false, File(javaHomePath)).apply {
+            javaInstallationProbe.checkJdk(javaHome).configure(this)
+        }
 }

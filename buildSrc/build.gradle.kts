@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
@@ -55,7 +57,7 @@ gradlePlugin {
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
         "gradleCompile" {
-            id = "gradleCompile"
+            id = "gradle-compile"
             implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
     }
