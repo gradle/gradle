@@ -44,4 +44,6 @@ public interface ProjectPathRegistry {
      * Returns a ProjectComponentIdentifier for the given identity path in this build.
      */
     ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath);
+
+    String getProjectName(Path identityPath);
 }
