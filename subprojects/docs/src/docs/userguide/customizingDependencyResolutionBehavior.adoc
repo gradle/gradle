@@ -38,7 +38,7 @@ A build depending on both `module-a` and `module-b` will obtain different versio
 
 Dependency resolve rules give you the power to enforce releasable units in your build. Imagine a releasable unit defined by all libraries that have `org.gradle` group. We can force all of these libraries to use a consistent version:
 ++++
-<sample id="releasable-unit" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Forcing consistent version for a group of libraries">
+<sample id="releasable-unit" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Forcing a consistent version for a group of libraries">
     <sourcefile file="build.gradle" snippet="releasable-unit"/>
 </sample>
 ++++
@@ -75,10 +75,10 @@ In example below, imagine that version `1.2.1` contains important fixes and shou
 [[sec:module_substitution]]
 ==== Substituting a dependency module with a compatible replacement
 
-At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `groovy` in place of `groovy-all`, or using `log4j-over-slf4j` instead of `log4j`. You can make these substitutions using dependency resolve rules:
+At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `groovy` in place of `groovy-all`, or using `log4j-over-slf4j` instead of `log4j`. You can perform these substitutions using dependency resolve rules:
 
 ++++
-<sample id="module_substitution" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
+<sample id="module_substitution" dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy" title="Changing dependency group and/or name during resolution">
     <sourcefile file="build.gradle" snippet="module_substitution"/>
 </sample>
 ++++
@@ -296,7 +296,7 @@ To explain the impact on conflict resolution, let's consider the `google-collect
 Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the `google-collections` -&gt; `guava` conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
 
 ++++
-<sample id="module_replacement_declaration" dir="userguide/dependencyManagement/customizingResolution/replacementRule" title="Declaring module replacement">
+<sample id="module_replacement_declaration" dir="userguide/dependencyManagement/customizingResolution/replacementRule" title="Declaring a module replacement">
     <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
 </sample>
 ++++
