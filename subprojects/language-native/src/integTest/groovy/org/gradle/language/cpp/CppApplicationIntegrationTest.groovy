@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 
 import static org.gradle.util.Matchers.containsText
 
@@ -48,6 +49,11 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     @Override
     protected String getDevelopmentBinaryCompileTask() {
         return ":compileDebugCpp"
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new CppApp()
     }
 
     def "skip compile, link and install tasks when no source"() {
@@ -816,5 +822,4 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("build/install/main/debug/lib/lib1").file.assertExists()
         sharedLibrary("build/install/main/debug/lib/lib2").file.assertExists()
     }
-
 }

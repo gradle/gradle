@@ -109,7 +109,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 library.getOperatingSystems().lockNow();
                 Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                    throw new IllegalArgumentException("An operating system needs to be specified for the library.");
                 }
 
                 library.getLinkage().lockNow();

@@ -19,6 +19,8 @@ package org.gradle.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Matchers
 
 abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -47,6 +49,60 @@ abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponen
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    def "can build on current operating system family when explicitly specified"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                operatingSystems = [objects.named(OperatingSystemFamily, '${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}')]
+            }
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ':assemble')
+        result.assertTasksNotSkipped(tasksToAssembleDevelopmentBinary, ':assemble')
+    }
+
+    def "ignores compile and link tasks when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                operatingSystems = [objects.named(OperatingSystemFamily, 'some-other-family')]
+            }
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(':assemble')
+        result.assertTasksSkipped(':assemble')
+    }
+
+    def "fails configuration when no operating system family is configured"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            ${componentUnderTestDsl} {
+                operatingSystems = []
+            }
+        """
+
+        expect:
+        fails "assemble"
+        failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
+        failure.assertHasCause("An operating system needs to be specified for the ${componentUnderTestDsl}.")
+    }
+
     @Override
     protected String getDefaultArchitecture() {
         if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
@@ -54,6 +110,8 @@ abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponen
         }
         return super.defaultArchitecture
     }
+
+    protected abstract SourceElement getComponentUnderTest()
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
