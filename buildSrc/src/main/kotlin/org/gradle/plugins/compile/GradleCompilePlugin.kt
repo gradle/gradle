@@ -52,7 +52,10 @@ open class GradleCompilePlugin : Plugin<Project> {
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
-        compileTask.inputs.property("javaInstallation", jdkForCompilation.displayName)
+        compileTask.inputs.property("javaInstallation", when (compileTask) {
+            is JavaCompile -> jdkForCompilation
+            else -> availableJavaInstallations.currentJavaInstallation
+        }.displayName)
     }
 
     private fun resolveJavaHomePath(propertyName: String, project: Project): String? = when {

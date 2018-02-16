@@ -36,7 +36,7 @@ fun findJavaInstallations(javaHomes: List<String>, javaInstallationProbe: JavaIn
 
 open class AvailableJavaInstallations(javaHomesForCompilation: List<String>, javaHomeForTest: String?, javaInstallationProbe: JavaInstallationProbe) {
     private val javaInstallations: Map<JavaVersion, DefaultJavaInstallation> = findJavaInstallations(javaHomesForCompilation, javaInstallationProbe)
-    private val currentJavaInstallation: DefaultJavaInstallation
+    val currentJavaInstallation: DefaultJavaInstallation
     val javaInstallationForTest: DefaultJavaInstallation
     init {
         val current = DefaultJavaInstallation(true)
