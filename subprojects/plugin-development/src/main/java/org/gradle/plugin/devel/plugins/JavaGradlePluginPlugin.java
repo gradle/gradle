@@ -365,6 +365,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         public void execute(Project project) {
             DependencyHandler dependencies = project.getDependencies();
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
+            project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String compileConfigurationName = testSourceSet.getCompileConfigurationName();
