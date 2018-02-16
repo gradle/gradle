@@ -121,7 +121,6 @@ public class VisualStudioPlugin extends IdePlugin {
         createTasksForVisualStudio(extension);
 
         // TODO: Figure out how to conditionally apply VisualStudioPluginRules but ensure that rules are still fired in subprojects
-        project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(VisualStudioPluginRules.class);
     }
 
