@@ -160,6 +160,8 @@ public class InstallExecutable extends DefaultTask {
 
     /**
      * The location of the installed executable file.
+     *
+     * @since 4.7
      */
     @Internal
     public RegularFile getInstalledExecutable() {
