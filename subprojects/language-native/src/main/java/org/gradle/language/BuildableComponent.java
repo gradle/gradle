@@ -16,9 +16,15 @@
 
 package org.gradle.language;
 
-import org.gradle.api.component.ComponentWithCoordinates;
+import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 
+/**
+ * Represents a component that can be built.
+ *
+ * @since 4.7
+ */
+@Incubating
 public interface BuildableComponent extends SoftwareComponent {
 
 }
