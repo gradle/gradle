@@ -393,5 +393,41 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
             }
         }
     }
+
+    def "fails with a reasonable error message when there's no best selection for multiple capabilities"() {
+        given:
+        repository {
+            'org:a:1.0'()
+            'org:b:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'org:b:1.0'
+                
+                capabilities {
+                    capability('c1') {
+                        providedBy 'org:a'
+                        providedBy 'org:b'
+                        
+                        prefer 'org:a'
+                    }
+                    capability('c2') {
+                        providedBy 'org:a'
+                        providedBy 'org:b'
+                        
+                        prefer 'org:b'
+                    }                
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot choose between org:a or org:b because they provide the same capabilities (c1 and c2) but disagree on the preferred module")
+    }
 }
 
