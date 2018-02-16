@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -56,6 +57,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 import static org.gradle.cache.FileLockManager.LockMode.None;
@@ -120,7 +122,14 @@ public class BuildCacheTaskServices {
         File target = cacheV2Dir == null
             ? cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache)
             : new File(cacheV2Dir);
-        PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target);
+        PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target) {
+            @Override
+            protected void doAdd(@Nonnull  File destination, Action<File> action) {
+                if (!destination.exists()) {
+                    super.doAdd(destination, action);
+                }
+            }
+        };
         PersistentCache persistentCache = cacheRepository
             .cache(target)
             .withDisplayName("Build cache V2")
