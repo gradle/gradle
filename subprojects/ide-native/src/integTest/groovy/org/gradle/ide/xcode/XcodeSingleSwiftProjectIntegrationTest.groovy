@@ -56,7 +56,7 @@ apply plugin: 'swift-application'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+        project.products.children[0].path == exe("build/install/main/debug/lib/App").absolutePath
 
         rootXcodeProject.schemeFiles.size() == 1
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
@@ -672,12 +672,12 @@ application.module = 'TestApp'
         project.targets.size() == 2
         project.targets.every { it.productName == 'TestApp' }
         project.targets[0].name == 'TestApp'
-        project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
+        project.targets[0].productReference.path == exe("output/install/main/debug/lib/TestApp").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/debug/lib").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/release/lib").absolutePath
         project.targets[1].name == '[INDEXING ONLY] TestApp'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
+        project.products.children[0].path == exe("output/install/main/debug/lib/TestApp").absolutePath
     }
 
     def "honors changes to library output file locations"() {
