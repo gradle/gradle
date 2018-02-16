@@ -38,9 +38,11 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
@@ -366,6 +368,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             DependencyHandler dependencies = project.getDependencies();
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
+            project.getTasks().withType(Test.class, new Action<Test>() {
+                @Override
+                public void execute(Test test) {
+                    test.getInputs().files(pluginClasspathTask.getPluginClasspath())
+                        .withPropertyName("pluginClasspath")
+                        .withNormalizer(ClasspathNormalizer.class);
+                }
+            });
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String compileConfigurationName = testSourceSet.getCompileConfigurationName();
