@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
-public class ResolutionStrategySamplesIntegrationTest extends AbstractIntegrationSpec {
+class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'userguide/artifacts/resolutionStrategy')
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    void "can resolve dependencies"()
-    {
+    @UsesSample("userguide/dependencyManagement/customizingResolution/resolutionStrategy")
+    def "can resolve dependencies"() {
+        executer.inDirectory(sample.dir)
+
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
         mavenRepo.module("org.gradle", "gradle-core", "1.4").publish()
