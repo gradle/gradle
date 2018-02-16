@@ -8,7 +8,7 @@ Next, this release of Gradle includes built-in support for JUnit Platform and th
 
 Also regarding testing, you can now improve your testing feedback loop when running JVM-based tests using the [new fail-fast option for `Test` tasks](#fail-fast-option-for-test-tasks), which stops the build immediately after the first test failure.
 
-This version of Gradle also comes with a couple especially useful new APIs for task development. You can now [declare custom command-line flags for your custom tasks](#tasks-api-allows-custom-command-line-options), for example: `gradle myCustomTask --myfoo=bar`. In addition, [tasks that extend `Exec` or `JavaExec` can declare rich arguments](#rich-command-line-arguments-for-exec-and-javaexec-tasks) for invoking the underlying executable. This allows for better modeling by tools like annotation processors.
+This version of Gradle also comes with a couple especially useful new APIs for task development. You can now [declare custom command-line flags for your custom tasks](#tasks-api-allows-custom-command-line-options), for example: `gradle myCustomTask --myfoo=bar`. In addition, [tasks that extend `Test`, `JavaExec` or `Exec` can declare rich arguments](#rich-command-line-arguments-for-test,-javaexec-or-exec-tasks) for invoking the underlying executable. This allows for better modeling tools like annotation processors.
 
 Speaking of annotation processors, it is now more convenient to declare dependencies that are annotation processors through the [new `annotationProcessor` dependency configuration](#convenient-declaration-of-annotation-processor-dependencies). Using a separate dependency configuration for annotation processors is a best practice for improving performance.
 
@@ -239,7 +239,7 @@ The following examples exposes a command line parameter `--url` for the custom t
         }
     }
 
-### Rich command-line arguments for Exec and JavaExec tasks
+### Rich command-line arguments for Test, JavaExec or Exec tasks
 
 Gradle 4.5 added the possibility to add [`CommandLineArgumentProvider`](javadoc/org/gradle/process/CommandLineArgumentProvider.html)s to [`CompileOptions`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders), thus enabling plugin authors to better model tools like annotation processors.
 
