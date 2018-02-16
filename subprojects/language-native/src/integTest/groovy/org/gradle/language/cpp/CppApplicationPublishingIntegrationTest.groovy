@@ -55,7 +55,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         def app = new CppApp()
 
         given:
-        println testDirectory.file('repo').absolutePath
         buildFile << """
             apply plugin: 'cpp-application'
             apply plugin: 'maven-publish'
@@ -64,7 +63,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             version = '1.2'
             application {
                 baseName = 'test'
-                operatingSystems.addAll provider { [objects.named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS), objects.named(OperatingSystemFamily, OperatingSystemFamily.MAC_OS), objects.named(OperatingSystemFamily, OperatingSystemFamily.LINUX)] }
             }
             publishing {
                 repositories { maven { url '$repo.uri' } }
@@ -74,7 +72,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         when:
         run('publish')
-//        run('generateMetadataFileForMainPublication')
 
         then:
         result.assertTasksExecuted(

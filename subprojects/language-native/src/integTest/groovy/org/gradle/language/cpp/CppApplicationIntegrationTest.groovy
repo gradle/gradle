@@ -158,36 +158,6 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         executable("build/exe/main/debug/app").assertExists()
     }
 
-    def "zzzcan use executable file as task dependency operating system"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new CppApp()
-        def repo = new MavenFileRepository(file("repo"))
-
-        given:
-        app.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'cpp-application'
-            apply plugin: 'maven-publish'
-
-            group = 'bob'
-
-            application {
-                operatingSystems = [new ${DefaultOperatingSystem.canonicalName}('linux')]
-            }
-            
-            publishing {
-                repositories { maven { url '$repo.uri' } }
-            }
-         """
-
-        expect:
-        succeeds "publish"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':buildDebug')
-        executable("build/exe/main/debug/app").assertExists()
-    }
-
     def "can use objects as task dependency"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
