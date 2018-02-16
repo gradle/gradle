@@ -25,7 +25,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@Timeout(300)
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     static final EXPIRATION_CHECK_FREQUENCY = 50
     public static final String EXPIRATION_EVENT = "expiration_event.txt"
@@ -42,7 +42,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     }
 
-    @Timeout(300)
     def "should capture basic data via when the daemon is running in continuous mode"() {
         given:
         buildFile << """
