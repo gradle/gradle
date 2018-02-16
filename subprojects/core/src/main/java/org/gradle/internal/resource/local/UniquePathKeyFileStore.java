@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 
 import java.io.File;
 
@@ -26,6 +27,7 @@ import java.io.File;
  *
  * Can be used as an optimisation if path contains a checksum of the file, as there is no point to perform the replace in that circumstance.
  */
+@NonNullApi
 public class UniquePathKeyFileStore extends DefaultPathKeyFileStore {
 
     public UniquePathKeyFileStore(File baseDir) {
