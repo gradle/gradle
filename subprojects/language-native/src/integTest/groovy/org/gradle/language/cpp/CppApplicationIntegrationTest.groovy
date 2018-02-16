@@ -23,8 +23,6 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
-import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.test.fixtures.maven.MavenFileRepository
 
 import static org.gradle.util.Matchers.containsText
 
