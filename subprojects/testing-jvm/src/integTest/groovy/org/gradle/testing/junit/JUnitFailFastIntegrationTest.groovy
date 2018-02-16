@@ -17,9 +17,7 @@
 package org.gradle.testing.junit
 
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
-import spock.lang.Ignore
 
-@Ignore
 class JUnitFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
     String testAnnotationClass() {
