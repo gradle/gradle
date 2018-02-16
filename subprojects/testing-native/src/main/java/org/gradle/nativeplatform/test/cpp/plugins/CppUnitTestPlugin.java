@@ -21,16 +21,26 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
+import org.gradle.language.cpp.internal.LightweightUsageContext;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
@@ -40,6 +50,12 @@ import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.Callable;
+
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 
 /**
@@ -53,11 +69,15 @@ import javax.inject.Inject;
 public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
+    private final ObjectFactory objectFactory;
+    private final ImmutableAttributesFactory attributesFactory;
 
     @Inject
-    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
+        this.objectFactory = objectFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -75,8 +95,36 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
+
+                String operatingSystemSuffix = "";
+                OperatingSystemFamily operatingSystem = objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName());
+                Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+                Provider<String> group = project.provider(new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return project.getGroup().toString();
+                    }
+                });
+
+                Provider<String> version = project.provider(new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return project.getVersion().toString();
+                    }
+                });
+
+                AttributeContainer attributesDebug = attributesFactory.mutable();
+                attributesDebug.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                attributesDebug.attribute(DEBUGGABLE_ATTRIBUTE, true);
+                attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
+
+                Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
+
+                NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, testComponent.getBaseName(), group, version, true, false, operatingSystem, usageContextsDebug);
+
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), null);
+                testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
+                // TODO: Publishing for test executable?
 
                 final TaskContainer tasks = project.getTasks();
                 final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");

@@ -55,7 +55,9 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppTestExecutable(String name, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation,
+                                    Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity,
+                                    ConfigurationContainer configurations, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations) {
         super(name, projectLayout, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.testedComponent = testedComponent;
         this.executableFile = projectLayout.fileProperty();
@@ -64,7 +66,7 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
         this.linkTaskProperty = objects.property(LinkExecutable.class);
         this.installTaskProperty = objects.property(InstallExecutable.class);
         this.outputs = fileOperations.files();
-        runTask = objects.property(RunTestExecutable.class);
+        this.runTask = objects.property(RunTestExecutable.class);
     }
 
     @Override
