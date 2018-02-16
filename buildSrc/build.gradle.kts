@@ -115,19 +115,21 @@ tasks {
 
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
-fun configureCompileTask(options: CompileOptions) {
+fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
     options.isFork = true
     options.encoding = "utf-8"
     options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+    val vendor = System.getProperty("java.vendor")
+    task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
 }
 
 tasks.withType<JavaCompile> {
     options.isIncremental = true
-    configureCompileTask(options)
+    configureCompileTask(this, options)
 }
 tasks.withType<GroovyCompile> {
     groovyOptions.encoding = "utf-8"
-    configureCompileTask(options)
+    configureCompileTask(this, options)
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
