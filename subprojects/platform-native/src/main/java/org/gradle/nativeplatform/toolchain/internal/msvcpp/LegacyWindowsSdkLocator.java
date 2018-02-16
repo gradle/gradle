@@ -26,6 +26,7 @@ import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -78,7 +79,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public SearchResult locateWindowsSdks(File candidate) {
+    public SearchResult<WindowsSdk> locateComponent(@Nullable File candidate) {
         initializeWindowsSdks();
 
         if (candidate != null) {
@@ -89,9 +90,8 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public List<WindowsSdk> locateAllWindowsSdks() {
+    public List<? extends WindowsSdk> locateAllComponents() {
         initializeWindowsSdks();
-
         return Lists.newArrayList(foundSdks.values());
     }
 
@@ -187,7 +187,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         pathSdk = foundSdks.get(sdkDir);
     }
 
-    private SearchResult locateUserSpecifiedSdk(File candidate) {
+    private SearchResult<WindowsSdk> locateUserSpecifiedSdk(File candidate) {
         File sdkDir = FileUtils.canonicalize(candidate);
         if (!isWindowsSdk(sdkDir)) {
             return new SdkNotFound(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
@@ -199,7 +199,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         return new SdkFound(foundSdks.get(sdkDir));
     }
 
-    private SearchResult locateDefaultSdk() {
+    private SearchResult<WindowsSdk> locateDefaultSdk() {
         if (pathSdk != null) {
             return new SdkFound(pathSdk);
         }
@@ -248,7 +248,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         return version;
     }
 
-    private static class SdkFound implements SearchResult {
+    private static class SdkFound implements SearchResult<WindowsSdk> {
         private final WindowsSdk sdk;
 
         public SdkFound(WindowsSdk sdk) {
@@ -256,7 +256,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         }
 
         @Override
-        public WindowsSdk getSdk() {
+        public WindowsSdk getComponent() {
             return sdk;
         }
 
@@ -270,7 +270,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         }
     }
 
-    private static class SdkNotFound implements SearchResult {
+    private static class SdkNotFound implements SearchResult<WindowsSdk> {
         private final String message;
 
         private SdkNotFound(String message) {
@@ -278,7 +278,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         }
 
         @Override
-        public WindowsSdk getSdk() {
+        public WindowsSdk getComponent() {
             return null;
         }
 

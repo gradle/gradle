@@ -162,21 +162,21 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             return;
         }
 
-        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateDefaultVisualStudioInstall(installDir);
+        SearchResult<VisualStudioInstall> visualStudioSearchResult = visualStudioLocator.locateComponent(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
-            visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();
+            visualCpp = visualStudioSearchResult.getComponent().getVisualCpp();
         }
 
-        WindowsSdkLocator.SearchResult windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
+        SearchResult<WindowsSdk> windowsSdkSearchResult = windowsSdkLocator.locateComponent(windowsSdkDir);
         availability.mustBeAvailable(windowsSdkSearchResult);
         if (windowsSdkSearchResult.isAvailable()) {
-            windowsSdk = windowsSdkSearchResult.getSdk();
+            windowsSdk = windowsSdkSearchResult.getComponent();
         }
 
         // Universal CRT is required only for VS2015
         if (isVisualCpp2015()) {
-            WindowsKitComponentLocator.SearchResult<Ucrt> ucrtSearchResult = ucrtLocator.locateComponents(ucrtDir);
+            SearchResult<Ucrt> ucrtSearchResult = ucrtLocator.locateComponent(ucrtDir);
             availability.mustBeAvailable(ucrtSearchResult);
             if (ucrtSearchResult.isAvailable()) {
                 ucrt = ucrtSearchResult.getComponent();

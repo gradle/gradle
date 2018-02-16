@@ -49,7 +49,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v2/, "ProductName") >> "sdk 2"
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -73,7 +73,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir3.absolutePath
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -92,7 +92,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir.absolutePath
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -108,7 +108,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         operatingSystem.findInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -124,11 +124,11 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         !result.available
-        result.sdk == null
+        result.component == null
 
         when:
         result.explain(visitor)
@@ -148,25 +148,25 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
-        assert windowsSdkLocator.locateWindowsSdks(null).available
+        assert windowsSdkLocator.locateComponent(null).available
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir1)
+        def result = windowsSdkLocator.locateComponent(sdkDir1)
 
         then:
         result.available
-        result.sdk.name == "User-provided Windows SDK"
-        result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir1
+        result.component.name == "User-provided Windows SDK"
+        result.component.version == VersionNumber.UNKNOWN
+        result.component.baseDir == sdkDir1
 
         when:
-        result = windowsSdkLocator.locateWindowsSdks(sdkDir2)
+        result = windowsSdkLocator.locateComponent(sdkDir2)
 
         then:
         result.available
-        result.sdk.name == "User-provided Windows SDK"
-        result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir2
+        result.component.name == "User-provided Windows SDK"
+        result.component.version == VersionNumber.UNKNOWN
+        result.component.baseDir == sdkDir2
     }
 
     def "SDK not available when specified install dir does not look like an SDK"() {
@@ -180,14 +180,14 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
-        assert windowsSdkLocator.locateWindowsSdks(null).available
+        assert windowsSdkLocator.locateComponent(null).available
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir1)
+        def result = windowsSdkLocator.locateComponent(sdkDir1)
 
         then:
         !result.available
-        result.sdk == null
+        result.component == null
 
         when:
         result.explain(visitor)
@@ -209,7 +209,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -231,7 +231,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir)
+        def result = windowsSdkLocator.locateComponent(sdkDir)
 
         then:
         result.available

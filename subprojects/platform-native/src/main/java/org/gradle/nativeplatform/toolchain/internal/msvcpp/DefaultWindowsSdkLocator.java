@@ -22,15 +22,16 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.TreeVisitor;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
 public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     private final WindowsSdkLocator legacyWindowsSdkLocator;
-    private final WindowsKitComponentLocator<WindowsKitWindowsSdk> windowsKitWindowsSdkLocator;
+    private final WindowsComponentLocator<WindowsKitWindowsSdk> windowsKitWindowsSdkLocator;
 
     @VisibleForTesting
-    DefaultWindowsSdkLocator(WindowsSdkLocator legacyWindowsSdkLocator, WindowsKitComponentLocator<WindowsKitWindowsSdk> windowsKitWindowsSdkLocator) {
+    DefaultWindowsSdkLocator(WindowsSdkLocator legacyWindowsSdkLocator, WindowsComponentLocator<WindowsKitWindowsSdk> windowsKitWindowsSdkLocator) {
         this.legacyWindowsSdkLocator = legacyWindowsSdkLocator;
         this.windowsKitWindowsSdkLocator = windowsKitWindowsSdkLocator;
     }
@@ -40,33 +41,33 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public SearchResult locateWindowsSdks(File candidate) {
-        return new SdkSearchResult(legacyWindowsSdkLocator.locateWindowsSdks(candidate), windowsKitWindowsSdkLocator.locateComponents(candidate));
+    public SearchResult<WindowsSdk> locateComponent(@Nullable File candidate) {
+        return new SdkSearchResult(legacyWindowsSdkLocator.locateComponent(candidate), windowsKitWindowsSdkLocator.locateComponent(candidate));
     }
 
     @Override
-    public List<WindowsSdk> locateAllWindowsSdks() {
+    public List<WindowsSdk> locateAllComponents() {
         List<WindowsSdk> allSdks = Lists.newArrayList();
-        allSdks.addAll(legacyWindowsSdkLocator.locateAllWindowsSdks());
+        allSdks.addAll(legacyWindowsSdkLocator.locateAllComponents());
         allSdks.addAll(windowsKitWindowsSdkLocator.locateAllComponents());
         return allSdks;
     }
 
-    private static class SdkSearchResult implements SearchResult {
-        final SearchResult legacySearchResult;
-        final WindowsKitComponentLocator.SearchResult<WindowsKitWindowsSdk> windowsKitSearchResult;
+    private static class SdkSearchResult implements SearchResult<WindowsSdk> {
+        final SearchResult<WindowsSdk> legacySearchResult;
+        final SearchResult<WindowsKitWindowsSdk> windowsKitSearchResult;
 
-        SdkSearchResult(SearchResult legacySearchResult, WindowsKitComponentLocator.SearchResult<WindowsKitWindowsSdk> windowsKitSearchResult) {
+        SdkSearchResult(SearchResult<WindowsSdk> legacySearchResult, SearchResult<WindowsKitWindowsSdk> windowsKitSearchResult) {
             this.legacySearchResult = legacySearchResult;
             this.windowsKitSearchResult = windowsKitSearchResult;
         }
 
         @Override
-        public WindowsSdk getSdk() {
+        public WindowsSdk getComponent() {
             if (windowsKitSearchResult.isAvailable()) {
                 return windowsKitSearchResult.getComponent();
             } else if (legacySearchResult.isAvailable()) {
-                return legacySearchResult.getSdk();
+                return legacySearchResult.getComponent();
             } else {
                 return null;
             }

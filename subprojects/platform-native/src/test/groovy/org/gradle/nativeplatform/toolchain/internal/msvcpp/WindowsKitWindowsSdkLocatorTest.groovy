@@ -24,12 +24,12 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsKitComponentLocator.PLATFORMS
+import static WindowsComponentLocator.PLATFORMS
 
 class WindowsKitWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final WindowsKitComponentLocator<WindowsKitWindowsSdk> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry)
+    final WindowsComponentLocator<WindowsKitWindowsSdk> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry)
 
     def "uses highest Windows Kit version found"() {
         def dir1 = kitDir("sdk1", versions as String[])
@@ -38,7 +38,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = windowsSdkLocator.locateComponents(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -61,7 +61,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> { throw new MissingRegistryEntryException("missing") }
 
         when:
-        def result = windowsSdkLocator.locateComponents(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         !result.available
@@ -82,7 +82,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = windowsSdkLocator.locateComponents(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         !result.available
@@ -103,7 +103,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = windowsSdkLocator.locateComponents(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         !result.available
@@ -124,7 +124,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = windowsSdkLocator.locateComponents(null)
+        def result = windowsSdkLocator.locateComponent(null)
 
         then:
         result.available
@@ -141,10 +141,10 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
-        assert windowsSdkLocator.locateComponents(null).available
+        assert windowsSdkLocator.locateComponent(null).available
 
         when:
-        def result = windowsSdkLocator.locateComponents(dir2)
+        def result = windowsSdkLocator.locateComponent(dir2)
 
         then:
         result.available
@@ -154,7 +154,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.includeDirs as Set == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ] as Set
 
         when:
-        result = windowsSdkLocator.locateComponents(dir3)
+        result = windowsSdkLocator.locateComponent(dir3)
 
         then:
         result.available
@@ -171,10 +171,10 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
-        assert windowsSdkLocator.locateComponents(null).available
+        assert windowsSdkLocator.locateComponent(null).available
 
         when:
-        def result = windowsSdkLocator.locateComponents(dir2)
+        def result = windowsSdkLocator.locateComponent(dir2)
 
         then:
         !result.available
