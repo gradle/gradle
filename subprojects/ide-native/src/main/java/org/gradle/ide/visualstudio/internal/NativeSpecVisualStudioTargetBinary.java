@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
@@ -35,7 +35,6 @@ import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
@@ -68,6 +67,16 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     @Override
     public String getComponentName() {
         return binary.getComponent().getName();
+    }
+
+    @Override
+    public String getProjectName() {
+        return projectPrefix(getProjectPath()) + getComponentName() + getProjectType().getSuffix();
+    }
+
+    @Override
+    public String getConfigurationName() {
+        return makeName(getVariantDimensions());
     }
 
     @Override
@@ -211,7 +220,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     }
 
     @Override
-    public List<File> getIncludePaths() {
+    public Set<File> getIncludePaths() {
         Set<File> includes = new LinkedHashSet<File>();
 
         for (LanguageSourceSet sourceSet : binary.getInputs()) {
@@ -224,10 +233,8 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
             includes.addAll(lib.getIncludeRoots().getFiles());
         }
 
-        return new ArrayList<File>(includes);
+        return includes;
     }
-
-
 
     @Override
     public boolean equals(Object o) {
@@ -246,6 +253,27 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     @Override
     public int hashCode() {
         return binary.hashCode();
+    }
+
+    static String projectPrefix(String projectPath) {
+        if (":".equals(projectPath)) {
+            return "";
+        }
+        return projectPath.substring(1).replace(":", "_") + "_";
+    }
+
+    private static String makeName(Iterable<String> components) {
+        StringBuilder builder = new StringBuilder();
+        for (String component : components) {
+            if (component != null && component.length() > 0) {
+                if (builder.length() == 0) {
+                    builder.append(component);
+                } else {
+                    builder.append(StringUtils.capitalize(component));
+                }
+            }
+        }
+        return builder.toString();
     }
 
     // TODO: There has to be a simpler way to do this.

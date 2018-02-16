@@ -85,9 +85,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
-        def sourceCommon = Mock(File)
-        def source1 = Mock(File)
-        def source2 = Mock(File)
+        def sourceCommon = new File("source")
+        def source1 = new File("source1")
+        def source2 = new File("source2")
         def executableBinary1 = targetBinary("vsConfig1", sourceCommon, source1)
         def executableBinary2 = targetBinary("vsConfig2", sourceCommon, source2)
 
@@ -107,6 +107,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         targetBinary.getResourceFiles() >> fileCollection()
         targetBinary.projectPath >> ":"
         targetBinary.componentName >> "main"
+        targetBinary.projectName >> "mainExe"
+        targetBinary.configurationName >> variant
         targetBinary.projectType >> VisualStudioTargetBinary.ProjectType.EXE
         targetBinary.variantDimensions >> [variant]
         return targetBinary

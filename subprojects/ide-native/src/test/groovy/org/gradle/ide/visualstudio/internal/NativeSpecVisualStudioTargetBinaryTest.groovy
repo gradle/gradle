@@ -42,6 +42,7 @@ import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
+import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -58,15 +59,24 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         getFlavors() >> flavors
     }
     def platform = Mock(NativePlatform)
+    def binaryNamingScheme = Mock(BinaryNamingScheme)
     def exeBinary = Mock(TestExecutableBinary) {
         getFlavor() >> flavor
         getComponent() >> exe
         getTargetPlatform() >> platform
+        getNamingScheme() >> binaryNamingScheme
     }
-    def libBinary = Mock(TestLibraryBinary) {
+    def sharedLibBinary = Mock(TestLibraryBinary) {
         getFlavor() >> flavor
         getComponent() >> lib
         getTargetPlatform() >> platform
+        getNamingScheme() >> binaryNamingScheme
+    }
+    def staticLibBinary = Mock(TestStaticLibraryBinary) {
+        getFlavor() >> flavor
+        getComponent() >> lib
+        getTargetPlatform() >> platform
+        getNamingScheme() >> binaryNamingScheme
     }
     def targetBinary = new NativeSpecVisualStudioTargetBinary(exeBinary)
     def cppCompiler = Mock(PreprocessingTool)
@@ -90,11 +100,11 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
 
     def "tasks reflect binary tasks for libraries"() {
         given:
-        targetBinary = new NativeSpecVisualStudioTargetBinary(libBinary)
+        targetBinary = new NativeSpecVisualStudioTargetBinary(sharedLibBinary)
         def tasks = Mock(SharedLibraryBinarySpec.TasksCollection)
         def lifecycleTask = Mock(Task)
         when:
-        libBinary.tasks >> tasks
+        sharedLibBinary.tasks >> tasks
         tasks.build >> lifecycleTask
         lifecycleTask.path >> "lifecycle-task-path"
         lib.projectPath >> ":project-path"
@@ -152,12 +162,12 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         exeBinary.libs >> []
 
         then:
-        targetBinary.includePaths == []
+        targetBinary.includePaths == [] as Set
 
         when:
-        def file1 = Mock(File)
-        def file2 = Mock(File)
-        def file3 = Mock(File)
+        def file1 = new File("foo")
+        def file2 = new File("bar")
+        def file3 = new File("baz")
         def sourceSet = Mock(LanguageSourceSet)
         def sourceSet1 = headerSourceSet(file1, file2)
         def sourceSet2 = headerSourceSet(file3)
@@ -168,14 +178,14 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         exeBinary.libs >> []
 
         then:
-        targetBinary.includePaths == [file1, file2, file3]
+        targetBinary.includePaths == [file1, file2, file3] as Set
     }
 
     def "include paths include library headers"() {
         when:
-        def file1 = Mock(File)
-        def file2 = Mock(File)
-        def file3 = Mock(File)
+        def file1 = new File("foo")
+        def file2 = new File("bar")
+        def file3 = new File("baz")
 
         def deps1 = dependencySet(file1, file2)
         def deps2 = dependencySet(file3)
@@ -184,7 +194,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         exeBinary.libs >> [deps1, deps2]
 
         then:
-        targetBinary.includePaths == [file1, file2, file3]
+        targetBinary.includePaths == [file1, file2, file3] as Set
     }
 
     def "reflects source files of binary"() {
@@ -221,6 +231,64 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         NativeExecutableBinarySpecInternal | EXE
         NativeTestSuiteBinarySpecInternal  | EXE
         TestFooBinary                      | NONE
+    }
+
+    def "maps executable binary types to visual studio project"() {
+        when:
+        exe.getName() >> "exeName"
+        exeBinary.getProjectPath() >> ":"
+        binaryNamingScheme.getVariantDimensions() >> ["buildTypeOne"]
+
+        then:
+        checkNames targetBinary, "exeNameExe", 'buildTypeOne'
+    }
+
+    def "maps shared library binary types to visual studio projects"() {
+        when:
+        targetBinary = new NativeSpecVisualStudioTargetBinary(sharedLibBinary)
+        lib.getName() >> "libName"
+        sharedLibBinary.getProjectPath() >> ":"
+        binaryNamingScheme.getVariantDimensions() >> ["buildTypeOne"]
+
+        then:
+        checkNames targetBinary, "libNameDll", 'buildTypeOne'
+    }
+
+    def "maps static library binary types to visual studio projects"() {
+        when:
+        targetBinary = new NativeSpecVisualStudioTargetBinary(staticLibBinary)
+        lib.getName() >> "libName"
+        staticLibBinary.getProjectPath() >> ":"
+        binaryNamingScheme.getVariantDimensions() >> ["buildTypeOne"]
+
+        then:
+        checkNames targetBinary, "libNameLib", 'buildTypeOne'
+    }
+
+    def "includes project path in visual studio project name"() {
+        when:
+        exe.getName() >> "exeName"
+        exeBinary.getProjectPath() >> ":subproject:name"
+        binaryNamingScheme.getVariantDimensions() >> ["buildTypeOne"]
+
+        then:
+        checkNames targetBinary, "subproject_name_exeNameExe", 'buildTypeOne'
+    }
+
+    def "includes variant dimensions in configuration where component has multiple dimensions"() {
+        when:
+        exe.getName() >> "exeName"
+        exeBinary.getProjectPath() >> ":"
+        binaryNamingScheme.getVariantDimensions() >> ["platformOne", "buildTypeOne", "flavorOne"]
+
+        then:
+        checkNames targetBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne'
+    }
+
+    private static checkNames(VisualStudioTargetBinary binary, def projectName, def configurationName) {
+        assert binary.getProjectName() == projectName
+        assert binary.getConfigurationName() == configurationName
+        true
     }
 
     private HeaderExportingSourceSet headerSourceSet(File... files) {
@@ -266,6 +334,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
 
     interface TestExecutableBinary extends NativeExecutableBinarySpecInternal, ExtensionAware {}
     interface TestLibraryBinary extends SharedLibraryBinarySpecInternal, ExtensionAware {}
+    interface TestStaticLibraryBinary extends StaticLibraryBinarySpecInternal, ExtensionAware {}
     interface TestFooBinary extends NativeBinarySpecInternal {}
     interface TestSourceDirectorySet extends SourceDirectorySet, FileCollectionInternal {}
 }

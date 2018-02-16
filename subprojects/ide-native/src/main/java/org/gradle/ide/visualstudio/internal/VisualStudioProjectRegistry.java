@@ -22,9 +22,6 @@ import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
-import static org.gradle.ide.visualstudio.internal.VisualStudioProjectMapper.getConfigurationName;
-import static org.gradle.ide.visualstudio.internal.VisualStudioProjectMapper.getProjectName;
-
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry ideArtifactRegistry;
@@ -36,13 +33,13 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(VisualStudioTargetBinary targetBinary) {
-        String projectName = getProjectName(targetBinary);
+        String projectName = targetBinary.getProjectName();
         return getByName(projectName).getConfiguration(targetBinary);
     }
 
     public VisualStudioProjectConfiguration addProjectConfiguration(VisualStudioTargetBinary nativeBinary) {
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), getProjectName(nativeBinary), nativeBinary.getComponentName());
-        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, getConfigurationName(nativeBinary.getVariantDimensions()));
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), nativeBinary.getProjectName(), nativeBinary.getComponentName());
+        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getConfigurationName());
         project.addConfiguration(nativeBinary, configuration);
         ideArtifactRegistry.registerIdeArtifact(configuration.getPublishArtifact());
         return configuration;

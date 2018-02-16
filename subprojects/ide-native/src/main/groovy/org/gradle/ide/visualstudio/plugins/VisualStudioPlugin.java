@@ -20,10 +20,21 @@ import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioRootExtension;
+import org.gradle.ide.visualstudio.internal.CppApplicationVisualStudioTargetBinary;
+import org.gradle.ide.visualstudio.internal.CppSharedLibraryVisualStudioTargetBinary;
+import org.gradle.ide.visualstudio.internal.CppStaticLibraryVisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioRootExtension;
+import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
@@ -52,16 +63,50 @@ public class VisualStudioPlugin extends IdePlugin {
     }
 
     @Override
-    protected void onApply(Project target) {
+    protected void onApply(final Project target) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
+        final VisualStudioExtensionInternal extension;
         if (isRoot()) {
-            VisualStudioRootExtension extension = project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, fileResolver, this);
-            getLifecycleTask().dependsOn(extension.getSolution());
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, fileResolver, this);
+            getLifecycleTask().dependsOn(((VisualStudioRootExtension)extension).getSolution());
         } else {
-            VisualStudioExtension extension = project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, this);
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, this);
             getLifecycleTask().dependsOn(extension.getProjects());
         }
+
+        project.getPlugins().withType(CppBasePlugin.class).all(new Action<CppBasePlugin>() {
+            @Override
+            public void execute(CppBasePlugin cppBasePlugin) {
+                project.getComponents().withType(CppApplication.class).all(new Action<CppApplication>() {
+                    @Override
+                    public void execute(final CppApplication cppApplication) {
+                        cppApplication.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                            @Override
+                            public void execute(CppBinary cppBinary) {
+                                extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(target, cppApplication, (CppExecutable) cppBinary));
+                            }
+                        });
+                    }
+                });
+                project.getComponents().withType(CppLibrary.class).all(new Action<CppLibrary>() {
+                    @Override
+                    public void execute(final CppLibrary cppLibrary) {
+                        cppLibrary.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                            @Override
+                            public void execute(CppBinary cppBinary) {
+                                if (cppBinary instanceof CppSharedLibrary) {
+                                    extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(target, cppLibrary, (CppSharedLibrary) cppBinary));
+                                }
+                                if (cppBinary instanceof CppStaticLibrary) {
+                                    extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project, cppLibrary, (CppStaticLibrary) cppBinary));
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
 
         // TODO: Figure out how to conditionally apply VisualStudioPluginRules but ensure that rules are still fired in subprojects
         project.getPluginManager().apply(NativeComponentModelPlugin.class);

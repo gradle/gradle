@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A model-agnostic adapter for binary information
@@ -34,6 +35,16 @@ public interface VisualStudioTargetBinary {
      * Returns the name of the component associated with this binary
      */
     String getComponentName();
+
+    /**
+     * Returns the visual studio project name associated with this binary
+     */
+    String getProjectName();
+
+    /**
+     * Returns the visual studio project configuration name associated with this binary
+     */
+    String getConfigurationName();
 
     /**
      * Returns the project suffix to use when naming Visual Studio projects
@@ -93,7 +104,7 @@ public interface VisualStudioTargetBinary {
     /**
      * Returns the include paths that should be used with this binary
      */
-    List<File> getIncludePaths();
+    Set<File> getIncludePaths();
 
 
     enum ProjectType {
