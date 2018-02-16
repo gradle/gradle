@@ -10,9 +10,9 @@ import org.gradle.kotlin.dsl.*
 class BuildTypesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val buildTypesContainer = container(BuildType::class.java)
-        extensions.add("buildTypes", buildTypesContainer)
-        buildTypesContainer.all {
+        val buildTypes = container(BuildType::class.java)
+        extensions.add("buildTypes", buildTypes)
+        buildTypes.all {
             register(this)
         }
     }
@@ -20,45 +20,65 @@ class BuildTypesPlugin : Plugin<Project> {
     private
     fun Project.register(buildType: BuildType) =
         tasks.create(buildType.name) {
-            group = "Build Type"
-            val taskNames = gradle.startParameter.taskNames
-            val usedName = buildType.findUsedTaskNameFrom(taskNames)
-            val index = taskNames.indexOf(usedName)
-            if (usedName != null && usedName.isNotEmpty() && isNotHelpTaskInvocation(usedName, index, taskNames)) {
-                afterEvaluate {
-                    taskNames.removeAt(index)
-                    insertBuildTypeTaskNames(buildType, usedName, index, taskNames)
-                    gradle.startParameter.setTaskNames(taskNames)
+
+            val invokedTaskNames = gradle.startParameter.taskNames
+            buildType.findUsedTaskNameAndIndexIn(invokedTaskNames)?.let { (usedName, index) ->
+                require(usedName.isNotEmpty())
+                if (!isTaskHelpInvocation(invokedTaskNames, index)) {
+                    buildType.active = true
+                    buildType.onProjectProperties = { properties: ProjectProperties ->
+                        properties.forEach(project::setOrCreateProperty)
+                    }
+                    afterEvaluate {
+                        invokedTaskNames.removeAt(index)
+
+                        val subproject = usedName.substringBeforeLast(":", "")
+                        insertBuildTypeTasksInto(invokedTaskNames, index, buildType, subproject)
+
+                        gradle.startParameter.setTaskNames(invokedTaskNames)
+                    }
                 }
-                buildType.propertiesAsExtraOn(project)
             }
+
+            group = "Build Type"
+
+            description = "The $name build type (can only be abbreviated to '${buildType.abbreviation}')"
+
             doFirst {
-                throw GradleException("'$name' is a build type and has to be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
+                throw GradleException("'$name' is a build type and must be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
             }
         }
 
-
     private
-    fun BuildType.findUsedTaskNameFrom(taskNames: List<String>): String? {
-        val candidates = listOf(name, abbreviation)
+    fun BuildType.findUsedTaskNameAndIndexIn(taskNames: List<String>): Pair<String, Int>? {
+        val candidates = arrayOf(name, abbreviation)
         val nameSuffix = ":$name"
         val abbreviationSuffix = ":$abbreviation"
-        return taskNames.find { it in candidates || it.endsWith(nameSuffix) || it.endsWith(abbreviationSuffix) }
+        return taskNames.indexOfFirst {
+            it in candidates || it.endsWith(nameSuffix) || it.endsWith(abbreviationSuffix)
+        }.takeIf {
+            it >= 0
+        }?.let {
+            taskNames[it] to it
+        }
     }
 
+    private
+    fun isTaskHelpInvocation(taskNames: List<String>, taskIndex: Int) =
+        taskIndex >= 2
+            && taskNames[taskIndex - 1] == "--task"
+            && taskNames[taskIndex - 2].let(helpTaskRegex::matches)
 
     private
     val helpTaskRegex = Regex("h(e(lp?)?)?")
 
-
     private
-    fun isNotHelpTaskInvocation(usedName: String, index: Int, taskNames: List<String>) =
-        !(index > 0 && taskNames[index - 1] == "--task" && index > 1 && helpTaskRegex.matches(taskNames[index - 2]))
+    fun Project.insertBuildTypeTasksInto(
+        taskNames: MutableList<String>,
+        index: Int,
+        buildType: BuildType,
+        subproject: String) {
 
-
-    private
-    fun Project.insertBuildTypeTaskNames(buildType: BuildType, usedName: String, index: Int, taskNames: MutableList<String>) {
-        val subproject = usedName.substringBeforeLast(":", "")
         if (subproject.isEmpty() || findProject(subproject) != null) {
             buildType.tasks.reversed().forEach {
                 val path = subproject + it
@@ -75,14 +95,12 @@ class BuildTypesPlugin : Plugin<Project> {
             taskNames.add("help") //do not trigger the default tasks
         }
     }
+}
 
 
-    private
-    fun BuildType.propertiesAsExtraOn(project: Project) {
-        propertiesAction = { properties: Map<String, Any> ->
-            properties.forEach { key, value ->
-                project.extra.set(key, value)
-            }
-        }
+fun Project.setOrCreateProperty(propertyName: String, value: Any) {
+    when {
+        hasProperty(propertyName) -> setProperty(propertyName, value)
+        else                      -> extra.set(propertyName, value)
     }
 }
