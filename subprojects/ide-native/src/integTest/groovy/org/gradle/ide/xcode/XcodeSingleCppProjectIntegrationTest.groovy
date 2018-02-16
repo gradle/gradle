@@ -57,7 +57,7 @@ apply plugin: 'cpp-application'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
+        project.products.children[0].path == exe("build/install/main/debug/lib/app").absolutePath
     }
 
     def "can create xcode project for C++ library"() {
@@ -387,13 +387,13 @@ application.baseName = 'test_app'
         project.targets.size() == 2
 
         project.targets[0].name == 'Test_app'
-        project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
+        project.targets[0].productReference.path == exe("output/install/main/debug/lib/test_app").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/debug/lib").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/release/lib").absolutePath
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/main/debug/test_app").absolutePath
+        project.products.children[0].path == exe("output/install/main/debug/lib/test_app").absolutePath
     }
 
     def "honors changes to library output locations"() {

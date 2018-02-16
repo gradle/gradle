@@ -294,7 +294,7 @@ class NativeBasePluginTest extends Specification {
 
         and:
         exeFileProp.get().asFile == linkTask.binaryFile.get().asFile
-        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        debugExeFileProp.get().asFile == installTask.installedExecutable.asFile
         linkTaskProp.get() == linkTask
 
         and:
@@ -355,7 +355,7 @@ class NativeBasePluginTest extends Specification {
 
         and:
         exeFileProp.get().asFile == stripTask.outputFile.get().asFile
-        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        debugExeFileProp.get().asFile == installTask.installedExecutable.asFile
         linkTaskProp.get() == linkTask
 
         and:
