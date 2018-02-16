@@ -172,6 +172,14 @@ public class GFileUtils {
         return FileUtils.deleteQuietly(file);
     }
 
+    public static boolean deleteFileQuietly(@Nullable File file) {
+        if (file != null) {
+            return file.delete();
+        } else {
+            return false;
+        }
+    }
+
     public static class TailReadingException extends RuntimeException {
         public TailReadingException(Throwable throwable) {
             super(throwable);
