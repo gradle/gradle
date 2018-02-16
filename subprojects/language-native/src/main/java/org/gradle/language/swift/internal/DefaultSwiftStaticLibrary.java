@@ -105,11 +105,11 @@ public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements Swi
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return identity.getLinkAttributes();
+        return identity.getLinkeUsageContext().getAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return identity.getRuntimeAttributes();
+        return identity.getRuntimeUsageContext().getAttributes();
     }
 }
