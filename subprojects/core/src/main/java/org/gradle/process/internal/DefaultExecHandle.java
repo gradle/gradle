@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -54,7 +54,7 @@ import static java.lang.String.format;
  * State is controlled on all control methods:
  * <ul>
  * <li>{@link #start()} allowed when state is INIT</li>
- * <li>{@link #abort()} allowed when state is STARTED or DETACHED</li>
+ * <li>{@link #abort(boolean)} allowed when state is STARTED or DETACHED</li>
  * </ul>
  */
 public class DefaultExecHandle implements ExecHandle, ProcessSettings {
@@ -95,7 +95,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final Lock lock;
     private final Condition stateChanged;
 
-    private final Executor executor;
+    private final ExecutorService executor;
 
     /**
      * State of this ExecHandle.
@@ -116,7 +116,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
-                      Executor executor) {
+                      ExecutorService executor) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -270,7 +270,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         return this;
     }
 
-    public void abort() {
+    public void abort(boolean terminatingEarly) {
         lock.lock();
         try {
             if (stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED, ExecHandleState.ABORTED)) {
@@ -280,7 +280,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw new IllegalStateException(
                     format("Cannot abort process '%s' because it is not in started or detached state", displayName));
             }
-            this.execHandleRunner.abortProcess();
+            this.execHandleRunner.abortProcess(terminatingEarly);
             this.waitForFinish();
         } finally {
             lock.unlock();
@@ -406,7 +406,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private class CompositeStreamsHandler implements StreamsHandler {
         @Override
-        public void connectStreams(Process process, String processName, Executor executor) {
+        public void connectStreams(Process process, String processName, ExecutorService executor) {
             inputHandler.connectStreams(process, processName, executor);
             outputHandler.connectStreams(process, processName, executor);
         }
@@ -421,6 +421,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         public void stop() {
             inputHandler.stop();
             outputHandler.stop();
+        }
+
+        @Override
+        public void stopNow() {
+            inputHandler.stopNow();
+            outputHandler.stopNow();
         }
     }
 }

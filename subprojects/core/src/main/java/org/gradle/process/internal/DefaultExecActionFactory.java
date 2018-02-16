@@ -21,12 +21,12 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public class DefaultExecActionFactory implements ExecFactory, Stoppable {
     private final FileResolver fileResolver;
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-    private final Executor executor;
+    private final ExecutorService executor;
 
     public DefaultExecActionFactory(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -76,9 +76,9 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
     private static class DecoratingExecActionFactory implements ExecFactory {
         private final FileResolver fileResolver;
         private final Instantiator instantiator;
-        private final Executor executor;
+        private final ExecutorService executor;
 
-        DecoratingExecActionFactory(FileResolver fileResolver, Instantiator instantiator, Executor executor) {
+        DecoratingExecActionFactory(FileResolver fileResolver, Instantiator instantiator, ExecutorService executor) {
             this.fileResolver = fileResolver;
             this.instantiator = instantiator;
             this.executor = executor;

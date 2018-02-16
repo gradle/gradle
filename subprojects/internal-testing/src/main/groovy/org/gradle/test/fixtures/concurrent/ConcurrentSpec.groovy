@@ -21,9 +21,10 @@ import spock.lang.Specification
 import spock.lang.Timeout
 
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 
 /**
- * A specification that uses multiple test threads. Provides an {@link Executor} and {@link org.gradle.internal.concurrent.ExecutorFactory} implementation.
+ * A specification that uses multiple test threads. Provides an {@link Executor}, an {@link ExecutorService} and {@link org.gradle.internal.concurrent.ExecutorFactory} implementation.
  *
  * <p>This class maintains a set of <em>instants</em> reached by the test. An instant records the point in time that a test thread reached a certain point of its execution.
  * Once the test threads have completed, you can make assertions about the ordering of the various instants relative to each other. You can also block until a given
@@ -60,6 +61,7 @@ class ConcurrentSpec extends Specification {
     final BlockTarget waitFor = new BlockTarget(instant)
 
     private final TestExecutor executor = new TestExecutor(logger)
+    private final TestManagedExecutor managedExecutor = new TestManagedExecutor(executor)
     private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
 
     /**
@@ -67,6 +69,13 @@ class ConcurrentSpec extends Specification {
      */
     Executor getExecutor() {
         return executor
+    }
+
+    /**
+     * Returns an ExecutorService that should be used for running asynchronous actions.
+     */
+    ExecutorService getManagedExecutor() {
+        return managedExecutor
     }
 
     /**

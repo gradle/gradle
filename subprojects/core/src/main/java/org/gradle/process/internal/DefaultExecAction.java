@@ -19,13 +19,13 @@ package org.gradle.process.internal;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ExecResult;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
  */
 public class DefaultExecAction extends DefaultExecHandleBuilder implements ExecAction {
-    public DefaultExecAction(PathToFileResolver fileResolver, Executor executor) {
+    public DefaultExecAction(PathToFileResolver fileResolver, ExecutorService executor) {
         super(fileResolver, executor);
     }
 

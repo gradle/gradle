@@ -45,6 +45,6 @@ public class JavaApplicationHandle implements DeploymentHandle {
 
     @Override
     public void stop() {
-        handle.abort();
+        handle.abort(false);
     }
 }

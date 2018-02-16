@@ -22,7 +22,8 @@ import org.gradle.process.internal.StreamsHandler;
 
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Reads from the process' stdout and stderr (if not merged into stdout) and forwards to {@link OutputStream}.
@@ -32,9 +33,11 @@ public class OutputStreamsForwarder implements StreamsHandler {
     private final OutputStream errorOutput;
     private final boolean readErrorStream;
     private final CountDownLatch completed;
-    private Executor executor;
-    private ExecOutputHandleRunner standardOutputReader;
-    private ExecOutputHandleRunner standardErrorReader;
+    private ExecutorService executor;
+    private volatile ExecOutputHandleRunner standardOutputReader;
+    private volatile ExecOutputHandleRunner standardErrorReader;
+    private volatile Future<?> outputFuture;
+    private volatile Future<?> errorFuture;
 
     public OutputStreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, boolean readErrorStream) {
         this.standardOutput = standardOutput;
@@ -44,7 +47,7 @@ public class OutputStreamsForwarder implements StreamsHandler {
     }
 
     @Override
-    public void connectStreams(Process process, String processName, Executor executor) {
+    public void connectStreams(Process process, String processName, ExecutorService executor) {
         this.executor = executor;
         standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, process.getInputStream(), standardOutput, completed);
         if (readErrorStream) {
@@ -54,9 +57,9 @@ public class OutputStreamsForwarder implements StreamsHandler {
 
     public void start() {
         if (readErrorStream) {
-            executor.execute(wrapInBuildOperation(standardErrorReader));
+            errorFuture = executor.submit(wrapInBuildOperation(standardErrorReader));
         }
-        executor.execute(wrapInBuildOperation(standardOutputReader));
+        outputFuture = executor.submit(wrapInBuildOperation(standardOutputReader));
     }
 
     private Runnable wrapInBuildOperation(Runnable runnable) {
@@ -69,5 +72,15 @@ public class OutputStreamsForwarder implements StreamsHandler {
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
         }
+    }
+
+    @Override
+    public void stopNow() {
+        if (errorFuture != null) {
+            errorFuture.cancel(true);
+        }
+        outputFuture.cancel(true);
+        standardOutputReader.stopNow();
+        standardErrorReader.stopNow();
     }
 }

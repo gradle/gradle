@@ -128,6 +128,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         !file(EXPIRATION_EVENT).exists()
     }
 
+    @Timeout(60)
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {
         given:
         buildFile << """
