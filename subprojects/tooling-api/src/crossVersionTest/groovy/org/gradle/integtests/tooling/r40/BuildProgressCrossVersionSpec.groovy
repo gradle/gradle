@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -133,7 +132,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.child("Configure project :b")
     }
 
-    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -205,9 +203,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     def "generates events for applied init-scripts"() {
@@ -388,7 +383,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Issue("gradle/gradle#1641")
-    @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -447,9 +441,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         orphans[1].child "Download ${module.rootMetaData.sha1.uri}"
         orphans[2].child "Download ${module.rootMetaData.uri}"
         orphans[3].child "Download ${module.rootMetaData.sha1.uri}"
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     MavenHttpRepository getMavenHttpRepo() {
