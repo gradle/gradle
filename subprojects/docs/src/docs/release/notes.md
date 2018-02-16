@@ -2,7 +2,7 @@ The Gradle team is pleased to announce Gradle 4.6.
 
 First and foremost, this release of Gradle features extensive improvements to dependency management. You can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
 
-This release of Gradle also includes crucial features for Maven dependency compatibility: support for [importing BOMs](#experimental-bom-import), [optional dependencies](#experimental-support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#experimental-compile/runtime-scope-separation-in-pom-consumption). For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
+This release of Gradle also includes crucial features for Maven dependency compatibility: support for [importing BOMs](#bom-import), [optional dependencies](#support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#compile/runtime-scope-separation-in-pom-consumption). For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
 
 Next, this release of Gradle includes built-in support for JUnit Platform and the JUnit Jupiter/Vintage Engine, also known as [JUnit 5 support](#junit-5-support). You can use the new filtering and engines functionality in JUnit 5 using the examples provided below and in the documentation.
 
