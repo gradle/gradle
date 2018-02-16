@@ -339,5 +339,59 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
         where:
         variant << ['cglib', 'cglib-nodep']
     }
+
+    def "capability conflict resolution doesn't prevent version conflict resolution from happening"() {
+        repository {
+            'cglib:cglib:3.1.0'()
+            'cglib:cglib:3.2.5'()
+            'cglib:cglib-nodep:3.2.5'()
+            'org:test:1.0' {
+                dependsOn 'cglib:cglib:3.2.5'
+            }
+        }
+
+        buildFile << """
+            dependencies {
+               conf "cglib:cglib:3.1.0"
+               conf "cglib:cglib-nodep:3.2.5"
+               conf "org:test:1.0"
+            
+               capabilities {
+                  capability('cglib') {
+                     providedBy 'cglib:cglib'
+                     providedBy 'cglib:cglib-nodep'
+                     prefer 'cglib:cglib'
+                  }
+               }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+            'cglib:cglib:3.2.5' {
+                expectResolve()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('cglib:cglib:3.1.0', 'cglib:cglib:3.2.5')
+                    .byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                    .byConflictResolution()
+                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5')
+                    .byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                module('org:test:1.0') {
+                    module('cglib:cglib:3.2.5')
+                        .byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                        .byConflictResolution()
+                }
+            }
+        }
+    }
 }
 
