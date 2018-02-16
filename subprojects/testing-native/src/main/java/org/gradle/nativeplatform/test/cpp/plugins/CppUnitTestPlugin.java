@@ -33,7 +33,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
-import org.gradle.language.cpp.internal.LightweightUsageContext;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -117,7 +117,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
                 NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, testComponent.getBaseName(), group, version, true, false, operatingSystem,
                     null,
-                    new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
+                    new DefaultUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
                 testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);

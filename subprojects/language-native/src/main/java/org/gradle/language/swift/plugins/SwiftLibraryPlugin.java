@@ -31,7 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.internal.LightweightUsageContext;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
@@ -152,8 +152,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                             NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
-                                new LightweightUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
-                                new LightweightUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
+                                new DefaultUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
+                                new DefaultUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
                             // TODO: publish Swift libraries
                             // library.getMainPublication().addVariant(variantIdentity);
 

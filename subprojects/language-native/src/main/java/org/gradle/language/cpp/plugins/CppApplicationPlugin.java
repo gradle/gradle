@@ -32,7 +32,7 @@ import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
-import org.gradle.language.cpp.internal.LightweightUsageContext;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
@@ -122,7 +122,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
                         NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
                             null,
-                            new LightweightUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+                            new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
 
                         if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);

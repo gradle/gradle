@@ -40,7 +40,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
-import org.gradle.language.cpp.internal.LightweightUsageContext;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -156,8 +156,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                             NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
-                                new LightweightUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
-                                new LightweightUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
+                                new DefaultUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
+                                new DefaultUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
 
                             if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);

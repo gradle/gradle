@@ -18,8 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -79,20 +77,6 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         return new DefaultModuleVersionIdentifier(group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
     }
 
-    public Usage getRuntimeUsage() {
-        return runtimeUsage.getUsage();
-    }
-    public AttributeContainer getRuntimeAttributes() {
-        return runtimeUsage.getAttributes();
-    }
-
-    public Usage getLinkUsage() {
-        return runtimeUsage.getUsage();
-    }
-    public AttributeContainer getLinkAttributes() {
-        return linkUsage.getAttributes();
-    }
-
     @Override
     public Set<? extends UsageContext> getUsages() {
         return usageContexts;
@@ -101,5 +85,13 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     @Override
     public String getName() {
         return name;
+    }
+
+    public UsageContext getRuntimeUsageContext() {
+        return runtimeUsage;
+    }
+
+    public UsageContext getLinkeUsageContext() {
+        return linkUsage;
     }
 }

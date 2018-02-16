@@ -121,12 +121,13 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return Collections.singleton(new DefaultUsageContext(getIdentity().getName() + "-runtime", getIdentity().getRuntimeUsage(), runtimeElementsProperty.get().getAllArtifacts(), runtimeElementsProperty.get()));
+        Configuration runtimeElements = runtimeElementsProperty.get();
+        return Collections.singleton(new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return getIdentity().getRuntimeAttributes();
+        return getIdentity().getRuntimeUsageContext().getAttributes();
     }
 
     @Override
