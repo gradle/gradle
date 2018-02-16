@@ -16,13 +16,12 @@
 
 package org.gradle.internal.resource.local;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
-import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.RelativePathUtil;
@@ -57,12 +56,9 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
-    private final Deleter deleter;
 
     public DefaultPathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
-        IdentityFileResolver fileResolver = new IdentityFileResolver();
-        deleter = new Deleter(fileResolver, fileResolver.getFileSystem());
     }
 
     protected File getBaseDir() {
@@ -87,8 +83,8 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         File file = getFile(path);
         File markerFile = getInProgressMarkerFile(file);
         if (markerFile.exists()) {
-            deleter.delete(file);
-            deleter.delete(markerFile);
+            FileUtils.deleteQuietly(file);
+            FileUtils.deleteQuietly(markerFile);
         }
         return file;
     }
@@ -156,13 +152,13 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         File inProgressMarkerFile = getInProgressMarkerFile(destination);
         GFileUtils.touch(inProgressMarkerFile);
         try {
-            deleter.delete(destination);
+            FileUtils.deleteQuietly(destination);
             action.execute(destination);
         } catch (Throwable t) {
-            deleter.delete(destination);
+            FileUtils.deleteQuietly(destination);
             throw UncheckedException.throwAsUncheckedException(t);
         } finally {
-            deleter.delete(inProgressMarkerFile);
+            FileUtils.deleteQuietly(inProgressMarkerFile);
         }
         return entryAt(destination);
     }
