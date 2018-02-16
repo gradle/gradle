@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -51,6 +52,7 @@ import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -70,6 +72,7 @@ import java.util.concurrent.Callable;
  * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be resolved using the `pluginRepositories` and `plugins` DSL.
  */
 @Incubating
+@NonNullApi
 public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     static final String COMPILE_CONFIGURATION = "compile";
@@ -135,7 +138,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
-        Jar jarTask = (Jar) project.getTasks().findByName(JAR_TASK);
+        Jar jarTask = (Jar) project.getTasks().getByName(JAR_TASK);
         List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>();
         Set<String> classList = new HashSet<String>();
         PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(descriptors);
@@ -167,13 +170,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask).getConventionMapping();
         conventionMapping.map("pluginClasspath", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
                 return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
             }
         });
         conventionMapping.map("outputDirectory", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(project.getBuildDir(), pluginUnderTestMetadataTask.getName());
             }
         });
@@ -206,13 +209,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         generatePluginDescriptors.setDescription(GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION);
         generatePluginDescriptors.conventionMapping("declarations", new Callable<List<PluginDeclaration>>() {
             @Override
-            public List<PluginDeclaration> call() throws Exception {
+            public List<PluginDeclaration> call() {
                 return Lists.newArrayList(extension.getPlugins());
             }
         });
         generatePluginDescriptors.conventionMapping("outputDirectory", new Callable<File>() {
             @Override
-            public File call() throws Exception {
+            public File call() {
                 return new File(project.getBuildDir(), generatePluginDescriptors.getName());
             }
         });
@@ -221,7 +224,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         copyPluginDescriptors.into("META-INF/gradle-plugins");
         copyPluginDescriptors.from(new Callable<File>() {
             @Override
-            public File call() throws Exception {
+            public File call() {
                 return generatePluginDescriptors.getOutputDirectory();
             }
         });
@@ -267,7 +270,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         private final Collection<PluginDescriptor> descriptors;
         private final Set<String> classes;
 
-        PluginValidationAction(Collection<PluginDeclaration> plugins, Collection<PluginDescriptor> descriptors, Set<String> classes) {
+        PluginValidationAction(Collection<PluginDeclaration> plugins, @Nullable Collection<PluginDescriptor> descriptors, Set<String> classes) {
             this.plugins = plugins;
             this.descriptors = descriptors;
             this.classes = classes;

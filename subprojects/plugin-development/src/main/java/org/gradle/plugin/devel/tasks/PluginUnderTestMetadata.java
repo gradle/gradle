@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks;
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
@@ -33,7 +34,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import static java.util.Collections.emptyList;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**
@@ -42,6 +42,7 @@ import static org.gradle.util.CollectionUtils.collect;
  * @since 2.13
  */
 @Incubating
+@NonNullApi
 public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
@@ -77,7 +78,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     public void generate() {
         Properties properties = new Properties();
 
-        if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
+        if (!getPluginClasspath().isEmpty()) {
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
         }
 
@@ -110,10 +111,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     }
 
     private Iterable<File> classpathFiles() {
-        if (getPluginClasspath() != null) {
-            return getPluginClasspath();
-        }
-        return emptyList();
+        return getPluginClasspath();
     }
 
 }
