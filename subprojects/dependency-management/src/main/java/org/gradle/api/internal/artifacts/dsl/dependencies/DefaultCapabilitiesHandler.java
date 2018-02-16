@@ -22,7 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentModuleMetadata;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -33,7 +32,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultCapabilitiesHandler implements CapabilitiesHandler {
+public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
     private final ComponentModuleMetadataHandler metadataHandler;
     private final Map<String, DefaultCapability> capabilities = Maps.newHashMap();
     private final NotationParser<Object, ModuleIdentifier> notationParser;

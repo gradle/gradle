@@ -67,8 +67,8 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib-nodep and cglib:cglib')
-                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib-nodep and cglib:cglib')
+                module('cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
             }
         }
 
