@@ -130,6 +130,24 @@ class FileOrUriNotationConverterTest extends Specification {
         parsed instanceof URI
     }
 
+    def "does not throw NPE for URI with unknown schema"() {
+        setup:
+        def unsupportedURIString = new URI("no-schema")
+        when:
+        def parsed = parse(unsupportedURIString)
+        then:
+        parsed instanceof URI
+    }
+
+    def "does not throw NPE for non-hierarchical URI"() {
+        setup:
+        def unsupportedURIString = new URI("file::something")
+        when:
+        def parsed = parse(unsupportedURIString)
+        then:
+        parsed instanceof URI
+    }
+
     @Issue("GRADLE-2072")
     def "parsing unknown types causes UnsupportedNotationException"() {
         when:
