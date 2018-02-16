@@ -2,7 +2,7 @@ The Gradle team is pleased to announce Gradle 4.6.
 
 First and foremost, this release of Gradle features extensive improvements to dependency management. You can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
 
-This release of Gradle also includes crucial experimental features for Maven dependency compatibility: support for [importing BOMs](#experimental-bom-import), [optional dependencies](#experimental-support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#experimental-compile/runtime-scope-separation-in-pom-consumption). You can enable these experimental features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ or _settings.gradle.kts_ file. Please try these features so they can be promoted to stable for Gradle 5.0 later this year.
+This release of Gradle also includes crucial features for Maven dependency compatibility: support for [importing BOMs](#experimental-bom-import), [optional dependencies](#experimental-support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#experimental-compile/runtime-scope-separation-in-pom-consumption). For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
 
 Next, this release of Gradle includes built-in support for JUnit Platform and the JUnit Jupiter/Vintage Engine, also known as [JUnit 5 support](#junit-5-support). You can use the new filtering and engines functionality in JUnit 5 using the examples provided below and in the documentation.
 
@@ -30,7 +30,9 @@ Here are the new features introduced in this Gradle release.
 
 ### Dependency constraints for transitive dependencies
 
-With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In the future, Gradle will also allow you to publish dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) that is currently under development and, as a library author, you will then be able to share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
+With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. 
+
+In the future, Gradle will also allow you to _publish_ dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) (currently under development) such that library authors will be able to share these constraints with library consumers. This makes dependency constraints a better alternative over other existing mechanisms for managing transitive dependencies in Gradle.
 
     dependencies {
         implementation 'org.apache.httpcomponents:httpclient'
@@ -47,7 +49,7 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
 
 In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at least `1.11` and Gradle will now pick that version during dependency resolution.
 
-### Experimental BOM import
+### BOM import
 
 Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
 
@@ -62,15 +64,15 @@ Gradle now [provides support](userguide/managing_transitive_dependencies.html#se
 
 Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
-### Experimental support for optional dependencies in POM consumption
+### Support for optional dependencies in POM consumption
 
 Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
-### Experimental compile/runtime scope separation in POM consumption
+### Compile/runtime scope separation in POM consumption
 
 Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
 
@@ -79,14 +81,14 @@ Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java c
 
 Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### JUnit 5 support
 
 [JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of the well-known `JUnit` test framework. JUnit 5 is composed of several modules:
 
 > JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
-    
+
 The `JUnit Platform` serves as a foundation for launching testing frameworks on the JVM. `JUnit Jupiter` is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
  and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. `JUnit Vintage` provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
     
