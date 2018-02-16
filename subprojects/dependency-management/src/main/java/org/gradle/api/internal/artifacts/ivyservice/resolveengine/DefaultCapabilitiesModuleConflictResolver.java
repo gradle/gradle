@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * This conflict resolver is trying to resolve conflicts based on the capabilities of the conflicting modules.
@@ -68,10 +69,15 @@ class DefaultCapabilitiesModuleConflictResolver implements ModuleConflictResolve
                     throw new RuntimeException("Cannot choose between " + Joiner.on(" or ").join(details.getParticipants()) + " because they provide the same capability: " + capability);
                 }
                 // todo: handle case when there are more than one capabilities
-                for (T candidate : candidates) {
-                    if (candidate.getId().getModule().equals(preferred)) {
-                        details.select(candidate);
-                        return;
+                for (Iterator<? extends T> iterator = candidates.iterator(); iterator.hasNext(); ) {
+                    T candidate = iterator.next();
+                    if (!candidate.getId().getModule().equals(preferred)) {
+                        // this resolver doesn't select a version, it only removes the ones which are not valid
+                        // we do this because we still want version conflict to happen after this one, so it
+                        // only narrows the selection.
+                        // however, this should probably be handled in a different way, recognizing that resolvers
+                        // may cooperate to find the best solution
+                        iterator.remove();
                     }
                 }
             }
