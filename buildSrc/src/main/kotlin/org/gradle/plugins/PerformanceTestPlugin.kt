@@ -62,11 +62,10 @@ class PerformanceTestPlugin : Plugin<Project> {
         createCleanSamplesTask()
 
         val performanceReportTask = createPerformanceReportTask(performanceTestSourceSet)
-
         createLocalPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask, performanceReportTask)
         createDistributedPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask, performanceReportTask)
-        configureIdePlugins(performanceTestSourceSet)
 
+        configureIdePlugins(performanceTestSourceSet)
     }
 
     private fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
@@ -343,7 +342,9 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 }
 
+
 open class PerformanceReport : JavaExec() {
+
     @Input
     lateinit var resultStoreClass: String
 
@@ -357,5 +358,3 @@ open class PerformanceReport : JavaExec() {
         super.exec()
     }
 }
-
-
