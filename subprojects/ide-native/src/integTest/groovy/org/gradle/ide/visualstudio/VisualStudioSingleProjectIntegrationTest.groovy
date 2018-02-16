@@ -64,7 +64,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :install${it.name.capitalize()}")
-            assert it.outputFile == OperatingSystem.current().getExecutableName("build/exe/main/${it.name.toLowerCase()}/app")
+            assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/main/${it.name.toLowerCase()}/lib/app")
         }
 
         and:
@@ -215,6 +215,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
     }
 
     private String stripped(String configurationName) {
-        return configurationName == "release" ? "stripped/" : ""
+        if (toolChain.visualCpp) {
+            return ""
+        } else {
+            return configurationName == "release" ? "stripped/" : ""
+        }
     }
 }

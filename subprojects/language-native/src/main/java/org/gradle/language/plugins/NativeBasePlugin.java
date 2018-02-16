@@ -165,7 +165,6 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 link.setDebuggable(executable.isDebuggable());
 
                 executable.getLinkTask().set(link);
-                executable.getDebuggerExecutableFile().set(link.getBinaryFile());
 
                 if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
                     Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -202,6 +201,8 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 executable.getInstallDirectory().set(install.getInstallDirectory());
 
                 executable.getOutputs().from(executable.getInstallDirectory());
+
+                executable.getDebuggerExecutableFile().set(install.getInstalledExecutable());
             }
         });
         components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {

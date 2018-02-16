@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -158,6 +159,14 @@ public class InstallExecutable extends DefaultTask {
     }
 
     /**
+     * The location of the installed executable file.
+     */
+    @Internal
+    public RegularFile getInstalledExecutable() {
+        return getLibDirectory().get().file(getSourceFile().getAsFile().get().getName());
+    }
+
+    /**
      * Workaround for when the task is given an input file that doesn't exist
      *
      * @since 4.3
@@ -242,11 +251,14 @@ public class InstallExecutable extends DefaultTask {
         });
     }
 
+    private Provider<Directory> getLibDirectory() {
+        return getInstallDirectory().dir("lib");
+    }
+
     private void installWindows() {
-        final File destination = getInstallDirectory().get().getAsFile();
         final File executable = getSourceFile().get().getAsFile();
 
-        installToDir(new File(destination, "lib"));
+        installToDir(getLibDirectory().get().getAsFile());
 
         StringBuilder toolChainPath = new StringBuilder();
         if (toolChain instanceof Gcc) {
