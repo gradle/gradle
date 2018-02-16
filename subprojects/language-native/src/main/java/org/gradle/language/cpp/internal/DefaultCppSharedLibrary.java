@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
@@ -38,7 +39,6 @@ import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.testng.collections.Sets;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
