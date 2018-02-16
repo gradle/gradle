@@ -42,6 +42,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     }
 
+    @Timeout(300)
     def "should capture basic data via when the daemon is running in continuous mode"() {
         given:
         buildFile << """
