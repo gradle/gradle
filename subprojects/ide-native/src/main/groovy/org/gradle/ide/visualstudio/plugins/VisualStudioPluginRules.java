@@ -33,43 +33,38 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinaryContainer;
 
-class VisualStudioPluginRules extends RuleSource {
-    @Model
-    public static VisualStudioExtensionInternal visualStudio(ExtensionContainer extensionContainer) {
-        return (VisualStudioExtensionInternal) extensionContainer.getByType(VisualStudioExtension.class);
-    }
-
-    @Mutate
-    public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
-        for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
-            visualStudioExtension.getProjectRegistry().addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
-        }
-
-        if (isRoot(projectIdentifier)) {
-            ensureSubprojectsAreRealized(projectIdentifier, serviceRegistry);
+class VisualStudioPluginRules {
+    static class VisualStudioExtensionRules extends RuleSource {
+        @Model
+        public static VisualStudioExtensionInternal visualStudio(ExtensionContainer extensionContainer) {
+            return (VisualStudioExtensionInternal) extensionContainer.getByType(VisualStudioExtension.class);
         }
     }
 
-    @Mutate
-    public static void realizeExtension(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtensionInternal) {
-        // Dummy rule to cause the extension to be realized
-    }
+    static class VisualStudioPluginRootRules extends RuleSource {
+        // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
+        @Mutate
+        public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
+            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
+            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
 
-    // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
-    private static void ensureSubprojectsAreRealized(ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
-        ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-        ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
-
-        for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
-            projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);
+            for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
+                projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);
+            }
         }
     }
 
-    private static boolean isRoot(ProjectIdentifier projectIdentifier) {
-        return projectIdentifier.getParentIdentifier() == null;
+    static class VisualStudioPluginProjectRules extends RuleSource {
+        @Mutate
+        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
+            for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
+                visualStudioExtension.getProjectRegistry().addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
+            }
+        }
+
+        @Mutate
+        public static void realizeExtension(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtension) {
+            // Dummy rule to cause the extension to be realized
+        }
     }
-
-
-
-
 }

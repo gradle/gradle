@@ -32,10 +32,14 @@ import org.gradle.ide.visualstudio.internal.DefaultVisualStudioRootExtension;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioSolutionInternal;
+import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
+import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
+import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
@@ -95,37 +99,48 @@ public class VisualStudioPlugin extends IdePlugin {
     }
 
     private void applyVisualStudioCurrentModelRules(final VisualStudioExtensionInternal extension) {
-            project.getComponents().withType(CppApplication.class).all(new Action<CppApplication>() {
-                @Override
-                public void execute(final CppApplication cppApplication) {
-                    cppApplication.getBinaries().whenElementFinalized(new Action<CppBinary>() {
-                        @Override
-                        public void execute(CppBinary cppBinary) {
-                            extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(project.getName(), project.getPath(), cppApplication, (CppExecutable) cppBinary));
+        project.getComponents().withType(CppApplication.class).all(new Action<CppApplication>() {
+            @Override
+            public void execute(final CppApplication cppApplication) {
+                cppApplication.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                    @Override
+                    public void execute(CppBinary cppBinary) {
+                        extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(project.getName(), project.getPath(), cppApplication, (CppExecutable) cppBinary));
+                    }
+                });
+            }
+        });
+        project.getComponents().withType(CppLibrary.class).all(new Action<CppLibrary>() {
+            @Override
+            public void execute(final CppLibrary cppLibrary) {
+                cppLibrary.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                    @Override
+                    public void execute(CppBinary cppBinary) {
+                        if (cppBinary instanceof CppSharedLibrary) {
+                            extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, (CppSharedLibrary) cppBinary));
                         }
-                    });
-                }
-            });
-            project.getComponents().withType(CppLibrary.class).all(new Action<CppLibrary>() {
-                @Override
-                public void execute(final CppLibrary cppLibrary) {
-                    cppLibrary.getBinaries().whenElementFinalized(new Action<CppBinary>() {
-                        @Override
-                        public void execute(CppBinary cppBinary) {
-                            if (cppBinary instanceof CppSharedLibrary) {
-                                extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, (CppSharedLibrary) cppBinary));
-                            }
-                            if (cppBinary instanceof CppStaticLibrary) {
-                                extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, (CppStaticLibrary) cppBinary));
-                            }
+                        if (cppBinary instanceof CppStaticLibrary) {
+                            extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, (CppStaticLibrary) cppBinary));
                         }
-                    });
-                }
-            });
+                    }
+                });
+            }
+        });
     }
 
     private void applyVisualStudioSoftwareModelRules() {
-        project.getPluginManager().apply(VisualStudioPluginRules.class);
+        project.getPluginManager().apply(VisualStudioExtensionRules.class);
+
+        if (isRoot()) {
+            project.getPluginManager().apply(VisualStudioPluginRootRules.class);
+        }
+
+        project.getPlugins().withType(ComponentModelBasePlugin.class).all(new Action<ComponentModelBasePlugin>() {
+            @Override
+            public void execute(ComponentModelBasePlugin componentModelBasePlugin) {
+                project.getPluginManager().apply(VisualStudioPluginProjectRules.class);
+            }
+        });
     }
 
     private void includeBuildFileInProject(VisualStudioExtensionInternal extension) {
