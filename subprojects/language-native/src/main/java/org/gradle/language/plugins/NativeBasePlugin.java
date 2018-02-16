@@ -35,7 +35,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -47,14 +46,8 @@ import org.gradle.internal.Cast;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
+import org.gradle.language.PublishableComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppExecutable;
-import org.gradle.language.cpp.CppSharedLibrary;
-import org.gradle.language.cpp.CppStaticLibrary;
-import org.gradle.language.cpp.internal.DefaultCppExecutable;
-import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
-import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
-import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
@@ -305,8 +298,6 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         });
 
         // Add outgoing configurations and publications
-
-        final ObjectFactory objectFactory = project.getObjects();
         final ConfigurationContainer configurations = project.getConfigurations();
 
         project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
@@ -320,10 +311,8 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 linkElements.extendsFrom(component.getImplementationDependencies());
                 linkElements.setCanBeResolved(false);
                 AttributeContainer attributes = component.getLinkAttributes();
-                for (Attribute<?> attribute : attributes.keySet()) {
-                    Object value = attributes.getAttribute(attribute);
-                    linkElements.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
-                }
+                copyAttributesTo(attributes, linkElements);
+
                 linkElements.getOutgoing().artifact(component.getLinkFile());
 
                 component.getLinkElements().set(linkElements);
@@ -339,10 +328,8 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 runtimeElements.setCanBeResolved(false);
 
                 AttributeContainer attributes = component.getRuntimeAttributes();
-                for (Attribute<?> attribute : attributes.keySet()) {
-                    Object value = attributes.getAttribute(attribute);
-                    runtimeElements.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
-                }
+                copyAttributesTo(attributes, runtimeElements);
+
                 if (component.hasRuntimeFile()) {
                     runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
                 }
@@ -372,85 +359,35 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                         ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                     }
                                 });
-                            }
-                        });
-                    }
-                });
-
-
-                components.withType(CppExecutable.class, new Action<CppExecutable>() {
-                    @Override
-                    public void execute(final CppExecutable component) {
-                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                            @Override
-                            public void execute(PublishingExtension publishing) {
-                                final NativeVariantIdentity identity = ((DefaultCppExecutable)component).identity;
-                                publishing.getPublications().create(identity.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                    @Override
-                                    public void execute(MavenPublication publication) {
-                                        // TODO - should track changes to these properties
-                                        ModuleVersionIdentifier coordinates = identity.getCoordinates();
-                                        publication.setGroupId(coordinates.getGroup());
-                                        publication.setArtifactId(coordinates.getName());
-                                        publication.setVersion(coordinates.getVersion());
-                                        publication.from(component);
-                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                for (final SoftwareComponent child : mainVariant.getVariants()) {
+                                    if (child instanceof PublishableComponent) {
+                                        final ModuleVersionIdentifier coordinates = ((PublishableComponent)child).getCoordinates();
+                                        publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                            @Override
+                                            public void execute(MavenPublication publication) {
+                                                // TODO - should track changes to these properties
+                                                publication.setGroupId(coordinates.getGroup());
+                                                publication.setArtifactId(coordinates.getName());
+                                                publication.setVersion(coordinates.getVersion());
+                                                publication.from(child);
+                                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                            }
+                                        });
                                     }
-                                });
-                            }
-                        });
-                    }
-                });
-
-                components.withType(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
-                    @Override
-                    public void execute(final CppSharedLibrary component) {
-                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                            @Override
-                            public void execute(PublishingExtension publishing) {
-                                final NativeVariantIdentity identity = ((DefaultCppSharedLibrary)component).identity;
-                                publishing.getPublications().create(identity.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                    @Override
-                                    public void execute(MavenPublication publication) {
-                                        // TODO - should track changes to these properties
-                                        ModuleVersionIdentifier coordinates = identity.getCoordinates();
-                                        publication.setGroupId(coordinates.getGroup());
-                                        publication.setArtifactId(coordinates.getName());
-                                        publication.setVersion(coordinates.getVersion());
-                                        publication.from(component);
-                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-
-                components.withType(CppStaticLibrary.class, new Action<CppStaticLibrary>() {
-                    @Override
-                    public void execute(final CppStaticLibrary component) {
-                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                            @Override
-                            public void execute(PublishingExtension publishing) {
-                                final NativeVariantIdentity identity = ((DefaultCppStaticLibrary)component).identity;
-                                publishing.getPublications().create(identity.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                    @Override
-                                    public void execute(MavenPublication publication) {
-                                        // TODO - should track changes to these properties
-                                        ModuleVersionIdentifier coordinates = identity.getCoordinates();
-                                        publication.setGroupId(coordinates.getGroup());
-                                        publication.setArtifactId(coordinates.getName());
-                                        publication.setVersion(coordinates.getVersion());
-                                        publication.from(component);
-                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                    }
-                                });
+                                }
                             }
                         });
                     }
                 });
             }
         });
+    }
+
+    private void copyAttributesTo(AttributeContainer attributes, Configuration linkElements) {
+        for (Attribute<?> attribute : attributes.keySet()) {
+            Object value = attributes.getAttribute(attribute);
+            linkElements.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
+        }
     }
 
     private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {

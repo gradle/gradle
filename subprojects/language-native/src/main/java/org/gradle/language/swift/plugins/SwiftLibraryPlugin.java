@@ -230,7 +230,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
     private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName());
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
         }
         return "";
     }

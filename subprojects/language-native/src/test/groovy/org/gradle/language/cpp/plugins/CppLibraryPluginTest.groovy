@@ -321,13 +321,13 @@ class CppLibraryPluginTest extends Specification {
         main.version == '1.2'
         main.artifacts.size() == 1
 
-        def debug = publishing.publications.debug
+        def debug = publishing.publications.mainDebug
         debug.groupId == 'my.group'
         debug.artifactId == 'mylib_debug'
         debug.version == '1.2'
         debug.artifacts.size() == expectedSharedLibFiles()
 
-        def release = publishing.publications.release
+        def release = publishing.publications.mainRelease
         release.groupId == 'my.group'
         release.artifactId == 'mylib_release'
         release.version == '1.2'

@@ -162,26 +162,29 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 new LightweightUsageContext(variantName + "-link", linkUsage, linkAttributes));
 
                             NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem, usageContexts);
-                            library.getMainPublication().addVariant(variantIdentity);
 
                             if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                                 if (linkage == Linkage.SHARED) {
                                     CppSharedLibrary sharedLibrary = library.addSharedLibrary(variantName, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
-
+                                    library.getMainPublication().addVariant(sharedLibrary);
                                     // Use the debug shared library as the development binary
                                     if (buildType == BuildType.DEBUG) {
                                         library.getDevelopmentBinary().set(sharedLibrary);
                                     }
                                 } else {
                                     CppStaticLibrary staticLibrary = library.addStaticLibrary(variantName, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
-
+                                    library.getMainPublication().addVariant(staticLibrary);
                                     if (!linkages.contains(Linkage.SHARED) && buildType == BuildType.DEBUG) {
                                         // Use the debug static library as the development binary
                                         library.getDevelopmentBinary().set(staticLibrary);
                                     }
                                 }
+
+                            } else {
+                                // Known, but not buildable
+                                library.getMainPublication().addVariant(variantIdentity);
                             }
                         }
                     }
@@ -225,7 +228,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
     private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName());
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
         }
         return "";
     }

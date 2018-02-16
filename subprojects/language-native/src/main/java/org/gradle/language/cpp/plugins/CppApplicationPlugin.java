@@ -121,7 +121,6 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                     Set<? extends UsageContext> usageContextsDebug = Collections.singleton(new LightweightUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
                     NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, application.getBaseName(), group, version, true, false, operatingSystem, usageContextsDebug);
-                    application.getMainPublication().addVariant(debugVariant);
 
 
                     AttributeContainer attributesRelease = attributesFactory.mutable();
@@ -134,17 +133,21 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
 
                     NativeVariantIdentity releaseVariant = new NativeVariantIdentity("release" + operatingSystemSuffix, application.getBaseName(), group, version, true, true, operatingSystem, usageContextsRelease);
-                    application.getMainPublication().addVariant(releaseVariant);
-
 
                     if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                         ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                         CppExecutable debugExecutable = application.addExecutable("debug" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
-                        application.addExecutable("release" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
+                        CppExecutable releaseExecutable = application.addExecutable("release" + operatingSystemSuffix, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), releaseVariant);
 
                         // Use the debug variant as the development binary
                         application.getDevelopmentBinary().set(debugExecutable);
+
+                        application.getMainPublication().addVariant(debugExecutable);
+                        application.getMainPublication().addVariant(releaseExecutable);
+                    } else {
+                        application.getMainPublication().addVariant(debugVariant);
+                        application.getMainPublication().addVariant(releaseVariant);
                     }
                 }
 

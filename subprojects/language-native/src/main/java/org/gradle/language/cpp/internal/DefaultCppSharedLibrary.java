@@ -19,6 +19,7 @@ package org.gradle.language.cpp.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -127,5 +128,10 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     @Override
     public AttributeContainer getRuntimeAttributes() {
         return identity.getRuntimeAttributes();
+    }
+
+    @Override
+    public ModuleVersionIdentifier getCoordinates() {
+        return identity.getCoordinates();
     }
 }

@@ -78,15 +78,15 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             compileAndLinkTasks(debug),
             compileAndLinkTasks(release),
             stripSymbolsTasksRelease(toolChain),
-            ":generatePomFileForDebugPublication",
-            ":generateMetadataFileForDebugPublication",
-            ":publishDebugPublicationToMavenRepository",
+            ":generatePomFileForMainDebugPublication",
+            ":generateMetadataFileForMainDebugPublication",
+            ":publishMainDebugPublicationToMavenRepository",
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleasePublication",
-            ":generateMetadataFileForReleasePublication",
-            ":publishReleasePublicationToMavenRepository",
+            ":generatePomFileForMainReleasePublication",
+            ":generateMetadataFileForMainReleasePublication",
+            ":publishMainReleasePublicationToMavenRepository",
             ":publish")
 
         def main = repo.module('some.group', 'test', '1.2')
