@@ -45,6 +45,8 @@ To see a list of command-line options, run gradle --help
 
 To see more detail about a task, run gradle help --task <task>
 
+For troubleshooting, visit https://help.gradle.org
+
 BUILD SUCCESSFUL"""
     }
 

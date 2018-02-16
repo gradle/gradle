@@ -125,11 +125,11 @@ class DependencyManagementBuildScopeServices {
         ProjectInternal rootProject = projectRegistry.getRootProject();
         if (rootProject == null || rootProject.getGradle().getParent() == null) {
             // BuildIdentity for a top-level build
-            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
+            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":"));
         }
         // BuildIdentity for an included build
         // This hard-codes the assumption that buildName == rootProject.name for included builds
-        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
+        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName()));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
@@ -325,8 +325,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder, moduleIdentifierFactory);
+    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentity buildIdentity) {
+        return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder, moduleIdentifierFactory, buildIdentity.getCurrentBuild());
     }
 
     LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {

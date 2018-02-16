@@ -38,7 +38,6 @@
         <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/dependencyManagementForJavaProjects.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/introMultiProjectBuilds.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/continuousBuild.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/compositeBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildEnvironment.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/troubleshooting.xml'/>
@@ -123,7 +122,6 @@
         <xi:include href='../../../build/asciidoc/userguide/softwareModel.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/softwareModelConcepts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ruleSource.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/javaSoftware.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/playPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/nativeSoftware.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/softwareModelExtend.xml'/>

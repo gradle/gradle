@@ -78,7 +78,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file('src/main/headers'), checkoutDir(repo.name, commit.id.name, repo.id).file('src/main/public'))
     }
 
-    def "adds source dependencies Xcode project of main component to Xcode workspace"() {
+    def "does not add source dependencies Xcode project of main component to Xcode workspace"() {
         def fixture = new CppAppWithLibrary()
 
         given:

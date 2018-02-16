@@ -18,6 +18,7 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
+import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
@@ -112,7 +113,14 @@ public class LifecycleTest {
         'annotations' | ''                                                         | '@TestInstance(Lifecycle.PER_CLASS)'
     }
 
-    def 'can perform nested tests'() {
+    @Unroll
+    def 'can perform nested tests with #maxParallelForks'() {
+        given:
+        buildFile << """
+test {
+    maxParallelForks = ${maxParallelForks}
+}
+"""
         file('src/test/java/org/gradle/TestingAStackDemo.java') << '''
 package org.gradle;
 import static org.junit.jupiter.api.Assertions.*;
@@ -186,6 +194,9 @@ class TestingAStackDemo {
             .assertTestPassed('throws EmptyStackException when popped')
         result.testClass('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
             .assertTestPassed('it is no longer empty')
+
+        where:
+        maxParallelForks << [1, 3]
     }
 
     def 'can support dependency injection'() {

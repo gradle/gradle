@@ -200,7 +200,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         def jar = tmpDir.file("classes.jar")
         def dir = tmpDir.file("classes-dir")
         def cp = files(jar, dir)
-        detector.detectProcessors(cp) >> [Mock(AnnotationProcessorDeclaration)]
+        detector.detectProcessors(cp) >> ["Foo" : Mock(AnnotationProcessorDeclaration)]
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
@@ -217,7 +217,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         def dir = tmpDir.file("classes-dir")
         def jar = tmpDir.file("classes.jar")
         def cp = files(dir, jar)
-        detector.detectProcessors(cp) >> []
+        detector.detectProcessors(cp) >> [:]
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.specs.Spec;
+import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
@@ -105,9 +105,9 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
                 IncludedBuildRegistry includedBuildRegistry = serviceRegistry.get(IncludedBuildRegistry.class);
                 NestedBuildFactory nestedBuildFactory = serviceRegistry.get(NestedBuildFactory.class);
-                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir), nestedBuildFactory);
+                IncludedBuildInternal includedBuild = includedBuildRegistry.addImplicitBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir), nestedBuildFactory);
 
-                Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuildRegistry.getModuleToProjectMapping(includedBuild);
+                Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
                 Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {
                     @Override
                     public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
@@ -122,7 +122,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
 
                     if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, entry.right.getProjectPath()), spec.getDisplayName() + " could not be resolved into a usable project."));
+                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild.getModel(), entry.right.getProjectPath()), spec.getDisplayName() + " could not be resolved into a usable project."));
                     } else {
                         result.resolved(componentMetaData);
                     }

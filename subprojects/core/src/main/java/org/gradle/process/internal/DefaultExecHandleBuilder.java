@@ -16,8 +16,10 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.GUtil;
 
 import java.io.InputStream;
@@ -32,6 +34,7 @@ import java.util.concurrent.Executor;
  */
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
     private final List<Object> arguments = new ArrayList<Object>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
         super(fileResolver, executor);
@@ -100,8 +103,17 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return argumentProviders;
+    }
+
+    @Override
     public List<String> getAllArguments() {
-        return getArgs();
+        List<String> args = new ArrayList<String>(getArgs());
+        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
+            Iterables.addAll(args, argumentProvider.asArguments());
+        }
+        return args;
     }
 
     @Override

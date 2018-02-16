@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -71,12 +72,20 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         super.stop();
     }
 
+    @Override
+    public void stopNow() {
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+    }
+
     private class CollectAllTestClassesExecutor implements Action<String> {
-        private final List<String> testClasses = new ArrayList<>();
+        private final List<Class<?>> testClasses = new ArrayList<>();
 
         @Override
         public void execute(String testClassName) {
-            testClasses.add(testClassName);
+            Class<?> klass = loadClass(testClassName);
+            if (isTopClass(klass)) {
+                testClasses.add(klass);
+            }
         }
 
         private void processAllTestClasses() {
@@ -87,7 +96,20 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<String> testClasses) {
+    private boolean isTopClass(Class<?> klass) {
+        return klass.getEnclosingClass() == null;
+    }
+
+    private Class<?> loadClass(String className) {
+        try {
+            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
+            return Class.forName(className, false, applicationClassloader);
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());

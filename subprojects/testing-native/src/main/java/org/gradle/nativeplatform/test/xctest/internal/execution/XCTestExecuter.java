@@ -92,6 +92,11 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
+    @Override
+    public void stopNow() {
+        throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
+    }
+
     private static class XCTestDetector implements Runnable {
         private final TestClassProcessor testClassProcessor;
         private final XCTestSelection testSelection;
@@ -166,6 +171,11 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
                 execHandle.abort();
                 execHandle.waitForFinish();
             }
+        }
+
+        @Override
+        public void stopNow() {
+            throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
         }
     }
 }

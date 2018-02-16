@@ -630,6 +630,7 @@ There are other task types where this kind of nested inputs are available:
 * `api:org.gradle.api.tasks.JavaExec#getArgumentProviders[]` - model e.g. custom tools
 * `api:org.gradle.api.tasks.JavaExec#getJvmArgumentProviders[]` - used for Jacoco Java agent
 * `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]` - model e.g annotation processors
+* `api:org.gradle.api.tasks.Exec#getArgumentProviders[]` - model e.g custom tools
 
 In the same way, this kind of modelling is available to custom tasks.
 

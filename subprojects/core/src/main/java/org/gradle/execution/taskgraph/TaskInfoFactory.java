@@ -27,6 +27,11 @@ import java.util.Set;
 
 public class TaskInfoFactory {
     private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
+    private final TaskFailureCollector failureCollector;
+
+    public TaskInfoFactory(TaskFailureCollector failureCollector) {
+        this.failureCollector = failureCollector;
+    }
 
     public Set<Task> getTasks() {
         return nodes.keySet();
@@ -36,7 +41,7 @@ public class TaskInfoFactory {
         TaskInfo node = nodes.get(task);
         if (node == null) {
             if (task instanceof IncludedBuildTaskResource) {
-                node = new TaskResourceTaskInfo((TaskInternal) task);
+                node = new TaskResourceTaskInfo((TaskInternal) task, failureCollector);
             } else {
                 node = new TaskInfo((TaskInternal) task);
             }
@@ -50,8 +55,12 @@ public class TaskInfoFactory {
     }
 
     private static class TaskResourceTaskInfo extends TaskInfo {
-        public TaskResourceTaskInfo(TaskInternal task) {
+        private final TaskFailureCollector failureCollector;
+        private boolean complete;
+
+        public TaskResourceTaskInfo(TaskInternal task, TaskFailureCollector failureCollector) {
             super(task);
+            this.failureCollector = failureCollector;
             doNotRequire();
         }
 
@@ -62,8 +71,22 @@ public class TaskInfoFactory {
 
         @Override
         public boolean isComplete() {
+            if (complete) {
+                return true;
+            }
+
             IncludedBuildTaskResource task = (IncludedBuildTaskResource) getTask();
-            return task.isComplete();
+            try {
+                complete = task.isComplete();
+            } catch (Exception e) {
+                complete = true;
+
+                // The failures need to be explicitly collected here, since the wrapper task is never added to the execution plan,
+                // and thus doesn't have failures collected in the usual way on execution.
+                failureCollector.addFailure(e);
+            }
+
+            return complete;
         }
     }
 }

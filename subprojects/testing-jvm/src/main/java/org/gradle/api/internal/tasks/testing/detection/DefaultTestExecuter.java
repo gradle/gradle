@@ -57,6 +57,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final int maxWorkerCount;
     private final Clock clock;
     private final DocumentationRegistry documentationRegistry;
+    private TestClassProcessor processor;
 
     public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
                                WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
@@ -88,7 +89,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
             }
         };
-        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory);
+        processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 
@@ -105,6 +106,13 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, clock, testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+    }
+
+    @Override
+    public void stopNow() {
+        if (processor != null) {
+            processor.stopNow();
+        }
     }
 
     private int getMaxParallelForks(JvmTestExecutionSpec testExecutionSpec) {

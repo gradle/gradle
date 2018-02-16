@@ -290,14 +290,14 @@ public class JacocoTaskExtension {
     }
 
     /**
-     * The Jacoco agent configuration.
+     * The Jacoco agent classpath.
      *
      * This contains only one file - the agent jar.
      *
      * @since 4.6
      */
     @Classpath
-    public FileCollection getAgentConf() {
+    public FileCollection getAgentClasspath() {
         return agent.getAgentConf();
     }
 

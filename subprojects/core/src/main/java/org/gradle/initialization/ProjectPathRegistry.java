@@ -20,6 +20,9 @@ import org.gradle.util.Path;
 
 import java.util.Set;
 
+/**
+ * A registry of all of the projects present in a build tree.
+ */
 public interface ProjectPathRegistry {
     /**
      * Returns an path for every project in a build, including projects from included builds.
@@ -41,4 +44,6 @@ public interface ProjectPathRegistry {
      * Returns a ProjectComponentIdentifier for the given identity path in this build.
      */
     ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath);
+
+    String getProjectName(Path identityPath);
 }

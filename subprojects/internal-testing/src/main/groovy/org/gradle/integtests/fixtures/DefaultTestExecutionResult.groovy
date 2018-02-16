@@ -42,6 +42,11 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         this
     }
 
+    boolean testClassExists(String testClass) {
+        List<Boolean> testClassResults = results*.testClassExists(testClass)
+        return testClassResults.inject { a, b -> a && b }
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)})
     }
@@ -90,6 +95,15 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        int getTestCount() {
+            List<Integer> counts = testClassResults*.testCount
+            List<Integer> uniques = counts.unique()
+            if (uniques.size() == 1) {
+                return uniques.first()
+            }
+            throw new IllegalStateException("Multiple different test counts ${counts}")
+        }
+
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
             testClassResults*.assertTestsSkipped(removeAllParentheses(testNames))
             this
@@ -103,6 +117,11 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
             testClassResults*.assertTestFailed(removeParentheses(name), messageMatchers)
             this
+        }
+
+        boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+            List<Boolean> results = testClassResults*.testFailed(name, messageMatchers)
+            return results.inject { a, b -> a && b }
         }
 
         TestClassExecutionResult assertTestSkipped(String name) {

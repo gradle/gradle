@@ -88,7 +88,7 @@ Every Gradle project provides the task `dependencyInsight` to render the so-call
 [[sec:dependency_declaration_reasons]]
 === Justifying dependency declarations with custom reasons
 
-When you declare a <<declaring_dependencies,dependency>> or a <<sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes your build script and the dependency insight report easier to comprehend.
+When you declare a <<declaring_dependencies,dependency>> or a <<sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
 ++++
 <sample id="dependencyReason" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" title="Giving a reason for choosing a certain module version in a dependency declaration">
