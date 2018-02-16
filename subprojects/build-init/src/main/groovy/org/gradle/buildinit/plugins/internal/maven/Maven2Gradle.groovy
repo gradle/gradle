@@ -356,8 +356,8 @@ version = '$project.version'""";
     def compilerSettings = { project, indent ->
         def configuration = plugin('maven-compiler-plugin', project).configuration
         def settings = new StringBuilder()
-        settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
-        settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
+        settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.8'}\n"
+        settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.8'}\n"
         def encoding = project.properties.'project.build.sourceEncoding'.text()
         if (encoding) {
             settings.append "${indent}tasks.withType(JavaCompile) {\n"
