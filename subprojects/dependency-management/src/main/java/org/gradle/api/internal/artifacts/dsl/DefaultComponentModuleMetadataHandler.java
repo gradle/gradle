@@ -19,13 +19,15 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentModuleMetadata;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ComponentModuleMetadataProcessor;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 
 public class DefaultComponentModuleMetadataHandler implements ComponentModuleMetadataHandler, ComponentModuleMetadataProcessor {
     private final ComponentModuleMetadataContainer moduleMetadataContainer;
+    private final ModuleReplacementsData moduleReplacementsData;
 
-    public DefaultComponentModuleMetadataHandler(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.moduleMetadataContainer = new ComponentModuleMetadataContainer(moduleIdentifierFactory);
+    public DefaultComponentModuleMetadataHandler(ComponentModuleMetadataContainer moduleMetadataContainer, CapabilitiesHandlerInternal capabilitiesHandler) {
+        this.moduleMetadataContainer = moduleMetadataContainer;
+        this.moduleReplacementsData = new CapabilitiesModuleReplacements(this.moduleMetadataContainer, capabilitiesHandler);
     }
 
     public void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule) {
@@ -33,6 +35,6 @@ public class DefaultComponentModuleMetadataHandler implements ComponentModuleMet
     }
 
     public ModuleReplacementsData getModuleReplacements() {
-        return moduleMetadataContainer;
+        return moduleReplacementsData;
     }
 }

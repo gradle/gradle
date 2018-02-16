@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import spock.lang.Specification
 
 class DefaultCapabilitiesHandlerTest extends Specification {
-    def componentModuleMetadataHandler = Mock(ComponentModuleMetadataHandler)
     def moduleFactory = new DefaultImmutableModuleIdentifierFactory()
-    def capabilities = new DefaultCapabilitiesHandler(componentModuleMetadataHandler, moduleFactory)
+    def capabilities = new DefaultCapabilitiesHandler(moduleFactory)
 
     def "can declare a capability"() {
         given:
@@ -39,29 +37,5 @@ class DefaultCapabilitiesHandlerTest extends Specification {
             assert it.is(c)
             it.prefer 'foo:bar'
         }
-    }
-
-    def "converts capabilities to rules"() {
-        given:
-        capabilities.capability('foo') {
-            it.providedBy('foo:bar')
-            it.providedBy('foo:baz')
-        }
-
-        when:
-        capabilities.convertToReplacementRules()
-
-        then:
-        0 * componentModuleMetadataHandler.module(_, _)
-
-        when:
-        capabilities.capability('foo') {
-            it.prefer('foo:bar')
-        }
-        capabilities.convertToReplacementRules()
-
-        then:
-        1 * componentModuleMetadataHandler.module(moduleFactory.module('foo', 'baz'), _)
-        0 * _
     }
 }

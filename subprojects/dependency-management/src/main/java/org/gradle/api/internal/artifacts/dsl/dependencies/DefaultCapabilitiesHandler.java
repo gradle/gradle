@@ -15,30 +15,28 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ComponentModuleMetadata;
-import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
-import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
-    private final ComponentModuleMetadataHandler metadataHandler;
     private final Map<String, DefaultCapability> capabilities = Maps.newHashMap();
+    private final Multimap<ModuleIdentifier, DefaultCapability> moduleToCapabilities = LinkedHashMultimap.create();
     private final NotationParser<Object, ModuleIdentifier> notationParser;
 
-    public DefaultCapabilitiesHandler(ComponentModuleMetadataHandler metadataHandler, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.metadataHandler = metadataHandler;
+    public DefaultCapabilitiesHandler(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.notationParser = parser(moduleIdentifierFactory);
     }
 
@@ -50,33 +48,38 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
             capabilities.put(identifier, capability);
         }
         configureAction.execute(capability);
-    }
-
-    public void convertToReplacementRules() {
-        for (Map.Entry<String, DefaultCapability> capabilityEntry : capabilities.entrySet()) {
-            DefaultCapability capabilityValue = capabilityEntry.getValue();
-            final ModuleIdentifier prefer = capabilityValue.prefer;
-            if (prefer != null) {
-                final String because;
-                if (capabilityValue.reason != null) {
-                    because = capabilityValue.reason;
-                } else {
-                    because = "capability " + capabilityEntry.getKey() + " is provided by " + Joiner.on(" and ").join(capabilityValue.providedBy);
-                }
-
-                for (ModuleIdentifier module : capabilityValue.providedBy) {
-                    if (!module.equals(prefer)) {
-                        metadataHandler.module(module, new Action<ComponentModuleMetadata>() {
-                            @Override
-                            public void execute(ComponentModuleMetadata componentModuleMetadata) {
-                                ((ComponentModuleMetadataDetails) componentModuleMetadata).replacedBy(prefer, because);
-                            }
-                        });
-                    }
-                }
-            }
+        for (ModuleIdentifier moduleIdentifier : capability.getProvidedBy()) {
+            moduleToCapabilities.put(moduleIdentifier, capability);
         }
     }
+
+    @Override
+    public void recordCapabilities(ModuleIdentifier module, Multimap<String, ModuleIdentifier> capabilityToModules) {
+        Collection<DefaultCapability> capabilities = moduleToCapabilities.get(module);
+        for (DefaultCapability capability : capabilities) {
+            capabilityToModules.putAll(capability.getCapabilityId(), capability.getProvidedBy());
+        }
+    }
+
+    @Override
+    public ModuleIdentifier getPreferred(String id) {
+        DefaultCapability capability = capabilities.get(id);
+        if (capability != null) {
+            return capability.getPrefer();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean hasCapabilities() {
+        return !capabilities.isEmpty();
+    }
+
+    @Override
+    public Collection<? extends CapabilityInternal> getCapabilities(ModuleIdentifier module) {
+        return moduleToCapabilities.get(module);
+    }
+
 
     private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return NotationParserBuilder

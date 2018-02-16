@@ -32,11 +32,13 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.ComponentModuleMetadataContainer;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultCapabilitiesHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -237,8 +239,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTypeRegistry);
         }
 
-        CapabilitiesHandler createCapabilitiesHandler(Instantiator instantiator, ComponentModuleMetadataHandler componentModuleMetadataHandler, ImmutableModuleIdentifierFactory factory) {
-            return instantiator.newInstance(DefaultCapabilitiesHandler.class, componentModuleMetadataHandler, factory);
+        CapabilitiesHandlerInternal createCapabilitiesHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory factory) {
+            return instantiator.newInstance(DefaultCapabilitiesHandler.class, factory);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
@@ -249,8 +251,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory);
         }
 
-        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
+        ComponentModuleMetadataContainer createComponentModuleMetadataContainer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new ComponentModuleMetadataContainer(moduleIdentifierFactory);
+        }
+
+        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ComponentModuleMetadataContainer container, CapabilitiesHandlerInternal capabilitiesHandler) {
+            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, container, capabilitiesHandler);
         }
 
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {

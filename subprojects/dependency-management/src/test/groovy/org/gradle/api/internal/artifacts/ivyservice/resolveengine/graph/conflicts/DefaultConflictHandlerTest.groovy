@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
@@ -30,7 +31,8 @@ class DefaultConflictHandlerTest extends Specification {
 
     def resolver = Mock(ModuleConflictResolver)
     def replacements = Mock(ModuleReplacementsData)
-    @Subject handler = new DefaultConflictHandler(resolver, replacements)
+    def capabilitiesHandler = Mock(CapabilitiesHandlerInternal)
+    @Subject handler = new DefaultConflictHandler(resolver, replacements, capabilitiesHandler)
     def details = Mock(ConflictResolverDetails)
 
     def "registers unconflicted modules"() {
