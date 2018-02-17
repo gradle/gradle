@@ -1,23 +1,30 @@
 package org.gradle.plugins
 
+import accessors.java
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.*
-
-import accessors.java
 import org.gradle.api.Task
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
+
 import org.gradle.internal.hash.HashUtil
+
+import org.gradle.kotlin.dsl.*
+
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
+
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.performance.generator.tasks.*
+
 import java.io.File
+import java.util.concurrent.Callable
+
 import javax.xml.parsers.DocumentBuilderFactory
 
 private val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
@@ -262,13 +269,13 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.createCleanSamplesTask(): Task {
-        return tasks.create<Delete>("cleanSamples") {
-            delete { tasks.withType<ProjectGeneratorTask>().map { it.outputs } }
-            delete { tasks.withType<RemoteProject>().map { it.outputDirectory } }
-            delete { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } }
+    private
+    fun Project.createCleanSamplesTask(): Task =
+        tasks.create<Delete>("cleanSamples") {
+            delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
+            delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
+            delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
         }
-    }
 
     private fun Project.createPrepareSamplesTask(): Task {
         return tasks.create("prepareSamples") {
@@ -358,3 +365,8 @@ open class PerformanceReport : JavaExec() {
         super.exec()
     }
 }
+
+
+fun <T> deferred(value: () -> T): Any =
+    Callable { value() }
+
