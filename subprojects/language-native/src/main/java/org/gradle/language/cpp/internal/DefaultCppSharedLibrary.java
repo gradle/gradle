@@ -110,14 +110,14 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = this.runtimeElements.get();
         return Sets.newHashSet(
-            new DefaultUsageContext(getIdentity().getLinkeUsageContext(), linkElements.getAllArtifacts(), linkElements),
+            new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
             new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)
         );
     }
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return getIdentity().getLinkeUsageContext().getAttributes();
+        return getIdentity().getLinkUsageContext().getAttributes();
     }
 
     @Override

@@ -49,8 +49,8 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         this.debuggable = debuggable;
         this.optimized = optimized;
         this.operatingSystemFamily = operatingSystemFamily;
-        this.linkUsage = null;
-        this.runtimeUsage = null;
+        this.linkUsage = linkUsage;
+        this.runtimeUsage = runtimeUsage;
         this.usageContexts = Sets.newLinkedHashSet();
         if (linkUsage!=null) {
             usageContexts.add(linkUsage);
@@ -91,7 +91,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         return runtimeUsage;
     }
 
-    public UsageContext getLinkeUsageContext() {
+    public UsageContext getLinkUsageContext() {
         return linkUsage;
     }
 }

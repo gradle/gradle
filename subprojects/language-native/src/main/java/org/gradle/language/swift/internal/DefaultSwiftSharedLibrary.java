@@ -105,7 +105,7 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return identity.getLinkeUsageContext().getAttributes();
+        return identity.getLinkUsageContext().getAttributes();
     }
 
     @Override
