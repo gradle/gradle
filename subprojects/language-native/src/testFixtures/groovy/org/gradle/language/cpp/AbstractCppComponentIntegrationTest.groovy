@@ -16,7 +16,9 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
@@ -74,6 +76,14 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         fails taskNameToAssembleDevelopmentBinary
         failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
         failure.assertHasCause("An operating system needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
+    }
+
+    @Override
+    protected String getDefaultArchitecture() {
+        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
+            return "x86"
+        }
+        return super.defaultArchitecture
     }
 
     protected abstract SourceElement getComponentUnderTest()

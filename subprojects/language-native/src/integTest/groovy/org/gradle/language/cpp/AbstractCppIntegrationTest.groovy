@@ -16,8 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
@@ -44,14 +42,6 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
-    }
-
-    @Override
-    protected String getDefaultArchitecture() {
-        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
-            return "x86"
-        }
-        return super.defaultArchitecture
     }
 
     protected abstract String getDevelopmentBinaryCompileTask()
