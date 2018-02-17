@@ -22,9 +22,11 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 
 public class WindowsKitWindowsSdk extends WindowsKitComponent implements WindowsSdk {
+    private final File binDir;
 
-    public WindowsKitWindowsSdk(File baseDir, VersionNumber version, String name) {
+    public WindowsKitWindowsSdk(File baseDir, VersionNumber version, File binDir, String name) {
         super(baseDir, version, name);
+        this.binDir = binDir;
     }
 
     @Override
@@ -35,12 +37,12 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
     @Override
     public File getBinDir(NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
-            return new File(getBaseDir(), "bin/x64");
+            return new File(binDir, "x64");
         }
         if (platform.getArchitecture().isArm()) {
-            return new File(getBaseDir(), "bin/arm");
+            return new File(binDir, "arm");
         }
-        return new File(getBaseDir(), "bin/x86");
+        return new File(binDir, "x86");
     }
 
     public File[] getIncludeDirs() {
