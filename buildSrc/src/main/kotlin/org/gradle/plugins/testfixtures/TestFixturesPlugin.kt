@@ -60,7 +60,6 @@ open class TestFixturesPlugin : Plugin<Project> {
         configureAsConsumer()
     }
 
-
     private
     fun Project.configureAsProducer() {
 
@@ -130,7 +129,6 @@ open class TestFixturesPlugin : Plugin<Project> {
             }
         }
     }
-
 
     private
     fun Project.configureAsConsumer() = afterEvaluate {
