@@ -18,8 +18,8 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.internal.text.TreeFormatter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
@@ -55,10 +55,10 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
     }
 
     def "SDK not available when not found in registry"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
 
         given:
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> { throw new MissingRegistryEntryException("missing") }
+        windowsRegistry.getStringValue(_, _, _) >> { throw new MissingRegistryEntryException("missing") }
 
         when:
         def result = windowsSdkLocator.locateComponent(null)
@@ -71,15 +71,16 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Windows SDK installation using the Windows registry.")
+        visitor.toString() == "Could not locate a Windows SDK installation using the Windows registry."
     }
 
     def "SDK not available when registry dir contains no version directories"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
         def dir1 = kitDir("dir1")
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
+        windowsRegistry.getStringValue(_, _, _) >> { throw new MissingRegistryEntryException("missing") }
 
         when:
         def result = windowsSdkLocator.locateComponent(null)
@@ -92,15 +93,16 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Windows SDK installation using the Windows registry.")
+        visitor.toString() == "Could not locate a Windows SDK installation. None of the following locations contain a valid installation: ${dir1}"
     }
 
     def "SDK not available when registry dir does not contain any versions that look like an SDK"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
         def dir1 = badKitDir("sdk1", "10.0.10240.0", "10.0.10150.0")
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
+        windowsRegistry.getStringValue(_, _, _) >> { throw new MissingRegistryEntryException("missing") }
 
         when:
         def result = windowsSdkLocator.locateComponent(null)
@@ -113,7 +115,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Windows SDK installation using the Windows registry.")
+        visitor.toString() == "Could not locate a Windows SDK installation. None of the following locations contain a valid installation: ${dir1}"
     }
 
     def "does not use registry dir versions that do not look like an SDK"() {
@@ -165,7 +167,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
     }
 
     def "SDK not available when specified install dir does not look like an SDK"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
         def dir1 = kitDir("sdk1", "10.0.10240.0")
         def dir2 = badKitDir("sdk2", "10.0.10150.0")
 
@@ -184,7 +186,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("The specified installation directory '$dir2' does not appear to contain a Windows SDK installation.")
+        visitor.toString() == "The specified installation directory '$dir2' does not appear to contain a Windows SDK installation."
     }
 
     def kitDir(String name, String... versions) {
