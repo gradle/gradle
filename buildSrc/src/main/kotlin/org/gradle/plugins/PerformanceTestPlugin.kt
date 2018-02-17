@@ -28,31 +28,32 @@ import java.util.concurrent.Callable
 
 import javax.xml.parsers.DocumentBuilderFactory
 
-private val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
-private val reportGeneratorClassName = "org.gradle.performance.results.ReportGenerator"
-private val urlProperty = "org.gradle.performance.db.url"
-private val workerTestTaskNameProperty = "org.gradle.performance.workerTestTaskName"
-private val teamCityUserNameProperty = "teamCityUsername"
-private val teamCityPasswordProperty = "teamCityPassword"
-private val teamCityUrlValue = "https://builds.gradle.org/"
-private val yourkitProperty = "org.gradle.performance.use_yourkit"
-private val honestProfilerProperty = "org.gradle.performance.honestprofiler"
-private val channelProperty = "org.gradle.performance.execution.channel"
-private val coordinatorBuildIdProperty = "org.gradle.performance.coordinatorBuildId"
-private val performanceTestVerboseProperty = "performanceTest.verbose"
-private val baselinesProperty = "org.gradle.performance.baselines"
-private val buildTypeIdProperty = "org.gradle.performance.buildTypeId"
-private val dbUsernameProperty = "org.gradle.performance.db.username"
-private val dbPasswordProperty = "org.gradle.performance.db.password"
-private val branchnameProperty = "org.gradle.performance.branchName"
+
+private const val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
+private const val reportGeneratorClassName = "org.gradle.performance.results.ReportGenerator"
+private const val urlProperty = "org.gradle.performance.db.url"
+private const val workerTestTaskNameProperty = "org.gradle.performance.workerTestTaskName"
+private const val teamCityUserNameProperty = "teamCityUsername"
+private const val teamCityPasswordProperty = "teamCityPassword"
+private const val teamCityUrlValue = "https://builds.gradle.org/"
+private const val yourkitProperty = "org.gradle.performance.use_yourkit"
+private const val honestProfilerProperty = "org.gradle.performance.honestprofiler"
+private const val channelProperty = "org.gradle.performance.execution.channel"
+private const val coordinatorBuildIdProperty = "org.gradle.performance.coordinatorBuildId"
+private const val performanceTestVerboseProperty = "performanceTest.verbose"
+private const val baselinesProperty = "org.gradle.performance.baselines"
+private const val buildTypeIdProperty = "org.gradle.performance.buildTypeId"
+private const val dbUsernameProperty = "org.gradle.performance.db.username"
+private const val dbPasswordProperty = "org.gradle.performance.db.password"
+private const val branchnameProperty = "org.gradle.performance.branchName"
 
 private val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last")
-private val resultsStoreClassName = "org.gradle.performance.results.AllResultsStore"
+private const val resultsStoreClassName = "org.gradle.performance.results.AllResultsStore"
 
-private val performanceTestsReportDir = "performance-tests/report"
-private val h2DatabaseUrl = "jdbc:h2:./build/database"
-private val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
-private val performanceTestScenarioReportFileName = "/performance-tests/scenario-report.html"
+private const val performanceTestsReportDir = "performance-tests/report"
+private const val h2DatabaseUrl = "jdbc:h2:./build/database"
+private const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
+private const val performanceTestScenarioReportFileName = "/performance-tests/scenario-report.html"
 
 class PerformanceTestPlugin : Plugin<Project> {
 
