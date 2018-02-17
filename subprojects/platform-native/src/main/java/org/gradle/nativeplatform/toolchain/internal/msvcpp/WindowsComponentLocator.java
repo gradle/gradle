@@ -20,8 +20,6 @@ import java.io.File;
 import java.util.List;
 
 public interface WindowsComponentLocator<T> {
-    String[] PLATFORMS = new String[] {"x86", "x64"};
-
     /**
      * Locates a component to use.
      *

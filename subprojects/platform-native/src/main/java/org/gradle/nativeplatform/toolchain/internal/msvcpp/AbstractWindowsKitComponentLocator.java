@@ -44,6 +44,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitComponent> implements WindowsComponentLocator<T> {
+    static final String[] PLATFORMS = new String[]{"x86", "x64"};
+
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
     private final SetMultimap<File, T> foundComponents = HashMultimap.create();
@@ -115,15 +117,6 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
             }));
     }
 
-    private T getBestComponent(File baseDir) {
-        final SortedSet<T> candidates = new TreeSet<T>(new DescendingComponentVersionComparator());
-        Set<T> components = foundComponents.get(baseDir);
-        if (components != null) {
-            candidates.addAll(components);
-        }
-        return candidates.isEmpty() ? null : candidates.iterator().next();
-    }
-
     private T getBestComponent() {
         final SortedSet<T> candidates = new TreeSet<T>(new DescendingComponentVersionComparator());
         candidates.addAll(foundComponents.values());
@@ -139,37 +132,53 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
     private void locateComponentsInRegistry(String baseKey) {
         try {
             File windowsKitDir = FileUtils.canonicalize(new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, REGISTRY_KIT_10)));
-            String[] versionDirs = getComponentVersionDirs(windowsKitDir);
-            if (isValidComponentBaseDir(windowsKitDir) && versionDirs.length > 0) {
-                for (String versionDir : versionDirs) {
-                    VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
-                    LOGGER.debug("Found {} {} at {}", getDisplayName(), version.toString(), windowsKitDir);
-                    putComponent(newComponent(windowsKitDir, version, DiscoveryType.REGISTRY));
-                }
-            } else {
+            Set<T> found = findIn(windowsKitDir, DiscoveryType.REGISTRY);
+            if (found.isEmpty()) {
                 brokenComponents.add(windowsKitDir);
-                LOGGER.debug("Ignoring candidate directory {} as it does not look like a {} installation.", windowsKitDir, getDisplayName());
+            }
+            for (T t : found) {
+                foundComponents.put(t.getBaseDir(), t);
             }
         } catch (MissingRegistryEntryException e) {
             // Ignore the version if the string cannot be read
         }
     }
 
+    private Set<T> findIn(File windowsKitDir, DiscoveryType discoveryType) {
+        Set<T> found = new LinkedHashSet<T>();
+        String[] versionDirs = getComponentVersionDirs(windowsKitDir);
+        for (String versionDir : versionDirs) {
+            VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
+            LOGGER.debug("Found {} {} at {}", getDisplayName(), version.toString(), windowsKitDir);
+            File binDir = new File(windowsKitDir, "bin/" + versionDir);
+            File unversionedBinDir = new File(windowsKitDir, "bin");
+            if (isValidComponentBinDir(binDir)) {
+                T component = newComponent(windowsKitDir, binDir, version, discoveryType);
+                found.add(component);
+            } else if (isValidComponentBinDir(unversionedBinDir)) {
+                T component = newComponent(windowsKitDir, unversionedBinDir, version, discoveryType);
+                found.add(component);
+            }
+        }
+        if (found.isEmpty()) {
+            LOGGER.debug("Ignoring candidate directory {} as it does not look like a {} installation.", windowsKitDir, getDisplayName());
+        }
+        return found;
+    }
+
     private SearchResult<T> locateUserSpecifiedComponent(File candidate) {
         File windowsKitDir = FileUtils.canonicalize(candidate);
-        String[] versionDirs = getComponentVersionDirs(windowsKitDir);
-        if (isValidComponentBaseDir(windowsKitDir) && versionDirs.length > 0) {
-            for (String versionDir : versionDirs) {
-                VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
-                LOGGER.debug("Found {} {} ({}) at {}", getDisplayName(), version.toString(), versionDir, windowsKitDir);
-                if (!foundComponents.containsKey(windowsKitDir)) {
-                    putComponent(newComponent(windowsKitDir, version, DiscoveryType.USER));
-                }
-            }
-            return new ComponentFound<T>(getBestComponent(candidate));
-        } else {
+        Set<T> candidates = foundComponents.get(windowsKitDir);
+        if (candidates.isEmpty()) {
+            candidates = findIn(windowsKitDir, DiscoveryType.USER);
+        }
+        if (candidates.isEmpty()) {
             return new ComponentNotFound<T>(String.format("The specified installation directory '%s' does not appear to contain a %s installation.", candidate, getDisplayName()));
         }
+
+        Set<T> found = new TreeSet<T>(new DescendingComponentVersionComparator());
+        found.addAll(candidates);
+        return new ComponentFound<T>(found.iterator().next());
     }
 
     private String[] getComponentVersionDirs(File candidate) {
@@ -206,11 +215,6 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
         return result.toArray(new String[result.size()]);
     }
 
-
-    private void putComponent(T component) {
-        foundComponents.put(component.getBaseDir(), component);
-    }
-
     protected String getVersionedDisplayName(VersionNumber version, DiscoveryType discoveryType) {
         switch (discoveryType) {
             case USER:
@@ -226,13 +230,13 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
 
     abstract String getDisplayName();
 
-    abstract boolean isValidComponentBaseDir(File baseDir);
+    abstract boolean isValidComponentBinDir(File binDir);
 
     abstract boolean isValidComponentIncludeDir(File includeDir);
 
     abstract boolean isValidComponentLibDir(File libDir);
 
-    abstract T newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType);
+    abstract T newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType);
 
     private class DescendingComponentVersionComparator implements Comparator<T> {
         @Override
