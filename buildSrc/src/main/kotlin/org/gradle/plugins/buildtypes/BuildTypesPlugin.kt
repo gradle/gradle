@@ -71,40 +71,41 @@ class BuildTypesPlugin : Plugin<Project> {
 
     private
     val helpTaskRegex = Regex("h(e(lp?)?)?")
+}
 
-    private
-    fun Project.insertBuildTypeTasksInto(
-        taskList: MutableList<String>,
-        index: Int,
-        buildType: BuildType,
-        subproject: String) {
 
-        fun insert(task: String) =
-            taskList.add(index, task)
+internal
+fun Project.insertBuildTypeTasksInto(
+    taskList: MutableList<String>,
+    index: Int,
+    buildType: BuildType,
+    subproject: String) {
 
-        fun forEachBuildTypeTask(act: (String) -> Unit) =
-            buildType.tasks.reversed().forEach(act)
+    fun insert(task: String) =
+        taskList.add(index, task)
 
-        when {
-            subproject.isEmpty()            ->
-                forEachBuildTypeTask(::insert)
+    fun forEachBuildTypeTask(act: (String) -> Unit) =
+        buildType.tasks.reversed().forEach(act)
 
-            findProject(subproject) != null ->
-                forEachBuildTypeTask {
-                    val taskPath = "$subproject:$it"
-                    if (project.tasks.findByPath(taskPath) != null) {
-                        insert(taskPath)
-                    } else {
-                        println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
-                    }
+    when {
+        subproject.isEmpty()            ->
+            forEachBuildTypeTask(::insert)
+
+        findProject(subproject) != null ->
+            forEachBuildTypeTask {
+                val taskPath = "$subproject:$it"
+                if (tasks.findByPath(taskPath) != null) {
+                    insert(taskPath)
+                } else {
+                    println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
                 }
-            else                            ->
-                println("Skipping execution of build type '${buildType.name}'. Project '$subproject' not found in root project '$name'.")
-        }
+            }
+        else                            ->
+            println("Skipping execution of build type '${buildType.name}'. Project '$subproject' not found in root project '$name'.")
+    }
 
-        if (taskList.isEmpty()) {
-            taskList.add("help") //do not trigger the default tasks
-        }
+    if (taskList.isEmpty()) {
+        taskList.add("help") //do not trigger the default tasks
     }
 }
 
