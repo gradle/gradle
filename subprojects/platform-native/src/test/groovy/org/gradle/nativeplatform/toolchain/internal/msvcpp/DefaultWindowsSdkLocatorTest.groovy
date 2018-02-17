@@ -71,9 +71,9 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         given:
         legacySdkLookup.available >> false
         legacySdkLookup.sdk >> null
-        legacySdkLookup.explain(_) >> { args -> args[0].node("fail") }
         windowsKitLookup.available >> false
         windowsKitLookup.component >> null
+        windowsKitLookup.explain(_) >> { args -> args[0].node("fail") }
 
         when:
         def result = locator.locateComponent(null)

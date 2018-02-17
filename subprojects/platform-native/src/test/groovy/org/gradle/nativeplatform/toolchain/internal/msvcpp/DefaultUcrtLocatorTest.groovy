@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.internal.text.TreeFormatter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
@@ -65,10 +66,10 @@ class DefaultUcrtLocatorTest extends Specification {
     }
 
     def "handles missing ucrt"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
 
         given:
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> { throw new MissingRegistryEntryException("missing") }
+        windowsRegistry.getStringValue(_, _, _) >> { throw new MissingRegistryEntryException("missing") }
 
         when:
         def result = ucrtLocator.locateComponent(null)
@@ -81,7 +82,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Universal C Runtime installation using the Windows registry.")
+        visitor.toString() == "Could not locate a Universal C Runtime installation using the Windows registry."
     }
 
     def "uses ucrt using specified install dir"() {

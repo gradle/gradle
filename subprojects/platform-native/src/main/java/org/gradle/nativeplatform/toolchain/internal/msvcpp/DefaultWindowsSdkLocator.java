@@ -80,7 +80,7 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
 
         @Override
         public void explain(TreeVisitor<? super String> visitor) {
-            legacySearchResult.explain(visitor);
+            windowsKitSearchResult.explain(visitor);
         }
     }
 }

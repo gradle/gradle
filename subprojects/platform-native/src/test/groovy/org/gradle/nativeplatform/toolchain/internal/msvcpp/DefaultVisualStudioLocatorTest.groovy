@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.SystemInfo
+import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
@@ -69,7 +70,29 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(dir3, "15.0"), legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0")] }
-        0 * windowsRegistryLocator.getVisualStudioInstalls()
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        0 * systemPathLocator.getVisualStudioInstalls()
+
+        when:
+        def result = visualStudioLocator.locateComponent(null)
+
+        then:
+        result.available
+        result.component.name == "Visual Studio 15.0.0"
+        result.component.version == VersionNumber.parse("15.0")
+        result.component.baseDir == dir3
+        result.component.visualCpp.name == "Visual C++ 1.2.3-4"
+        result.component.visualCpp.version == VersionNumber.parse("1.2.3.4")
+    }
+
+    def "use highest visual studio version found from the command line and registry"() {
+        def dir1 = vsDir("vs1")
+        def dir2 = vsDir("vs2")
+        def dir3 = vs2017Dir("vs3")
+
+        given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0")] }
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> [vs2017Install(dir3, "15.0")]
         0 * systemPathLocator.getVisualStudioInstalls()
 
         when:
@@ -110,7 +133,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(dir4, "15.0"), legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0"), legacyVsInstall(dir3, "13.0")] }
-        0 * windowsRegistryLocator.getVisualStudioInstalls()
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         0 * systemPathLocator.getVisualStudioInstalls()
 
         when:
@@ -154,6 +177,34 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         allResults.empty
+    }
+
+    def "visual studio not available when broken installs found"() {
+        def visitor = new TreeFormatter()
+        def dir1 = tmpDir.createDir("broken1")
+        def install1 = legacyVsInstall(dir1, "12")
+        def dir2 = tmpDir.createDir("broken2")
+        def install2 = legacyVsInstall(dir2, "13")
+
+        given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> [install1]
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> [install2]
+        1 * systemPathLocator.getVisualStudioInstalls() >> []
+
+        when:
+        def result = visualStudioLocator.locateComponent(null)
+
+        then:
+        !result.available
+        result.component == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        visitor.toString() == """Could not locate a Visual Studio installation. None of the following locations contain a valid installation:
+  - ${dir1}
+  - ${dir2}"""
     }
 
     def "locates visual studio 2017 installation based on executables in path"() {
@@ -216,7 +267,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
-        0 * windowsRegistryLocator.getVisualStudioInstalls()
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         0 * systemPathLocator.getVisualStudioInstalls()
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, "15.1")
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> vs2017Install(vsDir2, "15.2")
@@ -250,7 +301,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
-        0 * windowsRegistryLocator.getVisualStudioInstalls()
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         0 * systemPathLocator.getVisualStudioInstalls()
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, null)
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> vs2017Install(vsDir2, null)
@@ -303,13 +354,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     def "visual studio not found when visual cpp version is unknown"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
         def ignored = vsDir("vs-2")
 
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
-        1 * systemPathLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, null)] }
+        1 * systemPathLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12", null)] }
 
         when:
         def result = visualStudioLocator.locateComponent(null)
@@ -322,7 +373,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.")
+        visitor.toString().startsWith("Could not locate a Visual Studio installation.")
     }
 
     def "visual studio not found when version cannot be determined for specified directory"() {
@@ -520,11 +571,11 @@ class DefaultVisualStudioLocatorTest extends Specification {
         }
     }
 
-    VisualStudioMetadata legacyVsInstall(File installDir, String version) {
+    VisualStudioMetadata legacyVsInstall(File installDir, String version, String cppVersion = version) {
         return new VisualStudioMetadataBuilder()
             .installDir(installDir)
             .visualCppDir(new File(installDir, "VC"))
-            .visualCppVersion(VersionNumber.parse(version))
+            .visualCppVersion(VersionNumber.parse(cppVersion))
             .version(VersionNumber.parse(version))
             .build()
     }

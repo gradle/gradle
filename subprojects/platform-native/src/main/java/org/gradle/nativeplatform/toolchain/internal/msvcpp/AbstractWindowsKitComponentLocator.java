@@ -16,10 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,11 +46,13 @@ import java.util.regex.Pattern;
 public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitComponent> implements WindowsComponentLocator<T> {
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
-    private final Map<File, Set<T>> foundComponents = new HashMap<File, Set<T>>();
+    private final SetMultimap<File, T> foundComponents = HashMultimap.create();
+    private final Set<File> brokenComponents = new LinkedHashSet<File>();
     private final WindowsRegistry windowsRegistry;
     private boolean initialised;
 
-    protected enum DiscoveryType { REGISTRY, USER }
+    protected enum DiscoveryType {REGISTRY, USER}
+
     private static final String[] REGISTRY_BASEPATHS = {
         "SOFTWARE\\",
         "SOFTWARE\\Wow6432Node\\"
@@ -81,11 +88,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
     public List<T> locateAllComponents() {
         initializeComponents();
 
-        List<T> allComponents = Lists.newArrayList();
-        for (Set<T> components : foundComponents.values()) {
-            allComponents.addAll(components);
-        }
-        return allComponents;
+        return Lists.newArrayList(foundComponents.values());
     }
 
     private void initializeComponents() {
@@ -97,9 +100,19 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
 
     private SearchResult<T> locateDefaultComponent() {
         T selected = getBestComponent();
-        return selected == null
-            ? new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation using the Windows registry.")
-            : new ComponentFound<T>(selected);
+        if (selected != null) {
+            return new ComponentFound<T>(selected);
+        }
+        if (brokenComponents.isEmpty()) {
+            return new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation using the Windows registry.");
+        }
+        return new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation. None of the following locations contain a valid installation",
+            CollectionUtils.collect(brokenComponents, new Transformer<String, File>() {
+                @Override
+                public String transform(File file) {
+                    return file.getAbsolutePath();
+                }
+            }));
     }
 
     private T getBestComponent(File baseDir) {
@@ -113,9 +126,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
 
     private T getBestComponent() {
         final SortedSet<T> candidates = new TreeSet<T>(new DescendingComponentVersionComparator());
-        for (Set<T> components : foundComponents.values()) {
-            candidates.addAll(components);
-        }
+        candidates.addAll(foundComponents.values());
         return candidates.isEmpty() ? null : candidates.iterator().next();
     }
 
@@ -136,6 +147,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
                     putComponent(newComponent(windowsKitDir, version, DiscoveryType.REGISTRY));
                 }
             } else {
+                brokenComponents.add(windowsKitDir);
                 LOGGER.debug("Ignoring candidate directory {} as it does not look like a {} installation.", windowsKitDir, getDisplayName());
             }
         } catch (MissingRegistryEntryException e) {
@@ -196,16 +208,11 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
 
 
     private void putComponent(T component) {
-        Set<T> components = foundComponents.get(component.getBaseDir());
-        if (components == null) {
-            components = new HashSet<T>();
-            foundComponents.put(component.getBaseDir(), components);
-        }
-        components.add(component);
+        foundComponents.put(component.getBaseDir(), component);
     }
 
     protected String getVersionedDisplayName(VersionNumber version, DiscoveryType discoveryType) {
-        switch(discoveryType) {
+        switch (discoveryType) {
             case USER:
                 return USER_PROVIDED + " " + getDisplayName() + " " + version.getMajor();
             case REGISTRY:
