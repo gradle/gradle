@@ -81,7 +81,7 @@ class BuildTypesPlugin : Plugin<Project> {
 
         if (subproject.isEmpty() || findProject(subproject) != null) {
             buildType.tasks.reversed().forEach {
-                val path = subproject + it
+                val path = "$subproject:$it"
                 if (subproject.isEmpty() || tasks.findByPath(path) != null) {
                     taskNames.add(index, path)
                 } else {
