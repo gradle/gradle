@@ -20,6 +20,9 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class Ucrt extends WindowsKitComponent {
 
@@ -27,20 +30,37 @@ public class Ucrt extends WindowsKitComponent {
         super(baseDir, version, name);
     }
 
-    public File[] getIncludeDirs() {
-        return new File[] {
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/ucrt")
-        };
+    public SystemLibraries getCRuntime(final NativePlatformInternal platform) {
+        return new UcrtSystemLibraries(platform);
     }
 
-    public File getLibDir(NativePlatformInternal platform) {
-        String platformDir = "x86";
-        if (platform.getArchitecture().isAmd64()) {
-            platformDir = "x64";
+    private class UcrtSystemLibraries implements SystemLibraries {
+        private final NativePlatformInternal platform;
+
+        UcrtSystemLibraries(NativePlatformInternal platform) {
+            this.platform = platform;
         }
-        if (platform.getArchitecture().isArm()) {
-            platformDir = "arm";
+
+        @Override
+        public List<File> getIncludeDirs() {
+            return Collections.singletonList(new File(getBaseDir(), "Include/" + getVersion().toString() + "/ucrt"));
         }
-        return new File(getBaseDir(), "Lib/" + getVersion().toString() + "/ucrt/" + platformDir);
+
+        @Override
+        public List<File> getLibDirs() {
+            String platformDir = "x86";
+            if (platform.getArchitecture().isAmd64()) {
+                platformDir = "x64";
+            }
+            if (platform.getArchitecture().isArm()) {
+                platformDir = "arm";
+            }
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion().toString() + "/ucrt/" + platformDir));
+        }
+
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return Collections.emptyMap();
+        }
     }
 }

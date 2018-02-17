@@ -30,7 +30,6 @@ import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
@@ -65,20 +64,18 @@ import static org.gradle.internal.FileUtils.withExtension;
 class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
     private final PlatformVisualCpp visualCpp;
-    private final WindowsSdk sdk;
-    private final Ucrt ucrt;
-    private final NativePlatformInternal targetPlatform;
+    private final PlatformWindowsSdk sdk;
+    private final SystemLibraries ucrt;
     private final ExecActionFactory execActionFactory;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final WorkerLeaseService workerLeaseService;
 
-    VisualCppPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, PlatformVisualCpp visualCpp, WindowsSdk sdk, Ucrt ucrt, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService) {
+    VisualCppPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, PlatformVisualCpp visualCpp, PlatformWindowsSdk sdk, SystemLibraries ucrt, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService) {
         super(buildOperationExecutor, operatingSystem);
         this.commandLineToolConfigurations = commandLineToolConfigurations;
         this.visualCpp = visualCpp;
         this.sdk = sdk;
         this.ucrt = ucrt;
-        this.targetPlatform = targetPlatform;
         this.execActionFactory = execActionFactory;
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.workerLeaseService = workerLeaseService;
@@ -167,7 +164,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
 
     @Override
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
-        CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
+        CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler());
         String objectFileExtension = ".res";
         WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addDefinitions(WindowsResourceCompileSpec.class), objectFileExtension, false, workerLeaseService);
         return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, compilerOutputFileNamingSchemeFactory, objectFileExtension);
@@ -194,7 +191,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
         // The visual C++ tools use the path to find other executables
         // TODO:ADAM - restrict this to the specific path for the target tool
         invocationContext.addPath(visualCpp.getPath());
-        invocationContext.addPath(sdk.getBinDir(targetPlatform));
+        invocationContext.addPath(sdk.getPath());
         // Clear environment variables that might effect cl.exe & link.exe
         clearEnvironmentVars(invocationContext, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
 
@@ -235,9 +232,9 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     public List<File> getSystemIncludes(ToolType compilerType) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         builder.addAll(visualCpp.getIncludeDirs());
-        builder.add(sdk.getIncludeDirs());
+        builder.addAll(sdk.getIncludeDirs());
         if (ucrt != null) {
-            builder.add(ucrt.getIncludeDirs());
+            builder.addAll(ucrt.getIncludeDirs());
         }
 
         return builder.build();
@@ -258,9 +255,9 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
         return new Transformer<LinkerSpec, LinkerSpec>() {
             public LinkerSpec transform(LinkerSpec original) {
                 original.libraryPath(visualCpp.getLibDirs());
-                original.libraryPath(sdk.getLibDir(targetPlatform));
+                original.libraryPath(sdk.getLibDirs());
                 if (ucrt != null) {
-                    original.libraryPath(ucrt.getLibDir(targetPlatform));
+                    original.libraryPath(ucrt.getLibDirs());
                 }
                 return original;
             }
