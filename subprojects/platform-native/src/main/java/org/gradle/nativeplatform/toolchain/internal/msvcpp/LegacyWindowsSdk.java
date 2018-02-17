@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
@@ -80,16 +79,34 @@ public class LegacyWindowsSdk implements WindowsSdk {
         return version;
     }
 
+    public File getBaseDir() {
+        return baseDir;
+    }
+
     @Override
     public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
-        return new LegacyPlatformWindowsSdk(platform);
+        if (platform.getArchitecture().isAmd64()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_AMD64, LIBPATHS_AMD64);
+        }
+        if (platform.getArchitecture().isIa64()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_IA64, LIBPATHS_IA64);
+        }
+        if (platform.getArchitecture().isArm()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_ARM, LIBPATHS_ARM);
+        }
+        if (platform.getArchitecture().isI386()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_X86, LIBPATHS_X86);
+        }
+        throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class LegacyPlatformWindowsSdk implements PlatformWindowsSdk {
-        private final NativePlatformInternal platform;
+        private final String[] binPaths;
+        private final String[] libPaths;
 
-        LegacyPlatformWindowsSdk(NativePlatformInternal platform) {
-            this.platform = platform;
+        LegacyPlatformWindowsSdk(String[] binPaths, String[] libPaths) {
+            this.binPaths = binPaths;
+            this.libPaths = libPaths;
         }
 
         @Override
@@ -113,16 +130,7 @@ public class LegacyWindowsSdk implements WindowsSdk {
 
         @Override
         public List<File> getLibDirs() {
-            if (architecture(platform).isAmd64()) {
-                return Collections.singletonList(getAvailableFile(LIBPATHS_AMD64));
-            }
-            if (architecture(platform).isIa64()) {
-                return Collections.singletonList(getAvailableFile(LIBPATHS_IA64));
-            }
-            if (architecture(platform).isArm()) {
-                return Collections.singletonList(getAvailableFile(LIBPATHS_ARM));
-            }
-            return Collections.singletonList(getAvailableFile(LIBPATHS_X86));
+            return Collections.singletonList(getAvailableFile(libPaths));
         }
 
         @Override
@@ -141,20 +149,7 @@ public class LegacyWindowsSdk implements WindowsSdk {
         }
 
         private File getBinDir() {
-            if (architecture(platform).isAmd64()) {
-                return getAvailableFile(BINPATHS_AMD64);
-            }
-            if (architecture(platform).isIa64()) {
-                return getAvailableFile(BINPATHS_IA64);
-            }
-            if (architecture(platform).isArm()) {
-                return getAvailableFile(BINPATHS_ARM);
-            }
-            return getAvailableFile(BINPATHS_X86);
-        }
-
-        private ArchitectureInternal architecture(NativePlatformInternal platform) {
-            return platform.getArchitecture();
+            return getAvailableFile(binPaths);
         }
 
         private File getAvailableFile(String... candidates) {

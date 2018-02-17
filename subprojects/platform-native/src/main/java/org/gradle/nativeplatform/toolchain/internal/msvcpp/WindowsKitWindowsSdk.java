@@ -35,14 +35,23 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
 
     @Override
     public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
-        return new WindowsKitBackedSdk(platform);
+        if (platform.getArchitecture().isAmd64()) {
+            return new WindowsKitBackedSdk("x64");
+        }
+        if (platform.getArchitecture().isArm()) {
+            return new WindowsKitBackedSdk("arm");
+        }
+        if (platform.getArchitecture().isI386()) {
+            return new WindowsKitBackedSdk("x86");
+        }
+        throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class WindowsKitBackedSdk implements PlatformWindowsSdk {
-        private final NativePlatformInternal platform;
+        private final String platformDirName;
 
-        public WindowsKitBackedSdk(NativePlatformInternal platform) {
-            this.platform = platform;
+        WindowsKitBackedSdk(String platformDirName) {
+            this.platformDirName = platformDirName;
         }
 
         @Override
@@ -60,14 +69,7 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
 
         @Override
         public List<File> getLibDirs() {
-            String platformDir = "x86";
-            if (platform.getArchitecture().isAmd64()) {
-                platformDir = "x64";
-            }
-            if (platform.getArchitecture().isArm()) {
-                platformDir = "arm";
-            }
-            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDir));
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDirName));
         }
 
         @Override
@@ -86,13 +88,7 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
         }
 
         private File getBinDir() {
-            if (platform.getArchitecture().isAmd64()) {
-                return new File(binDir, "x64");
-            }
-            if (platform.getArchitecture().isArm()) {
-                return new File(binDir, "arm");
-            }
-            return new File(binDir, "x86");
+            return new File(binDir, platformDirName);
         }
     }
 }

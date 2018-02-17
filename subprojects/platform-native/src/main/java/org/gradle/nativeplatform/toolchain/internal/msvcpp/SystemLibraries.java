@@ -20,6 +20,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a container of C/C++ libraries.
+ */
 public interface SystemLibraries {
     List<File> getIncludeDirs();
 
