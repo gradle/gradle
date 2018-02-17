@@ -132,16 +132,15 @@ class PerformanceTestPlugin : Plugin<Project> {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
             scenarioList = file("$buildDir/$performanceTestScenarioListFileName")
             scenarioReport = file("$buildDir$performanceTestScenarioReportFileName")
-            buildTypeId = propertyOrNull(buildTypeIdProperty)
-            workerTestTaskName = if (project.hasProperty(workerTestTaskNameProperty)) project.property(workerTestTaskNameProperty).toString()
-                    else "fullPerformanceTest"
-            coordinatorBuildId = propertyOrNull(coordinatorBuildIdProperty)
-            branchName = propertyOrNull(branchnameProperty)
+            buildTypeId = stringPropertyOrNull(buildTypeIdProperty)
+            workerTestTaskName = stringPropertyOrNull(workerTestTaskNameProperty) ?: "fullPerformanceTest"
+            coordinatorBuildId = stringPropertyOrNull(coordinatorBuildIdProperty)
+            branchName = stringPropertyOrNull(branchnameProperty)
             teamCityUrl = teamCityUrlValue
-            teamCityUsername = propertyOrNull(teamCityUserNameProperty)
-            teamCityPassword = propertyOrNull(teamCityPasswordProperty)
+            teamCityUsername = stringPropertyOrNull(teamCityUserNameProperty)
+            teamCityPassword = stringPropertyOrNull(teamCityPasswordProperty)
             afterEvaluate {
-                if (branchName != null && !branchName.isEmpty()) {
+                branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
                     channel = channel + "-" + branchName
                 }
             }
@@ -242,11 +241,13 @@ class PerformanceTestPlugin : Plugin<Project> {
             requiresLibsRepo = true
             maxParallelForks = 1
             finalizedBy(performanceReportTask)
-            if (project.hasProperty(baselinesProperty)) {
-                systemProperty(baselinesProperty, project.property(baselinesProperty))
+
+            project.findProperty(baselinesProperty)?.let { baselines ->
+                systemProperty(baselinesProperty, baselines)
             }
 
             dependsOn(prepareSamplesTask)
+
             mustRunAfter(tasks.withType<ProjectGeneratorTask>())
             mustRunAfter(tasks.withType<RemoteProject>())
             mustRunAfter(tasks.withType<JavaExecProjectGeneratorTask>())
@@ -262,20 +263,17 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.propertiesForPerformanceDb(): Map<String, String> {
         val properties = mutableMapOf<String, String>()
-        val urlProperty = urlProperty
-        val url = project.findProperty(urlProperty)
+        val url = stringPropertyOrNull(urlProperty)
         if (url != null) {
-            properties.put(urlProperty, url as String)
+            properties[urlProperty] = url
         }
-        val usernameProperty = dbUsernameProperty
-        val username = project.findProperty(usernameProperty)
+        val username = stringPropertyOrNull(dbUsernameProperty)
         if (username != null) {
-            properties.put(usernameProperty, username as String)
+            properties[dbUsernameProperty] = username
         }
-        val passwordProperty = dbPasswordProperty
-        val password = project.findProperty(passwordProperty)
+        val password = stringPropertyOrNull(dbPasswordProperty)
         if (password != null) {
-            properties.put(passwordProperty, password as String)
+            properties[dbPasswordProperty] = password
         }
         return properties
     }
@@ -318,7 +316,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         tasks.withType<AbstractProjectGeneratorTask> {
             if (project.hasProperty("maxProjects")) {
-                    project.extra.set("projects", project.property("maxProjects") as Int)
+                project.extra.set("projects", project.property("maxProjects") as Int)
             }
         }
         tasks.withType<JvmProjectGeneratorTask> {
@@ -394,4 +392,8 @@ open class PerformanceReport : JavaExec() {
 
 fun <T> deferred(value: () -> T): Any =
     Callable { value() }
+
+
+fun Project.stringPropertyOrNull(projectPropertyName: String): String? =
+    project.findProperty(projectPropertyName) as? String
 
