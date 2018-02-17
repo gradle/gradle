@@ -50,7 +50,7 @@ class DefaultCppTestSuiteTest extends Specification {
         def testSuite = new DefaultCppTestSuite("test", project.objects, project)
 
         expect:
-        def exe = testSuite.addExecutable("exe", Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), identity)
+        def exe = testSuite.addExecutable("exe", identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testExe'
     }
 

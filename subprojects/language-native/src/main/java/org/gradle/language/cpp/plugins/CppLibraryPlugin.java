@@ -163,14 +163,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                                 if (linkage == Linkage.SHARED) {
-                                    CppSharedLibrary sharedLibrary = library.addSharedLibrary(variantName, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
+                                    CppSharedLibrary sharedLibrary = library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                                     library.getMainPublication().addVariant(sharedLibrary);
                                     // Use the debug shared library as the development binary
                                     if (buildType == BuildType.DEBUG) {
                                         library.getDevelopmentBinary().set(sharedLibrary);
                                     }
                                 } else {
-                                    CppStaticLibrary staticLibrary = library.addStaticLibrary(variantName, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
+                                    CppStaticLibrary staticLibrary = library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                                     library.getMainPublication().addVariant(staticLibrary);
                                     if (!linkages.contains(Linkage.SHARED) && buildType == BuildType.DEBUG) {
                                         // Use the debug static library as the development binary

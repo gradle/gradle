@@ -84,7 +84,7 @@ class DefaultCppLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary('debug', targetPlatform, toolChain, platformToolProvider, identity)
+        def binary = library.addSharedLibrary(identity, targetPlatform, toolChain, platformToolProvider)
         binary.name == 'mainDebug'
         binary.debuggable
         !binary.optimized
@@ -102,7 +102,7 @@ class DefaultCppLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary('debug', targetPlatform, toolChain, platformToolProvider, identity)
+        def binary = library.addStaticLibrary(identity, targetPlatform, toolChain, platformToolProvider)
         binary.name == 'mainDebug'
         binary.debuggable
         !binary.optimized
@@ -123,7 +123,7 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        def binary = library.addSharedLibrary('debug', Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), identity)
+        def binary = library.addSharedLibrary(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         binary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
@@ -182,6 +182,7 @@ class DefaultCppLibraryTest extends Specification {
 
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
+            getName() >> "debug"
             getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
             isDebuggable() >> true
             isOptimized() >> false

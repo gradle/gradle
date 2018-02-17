@@ -52,7 +52,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
-    public CppTestExecutable addExecutable(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public CppTestExecutable addExecutable(String nameSuffix, NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider, identity);
         this.testBinary.set(testBinary);
         getBinaries().add(testBinary);

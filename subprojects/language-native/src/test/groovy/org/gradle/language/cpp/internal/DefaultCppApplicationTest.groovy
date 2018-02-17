@@ -49,12 +49,13 @@ class DefaultCppApplicationTest extends Specification {
 
     def "can add an executable"() {
         expect:
-        def exe = application.addExecutable("debug", Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), identity)
+        def exe = application.addExecutable(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'mainDebug'
     }
 
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
+            getName() >> "debug"
             getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
         }
     }

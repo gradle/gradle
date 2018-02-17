@@ -127,7 +127,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                         if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
-                            CppExecutable executable = application.addExecutable(variantName, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
+                            CppExecutable executable = application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                             // Use the debug variant as the development binary
                             if (buildType == BuildType.DEBUG) {

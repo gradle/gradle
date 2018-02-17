@@ -135,7 +135,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         new DefaultUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
 
                     ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                    testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), debugVariant);
+                    testComponent.addExecutable("executable", debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                     // TODO: Publishing for test executable?
 
                     final TaskContainer tasks = project.getTasks();
