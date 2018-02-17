@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
 import org.gradle.kotlin.dsl.*
 
-open class JsoupPlugin : Plugin<Project> {
+class JsoupPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         tasks.withType<Copy> {

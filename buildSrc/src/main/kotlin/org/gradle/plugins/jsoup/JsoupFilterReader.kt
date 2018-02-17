@@ -22,7 +22,7 @@ import java.io.FilterReader
 import java.io.Reader
 import java.io.StringReader
 
-open class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(reader)) {
+class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(reader)) {
 
     init {
         (`in` as DeferringReader).parent = this
@@ -34,8 +34,8 @@ open class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(read
 
 class DeferringReader(val source: Reader) : Reader() {
 
-    lateinit var parent: JsoupFilterReader
-    var delegate: Reader? = null
+    internal lateinit var parent: JsoupFilterReader
+    private var delegate: Reader? = null
 
     override fun read(cbuf: CharArray?,
                       off: Int,

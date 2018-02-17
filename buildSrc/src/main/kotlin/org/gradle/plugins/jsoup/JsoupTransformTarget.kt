@@ -18,4 +18,4 @@ package org.gradle.plugins.jsoup
 import org.gradle.api.file.FileCopyDetails
 import org.jsoup.nodes.Document
 
-open class JsoupTransformTarget(val document: Document, val fileCopyDetails: FileCopyDetails)
+class JsoupTransformTarget(val document: Document, val fileCopyDetails: FileCopyDetails)
