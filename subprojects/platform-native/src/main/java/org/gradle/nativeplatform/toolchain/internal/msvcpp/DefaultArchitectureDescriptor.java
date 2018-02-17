@@ -16,61 +16,90 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.util.VersionNumber;
+
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultArchitectureDescriptor implements ArchitectureDescriptor {
+    private static final String COMPILER_FILENAME = "cl.exe";
+    private static final String LINKER_FILENAME = "link.exe";
+    private static final String ARCHIVER_FILENAME = "lib.exe";
+
+    private final VersionNumber version;
     private final List<File> paths;
-    private final File binPath;
-    private final File libPath;
-    private final File includePath;
+    private final File binDir;
+    private final File libDir;
+    private final File includeDir;
     private final String assemblerFilename;
     private final Map<String, String> definitions;
     private final File compilerPath;
 
-    DefaultArchitectureDescriptor(List<File> paths, File binPath, File libPath, File compilerPath, File includePath, String assemblerFilename, Map<String, String> definitions) {
+    DefaultArchitectureDescriptor(VersionNumber version, List<File> paths, File binDir, File libDir, File compilerPath, File includeDir, String assemblerFilename, Map<String, String> definitions) {
+        this.version = version;
         this.paths = paths;
-        this.binPath = binPath;
-        this.libPath = libPath;
-        this.includePath = includePath;
+        this.binDir = binDir;
+        this.libDir = libDir;
+        this.includeDir = includeDir;
         this.assemblerFilename = assemblerFilename;
         this.definitions = definitions;
         this.compilerPath = compilerPath;
     }
 
     @Override
-    public List<File> getPaths() {
+    public VersionNumber getVersion() {
+        return version;
+    }
+
+    @Override
+    public File getBinDir() {
+        return binDir;
+    }
+
+    @Override
+    public List<File> getPath() {
         return paths;
     }
 
     @Override
-    public File getBinaryPath() {
-        return binPath;
+    public File getCompilerExecutable() {
+        return new File(binDir, COMPILER_FILENAME);
     }
 
     @Override
-    public File getLibraryPath() {
-        return libPath;
+    public File getLinkerExecutable() {
+        return new File(binDir, LINKER_FILENAME);
     }
 
     @Override
-    public File getIncludePath() {
-        return includePath;
+    public File getArchiverExecutable() {
+        return new File(binDir, ARCHIVER_FILENAME);
     }
 
     @Override
-    public String getAssemblerFilename() {
-        return assemblerFilename;
+    public File getAssemblerExecutable() {
+        return new File(binDir, assemblerFilename);
     }
 
     @Override
-    public Map<String, String> getDefinitions() {
+    public List<File> getLibDirs() {
+        return Collections.singletonList(libDir);
+    }
+
+    @Override
+    public List<File> getIncludeDirs() {
+        return Collections.singletonList(includeDir);
+    }
+
+    @Override
+    public Map<String, String> getPreprocessorMacros() {
         return definitions;
     }
 
     @Override
     public boolean isInstalled() {
-        return binPath.exists() && compilerPath.exists() && libPath.exists();
+        return binDir.exists() && compilerPath.exists() && libDir.exists();
     }
 }

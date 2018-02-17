@@ -60,6 +60,11 @@ public class DefaultLinkerSpec extends AbstractBinaryToolSpec implements LinkerS
     }
 
     @Override
+    public void libraryPath(List<File> libraryPath) {
+        this.libraryPath.addAll(libraryPath);
+    }
+
+    @Override
     public File getOutputFile() {
         return outputFile;
     }
