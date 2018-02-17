@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioM
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadataBuilder
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TextUtil
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
@@ -202,9 +203,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        visitor.toString() == """Could not locate a Visual Studio installation. None of the following locations contain a valid installation:
+        visitor.toString() == TextUtil.toPlatformLineSeparators("""Could not locate a Visual Studio installation. None of the following locations contain a valid installation:
   - ${dir1}
-  - ${dir2}"""
+  - ${dir2}""")
     }
 
     def "locates visual studio 2017 installation based on executables in path"() {
@@ -406,7 +407,11 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def vsDir = vsDir("vs")
 
         given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        1 * systemPathLocator.getVisualStudioInstalls() >> []
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> legacyVsInstall(vsDir, "12.0")
+
         when:
         def result = visualStudioLocator.locateComponent(vsDir)
 
@@ -426,6 +431,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         systemInfo.getArchitecture() >> systemArchitecture
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        1 * systemPathLocator.getVisualStudioInstalls() >> []
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> legacyVsInstall(vsDir, "12.0")
 
         when:
@@ -462,6 +470,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         systemInfo.getArchitecture() >> systemArchitecture
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        1 * systemPathLocator.getVisualStudioInstalls() >> []
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> vs2017Install(vsDir, "15.0")
 
         when:

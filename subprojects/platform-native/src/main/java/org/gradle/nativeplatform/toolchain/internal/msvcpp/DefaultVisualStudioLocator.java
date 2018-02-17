@@ -80,6 +80,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     @Override
     public SearchResult<VisualStudioInstall> locateComponent(@Nullable File candidate) {
+        initializeVisualStudioInstalls();
+
         if (candidate != null) {
             return locateUserSpecifiedInstall(candidate);
         }
@@ -213,8 +215,6 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private SearchResult<VisualStudioInstall> determineDefaultInstall() {
-        initializeVisualStudioInstalls();
-
         VisualStudioInstall candidate = null;
 
         for (VisualStudioInstall visualStudio : foundInstalls.values()) {
