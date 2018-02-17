@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.SystemInfo;
@@ -26,7 +25,6 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioM
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,10 +132,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
 
         if (install != null && addInstallIfValid(install, "user provided path")) {
-            return new InstallFound(foundInstalls.get(install.getInstallDir()));
+            return new ComponentFound<VisualStudioInstall>(foundInstalls.get(install.getInstallDir()));
         } else {
             LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
-            return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
+            return new ComponentNotFound<VisualStudioInstall>(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
         }
     }
 
@@ -220,7 +218,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
         }
 
-        return candidate == null ? new InstallNotFound("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.") : new InstallFound(candidate);
+        return candidate == null ? new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.") : new ComponentFound<VisualStudioInstall>(candidate);
     }
 
     private static boolean isValidInstall(VisualStudioMetadata install) {
@@ -242,50 +240,5 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     private static boolean isVS2017VisualCpp(File candidate) {
         return new File(candidate, PATH_BIN + VS2017_COMPILER_FILENAME).isFile();
-    }
-
-    private static class InstallFound implements SearchResult<VisualStudioInstall> {
-        private final VisualStudioInstall install;
-
-        public InstallFound(VisualStudioInstall install) {
-            this.install = Preconditions.checkNotNull(install);
-        }
-
-        @Override
-        public VisualStudioInstall getComponent() {
-            return install;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return true;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
-    }
-
-    private static class InstallNotFound implements SearchResult<VisualStudioInstall> {
-        private final String message;
-
-        private InstallNotFound(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public VisualStudioInstall getComponent() {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(message);
-        }
     }
 }

@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.FileUtils;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,8 +98,8 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
     private SearchResult<T> locateDefaultComponent() {
         T selected = getBestComponent();
         return selected == null
-            ? new ComponentNotFound("Could not locate a " + getDisplayName() + " installation using the Windows registry.")
-            : new ComponentFound(selected);
+            ? new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation using the Windows registry.")
+            : new ComponentFound<T>(selected);
     }
 
     private T getBestComponent(File baseDir) {
@@ -155,9 +154,9 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
                     putComponent(newComponent(windowsKitDir, version, DiscoveryType.USER));
                 }
             }
-            return new ComponentFound(getBestComponent(candidate));
+            return new ComponentFound<T>(getBestComponent(candidate));
         } else {
-            return new ComponentNotFound(String.format("The specified installation directory '%s' does not appear to contain a %s installation.", candidate, getDisplayName()));
+            return new ComponentNotFound<T>(String.format("The specified installation directory '%s' does not appear to contain a %s installation.", candidate, getDisplayName()));
         }
     }
 
@@ -227,45 +226,6 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
     abstract boolean isValidComponentLibDir(File libDir);
 
     abstract T newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType);
-
-    private class ComponentFound implements SearchResult<T> {
-        private final T component;
-
-        public ComponentFound(T component) {
-            this.component = component;
-        }
-
-        public T getComponent() {
-            return component;
-        }
-
-        public boolean isAvailable() {
-            return true;
-        }
-
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
-    }
-
-    private class ComponentNotFound implements SearchResult<T> {
-        private final String message;
-
-        private ComponentNotFound(String message) {
-            this.message = message;
-        }
-
-        public T getComponent() {
-            return null;
-        }
-
-        public boolean isAvailable() {
-            return false;
-        }
-
-        public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(message);
-        }
-    }
 
     private class DescendingComponentVersionComparator implements Comparator<T> {
         @Override

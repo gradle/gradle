@@ -21,7 +21,6 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,18 +189,18 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     private SearchResult<WindowsSdk> locateUserSpecifiedSdk(File candidate) {
         File sdkDir = FileUtils.canonicalize(candidate);
         if (!isWindowsSdk(sdkDir)) {
-            return new SdkNotFound(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
+            return new ComponentNotFound<WindowsSdk>(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
         }
 
         if (!foundSdks.containsKey(sdkDir)) {
             addSdk(sdkDir, VERSION_USER, NAME_USER);
         }
-        return new SdkFound(foundSdks.get(sdkDir));
+        return new ComponentFound<WindowsSdk>(foundSdks.get(sdkDir));
     }
 
     private SearchResult<WindowsSdk> locateDefaultSdk() {
         if (pathSdk != null) {
-            return new SdkFound(pathSdk);
+            return new ComponentFound<WindowsSdk>(pathSdk);
         }
 
         WindowsSdk candidate = null;
@@ -210,7 +209,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
                 candidate = windowsSdk;
             }
         }
-        return candidate == null ? new SdkNotFound("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new SdkFound(candidate);
+        return candidate == null ? new ComponentNotFound<WindowsSdk>("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new ComponentFound<WindowsSdk>(candidate);
     }
 
     private void addSdk(File path, String version, String name) {
@@ -246,50 +245,5 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         }
 
         return version;
-    }
-
-    private static class SdkFound implements SearchResult<WindowsSdk> {
-        private final WindowsSdk sdk;
-
-        public SdkFound(WindowsSdk sdk) {
-            this.sdk = sdk;
-        }
-
-        @Override
-        public WindowsSdk getComponent() {
-            return sdk;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return true;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
-    }
-
-    private static class SdkNotFound implements SearchResult<WindowsSdk> {
-        private final String message;
-
-        private SdkNotFound(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public WindowsSdk getComponent() {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(message);
-        }
     }
 }
