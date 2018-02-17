@@ -36,7 +36,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this.operatingSystem = operatingSystem;
     }
 
-    private static DefaultOperatingSystem getCurrentOperatingSystem() {
+    public static DefaultOperatingSystem getCurrentOperatingSystem() {
         return new DefaultOperatingSystem(System.getProperty("os.name"), OperatingSystem.current());
     }
 

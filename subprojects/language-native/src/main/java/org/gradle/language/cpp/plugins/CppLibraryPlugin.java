@@ -16,14 +16,17 @@
 
 package org.gradle.language.cpp.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -37,18 +40,23 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
-import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
-import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
-import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.language.cpp.CppBinary.*;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -63,6 +71,7 @@ import java.util.concurrent.Callable;
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
+    private final ImmutableAttributesFactory attributesFactory;
 
     /**
      * Injects a {@link FileOperations} instance.
@@ -70,9 +79,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -80,7 +90,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final TaskContainer tasks = project.getTasks();
-        final ConfigurationContainer configurations = project.getConfigurations();
         final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
@@ -95,18 +104,87 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
+                library.getOperatingSystems().lockNow();
+                Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
+                if (operatingSystemFamilies.isEmpty()) {
+                    throw new IllegalArgumentException("An operating system needs to be specified for the library.");
+                }
+
                 library.getLinkage().lockNow();
-                if (library.getLinkage().get().isEmpty()) {
+                Set<Linkage> linkages = library.getLinkage().get();
+                if (linkages.isEmpty()) {
                     throw new IllegalArgumentException("A linkage needs to be specified for the library.");
                 }
 
-                boolean sharedLibs = library.getLinkage().get().contains(Linkage.SHARED);
-                boolean staticLibs = library.getLinkage().get().contains(Linkage.STATIC);
+                Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+                Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
 
-                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+                for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
+                    for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
+                        for (Linkage linkage : linkages) {
 
-                final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
-                final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+                            String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
+                            String linkageSuffix = createDimensionSuffix(linkage, linkages);
+                            String variantName = buildType.getName() + linkageSuffix + operatingSystemSuffix;
+
+                            Provider<String> group = project.provider(new Callable<String>() {
+                                @Override
+                                public String call() throws Exception {
+                                    return project.getGroup().toString();
+                                }
+                            });
+
+                            Provider<String> version = project.provider(new Callable<String>() {
+                                @Override
+                                public String call() throws Exception {
+                                    return project.getVersion().toString();
+                                }
+                            });
+
+                            AttributeContainer runtimeAttributes = attributesFactory.mutable();
+                            runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                            runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                            runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                            runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
+                            runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+
+                            AttributeContainer linkAttributes = attributesFactory.mutable();
+                            linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
+                            linkAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                            linkAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                            linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
+                            linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+
+                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                                new DefaultUsageContext(variantName + "-link", linkUsage, linkAttributes),
+                                new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+
+                            if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
+                                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+
+                                if (linkage == Linkage.SHARED) {
+                                    CppSharedLibrary sharedLibrary = library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                                    library.getMainPublication().addVariant(sharedLibrary);
+                                    // Use the debug shared library as the development binary
+                                    if (buildType == BuildType.DEBUG) {
+                                        library.getDevelopmentBinary().set(sharedLibrary);
+                                    }
+                                } else {
+                                    CppStaticLibrary staticLibrary = library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                                    library.getMainPublication().addVariant(staticLibrary);
+                                    if (!linkages.contains(Linkage.SHARED) && buildType == BuildType.DEBUG) {
+                                        // Use the debug static library as the development binary
+                                        library.getDevelopmentBinary().set(staticLibrary);
+                                    }
+                                }
+
+                            } else {
+                                // Known, but not buildable
+                                library.getMainPublication().addVariant(variantIdentity);
+                            }
+                        }
+                    }
+                }
 
                 final MainLibraryVariant mainVariant = library.getMainPublication();
 
@@ -137,54 +215,48 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                     }
                 });
 
-                if (sharedLibs) {
-                    String linkageNameSuffix = staticLibs ? "Shared" : "";
-                    CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-                    // Use the debug shared library as the development binary
-                    library.getDevelopmentBinary().set(debugSharedLibrary);
-
-                    // Define the outgoing publications
-                    // TODO - move this to a shared location
-
-                    library.getBinaries().whenElementKnown(DefaultCppSharedLibrary.class, new Action<DefaultCppSharedLibrary>() {
-                        @Override
-                        public void execute(DefaultCppSharedLibrary library) {
-                            Configuration linkElements = library.getLinkElements().get();
-                            Configuration runtimeElements = library.getRuntimeElements().get();
-                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
-                            mainVariant.addVariant(variant);
-                        }
-                    });
-                }
-
-                if (staticLibs) {
-                    String linkageNameSuffix = sharedLibs ? "Static" : "";
-                    CppStaticLibrary debugStaticLibrary = library.addStaticLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-                    if (!sharedLibs) {
-                        // Use the debug static library as the development binary
-                        library.getDevelopmentBinary().set(debugStaticLibrary);
-                    }
-
-                    // Define the outgoing publications
-                    // TODO - move this to a shared location
-
-                    library.getBinaries().whenElementKnown(DefaultCppStaticLibrary.class, new Action<DefaultCppStaticLibrary>() {
-                        @Override
-                        public void execute(DefaultCppStaticLibrary library) {
-                            Configuration linkElements = library.getLinkElements().get();
-                            Configuration runtimeElements = library.getRuntimeElements().get();
-                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
-                            mainVariant.addVariant(variant);
-                        }
-                    });
-                }
-
                 library.getBinaries().realizeNow();
             }
         });
+    }
+
+    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+        if (isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+        }
+        return "";
+    }
+
+    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+        return multivalueProperty.size() > 1;
+    }
+
+    private static final class BuildType implements Named {
+        private static final BuildType DEBUG = new BuildType("debug", true, false);
+        private static final BuildType RELEASE = new BuildType("release", true, true);
+        public static final Collection<BuildType> DEFAULT_BUILD_TYPES = Arrays.asList(DEBUG, RELEASE);
+
+        private final boolean debuggable;
+        private final boolean optimized;
+        private final String name;
+
+        private BuildType(String name, boolean debuggable, boolean optimized) {
+            this.debuggable = debuggable;
+            this.optimized = optimized;
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        public boolean isDebuggable() {
+            return debuggable;
+        }
+
+        public boolean isOptimized() {
+            return optimized;
+        }
     }
 }

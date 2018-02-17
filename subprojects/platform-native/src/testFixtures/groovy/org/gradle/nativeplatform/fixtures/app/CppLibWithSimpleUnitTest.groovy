@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.test.fixtures.file.TestFile
 
-/**
- * Specify how a native library should be linked into another binary.
- *
- * @since 4.5
- */
-@Incubating
-public enum Linkage implements Named {
-    /**
-     * Statically link binaries together.
-     */
-    STATIC,
-
-    /**
-     * Dynamically link binaries together.
-     */
-    SHARED;
+class CppLibWithSimpleUnitTest extends CppSourceElement {
+    final main = new CppLib()
+    final test = new CppLibTest()
 
     @Override
-    public String getName() {
-        return name();
+    SourceElement getHeaders() {
+        return empty()
+    }
+
+    @Override
+    SourceElement getSources() {
+        return empty()
+    }
+
+    @Override
+    public void writeToProject(TestFile projectDir) {
+        getMain().writeToProject(projectDir);
+        getTest().writeToProject(projectDir);
     }
 }

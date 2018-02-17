@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.language;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.component.SoftwareComponent;
 
 /**
- * Specify how a native library should be linked into another binary.
+ * Represents a component that can be built.
  *
- * @since 4.5
+ * @since 4.7
  */
 @Incubating
-public enum Linkage implements Named {
-    /**
-     * Statically link binaries together.
-     */
-    STATIC,
+public interface BuildableComponent extends SoftwareComponent {
 
-    /**
-     * Dynamically link binaries together.
-     */
-    SHARED;
-
-    @Override
-    public String getName() {
-        return name();
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**
- * Specify how a native library should be linked into another binary.
+ * Represents a component that determines its publication coordinates.
  *
- * @since 4.5
+ * @since 4.7
  */
 @Incubating
-public enum Linkage implements Named {
+public interface ComponentWithCoordinates extends SoftwareComponent {
     /**
-     * Statically link binaries together.
+     * The publication coordinates for this component.
      */
-    STATIC,
-
-    /**
-     * Dynamically link binaries together.
-     */
-    SHARED;
-
-    @Override
-    public String getName() {
-        return name();
-    }
+    ModuleVersionIdentifier getCoordinates();
 }

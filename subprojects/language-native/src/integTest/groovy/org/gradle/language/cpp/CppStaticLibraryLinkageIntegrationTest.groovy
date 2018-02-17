@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 
 class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     @Override
@@ -40,6 +41,11 @@ class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
     @Override
     protected String getDevelopmentBinaryCompileTask() {
         return ":compileDebugCpp"
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new CppLib()
     }
 
     def "can create static library binary when only static linkage is specified"() {

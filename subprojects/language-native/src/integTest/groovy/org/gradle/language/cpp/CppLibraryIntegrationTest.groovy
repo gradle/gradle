@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.hamcrest.Matchers
 
 import static org.gradle.util.Matchers.containsText
@@ -46,6 +47,11 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         buildFile << """
             apply plugin: 'cpp-library'
         """
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new CppLib()
     }
 
     def "skip compile and link tasks when no source"() {

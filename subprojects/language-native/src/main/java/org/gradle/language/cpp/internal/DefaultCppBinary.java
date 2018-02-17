@@ -36,6 +36,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -46,8 +47,6 @@ import java.util.Set;
 
 public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
-    private final boolean debuggable;
-    private final boolean optimized;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
@@ -57,17 +56,17 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
     private final Property<CppCompile> compileTaskProperty;
+    private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(name, objects, projectLayout, componentImplementation);
         this.baseName = baseName;
-        this.debuggable = debuggable;
-        this.optimized = optimized;
         this.sourceFiles = sourceFiles;
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.compileTaskProperty = objects.property(CppCompile.class);
+        this.identity = identity;
 
         Names names = getNames();
 
@@ -76,22 +75,25 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
-        includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
+        includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+        includePathConfig.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getOperatingSystemFamily());
         includePathConfig.extendsFrom(getImplementationDependencies());
 
         Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
-        nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
-        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
+        nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+        nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getOperatingSystemFamily());
         nativeLink.extendsFrom(getImplementationDependencies());
 
         Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
-        nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
-        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
+        nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+        nativeRuntime.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getOperatingSystemFamily());
         nativeRuntime.extendsFrom(getImplementationDependencies());
 
         includePathConfiguration = includePathConfig;
@@ -122,12 +124,12 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
     @Override
     public boolean isDebuggable() {
-        return debuggable;
+        return identity.isDebuggable();
     }
 
     @Override
     public boolean isOptimized() {
-        return optimized;
+        return identity.isOptimized();
     }
 
     @Override
@@ -171,6 +173,10 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
     public PlatformToolProvider getPlatformToolProvider() {
         return platformToolProvider;
+    }
+
+    public NativeVariantIdentity getIdentity() {
+        return identity;
     }
 
     private class IncludePath implements MinimalFileSet {

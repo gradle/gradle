@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+class CppSumTest extends CppSourceElement implements SumElement {
+    final SourceElement headers = empty()
+    final SourceElement sources = ofFiles(sourceFile("cpp", "sum_test.cpp", """
+            #include "sum.h"
 
-/**
- * Specify how a native library should be linked into another binary.
- *
- * @since 4.5
- */
-@Incubating
-public enum Linkage implements Named {
-    /**
-     * Statically link binaries together.
-     */
-    STATIC,
-
-    /**
-     * Dynamically link binaries together.
-     */
-    SHARED;
+            int main(int argc, char **argv) {
+                Sum sum;
+                if (sum.sum(2, 2) == ${sum(2, 2)}) {
+                    return 0;
+                }
+                return -1;
+            }"""))
 
     @Override
-    public String getName() {
-        return name();
+    int sum(int a, int b) {
+        return a + b
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 
 class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     @Override
@@ -40,6 +41,11 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     @Override
     protected String getComponentUnderTestDsl() {
         return "library"
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new CppLib()
     }
 
     def "creates shared library binary by default when both linkage specified"() {
