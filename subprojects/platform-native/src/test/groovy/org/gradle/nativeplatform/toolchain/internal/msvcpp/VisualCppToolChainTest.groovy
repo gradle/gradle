@@ -127,7 +127,7 @@ class VisualCppToolChainTest extends Specification {
 
         ucrtLookup.available >> false
         visualStudio.visualCpp >> visualCpp
-        visualCpp.isSupportedPlatform(platform) >> false
+        visualCpp.forPlatform(platform) >> null
 
         and:
         def result = toolChain.select(platform)
@@ -149,7 +149,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.component >> Stub(WindowsSdk)
 
         visualStudio.visualCpp >> visualCpp
-        visualCpp.isSupportedPlatform(platform) >> true
+        visualCpp.forPlatform(platform) >> Stub(PlatformVisualCpp)
 
         and:
         def platformToolChain = toolChain.select(platform)
@@ -219,7 +219,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.component >> Stub(WindowsSdk)
 
         visualStudio.visualCpp >> visualCpp
-        visualCpp.isSupportedPlatform(platform) >> true
+        visualCpp.forPlatform(platform) >> Stub(PlatformVisualCpp)
 
         def action = Mock(Action)
         toolChain.eachPlatform(action)

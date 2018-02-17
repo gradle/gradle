@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-public interface ArchitectureDescriptor extends PlatformVisualCpp {
-    boolean isInstalled();
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+public interface SystemLibraries {
+    List<File> getIncludeDirs();
+
+    List<File> getLibDirs();
+
+    Map<String, String> getPreprocessorMacros();
 }

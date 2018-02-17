@@ -114,7 +114,8 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
-        if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
+        PlatformVisualCpp platformVisualCpp = visualCpp == null ? null : visualCpp.forPlatform(targetPlatform);
+        if (platformVisualCpp == null) {
             result.unavailable(String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
         if (!result.isAvailable()) {
@@ -124,7 +125,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, platformVisualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
     }
 
     @Override
