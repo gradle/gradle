@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio
 
 import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
@@ -259,10 +260,11 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     @Requires(TestPrecondition.MSBUILD)
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
+        def app = new CppAppWithLibrary()
 
         given:
-        app.executable.writeSources(file("exe/src/main"))
-        app.library.writeSources(file("lib/src/main"))
+        app.greeter.writeToProject(file("lib"))
+        app.main.writeToProject(file("exe"))
 
         settingsFile << """
             include ':exe', ':lib'
