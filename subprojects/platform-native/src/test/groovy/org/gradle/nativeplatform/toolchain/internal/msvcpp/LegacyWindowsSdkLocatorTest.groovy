@@ -53,9 +53,9 @@ class LegacyWindowsSdkLocatorTest extends Specification {
 
         then:
         result.available
-        result.sdk.name == "sdk 2"
-        result.sdk.version == VersionNumber.parse("7.1")
-        result.sdk.baseDir == dir2
+        result.component.name == "sdk 2"
+        result.component.version == VersionNumber.parse("7.1")
+        result.component.baseDir == dir2
     }
 
     def "uses windows kit if version is higher than windows SDK"() {
@@ -77,9 +77,9 @@ class LegacyWindowsSdkLocatorTest extends Specification {
 
         then:
         result.available
-        result.sdk.name == "Windows Kit 8.1"
-        result.sdk.version == VersionNumber.parse("8.1")
-        result.sdk.baseDir == dir3
+        result.component.name == "Windows Kit 8.1"
+        result.component.version == VersionNumber.parse("8.1")
+        result.component.baseDir == dir3
     }
 
     def "handles missing SDKs and Kits"() {
@@ -96,9 +96,9 @@ class LegacyWindowsSdkLocatorTest extends Specification {
 
         then:
         result.available
-        result.sdk.name == "Windows Kit 8.1"
-        result.sdk.version == VersionNumber.parse("8.1")
-        result.sdk.baseDir == dir
+        result.component.name == "Windows Kit 8.1"
+        result.component.version == VersionNumber.parse("8.1")
+        result.component.baseDir == dir
     }
 
     def "locates windows SDK based on executables in path"() {
@@ -112,9 +112,9 @@ class LegacyWindowsSdkLocatorTest extends Specification {
 
         then:
         result.available
-        result.sdk.name == "Path-resolved Windows SDK"
-        result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir
+        result.component.name == "Path-resolved Windows SDK"
+        result.component.version == VersionNumber.UNKNOWN
+        result.component.baseDir == sdkDir
     }
 
     def "SDK not available when not found in registry or system path"() {
@@ -213,9 +213,9 @@ class LegacyWindowsSdkLocatorTest extends Specification {
 
         then:
         result.available
-        result.sdk.name == "installed sdk"
-        result.sdk.version == VersionNumber.parse("7.0")
-        result.sdk.baseDir == sdkDir
+        result.component.name == "installed sdk"
+        result.component.version == VersionNumber.parse("7.0")
+        result.component.baseDir == sdkDir
     }
 
     def "fills in meta-data from registry for SDK specified by user"() {
@@ -235,9 +235,9 @@ class LegacyWindowsSdkLocatorTest extends Specification {
 
         then:
         result.available
-        result.sdk.name == "installed sdk"
-        result.sdk.version == VersionNumber.parse("7.0")
-        result.sdk.baseDir == sdkDir
+        result.component.name == "installed sdk"
+        result.component.version == VersionNumber.parse("7.0")
+        result.component.baseDir == sdkDir
     }
 
     def sdkDir(String name) {
