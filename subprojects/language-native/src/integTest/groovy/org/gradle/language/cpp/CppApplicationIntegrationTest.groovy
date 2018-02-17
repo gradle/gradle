@@ -385,7 +385,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(forProjects([':hello', ':app'], compileAndLinkTasks(debug)), installTaskDebug(':app'), ":app:assemble")
+        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         def installation = installation("app/build/install/main/debug")
