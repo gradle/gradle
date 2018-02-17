@@ -33,8 +33,8 @@ fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
  * @throws [UnknownDomainObjectException] When the given task is not found.
  * @throws [IllegalStateException] When the given task cannot be cast to the expected type.
  */
-inline
 @Suppress("extension_shadowed_by_member")
+inline
 fun <reified T : Any> TaskContainer.getByName(name: String) =
     getByName(name).let {
         it as? T
