@@ -31,31 +31,33 @@ public class Ucrt extends WindowsKitComponent {
     }
 
     public SystemLibraries getCRuntime(final NativePlatformInternal platform) {
-        return new UcrtSystemLibraries(platform);
+        if (platform.getArchitecture().isAmd64()) {
+            return new UcrtSystemLibraries("x64");
+        }
+        if (platform.getArchitecture().isArm()) {
+            return new UcrtSystemLibraries("arm");
+        }
+        if (platform.getArchitecture().isI386()) {
+            return new UcrtSystemLibraries("x86");
+        }
+        throw new UnsupportedOperationException(String.format("Supported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
     private class UcrtSystemLibraries implements SystemLibraries {
-        private final NativePlatformInternal platform;
+        private final String platformDirName;
 
-        UcrtSystemLibraries(NativePlatformInternal platform) {
-            this.platform = platform;
+        UcrtSystemLibraries(String platformDirName) {
+            this.platformDirName = platformDirName;
         }
 
         @Override
         public List<File> getIncludeDirs() {
-            return Collections.singletonList(new File(getBaseDir(), "Include/" + getVersion().toString() + "/ucrt"));
+            return Collections.singletonList(new File(getBaseDir(), "Include/" + getVersion() + "/ucrt"));
         }
 
         @Override
         public List<File> getLibDirs() {
-            String platformDir = "x86";
-            if (platform.getArchitecture().isAmd64()) {
-                platformDir = "x64";
-            }
-            if (platform.getArchitecture().isArm()) {
-                platformDir = "arm";
-            }
-            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion().toString() + "/ucrt/" + platformDir));
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion() + "/ucrt/" + platformDirName));
         }
 
         @Override

@@ -165,6 +165,8 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             return;
         }
 
+        // TODO - this selection should happen per target platform
+
         SearchResult<VisualStudioInstall> visualStudioSearchResult = visualStudioLocator.locateComponent(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
@@ -185,7 +187,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
                 ucrt = ucrtSearchResult.getComponent();
             }
         }
-
     }
 
     @Override
