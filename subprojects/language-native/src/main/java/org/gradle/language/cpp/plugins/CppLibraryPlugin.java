@@ -156,8 +156,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                             NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
-                                new DefaultUsageContext(variantName + "-link", runtimeUsage, runtimeAttributes),
-                                new DefaultUsageContext(variantName + "-runtime", linkUsage, linkAttributes));
+                                new DefaultUsageContext(variantName + "-link", linkUsage, linkAttributes),
+                                new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
 
                             if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
