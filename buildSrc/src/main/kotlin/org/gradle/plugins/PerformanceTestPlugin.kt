@@ -1,5 +1,6 @@
 package org.gradle.plugins
 
+import accessors.groovy
 import accessors.java
 
 import org.gradle.api.Plugin
@@ -88,7 +89,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSourceDirs.plus(performanceTestSourceSet.withConvention(GroovySourceSet::class) { groovy.srcDirs })
+                    testSourceDirs.plus(performanceTestSourceSet.groovy.srcDirs)
                     testSourceDirs.plus(performanceTestSourceSet.resources.srcDirs)
                     scopes["TEST"]!!["plus"]!!.add(configurations["performanceTestCompile"])
                     scopes["TEST"]!!["plus"]!!.add(configurations["performanceTestRuntime"])

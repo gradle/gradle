@@ -15,19 +15,23 @@
  */
 package org.gradle.plugins.testfixtures
 
+import accessors.groovy
+import accessors.java
+
+import library
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.GroovySourceSet
+
+import org.gradle.kotlin.dsl.*
+
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
-import accessors.*
-import library
 import testLibraries
 import testLibrary
-import org.gradle.kotlin.dsl.*
 
 
 /**
@@ -109,9 +113,7 @@ open class TestFixturesPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testFixtures.withConvention(GroovySourceSet::class) {
-                        testSourceDirs = testSourceDirs + groovy.srcDirs + testFixtures.resources.srcDirs
-                    }
+                    testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs + testFixtures.resources.srcDirs
                 }
             }
         }
