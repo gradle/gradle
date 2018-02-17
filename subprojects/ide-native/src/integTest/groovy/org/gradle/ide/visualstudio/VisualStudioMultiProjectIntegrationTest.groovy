@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.ide.visualstudio
 
-import org.apache.commons.io.FilenameUtils
-import org.gradle.api.Project
+import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
-import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
+
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set
@@ -40,88 +37,61 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
             allprojects {
                 apply plugin: 'visual-studio'
             }
-            subprojects {
-                apply plugin: 'cpp'
-
-                model {
-                    buildTypes {
-                        debug
-                        release
-                    }
-                }
-            }
         """
     }
 
     def "create visual studio solution for executable that depends on a library in another project"() {
         when:
         app.executable.writeSources(file("exe/src/main"))
-        app.library.writeSources(file("lib/src/hello"))
+        app.library.writeSources(file("lib/src/main"))
 
         settingsFile << """
             include ':exe', ':lib'
         """
         file("exe", "build.gradle") << """
-            model {
-                components {
-                    main(NativeExecutableSpec) {
-                        sources {
-                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
-                        }
-                    }
-                }
+            apply plugin: 'cpp-application'
+            
+            dependencies {
+                implementation project(':lib')
             }
         """
         file("lib", "build.gradle") << """
-            model {
-                components {
-                    hello(NativeLibrarySpec)
-                }
-            }
+            apply plugin: 'cpp-library'
         """
+
         and:
         run ":visualStudio"
 
         then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
+        final exeProject = projectFile("exe/exe.vcxproj")
         exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable")
+            assert it.includePath == filePath("src/main/headers", "../lib/src/main/public")
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:install${it.name.capitalize()}")
         }
 
         and:
-        final dllProject = projectFile("lib/lib_helloDll.vcxproj")
-        dllProject.assertHasComponentSources(app.library, "src/hello")
+        final dllProject = projectFile("lib/libDll.vcxproj")
+        dllProject.assertHasComponentSources(app.library, "src/main")
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary")
-        }
-
-        and:
-        final libProject = projectFile("lib/lib_helloLib.vcxproj")
-        libProject.assertHasComponentSources(app.library, "src/hello")
-        libProject.projectConfigurations.keySet() == projectConfigurations
-        libProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary")
+            assert it.includePath == filePath("src/main/public", "src/main/headers")
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:link${it.name.capitalize()}")
         }
 
         and:
         final mainSolution = solutionFile("app.sln")
-        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "lib_helloLib")
+        mainSolution.assertHasProjects("exe", "libDll")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(dllProject, projectConfigurations)
-        mainSolution.assertReferencesProject(libProject, projectConfigurations)
     }
 
     def "visual studio solution does not reference the components of a project if it does not have visual studio plugin applied"() {
         when:
         app.executable.writeSources(file("exe/src/main"))
-        app.library.writeSources(file("lib/src/hello"))
-        app.library.writeSources(file("other/src/greeting"))
+        app.library.writeSources(file("lib/src/main"))
+        app.library.writeSources(file("other/src/main"))
 
         settingsFile << """
             include ':exe', ':lib', ':other'
@@ -132,259 +102,53 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
                     apply plugin: 'visual-studio'
                 }
             }
-            subprojects {
-                apply plugin: 'cpp'
-
-                model {
-                    platforms {
-                        win32 {
-                            architecture "i386"
-                        }
-                    }
-                    buildTypes {
-                        debug
-                        release
-                    }
-                }
-            }
         """
-
         file("exe", "build.gradle") << """
-            model {
-                components {
-                    main(NativeExecutableSpec) {
-                        sources {
-                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
-                        }
-                    }
-                }
+            apply plugin: 'cpp-application'
+            
+            dependencies {
+                implementation project(':lib')
             }
         """
         file("lib", "build.gradle") << """
-            model {
-                components {
-                    hello(NativeLibrarySpec)
-                }
-            }
+            apply plugin: 'cpp-library'
         """
         file("other", "build.gradle") << """
-            apply plugin: 'cpp'
-            
-            model {
-                components {
-                    greeting(NativeLibrarySpec)
-                }
-            }
+            apply plugin: 'cpp-library'
         """
+
         and:
         run ":visualStudio"
 
         then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
+        final exeProject = projectFile("exe/exe.vcxproj")
         exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable")
+            assert it.includePath == filePath("src/main/headers", "../lib/src/main/public")
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:install${it.name.capitalize()}")
         }
 
         and:
-        final dllProject = projectFile("lib/lib_helloDll.vcxproj")
-        dllProject.assertHasComponentSources(app.library, "src/hello")
+        final dllProject = projectFile("lib/libDll.vcxproj")
+        dllProject.assertHasComponentSources(app.library, "src/main")
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary")
-        }
-
-        and:
-        final libProject = projectFile("lib/lib_helloLib.vcxproj")
-        libProject.assertHasComponentSources(app.library, "src/hello")
-        libProject.projectConfigurations.keySet() == projectConfigurations
-        libProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary")
+            assert it.includePath == filePath("src/main/public", "src/main/headers")
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:link${it.name.capitalize()}")
         }
 
         and:
         final mainSolution = solutionFile("app.sln")
-        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "lib_helloLib")
+        mainSolution.assertHasProjects("exe", "libDll")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(dllProject, projectConfigurations)
-        mainSolution.assertReferencesProject(libProject, projectConfigurations)
 
         and:
         file("other").listFiles().every { !(it.name.endsWith(".vcxproj") || it.name.endsWith(".vcxproj.filters")) }
     }
 
     def "create visual studio solution for executable that transitively depends on multiple projects"() {
-        given:
-        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
-        app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
-
-        and:
-        settingsFile << """
-            include ':exe', ':lib', ':greet'
-        """
-        buildFile << """
-            project(":exe") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        main(NativeExecutableSpec) {
-                            sources {
-                                cpp.lib project: ':lib', library: 'hello'
-                            }
-                        }
-                    }
-                }
-            }
-            project(":lib") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        hello(NativeLibrarySpec) {
-                            sources {
-                                cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
-                            }
-                        }
-                    }
-                }
-            }
-            project(":greet") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        greetings(NativeLibrarySpec)
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds ":visualStudio"
-
-        then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
-        final helloDllProject = projectFile("lib/lib_helloDll.vcxproj")
-        final helloLibProject = projectFile("lib/lib_helloLib.vcxproj")
-        final greetDllProject = projectFile("greet/greet_greetingsDll.vcxproj")
-        final greetLibProject = projectFile("greet/greet_greetingsLib.vcxproj")
-        final mainSolution = solutionFile("app.sln")
-
-        and:
-        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "lib_helloLib", "greet_greetingsDll", "greet_greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
-        mainSolution.assertReferencesProject(helloDllProject, projectConfigurations)
-        mainSolution.assertReferencesProject(helloLibProject, projectConfigurations)
-        mainSolution.assertReferencesProject(greetDllProject, projectConfigurations)
-        mainSolution.assertReferencesProject(greetLibProject, projectConfigurations)
-
-        and:
-        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-        helloDllProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../greet/src/greetings/headers")
-        helloLibProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../greet/src/greetings/headers")
-        greetDllProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
-        greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
-    }
-
-    @Requires(TestPrecondition.MSBUILD)
-    def "can build executable that depends on static library in another project from visual studio"() {
-        useMsbuildTool()
-
-        given:
-        app.executable.writeSources(file("exe/src/main"))
-        app.library.writeSources(file("lib/src/hello"))
-
-        settingsFile << """
-            include ':exe', ':lib'
-        """
-        file("exe", "build.gradle") << """
-            model {
-                components {
-                    main(NativeExecutableSpec) {
-                        sources {
-                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
-                        }
-                    }
-                }
-            }
-        """
-        file("lib", "build.gradle") << """
-            model {
-                components {
-                    hello(NativeLibrarySpec)
-                }
-            }
-        """
-        succeeds ":visualStudio"
-
-        when:
-        def resultDebug = msbuild
-            .withSolution(solutionFile('app.sln'))
-            .withConfiguration('debug')
-            .withProject("exe_mainExe")
-            .succeeds()
-
-        then:
-        resultDebug.assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
-        resultDebug.assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
-        installation('exe/build/install/main/debug').assertInstalled()
-    }
-
-    @Requires(TestPrecondition.MSBUILD)
-    def "can clean from visual studio with dependencies"() {
-        useMsbuildTool()
-        def debugBinary = executable('exe/build/exe/main/debug/main')
-
-        given:
-        app.executable.writeSources(file("exe/src/main"))
-        app.library.writeSources(file("lib/src/hello"))
-        settingsFile << """
-            include ':exe', ':lib'
-        """
-        file("exe", "build.gradle") << """
-            model {
-                components {
-                    main(NativeExecutableSpec) {
-                        sources {
-                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
-                        }
-                    }
-                }
-            }
-        """
-        file("lib", "build.gradle") << """
-            model {
-                components {
-                    hello(NativeLibrarySpec)
-                }
-            }
-        """
-        succeeds ":visualStudio"
-
-        when:
-        debugBinary.assertDoesNotExist()
-        msbuild
-            .withSolution(solutionFile("app.sln"))
-            .withConfiguration('debug')
-            .succeeds()
-
-        then:
-        debugBinary.exec().out == app.englishOutput
-
-        when:
-        msbuild
-            .withSolution(solutionFile("app.sln"))
-            .withConfiguration('debug')
-            .succeeds(MSBuildExecutor.MSBuildAction.CLEAN)
-
-        then:
-        file("exe/build").assertDoesNotExist()
-        file("lib/build").assertDoesNotExist()
-    }
-
-    def "create visual studio solution where multiple components have same name"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
@@ -395,35 +159,24 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         """
         buildFile << """
             project(":exe") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        main(NativeExecutableSpec) {
-                            sources {
-                                cpp.lib project: ':lib', library: 'main'
-                            }
-                        }
-                    }
+                apply plugin: "cpp-application"
+                
+                dependencies {
+                    implementation project(':lib')
                 }
             }
             project(":lib") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        main(NativeLibrarySpec) {
-                            sources {
-                                cpp.lib project: ':greet', library: 'main', linkage: 'static'
-                            }
-                        }
-                    }
+                apply plugin: "cpp-library"
+                
+                dependencies {
+                    implementation project(':greet')
                 }
             }
             project(":greet") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        main(NativeLibrarySpec)
-                    }
+                apply plugin: "cpp-library"
+                
+                library {
+                    linkage = [Linkage.STATIC]
                 }
             }
         """
@@ -432,62 +185,52 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         succeeds ":visualStudio"
 
         then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
-        final helloDllProject = projectFile("lib/lib_mainDll.vcxproj")
-        final helloLibProject = projectFile("lib/lib_mainLib.vcxproj")
-        final greetDllProject = projectFile("greet/greet_mainDll.vcxproj")
-        final greetLibProject = projectFile("greet/greet_mainLib.vcxproj")
+        final exeProject = projectFile("exe/exe.vcxproj")
+        final helloDllProject = projectFile("lib/libDll.vcxproj")
+        final greetLibProject = projectFile("greet/greetLib.vcxproj")
         final mainSolution = solutionFile("app.sln")
 
         and:
-        mainSolution.assertHasProjects("exe_mainExe", "lib_mainDll", "lib_mainLib", "greet_mainDll", "greet_mainLib")
+        mainSolution.assertHasProjects("exe", "libDll", "greetLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(helloDllProject, projectConfigurations)
-        mainSolution.assertReferencesProject(helloLibProject, projectConfigurations)
-        mainSolution.assertReferencesProject(greetDllProject, projectConfigurations)
         mainSolution.assertReferencesProject(greetLibProject, projectConfigurations)
 
         and:
-        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/main/headers")
-        helloDllProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../greet/src/main/headers")
-        helloLibProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../greet/src/main/headers")
-        greetDllProject.projectConfigurations['debug'].includePath == filePath("src/main/headers")
-        greetLibProject.projectConfigurations['debug'].includePath == filePath("src/main/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/main/public")
+        helloDllProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers", "../greet/src/main/public")
+        greetLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers")
     }
 
-    def "create visual studio solution for executable with project dependency cycle"() {
+    def "create visual studio solution for executable with a transitive api dependency"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
-        app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("exe/src/greetings"))
+        app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
 
         and:
         settingsFile << """
-            include ':exe', ':lib'
+            include ':exe', ':lib', ':greet'
         """
         buildFile << """
             project(":exe") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        main(NativeExecutableSpec) {
-                            sources {
-                                cpp.lib project: ':lib', library: 'hello'
-                            }
-                        }
-                        greetings(NativeLibrarySpec)
-                    }
+                apply plugin: "cpp-application"
+                
+                dependencies {
+                    implementation project(':lib')
                 }
             }
             project(":lib") {
-                apply plugin: "cpp"
-                model {
-                    components {
-                        hello(NativeLibrarySpec) {
-                            sources {
-                                cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
-                            }
-                        }
-                    }
+                apply plugin: "cpp-library"
+                
+                dependencies {
+                    api project(':greet')
+                }
+            }
+            project(":greet") {
+                apply plugin: "cpp-library"
+                
+                library {
+                    linkage = [Linkage.STATIC]
                 }
             }
         """
@@ -496,129 +239,111 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         succeeds ":visualStudio"
 
         then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
-        final helloDllProject = projectFile("lib/lib_helloDll.vcxproj")
-        final helloLibProject = projectFile("lib/lib_helloLib.vcxproj")
-        final greetDllProject = projectFile("exe/exe_greetingsDll.vcxproj")
-        final greetLibProject = projectFile("exe/exe_greetingsLib.vcxproj")
+        final exeProject = projectFile("exe/exe.vcxproj")
+        final helloDllProject = projectFile("lib/libDll.vcxproj")
+        final greetLibProject = projectFile("greet/greetLib.vcxproj")
         final mainSolution = solutionFile("app.sln")
 
         and:
-        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "lib_helloLib", "exe_greetingsDll", "exe_greetingsLib")
+        mainSolution.assertHasProjects("exe", "libDll", "greetLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(helloDllProject, projectConfigurations)
-        mainSolution.assertReferencesProject(helloLibProject, projectConfigurations)
-        mainSolution.assertReferencesProject(greetDllProject, projectConfigurations)
         mainSolution.assertReferencesProject(greetLibProject, projectConfigurations)
 
         and:
-        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-        helloDllProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../exe/src/greetings/headers")
-        helloLibProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../exe/src/greetings/headers")
-        greetDllProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
-        greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/main/public", "../greet/src/main/public")
+        helloDllProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers", "../greet/src/main/public")
+        greetLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers")
     }
 
-    /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
-    def "detects gradle wrapper and uses in vs project"() {
-        when:
-        hostGradleWrapperFile << "dummy wrapper"
+    @Requires(TestPrecondition.MSBUILD)
+    def "can build executable that depends on static library in another project from visual studio"() {
+        useMsbuildTool()
 
-        settingsFile << """
-            include ':exe'
-        """
-        buildFile << """
-            project(':exe') {
-                model {
-                    components {
-                        main(NativeExecutableSpec)
-                    }
-                }
-            }
-        """
-        and:
-        run ":visualStudio"
+        given:
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/main"))
 
-        then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
-        exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "\"../${hostGradleWrapperFile.name}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
-        }
-    }
-
-    /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({!(GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon)})
-    def "detects executing gradle distribution and uses in vs project"() {
-        when:
-        hostGradleWrapperFile << "dummy wrapper"
-
-        settingsFile << """
-            include ':exe'
-        """
-        buildFile << """
-            project(':exe') {
-                model {
-                    components {
-                        main(NativeExecutableSpec)
-                    }
-                }
-            }
-        """
-        and:
-        run ":visualStudio"
-
-        then:
-        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
-        exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "\"${FilenameUtils.separatorsToUnix(executer.distribution.gradleHomeDir.file('bin/gradle').absolutePath)}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
-        }
-    }
-
-    def "cleanVisualStudio removes all generated visual studio files"() {
-        when:
         settingsFile << """
             include ':exe', ':lib'
         """
-        buildFile << """
-            project(':exe') {
-                model {
-                    components {
-                        main(NativeExecutableSpec) {
-                            sources {
-                                cpp.lib project: ':lib', library: 'main', linkage: 'static'
-                            }
-                        }
-                    }
-                }
-            }
-            project(':lib') {
-                model {
-                    components {
-                        main(NativeLibrarySpec)
-                    }
-                }
+        file("exe", "build.gradle") << """
+            apply plugin: 'cpp-application'
+            
+            dependencies {
+                implementation project(':lib')
             }
         """
-        and:
-        run "visualStudio"
-
-        then:
-        def generatedFiles = [
-                file("app.sln"),
-                file("exe/exe_mainExe.vcxproj"),
-                file("exe/exe_mainExe.vcxproj.filters"),
-                file("lib/lib_mainDll.vcxproj"),
-                file("lib/lib_mainDll.vcxproj.filters"),
-                file("lib/lib_mainDll.vcxproj"),
-                file("lib/lib_mainDll.vcxproj.filters")
-        ]
-        generatedFiles*.assertExists()
+        file("lib", "build.gradle") << """
+            apply plugin: 'cpp-library'
+            
+            library {
+                linkage = [Linkage.STATIC]
+            }
+        """
+        succeeds ":visualStudio"
 
         when:
-        run "cleanVisualStudio"
+        def resultDebug = msbuild
+            .withSolution(solutionFile('app.sln'))
+            .withConfiguration('debug')
+            .withProject("exe")
+            .succeeds()
 
         then:
-        generatedFiles*.assertDoesNotExist()
+        resultDebug.assertTasksExecuted(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
+        resultDebug.assertTasksNotSkipped(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
+        installation('exe/build/install/main/debug').assertInstalled()
+    }
+
+    @NotYetImplemented
+    def "create visual studio solution where multiple projects have same name"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.writeSources(file("exe/src/main"), file("some/lib/src/main"), file("other/lib/src/main"))
+
+        and:
+        settingsFile << """
+            include ':exe', ':some:lib', ':other:lib'
+        """
+        buildFile << """
+            project(":exe") {
+                apply plugin: "cpp-application"
+                
+                dependencies {
+                    implementation project(':some:lib')
+                }
+            }
+            project(":some:lib") {
+                apply plugin: "cpp-library"
+                
+                dependencies {
+                    implementation project(':other:lib')
+                }
+            }
+            project(":other:lib") {
+                apply plugin: "cpp-library"
+            }
+        """
+
+        when:
+        succeeds ":visualStudio"
+
+        then:
+        final exeProject = projectFile("exe/exe.vcxproj")
+        final someLibProject = projectFile("some/lib/libDll.vcxproj")
+        final otherLibProject = projectFile("other/lib/libDll.vcxproj")
+        final mainSolution = solutionFile("app.sln")
+
+        and:
+        mainSolution.assertHasProjects("exe", "libDll", "libDll")
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(someLibProject, projectConfigurations)
+        mainSolution.assertReferencesProject(otherLibProject, projectConfigurations)
+
+        and:
+        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../some/lib/src/main/public")
+        someLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers", "../other/lib/src/main/public")
+        otherLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers")
     }
 }

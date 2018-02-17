@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio
 
+import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -278,6 +279,57 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         resultDebug.assertTasksNotSkipped(':compileDebugStaticCpp', ':compileDebugSharedCpp', ':createDebugStatic', ':linkDebugShared')
         debugBinaryLib.assertExists()
         debugBinaryDll.assertExists()
+    }
+
+    def "builds solution for component with no source"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+        buildFile << """
+            apply plugin: 'cpp-application'
+        """
+
+        when:
+        run "visualStudio"
+
+        then:
+        final projectFile = projectFile("app.vcxproj")
+        projectFile.sourceFiles == ['build.gradle']
+        projectFile.headerFiles == []
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        with (projectFile.projectConfigurations['debug']) {
+            includePath == filePath("src/main/headers")
+        }
+
+        and:
+        solutionFile("app.sln").assertHasProjects("app")
+    }
+
+    @NotYetImplemented
+    def "visual studio project includes headers co-located with sources"() {
+        when:
+        // Write headers so they sit with sources
+        app.files.each {
+            it.writeToFile(file("src/main/cpp/${it.name}"))
+        }
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+        buildFile << """
+            apply plugin: 'cpp-application'
+        """
+
+        and:
+        run "visualStudio"
+
+        then:
+        executedAndNotSkipped getProjectTasks("app")
+
+        and:
+        final projectFile = projectFile("app.vcxproj")
+        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({"src/main/cpp/${it.name}"}).sort()
+        assert projectFile.headerFiles == app.headerFiles.collect({"src/main/cpp/${it.name}"}).sort()
     }
 
     private String[] getProjectTasks(String exeName) {
