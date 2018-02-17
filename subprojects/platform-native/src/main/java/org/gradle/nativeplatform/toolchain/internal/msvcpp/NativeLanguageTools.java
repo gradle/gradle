@@ -16,17 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.util.VersionNumber;
-
 import java.io.File;
-import java.util.List;
 
-public interface NativeTools {
-    /**
-     * Returns the implementation version of these tools.
-     */
-    VersionNumber getVersion();
-
+public interface NativeLanguageTools extends ExecutableTools {
     File getCompilerExecutable();
 
     File getLinkerExecutable();
@@ -36,9 +28,4 @@ public interface NativeTools {
     File getAssemblerExecutable();
 
     File getBinDir();
-
-    /**
-     * Returns the path entries that must be present in order to use these tools, possibly none.
-     */
-    List<File> getPath();
 }

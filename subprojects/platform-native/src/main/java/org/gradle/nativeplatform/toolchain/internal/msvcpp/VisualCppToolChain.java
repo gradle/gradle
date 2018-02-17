@@ -121,11 +121,13 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
+        PlatformWindowsSdk platformSdk = windowsSdk.forPlatform(targetPlatform);
+        SystemLibraries cRuntime = ucrt == null ? null : ucrt.getCRuntime(targetPlatform);
 
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, platformVisualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, platformVisualCpp, platformSdk, cRuntime, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
     }
 
     @Override

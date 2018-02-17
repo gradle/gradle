@@ -47,9 +47,10 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.name == "Windows SDK 10"
         result.component.version == VersionNumber.withPatchNumber().parse(expected)
         result.component.baseDir == dir1
-        result.component.includeDirs as Set == [ dir1.file("Include/${expected}/um"), dir1.file("Include/${expected}/shared") ] as Set
-        result.component.getBinDir(x64()) == dir1.file("bin/x64")
-        result.component.getLibDir(x64()) == dir1.file("Lib/${expected}/um/x64")
+        def platformSdk = result.component.forPlatform(x64())
+        platformSdk.includeDirs == [ dir1.file("Include/${expected}/um"), dir1.file("Include/${expected}/shared") ]
+        platformSdk.path == [dir1.file("bin/x64")]
+        platformSdk.libDirs == [dir1.file("Lib/${expected}/um/x64")]
 
         where:
         versions                                           | expected
@@ -72,9 +73,10 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.name == "Windows SDK 10"
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10500.0")
         result.component.baseDir == dir1
-        result.component.includeDirs as Set == [ dir1.file("Include/10.0.10500.0/um"), dir1.file("Include/10.0.10500.0/shared") ] as Set
-        result.component.getBinDir(x64()) == dir1.file("bin/10.0.10500.0/x64")
-        result.component.getLibDir(x64()) == dir1.file("Lib/10.0.10500.0/um/x64")
+        def platformSdk = result.component.forPlatform(x64())
+        platformSdk.includeDirs == [ dir1.file("Include/10.0.10500.0/um"), dir1.file("Include/10.0.10500.0/shared") ]
+        platformSdk.path == [dir1.file("bin/10.0.10500.0/x64")]
+        platformSdk.libDirs == [dir1.file("Lib/10.0.10500.0/um/x64")]
     }
 
     def "SDK not available when not found in registry"() {
@@ -156,7 +158,8 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.name == "Windows SDK 10"
         result.component.baseDir == dir1
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
-        result.component.includeDirs as Set == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ] as Set
+        def platformSdk = result.component.forPlatform(x64())
+        platformSdk.includeDirs == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ]
     }
 
     def "uses windows SDK using specified install dir"() {
@@ -176,21 +179,23 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.name == "User-provided Windows SDK 10"
         result.component.baseDir == dir2
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
-        result.component.includeDirs as Set == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ] as Set
-        result.component.getBinDir(x64()) == dir2.file("bin/x64")
-        result.component.getLibDir(x64()) == dir2.file("Lib/10.0.10150.0/um/x64")
+        def platformSdk = result.component.forPlatform(x64())
+        platformSdk.includeDirs == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ]
+        platformSdk.path == [dir2.file("bin/x64")]
+        platformSdk.libDirs == [dir2.file("Lib/10.0.10150.0/um/x64")]
 
         when:
         result = windowsSdkLocator.locateComponent(dir3)
+        platformSdk = result.component.forPlatform(x64())
 
         then:
         result.available
         result.component.name == "User-provided Windows SDK 10"
         result.component.baseDir == dir3
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10500.0")
-        result.component.includeDirs as Set == [ dir3.file("Include/10.0.10500.0/um"), dir3.file("Include/10.0.10500.0/shared") ] as Set
-        result.component.getBinDir(x64()) == dir3.file("bin/x64")
-        result.component.getLibDir(x64()) == dir3.file("Lib/10.0.10500.0/um/x64")
+        platformSdk.includeDirs == [ dir3.file("Include/10.0.10500.0/um"), dir3.file("Include/10.0.10500.0/shared") ]
+        platformSdk.path == [dir3.file("bin/x64")]
+        platformSdk.libDirs == [dir3.file("Lib/10.0.10500.0/um/x64")]
     }
 
     def "uses windows SDK with versioned bin dir using specified install dir"() {
@@ -209,9 +214,10 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.name == "User-provided Windows SDK 10"
         result.component.baseDir == dir2
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
-        result.component.includeDirs as Set == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ] as Set
-        result.component.getBinDir(x64()) == dir2.file("bin/10.0.10150.0/x64")
-        result.component.getLibDir(x64()) == dir2.file("Lib/10.0.10150.0/um/x64")
+        def platformSdk = result.component.forPlatform(x64())
+        platformSdk.includeDirs == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ]
+        platformSdk.path == [dir2.file("bin/10.0.10150.0/x64")]
+        platformSdk.libDirs == [dir2.file("Lib/10.0.10150.0/um/x64")]
     }
 
     def "SDK not available when specified install dir does not look like an SDK"() {

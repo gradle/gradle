@@ -16,5 +16,5 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-public interface PlatformVisualCpp extends NativeTools, SystemLibraries {
+public interface PlatformVisualCpp extends NativeLanguageTools, SystemLibraries {
 }

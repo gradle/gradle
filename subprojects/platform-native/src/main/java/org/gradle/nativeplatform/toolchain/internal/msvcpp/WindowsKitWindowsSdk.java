@@ -20,6 +20,10 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class WindowsKitWindowsSdk extends WindowsKitComponent implements WindowsSdk {
     private final File binDir;
@@ -30,36 +34,65 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
     }
 
     @Override
-    public File getResourceCompiler(NativePlatformInternal platform) {
-        return new File(getBinDir(platform), "rc.exe");
+    public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
+        return new WindowsKitBackedSdk(platform);
     }
 
-    @Override
-    public File getBinDir(NativePlatformInternal platform) {
-        if (platform.getArchitecture().isAmd64()) {
-            return new File(binDir, "x64");
-        }
-        if (platform.getArchitecture().isArm()) {
-            return new File(binDir, "arm");
-        }
-        return new File(binDir, "x86");
-    }
+    private class WindowsKitBackedSdk implements PlatformWindowsSdk {
+        private final NativePlatformInternal platform;
 
-    public File[] getIncludeDirs() {
-        return new File[] {
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/um"),
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/shared")
-        };
-    }
+        public WindowsKitBackedSdk(NativePlatformInternal platform) {
+            this.platform = platform;
+        }
 
-    public File getLibDir(NativePlatformInternal platform) {
-        String platformDir = "x86";
-        if (platform.getArchitecture().isAmd64()) {
-            platformDir = "x64";
+        @Override
+        public VersionNumber getVersion() {
+            return WindowsKitWindowsSdk.this.getVersion();
         }
-        if (platform.getArchitecture().isArm()) {
-            platformDir = "arm";
+
+        @Override
+        public List<File> getIncludeDirs() {
+            return Arrays.asList(
+                new File(getBaseDir(), "Include/" + getVersion().toString() + "/um"),
+                new File(getBaseDir(), "Include/" + getVersion().toString() + "/shared")
+            );
         }
-        return new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDir);
+
+        @Override
+        public List<File> getLibDirs() {
+            String platformDir = "x86";
+            if (platform.getArchitecture().isAmd64()) {
+                platformDir = "x64";
+            }
+            if (platform.getArchitecture().isArm()) {
+                platformDir = "arm";
+            }
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDir));
+        }
+
+        @Override
+        public File getResourceCompiler() {
+            return new File(getBinDir(), "rc.exe");
+        }
+
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public List<File> getPath() {
+            return Collections.singletonList(getBinDir());
+        }
+
+        private File getBinDir() {
+            if (platform.getArchitecture().isAmd64()) {
+                return new File(binDir, "x64");
+            }
+            if (platform.getArchitecture().isArm()) {
+                return new File(binDir, "arm");
+            }
+            return new File(binDir, "x86");
+        }
     }
 }
