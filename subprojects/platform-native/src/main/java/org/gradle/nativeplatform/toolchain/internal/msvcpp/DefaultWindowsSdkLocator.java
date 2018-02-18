@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.TreeVisitor;
 
 import javax.annotation.Nullable;

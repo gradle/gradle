@@ -16,5 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
+
 public interface PlatformWindowsSdk extends WindowsTools, SystemLibraries {
 }

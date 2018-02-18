@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.nativeplatform.toolchain.internal.ExecutableTools;
+
 import java.io.File;
 
 public interface WindowsTools extends ExecutableTools {

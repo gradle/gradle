@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.TreeVisitor;
 
 import java.util.Collection;

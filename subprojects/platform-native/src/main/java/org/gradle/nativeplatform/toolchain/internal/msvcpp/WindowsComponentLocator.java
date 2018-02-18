@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.platform.base.internal.toolchain.SearchResult;
+
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;

@@ -21,6 +21,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
 
