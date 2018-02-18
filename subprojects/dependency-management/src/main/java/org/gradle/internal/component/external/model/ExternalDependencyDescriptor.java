@@ -16,12 +16,8 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -45,28 +41,6 @@ public abstract class ExternalDependencyDescriptor {
     public abstract boolean isTransitive();
 
     protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
-
-    /**
-     * Choose a set of target configurations based on: a) the consumer attributes, b) the fromConfiguration and c) the target component.
-     *
-     * Use attribute matching to choose a single variant when:
-     *   - The target component has variants AND
-     *   - Either: we have consumer attributes OR the target component is from an external repository (not a Gradle project).
-     *
-     * Otherwise, revert to legacy selection of target configurations.
-     */
-    public List<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
-            // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
-            // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
-            // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
-            // - or the target is a component from a Maven/Ivy repo as we can assume this is well behaved
-            if (!consumerAttributes.isEmpty() || targetComponent instanceof ModuleComponentResolveMetadata) {
-                return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
-            }
-        }
-        return selectLegacyConfigurations(fromComponent, fromConfiguration, targetComponent);
-    }
 
     protected abstract List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 
