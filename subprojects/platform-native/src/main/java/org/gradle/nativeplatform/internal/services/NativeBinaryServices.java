@@ -45,6 +45,8 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioM
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VswhereVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.WindowsRegistryVersionLocator;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
+import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class NativeBinaryServices extends AbstractPluginServiceRegistry {
@@ -62,6 +64,8 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new BuildSessionScopeServices());
         registration.add(DefaultUcrtLocator.class);
+        registration.add(MacOSSdkPlatformPathLocator.class);
+        registration.add(SwiftStdlibToolLocator.class);
     }
 
     @Override
