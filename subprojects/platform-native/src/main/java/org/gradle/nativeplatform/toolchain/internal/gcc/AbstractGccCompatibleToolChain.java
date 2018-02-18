@@ -27,6 +27,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
@@ -35,6 +36,7 @@ import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
@@ -44,10 +46,13 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchR
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,6 +214,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
+        CompilerMetaDataProvider<GccMetadata> metaDataProvider = this.metaDataProvider;
+        if (targetPlatform.getOperatingSystem().isMacOsX()) {
+            metaDataProvider = new MacSdkCompilerMetaDataProvider(metaDataProvider);
+        }
+
         return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, new CompilerMetaDataProviderWithDefaultArgs(configurableToolChain.getCompilerProbeArgs(), metaDataProvider));
     }
 
@@ -349,4 +359,68 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
+    private class MacSdkCompilerMetaDataProvider implements CompilerMetaDataProvider<GccMetadata> {
+        private final CompilerMetaDataProvider<GccMetadata> delegate;
+
+        public MacSdkCompilerMetaDataProvider(CompilerMetaDataProvider<GccMetadata> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public SearchResult<GccMetadata> getCompilerMetaData(File binary, List<String> additionalArgs) {
+            final SearchResult<GccMetadata> result = delegate.getCompilerMetaData(binary, additionalArgs);
+            if (!result.isAvailable()) {
+                return result;
+            }
+            File sdkDir = new MacOSSdkPathLocator(execActionFactory).find();
+            final File platformIncludeDir = new File(sdkDir, "usr/include");
+            return new ComponentFound<GccMetadata>(new GccMetadata() {
+                @Override
+                public ArchitectureInternal getDefaultArchitecture() {
+                    return result.getComponent().getDefaultArchitecture();
+                }
+
+                @Override
+                public SystemLibraries getSystemLibraries() {
+                    return new SystemLibraries() {
+                        @Override
+                        public List<File> getIncludeDirs() {
+                            List<File> includeDirs = result.getComponent().getSystemLibraries().getIncludeDirs();
+                            if (includeDirs.contains(platformIncludeDir)) {
+                                return includeDirs;
+                            }
+                            List<File> dirs = new ArrayList<File>(includeDirs);
+                            dirs.add(platformIncludeDir);
+                            return dirs;
+                        }
+
+                        @Override
+                        public List<File> getLibDirs() {
+                            return result.getComponent().getSystemLibraries().getLibDirs();
+                        }
+
+                        @Override
+                        public Map<String, String> getPreprocessorMacros() {
+                            return result.getComponent().getSystemLibraries().getPreprocessorMacros();
+                        }
+                    };
+                }
+
+                @Override
+                public String getVendor() {
+                    return result.getComponent().getVendor();
+                }
+
+                @Override
+                public VersionNumber getVersion() {
+                    return result.getComponent().getVersion();
+                }
+            });
+        }
+
+        @Override
+        public CompilerType getCompilerType() {
+            return delegate.getCompilerType();
+        }
+    }
 }
