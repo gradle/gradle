@@ -25,6 +25,7 @@ import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
@@ -49,6 +50,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
@@ -74,15 +76,18 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     );
 
     private final ToolSearchPath toolSearchPath;
+    private final NativePlatformInternal targetPlatform;
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final boolean useCommandFile;
     private final WorkerLeaseService workerLeaseService;
     private final CompilerMetaDataProvider<GccMetadata> metadataProvider;
+    private final SystemLibraryDiscovery standardLibraryDiscovery;
 
-    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider<GccMetadata> metadataProvider) {
+    GccPlatformToolProvider(NativePlatformInternal targetPlatform, BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider<GccMetadata> metadataProvider, SystemLibraryDiscovery standardLibraryDiscovery) {
         super(buildOperationExecutor, targetOperatingSystem);
+        this.targetPlatform = targetPlatform;
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
@@ -90,6 +95,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
         this.metadataProvider = metadataProvider;
+        this.standardLibraryDiscovery = standardLibraryDiscovery;
     }
 
     @Override
@@ -236,7 +242,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     public SystemLibraries getSystemLibraries(ToolType compilerType) {
         final SearchResult<GccMetadata> gccMetadata = getGccMetadata(compilerType);
         if (gccMetadata.isAvailable()) {
-            return gccMetadata.getComponent().getSystemLibraries();
+            return standardLibraryDiscovery.getSystemLibraries(gccMetadata.getComponent(), targetPlatform);
         }
         return new EmptySystemLibraries();
     }
