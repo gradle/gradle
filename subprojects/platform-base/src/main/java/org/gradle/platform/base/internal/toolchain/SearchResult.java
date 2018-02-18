@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.platform.base.internal.toolchain;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
-/**
- * Represents a container of C/C++ libraries.
- */
-public interface SystemLibraries {
-    List<File> getIncludeDirs();
-
-    List<File> getLibDirs();
-
-    Map<String, String> getPreprocessorMacros();
+public interface SearchResult<T> extends ToolSearchResult {
+    T getComponent();
 }

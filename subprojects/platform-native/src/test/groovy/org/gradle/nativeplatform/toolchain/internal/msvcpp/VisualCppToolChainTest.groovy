@@ -27,6 +27,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
