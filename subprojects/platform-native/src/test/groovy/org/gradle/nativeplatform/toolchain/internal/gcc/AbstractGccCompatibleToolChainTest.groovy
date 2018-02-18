@@ -38,6 +38,8 @@ import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataPro
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
+import org.gradle.platform.base.internal.toolchain.ComponentFound
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
@@ -53,13 +55,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def toolSearchPath = Stub(ToolSearchPath)
     def tool = Stub(CommandLineToolSearchResult) {
         isAvailable() >> true
+        getTool() >> new File("tool")
     }
     def missing = Stub(CommandLineToolSearchResult) {
         isAvailable() >> false
     }
-    def correctCompiler = Stub(GccMetadata) {
-        isAvailable() >> true
-    }
+    def correctCompiler = new ComponentFound(Stub(GccMetadata))
     def metaDataProvider = Stub(CompilerMetaDataProvider)
     def operatingSystem = Stub(OperatingSystem)
     def buildOperationExecutor = Stub(BuildOperationExecutor)
@@ -140,7 +141,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "is unavailable when a compiler is found with incorrect implementation"() {
-        def wrongCompiler = Stub(GccMetadata) {
+        def wrongCompiler = Stub(SearchResult) {
             isAvailable() >> false
             explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c compiler is not gcc") }
         }

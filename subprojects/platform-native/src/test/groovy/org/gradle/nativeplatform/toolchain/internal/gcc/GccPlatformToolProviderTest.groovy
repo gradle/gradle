@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchR
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -52,7 +53,7 @@ class GccPlatformToolProviderTest extends Specification {
         then:
         1 * metaDataProvider.getCompilerMetaData(_, _) >> {
             assert arguments[1] == args
-            Mock(GccMetadata)
+            Mock(SearchResult)
         }
         1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
         1 * toolSearchPath.locate(toolType, 'exe') >> Mock(CommandLineToolSearchResult)
@@ -76,7 +77,7 @@ class GccPlatformToolProviderTest extends Specification {
         then:
         1 * metaDataProvider.getCompilerMetaData(_, _) >> {
             assert arguments[1] == args
-            Mock(GccMetadata)
+            Mock(SearchResult)
         }
         1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
         1 * toolSearchPath.locate(toolType, 'exe') >> Mock(CommandLineToolSearchResult)

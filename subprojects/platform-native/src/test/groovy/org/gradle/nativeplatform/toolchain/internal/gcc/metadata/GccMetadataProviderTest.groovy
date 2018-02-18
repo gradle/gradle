@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata
 
 import org.gradle.api.Transformer
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
@@ -164,7 +165,7 @@ End of search list.
         expect:
         def result = output(gcc, gccVerboseOutput(versionNumber.toString()))
         result.available
-        result.version == VersionNumber.parse(versionNumber)
+        result.component.version == VersionNumber.parse(versionNumber)
 
         where:
         gcc          | versionNumber
@@ -179,17 +180,17 @@ End of search list.
         expect:
         def result = output(gcc4, gccVerboseOutput('4.2.1', []))
         result.available
-        result.vendor == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
+        result.component.vendor == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
     }
 
     @Unroll
     "can scrape architecture from GCC output"() {
         expect:
         def x86 = output(gccX86, gccVerboseOutput())
-        x86.defaultArchitecture.isI386()
+        x86.component.defaultArchitecture.isI386()
 
         def amd64 = output(gccAmd64, gccVerboseOutput())
-        amd64.defaultArchitecture.isAmd64()
+        amd64.component.defaultArchitecture.isAmd64()
     }
 
     def "handles output that cannot be parsed"() {
@@ -255,8 +256,8 @@ End of search list.
         expect:
         def result = output stdin, stderr, CLANG
         result.available
-        result.version == VersionNumber.parse(version)
-        result.vendor == vendor
+        result.component.version == VersionNumber.parse(version)
+        result.component.vendor == vendor
 
         where:
         stdin        | stderr                    | version | vendor
@@ -295,8 +296,8 @@ End of search list.
     def "parses gcc system includes"() {
         def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
-        def result = output gcc4, gccVerboseOutput('4.2.1', includes), GCC
-        result.systemIncludes*.path == includes
+        def result = output(gcc4, gccVerboseOutput('4.2.1', includes), GCC)
+        result.component.systemIncludes*.path == includes
     }
 
     def "parses clang system includes"() {
@@ -307,8 +308,8 @@ End of search list.
         ])
         def frameworks = correctPathSeparators(['/System/Library/Frameworks', '/Library/Frameworks'])
         expect:
-        def result = output clang, clangVerboseOutput('5.0', includes, frameworks), CLANG
-        result.systemIncludes*.path == includes
+        def result = output(clang, clangVerboseOutput('5.0', includes, frameworks), CLANG)
+        result.component.systemIncludes*.path == includes
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -320,26 +321,27 @@ End of search list.
         ]
         def frameworkDirs = ['/System/Library/Frameworks', '/Library/Frameworks']
         expect:
-        def result = output gcc4, gccVerboseOutput('4.2.1', includes + frameworkDirs), GCC
-        result.systemIncludes*.path == includes
+        def result = output(gcc4, gccVerboseOutput('4.2.1', includes + frameworkDirs), GCC)
+        result.component.systemIncludes*.path == includes
     }
 
     def correctPathSeparators(Collection<String> paths) {
         paths.collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator)) }
     }
 
-    GccMetadata output(String outputStr, GccCompilerType compilerType = GCC) {
+    SearchResult<GccMetadata> output(String outputStr, GccCompilerType compilerType = GCC) {
         output(outputStr, "", compilerType)
     }
 
-    GccMetadata output(String output, String error, GccCompilerType compilerType = GCC) {
+    SearchResult<GccMetadata> output(String output, String error, GccCompilerType compilerType = GCC) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.setErrorOutput(_) >> { OutputStream errorstr -> errorstr << error; action }
         1 * action.execute() >> result
-        new GccMetadataProvider(execActionFactory, compilerType).getCompilerMetaData(new File("g++"), [])
+        def provider = new GccMetadataProvider(execActionFactory, compilerType)
+        provider.getCompilerMetaData(new File("g++"), [])
     }
 
     Transformer transformer(constant) {

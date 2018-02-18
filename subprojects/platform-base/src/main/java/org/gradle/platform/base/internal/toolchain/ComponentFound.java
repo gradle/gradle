@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.TreeVisitor;
 
-class ComponentFound<T> implements SearchResult<T> {
+public class ComponentFound<T> implements SearchResult<T> {
     private final T component;
 
     public ComponentFound(T component) {

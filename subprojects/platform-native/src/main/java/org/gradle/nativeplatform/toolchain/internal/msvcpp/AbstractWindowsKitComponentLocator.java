@@ -23,6 +23,8 @@ import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
