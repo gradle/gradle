@@ -16,10 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift.metadata
 
+import org.gradle.internal.text.TreeFormatter
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class SwiftcMetadataProviderTest extends Specification {
@@ -36,18 +37,18 @@ Target: x86_64-unknown-linux-gnu
 
     def "can scrape version from output of swiftc"() {
         expect:
-        output(SWIFTC_OUTPUT_MAC_OS).vendor == 'Apple Swift version 4.0.2 (swiftlang-900.0.69.2 clang-900.0.38)'
-        output(SWIFTC_OUTPUT_LINUX).vendor == 'Swift version 3.1.1 (swift-3.1.1-RELEASE)'
+        output(SWIFTC_OUTPUT_MAC_OS).component.vendor == 'Apple Swift version 4.0.2 (swiftlang-900.0.69.2 clang-900.0.38)'
+        output(SWIFTC_OUTPUT_LINUX).component.vendor == 'Swift version 3.1.1 (swift-3.1.1-RELEASE)'
     }
 
     def "can parse version from output of swiftc"() {
         expect:
-        output(SWIFTC_OUTPUT_MAC_OS).version.with { [major, minor, micro] } == [4, 0, 2]
-        output(SWIFTC_OUTPUT_LINUX).version.with { [major, minor, micro] } == [3, 1, 1]
+        output(SWIFTC_OUTPUT_MAC_OS).component.version.with { [major, minor, micro] } == [4, 0, 2]
+        output(SWIFTC_OUTPUT_LINUX).component.version.with { [major, minor, micro] } == [3, 1, 1]
     }
 
     def "handles output that cannot be parsed"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
 
         expect:
         def result = output(out)
@@ -57,7 +58,7 @@ Target: x86_64-unknown-linux-gnu
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine SwiftC metadata: swiftc produced unexpected output.")
+        visitor.toString() == "Could not determine SwiftC metadata: swiftc produced unexpected output."
 
         where:
         out << ["not sure about this", ""]
@@ -65,7 +66,7 @@ Target: x86_64-unknown-linux-gnu
 
     def "handles failure to execute swiftc"() {
         given:
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
         def action = Mock(ExecAction)
         def execResult = Mock(ExecResult)
 
@@ -88,16 +89,17 @@ Target: x86_64-unknown-linux-gnu
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine SwiftC metadata: failed to execute swiftc --version.")
+        visitor.toString() == "Could not determine SwiftC metadata: failed to execute swiftc --version."
     }
 
-    SwiftcMetadata output(String output) {
+    SearchResult<SwiftcMetadata> output(String output) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.execute() >> result
-        new SwiftcMetadataProvider(execActionFactory).getCompilerMetaData(new File("swiftc"), [])
+        def provider = new SwiftcMetadataProvider(execActionFactory)
+        provider.getCompilerMetaData(new File("swiftc"), [])
     }
 
 }

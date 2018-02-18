@@ -21,6 +21,8 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;

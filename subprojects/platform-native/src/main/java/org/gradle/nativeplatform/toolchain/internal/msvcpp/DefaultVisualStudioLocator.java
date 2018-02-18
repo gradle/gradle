@@ -25,6 +25,8 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioM
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;

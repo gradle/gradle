@@ -39,6 +39,7 @@ import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
@@ -181,9 +182,9 @@ public class AvailableToolChains {
         if (!gppCandidates.isEmpty()) {
             File firstInPath = gppCandidates.iterator().next();
             for (File candidate : gppCandidates) {
-                GccMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
-                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
+                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getComponent().getVersion());
                     if (!candidate.equals(firstInPath)) {
                         // Not the first g++ in the path, needs the path variable updated
                         gcc.inPath(candidate.getParentFile());
@@ -215,19 +216,19 @@ public class AvailableToolChains {
 
         for (File swiftInstall : candidates) {
             File swiftc = new File(swiftInstall, "/usr/bin/swiftc");
-            SwiftcMetadata version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList());
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList());
             if (version.isAvailable()) {
                 File binDir = swiftc.getParentFile();
-                toolChains.add(new InstalledSwiftc(binDir, version.getVersion()).inPath(binDir, new File("/usr/bin")));
+                toolChains.add(new InstalledSwiftc(binDir, version.getComponent().getVersion()).inPath(binDir, new File("/usr/bin")));
             }
         }
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
         for (File candidate : swiftcCandidates) {
-            SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
             if (version.isAvailable()) {
                 File binDir = candidate.getParentFile();
-                InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getVersion());
+                InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getComponent().getVersion());
                 swiftc.inPath(binDir, new File("/usr/bin"));
                 toolChains.add(swiftc);
             }

@@ -49,17 +49,17 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
-import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -114,11 +114,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, ToolType toolType) {
-        GccMetadata gccMetadata = getGccMetadata(toolType);
+        SearchResult<GccMetadata> gccMetadata = getGccMetadata(toolType);
         return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(
             metadataProvider.getCompilerType().getIdentifier(),
-            gccMetadata.getVendor(),
-            gccMetadata.getVersion())
+            gccMetadata.getComponent().getVendor(),
+            gccMetadata.getComponent().getVersion())
         );
     }
 
@@ -221,10 +221,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return ".h.gch";
     }
 
-    private GccMetadata getGccMetadata(ToolType compilerType) {
+    private SearchResult<GccMetadata> getGccMetadata(ToolType compilerType) {
         GccCommandLineToolConfigurationInternal compiler = toolRegistry.getTool(compilerType);
         if (compiler == null) {
-            return GccMetadataProvider.broken("Tool " + compilerType.getToolName() + " is not available");
+            return new ComponentNotFound<GccMetadata>("Tool " + compilerType.getToolName() + " is not available");
         }
         CommandLineToolSearchResult searchResult = toolSearchPath.locate(compiler.getToolType(), compiler.getExecutable());
         String language = LANGUAGE_FOR_COMPILER.get(compilerType);
@@ -234,20 +234,15 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     public SystemLibraries getSystemLibraries(ToolType compilerType) {
-        final GccMetadata gccMetadata = getGccMetadata(compilerType);
+        final SearchResult<GccMetadata> gccMetadata = getGccMetadata(compilerType);
         if (gccMetadata.isAvailable()) {
-            return new EmptySystemLibraries() {
-                @Override
-                public List<File> getIncludeDirs() {
-                    return gccMetadata.getSystemIncludes();
-                }
-            };
+            return gccMetadata.getComponent().getSystemLibraries();
         }
         return new EmptySystemLibraries();
     }
 
     @Override
     public CompilerMetadata getCompilerMetadata(ToolType toolType) {
-        return getGccMetadata(toolType);
+        return getGccMetadata(toolType).getComponent();
     }
 }

@@ -44,6 +44,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchR
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
@@ -216,14 +217,14 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
-                GccMetadata gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
+                SearchResult<GccMetadata> gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
                 availability.mustBeAvailable(gccMetadata);
                 if (!gccMetadata.isAvailable()) {
                     return;
                 }
                 // Assume all the other compilers are ok, if they happen to be installed
                 LOGGER.debug("Found {} with version {}", tool.getToolType().getToolName(), gccMetadata);
-                initForImplementation(platformToolChain, gccMetadata);
+                initForImplementation(platformToolChain, gccMetadata.getComponent());
                 break;
             }
         }
@@ -338,7 +339,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         @Override
-        public GccMetadata getCompilerMetaData(File binary, List<String> additionalArgs) {
+        public SearchResult<GccMetadata> getCompilerMetaData(File binary, List<String> additionalArgs) {
             return delegate.getCompilerMetaData(binary, ImmutableList.<String>builder().addAll(compilerProbeArgs).addAll(additionalArgs).build());
         }
 

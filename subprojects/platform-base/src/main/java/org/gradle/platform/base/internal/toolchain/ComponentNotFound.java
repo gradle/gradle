@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.TreeVisitor;
 
 import java.util.Collection;
 import java.util.Collections;
 
-class ComponentNotFound<T> implements SearchResult<T> {
+public class ComponentNotFound<T> implements SearchResult<T> {
     private final String message;
     private final Collection<String> locations;
 
-    ComponentNotFound(String message) {
+    public ComponentNotFound(String message) {
         this.message = message;
         this.locations = Collections.emptyList();
     }
 
-    ComponentNotFound(String message, Collection<String> locations) {
+    public ComponentNotFound(String message, Collection<String> locations) {
         this.message = message;
         this.locations = locations;
     }
