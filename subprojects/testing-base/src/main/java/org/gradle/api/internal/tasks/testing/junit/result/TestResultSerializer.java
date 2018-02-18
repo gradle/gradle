@@ -66,6 +66,7 @@ public class TestResultSerializer {
     private void write(TestClassResult classResult, Encoder encoder) throws IOException {
         encoder.writeSmallLong(classResult.getId());
         encoder.writeString(classResult.getClassName());
+        encoder.writeString(classResult.getClassDisplayName());
         encoder.writeLong(classResult.getStartTime());
         encoder.writeSmallInt(classResult.getResults().size());
         for (TestMethodResult methodResult : classResult.getResults()) {
@@ -76,6 +77,7 @@ public class TestResultSerializer {
     private void write(TestMethodResult methodResult, Encoder encoder) throws IOException {
         encoder.writeSmallLong(methodResult.getId());
         encoder.writeString(methodResult.getName());
+        encoder.writeString(methodResult.getDisplayName());
         encoder.writeSmallInt(methodResult.getResultType().ordinal());
         encoder.writeSmallLong(methodResult.getDuration());
         encoder.writeLong(methodResult.getEndTime());
@@ -123,8 +125,9 @@ public class TestResultSerializer {
     private TestClassResult readClassResult(Decoder decoder) throws IOException, ClassNotFoundException {
         long id = decoder.readSmallLong();
         String className = decoder.readString();
+        String classDisplayName = decoder.readString();
         long startTime = decoder.readLong();
-        TestClassResult result = new TestClassResult(id, className, startTime);
+        TestClassResult result = new TestClassResult(id, className, classDisplayName, startTime);
         int testMethodCount = decoder.readSmallInt();
         for (int i = 0; i < testMethodCount; i++) {
             TestMethodResult methodResult = readMethodResult(decoder);
@@ -136,10 +139,11 @@ public class TestResultSerializer {
     private TestMethodResult readMethodResult(Decoder decoder) throws ClassNotFoundException, IOException {
         long id = decoder.readSmallLong();
         String name = decoder.readString();
+        String displayName = decoder.readString();
         TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
         long duration = decoder.readSmallLong();
         long endTime = decoder.readLong();
-        TestMethodResult methodResult = new TestMethodResult(id, name, resultType, duration, endTime);
+        TestMethodResult methodResult = new TestMethodResult(id, name, displayName, resultType, duration, endTime);
         int failures = decoder.readSmallInt();
         for (int i = 0; i < failures; i++) {
             String exceptionType = decoder.readString();

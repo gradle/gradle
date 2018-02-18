@@ -56,7 +56,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
 
         for (TestResult test : getResults().getTestResults()) {
             htmlWriter.startElement("tr")
-                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getName()).endElement()
+                .startElement("td").attribute("class", test.getStatusClass()).attribute("title", test.getName()).characters(test.getDisplayName()).endElement()
                 .startElement("td").characters(test.getFormattedDuration()).endElement()
                 .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
             .endElement();
@@ -69,7 +69,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
         for (TestResult test : getResults().getFailures()) {
             htmlWriter.startElement("div").attribute("class", "test")
                 .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
-                .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getName()).endElement();
+                .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
             for (TestFailure failure : test.getFailures()) {
                 String message;
                 if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {

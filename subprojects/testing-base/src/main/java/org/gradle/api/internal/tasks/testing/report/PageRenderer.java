@@ -24,6 +24,7 @@ import org.gradle.reporting.TabsRenderer;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Set;
 
 abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRenderer<T> {
     private static final URL STYLE_URL = PageRenderer.class.getResource("style.css");
@@ -68,13 +69,24 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     }
 
     protected void renderFailures(SimpleHtmlWriter htmlWriter) throws IOException {
+        renderTestResultList(htmlWriter, results.getFailures());
+    }
+
+    private void renderTestResultList(SimpleHtmlWriter htmlWriter, Set<TestResult> failures) throws IOException {
         htmlWriter.startElement("ul").attribute("class", "linkList");
-        for (TestResult test : results.getFailures()) {
+        for (TestResult test : failures) {
             htmlWriter.startElement("li");
-            htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults()))).characters(test.getClassResults().getSimpleName()).endElement();
+            htmlWriter.startElement("a")
+                .attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())))
+                .attribute("title", test.getClassResults().getName())
+                .characters(test.getClassResults().getSimpleName())
+                .endElement();
             htmlWriter.characters(".");
             String link = asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())) + "#" + test.getName();
-            htmlWriter.startElement("a").attribute("href", link).characters(test.getName()).endElement();
+            htmlWriter.startElement("a")
+                .attribute("href", link)
+                .attribute("title", test.getName())
+                .characters(test.getDisplayName()).endElement();
             htmlWriter.endElement();
         }
         htmlWriter.endElement();
@@ -91,16 +103,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     }
 
     protected void renderIgnoredTests(SimpleHtmlWriter htmlWriter) throws IOException {
-        htmlWriter.startElement("ul").attribute("class", "linkList");
-        for (TestResult test : getResults().getIgnored()) {
-            htmlWriter.startElement("li");
-            htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults()))).characters(test.getClassResults().getSimpleName()).endElement();
-            htmlWriter.characters(".");
-            String link = asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())) + "#" + test.getName();
-            htmlWriter.startElement("a").attribute("href", link).characters(test.getName()).endElement();
-            htmlWriter.endElement();
-        }
-        htmlWriter.endElement();
+        renderTestResultList(htmlWriter, getResults().getIgnored());
     }
 
     @Override

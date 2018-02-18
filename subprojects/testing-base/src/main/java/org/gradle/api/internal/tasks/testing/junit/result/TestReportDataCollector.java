@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.serialize.PlaceholderException;
 
@@ -61,20 +62,22 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     @Override
     public void beforeTest(TestDescriptor testDescriptor) {
-        TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, testDescriptor.getName());
+        TestDescriptorInternal testDescriptorInternal = (TestDescriptorInternal) testDescriptor;
+        TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, testDescriptorInternal.getName(), testDescriptorInternal.getDisplayName());
         currentTestMethods.put(testDescriptor, methodResult);
     }
 
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         String className = testDescriptor.getClassName();
+        String classDisplayName = TestDescriptorInternal.class.cast(testDescriptor).getClassDisplayName();
         TestMethodResult methodResult = currentTestMethods.remove(testDescriptor).completed(result);
         for (Throwable throwable : result.getExceptions()) {
             methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
         }
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
-            classResult = new TestClassResult(internalIdCounter++, className, result.getStartTime());
+            classResult = new TestClassResult(internalIdCounter++, className, classDisplayName, result.getStartTime());
             results.put(className, classResult);
         } else if (classResult.getStartTime() == 0) {
             //class results may be created earlier, where we don't yet have access to the start time
@@ -99,18 +102,18 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     private String stackTrace(Throwable throwable) {
         try {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter writer = new PrintWriter(stringWriter);
-            throwable.printStackTrace(writer);
-            writer.close();
-            return stringWriter.toString();
+            return getStacktrace(throwable);
         } catch (Throwable t) {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter writer = new PrintWriter(stringWriter);
-            t.printStackTrace(writer);
-            writer.close();
-            return stringWriter.toString();
+            return getStacktrace(t);
         }
+    }
+
+    private String getStacktrace(Throwable throwable) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        throwable.printStackTrace(writer);
+        writer.close();
+        return stringWriter.toString();
     }
 
     @Override

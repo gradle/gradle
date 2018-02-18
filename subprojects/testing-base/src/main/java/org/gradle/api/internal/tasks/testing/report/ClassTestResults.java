@@ -28,14 +28,20 @@ import java.util.TreeSet;
 public class ClassTestResults extends CompositeTestResults {
     private final long id;
     private final String name;
+    private final String displayName;
     private final PackageTestResults packageResults;
     private final Set<TestResult> results = new TreeSet<TestResult>();
     private final String baseUrl;
 
     public ClassTestResults(long id, String name, PackageTestResults packageResults) {
+        this(id, name, name, packageResults);
+    }
+
+    public ClassTestResults(long id, String name, String displayName, PackageTestResults packageResults) {
         super(packageResults);
         this.id = id;
         this.name = name;
+        this.displayName = displayName;
         this.packageResults = packageResults;
         baseUrl = "classes/" + FileUtils.toSafeFileName(name) + ".html";
     }
@@ -58,7 +64,14 @@ public class ClassTestResults extends CompositeTestResults {
         return name;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
     public String getSimpleName() {
+        if (displayName != null && !displayName.equals(name)) {
+            return displayName;
+        }
         String simpleName = StringUtils.substringAfterLast(name, ".");
         if (simpleName.equals("")) {
             return name;
@@ -74,8 +87,8 @@ public class ClassTestResults extends CompositeTestResults {
         return results;
     }
 
-    public TestResult addTest(String testName, long duration) {
-        TestResult test = new TestResult(testName, duration, this);
+    public TestResult addTest(String testName, String testDisplayName, long duration) {
+        TestResult test = new TestResult(testName, testDisplayName, duration, this);
         results.add(test);
         return addTest(test);
     }

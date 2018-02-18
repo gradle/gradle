@@ -79,6 +79,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    @Override
+    TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
+        return assertTestFailed(name, messageMatchers)
+    }
+
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         Map<String, Node> testMethods = findTests()
         Assert.assertThat(testMethods.keySet(), Matchers.hasItem(name))
@@ -112,6 +117,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return true
     }
 
+    @Override
+    TestClassExecutionResult assertTestSkipped(String name, String displayName) {
+        return assertTestSkipped(name)
+    }
+
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         Map<String, Node> testMethods = findTests()
         String failureMethodName = "execution failure"
@@ -122,6 +132,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         def cause = failures[0].text().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
 
         Assert.assertThat(cause, causeMatcher)
+        this
+    }
+
+    TestClassExecutionResult assertDisplayName(String classDisplayName) {
         this
     }
 
@@ -136,6 +150,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
         Assert.assertThat(testMethods.keySet(), Matchers.equalTo(testNames as Set))
         this
+    }
+
+    @Override
+    TestClassExecutionResult assertTestPassed(String name, String displayName) {
+        return assertTestPassed(name)
     }
 
     TestClassExecutionResult assertConfigMethodPassed(String name) {

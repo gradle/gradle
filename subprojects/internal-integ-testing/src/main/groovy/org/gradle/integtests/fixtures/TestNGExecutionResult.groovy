@@ -144,7 +144,17 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    @Override
+    TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
+        throw new UnsupportedOperationException()
+    }
+
     TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    TestClassExecutionResult assertTestPassed(String name, String displayName) {
         throw new UnsupportedOperationException()
     }
 
@@ -171,6 +181,11 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
     }
 
+    @Override
+    TestClassExecutionResult assertTestSkipped(String name, String displayName) {
+        throw new UnsupportedOperationException()
+    }
+
     TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
         throw new UnsupportedOperationException();
     }
@@ -190,6 +205,11 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
     @Override
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    TestClassExecutionResult assertDisplayName(String classDisplayName) {
+        throw new UnsupportedOperationException()
     }
 
     TestClassExecutionResult assertConfigMethodPassed(String name) {

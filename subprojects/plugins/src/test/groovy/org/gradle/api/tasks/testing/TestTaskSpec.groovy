@@ -96,7 +96,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         testDescriptor.parent >> suiteDescriptor
         testDescriptor.composite >> false
         testDescriptor.className >> "class"
+        testDescriptor.classDisplayName >> "class"
         testDescriptor.name >> "method"
+        testDescriptor.displayName >> "method"
 
         def suiteStartEvent = Stub(TestStartEvent) {
             getParentId() >> null

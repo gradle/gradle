@@ -31,6 +31,8 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
+import java.util.Optional;
+
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 
@@ -153,15 +155,22 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private TestDescriptorInternal getDescriptor(final TestIdentifier test) {
         if (isMethod(test)) {
-            return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());
+            return createDescriptor(test, test.getLegacyReportingName(), test.getDisplayName());
         } else if (isVintageDynamicLeafTest(test)) {
             UniqueId uniqueId = UniqueId.parse(test.getUniqueId());
             return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(uniqueId), vintageDynamicMethodName(uniqueId));
         } else if (isClass(test) || isVintageDynamicTestClass(test)) {
-            return new DefaultTestDescriptor(idGenerator.generateId(), className(test), "classMethod");
+            return createDescriptor(test, "classMethod", "classMethod");
         } else {
-            return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());
+            return createDescriptor(test, test.getDisplayName(), test.getDisplayName());
         }
+    }
+
+    private TestDescriptorInternal createDescriptor(TestIdentifier test, String name, String displayName) {
+        Optional<TestIdentifier> classIdentifier = findClassSource(test);
+        String className = className(classIdentifier);
+        String classDisplayName = classDisplayName(classIdentifier);
+        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
     }
 
     private boolean isMethod(TestIdentifier test) {
@@ -173,20 +182,39 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String className(TestIdentifier testIdentifier) {
+        return className(findClassSource(testIdentifier));
+    }
+
+    private Optional<TestIdentifier> findClassSource(TestIdentifier testIdentifier) {
         // For tests in default method of interface,
         // we might not be able to get the implementation class directly.
         // In this case, we need to retrieve test plan to get the real implementation class.
         if (isClass(testIdentifier)) {
-            return ClassSource.class.cast(testIdentifier.getSource().get()).getClassName();
+            return Optional.of(testIdentifier);
         }
         while (testIdentifier.getParentId().isPresent()) {
             testIdentifier = currentTestPlan.getTestIdentifier(testIdentifier.getParentId().get());
             if (isClass(testIdentifier)) {
-                return ClassSource.class.cast(testIdentifier.getSource().get()).getClassName();
+                return Optional.of(testIdentifier);
             }
         }
+        return Optional.empty();
+    }
 
-        return "UnknownClass";
+    private String className(Optional<TestIdentifier> testClassIdentifier) {
+        if (testClassIdentifier.isPresent()) {
+            return ClassSource.class.cast(testClassIdentifier.get().getSource().get()).getClassName();
+        } else {
+            return "UnknownClass";
+        }
+    }
+
+    private String classDisplayName(Optional<TestIdentifier> testClassIdentifier) {
+        if (testClassIdentifier.isPresent()) {
+            return testClassIdentifier.get().getDisplayName();
+        } else {
+            return "UnknownClass";
+        }
     }
 
     private class CurrentRunningTestClass {

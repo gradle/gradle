@@ -70,8 +70,9 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
+        new DefaultTestExecutionResult(testDirectory)
+            .testClassStartsWith('Gradle Test Executor')
+            .assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
     }
 
     def 'can handle class level ignored tests'() {
@@ -94,9 +95,9 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         run('check')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.IgnoredTest')
-        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored1")
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('org.gradle.IgnoredTest')
+            .testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored1()")
     }
 
     @Unroll
@@ -128,9 +129,9 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.ClassErrorTest')
-        result.testClass('org.gradle.ClassErrorTest').assertTestCount(successCount + failureCount, failureCount, 0)
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('org.gradle.ClassErrorTest')
+            .testClass('org.gradle.ClassErrorTest').assertTestCount(successCount + failureCount, failureCount, 0)
 
         where:
         location    | beforeStatement                | afterStatement                 | successCount | failureCount
@@ -198,18 +199,19 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.RepeatTest')
-        result.testClass('org.gradle.RepeatTest').assertTestCount(9, 1, 0)
-            .assertTestPassed('ok 1/3')
-            .assertTestPassed('ok 2/3')
-            .assertTestPassed('ok 3/3')
-            .assertTestPassed('partialFail 1/3')
-            .assertTestFailed('partialFail 2/3', containsString('java.lang.RuntimeException'))
-            .assertTestPassed('partialFail 3/3')
-            .assertTestPassed('partialSkip 1/3')
-            .assertTestsSkipped('partialSkip 2/3')
-            .assertTestPassed('partialSkip 3/3')
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('org.gradle.RepeatTest')
+            .testClass('org.gradle.RepeatTest')
+            .assertTestCount(9, 1, 0)
+            .assertTestPassed('ok()[1]', 'ok 1/3')
+            .assertTestPassed('ok()[2]', 'ok 2/3')
+            .assertTestPassed('ok()[3]', 'ok 3/3')
+            .assertTestPassed('partialFail(RepetitionInfo)[1]', 'partialFail 1/3')
+            .assertTestFailed('partialFail(RepetitionInfo)[2]', 'partialFail 2/3', containsString('java.lang.RuntimeException'))
+            .assertTestPassed('partialFail(RepetitionInfo)[3]', 'partialFail 3/3')
+            .assertTestPassed('partialSkip(RepetitionInfo)[1]', 'partialSkip 1/3')
+            .assertTestSkipped('partialSkip(RepetitionInfo)[2]', 'partialSkip 2/3')
+            .assertTestPassed('partialSkip(RepetitionInfo)[3]', 'partialSkip 3/3')
     }
 
     def 'can filter nested tests'() {
@@ -247,10 +249,10 @@ test {
         succeeds('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.NestedTest$Inner')
-        result.testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
-            .assertTestPassed('innerTest')
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('org.gradle.NestedTest$Inner')
+            .testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
+            .assertTestPassed('innerTest()')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4476')

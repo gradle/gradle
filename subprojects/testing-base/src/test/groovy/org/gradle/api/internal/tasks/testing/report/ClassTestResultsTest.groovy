@@ -22,5 +22,7 @@ class ClassTestResultsTest extends Specification {
         expect:
         new ClassTestResults(1, 'org.gradle.Test', null).simpleName == 'Test'
         new ClassTestResults(2, 'Test', null).simpleName == 'Test'
+        new ClassTestResults(1, 'org.gradle.Test', 'TestDisplay', null).simpleName == 'TestDisplay'
+        new ClassTestResults(2, 'Test', 'TestDisplay', null).simpleName == 'TestDisplay'
     }
 }
