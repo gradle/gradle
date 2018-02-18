@@ -42,6 +42,7 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.util.VersionNumber;
@@ -57,10 +58,12 @@ import java.util.concurrent.Callable;
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     private final ProjectPublicationRegistry publicationRegistry;
+    private final MacOSSdkPathLocator locator;
 
     @Inject
-    public SwiftBasePlugin(ProjectPublicationRegistry publicationRegistry) {
+    public SwiftBasePlugin(ProjectPublicationRegistry publicationRegistry, MacOSSdkPathLocator locator) {
         this.publicationRegistry = publicationRegistry;
+        this.locator = locator;
     }
 
     @Override
@@ -89,6 +92,10 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 }
                 if (binary.isTestable()) {
                     compile.getCompilerArgs().add("-enable-testing");
+                }
+                if (binary.getTargetPlatform().getOperatingSystem().isMacOsX()) {
+                    compile.getCompilerArgs().add("-sdk");
+                    compile.getCompilerArgs().add(locator.find().getAbsolutePath());
                 }
                 compile.getModuleName().set(binary.getModule());
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
