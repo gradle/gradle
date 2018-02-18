@@ -190,7 +190,7 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
 }
 
 enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper"))
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper", "platformPlay"))
 }
 
 enum class JvmVersion {
