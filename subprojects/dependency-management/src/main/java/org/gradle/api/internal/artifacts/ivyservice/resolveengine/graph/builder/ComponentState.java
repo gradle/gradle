@@ -216,8 +216,25 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
 
     @Override
     public String getVariantName() {
-        NodeState selected = getSelectedNode();
-        return selected == null ? "unknown" : selected.getMetadata().getName();
+        String name = null;
+        StringBuilder builder = null;
+        for (NodeState node : nodes) {
+            if (node.isSelected()) {
+                if (name == null) {
+                    name = node.getMetadata().getName();
+                } else {
+                    if (builder == null) {
+                        builder = new StringBuilder(name);
+                    }
+                    builder.append("+");
+                    builder.append(node.getMetadata().getName());
+                }
+            }
+        }
+        if (builder != null) {
+            return builder.toString();
+        }
+        return name == null ? "unknown" : name;
     }
 
     private NodeState getSelectedNode() {
