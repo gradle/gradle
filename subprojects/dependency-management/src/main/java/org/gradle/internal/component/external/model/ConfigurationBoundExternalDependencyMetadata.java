@@ -67,16 +67,24 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
      */
     @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
-            // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
-            // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
-            // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
-            // - or the target is a component from a Maven/Ivy repo as we can assume this is well behaved
-            if (!consumerAttributes.isEmpty() || targetComponent instanceof ModuleComponentResolveMetadata) {
-                return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
-            }
+        // This is a slight different condition than that used for a dependency declared in a Gradle project,
+        // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
+        if (hasVariants(targetComponent) && (hasAttributes(consumerAttributes) || isExternal(targetComponent))) {
+            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
         return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponent);
+    }
+
+    private boolean hasVariants(ComponentResolveMetadata targetComponent) {
+        return !targetComponent.getVariantsForGraphTraversal().isEmpty();
+    }
+
+    private boolean hasAttributes(ImmutableAttributes attributes) {
+        return !attributes.isEmpty();
+    }
+
+    private boolean isExternal(ComponentResolveMetadata targetComponent) {
+        return targetComponent instanceof ModuleComponentResolveMetadata;
     }
 
     @Override
