@@ -47,7 +47,7 @@ class GccPlatformToolProviderTest extends Specification {
         def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
 
         when:
-        platformToolProvider.getSystemIncludes(toolType)
+        platformToolProvider.getSystemLibraries(toolType)
 
         then:
         1 * metaDataProvider.getCompilerMetaData(_, _) >> {
@@ -66,18 +66,27 @@ class GccPlatformToolProviderTest extends Specification {
         ToolType.ASSEMBLER             | []
     }
 
-    def "gets compiler metadata from the provider"() {
+    @Unroll
+    def "gets compiler metadata from the provider for #toolType.toolName"() {
         def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
 
         when:
-        platformToolProvider.getCompilerMetadata();
+        platformToolProvider.getCompilerMetadata(toolType)
 
         then:
         1 * metaDataProvider.getCompilerMetaData(_, _) >> {
-            assert arguments[1] == ['-x', 'c']
+            assert arguments[1] == args
             Mock(GccMetadata)
         }
-        1 * toolRegistry.getTool(ToolType.C_COMPILER) >> new DefaultGccCommandLineToolConfiguration(ToolType.C_COMPILER, 'exe')
-        1 * toolSearchPath.locate(ToolType.C_COMPILER, 'exe') >> Mock(CommandLineToolSearchResult)
+        1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
+        1 * toolSearchPath.locate(toolType, 'exe') >> Mock(CommandLineToolSearchResult)
+
+        where:
+        toolType                       | args
+        ToolType.CPP_COMPILER          | ['-x', 'c++']
+        ToolType.C_COMPILER            | ['-x', 'c']
+        ToolType.OBJECTIVEC_COMPILER   | ['-x', 'objective-c']
+        ToolType.OBJECTIVECPP_COMPILER | ['-x', 'objective-c++']
+        ToolType.ASSEMBLER             | []
     }
 }

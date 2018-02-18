@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
@@ -38,7 +37,6 @@ import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
@@ -91,10 +89,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     @Override
                     public List<File> call() {
                         PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
-                        if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
-                            return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
-                        }
-                        return ImmutableList.of();
+                        return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
                     }
                 };
 

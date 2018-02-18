@@ -36,11 +36,11 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.EmptySystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
@@ -62,7 +62,7 @@ import java.util.Map;
 import static org.gradle.internal.FileUtils.withExtension;
 
 @NonNullApi
-class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
+class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
     private final PlatformVisualCpp visualCpp;
     private final PlatformWindowsSdk sdk;
@@ -230,15 +230,21 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     @Override
-    public List<File> getSystemIncludes(ToolType compilerType) {
+    public SystemLibraries getSystemLibraries(ToolType compilerType) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         builder.addAll(visualCpp.getIncludeDirs());
         builder.addAll(sdk.getIncludeDirs());
         if (ucrt != null) {
             builder.addAll(ucrt.getIncludeDirs());
         }
+        final ImmutableList<File> includeDirs = builder.build();
 
-        return builder.build();
+        return new EmptySystemLibraries() {
+            @Override
+            public List<File> getIncludeDirs() {
+                return includeDirs;
+            }
+        };
     }
 
     private <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
@@ -280,7 +286,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     @Override
-    public CompilerMetadata getCompilerMetadata() {
+    public CompilerMetadata getCompilerMetadata(ToolType toolType) {
         throw new UnsupportedOperationException("Compiler metadata for Visual C++ is not yet implemented");
     }
 }

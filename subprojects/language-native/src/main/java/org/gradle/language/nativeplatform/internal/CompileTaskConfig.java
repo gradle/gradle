@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -40,7 +39,6 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
@@ -99,11 +97,8 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
             @Override
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
-                    ToolType toolType = determineToolType(languageTransform.getLanguageName());
-                    return new LinkedHashSet<File>(((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(toolType));
-                }
-                return ImmutableSet.of();
+                ToolType toolType = determineToolType(languageTransform.getLanguageName());
+                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(toolType).getIncludeDirs());
             }
 
             @Override
