@@ -46,6 +46,15 @@ public abstract class ExternalDependencyDescriptor {
 
     protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
 
+    /**
+     * Choose a set of target configurations based on: a) the consumer attributes, b) the fromConfiguration and c) the target component.
+     *
+     * Use attribute matching to choose a single variant when:
+     *   - The target component has variants AND
+     *   - Either: we have consumer attributes OR the target component is from an external repository (not a Gradle project).
+     *
+     * Otherwise, revert to legacy selection of target configurations.
+     */
     public List<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
             // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
