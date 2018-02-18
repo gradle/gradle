@@ -41,6 +41,7 @@ import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.util.VersionNumber;
@@ -143,7 +144,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                             public SwiftVersion call() throws Exception {
                                 SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
                                 if (swiftSourceCompatibility == null) {
-                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
                                 }
                                 return swiftSourceCompatibility;
                             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,23 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-public interface SystemIncludesAwarePlatformToolProvider extends PlatformToolProvider {
-    List<File> getSystemIncludes(ToolType compilerType);
+public class EmptySystemLibraries implements SystemLibraries {
+    @Override
+    public List<File> getIncludeDirs() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<File> getLibDirs() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Map<String, String> getPreprocessorMacros() {
+        return Collections.emptyMap();
+    }
 }

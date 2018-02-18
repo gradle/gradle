@@ -31,12 +31,13 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.EmptySystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.Stripper;
 import org.gradle.nativeplatform.toolchain.internal.SymbolExtractor;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -63,7 +64,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class GccPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
+class GccPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private static final Map<ToolType, String> LANGUAGE_FOR_COMPILER = ImmutableMap.of(
         ToolType.C_COMPILER, "c",
@@ -232,16 +233,21 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     }
 
     @Override
-    public List<File> getSystemIncludes(ToolType compilerType) {
-        GccMetadata gccMetadata = getGccMetadata(compilerType);
+    public SystemLibraries getSystemLibraries(ToolType compilerType) {
+        final GccMetadata gccMetadata = getGccMetadata(compilerType);
         if (gccMetadata.isAvailable()) {
-            return gccMetadata.getSystemIncludes();
+            return new EmptySystemLibraries() {
+                @Override
+                public List<File> getIncludeDirs() {
+                    return gccMetadata.getSystemIncludes();
+                }
+            };
         }
-        return ImmutableList.of();
+        return new EmptySystemLibraries();
     }
 
     @Override
-    public CompilerMetadata getCompilerMetadata() {
-        return getGccMetadata(ToolType.C_COMPILER);
+    public CompilerMetadata getCompilerMetadata(ToolType toolType) {
+        return getGccMetadata(toolType);
     }
 }
