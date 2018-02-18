@@ -413,7 +413,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     static class TestNativeToolChain extends AbstractGccCompatibleToolChain {
         TestNativeToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
-            super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, tools, metaDataProvider, instantiator, workerLeaseService)
+            super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, tools, metaDataProvider, null, instantiator, workerLeaseService)
         }
 
         @Override
