@@ -437,8 +437,8 @@ apply plugin: 'swift-application'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
@@ -451,8 +451,8 @@ apply plugin: 'swift-application'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }

@@ -203,8 +203,8 @@ apply plugin: 'cpp-application'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
 
@@ -217,8 +217,8 @@ apply plugin: 'cpp-application'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }

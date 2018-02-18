@@ -56,6 +56,7 @@ public class InstallExecutable extends DefaultTask {
     private NativePlatform platform;
     private final DirectoryProperty destinationDir;
     private final RegularFileProperty executable;
+    private final RegularFileProperty installedExecutable;
     private final ConfigurableFileCollection libs;
     private final WorkerLeaseService workerLeaseService;
 
@@ -70,6 +71,13 @@ public class InstallExecutable extends DefaultTask {
         this.libs = getProject().files();
         destinationDir = newOutputDirectory();
         executable = newInputFile();
+        installedExecutable = newOutputFile();
+        installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
+            @Override
+            public RegularFile transform(Directory directory) {
+                return directory.file(executable.getAsFile().get().getName());
+            }
+        }));
     }
 
     /**
@@ -164,8 +172,8 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.7
      */
     @Internal
-    public RegularFile getInstalledExecutable() {
-        return getLibDirectory().get().file(getSourceFile().getAsFile().get().getName());
+    public RegularFileProperty getInstalledExecutable() {
+        return installedExecutable;
     }
 
     /**

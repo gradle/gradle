@@ -75,7 +75,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseApp = xcodebuild
@@ -86,7 +86,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseCpp', ':greeter:linkRelease', ':greeter:stripSymbolsRelease',
-            ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
+            ':app:compileReleaseCpp', ':app:linkRelease', ':app:stripSymbolsRelease', ':app:installRelease', ':app:_xcode___App_Release')
     }
 
     def "can create xcode project for C++ application with transitive dependencies"() {
@@ -151,7 +151,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
             ':card:compileDebugCpp', ':card:linkDebug',
             ':deck:compileDebugCpp', ':deck:linkDebug',
-            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseHello = xcodebuild
@@ -236,7 +236,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
             ':card:compileDebugCpp', ':card:linkDebug',
             ':deck:compileDebugCpp', ':deck:linkDebug',
-            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseHello = xcodebuild
@@ -300,7 +300,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+            ':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
 
         when:
         def resultReleaseGreeter = xcodebuild
