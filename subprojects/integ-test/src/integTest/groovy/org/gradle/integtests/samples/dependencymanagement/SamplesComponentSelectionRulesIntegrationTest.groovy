@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.samples
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -22,12 +22,12 @@ import org.junit.Rule
 
 class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'componentSelectionRules')
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("componentSelectionRules")
+    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run resolveConfiguration sample"() {
-        given:
-        inDirectory "componentSelectionRules"
+        executer.inDirectory(sample.dir)
 
         when:
         run "resolveConfiguration"
@@ -38,10 +38,9 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         output.contains "** Accepted version: 1.3.0"
     }
 
-    @UsesSample("componentSelectionRules")
+    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run reject sample"() {
-        given:
-        inDirectory "componentSelectionRules"
+        executer.inDirectory(sample.dir)
 
         when:
         run "printRejectConfig"
@@ -50,10 +49,9 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         output.contains "Resolved: api-1.4.jar"
     }
 
-    @UsesSample("componentSelectionRules")
+    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run metadata rules sample"() {
-        given:
-        inDirectory "componentSelectionRules"
+        executer.inDirectory(sample.dir)
 
         when:
         run "printMetadataRulesConfig"
@@ -63,10 +61,9 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         output.contains "Resolved: lib-1.9.jar"
     }
 
-    @UsesSample("componentSelectionRules")
+    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run targeted rule sample"() {
-        given:
-        inDirectory "componentSelectionRules"
+        executer.inDirectory(sample.dir)
 
         when:
         run "printTargetConfig"
@@ -75,10 +72,9 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         output.contains "Resolved: api-1.4.jar"
     }
 
-    @UsesSample("componentSelectionRules")
+    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run rules source sample"() {
-        given:
-        inDirectory "componentSelectionRules"
+        executer.inDirectory(sample.dir)
 
         when:
         run "printRuleSourceConfig"
