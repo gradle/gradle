@@ -83,9 +83,6 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
             // Compilation issue without the JVM setting
             "SamplesScalaZincIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
-            // Test compiles for Java 5
-            "ToolingApiUnsupportedClientJvmCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-
             // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
             // These tests need jvmArgs '-addmods', 'java.xml.bind'
             // At some point Gradle should import this module automatically
