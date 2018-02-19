@@ -69,6 +69,13 @@ public class GFileUtils {
         }
     }
 
+    public static void moveExistingFile(File source, File destination) {
+        boolean rename = source.renameTo(destination);
+        if (!rename) {
+            moveFile(source, destination);
+        }
+    }
+
     public static void copyFile(File source, File destination) {
         try {
             FileUtils.copyFile(source, destination);
@@ -90,6 +97,13 @@ public class GFileUtils {
             FileUtils.moveDirectory(source, destination);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void moveExistingDirectory(File source, File destination) {
+        boolean rename = source.renameTo(destination);
+        if (!rename) {
+            moveDirectory(source, destination);
         }
     }
 
@@ -170,6 +184,14 @@ public class GFileUtils {
 
     public static boolean deleteQuietly(@Nullable File file) {
         return FileUtils.deleteQuietly(file);
+    }
+
+    public static boolean deleteFileQuietly(@Nullable File file) {
+        if (file != null) {
+            return file.delete();
+        } else {
+            return false;
+        }
     }
 
     public static class TailReadingException extends RuntimeException {

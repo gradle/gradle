@@ -44,10 +44,6 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         return delegate.move(toPath(key, getChecksum(source)), source);
     }
 
-    public LocallyAvailableResource copy(K key, File source) {
-        return delegate.copy(toPath(key, getChecksum(source)), source);
-    }
-
     public Set<? extends LocallyAvailableResource> search(K key) {
         return delegate.search(toPath(key, "*"));
     }
@@ -65,10 +61,6 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
 
     public File getTempFile() {
         return temporaryFileProvider.createTemporaryFile("filestore", "bin");
-    }
-
-    public void moveFilestore(File destination) {
-        delegate.moveFilestore(destination);
     }
 
     public LocallyAvailableResource add(K key, Action<File> addAction) {
