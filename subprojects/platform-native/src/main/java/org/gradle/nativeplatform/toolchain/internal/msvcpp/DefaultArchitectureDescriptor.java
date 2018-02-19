@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultArchitectureDescriptor implements ArchitectureDescriptor {
+public class DefaultArchitectureDescriptor implements PlatformVisualCpp {
     private static final String COMPILER_FILENAME = "cl.exe";
     private static final String LINKER_FILENAME = "link.exe";
     private static final String ARCHIVER_FILENAME = "lib.exe";
@@ -98,7 +98,6 @@ public class DefaultArchitectureDescriptor implements ArchitectureDescriptor {
         return definitions;
     }
 
-    @Override
     public boolean isInstalled() {
         return binDir.exists() && compilerPath.exists() && libDir.exists();
     }

@@ -176,7 +176,7 @@ public enum ArchitectureDescriptorBuilder {
         return Maps.newHashMap();
     }
 
-    ArchitectureDescriptor buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {
+    DefaultArchitectureDescriptor buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {
         File commonTools = new File(vsPath, PATH_COMMONTOOLS);
         File commonIde = new File(vsPath, PATH_COMMONIDE);
         List<File> paths = Lists.newArrayList(commonTools, commonIde);

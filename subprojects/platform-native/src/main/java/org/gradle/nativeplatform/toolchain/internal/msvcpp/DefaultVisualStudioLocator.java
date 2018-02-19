@@ -21,9 +21,9 @@ import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
 import org.gradle.platform.base.internal.toolchain.ComponentFound;
 import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
@@ -178,9 +178,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
+        Map<Architecture, DefaultArchitectureDescriptor> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
+            DefaultArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -206,9 +206,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
+        Map<Architecture, DefaultArchitectureDescriptor> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
+            DefaultArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
