@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.DirectDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
@@ -30,12 +30,12 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.Map;
 
 public class DefaultDependencyFactory implements DependencyFactory {
-    private final NotationParser<Object, DirectDependency> dependencyNotationParser;
+    private final NotationParser<Object, Dependency> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
 
-    public DefaultDependencyFactory(NotationParser<Object, DirectDependency> dependencyNotationParser,
+    public DefaultDependencyFactory(NotationParser<Object, Dependency> dependencyNotationParser,
                                     NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
                                     NotationParser<Object, ClientModule> clientModuleNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory) {
@@ -45,7 +45,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         this.projectDependencyFactory = projectDependencyFactory;
     }
 
-    public DirectDependency createDependency(Object dependencyNotation) {
+    public Dependency createDependency(Object dependencyNotation) {
         return dependencyNotationParser.parseNotation(dependencyNotation);
     }
 

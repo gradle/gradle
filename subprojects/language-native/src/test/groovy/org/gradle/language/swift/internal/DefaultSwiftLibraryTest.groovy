@@ -36,6 +36,12 @@ class DefaultSwiftLibraryTest extends Specification {
         library = new DefaultSwiftLibrary("main", project.objects, project, project.configurations)
     }
 
+    def "has display name"() {
+        expect:
+        library.displayName.displayName == "Swift library 'main'"
+        library.toString() == "Swift library 'main'"
+    }
+
     def "has implementation configuration"() {
         expect:
         library.implementationDependencies == project.configurations.implementation

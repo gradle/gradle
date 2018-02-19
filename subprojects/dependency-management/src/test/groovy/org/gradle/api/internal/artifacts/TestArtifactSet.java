@@ -83,7 +83,7 @@ public class TestArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public boolean isResolved() {
+        public boolean isResolveSynchronously() {
             return false;
         }
 

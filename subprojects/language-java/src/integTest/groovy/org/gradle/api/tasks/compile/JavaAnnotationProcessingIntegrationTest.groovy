@@ -18,7 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.language.fixtures.HelperProcessorFixture
 
 class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -51,7 +51,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         // A library class used by processor at runtime, but not the generated classes
         fixture.writeSupportLibraryTo(processorProjectDir)
@@ -87,9 +87,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can model annotation processor arguments"() {
         buildFile << """                                                       
-            import org.gradle.api.tasks.compile.CompilerArgumentProvider
-
-            class HelperAnnotationProcessor implements CompilerArgumentProvider {
+            class HelperAnnotationProcessor implements CommandLineArgumentProvider {
                 @Input
                 String message
                 
@@ -236,6 +234,21 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         then:
         file('build/classes/java/main/TestAppHelper.class').exists()
         result.output.contains(AnnotationProcessorPathFactory.PROCESSOR_PATH_DEPRECATION_MESSAGE)
+    }
+
+    def "explicit -processor option overrides automatic detection"() {
+        buildFile << """
+            
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            compileJava.options.compilerArgs << "-processor" << "unknown.Processor"
+        """
+
+        expect:
+        fails("compileJava")
+        errorOutput.contains("Annotation processor 'unknown.Processor' not found")
     }
 
 }

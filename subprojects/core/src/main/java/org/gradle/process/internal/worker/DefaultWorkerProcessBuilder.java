@@ -232,6 +232,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         public JvmMemoryStatus getJvmMemoryStatus() {
             return delegate.getJvmMemoryStatus();
         }
+
+        @Override
+        public void stopNow() {
+            delegate.stopNow();
+        }
     }
 
     private static class WorkerJvmMemoryStatus implements JvmMemoryStatus, WorkerJvmMemoryInfoProtocol {

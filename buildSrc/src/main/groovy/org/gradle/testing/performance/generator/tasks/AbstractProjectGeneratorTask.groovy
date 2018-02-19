@@ -35,7 +35,7 @@ import org.gradle.testing.performance.generator.TestProject
 /**
  * Original tangled mess of a project generator.
  */
-abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
+abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask {
 
     @Input
     int sourceFiles = 1

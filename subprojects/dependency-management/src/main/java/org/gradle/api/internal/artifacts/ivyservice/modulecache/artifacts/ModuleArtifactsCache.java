@@ -21,18 +21,10 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.math.BigInteger;
 import java.util.Collection;
-import java.util.Set;
 
 public interface ModuleArtifactsCache {
     CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts);
 
     CachedArtifacts getCachedArtifacts(ModuleComponentRepository delegate, ComponentIdentifier componentId, String context);
 
-    interface CachedArtifacts {
-        Set<ComponentArtifactMetadata> getArtifacts();
-
-        BigInteger getDescriptorHash();
-
-        long getAgeMillis();
-    }
 }

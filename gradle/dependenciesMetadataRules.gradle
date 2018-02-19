@@ -18,7 +18,7 @@ subprojects {
     dependencies {
         components { handler ->
             // Gradle distribution - minify: remove unused transitive dependencies
-            withModule(libraries.maven3.coordinate) {
+            withModule(libraries.maven3.coordinates) {
                 allVariants {
                     withDependencies {
                         it.removeAll {
@@ -32,32 +32,32 @@ subprojects {
                     }
                 }
             }
-            withModule(libraries.awsS3_core.coordinate) {
+            withModule(libraries.awsS3_core.coordinates) {
                 allVariants {
                     withDependencies { it.removeAll { it.name == 'jackson-dataformat-cbor' } }
                 }
             }
-            withModule(libraries.jgit.coordinate) {
+            withModule(libraries.jgit.coordinates) {
                 allVariants {
                     withDependencies { it.removeAll { it.group == 'com.googlecode.javaewah' }}
                 }
             }
-            withModule(libraries.maven3_wagon_http_shared4.coordinate) {
+            withModule(libraries.maven3_wagon_http_shared4.coordinates) {
                 allVariants {
                     withDependencies { it.removeAll { it.group == 'org.jsoup' }}
                 }
             }
-            withModule(libraries.aether_connector.coordinate) {
+            withModule(libraries.aether_connector.coordinates) {
                 allVariants {
                     withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' } }
                 }
             }
-            withModule(libraries.maven3_compat.coordinate) {
+            withModule(libraries.maven3_compat.coordinates) {
                 allVariants {
                     withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' } }
                 }
             }
-            withModule(libraries.maven3_plugin_api.coordinate) {
+            withModule(libraries.maven3_plugin_api.coordinates) {
                 allVariants {
                     withDependencies { it.removeAll { it.group == 'org.sonatype.sisu' } }
                 }

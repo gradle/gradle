@@ -52,7 +52,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
 """
     }
 
-    @IgnoreIf({GradleContextualExecuter.daemon})
+    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
     def "can specify location of generated files"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"

@@ -279,4 +279,14 @@ public interface Settings extends PluginAware {
      */
     @Incubating
     SourceControl getSourceControl();
+
+    /**
+     * Enables a feature preview by name.
+     *
+     * @param name the name of the feature to enable
+     *
+     * @since 4.6
+     */
+    @Incubating
+    void enableFeaturePreview(String name);
 }

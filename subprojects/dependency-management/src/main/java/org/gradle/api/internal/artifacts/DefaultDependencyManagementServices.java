@@ -78,6 +78,7 @@ import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -257,7 +258,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildOperationExecutor buildOperationExecutor,
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
-                                                       AttributeContainerSerializer attributeContainerSerializer) {
+                                                       AttributeContainerSerializer attributeContainerSerializer,
+                                                       BuildIdentity buildIdentity) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -277,9 +279,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             buildOperationExecutor,
                             artifactTypeRegistry,
                             componentSelectorConverter,
-                            attributeContainerSerializer),
+                            attributeContainerSerializer,
+                            buildIdentity),
                         componentIdentifierFactory,
-                        moduleIdentifierFactory));
+                        moduleIdentifierFactory,
+                        buildIdentity));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

@@ -27,17 +27,17 @@ import org.gradle.StartParameter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,6 +51,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -83,14 +85,17 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
+    private static final byte[] NEWLINE = "\n".getBytes();
+    private static final byte[] INDENT = "    ".getBytes();
+
     private final String basePath;
     private final OutputStream logOutputStream;
-    private final BuildOperationListenerManager listenerManager;
+    private final ListenerManager listenerManager;
 
-    private BuildOperationListener buildOperationListener;
+    private final BuildOperationListener listener = new LoggingListener();
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
-        this.listenerManager = buildOperationListenerManager;
+    public BuildOperationTrace(StartParameter startParameter, ListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
 
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
         String basePath = sysProps.get(SYSPROP);
@@ -118,16 +123,12 @@ public class BuildOperationTrace implements Stoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        buildOperationListener = new DeferedSerializingBuildOperationListener(new SerializingBuildOperationListener(logOutputStream));
-        buildOperationListenerManager.addListener(buildOperationListener);
-
+        listenerManager.addListener(listener);
     }
 
     @Override
     public void stop() {
-        if (buildOperationListener != null) {
-            listenerManager.removeListener(buildOperationListener);
-        }
+        listenerManager.removeListener(listener);
 
         if (logOutputStream != null) {
             try {
@@ -151,6 +152,7 @@ public class BuildOperationTrace implements Stoppable {
     private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
         Files.asCharSink(file(basePath, "-tree.txt"), Charsets.UTF_8).writeLines(new Iterable<String>() {
             @Override
+            @Nonnull
             public Iterator<String> iterator() {
 
                 final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<Queue<BuildOperationRecord>>(Collections.singleton(new ArrayDeque<BuildOperationRecord>(roots)));
@@ -217,7 +219,7 @@ public class BuildOperationTrace implements Stoppable {
         });
     }
 
-    public static BuildOperationTree read(String basePath) throws FileNotFoundException {
+    public static BuildOperationTree read(String basePath) {
         List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
         return new BuildOperationTree(roots);
     }
@@ -232,7 +234,7 @@ public class BuildOperationTrace implements Stoppable {
 
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
                 @Override
-                public boolean processLine(String line) throws IOException {
+                public boolean processLine(@SuppressWarnings("NullableProblems") String line) {
                     Map<String, ?> map = uncheckedCast(slurper.parseText(line));
                     if (map.containsKey("startTime")) {
                         SerializedOperationStart serialized = new SerializedOperationStart(map);
@@ -322,54 +324,114 @@ public class BuildOperationTrace implements Stoppable {
         final SerializedOperationStart start;
         final List<SerializedOperationProgress> progress = new ArrayList<SerializedOperationProgress>();
 
-        public PendingOperation(SerializedOperationStart start) {
+        PendingOperation(SerializedOperationStart start) {
             this.start = start;
         }
 
     }
 
-    // This is a workaround for https://github.com/gradle/gradle/issues/3873
-    // Several early typed operations have `buildPath` property,
-    // the value of which can only be determined after the settings file for the build has loaded.
-    //
-    // The workaround is to buffer all operation notifications in memory until the root build's settings have loaded.
-    // This works because all possible settings files have been evaluated by the time the root one has been.
-    // This is not guaranteed to hold into the future.
-    // A proper solution would be to change the operation details/results to be
-    // truly immutable and convey values known at the time.
-    private static final class DeferedSerializingBuildOperationListener extends BuildAdapter implements BuildOperationListener {
-        private final SerializingBuildOperationListener delegate;
 
-        public DeferedSerializingBuildOperationListener(SerializingBuildOperationListener delegate) {
-            this.delegate = delegate;
-        }
+    private class LoggingListener extends BuildAdapter implements BuildOperationListener {
+
+        // This is a workaround for https://github.com/gradle/gradle/issues/3873
+        // Several early typed operations have `buildPath` property,
+        // the value of which can only be determined after the settings file for the build has loaded.
+        //
+        // The workaround is to buffer all operation notifications in memory until the root build's settings have loaded.
+        // This works because all possible settings files have been evaluated by the time the root one has been.
+        // This is not guaranteed to hold into the future.
+        // A proper solution would be to change the operation details/results to be
+        // truly immutable and convey values known at the time.
+        private boolean buffering = true;
+        private final Lock bufferLock = new ReentrantLock();
+        private final Queue<Entry> buffer = new ArrayDeque<Entry>();
 
         @Override
-        public void projectsLoaded(Gradle gradle) {
+        public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
-                delegate.write();
+                stopBuffering();
             }
         }
 
         // Build may have failed before getting to projectsLoaded
         @Override
-        public void buildFinished(BuildResult result) {
-            delegate.write();
+        public void buildFinished(@SuppressWarnings("NullableProblems") BuildResult result) {
+            stopBuffering();
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            delegate.started(buildOperation, startEvent);
+            new Entry(new SerializedOperationStart(buildOperation, startEvent), false).add();
         }
 
         @Override
         public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-            delegate.progress(buildOperation, progressEvent);
+            new Entry(new SerializedOperationProgress(buildOperation, progressEvent), false).add();
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            delegate.finished(buildOperation, finishEvent);
+            new Entry(new SerializedOperationFinish(buildOperation, finishEvent), false).add();
         }
+
+        private void stopBuffering() {
+            if (buffering) {
+                bufferLock.lock();
+                try {
+                    if (buffering) {
+                        for (Entry entry : buffer) {
+                            entry.write();
+                        }
+                        buffer.clear();
+                        buffering = false;
+                    }
+                } finally {
+                    bufferLock.unlock();
+                }
+            }
+        }
+
+        private final class Entry {
+            final SerializedOperation operation;
+            final boolean indent;
+
+            Entry(SerializedOperation operation, boolean indent) {
+                this.operation = operation;
+                this.indent = indent;
+            }
+
+            public void add() {
+                if (buffering) {
+                    bufferLock.lock();
+                    try {
+                        if (buffering) {
+                            buffer.add(this);
+                        } else {
+                            write();
+                        }
+                    } finally {
+                        bufferLock.unlock();
+                    }
+                } else {
+                    write();
+                }
+            }
+
+            @SuppressWarnings("ConstantConditions")
+            private void write() {
+                String json = JsonOutput.toJson(operation.toMap());
+                try {
+                    if (indent) {
+                        logOutputStream.write(INDENT);
+                    }
+                    logOutputStream.write(json.getBytes("UTF-8"));
+                    logOutputStream.write(NEWLINE);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+
+        }
+
     }
 }

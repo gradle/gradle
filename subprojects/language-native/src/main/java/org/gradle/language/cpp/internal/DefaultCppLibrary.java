@@ -29,6 +29,8 @@ import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.language.LibraryDependencies;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
@@ -84,6 +86,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("C++ library", getName());
     }
 
     @Override

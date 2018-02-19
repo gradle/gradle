@@ -1581,7 +1581,7 @@ org:foo:$displayVersion -> $selected
         bom.dependencyConstraint(leaf)
         bom.publish()
 
-        FeaturePreviewsFixture.enableAdvancedPomSupport(file('gradle.properties'))
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -1625,7 +1625,7 @@ org:leaf -> 1.0
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -1652,4 +1652,46 @@ org:leaf -> 1.0
      \\--- compileClasspath"""
     }
 
+    def "mentions web-based dependency insight report available using build scans"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.module == 'leaf2' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains """
+org:leaf2:1.0
+   variant "runtime"
++--- org:middle:1.0
+|    \\--- org:top:1.0
+|         \\--- conf
+\\--- org:top:1.0 (*)
+
+(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency report is available by adding the --scan option.
+"""
+    }
 }

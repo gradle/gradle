@@ -91,6 +91,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
+    public void stopNow() {
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+    }
+
     private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());

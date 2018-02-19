@@ -28,8 +28,8 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def setup() {
         resolve.prepare()
-        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         settingsFile << "rootProject.name = 'testproject'"
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             configurations { compile }

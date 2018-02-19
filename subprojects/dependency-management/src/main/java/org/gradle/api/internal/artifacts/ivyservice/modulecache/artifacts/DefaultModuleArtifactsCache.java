@@ -16,11 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetadataSerializer;
 import org.gradle.cache.PersistentIndexedCache;
@@ -33,110 +30,62 @@ import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
-public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
-    private final BuildCommencedTimeProvider timeProvider;
+public class DefaultModuleArtifactsCache extends InMemoryModuleArtifactsCache {
     private final CacheLockingManager cacheLockingManager;
 
-    private final Map<ModuleArtifactsKey, ModuleArtifactsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
-    private PersistentIndexedCache<ModuleArtifactsKey, ModuleArtifactsCacheEntry> cache;
+    private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> cache;
 
     public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        this.timeProvider = timeProvider;
+        super(timeProvider);
         this.cacheLockingManager = cacheLockingManager;
     }
 
-    private PersistentIndexedCache<ModuleArtifactsKey, ModuleArtifactsCacheEntry> getCache() {
+    private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<ModuleArtifactsKey, ModuleArtifactsCacheEntry> initCache() {
+    private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> initCache() {
         return cacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
-        ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
-        inMemoryCache.put(key, entry);
+    @Override
+    protected void store(ArtifactsAtRepositoryKey key, ModuleArtifactsCacheEntry entry) {
+        super.store(key, entry);
         getCache().put(key, entry);
-        return createCacheArtifacts(entry);
     }
 
-    public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context) {
-        ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry inMemoryEntry = inMemoryCache.get(key);
-        if (inMemoryEntry != null) {
-            return createCacheArtifacts(inMemoryEntry);
-        }
+    @Override
+    protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
+        ModuleArtifactsCacheEntry entry = super.get(key);
+        if (entry == null) {
+            entry = getCache().get(key);
 
-        ModuleArtifactsCacheEntry cachedEntry = getCache().get(key);
-        if (cachedEntry != null) {
-            inMemoryCache.put(key, cachedEntry);
-            return createCacheArtifacts(cachedEntry);
-        }
-
-        return null;
-    }
-
-    private CachedArtifacts createCacheArtifacts(ModuleArtifactsCacheEntry entry) {
-        long entryAge = timeProvider.getCurrentTime() - entry.createTimestamp;
-        return new DefaultCachedArtifacts(entry.artifacts, entry.moduleDescriptorHash, entryAge);
-    }
-
-    private static class ModuleArtifactsKey {
-        private final String repositoryId;
-        private final ComponentIdentifier componentId;
-        private final String context;
-
-        private ModuleArtifactsKey(String repositoryId, ComponentIdentifier componentId, String context) {
-            this.repositoryId = repositoryId;
-            this.componentId = componentId;
-            this.context = context;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
+            if (entry != null) {
+                super.store(key, entry);
             }
-            if (!(o instanceof ModuleArtifactsKey)) {
-                return false;
-            }
-
-            ModuleArtifactsKey that = (ModuleArtifactsKey) o;
-            return repositoryId.equals(that.repositoryId) && componentId.equals(that.componentId) && context.equals(that.context);
         }
-
-        @Override
-        public int hashCode() {
-            int result = repositoryId.hashCode();
-            result = 31 * result + componentId.hashCode();
-            result = 31 * result + context.hashCode();
-            return result;
-        }
+        return entry;
     }
 
-    private static class ModuleArtifactsKeySerializer extends AbstractSerializer<ModuleArtifactsKey> {
+    private static class ModuleArtifactsKeySerializer extends AbstractSerializer<ArtifactsAtRepositoryKey> {
         private final ComponentIdentifierSerializer identifierSerializer = new ComponentIdentifierSerializer();
 
-        public void write(Encoder encoder, ModuleArtifactsKey value) throws Exception {
+        public void write(Encoder encoder, ArtifactsAtRepositoryKey value) throws Exception {
             encoder.writeString(value.repositoryId);
             identifierSerializer.write(encoder, value.componentId);
             encoder.writeString(value.context);
         }
 
-        public ModuleArtifactsKey read(Decoder decoder) throws Exception {
+        public ArtifactsAtRepositoryKey read(Decoder decoder) throws Exception {
             String resolverId = decoder.readString();
             ComponentIdentifier componentId = identifierSerializer.read(decoder);
             String context = decoder.readString();
-            return new ModuleArtifactsKey(resolverId, componentId, context);
+            return new ArtifactsAtRepositoryKey(resolverId, componentId, context);
         }
 
         @Override
@@ -152,18 +101,6 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         @Override
         public int hashCode() {
             return Objects.hashCode(super.hashCode(), identifierSerializer);
-        }
-    }
-
-    private static class ModuleArtifactsCacheEntry {
-        private final Set<ComponentArtifactMetadata> artifacts;
-        private final BigInteger moduleDescriptorHash;
-        private final long createTimestamp;
-
-        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, BigInteger moduleDescriptorHash) {
-            this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
-            this.createTimestamp = createTimestamp;
-            this.moduleDescriptorHash = moduleDescriptorHash;
         }
     }
 
@@ -200,29 +137,4 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
             return Objects.hashCode(super.hashCode(), artifactsSerializer);
         }
     }
-
-    private static class DefaultCachedArtifacts implements ModuleArtifactsCache.CachedArtifacts {
-        private final Set<ComponentArtifactMetadata> artifacts;
-        private final BigInteger descriptorHash;
-        private final long ageMillis;
-
-        private DefaultCachedArtifacts(Set<ComponentArtifactMetadata> artifacts, BigInteger descriptorHash, long ageMillis) {
-            this.ageMillis = ageMillis;
-            this.artifacts = artifacts;
-            this.descriptorHash = descriptorHash;
-        }
-
-        public Set<ComponentArtifactMetadata> getArtifacts() {
-            return artifacts;
-        }
-
-        public BigInteger getDescriptorHash() {
-            return descriptorHash;
-        }
-
-        public long getAgeMillis() {
-            return ageMillis;
-        }
-    }
-
 }

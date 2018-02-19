@@ -13,18 +13,18 @@ dependencies {
     api project(":messaging")
     api project(":cli")
     api project(":buildOption")
-    api libraries.slf4j_api.coordinate
+    api libraries.slf4j_api.coordinates
 
     implementation project(":native")
-    implementation libraries.jul_to_slf4j.coordinate
-    implementation libraries.ant.coordinate
-    implementation libraries.commons_lang.coordinate
-    implementation libraries.guava.coordinate
-    implementation libraries.jansi.coordinate
-    implementation libraries.jcip.coordinate
+    implementation libraries.jul_to_slf4j.coordinates
+    implementation libraries.ant.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.jansi.coordinates
+    implementation libraries.jcip.coordinates
 
-    runtimeOnly libraries.log4j_to_slf4j.coordinate
-    runtimeOnly libraries.jcl_to_slf4j.coordinate
+    runtimeOnly libraries.log4j_to_slf4j.coordinates
+    runtimeOnly libraries.jcl_to_slf4j.coordinates
 
     testImplementation project(":internalTesting")
 }

@@ -380,7 +380,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public void setIncludedBuilds(Collection<IncludedBuild> includedBuilds) {
+    public void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds) {
         this.includedBuilds.addAll(includedBuilds);
     }
 

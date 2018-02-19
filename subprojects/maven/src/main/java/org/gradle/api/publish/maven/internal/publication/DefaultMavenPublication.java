@@ -38,6 +38,7 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -45,7 +46,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -56,6 +56,8 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -68,6 +70,8 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
@@ -125,6 +129,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("Maven publication", name);
+    }
+
+    @Override
+    public boolean isLegacy() {
+        return false;
     }
 
     @Nullable
@@ -218,7 +232,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private void addProjectDependency(ProjectDependency dependency, Set<MavenDependencyInternal> dependencies) {
-        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
         dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
     }
 
@@ -369,6 +383,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
     }
 
+    @Nullable
+    @Override
+    public <T> T getCoordinates(Class<T> type) {
+        if (type.isAssignableFrom(ModuleVersionIdentifier.class)) {
+            return type.cast(getCoordinates());
+        }
+        return null;
+    }
+
     public void publishWithOriginalFileName() {
         this.isPublishWithOriginalFileName = true;
     }
@@ -383,7 +406,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return featurePreviews.isGradleMetadataEnabled();
+        return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
     }
 
     @Override

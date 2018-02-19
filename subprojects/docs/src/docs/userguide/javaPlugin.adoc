@@ -164,7 +164,7 @@ You configure the project layout by configuring the appropriate source set. This
 [[sec:java_plugin_and_dependency_management]]
 === Dependency management
 
-The Java plugin adds a number of <<defining_and_using_configurations,dependency configurations>> to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
+The Java plugin adds a number of <<managing_dependency_configurations,dependency configurations>> to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
 
 [[tab:configurations]]
 ==== Dependency configurations
@@ -563,6 +563,18 @@ The task has an `ignoreFailures` property to control the behavior when tests fai
 
 The `testLogging` property allows you to configure which test events are going to be logged and at which detail level. By default, a concise message will be logged for every failed test. See api:org.gradle.api.tasks.testing.logging.TestLoggingContainer[] for how to tune test logging to your preferences.
 
+Projects with large test suites can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To short circuit this behavior, the api:org.gradle.api.tasks.testing.Test#getFailFast()[`failFast`] property allows you to cause the `test` task to fail after the first test failure instead of running all tests. When this property is true, the resulting output will only show the results of tests that have completed up to and including the failure. To enable this fail fast behavior in your build file, set the `failFast` property to `true`:
+
+    test {
+        failFast = true
+    }
+
+The `--fail-fast` command line option enables the behavior from the command line. An invocation looks like:
+
+    gradle integTest --fail-fast
+
+The default value for the `failFast` property is false.
+
 [[sec:debugging]]
 ==== Debugging
 
@@ -583,9 +595,9 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. ???org.gradle.SomeTest???, ???org.gradle.SomeTest.someMethod???
+* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`
 * Wildcard '*' is supported for matching any characters
-* Command line option ???--tests??? is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple ???--tests??? options and tests matching any of those patterns will be included.
+* Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
@@ -629,7 +641,7 @@ gradle test --continuous --tests "com.mypackage.foo.*"
 This mechanism has been superseded by 'Test Filtering', described above.
 ====
 
-Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like ???:sub1:sub2:test??? or just the task name. The __testNamePattern__ will be used to form an include pattern of ???\**/testNamePattern*.class???. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
+Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like `:sub1:sub2:test` or just the task name. The __testNamePattern__ will be used to form an include pattern of `\**/testNamePattern*.class`. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
 
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
@@ -654,18 +666,32 @@ When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
 
-If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
+If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are `\**/*Tests.class`, `*\*/*Test.class` and `*\*/Abstract*.class` for include and exclude, respectively.
+
+[NOTE]
+====
+With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes`/`excludes` is used to filter test classes, `scanForTestClasses` has no effect.
+====
 
 [[test_grouping]]
 ==== Test grouping
 
-JUnit and TestNG allows sophisticated groupings of test methods.
+JUnit/JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
-For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
+For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
                 <sourcefile file="build.gradle" snippet="test-categories"/>
+            </sample>
+++++
+
+In http://junit.org/junit5/docs/current/user-guide[JUnit Platform], http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] is introduced instead of categories.
+You can specify the included/excluded tags as follows:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitplatformtags" dir="testing/junitplatform/tagging" title="JUnit Platform Tags">
+                <sourcefile file="build.gradle" snippet="test-tags"/>
             </sample>
 ++++
 

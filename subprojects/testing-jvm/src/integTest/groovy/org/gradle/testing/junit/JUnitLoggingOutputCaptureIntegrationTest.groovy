@@ -18,23 +18,27 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
+import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-@TargetCoverage({JUnitCoverage.LOGGING})
-class JUnitLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
+// https://github.com/junit-team/junit5/issues/1285
+@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, 'Vintage:5.1.0-M2') })
+class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:$version' }
+            dependencies {
+                testCompile '$dependencyNotation'
+            }
             test {
                 reports.junitXml.outputPerTestCase = true
-                onOutput { test, event -> print "\$test -> \$event.message" }
+                // JUnit 5's test name contains paretheses
+                onOutput { test, event -> print "\${test.toString().replace('()(', '(')} -> \$event.message" }
             }
         """
     }

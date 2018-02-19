@@ -25,7 +25,7 @@ public class TestComponentIdentifiers {
     }
 
     public static ProjectComponentIdentifier newProjectId(String buildName, String projectPath) {
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(buildName, true), projectPath);
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(buildName), projectPath);
     }
 
     public static ProjectComponentSelector newSelector(String projectPath) {

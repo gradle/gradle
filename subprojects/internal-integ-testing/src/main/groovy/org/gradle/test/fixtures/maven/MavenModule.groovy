@@ -109,7 +109,7 @@ interface MavenModule extends Module {
     ModuleArtifact getArtifact(Map<String, ?> options)
 
     /**
-     * Returns a file relative to this module, use a relative path.
+     * Returns a file relative to this module, using a relative path.
      */
     ModuleArtifact getArtifact(String relativePath)
 

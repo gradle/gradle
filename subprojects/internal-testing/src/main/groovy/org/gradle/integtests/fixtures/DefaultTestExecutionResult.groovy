@@ -42,6 +42,11 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         this
     }
 
+    boolean testClassExists(String testClass) {
+        List<Boolean> testClassResults = results*.testClassExists(testClass)
+        return testClassResults.inject { a, b -> a && b }
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)})
     }
@@ -62,6 +67,17 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         return firstResult
     }
 
+    // In JUnit 3/4 test case name is exactly the method name
+    // In JUnit 5 test method injection is allowed: http://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection
+    // So test case name is [method name + parameters]
+    static String removeParentheses(String testName) {
+        testName.size() > 2 && testName.endsWith('()') ? testName[0..-3] : testName
+    }
+
+    static String[] removeAllParentheses(String... testNames) {
+        testNames.collect { removeParentheses(it) } as String[]
+    }
+
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
         def testClassResults
 
@@ -70,7 +86,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
-            testClassResults*.assertTestsExecuted(testNames)
+            testClassResults*.assertTestsExecuted(removeAllParentheses(testNames))
             this
         }
 
@@ -79,23 +95,37 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        int getTestCount() {
+            List<Integer> counts = testClassResults*.testCount
+            List<Integer> uniques = counts.unique()
+            if (uniques.size() == 1) {
+                return uniques.first()
+            }
+            throw new IllegalStateException("Multiple different test counts ${counts}")
+        }
+
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
-            testClassResults*.assertTestsSkipped(testNames)
+            testClassResults*.assertTestsSkipped(removeAllParentheses(testNames))
             this
         }
 
         TestClassExecutionResult assertTestPassed(String name) {
-            testClassResults*.assertTestPassed(name)
+            testClassResults*.assertTestPassed(removeParentheses(name))
             this
         }
 
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
-            testClassResults*.assertTestFailed(name, messageMatchers)
+            testClassResults*.assertTestFailed(removeParentheses(name), messageMatchers)
             this
         }
 
+        boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+            List<Boolean> results = testClassResults*.testFailed(name, messageMatchers)
+            return results.inject { a, b -> a && b }
+        }
+
         TestClassExecutionResult assertTestSkipped(String name) {
-            testClassResults*.assertTestSkipped(name)
+            testClassResults*.assertTestSkipped(removeParentheses(name))
             this
         }
 
@@ -115,7 +145,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
-            testClassResults*.assertTestCaseStdout(testCaseName, matcher)
+            testClassResults*.assertTestCaseStdout(removeParentheses(testCaseName), matcher)
             this
         }
 
@@ -125,7 +155,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
-            testClassResults*.assertTestCaseStderr(testCaseName, matcher)
+            testClassResults*.assertTestCaseStderr(removeParentheses(testCaseName), matcher)
             this
         }
 

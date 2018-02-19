@@ -30,8 +30,8 @@ public class DefaultProjectPathRegistry implements ProjectPathRegistry {
     // TODO: Synchronization
     private final Map<Path, ProjectPathEntry> allProjects = Maps.newLinkedHashMap();
 
-    void add(Path projectIdentityPath, ProjectComponentIdentifier identifier, boolean isImplicitBuild) {
-        allProjects.put(projectIdentityPath, new ProjectPathEntry(identifier, isImplicitBuild));
+    void add(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isImplicitBuild) {
+        allProjects.put(projectIdentityPath, new ProjectPathEntry(projectName, identifier, isImplicitBuild));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class DefaultProjectPathRegistry implements ProjectPathRegistry {
             CollectionUtils.filter(allProjects.entrySet(), new Spec<Map.Entry<Path, ProjectPathEntry>>() {
                 @Override
                 public boolean isSatisfiedBy(Map.Entry<Path, ProjectPathEntry> entry) {
-                    return isAddedImplicitly == entry.getValue().isAddedImplicitly();
+                    return isAddedImplicitly == entry.getValue().isAddedImplicitly;
                 }
             }),
             new Transformer<Path, Map.Entry<Path, ProjectPathEntry>>() {
@@ -67,24 +67,23 @@ public class DefaultProjectPathRegistry implements ProjectPathRegistry {
 
     @Override
     public ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath) {
-        return allProjects.get(identityPath).getIdentifier();
+        return allProjects.get(identityPath).identifier;
+    }
+
+    @Override
+    public String getProjectName(Path identityPath) {
+        return allProjects.get(identityPath).projectName;
     }
 
     private static class ProjectPathEntry {
+        private final String projectName;
         private final ProjectComponentIdentifier identifier;
         private final boolean isAddedImplicitly;
 
-        public ProjectPathEntry(ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
+        ProjectPathEntry(String projectName, ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
+            this.projectName = projectName;
             this.identifier = identifier;
             this.isAddedImplicitly = isAddedImplicitly;
-        }
-
-        public ProjectComponentIdentifier getIdentifier() {
-            return identifier;
-        }
-
-        public boolean isAddedImplicitly() {
-            return isAddedImplicitly;
         }
     }
 }

@@ -16,16 +16,18 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import java.io.Serializable;
+
 /**
  * Information about an annotation processor, based on its static metadata
  * in <code>META-INF/services/javax.annotation.processing.Processor</code> and
  * <code>META-INF/gradle/incremental.annotation.processors</code>
  */
-public class AnnotationProcessorDeclaration {
+public class AnnotationProcessorDeclaration implements Serializable {
     private final String className;
     private final IncrementalAnnotationProcessorType type;
 
-    AnnotationProcessorDeclaration(String className, IncrementalAnnotationProcessorType type) {
+    public AnnotationProcessorDeclaration(String className, IncrementalAnnotationProcessorType type) {
         this.className = className;
         this.type = type;
     }

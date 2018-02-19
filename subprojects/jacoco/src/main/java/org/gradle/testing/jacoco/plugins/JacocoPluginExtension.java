@@ -15,21 +15,25 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.jacoco.JacocoAgentJar;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -110,25 +114,7 @@ public class JacocoPluginExtension {
             }
         }));
 
-        // Capture some of the JaCoCo contributed inputs to the task
-        task.getInputs().property("jacoco.jvmArg", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return extension.isEnabled() ? extension.getAsJvmArg() : null;
-            }
-        }).optional(true);
-        task.getOutputs().file(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return extension.isEnabled() ? extension.getDestinationFile() : null;
-            }
-        }).optional().withPropertyName("jacoco.destinationFile");
-        task.getOutputs().dir(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return extension.isEnabled() ? extension.getClassDumpDir() : null;
-            }
-        }).optional().withPropertyName("jacoco.classDumpDir");
+        task.getJvmArgumentProviders().add(new JacocoAgent(extension));
 
         // Do not cache the task if we are not writing execution data to a file
         task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {
@@ -146,16 +132,27 @@ public class JacocoPluginExtension {
                 return extension.isEnabled() && extension.isAppend();
             }
         });
+    }
 
-        TaskInternal taskInternal = (TaskInternal) task;
-        taskInternal.prependParallelSafeAction(new Action<Task>() {
-            @Override
-            public void execute(Task input) {
-                if (extension.isEnabled()) {
-                    task.jvmArgs(extension.getAsJvmArg());
-                }
-            }
-        });
+    private static class JacocoAgent implements CommandLineArgumentProvider {
+
+        private final JacocoTaskExtension jacoco;
+
+        public JacocoAgent(JacocoTaskExtension jacoco) {
+            this.jacoco = jacoco;
+        }
+
+        @Nested
+        @Optional
+        public JacocoTaskExtension getJacoco() {
+            return jacoco.isEnabled() ? jacoco : null;
+        }
+
+        @Override
+        public Iterable<String> asArguments() {
+            return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
+        }
+
     }
 
     /**

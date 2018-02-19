@@ -1,0 +1,7 @@
+org.ow2.asm:asm:6.0 (we require a JDK 9 compatible bytecode generator)
+   variant "compile" [
+      org.gradle.usage = java-api
+   ]
+\--- compileClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.

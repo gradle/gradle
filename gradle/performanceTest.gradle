@@ -17,10 +17,7 @@
 
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.RemoteProject
+import org.gradle.testing.performance.generator.tasks.*
 
 apply plugin: 'java'
 
@@ -63,7 +60,10 @@ task checkNoIdenticalBuildFiles {
 
 tasks.withType(ProjectGeneratorTask) {
     group = 'Project setup'
-    if(project.hasProperty("maxProjects")) {
+}
+
+tasks.withType(AbstractProjectGeneratorTask) {
+    if (project.hasProperty("maxProjects")) {
         projects = maxProjects as Integer
     }
 }
@@ -81,7 +81,7 @@ task prepareSamples {
 }
 
 task cleanSamples(type: Delete) {
-    delete {tasks.withType(ProjectGeneratorTask)*.destDir}
+    delete {tasks.withType(ProjectGeneratorTask)*.outputs}
     delete {tasks.withType(RemoteProject)*.outputDirectory}
     delete {tasks.withType(JavaExecProjectGeneratorTask)*.outputs}
 }
@@ -254,7 +254,7 @@ class PerformanceReport extends JavaExec {
     }
 }
 
-tasks.withType(ProjectGeneratorTask) {
+tasks.withType(TemplateProjectGeneratorTask) {
     sharedTemplateDirectory = project.findProject(':internalPerformanceTesting').file('src/templates')
 }
 
