@@ -114,6 +114,15 @@ public final class BuildOperationRecord {
             map.put("failure", failure);
         }
 
+        if (!progress.isEmpty()) {
+            map.put("progress", Lists.transform(progress, new Function<Progress, Map<String, ?>>() {
+                @Override
+                public Map<String, ?> apply(Progress input) {
+                    return input.toSerializable();
+                }
+            }));
+        }
+
         if (!children.isEmpty()) {
             map.put("children", Lists.transform(children, new Function<BuildOperationRecord, Map<String, ?>>() {
                 @Override
@@ -152,6 +161,18 @@ public final class BuildOperationRecord {
             this.time = time;
             this.details = details == null ? null : new StrictMap<String, Object>(details);
             this.detailsClassName = detailsClassName;
+        }
+
+        Map<String, ?> toSerializable() {
+            Map<String, Object> map = new LinkedHashMap<String, Object>();
+            map.put("time", time);
+
+            if (details != null) {
+                map.put("details", details);
+                map.put("detailsClassName", detailsClassName);
+            }
+
+            return map;
         }
     }
 }

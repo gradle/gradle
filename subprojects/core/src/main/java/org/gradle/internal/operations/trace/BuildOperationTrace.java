@@ -17,6 +17,7 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
@@ -178,7 +179,9 @@ public class BuildOperationTrace implements Stoppable {
 
                         stringBuilder.setLength(0);
 
-                        for (int i = 0; i < stack.size() - 1; ++i) {
+                        int indents = stack.size() - 1;
+
+                        for (int i = 0; i < indents; ++i) {
                             stringBuilder.append("  ");
                         }
 
@@ -206,6 +209,18 @@ public class BuildOperationTrace implements Stoppable {
                         stringBuilder.append(record.id);
                         stringBuilder.append(")");
 
+                        if (!record.progress.isEmpty()) {
+                            for (BuildOperationRecord.Progress progress : record.progress) {
+                                stringBuilder.append(StandardSystemProperty.LINE_SEPARATOR.value());
+                                for (int i = 0; i < indents; ++i) {
+                                    stringBuilder.append("  ");
+                                }
+                                stringBuilder.append("- ")
+                                    .append(progress.details).append(" [")
+                                    .append(progress.time - record.startTime)
+                                    .append("]");
+                            }
+                        }
 
                         return stringBuilder.toString();
                     }
