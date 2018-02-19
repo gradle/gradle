@@ -22,8 +22,8 @@ import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
 import org.gradle.platform.base.internal.toolchain.ComponentFound;
 import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
@@ -105,14 +105,14 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private void locateInstallsWith(VisualStudioVersionLocator versionLocator) {
-        List<VisualStudioMetadata> installs = versionLocator.getVisualStudioInstalls();
+        List<VisualStudioInstallCandidate> installs = versionLocator.getVisualStudioInstalls();
 
-        for (VisualStudioMetadata install : installs) {
+        for (VisualStudioInstallCandidate install : installs) {
             addInstallIfValid(install, versionLocator.getSource());
         }
     }
 
-    private boolean addInstallIfValid(VisualStudioMetadata install, String source) {
+    private boolean addInstallIfValid(VisualStudioInstallCandidate install, String source) {
         File visualCppDir = install.getVisualCppDir();
         File visualStudioDir = install.getInstallDir();
 
@@ -139,7 +139,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private SearchResult<VisualStudioInstall> locateUserSpecifiedInstall(File candidate) {
-        VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
+        VisualStudioInstallCandidate install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
 
         if (install != null && addInstallIfValid(install, "user provided path")) {
             return new ComponentFound<VisualStudioInstall>(foundInstalls.get(install.getInstallDir()));
@@ -242,7 +242,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         );
     }
 
-    private static boolean isValidInstall(VisualStudioMetadata install) {
+    private static boolean isValidInstall(VisualStudioInstallCandidate install) {
         switch (install.getCompatibility()) {
             case LEGACY:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
