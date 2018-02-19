@@ -106,7 +106,6 @@ import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
@@ -175,6 +174,14 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         );
     }
 
+    public static class LoggingOutput {
+        public final String string;
+
+        public LoggingOutput(String string) {
+            this.string = string;
+        }
+    }
+
     private static class LoggingBuildOperationNotificationBridge implements Stoppable, OutputEventListener {
 
         private final LoggingManagerInternal loggingManagerInternal;
@@ -202,7 +209,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
                 // FIXME Needs to be a carefully change controlled type describing the output.
                 // Also needs to convey the styling structure if styled.
-                Object details = Collections.singletonMap("string", event.toString());
+                Object details = new LoggingOutput(event.toString());
 
                 buildOperationListener.progress(
                     ownerDescriptor,

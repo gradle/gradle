@@ -136,13 +136,14 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
             Object id = buildOperation.getId();
             Object parentId = buildOperation.getParentId();
+
             if (parentId != null) {
                 if (active.containsKey(parentId)) {
                     parents.put(id, parentId);
                 } else {
-                    parentId = parents.get(parentId);
-                    if (parentId != null) {
-                        parents.put(id, parentId);
+                    Object activeParent = parents.get(parentId);
+                    if (activeParent != null) {
+                        parents.put(id, activeParent);
                     }
                 }
             }
@@ -171,17 +172,27 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
         @Override
         public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-            Object id = buildOperation.getId();
-            if (!active.containsKey(id)) {
-                return;
-            }
-
             Object details = progressEvent.getDetails();
             if (details == null) {
                 return;
             }
 
-            notificationListener.progress(new Progress(buildOperation.getId(), progressEvent.getTime(), details));
+            // Find the nearest parent up that we care about and use that as the parent.
+            Object owner = findOwner(buildOperation);
+            if (owner == null) {
+                return;
+            }
+
+            notificationListener.progress(new Progress(owner, progressEvent.getTime(), details));
+        }
+
+        private Object findOwner(BuildOperationDescriptor buildOperation) {
+            Object id = buildOperation.getId();
+            if (active.containsKey(id)) {
+                return id;
+            } else {
+                return parents.get(id);
+            }
         }
 
         @Override
