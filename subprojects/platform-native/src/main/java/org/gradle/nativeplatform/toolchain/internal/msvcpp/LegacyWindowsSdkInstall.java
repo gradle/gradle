@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class LegacyWindowsSdk implements WindowsSdk {
+public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
     private static final String[] BINPATHS_X86 = {
         "bin/x86",
         "Bin"
@@ -63,7 +63,7 @@ public class LegacyWindowsSdk implements WindowsSdk {
     private final VersionNumber version;
     private final String name;
 
-    public LegacyWindowsSdk(File baseDir, VersionNumber version, String name) {
+    public LegacyWindowsSdkInstall(File baseDir, VersionNumber version, String name) {
         this.baseDir = baseDir;
         this.version = version;
         this.name = name;
@@ -84,7 +84,7 @@ public class LegacyWindowsSdk implements WindowsSdk {
     }
 
     @Override
-    public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
+    public WindowsSdk forPlatform(final NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
             return new LegacyPlatformWindowsSdk(BINPATHS_AMD64, LIBPATHS_AMD64);
         }
@@ -100,7 +100,7 @@ public class LegacyWindowsSdk implements WindowsSdk {
         throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
-    private class LegacyPlatformWindowsSdk implements PlatformWindowsSdk {
+    private class LegacyPlatformWindowsSdk implements WindowsSdk {
         private final String[] binPaths;
         private final String[] libPaths;
 

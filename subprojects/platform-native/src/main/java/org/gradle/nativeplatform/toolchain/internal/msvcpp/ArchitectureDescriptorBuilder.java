@@ -176,7 +176,7 @@ public enum ArchitectureDescriptorBuilder {
         return Maps.newHashMap();
     }
 
-    DefaultArchitectureDescriptor buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {
+    ArchitectureSpecificVisualCpp buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {
         File commonTools = new File(vsPath, PATH_COMMONTOOLS);
         File commonIde = new File(vsPath, PATH_COMMONIDE);
         List<File> paths = Lists.newArrayList(commonTools, commonIde);
@@ -185,6 +185,6 @@ public enum ArchitectureDescriptorBuilder {
             paths.add(crossCompilePath);
         }
         File includePath = new File(basePath, PATH_INCLUDE);
-        return new DefaultArchitectureDescriptor(compilerVersion, paths, getBinPath(basePath), getLibPath(basePath), getCompilerPath(basePath), includePath, asmFilename, getDefinitions());
+        return new ArchitectureSpecificVisualCpp(compilerVersion, paths, getBinPath(basePath), getLibPath(basePath), getCompilerPath(basePath), includePath, asmFilename, getDefinitions());
     }
 }

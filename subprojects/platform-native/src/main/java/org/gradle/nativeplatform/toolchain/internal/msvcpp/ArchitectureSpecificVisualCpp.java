@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultArchitectureDescriptor implements PlatformVisualCpp {
+public class ArchitectureSpecificVisualCpp implements VisualCpp {
     private static final String COMPILER_FILENAME = "cl.exe";
     private static final String LINKER_FILENAME = "link.exe";
     private static final String ARCHIVER_FILENAME = "lib.exe";
@@ -37,7 +37,7 @@ public class DefaultArchitectureDescriptor implements PlatformVisualCpp {
     private final Map<String, String> definitions;
     private final File compilerPath;
 
-    DefaultArchitectureDescriptor(VersionNumber version, List<File> paths, File binDir, File libDir, File compilerPath, File includeDir, String assemblerFilename, Map<String, String> definitions) {
+    ArchitectureSpecificVisualCpp(VersionNumber version, List<File> paths, File binDir, File libDir, File compilerPath, File includeDir, String assemblerFilename, Map<String, String> definitions) {
         this.version = version;
         this.paths = paths;
         this.binDir = binDir;

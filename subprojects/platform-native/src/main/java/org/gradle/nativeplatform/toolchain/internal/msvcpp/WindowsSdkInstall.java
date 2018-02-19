@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
+import org.gradle.api.Named;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.util.VersionNumber;
 
-/**
- * Windows platform specific SDK.
- */
-public interface PlatformWindowsSdk extends WindowsTools, SystemLibraries {
+public interface WindowsSdkInstall extends Named {
+    VersionNumber getVersion();
+
+    WindowsSdk forPlatform(NativePlatformInternal platform);
 }

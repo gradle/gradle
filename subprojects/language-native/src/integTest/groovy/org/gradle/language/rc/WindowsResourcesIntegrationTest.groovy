@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdk
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkInstall
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -36,7 +36,7 @@ import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(VISUALCPP)
 class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationTest {
-    static final List<WindowsSdk> NON_DEFAULT_SDKS = getNonDefaultSdks()
+    static final List<WindowsSdkInstall> NON_DEFAULT_SDKS = getNonDefaultSdks()
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
     @Unroll
@@ -192,9 +192,9 @@ model {
         succeeds "mainExecutable"
     }
 
-    static List<WindowsSdk> getNonDefaultSdks() {
+    static List<WindowsSdkInstall> getNonDefaultSdks() {
         WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
-        WindowsSdk defaultSdk = locator.locateComponent(null).component
+        WindowsSdkInstall defaultSdk = locator.locateComponent(null).component
         return locator.locateAllComponents() - defaultSdk
     }
 }
