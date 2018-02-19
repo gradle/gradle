@@ -25,16 +25,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class WindowsKitWindowsSdk extends WindowsKitComponent implements WindowsSdk {
+public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSdkInstall {
     private final File binDir;
 
-    public WindowsKitWindowsSdk(File baseDir, VersionNumber version, File binDir, String name) {
+    public WindowsKitSdkInstall(File baseDir, VersionNumber version, File binDir, String name) {
         super(baseDir, version, name);
         this.binDir = binDir;
     }
 
     @Override
-    public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
+    public WindowsSdk forPlatform(final NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
             return new WindowsKitBackedSdk("x64");
         }
@@ -47,7 +47,7 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
         throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
-    private class WindowsKitBackedSdk implements PlatformWindowsSdk {
+    private class WindowsKitBackedSdk implements WindowsSdk {
         private final String platformDirName;
 
         WindowsKitBackedSdk(String platformDirName) {
@@ -56,7 +56,7 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
 
         @Override
         public VersionNumber getVersion() {
-            return WindowsKitWindowsSdk.this.getVersion();
+            return WindowsKitSdkInstall.this.getVersion();
         }
 
         @Override

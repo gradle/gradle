@@ -178,9 +178,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, DefaultArchitectureDescriptor> descriptors = Maps.newHashMap();
+        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            DefaultArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
+            ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -206,9 +206,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, DefaultArchitectureDescriptor> descriptors = Maps.newHashMap();
+        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            DefaultArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
+            ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }

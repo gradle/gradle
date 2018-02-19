@@ -22,5 +22,5 @@ import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 /**
  * Platform specific VC++ tools and system libraries.
  */
-public interface PlatformVisualCpp extends NativeLanguageTools, SystemLibraries {
+public interface VisualCpp extends NativeLanguageTools, SystemLibraries {
 }
