@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -24,6 +25,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
+import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -32,36 +34,67 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
 
-public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyMetadata {
+/**
+ * A `ModuleDependencyMetadata` implementation that is backed by an `ExternalDependencyDescriptor` bound to a particular
+ * source `ConfigurationMetadata`. The reason for this is that the Ivy and Maven dependency descriptors resolve target components
+ * differently based on the configuration that they are sourced from.
+ */
+public class ConfigurationBoundExternalDependencyMetadata implements ModuleDependencyMetadata {
     private final ConfigurationMetadata configuration;
     private final ModuleComponentIdentifier componentId;
-    private final ExternalDependencyDescriptor delegate;
+    private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
 
-    private ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate, String reason) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
         this.configuration = configuration;
         this.componentId = componentId;
-        this.delegate = delegate;
+        this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
     }
 
-    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate) {
-        this(configuration, componentId, delegate, null);
+    public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
+        this(configuration, componentId, dependencyDescriptor, null);
     }
 
+    /**
+     * Choose a set of target configurations based on: a) the consumer attributes, b) the fromConfiguration and c) the target component.
+     *
+     * Use attribute matching to choose a single variant when:
+     *   - The target component has variants AND
+     *   - Either: we have consumer attributes OR the target component is from an external repository (not a Gradle project).
+     *
+     * Otherwise, revert to legacy selection of target configurations.
+     */
     @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return delegate.getMetadataForConfigurations(consumerAttributes, consumerSchema, componentId, configuration, targetComponent);
+        // This is a slight different condition than that used for a dependency declared in a Gradle project,
+        // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
+        if (hasVariants(targetComponent) && (hasAttributes(consumerAttributes) || isExternal(targetComponent))) {
+            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+        }
+        return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponent);
+    }
+
+    private boolean hasVariants(ComponentResolveMetadata targetComponent) {
+        return !targetComponent.getVariantsForGraphTraversal().isEmpty();
+    }
+
+    private boolean hasAttributes(ImmutableAttributes attributes) {
+        return !attributes.isEmpty();
+    }
+
+    private boolean isExternal(ComponentResolveMetadata targetComponent) {
+        return targetComponent instanceof ModuleComponentResolveMetadata;
     }
 
     @Override
     public List<IvyArtifactName> getArtifacts() {
-        return delegate.getConfigurationArtifacts(configuration);
+        return dependencyDescriptor.getConfigurationArtifacts(configuration);
     }
 
     @Override
     public List<ExcludeMetadata> getExcludes() {
-        return delegate.getConfigurationExcludes(configuration.getHierarchy());
+        return dependencyDescriptor.getConfigurationExcludes(configuration.getHierarchy());
     }
 
     @Override
@@ -96,32 +129,32 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
         if (Objects.equal(reason, this.getReason())) {
             return this;
         }
-        return new ConfigurationDependencyMetadataWrapper(configuration, componentId, delegate, reason);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
-        ExternalDependencyDescriptor newDelegate = delegate.withRequested(newSelector);
-        return new ConfigurationDependencyMetadataWrapper(configuration, componentId, newDelegate);
+        ExternalDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate);
     }
 
     @Override
     public ModuleComponentSelector getSelector() {
-        return delegate.getSelector();
+        return dependencyDescriptor.getSelector();
     }
 
     @Override
     public boolean isChanging() {
-        return delegate.isChanging();
+        return dependencyDescriptor.isChanging();
     }
 
     @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return dependencyDescriptor.isTransitive();
     }
 
     @Override
     public boolean isPending() {
-        return delegate.isOptional();
+        return dependencyDescriptor.isOptional();
     }
 
     @Override

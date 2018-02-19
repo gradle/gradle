@@ -91,11 +91,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
 
+    /**
+     * Choose a single target configuration based on: a) the consumer attributes, b) the target configuration name and c) the target component
+     *
+     * Use attribute matching to choose a single variant when:
+     *   - The target configuration name is not specified AND
+     *   - Either: we have consumer attributes OR the target component has variants.
+     *
+     * Otherwise, revert to legacy selection of target configuration.
+     *
+     * @return A List containing a single `ConfigurationMetadata` representing the target variant.
+     */
     @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
+        List<? extends ConfigurationMetadata> targetVariants = targetComponent.getVariantsForGraphTraversal();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !targetVariants.isEmpty());
         if (useConfigurationAttributes) {
             return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
@@ -110,6 +121,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
         if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
             // need to validate that the selected configuration still matches the consumer attributes
+            // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
                 throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
