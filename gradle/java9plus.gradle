@@ -16,9 +16,6 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
             // Fail since build 125
             "InterfaceBackedManagedTypeIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
-            // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
-            "SampleJavaLanguageIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-
             // Cannot obtain Jvm arguments via java.lang.management.ManagementFactory.runtimeMXBean.inputArguments module java.management does not export sun.management to unnamed module @6427ecb
             "BuildEnvironmentModelCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],  // "informs about java args as in the build script"
             "JavaConfigurabilityCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10], // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
