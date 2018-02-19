@@ -1229,7 +1229,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
-     * using <code>convention</code>. You can also can also access the properties and methods of the convention object
+     * using <code>convention</code>. You can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
      * @return The <code>Convention</code>. Never returns null.
