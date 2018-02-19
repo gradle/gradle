@@ -132,7 +132,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 
     private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {
@@ -237,7 +237,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
      *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
      *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
      */
-    private static class OptionalConfigurationDependencyMetadata extends ConfigurationDependencyMetadataWrapper {
+    private static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
         private final MavenDependencyDescriptor dependencyDescriptor;
 
         public OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {

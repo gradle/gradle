@@ -273,9 +273,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        experimental | _
-        false        | _
-        true         | _
+        experimental << [false, true]
     }
 
     def "explicit compile configuration selection is broken up by dependency with Gradle metadata"() {
@@ -354,9 +352,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        conf      | _
-        'runtime' | _
-        'test'    | _
+        conf << ['runtime', 'test']
     }
 
     @Unroll

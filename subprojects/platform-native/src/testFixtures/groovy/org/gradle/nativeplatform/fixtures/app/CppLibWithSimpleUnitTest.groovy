@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.List;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
+import org.gradle.test.fixtures.file.TestFile
 
-public interface WindowsKitComponentLocator<T extends WindowsKitComponent> {
-    String[] PLATFORMS = new String[] {"x86", "x64"};
+class CppLibWithSimpleUnitTest extends CppSourceElement {
+    final main = new CppLib()
+    final test = new CppLibTest()
 
-    SearchResult<T> locateComponents(File candidate);
+    @Override
+    SourceElement getHeaders() {
+        return empty()
+    }
 
-    List<T> locateAllComponents();
+    @Override
+    SourceElement getSources() {
+        return empty()
+    }
 
-    interface SearchResult<T> extends ToolSearchResult {
-        T getComponent();
+    @Override
+    public void writeToProject(TestFile projectDir) {
+        getMain().writeToProject(projectDir);
+        getTest().writeToProject(projectDir);
     }
 }

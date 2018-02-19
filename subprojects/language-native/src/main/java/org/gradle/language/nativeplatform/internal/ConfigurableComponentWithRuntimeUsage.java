@@ -17,6 +17,7 @@
 package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -40,4 +41,6 @@ public interface ConfigurableComponentWithRuntimeUsage extends ComponentWithRunt
     boolean hasRuntimeFile();
 
     Provider<RegularFile> getRuntimeFile();
+
+    AttributeContainer getRuntimeAttributes();
 }

@@ -56,16 +56,16 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
             compileAndLinkTasks(debug),
             compileAndLinkTasks(release),
             stripSymbolsTasksRelease(toolChain),
-            ":generatePomFileForDebugPublication",
-            ":generateMetadataFileForDebugPublication",
-            ":publishDebugPublicationToMavenRepository",
+            ":generatePomFileForMainDebugPublication",
+            ":generateMetadataFileForMainDebugPublication",
+            ":publishMainDebugPublicationToMavenRepository",
             ":cppHeaders",
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleasePublication",
-            ":generateMetadataFileForReleasePublication",
-            ":publishReleasePublicationToMavenRepository",
+            ":generatePomFileForMainReleasePublication",
+            ":generateMetadataFileForMainReleasePublication",
+            ":publishMainReleasePublicationToMavenRepository",
             ":publish"
         )
 

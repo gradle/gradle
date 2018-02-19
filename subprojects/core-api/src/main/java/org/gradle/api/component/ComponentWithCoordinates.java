@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal;
+package org.gradle.api.component;
 
-import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-
-public class SwiftStdlibToolLocator extends AbstractLocator {
-    @Inject
-    public SwiftStdlibToolLocator(ExecActionFactory execActionFactory) {
-        super(execActionFactory);
-    }
-
-    @Override
-    protected List<String> getXcrunFlags() {
-        return Arrays.asList("--find", "swift-stdlib-tool");
-    }
+/**
+ * Represents a component that determines its publication coordinates.
+ *
+ * @since 4.7
+ */
+@Incubating
+public interface ComponentWithCoordinates extends SoftwareComponent {
+    /**
+     * The publication coordinates for this component.
+     */
+    ModuleVersionIdentifier getCoordinates();
 }

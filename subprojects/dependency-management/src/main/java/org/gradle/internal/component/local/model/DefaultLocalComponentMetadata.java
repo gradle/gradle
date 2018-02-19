@@ -212,13 +212,16 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return allConfigurations.keySet();
     }
 
+    /**
+     * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
+     */
     @Override
     public synchronized ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
             ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<ConfigurationMetadata>();
-            for (DefaultLocalConfigurationMetadata metadata : allConfigurations.values()) {
-                if (metadata.isCanBeConsumed() && !metadata.getAttributes().isEmpty()) {
-                    builder.add(metadata);
+            for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
+                if (configuration.isCanBeConsumed() && !configuration.getAttributes().isEmpty()) {
+                    builder.add(configuration);
                 }
             }
             consumableConfigurations = builder.build();

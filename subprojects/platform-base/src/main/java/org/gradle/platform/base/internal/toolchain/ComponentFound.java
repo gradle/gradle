@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.platform.base.internal.toolchain;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.util.TreeVisitor;
 
-public interface SystemIncludesAwarePlatformToolProvider extends PlatformToolProvider {
-    List<File> getSystemIncludes(ToolType compilerType);
+public class ComponentFound<T> implements SearchResult<T> {
+    private final T component;
+
+    public ComponentFound(T component) {
+        this.component = component;
+    }
+
+    public T getComponent() {
+        return component;
+    }
+
+    public boolean isAvailable() {
+        return true;
+    }
+
+    public void explain(TreeVisitor<? super String> visitor) {
+    }
 }

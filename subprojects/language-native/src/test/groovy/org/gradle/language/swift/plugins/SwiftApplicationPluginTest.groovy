@@ -47,7 +47,7 @@ class SwiftApplicationPluginTest extends Specification {
         project.application.swiftSource.files == [src] as Set
     }
 
-    def "registers a component for the executable"() {
+    def "registers a component for the application"() {
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
         project.evaluate()
@@ -132,5 +132,29 @@ class SwiftApplicationPluginTest extends Specification {
         def install = project.tasks.installDebug
         install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
         install.runScript.name == OperatingSystem.current().getScriptName("App")
+    }
+
+    def "output locations reflects changes to buildDir"() {
+        given:
+        project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
+
+        when:
+        project.buildDir = "output"
+
+        then:
+        def compileSwift = project.tasks.compileDebugSwift
+        compileSwift.objectFileDir.get().asFile == project.file("output/obj/main/debug")
+        compileSwift.moduleFile.get().asFile == projectDir.file("output/modules/main/debug/TestApp.swiftmodule")
+
+        def link = project.tasks.linkDebug
+        link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
+
+        def install = project.tasks.installDebug
+        install.destinationDir == project.file("output/install/main/debug")
+        install.executable == link.outputFile
+
+        link.setOutputFile(project.file("exe"))
+        install.executable == link.outputFile
     }
 }

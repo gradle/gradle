@@ -28,7 +28,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
-class CppApplicationPluginTest extends Specification {
+class   CppApplicationPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
@@ -169,13 +169,13 @@ class CppApplicationPluginTest extends Specification {
         main.version == '1.2'
         main.artifacts.empty
 
-        def debug = publishing.publications.debug
+        def debug = publishing.publications.mainDebug
         debug.groupId == 'my.group'
         debug.artifactId == 'test_app_debug'
         debug.version == '1.2'
         debug.artifacts.size() == 1
 
-        def release = publishing.publications.release
+        def release = publishing.publications.mainRelease
         release.groupId == 'my.group'
         release.artifactId == 'test_app_release'
         release.version == '1.2'

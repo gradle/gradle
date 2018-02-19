@@ -16,16 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
-public interface ArchitectureDescriptor {
-    List<File> getPaths();
-    File getBinaryPath();
-    File getLibraryPath();
-    File getIncludePath();
-    String getAssemblerFilename();
-    Map<String, String> getDefinitions();
+public interface ArchitectureDescriptor extends PlatformVisualCpp {
     boolean isInstalled();
 }

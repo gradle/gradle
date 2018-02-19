@@ -53,16 +53,16 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         result.assertTasksExecuted(
             compileAndStaticLinkTasks(debug),
             compileAndStaticLinkTasks(release),
-            ":generatePomFileForDebugPublication",
-            ":generateMetadataFileForDebugPublication",
-            ":publishDebugPublicationToMavenRepository",
+            ":generatePomFileForMainDebugPublication",
+            ":generateMetadataFileForMainDebugPublication",
+            ":publishMainDebugPublicationToMavenRepository",
             ":cppHeaders",
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleasePublication",
-            ":generateMetadataFileForReleasePublication",
-            ":publishReleasePublicationToMavenRepository",
+            ":generatePomFileForMainReleasePublication",
+            ":generateMetadataFileForMainReleasePublication",
+            ":publishMainReleasePublicationToMavenRepository",
             ":publish"
         )
 
