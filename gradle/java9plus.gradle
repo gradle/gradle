@@ -6,9 +6,6 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
         def excludedTests = [
             // TODO requires investigation
             "DaemonJavaCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-            "InProcessJavaCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-            "CommandLineJavaCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-            "CommandLineJavaCompilerForExecutableIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
             "JavadocIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
             // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
