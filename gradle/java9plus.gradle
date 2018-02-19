@@ -17,10 +17,6 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
             "JavaConfigurabilityCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10], // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
             "GradlePropertiesToolingApiCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10], // "tooling api honours jvm args specified in gradle.properties"
 
-            // Add a dedicated Findbugs test for Java 9
-            "FindBugsIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-            "FindBugsRelocationIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
-
             // Osgi is broken with a NPE in Processor - need to investigate
             "OsgiPluginIntegrationSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
