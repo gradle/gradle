@@ -17,6 +17,7 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
@@ -51,7 +52,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         succeeds("compileGroovy")
-        !errorOutput
+        assertErrorOutput(errorOutput)
         groovyClassFile("Person.class").exists()
         groovyClassFile("Address.class").exists()
 
@@ -74,7 +75,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
+        assertErrorOutput(errorOutput)
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
@@ -188,7 +189,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
+        assertErrorOutput(errorOutput)
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
@@ -207,7 +208,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
+        assertErrorOutput(errorOutput)
         groovyClassFile('Java.class').exists()
         groovyClassFile('Groovy.class').exists()
         !groovyClassFile('Groovy$$Generated.java').exists()
@@ -264,7 +265,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
+        assertErrorOutput(errorOutput)
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
         !groovyClassFile('Groovy$$Generated.java').exists()
@@ -321,7 +322,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
+        assertErrorOutput(errorOutput)
         groovyClassFile("Thing.class").exists()
     }
 
@@ -354,7 +355,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         succeeds("compileGroovy")
         output.contains(new File("src/main/groovy/compile/test/Person.groovy").toString())
         output.contains(new File("src/main/groovy/compile/test/Person2.groovy").toString())
-        !errorOutput
+        assertErrorOutput(errorOutput)
     }
 
     def "configurationScriptNotSupported"() {
@@ -717,5 +718,14 @@ ${compilerConfiguration()}
         buildFile << """
                 compileGroovy.groovyOptions.javaAnnotationProcessing = true
             """
+    }
+
+    static void assertErrorOutput(String errorOutput) {
+        // Groovy emits warning when run with Java 9+
+        if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
+            assert errorOutput.contains('WARNING: An illegal reflective access operation has occurred')
+        } else {
+            assert !errorOutput
+        }
     }
 }
