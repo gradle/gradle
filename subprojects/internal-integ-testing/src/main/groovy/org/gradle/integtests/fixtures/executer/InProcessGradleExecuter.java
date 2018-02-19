@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -26,6 +27,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.tasks.TaskState;
@@ -368,14 +370,21 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return COMMON_TMP;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener {
+    private static class BuildListenerImpl extends BuildAdapter {
+
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 
-        public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
-            graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
+        @Override
+        public void buildStarted(Gradle gradle) {
+            gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
+                public void graphPopulated(TaskExecutionGraph graph) {
+                    List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
+                    graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
+                }
+            });
         }
+
     }
 
     private static class OutputListenerImpl implements StandardOutputListener {

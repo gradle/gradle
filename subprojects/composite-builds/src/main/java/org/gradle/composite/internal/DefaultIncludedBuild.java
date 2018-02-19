@@ -102,7 +102,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     @Override
     public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         // TODO: Synchronization
-        if (availableModules==null) {
+        if (availableModules == null) {
             Gradle gradle = getConfiguredBuild();
             availableModules = Sets.newLinkedHashSet();
             for (Project project : gradle.getRootProject().getAllprojects()) {
@@ -134,10 +134,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public void finishBuild() {
-        // If the gradleLauncher is null, then we've already finished building.
-        if (gradleLauncher == null) {
-            return;
-        }
         getGradleLauncher().finishBuild();
     }
 
@@ -158,20 +154,17 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
         WorkerLeaseService workerLeaseService = launcher.getGradle().getServices().get(WorkerLeaseService.class);
-        try {
-            workerLeaseService.withSharedLease(parentLease, new Runnable() {
-                @Override
-                public void run() {
-                    launcher.executeTasks();
-                }
-            });
-        } finally {
-            markAsNotReusable();
-        }
+        workerLeaseService.withSharedLease(parentLease, new Runnable() {
+            @Override
+            public void run() {
+                launcher.executeTasks();
+            }
+        });
     }
 
-    private void markAsNotReusable() {
-        gradleLauncher.stop();
+    @Override
+    public void reset() {
+        stop();
         gradleLauncher = null;
     }
 
@@ -182,7 +175,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public void stop() {
-        if (gradleLauncher!=null) {
+        if (gradleLauncher != null) {
             gradleLauncher.stop();
         }
     }
