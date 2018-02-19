@@ -233,7 +233,7 @@ class IDEConfiguration : Plugin<Project> {
         val ideaLanguageLevel = if ((rootProject.findProperty("projectsRequiringJava8") as List<String>).contains(ideaModule.project.path)) "1.8" else "1.6"
         // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
-        ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
+        ideaModule.targetBytecodeVersion = JavaVersion.VERSION_1_6
     }
 
     private fun removeGradleBuildOutputDirectories(module: Module) {
