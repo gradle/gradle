@@ -17,6 +17,10 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -28,20 +32,26 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.testing.Test
 import org.gradle.build.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.CommandLineArgumentProvider
 
 /**
  * Base class for all tests that check the end-to-end behavior of a Gradle distribution.
  */
 @CompileStatic
 class DistributionTest extends Test {
-    
-    private Map<String, File> fileSystemProperties = [:]
-    private Set<String> ignoredSystemProperties = [] as Set
 
     DistributionTest() {
         dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
         dependsOn { requiresBinZip ? ':distributions:binZip' : null }
         dependsOn { requiresLibsRepo ? ':toolingApi:publishLocalArchives' : null }
+        gradleHomeDir = project.layout.directoryProperty()
+        gradleUserHomeDir = project.layout.directoryProperty()
+        libsRepo = project.layout.directoryProperty()
+        toolingApiShadedJarDir = project.layout.directoryProperty()
+        distsDir = project.layout.directoryProperty()
+        binZip = project.layout.fileProperty()
+        daemonRegistry = project.layout.directoryProperty()
+        jvmArgumentProviders.add(new DistributionTestEnvironmentProvider(this))
     }
 
     @Input
@@ -52,118 +62,90 @@ class DistributionTest extends Test {
 
     }
 
-    /**
-     * The system properties not coming from absolute paths.
-     *
-     * We cannot rely on {@link #getSystemProperties()} as an input since it will contain absolute paths -
-     * and this defeats relocatability of the distribution test tasks.
-     * The input coming from {@link #getSystemProperties()} will be set to an empty map in the build script
-     * since we do not have the possibility yet to override it from here.
-     */
-    @Input
-    Map<String, Object> getPlainSystemProperties() {
-        (super.getSystemProperties() - fileSystemProperties.collectEntries { key, value -> [(key): value.absolutePath] }).findAll { key, value -> !ignoredSystemProperties.contains(key)}
-    }
-
-    /**
-     * SystemProperties are ignored as inputs since they contain absolute paths.
-     * See {@link #getPlainSystemProperties()} and {@link #fileSystemProperty(java.lang.String, java.io.File)} how we deal with those.
-     *
-     * {@inheritDoc}
-     */
     @Internal
-    @Override
-    Map<String, Object> getSystemProperties() {
-        return super.getSystemProperties()
-    }
-
-    @Nested
-    GradleDistribution getDistribution() {
-        return gradleHomeDir ? new GradleDistribution(project, gradleHomeDir) : null
-    }
+    final DirectoryProperty gradleHomeDir
 
     @Internal
-    File gradleHomeDir
-
-    void setGradleHomeDir(File gradleHomeDir) {
-        this.gradleHomeDir = fileSystemProperty('integTest.gradleHomeDir', gradleHomeDir)
-    }
+    final DirectoryProperty gradleUserHomeDir
 
     @Internal
-    File gradleUserHomeDir
-
-    void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = fileSystemProperty('integTest.gradleUserHomeDir', gradleUserHomeDir)
-    }
-
-    @Internal
-    File libsRepo
-
-    void setLibsRepo(File libsRepo) {
-        this.libsRepo = fileSystemProperty('integTest.libsRepo', libsRepo)
-    }
+    final DirectoryProperty libsRepo
 
     @Input
     boolean requiresLibsRepo
 
     @Internal
-    File toolingApiShadedJarDir
+    final DirectoryProperty toolingApiShadedJarDir
 
-    void setToolingApiShadedJarDir(File toolingApiShadedJarDir) {
-        this.toolingApiShadedJarDir = fileSystemProperty('integTest.toolingApiShadedJarDir', toolingApiShadedJarDir)
-    }
+    @Internal
+    final DirectoryProperty distsDir
 
-    @Classpath
-    Set<File> getToolingApiShadedJar() {
-        return toolingApiShadedJarDir ? project.fileTree(toolingApiShadedJarDir).files : null
-    }
-
-    @Optional
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    File distsDir
+    @Internal
+    String distZipVersion
 
     @Input
     boolean requiresDists
-
-    void setDistsDir(File distsDir) {
-        this.distsDir = fileSystemProperty('integTest.distsDir', distsDir)
-    }
 
     @Input
     boolean requiresBinZip
 
     @Internal
-    File binZip
-
-    void setBinZip(File binZip) {
-        this.binZip = binZip
-        fileSystemProperty('integTest.distsDir', binZip.parentFile)
-    }
+    final RegularFileProperty binZip
 
     /** The user home dir is not wiped out by clean
      *  Move the daemon working space underneath the build dir so they don't pile up on CI
      */
     @Internal
-    File daemonRegistry
+    final DirectoryProperty daemonRegistry
 
-    void setDaemonRegistry(File daemonRegistry) {
-        this.daemonRegistry = fileSystemProperty('org.gradle.integtest.daemon.registry', daemonRegistry)
+    static Iterable<String> asSystemPropertyJvmArguments(Map<?, ?> systemProperties) {
+        systemProperties.collect { key, value -> "-D${key}=${value}".toString() }
     }
+}
 
-    File fileSystemProperty(String key, File value) {
-        super.systemProperty(key, value.absolutePath)
-        fileSystemProperties[key] = value
-        value
-    }
+@CompileStatic
+class DistributionTestEnvironmentProvider implements CommandLineArgumentProvider {
+    private final DistributionTest test
 
-    void fileSystemProperties(Map<String, File> files) {
-        files.each { key, value ->
-            fileSystemProperty(key, value)
+    DistributionTestEnvironmentProvider(DistributionTest test) {
+        this.test = test
+        def project = test.project
+        this.gradleDistribution = new GradleDistribution(project, test.gradleHomeDir)
+        this.distributions = project.provider {
+            test.requiresDists ? test.distsDir.getOrNull() : null
         }
     }
 
-    void ignoreSystemProperty(String name) {
-        ignoredSystemProperties.add(name)
+    @Nested
+    final GradleDistribution gradleDistribution
+
+    @Classpath
+    Set<File> getToolingApiShadedJar() {
+        return test.toolingApiShadedJarDir.isPresent() ? test.toolingApiShadedJarDir.asFileTree.files : null
+    }
+
+    @Optional
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    final Provider<Directory> distributions
+
+    @Override
+    Iterable<String> asArguments() {
+        def systemProperties = [
+            'integTest.gradleHomeDir'             : test.gradleHomeDir.asFile.get().absolutePath,
+            'integTest.gradleUserHomeDir'         : test.gradleUserHomeDir.asFile.get().absolutePath,
+            'org.gradle.integtest.daemon.registry': test.daemonRegistry.asFile.get().absolutePath,
+            'integTest.toolingApiShadedJarDir'    : test.toolingApiShadedJarDir.getAsFile().get().absolutePath
+
+        ]
+        if (test.requiresDists || test.requiresBinZip) {
+            systemProperties['integTest.distsDir'] = test.distsDir.asFile.getOrElse(test.binZip.asFile.get().parentFile).absolutePath
+            systemProperties['integTest.distZipVersion'] = test.distZipVersion
+        }
+        if (test.requiresLibsRepo) {
+            systemProperties['integTest.libsRepo'] = test.libsRepo.asFile.get().absolutePath
+        }
+        DistributionTest.asSystemPropertyJvmArguments(systemProperties)
     }
 }
+

@@ -17,13 +17,20 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.process.CommandLineArgumentProvider
 
 /**
  * Verifies the correct behavior of a feature, as opposed to just a small unit of code.
@@ -35,29 +42,54 @@ import org.gradle.api.tasks.PathSensitivity
 class IntegrationTest extends DistributionTest {
 
     IntegrationTest() {
+        samplesXml = project.layout.fileProperty()
+        userGuideOutputDir = project.layout.directoryProperty()
+        jvmArgumentProviders.add(new IntegrationTestEnvironmentProvider(this))
         dependsOn { requiresSamples ? ':docs:extractSamples' : null }
     }
 
     @Input
     boolean requiresSamples
 
+    @Internal
+    final RegularFileProperty samplesXml
+
+    @Internal
+    final DirectoryProperty userGuideOutputDir
+}
+
+@CompileStatic
+class IntegrationTestEnvironmentProvider implements CommandLineArgumentProvider {
+    private final IntegrationTest test
+
+    IntegrationTestEnvironmentProvider(IntegrationTest test) {
+        this.test = test
+        def project = test.project
+        samplesXmlFile = project.provider {
+            test.requiresSamples ? test.samplesXml.getOrNull() : null
+        }
+        userGuide = project.provider {
+            test.requiresSamples ? test.userGuideOutputDir.getOrNull() : null
+        }
+    }
     @Optional
     @InputFile
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    File samplesXml
-
-    void setSamplesXml(File samplesXml) {
-        this.samplesXml = samplesXml
-        fileSystemProperty('integTest.userGuideInfoDir', samplesXml.parentFile)
-    }
+    final Provider<RegularFile> samplesXmlFile
 
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    File userGuideOutputDir
+    Provider<Directory> userGuide
 
-    void setUserGuideOutputDir(File userGuideOutputDir) {
-        this.userGuideOutputDir = userGuideOutputDir
-        fileSystemProperty('integTest.userGuideOutputDir', userGuideOutputDir)
+    @Override
+    Iterable<String> asArguments() {
+        def systemProperties = [:]
+        if (test.requiresSamples) {
+            systemProperties['integTest.userGuideInfoDir'] = test.samplesXml.asFile.get().parentFile.absolutePath
+            systemProperties['integTest.userGuideOutputDir'] = test.userGuideOutputDir.asFile.get().absolutePath
+        }
+        DistributionTest.asSystemPropertyJvmArguments(systemProperties)
     }
 }
+

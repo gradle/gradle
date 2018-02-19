@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.cleanup.CleanUpCaches
 import org.gradle.cleanup.CleanUpDaemons
 import org.gradle.process.KillLeakingJavaProcesses
 import org.gradle.testing.DistributionTest
+import java.io.File
+
+fun dir(directory: () -> File): Provider<Directory> {
+    return layout.buildDirectory.dir(provider { directory().absolutePath })
+}
 
 tasks.withType<DistributionTest> {
-
-    val distributionTest = this
-
     dependsOn(":toolingApi:toolingApiShadedJar")
     dependsOn(":cleanUpCaches")
     finalizedBy(":cleanUpDaemons")
@@ -59,39 +63,22 @@ tasks.withType<DistributionTest> {
         systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
     }
 
-    dependsOn(
-        task("configure${distributionTest.name.capitalize()}") {
-            doLast {
-                distributionTest.apply {
+    val intTestImage: Sync by tasks
+    val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
+    val binZip: Zip by project(":distributions").tasks
 
-                    reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+    gradleHomeDir.set(dir { intTestImage.destinationDir })
+    gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
+    toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
+    libsRepo.set(rootProject.layout.projectDirectory.dir("build/repo"))
+    distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
+    this.binZip.set(layout.file(provider { binZip.archivePath }))
+    daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
+    distZipVersion = version.toString()
 
-                    val intTestImage: Sync by tasks
-                    gradleHomeDir = intTestImage.destinationDir
-
-                    gradleUserHomeDir = rootProject.file("intTestHomeDir")
-
-                    val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
-                    toolingApiShadedJarDir = toolingApiShadedJar.destinationDir
-
-                    if (requiresLibsRepo) {
-                        libsRepo = rootProject.file("build/repo")
-                    }
-
-                    if (requiresDists) {
-                        distsDir = rootProject.the<BasePluginConvention>().distsDir
-                        systemProperties["integTest.distZipVersion"] = version
-                    }
-
-                    if (requiresBinZip) {
-                        val binZip: Zip by project(":distributions").tasks
-                        this.binZip = binZip.archivePath
-                    }
-
-                    daemonRegistry = file("${rootProject.buildDir}/daemon")
-                }
-            }
-        })
+    project.afterEvaluate {
+        reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+    }
 
     lateinit var daemonListener: Any
 
