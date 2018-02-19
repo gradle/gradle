@@ -99,7 +99,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     fun validateCompilationJdks(): Collection<String> {
         val jdkForCompilation = javaInstallations.values.firstOrNull()
         return mapOf(
-            "'$java7HomePropertyName' project or system property not set." to (jdkForCompilation == null),
+            "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
             validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.displayName != oracleJdk7),
             "Must use Oracle JDK 8 to perform this build. Is currently ${currentJavaInstallation.displayName} at ${currentJavaInstallation.javaHome}." to
                 (currentJavaInstallation.displayName != oracleJdk8)
@@ -115,7 +115,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
 
     private
     fun validationMessage(propertyName: String, javaInstallation: DefaultJavaInstallation?, requiredVersion: String) =
-        "Must set '$propertyName' to the path of an $requiredVersion, is currently ${javaInstallation?.displayName} at ${javaInstallation?.javaHome}."
+        "Must set project or system property '$propertyName' to the path of an $requiredVersion, is currently ${javaInstallation?.displayName} at ${javaInstallation?.javaHome}."
 
     private
     fun findJavaInstallations(javaHomes: List<String>) =
