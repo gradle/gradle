@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -193,11 +194,15 @@ public class ModuleMetadataFileGenerator {
         }
         if (component instanceof ComponentWithVariants) {
             for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
-                ComponentData componentData = componentCoordinates.get(childComponent);
-                ModuleVersionIdentifier childCoordinates = componentData == null ? null : componentData.coordinates;
-                if (childCoordinates == null) {
-                    continue;
+                ModuleVersionIdentifier childCoordinates;
+                if (childComponent instanceof ComponentWithCoordinates) {
+                    childCoordinates = ((ComponentWithCoordinates)childComponent).getCoordinates();
+                } else {
+                    ComponentData componentData = componentCoordinates.get(childComponent);
+                    childCoordinates = componentData == null ? null : componentData.coordinates;
                 }
+
+                assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
                     for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
                         if (!started) {

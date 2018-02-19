@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.swiftpm.internal.SwiftPmTarget
@@ -189,6 +190,11 @@ class SwiftBasePluginTest extends Specification {
     class TestPlatformToolProvider extends AbstractPlatformToolProvider {
         TestPlatformToolProvider() {
             super(null, new DefaultOperatingSystem("current", OperatingSystem.current()))
+        }
+
+        @Override
+        SystemLibraries getSystemLibraries(ToolType compilerType) {
+            throw new UnsupportedOperationException()
         }
 
         @Override

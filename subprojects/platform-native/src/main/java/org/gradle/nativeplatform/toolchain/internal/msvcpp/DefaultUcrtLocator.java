@@ -15,11 +15,10 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import java.io.File;
-
+import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.util.VersionNumber;
 
-import net.rubygrapefruit.platform.WindowsRegistry;
+import java.io.File;
 
 public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt> implements UcrtLocator {
     private static final String DISPLAY_NAME = "Universal C Runtime";
@@ -39,7 +38,7 @@ public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt>
     }
 
     @Override
-    boolean isValidComponentBaseDir(File baseDir) {
+    boolean isValidComponentBinDir(File binDir) {
         // Nothing special to check for UCRT
         return true;
     }
@@ -59,7 +58,8 @@ public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt>
         return true;
     }
 
-    public Ucrt newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType) {
+    @Override
+    Ucrt newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType) {
         return new Ucrt(baseDir, version, getVersionedDisplayName(version, discoveryType));
     }
 }

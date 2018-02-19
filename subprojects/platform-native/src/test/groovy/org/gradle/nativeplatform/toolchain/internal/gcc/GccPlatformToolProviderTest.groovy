@@ -19,14 +19,19 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
+import org.gradle.platform.base.internal.toolchain.ComponentFound
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -40,20 +45,26 @@ class GccPlatformToolProviderTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
     def namingSchemeFactory = Mock(CompilerOutputFileNamingSchemeFactory)
     def workerLeaseService = Mock(WorkerLeaseService)
-    CompilerMetaDataProvider<GccMetadata> metaDataProvider = Mock(CompilerMetaDataProvider)
+    def metaDataProvider = Mock(CompilerMetaDataProvider)
+    def systemLibraryDiscovery = Mock(SystemLibraryDiscovery)
+    def targetPlatform = Mock(NativePlatformInternal)
+    def platformToolProvider = new GccPlatformToolProvider(targetPlatform, buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider, systemLibraryDiscovery)
 
     @Unroll
     def "arguments #args are passed to metadata provider for #toolType.toolName"() {
-        def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
+        def metaData = Stub(GccMetadata)
+        def libs = Stub(SystemLibraries)
 
         when:
-        platformToolProvider.getSystemIncludes(toolType)
+        def result = platformToolProvider.getSystemLibraries(toolType)
 
         then:
+        result == libs
         1 * metaDataProvider.getCompilerMetaData(_, _) >> {
             assert arguments[1] == args
-            Mock(GccMetadata)
+            new ComponentFound(metaData)
         }
+        1 * systemLibraryDiscovery.getSystemLibraries(metaData, targetPlatform) >> libs
         1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
         1 * toolSearchPath.locate(toolType, 'exe') >> Mock(CommandLineToolSearchResult)
 
@@ -66,18 +77,25 @@ class GccPlatformToolProviderTest extends Specification {
         ToolType.ASSEMBLER             | []
     }
 
-    def "gets compiler metadata from the provider"() {
-        def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
-
+    @Unroll
+    def "gets compiler metadata from the provider for #toolType.toolName"() {
         when:
-        platformToolProvider.getCompilerMetadata();
+        platformToolProvider.getCompilerMetadata(toolType)
 
         then:
         1 * metaDataProvider.getCompilerMetaData(_, _) >> {
-            assert arguments[1] == ['-x', 'c']
-            Mock(GccMetadata)
+            assert arguments[1] == args
+            Mock(SearchResult)
         }
-        1 * toolRegistry.getTool(ToolType.C_COMPILER) >> new DefaultGccCommandLineToolConfiguration(ToolType.C_COMPILER, 'exe')
-        1 * toolSearchPath.locate(ToolType.C_COMPILER, 'exe') >> Mock(CommandLineToolSearchResult)
+        1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
+        1 * toolSearchPath.locate(toolType, 'exe') >> Mock(CommandLineToolSearchResult)
+
+        where:
+        toolType                       | args
+        ToolType.CPP_COMPILER          | ['-x', 'c++']
+        ToolType.C_COMPILER            | ['-x', 'c']
+        ToolType.OBJECTIVEC_COMPILER   | ['-x', 'objective-c']
+        ToolType.OBJECTIVECPP_COMPILER | ['-x', 'objective-c++']
+        ToolType.ASSEMBLER             | []
     }
 }

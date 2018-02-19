@@ -97,7 +97,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.components.main == project.library
-        project.library.binaries.get().name == ['mainDebugShared', 'mainReleaseShared', 'mainDebugStatic', 'mainReleaseStatic']
+        project.library.binaries.get().name as Set == ['mainDebugShared', 'mainReleaseShared', 'mainDebugStatic', 'mainReleaseStatic'] as Set
         project.components.containsAll(project.library.binaries.get())
 
         and:
@@ -282,5 +282,22 @@ class SwiftLibraryPluginTest extends Specification {
 
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("Lib"))
+    }
+
+    def "output locations reflects changes to buildDir"() {
+        given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.evaluate()
+
+        when:
+        project.buildDir = "output"
+
+        then:
+        def compileSwift = project.tasks.compileDebugSwift
+        compileSwift.objectFileDir.get().asFile == project.file("output/obj/main/debug")
+        compileSwift.moduleFile.get().asFile == projectDir.file("output/modules/main/debug/TestLib.swiftmodule")
+
+        def link = project.tasks.linkDebug
+        link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
     }
 }

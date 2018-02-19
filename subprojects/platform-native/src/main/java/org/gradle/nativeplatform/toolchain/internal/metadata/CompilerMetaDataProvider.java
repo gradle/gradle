@@ -16,12 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
+import org.gradle.platform.base.internal.toolchain.SearchResult;
+
 import java.io.File;
 import java.util.List;
 
 public interface CompilerMetaDataProvider<T extends CompilerMetadata> {
 
-    T getCompilerMetaData(File binary, List<String> additionalArgs);
+    SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs);
 
     CompilerType getCompilerType();
 

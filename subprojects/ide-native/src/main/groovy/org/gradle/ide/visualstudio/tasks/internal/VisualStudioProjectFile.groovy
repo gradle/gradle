@@ -88,7 +88,7 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         return xml.ItemGroup.find({ it.'@Label' == 'ProjectConfigurations' }) as Node
     }
 
-    private List<String> toPath(List<File> files) {
+    private List<String> toPath(Set<File> files) {
         return files.collect({toPath(it)})
     }
 

@@ -16,11 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class LegacyWindowsSdk implements WindowsSdk {
     private static final String[] BINPATHS_X86 = {
@@ -76,73 +79,88 @@ public class LegacyWindowsSdk implements WindowsSdk {
         return version;
     }
 
-    @Override
     public File getBaseDir() {
         return baseDir;
     }
 
     @Override
-    public File getResourceCompiler(NativePlatformInternal platform) {
-        return new File(getBinDir(platform), "rc.exe");
+    public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
+        if (platform.getArchitecture().isAmd64()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_AMD64, LIBPATHS_AMD64);
+        }
+        if (platform.getArchitecture().isIa64()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_IA64, LIBPATHS_IA64);
+        }
+        if (platform.getArchitecture().isArm()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_ARM, LIBPATHS_ARM);
+        }
+        if (platform.getArchitecture().isI386()) {
+            return new LegacyPlatformWindowsSdk(BINPATHS_X86, LIBPATHS_X86);
+        }
+        throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
-    @Override
-    public File getBinDir(NativePlatformInternal platform) {
-        if (architecture(platform).isAmd64()) {
-            return getAvailableFile(BINPATHS_AMD64);
-        }
-        if (architecture(platform).isIa64()) {
-            return getAvailableFile(BINPATHS_IA64);
-        }
-        if (architecture(platform).isArm()) {
-            return getAvailableFile(BINPATHS_ARM);
-        }
-        return getAvailableFile(BINPATHS_X86);
-    }
+    private class LegacyPlatformWindowsSdk implements PlatformWindowsSdk {
+        private final String[] binPaths;
+        private final String[] libPaths;
 
-    @Override
-    public File[] getIncludeDirs() {
-        File[] includesSdk8 = new File[] {
-            new File(baseDir, "Include/shared"),
-            new File(baseDir, "Include/um")
-        };
-        for (File file : includesSdk8) {
-            if (!file.isDirectory()) {
-                return new File[] {
-                    new File(baseDir, "Include")
-                };
+        LegacyPlatformWindowsSdk(String[] binPaths, String[] libPaths) {
+            this.binPaths = binPaths;
+            this.libPaths = libPaths;
+        }
+
+        @Override
+        public VersionNumber getVersion() {
+            return version;
+        }
+
+        @Override
+        public List<File> getIncludeDirs() {
+            List<File> includesSdk8 = Arrays.asList(
+                new File(baseDir, "Include/shared"),
+                new File(baseDir, "Include/um")
+            );
+            for (File file : includesSdk8) {
+                if (!file.isDirectory()) {
+                    return Collections.singletonList(new File(baseDir, "Include"));
+                }
             }
+            return includesSdk8;
         }
-        return includesSdk8;
-    }
 
-    @Override
-    public File getLibDir(NativePlatformInternal platform) {
-        if (architecture(platform).isAmd64()) {
-            return getAvailableFile(LIBPATHS_AMD64);
+        @Override
+        public List<File> getLibDirs() {
+            return Collections.singletonList(getAvailableFile(libPaths));
         }
-        if (architecture(platform).isIa64()) {
-            return getAvailableFile(LIBPATHS_IA64);
-        }
-        if (architecture(platform).isArm()) {
-            return getAvailableFile(LIBPATHS_ARM);
-        }
-        return getAvailableFile(LIBPATHS_X86);
-    }
 
-    private ArchitectureInternal architecture(NativePlatformInternal platform) {
-        return platform.getArchitecture();
-    }
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return Collections.emptyMap();
+        }
 
-    private File getAvailableFile(String... candidates) {
-        for (String candidate : candidates) {
-            File file = new File(baseDir, candidate);
-            if (file.isDirectory()) {
-                return file;
+        @Override
+        public File getResourceCompiler() {
+            return new File(getBinDir(), "rc.exe");
+        }
+
+        @Override
+        public List<File> getPath() {
+            return Collections.singletonList(getBinDir());
+        }
+
+        private File getBinDir() {
+            return getAvailableFile(binPaths);
+        }
+
+        private File getAvailableFile(String... candidates) {
+            for (String candidate : candidates) {
+                File file = new File(baseDir, candidate);
+                if (file.isDirectory()) {
+                    return file;
+                }
             }
+
+            return new File(baseDir, candidates[0]);
         }
-
-        return new File(baseDir, candidates[0]);
     }
-
 }

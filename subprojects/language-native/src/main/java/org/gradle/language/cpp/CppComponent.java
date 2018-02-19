@@ -23,9 +23,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
-import org.gradle.language.ComponentWithBinaries;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.language.BinaryCollection;
+import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithDependencies;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -93,4 +95,11 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
      * @since 4.5
      */
     BinaryCollection<? extends CppBinary> getBinaries();
+
+    /**
+     * Specifies the operation systems for the target machine.
+     *
+     * @since 4.7
+     */
+    SetProperty<OperatingSystemFamily> getOperatingSystems();
 }
