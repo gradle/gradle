@@ -19,10 +19,13 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.BinaryDiffUtils.levenshteinDistance
 import static org.gradle.util.BinaryDiffUtils.toHexStrings
 
+@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 class JacocoTestRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
