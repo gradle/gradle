@@ -215,6 +215,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
+            includedBuild.reset();
             lock.unlock();
         }
     }
@@ -235,7 +236,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
-    private enum TaskStatus { QUEUED, EXECUTING, FAILED, SUCCESS }
+    private enum TaskStatus {QUEUED, EXECUTING, FAILED, SUCCESS}
 
     private static class TaskState {
         public BuildResult result;

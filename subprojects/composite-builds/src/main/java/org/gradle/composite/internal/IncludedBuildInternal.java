@@ -37,4 +37,9 @@ public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     void finishBuild();
     void addTasks(Iterable<String> tasks);
     void execute(Iterable<String> tasks, Object listener);
+
+    // Allow the build to be executed again.
+    // Required if first using it to contribute a build plugin,
+    // then using again to contribute to build outputs.
+    void reset();
 }
