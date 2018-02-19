@@ -30,19 +30,16 @@ class DefaultJavaInstallation(val current: Boolean, private val javaHome: File) 
     override fun toString(): String = "${displayName} (${javaHome.absolutePath})"
 }
 
-open class AvailableJavaInstallations(project: Project, private val javaInstallationProbe: JavaInstallationProbe) {
+private
+const val java7HomePropertyName = "java7Home"
+private
+const val testJavaHomePropertyName = "testJavaHome"
+private
+const val oracleJdk8 = "Oracle JDK 8"
+private
+const val oracleJdk7 = "Oracle JDK 7"
 
-    private
-    companion object {
-        private
-        val java7HomePropertyName = "java7Home"
-        private
-        val testJavaHomePropertyName = "testJavaHome"
-        private
-        val oracleJdk8 = "Oracle JDK 8"
-        private
-        val oracleJdk7 = "Oracle JDK 7"
-    }
+open class AvailableJavaInstallations(project: Project, private val javaInstallationProbe: JavaInstallationProbe) {
 
     private
     val logger = LoggerFactory.getLogger(AvailableJavaInstallations::class.java)
