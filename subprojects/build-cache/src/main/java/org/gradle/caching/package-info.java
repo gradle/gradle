@@ -19,4 +19,7 @@
  *
  * @since 3.3
  */
+@NonNullApi
 package org.gradle.caching;
+
+import org.gradle.api.NonNullApi;
