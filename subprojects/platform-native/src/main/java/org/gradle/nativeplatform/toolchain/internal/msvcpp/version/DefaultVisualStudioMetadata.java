@@ -21,7 +21,7 @@ import org.gradle.util.VersionNumber;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultVisualStudioMetadata implements VisualStudioMetadata {
+public class DefaultVisualStudioMetadata implements VisualStudioInstallCandidate {
     private final File installDir;
     private final File visualCppDir;
     private final VersionNumber version;

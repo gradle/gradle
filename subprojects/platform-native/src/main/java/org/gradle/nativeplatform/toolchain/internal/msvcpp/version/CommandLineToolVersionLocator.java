@@ -50,8 +50,8 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
     }
 
     @Override
-    protected List<VisualStudioMetadata> locateInstalls() {
-        List<VisualStudioMetadata> installs = Lists.newArrayList();
+    protected List<VisualStudioInstallCandidate> locateInstalls() {
+        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
 
         File vswhereBinary = vswhereLocator.getVswhereInstall();
         if (vswhereBinary != null) {
@@ -89,8 +89,8 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
         }
     }
 
-    private List<VisualStudioMetadata> parseJson(String json) {
-        List<VisualStudioMetadata> installs = Lists.newArrayList();
+    private List<VisualStudioInstallCandidate> parseJson(String json) {
+        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
         JsonReader reader = new JsonReader(new StringReader(json));
         try {
             try {
@@ -109,7 +109,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
         return installs;
     }
 
-    private VisualStudioMetadata readInstall(JsonReader reader) throws IOException {
+    private VisualStudioInstallCandidate readInstall(JsonReader reader) throws IOException {
         String visualStudioInstallPath = null;
         String visualStudioVersion = null;
 
@@ -127,7 +127,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
         reader.endObject();
 
         File visualStudioInstallDir = new File(visualStudioInstallPath);
-        VisualCppMetadata visualCppMetadata = findVisualCppMetadata(visualStudioInstallDir, visualStudioVersion);
+        VisualCppInstallCandidate visualCppMetadata = findVisualCppMetadata(visualStudioInstallDir, visualStudioVersion);
         return new VisualStudioMetadataBuilder()
             .installDir(visualStudioInstallDir)
             .visualCppDir(visualCppMetadata.getVisualCppDir())
@@ -136,7 +136,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
             .build();
     }
 
-    private VisualCppMetadata findVisualCppMetadata(File installDir, String version) {
+    private VisualCppInstallCandidate findVisualCppMetadata(File installDir, String version) {
         if (VersionNumber.parse(version).getMajor() >= 15) {
             return visualCppMetadataProvider.getVisualCppFromMetadataFile(installDir);
         } else {
