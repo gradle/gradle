@@ -80,6 +80,7 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
             "ScalaComponentCompilerDaemonReuseIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
             // Sample attempts to set max perm space
+            // Compilation issue without the JVM setting
             "SamplesScalaZincIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
             // Cannot build Gradle with Java 9, compiler bug
