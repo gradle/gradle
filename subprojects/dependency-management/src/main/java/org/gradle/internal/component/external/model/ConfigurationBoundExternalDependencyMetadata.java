@@ -44,6 +44,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
+    private boolean alwaysUseAttributeMatching;
 
     private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
         this.configuration = configuration;
@@ -56,6 +57,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this(configuration, componentId, dependencyDescriptor, null);
     }
 
+    public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
+        this.alwaysUseAttributeMatching = true;
+        return this;
+    }
+
     /**
      * Choose a set of target configurations based on: a) the consumer attributes (with associated schema) and b) the target component.
      *
@@ -66,7 +72,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         // This is a slight different condition than that used for a dependency declared in a Gradle project,
         // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
-        if (hasVariants(targetComponent)) {
+        if (alwaysUseAttributeMatching || hasVariants(targetComponent)) {
             return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
         return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponent);
