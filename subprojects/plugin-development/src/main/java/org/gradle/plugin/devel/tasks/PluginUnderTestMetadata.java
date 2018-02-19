@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.tasks;
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
@@ -43,7 +42,6 @@ import static org.gradle.util.CollectionUtils.collect;
  * @since 2.13
  */
 @Incubating
-@NonNullApi
 public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
