@@ -308,7 +308,9 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
         @Override
         public void moveFileStore(File destination) {
-            GFileUtils.moveDirectory(baseDir, destination);
+            if (baseDir.isDirectory()) {
+                GFileUtils.moveDirectory(baseDir, destination);
+            }
         }
 
         @Override
