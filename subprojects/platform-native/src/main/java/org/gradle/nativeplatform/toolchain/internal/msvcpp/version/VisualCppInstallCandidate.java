@@ -20,7 +20,7 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public interface VisualCppMetadata {
+public interface VisualCppInstallCandidate {
     File getVisualCppDir();
     VersionNumber getVersion();
 }

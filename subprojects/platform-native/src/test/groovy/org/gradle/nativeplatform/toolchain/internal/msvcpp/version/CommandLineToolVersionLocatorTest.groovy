@@ -22,8 +22,8 @@ import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TextUtil
 import org.gradle.util.VersionNumber
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.LEGACY
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.VS2017_OR_LATER
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.LEGACY
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER
 
 class CommandLineToolVersionLocatorTest extends VswhereSpec {
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)
@@ -152,8 +152,8 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
         }
     }
 
-    VisualCppMetadata visualCppMetadata(File visualCppDir, String version) {
-        return new VisualCppMetadata() {
+    VisualCppInstallCandidate visualCppMetadata(File visualCppDir, String version) {
+        return new VisualCppInstallCandidate() {
             @Override
             File getVisualCppDir() {
                 return visualCppDir
