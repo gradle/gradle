@@ -168,7 +168,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                         } else {
                             if (GradleMetadataResolveRunner.useIvy()) {
                                 // Ivy doesn't derive any variant
-                                expectedTargetVariant = 'runtime+compile+default+customVariant'
+                                expectedTargetVariant = 'default+customVariant'
                                 expectedAttributes = [:]
                             } else {
                                 // for Maven, we derive variants for compile/runtime. Variants are then used during selection, and are subject

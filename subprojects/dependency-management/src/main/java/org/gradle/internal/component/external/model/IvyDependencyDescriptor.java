@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
@@ -36,6 +35,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -117,8 +117,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      */
     public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        // Use a set builder to ensure uniqueness
-        ImmutableSet.Builder<ConfigurationMetadata> targets = ImmutableSet.builder();
+        List<ConfigurationMetadata> targets = Lists.newLinkedList();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {
@@ -155,18 +154,17 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
 
-        // TODO:DAZ Should de-duplicate the configurations based on hierarchy: no need to return 'compile' + 'runtime' + 'default'.
-        return targets.build().asList();
+        return targets;
     }
 
-    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, ImmutableSet.Builder<ConfigurationMetadata> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationMetadata> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
                 String preferred = targetPattern.substring(0, startFallback);
                 ConfigurationMetadata configuration = targetComponent.getConfiguration(preferred);
                 if (configuration != null) {
-                    targetConfigurations.add(configuration);
+                    maybeAddConfiguration(targetConfigurations, configuration);
                     return;
                 }
                 targetPattern = targetPattern.substring(startFallback + 1, targetPattern.length() - 1);
@@ -177,7 +175,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             for (String targetName : targetComponent.getConfigurationNames()) {
                 ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
                 if (configuration.isVisible()) {
-                    targetConfigurations.add(configuration);
+                    maybeAddConfiguration(targetConfigurations, configuration);
                 }
             }
             return;
@@ -193,7 +191,23 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         if (configuration == null) {
             throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getComponentId());
         }
-        targetConfigurations.add(configuration);
+        maybeAddConfiguration(targetConfigurations, configuration);
+    }
+
+    private void maybeAddConfiguration(List<ConfigurationMetadata> configurations, ConfigurationMetadata toAdd) {
+        Iterator<ConfigurationMetadata> iter = configurations.iterator();
+        while (iter.hasNext()) {
+            ConfigurationMetadata configuration = iter.next();
+            if (configuration.getHierarchy().contains(toAdd.getName())) {
+                // this configuration is a child of toAdd, so no need to add it
+                return;
+            }
+            if (toAdd.getHierarchy().contains(configuration.getName())) {
+                // toAdd is a child, so implies this configuration
+                iter.remove();
+            }
+        }
+        configurations.add(toAdd);
     }
 
     public List<Exclude> getAllExcludes() {
