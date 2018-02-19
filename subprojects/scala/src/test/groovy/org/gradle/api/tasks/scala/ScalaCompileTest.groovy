@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
@@ -26,7 +27,6 @@ import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.AbstractCompileTest
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions
-import org.gradle.util.GFileUtils
 
 class ScalaCompileTest extends AbstractCompileTest {
     private ScalaCompile scalaCompile
@@ -50,8 +50,8 @@ class ScalaCompileTest extends AbstractCompileTest {
         scalaCompile = createTask(ScalaCompile)
         scalaCompile.setCompiler(scalaCompiler)
 
-        GFileUtils.touch(new File(srcDir, "incl/file.scala"))
-        GFileUtils.touch(new File(srcDir, "incl/file.java"))
+        FileUtils.touch(new File(srcDir, "incl/file.scala"))
+        FileUtils.touch(new File(srcDir, "incl/file.java"))
     }
 
     def "execute doing work"() {

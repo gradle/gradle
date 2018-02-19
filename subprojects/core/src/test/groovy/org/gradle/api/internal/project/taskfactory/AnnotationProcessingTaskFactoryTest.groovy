@@ -30,11 +30,11 @@ import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
+import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.*
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
@@ -315,7 +315,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
-        GFileUtils.touch(task.outputFile.getParentFile())
+        touch(task.outputFile.getParentFile())
 
         when:
         execute(task)
@@ -328,7 +328,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
-        GFileUtils.touch(task.outputFiles.get(0).getParentFile())
+        touch(task.outputFiles.get(0).getParentFile())
 
         when:
         execute(task)
@@ -365,7 +365,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, new File(testDir, "subdir/output"))
-        GFileUtils.touch(task.outputDir.getParentFile())
+        touch(task.outputDir.getParentFile())
 
         when:
         execute(task)
@@ -378,7 +378,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
-        GFileUtils.touch(task.outputDirs.get(0).getParentFile())
+        touch(task.outputDirs.get(0).getParentFile())
 
         when:
         execute(task)
@@ -403,7 +403,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenInputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
-        GFileUtils.touch(task.inputDir)
+        touch(task.inputDir)
 
         when:
         execute(task)

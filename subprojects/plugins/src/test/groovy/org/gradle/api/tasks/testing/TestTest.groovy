@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
@@ -40,7 +41,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.worker.WorkerProcessBuilder
-import org.gradle.util.GFileUtils
 
 import java.lang.ref.WeakReference
 
@@ -67,7 +67,7 @@ class TestTest extends AbstractConventionTaskTest {
     def setup() {
         classesDir = temporaryFolder.createDir("classes")
         File classfile = new File(classesDir, "FileTest.class")
-        GFileUtils.touch(classfile)
+        FileUtils.touch(classfile)
         resultsDir = temporaryFolder.createDir("testResults")
         binResultsDir = temporaryFolder.createDir("binResults")
         reportDir = temporaryFolder.createDir("report")

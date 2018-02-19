@@ -45,6 +45,10 @@ public class GFileUtils {
         }
     }
 
+    /**
+     * Ensures that the given file (or directory) is marked as modified. If the file
+     * (or directory) does not exist, a new file is created.
+     */
     public static void touch(File file) {
         try {
             if (!file.createNewFile()) {
@@ -55,6 +59,10 @@ public class GFileUtils {
         }
     }
 
+    /**
+     * Ensures that the given file (or directory) is marked as modified. The file
+     * (or directory) must exist.
+     */
     public static void touchExisting(File file) {
         if (!file.setLastModified(System.currentTimeMillis())) {
             throw new UncheckedIOException("Could not update time stamp for " + file);
