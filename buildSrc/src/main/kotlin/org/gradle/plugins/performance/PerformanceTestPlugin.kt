@@ -348,7 +348,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         tasks.withType<AbstractProjectGeneratorTask> {
             (project.findProperty("maxProjects") as? Int)?.let { maxProjects ->
-                project.extra.set("projects", maxProjects)
+                setProjects(maxProjects)
             }
         }
         tasks.withType<JvmProjectGeneratorTask> {
