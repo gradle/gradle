@@ -287,11 +287,18 @@ class IDEConfiguration : Plugin<Project> {
     }
 
     private fun configureCopyright(root: Element) {
-        val copyrightManager = root.select("component[name=CopyrightManager]")
+        val options = mapOf(
+            "notice" to "Copyright ${'$'}{today.year} the original author or authors.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;     http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License.",
+            "keyword" to "Copyright",
+            "allowReplaceKeyword" to "",
+            "myName" to "ASL2",
+            "myLocal" to "true")
+        val copyrightManager = root.select("component[name=CopyrightManager]").first()
         copyrightManager.attr("default", "ASL2")
-        val aslCopyrightSet = copyrightManager.select("copyright").first()?.select("option[name=myName]")?.isNotEmpty() ?: false
-        if (!aslCopyrightSet) {
-            copyrightManager.append(COPYRIGHT)
+        copyrightManager.createOrEmptyOutChildElement("copyright").let {
+            options.forEach { name, value ->
+                it.attr(name, value)
+            }
         }
     }
 
@@ -383,16 +390,6 @@ const val GRADLE_CONFIGURATION = """
        <ConfigurationWrapper RunnerId="Run" />
        <method />
     </configuration>
-"""
-
-const val COPYRIGHT = """
-    <copyright>
-       <option name="notice" value="Copyright ${'$'}{today.year} the original author or authors.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;     http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License." />
-       <option name="keyword" value="Copyright" />
-       <option name="allowReplaceKeyword" value="" />
-       <option name="myName" value="ASL2" />
-       <option name="myLocal" value="true" />
-    </copyright>
 """
 
 const val CODE_STYLE_SETTINGS = """
