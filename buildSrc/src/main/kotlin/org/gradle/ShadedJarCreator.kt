@@ -1,14 +1,27 @@
 package org.gradle
 
-import com.google.common.io.ByteStreams
 import org.gradle.internal.exceptions.Contextual
+
+import com.google.common.io.ByteStreams
+
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.Remapper
-import java.io.*
+
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.IOException
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.PrintWriter
 import java.net.URI
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.FileSystems
+import java.nio.file.FileVisitor
+import java.nio.file.FileVisitResult
+import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.HashMap
 import java.util.HashSet
@@ -17,6 +30,7 @@ import java.util.LinkedHashSet
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
+
 
 open class ShadedJarCreator(val sourceJars: Iterable<File>, val jarFile: File, val analysisFile: File, val classesDir: File, val shadowPackage: String, val keepPackages: Set<String>, val unshadedPackages: Set<String>, val ignorePackages: Set<String>) {
     fun createJar() {

@@ -15,12 +15,13 @@
  */
 package org.gradle.modules
 
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.CopySpec
-import org.gradle.kotlin.dsl.withGroovyBuilder
+
+import org.gradle.kotlin.dsl.*
+
 import java.io.File
+
 
 /**
  * Patch JARs by removing/adding specific entries from/into the specified jar file.

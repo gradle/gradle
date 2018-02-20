@@ -3,15 +3,18 @@ package org.gradle.modules
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.file.CopySpec
-import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GUtil
+
+import org.gradle.kotlin.dsl.*
+
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.Remapper
+
 import java.io.File
+
 
 // Map of internal APIs that have been renamed since the last release
 val REMAPPINGS = mapOf("org/gradle/plugin/use/internal/PluginRequests" to "org/gradle/plugin/management/internal/PluginRequests")
@@ -20,7 +23,7 @@ open class ClasspathManifestPatcher(val project: Project, val temporaryDir: File
     fun writePatchedFilesTo(outputDir: File) {
         resolveExternalModuleJars().forEach {
             val originalFile = mainArtifactFileOf(it)
-            val patchedFile =   File(outputDir, originalFile.name)
+            val patchedFile = File(outputDir, originalFile.name)
             val unpackDir = unpack(originalFile)
             patchManifestOf(it, unpackDir)
             patchClassFilesIn(unpackDir)
@@ -31,7 +34,7 @@ open class ClasspathManifestPatcher(val project: Project, val temporaryDir: File
     /**
      * Resolves each external module against the runtime configuration.
      */
-    private fun resolveExternalModuleJars(): Collection<ResolvedDependency>  {
+    private fun resolveExternalModuleJars(): Collection<ResolvedDependency> {
         return runtime.resolvedConfiguration.firstLevelModuleDependencies
             .filter { it.moduleName in moduleNames }
     }
@@ -55,12 +58,12 @@ open class ClasspathManifestPatcher(val project: Project, val temporaryDir: File
         val classWriter = ClassWriter(0)
         ClassReader(classFile.readBytes()).accept(
             ClassRemapper(classWriter, remapperFor(remappings)),
-        ClassReader.EXPAND_FRAMES)
+            ClassReader.EXPAND_FRAMES)
         classFile.writeBytes(classWriter.toByteArray())
     }
 
     private fun remapperFor(typeNameRemappings: Map<String, String>): Remapper {
-        return object: Remapper() {
+        return object : Remapper() {
             override fun map(typeName: String): String {
                 return typeNameRemappings[typeName] ?: typeName
             }
@@ -69,7 +72,7 @@ open class ClasspathManifestPatcher(val project: Project, val temporaryDir: File
 
     private fun runtimeManifestOf(module: ResolvedDependency): String {
         val dependencies = module.allModuleArtifacts - module.moduleArtifacts
-        return dependencies.map { it.file.name }.sorted().joinToString { ","}
+        return dependencies.map { it.file.name }.sorted().joinToString { "," }
     }
 
     private fun unpack(file: File): File {
@@ -87,7 +90,7 @@ open class ClasspathManifestPatcher(val project: Project, val temporaryDir: File
         }
     }
 
-    private fun mainArtifactFileOf(module: ResolvedDependency):  File {
+    private fun mainArtifactFileOf(module: ResolvedDependency): File {
         return CollectionUtils.single(module.moduleArtifacts).file
     }
 }

@@ -1,11 +1,13 @@
 package org.gradle
 
-import com.google.common.io.Files
 import org.gradle.api.artifacts.transform.ArtifactTransform
+
+import com.google.common.io.Files
 
 import javax.inject.Inject
 import java.io.File
 import java.util.HashSet
+
 
 open class MinifyTransform @Inject constructor(val keepClassesByArtifact: Map<String, Set<String>>) : ArtifactTransform() {
     override fun transform(artifact: File): List<File> {

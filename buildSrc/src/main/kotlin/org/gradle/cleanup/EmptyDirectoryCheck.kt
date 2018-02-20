@@ -22,13 +22,16 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+
 import java.io.File
+
 
 /**
  * Ensures that a directory is empty or writes the names of files in
  * the directory to a report file.
  */
 open class EmptyDirectoryCheck : DefaultTask() {
+
     @InputFiles
     lateinit var targetDir: FileTree
 
@@ -42,10 +45,9 @@ open class EmptyDirectoryCheck : DefaultTask() {
     fun ensureEmptiness() {
         var hasFile = false
         targetDir.visit {
-            val f = this.getFile()
-            if (f.isFile) {
+            if (file.isFile) {
                 hasFile = true
-                report.appendText(f.path + "\n")
+                report.appendText(file.path + "\n")
             }
         }
         if (hasFile && isErrorWhenNotEmpty) {
