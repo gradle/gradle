@@ -17,13 +17,19 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.process.CommandLineArgumentProvider
 
 /**
  * Verifies the correct behavior of a feature, as opposed to just a small unit of code.
@@ -33,31 +39,58 @@ import org.gradle.api.tasks.PathSensitivity
 @CacheableTask
 @CompileStatic
 class IntegrationTest extends DistributionTest {
-
     IntegrationTest() {
-        dependsOn { requiresSamples ? ':docs:extractSamples' : null }
+        userguideSamples = new UserguideSamples(project.layout)
+        jvmArgumentProviders.add(new SamplesIntegrationTestEnvironmentProvider(userguideSamples))
+        dependsOn { userguideSamples.required ? ':docs:extractSamples' : null }
+    }
+
+    @Internal
+    final UserguideSamples userguideSamples
+}
+
+class UserguideSamples {
+
+    UserguideSamples(ProjectLayout layout) {
+        samplesXml = layout.fileProperty()
+        userGuideSamplesOutput = layout.directoryProperty()
     }
 
     @Input
-    boolean requiresSamples
+    boolean required
 
-    @Optional
     @InputFile
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    File samplesXml
+    final RegularFileProperty samplesXml
 
-    void setSamplesXml(File samplesXml) {
-        this.samplesXml = samplesXml
-        fileSystemProperty('integTest.userGuideInfoDir', samplesXml.parentFile)
-    }
-
-    @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    File userGuideOutputDir
+    final DirectoryProperty userGuideSamplesOutput
+}
 
-    void setUserGuideOutputDir(File userGuideOutputDir) {
-        this.userGuideOutputDir = userGuideOutputDir
-        fileSystemProperty('integTest.userGuideOutputDir', userGuideOutputDir)
+@CompileStatic
+class SamplesIntegrationTestEnvironmentProvider implements CommandLineArgumentProvider {
+    private final UserguideSamples userguideSamples
+
+    SamplesIntegrationTestEnvironmentProvider(UserguideSamples userguideSamples) {
+        this.userguideSamples = userguideSamples
+    }
+
+    @Nested
+    @Optional
+    UserguideSamples getUserguideSamples() {
+        userguideSamples.required ? userguideSamples : null
+    }
+
+    @Override
+    Iterable<String> asArguments() {
+        DistributionTest.asSystemPropertyJvmArguments(
+            userguideSamples.required ?
+                [
+                    'integTest.userGuideInfoDir'  : userguideSamples.samplesXml.asFile.get().parentFile.absolutePath,
+                    'integTest.userGuideOutputDir': userguideSamples.userGuideSamplesOutput.asFile.get().absolutePath
+                ] : [:]
+        )
     }
 }
+

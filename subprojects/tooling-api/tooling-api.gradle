@@ -102,8 +102,8 @@ task publishLocalArchives(type: Upload) {
 }
 
 integTestTasks.all {
-    requiresBinZip = true
-    requiresLibsRepo = true
+    binaryDistributions.binZipRequired = true
+    libsRepository.required = true
 }
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

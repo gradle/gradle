@@ -134,7 +134,7 @@ artifacts {
 }
 
 integTestTasks.all {
-    requiresDists = true
+    binaryDistributions.distributionsRequired = true
     systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
     systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
 }

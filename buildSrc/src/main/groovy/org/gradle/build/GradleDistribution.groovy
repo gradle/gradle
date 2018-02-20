@@ -19,6 +19,7 @@ package org.gradle.build
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -26,6 +27,9 @@ import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
 class GradleDistribution {
+    private ConfigurableFileTree libs
+    private ConfigurableFileTree plugins
+
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     ConfigurableFileTree staticContent
@@ -35,24 +39,26 @@ class GradleDistribution {
     ConfigurableFileTree samples
 
     @Classpath
-    SortedSet<File> core
+    SortedSet<File> getCoreJars() {
+        libs.files as SortedSet
+    }
 
     @Classpath
-    SortedSet<File> plugins
+    SortedSet<File> getPluginJars() {
+        plugins.files as SortedSet
+    }
 
-    GradleDistribution(Project project, File gradleHome) {
-        staticContent  = project.fileTree(gradleHome)
+    GradleDistribution(Project project, DirectoryProperty gradleHomeDir) {
+        staticContent  = project.fileTree(gradleHomeDir)
         staticContent.exclude 'lib/**'
         staticContent.exclude 'samples/**'
         staticContent.exclude 'src/**'
         staticContent.exclude 'docs/**'
-        samples = project.fileTree(new File(gradleHome, 'samples'))
-        def libDir = project.fileTree(new File(gradleHome, 'lib'))
-        libDir.include('*.jar')
-        libDir.exclude('plugins/**')
-        core = libDir.files as SortedSet
-        def pluginsDir = project.fileTree(new File(gradleHome, 'lib/plugins'))
-        pluginsDir.include('*.jar')
-        plugins = pluginsDir.files as SortedSet
+        samples = project.fileTree(gradleHomeDir.dir('samples'))
+        libs = project.fileTree(gradleHomeDir.dir('lib'))
+        libs.include('*.jar')
+        libs.exclude('plugins/**')
+        plugins = project.fileTree(gradleHomeDir.dir('lib/plugins'))
+        plugins.include('*.jar')
     }
 }
