@@ -13,8 +13,7 @@ import java.util.Arrays.asList
 private val java7Homes = mapOf(
         OS.windows to """"-Djava7Home=%windows.java7.oracle.64bit%"""",
         OS.linux to "-Djava7Home=%linux.jdk.for.gradle.compile%",
-        // We only have Java 8 on macOS
-        OS.macos to "-Djava7Home=%macos.java8.oracle.64bit%"
+        OS.macos to "-Djava7Home=%macos.java7.oracle.64bit%"
 )
 
 fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
