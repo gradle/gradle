@@ -15,11 +15,9 @@
  */
 package org.gradle.plugins.jsoup
 
-import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskInputs
 import org.jsoup.nodes.Document
@@ -50,12 +48,9 @@ open class JsoupCopyExtension(private val task: Copy) {
         }
 
     fun transform(action: Action<JsoupTransformTarget>) =
-        transform(DEFAULT_TRANSFORM_EXTENSIONS.toTypedArray(), action)
+        transform(DEFAULT_TRANSFORM_EXTENSIONS, action)
 
-    fun transform(extensions: Array<String>, action: Closure<Any>) =
-        transform(extensions, ClosureBackedAction(action))
-
-    fun transform(extensions: Array<String>, action: Action<JsoupTransformTarget>) {
+    fun transform(extensions: List<String>, action: Action<JsoupTransformTarget>) {
         task.eachFile {
             if (extensions.any { name.endsWith(".$it") }) {
                 filter(mapOf("fileCopyDetails" to this, "action" to action), JsoupFilterReader::class.java)
@@ -64,12 +59,9 @@ open class JsoupCopyExtension(private val task: Copy) {
     }
 
     fun transformDocument(action: Action<Document>) =
-        transformDocument(DEFAULT_TRANSFORM_EXTENSIONS.toTypedArray(), action)
+        transformDocument(DEFAULT_TRANSFORM_EXTENSIONS, action)
 
-    fun transformDocument(extensions: Array<String>, action: Closure<Any>) =
-        transformDocument(extensions, ClosureBackedAction(action))
-
-    fun transformDocument(extensions: Array<String>, action: Action<Document>) =
+    fun transformDocument(extensions: List<String>, action: Action<Document>) =
         transform(extensions, Action {
             action.execute(document)
         })
