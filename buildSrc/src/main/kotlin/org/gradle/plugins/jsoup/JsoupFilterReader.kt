@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCopyDetails
 import org.jsoup.Jsoup
 import java.io.FilterReader
 import java.io.Reader
-import java.io.StringReader
 
 import org.gradle.kotlin.dsl.*
 
@@ -32,8 +31,18 @@ class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(reader)) 
         (`in` as DeferringReader).parent = this
     }
 
+    private
     lateinit var fileCopyDetails: FileCopyDetails
+
+    private
     lateinit var action: Action<JsoupTransformTarget>
+
+    internal
+    fun filterReader(source: Reader): Reader {
+        val document = Jsoup.parse(source.readText())
+        action(JsoupTransformTarget(document, fileCopyDetails))
+        return document.toString().reader()
+    }
 }
 
 
@@ -48,10 +57,7 @@ class DeferringReader(private val source: Reader) : Reader() {
     override fun read(cbuf: CharArray, off: Int, len: Int): Int {
 
         if (delegate == null) {
-            val document = Jsoup.parse(source.readText())
-            val target = JsoupTransformTarget(document, parent.fileCopyDetails)
-            parent.action(target)
-            delegate = StringReader(document.toString())
+            delegate = parent.filterReader(source)
         }
 
         return delegate!!.read(cbuf, off, len)
