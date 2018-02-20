@@ -38,7 +38,7 @@ open class EmptyDirectoryCheck : DefaultTask() {
     @OutputFile
     lateinit var report: File
 
-    @get:Input
+    @Input
     var isErrorWhenNotEmpty: Boolean = false
 
     @TaskAction
