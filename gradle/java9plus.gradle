@@ -5,6 +5,7 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
     tasks.withType(org.gradle.testing.IntegrationTest) {
         def excludedTests = [
             // TODO requires investigation
+            "DaemonGroovyCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
             "DaemonJavaCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
 
             // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
