@@ -44,5 +44,5 @@ dependencies {
 }
 
 ideConfiguration {
-    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13 = true
+    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
 }

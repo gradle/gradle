@@ -40,10 +40,16 @@ val ideConfigurationBaseName = "ideConfiguration"
 
 class IdeConfigurationPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        val extension = extensions.create(ideConfigurationBaseName, IdeConfigurationExtension::class.java)
+        configureExtensionForAllProjects()
         configureEclipseForAllProjects()
-        configureIdeaForAllProjects(extension)
+        configureIdeaForAllProjects()
         configureIdeaForRootProject()
+    }
+
+    private fun Project.configureExtensionForAllProjects() {
+        allprojects {
+            extensions.create(ideConfigurationBaseName, IdeConfigurationExtension::class.java, this)
+        }
     }
 
     private fun Project.configureEclipseForAllProjects() {
@@ -76,23 +82,17 @@ class IdeConfigurationPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureIdeaForAllProjects(extension: IdeConfigurationExtension) {
+    private fun Project.configureIdeaForAllProjects() {
         allprojects {
             apply {
                 plugin("idea")
             }
-
             configure<IdeaModel> {
                 module {
-                    if (extension.makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13) {
-                        testSourceDirs = testSourceDirs + sourceDirs
-                        sourceDirs = emptySet()
-                    }
-
                     configureLanguageLevel(this)
                     iml {
                         whenMerged(Action<Module> {
-                                removeGradleBuildOutputDirectories(this)
+                            removeGradleBuildOutputDirectories(this)
                         })
                         withXml {
                             withJsoup {

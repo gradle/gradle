@@ -19,6 +19,18 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
-open class IdeConfigurationExtension {
-    var makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13 = false
+open class IdeConfigurationExtension(val project: Project) {
+    fun makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13() {
+        project.configure<IdeaModel> {
+            module {
+                testSourceDirs = testSourceDirs + sourceDirs
+                sourceDirs = emptySet()
+                println("Project $project")
+                println("Test $testSourceDirs")
+                println("Source $sourceDirs")
+            }
+        }
+    }
+
+
 }
