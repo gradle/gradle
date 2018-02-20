@@ -49,7 +49,7 @@ public class ArchitectureSpecificVisualCpp implements VisualCpp {
     }
 
     @Override
-    public VersionNumber getVersion() {
+    public VersionNumber getImplementationVersion() {
         return version;
     }
 

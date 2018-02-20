@@ -36,7 +36,6 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
-import org.gradle.nativeplatform.toolchain.internal.EmptySystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
@@ -49,11 +48,12 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.List;
@@ -64,19 +64,21 @@ import static org.gradle.internal.FileUtils.withExtension;
 @NonNullApi
 class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
+    private final VisualStudioInstall visualStudio;
     private final VisualCpp visualCpp;
     private final WindowsSdk sdk;
-    private final SystemLibraries ucrt;
+    private final WindowsSdkLibraries libraries;
     private final ExecActionFactory execActionFactory;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final WorkerLeaseService workerLeaseService;
 
-    VisualCppPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCpp visualCpp, WindowsSdk sdk, SystemLibraries ucrt, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService) {
+    VisualCppPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualStudioInstall visualStudio, VisualCpp visualCpp, WindowsSdk sdk, SystemLibraries ucrt, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, WorkerLeaseService workerLeaseService) {
         super(buildOperationExecutor, operatingSystem);
         this.commandLineToolConfigurations = commandLineToolConfigurations;
+        this.visualStudio = visualStudio;
         this.visualCpp = visualCpp;
         this.sdk = sdk;
-        this.ucrt = ucrt;
+        this.libraries = new CompositeLibraries(visualCpp, sdk, ucrt);
         this.execActionFactory = execActionFactory;
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.workerLeaseService = workerLeaseService;
@@ -144,7 +146,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler) {
-        return new VersionAwareCompiler<T>(outputCleaningCompiler, new DefaultCompilerVersion(VisualCppToolChain.DEFAULT_NAME, "Microsoft", visualCpp.getVersion()));
+        return new VersionAwareCompiler<T>(outputCleaningCompiler, new DefaultCompilerVersion(VisualCppToolChain.DEFAULT_NAME, "Microsoft", visualCpp.getImplementationVersion()));
     }
 
     @Override
@@ -230,27 +232,14 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
-    public SystemLibraries getSystemLibraries(ToolType compilerType) {
-        ImmutableList.Builder<File> builder = ImmutableList.builder();
-        builder.addAll(visualCpp.getIncludeDirs());
-        builder.addAll(sdk.getIncludeDirs());
-        if (ucrt != null) {
-            builder.addAll(ucrt.getIncludeDirs());
-        }
-        final ImmutableList<File> includeDirs = builder.build();
-
-        return new EmptySystemLibraries() {
-            @Override
-            public List<File> getIncludeDirs() {
-                return includeDirs;
-            }
-        };
+    public WindowsSdkLibraries getSystemLibraries(ToolType compilerType) {
+        return libraries;
     }
 
     private <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
         return new Transformer<T, T>() {
             public T transform(T original) {
-                for (Map.Entry<String, String> definition : visualCpp.getPreprocessorMacros().entrySet()) {
+                for (Map.Entry<String, String> definition : libraries.getPreprocessorMacros().entrySet()) {
                     original.define(definition.getKey(), definition.getValue());
                 }
                 return original;
@@ -261,11 +250,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private Transformer<LinkerSpec, LinkerSpec> addLibraryPath() {
         return new Transformer<LinkerSpec, LinkerSpec>() {
             public LinkerSpec transform(LinkerSpec original) {
-                original.libraryPath(visualCpp.getLibDirs());
-                original.libraryPath(sdk.getLibDirs());
-                if (ucrt != null) {
-                    original.libraryPath(ucrt.getLibDirs());
-                }
+                original.libraryPath(libraries.getLibDirs());
                 return original;
             }
         };
@@ -286,7 +271,62 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
-    public CompilerMetadata getCompilerMetadata(ToolType toolType) {
-        throw new UnsupportedOperationException("Compiler metadata for Visual C++ is not yet implemented");
+    public VisualCppMetadata getCompilerMetadata(ToolType toolType) {
+        return new VisualCppMetadata() {
+            @Override
+            public VersionNumber getVisualStudioVersion() {
+                return visualStudio.getVersion();
+            }
+
+            @Override
+            public String getVendor() {
+                return "Microsoft";
+            }
+
+            @Override
+            public VersionNumber getVersion() {
+                return visualCpp.getImplementationVersion();
+            }
+        };
+    }
+
+    private static class CompositeLibraries implements WindowsSdkLibraries {
+        private final VisualCpp visualCpp;
+        private final WindowsSdk sdk;
+        private final SystemLibraries ucrt;
+
+        public CompositeLibraries(VisualCpp visualCpp, WindowsSdk sdk, SystemLibraries ucrt) {
+            this.visualCpp = visualCpp;
+            this.sdk = sdk;
+            this.ucrt = ucrt;
+        }
+
+        @Override
+        public VersionNumber getSdkVersion() {
+            return sdk.getSdkVersion();
+        }
+
+        @Override
+        public List<File> getIncludeDirs() {
+            ImmutableList.Builder<File> builder = ImmutableList.builder();
+            builder.addAll(visualCpp.getIncludeDirs());
+            builder.addAll(sdk.getIncludeDirs());
+            builder.addAll(ucrt.getIncludeDirs());
+            return builder.build();
+        }
+
+        @Override
+        public List<File> getLibDirs() {
+            ImmutableList.Builder<File> builder = ImmutableList.builder();
+            builder.addAll(visualCpp.getLibDirs());
+            builder.addAll(sdk.getLibDirs());
+            builder.addAll(ucrt.getLibDirs());
+            return builder.build();
+        }
+
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return visualCpp.getPreprocessorMacros();
+        }
     }
 }

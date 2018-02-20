@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.util.VersionNumber;
 
-import java.io.File;
-import java.util.List;
-
 /**
- * A collection of tools.
+ * System libraries provided by the windows SDK.
  */
-public interface ExecutableTools {
-    /**
-     * Returns the implementation version of these tools.
-     */
-    VersionNumber getImplementationVersion();
-
-    /**
-     * Returns the path entries that must be present in order to use these tools, possibly none.
-     */
-    List<File> getPath();
+public interface WindowsSdkLibraries extends SystemLibraries {
+    VersionNumber getSdkVersion();
 }
