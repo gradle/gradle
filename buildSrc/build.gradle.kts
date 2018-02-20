@@ -62,7 +62,7 @@ gradlePlugin {
         }
         "performanceTest" {
             id = "performance-test"
-            implementationClass = "org.gradle.plugins.PerformanceTestPlugin"
+            implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
         }
     }
 }

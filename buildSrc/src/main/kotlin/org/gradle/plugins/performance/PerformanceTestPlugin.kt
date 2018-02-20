@@ -1,4 +1,4 @@
-package org.gradle.plugins
+package org.gradle.plugins.performance
 
 import accessors.groovy
 import accessors.java
