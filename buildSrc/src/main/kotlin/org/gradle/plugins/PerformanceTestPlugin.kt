@@ -180,6 +180,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: Task,
         performanceReportTask: PerformanceReport): PerformanceTest {
 
+        val cleanTaskName = "clean${name.capitalize()}"
+
         val task = tasks.create<PerformanceTest>(name) {
 
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
@@ -196,41 +198,48 @@ class PerformanceTestPlugin : Plugin<Project> {
                 testLogging.showStandardStreams = true
             }
 
-            val junitXmlDir = reports.junitXml.destination
-            val testResultsZipTask = tasks.create<Zip>("${name}ResultsZip") {
-                from(junitXmlDir) {
-                    include("**/TEST-*.xml")
-                    includeEmptyDirs = false
-                    eachFile {
-                        try {
-                            val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(this.file)
-                            val testsElement = xmlDoc.getElementsByTagName("tests").item(0)
-                            val skippedElement = xmlDoc.getElementsByTagName("skipped").item(0)
-                            if (testsElement.textContent == skippedElement.textContent) {
-                                this.exclude()
-                            }
-                        } catch (e: Exception) {
-                            this.exclude()
-                        }
-                    }
-                    from(debugArtifactsDirectory)
-                    destinationDir = buildDir
-                    archiveName = "test-results-${junitXmlDir.name}.zip"
-                }
-            }
+            val testResultsZipTask = testResultsZipTaskFor(this,  name)
             finalizedBy(testResultsZipTask)
             val cleanTestResultsZipTask = tasks.create<Delete>("clean${testResultsZipTask.name.capitalize()}") {
                 delete(testResultsZipTask.archivePath)
             }
-            tasks.getByName("clean${name.capitalize()}").dependsOn(cleanTestResultsZipTask)
+            tasks.getByName(cleanTaskName) {
+                dependsOn(cleanTestResultsZipTask)
+            }
         }
 
-        tasks.getByName("clean${task.name.capitalize()}") {
+        tasks.getByName(cleanTaskName) {
             delete(task.outputs)
             dependsOn("clean${performanceReportTask.name.capitalize()}")
         }
 
         return task
+    }
+
+    private
+    fun Project.testResultsZipTaskFor(performanceTest: PerformanceTest, name: String): Zip {
+        val junitXmlDir = performanceTest.reports.junitXml.destination
+        return tasks.create<Zip>("${name}ResultsZip") {
+            from(junitXmlDir) {
+                include("**/TEST-*.xml")
+                includeEmptyDirs = false
+                eachFile {
+                    try {
+                        val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+                        val testsElement = xmlDoc.getElementsByTagName("tests").item(0)
+                        val skippedElement = xmlDoc.getElementsByTagName("skipped").item(0)
+                        if (testsElement.textContent == skippedElement.textContent) {
+                            exclude()
+                        }
+                    } catch (e: Exception) {
+                        exclude()
+                    }
+                }
+                from(performanceTest.debugArtifactsDirectory)
+                destinationDir = project.buildDir
+                archiveName = "test-results-${junitXmlDir.name}.zip"
+            }
+        }
     }
 
     private
