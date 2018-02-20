@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.groovy.compile
-
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Issue
 
@@ -92,7 +91,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
 
         expect:
         succeeds("compileGroovy")
-        assertErrorOutput(errorOutput)
+        !errorOutput
         groovyClassFile("GroovyCode.class").exists()
         groovyClassFile("JavaCode.class").exists()
     }
