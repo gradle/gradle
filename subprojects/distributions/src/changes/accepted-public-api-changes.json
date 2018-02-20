@@ -1,5 +1,59 @@
 {
     "acceptedApiChanges": [
-        
+        {
+            "type": "org.gradle.ide.visualstudio.plugins.VisualStudioPlugin",
+            "member": "Class org.gradle.ide.visualstudio.plugins.VisualStudioPlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.ide.xcode.plugins.XcodePlugin",
+            "member": "Class org.gradle.ide.xcode.plugins.XcodePlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.IdeaPlugin",
+            "member": "Class org.gradle.plugins.ide.idea.IdeaPlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        }
     ]
 }

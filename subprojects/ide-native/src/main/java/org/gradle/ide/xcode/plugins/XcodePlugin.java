@@ -66,6 +66,7 @@ import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
 
@@ -82,13 +83,15 @@ public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
     private final BuildIdentifier thisBuild;
+    private final IdeArtifactRegistry artifactRegistry;
     private DefaultXcodeExtension xcode;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild, IdeArtifactRegistry artifactRegistry) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
         this.thisBuild = thisBuild.getCurrentBuild();
+        this.artifactRegistry = artifactRegistry;
     }
 
     @Override
@@ -119,7 +122,7 @@ public class XcodePlugin extends IdePlugin {
 
         includeBuildFilesInProject(project);
         configureXcodeCleanTask(project);
-        registerIdeArtifact(createXcodeProjectArtifact(project));
+        artifactRegistry.registerIdeArtifact(createXcodeProjectArtifact(project));
     }
 
     private void includeBuildFilesInProject(Project project) {
@@ -164,7 +167,7 @@ public class XcodePlugin extends IdePlugin {
         GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
         workspaceFileTask.dependsOn(workspaceSettingsFileTask);
         workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
-        workspaceFileTask.setXcodeProjectLocations(getIdeArtifacts("xcodeproj"));
+        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeArtifacts("xcodeproj"));
 
         return workspaceFileTask;
     }
@@ -354,20 +357,8 @@ public class XcodePlugin extends IdePlugin {
         return project.file(project.getName() + ".xcworkspace");
     }
 
-    private static String toString(PBXTarget.ProductType productType) {
-        if (PBXTarget.ProductType.TOOL.equals(productType)) {
-            return "Executable";
-        } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
-            return "SharedLibrary";
-        } else if (PBXTarget.ProductType.UNIT_TEST.equals(productType)) {
-            return "XCTestBundle";
-        } else {
-            return "";
-        }
-    }
-
     private static PublishArtifact createXcodeProjectArtifact(Project project) {
-        DefaultXcodeProject xcodeProject = ((DefaultXcodeExtension)project.getExtensions().getByType(XcodeExtension.class)).getProject();
+        DefaultXcodeProject xcodeProject = ((DefaultXcodeExtension) project.getExtensions().getByType(XcodeExtension.class)).getProject();
         Task byName = project.getTasks().getByName("xcodeProject");
         return new XcodeProjectArtifact(xcodeProject, byName);
     }
@@ -375,7 +366,7 @@ public class XcodePlugin extends IdePlugin {
     private static class XcodeProjectArtifact extends DefaultPublishArtifact {
         private final DefaultXcodeProject xcodeProject;
 
-        public XcodeProjectArtifact(XcodeProject xcodeProject, Object... tasks) {
+        XcodeProjectArtifact(XcodeProject xcodeProject, Object... tasks) {
             super(null, "xcodeproj", "xcodeproj", null, null, null, tasks);
             this.xcodeProject = (DefaultXcodeProject) xcodeProject;
         }
@@ -397,7 +388,7 @@ public class XcodePlugin extends IdePlugin {
         private final Project project;
         private final XcodePropertyAdapter xcodePropertyAdapter;
 
-        public XcodeBridge(DefaultXcodeProject xcodeProject, Project project) {
+        XcodeBridge(DefaultXcodeProject xcodeProject, Project project) {
             this.xcodeProject = xcodeProject;
             this.project = project;
             this.xcodePropertyAdapter = new XcodePropertyAdapter(project);
