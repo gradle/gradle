@@ -40,10 +40,6 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
             new DefaultLocallyAvailableResource(source)
         }
 
-        void moveFilestore(File destination) {
-            throw new UnsupportedOperationException()
-        }
-
         LocallyAvailableResource add(String key, Action<File> addAction) {
             throw new UnsupportedOperationException()
         }
