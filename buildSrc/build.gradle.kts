@@ -60,9 +60,9 @@ gradlePlugin {
             id = "gradle-compile"
             implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
-        "IDEConfiguration" {
+        "ideConfiguration" {
             id = "ide-configuration"
-            implementationClass = "org.gradle.plugins.IDEConfiguration"
+            implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
     }
 }
