@@ -16,12 +16,9 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
 
-abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
@@ -47,17 +44,10 @@ abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponen
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    @Override
-    protected String getDefaultArchitecture() {
-        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
-            return "x86"
-        }
-        return super.defaultArchitecture
-    }
-
-    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
-
     protected abstract String getDevelopmentBinaryCompileTask()
 
-    protected abstract String getComponentUnderTestDsl()
+    @Override
+    protected String getTaskNameToAssembleDevelopmentBinary() {
+        return 'assemble'
+    }
 }

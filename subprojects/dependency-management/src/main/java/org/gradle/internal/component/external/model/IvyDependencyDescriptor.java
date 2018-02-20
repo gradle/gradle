@@ -105,6 +105,16 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return new IvyDependencyDescriptor(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 
+    /**
+     * Choose a set of configurations from the target component.
+     * The set chosen is based on a) the name of the configuration that declared this dependency and b) the {@link #confs} mapping for this dependency.
+     *
+     * The `confs` mapping is structured as `fromConfiguration -> [targetConf...]`. Targets are collected for all configurations in the `fromConfiguration` hierarchy.
+     *   - '*' is a wildcard key, that matches _all_ `fromConfiguration values.
+     *       - '*, !A' is a key that matches _all_ `fromConfiguration values _except_ 'A'.
+     *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
+     *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
+     */
     public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         // Use a set builder to ensure uniqueness

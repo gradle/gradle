@@ -37,7 +37,7 @@ class GccToolChainTest extends Specification {
     final FileResolver fileResolver = Mock(FileResolver)
     Instantiator instantiator = DirectInstantiator.INSTANCE
 
-    final toolChain = new GccToolChain(instantiator , "gcc", Stub(BuildOperationExecutor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), Stub(WorkerLeaseService))
+    final toolChain = new GccToolChain(instantiator , "gcc", Stub(BuildOperationExecutor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), null, Stub(WorkerLeaseService))
 
     def "provides default tools"() {
         def action = Mock(Action)

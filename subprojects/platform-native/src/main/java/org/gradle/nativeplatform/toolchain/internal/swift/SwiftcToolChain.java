@@ -38,6 +38,7 @@ import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadat
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -93,13 +94,13 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
-        SwiftcMetadata swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(compiler.getTool(), ImmutableList.<String>of());
+        SearchResult<SwiftcMetadata> swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(compiler.getTool(), ImmutableList.<String>of());
         result.mustBeAvailable(swiftcMetaData);
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService, swiftcMetaData);
+        return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService, swiftcMetaData.getComponent());
     }
 
     @Override

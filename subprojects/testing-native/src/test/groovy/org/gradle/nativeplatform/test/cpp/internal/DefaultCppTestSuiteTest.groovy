@@ -17,6 +17,8 @@
 package org.gradle.nativeplatform.test.cpp.internal
 
 import org.gradle.language.cpp.CppPlatform
+import org.gradle.language.cpp.internal.NativeVariantIdentity
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -48,7 +50,13 @@ class DefaultCppTestSuiteTest extends Specification {
         def testSuite = new DefaultCppTestSuite("test", project.objects, project)
 
         expect:
-        def exe = testSuite.addExecutable("exe", Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def exe = testSuite.addExecutable("exe", identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testExe'
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return Stub(NativeVariantIdentity) {
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+        }
     }
 }

@@ -37,12 +37,13 @@ class DumpbinBinaryInfo implements BinaryInfo {
             throw new UnsupportedOperationException("Visual Studio is unavailable on this system.")
         }
         DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
-        vcBin = vsInstall.getVisualCpp().getBinaryPath(targetPlatform)
-        vcPath = vsInstall.getVisualCpp().getPath(targetPlatform).join(';')
+        def visualCpp = vsInstall.visualCpp.forPlatform(targetPlatform)
+        vcBin = visualCpp.binDir
+        vcPath = visualCpp.path.join(';')
     }
 
     static @Nullable VisualStudioInstall findVisualStudio() {
-        return VisualStudioLocatorTestFixture.visualStudioLocator.locateDefaultVisualStudioInstall().visualStudio
+        return VisualStudioLocatorTestFixture.visualStudioLocator.locateComponent(null).component
     }
 
     private findExe(String exe) {

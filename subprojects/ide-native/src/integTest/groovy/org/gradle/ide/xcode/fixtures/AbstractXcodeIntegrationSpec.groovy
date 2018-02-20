@@ -186,14 +186,14 @@ rootProject.name = "${rootProjectName}"
         target.assertIsTool()
         assert target.productName == expectedProductName
         assert target.name == expectedProductName
-        assert target.productReference.path == exe("build/exe/main/debug/$expectedBinaryName").absolutePath
+        assert target.productReference.path == exe("build/install/main/debug/lib/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/lib").absolutePath
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/release").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/lib").absolutePath
     }
 
     void assertUnitTestBuildSettings(Map<String, String> buildSettings) {

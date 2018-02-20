@@ -19,14 +19,16 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+import spock.lang.Timeout
 
+@Timeout(300)
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
         given:
         def buildSrcDir = file("buildSrc").createDir()
-        writeSharedClassFile(buildSrcDir);
+        writeSharedClassFile(buildSrcDir)
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
 

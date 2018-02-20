@@ -58,10 +58,10 @@ public class NativeTestingBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public Object call() {
                 TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
-                if (unitTestSuite == null) {
-                    return null;
+                if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
+                    return unitTestSuite.getTestBinary().get().getRunTask().get();
                 }
-                return unitTestSuite.getTestBinary().get().getRunTask().get();
+                return null;
             }
         });
 
