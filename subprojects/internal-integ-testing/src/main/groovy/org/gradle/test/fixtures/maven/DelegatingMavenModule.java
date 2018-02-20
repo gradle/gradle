@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.ModuleArtifact;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.gradle.CapabilitySpec;
 
 import java.util.Map;
 
@@ -269,5 +270,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
+    }
+
+    @Override
+    public void addCapability(CapabilitySpec spec) {
+        backingModule.addCapability(spec);
     }
 }

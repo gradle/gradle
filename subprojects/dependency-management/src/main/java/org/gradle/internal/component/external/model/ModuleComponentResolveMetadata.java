@@ -64,4 +64,5 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
 
     ImmutableAttributesFactory getAttributesFactory();
 
+    ImmutableList<? extends Capability> getCapabilities();
 }

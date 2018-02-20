@@ -29,12 +29,20 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import java.util.Collection;
 import java.util.Map;
 
-public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
+/**
+ * A capabilities handler that will merge capabilities defined in the build with those
+ * discovered during dependency resolution. We cannot use the same container because capabilities
+ * discovered in one graph shouldn't leak into those discovered in a different graph, even if
+ * in the same build.
+ */
+public class ResolutionScopeCapabilitiesHandler implements CapabilitiesHandlerInternal {
+    private final CapabilitiesHandlerInternal buildScopeCapabilities;
     private final Map<String, DefaultCapability> capabilities = Maps.newHashMap();
     private final Multimap<ModuleIdentifier, DefaultCapability> moduleToCapabilities = LinkedHashMultimap.create();
     private final NotationParser<Object, ModuleIdentifier> notationParser;
 
-    public DefaultCapabilitiesHandler(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ResolutionScopeCapabilitiesHandler(CapabilitiesHandlerInternal buildScopeCapabilities, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.buildScopeCapabilities = buildScopeCapabilities;
         this.notationParser = parser(moduleIdentifierFactory);
     }
 
@@ -45,6 +53,11 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
             capability = new DefaultCapability(notationParser, identifier);
             capabilities.put(identifier, capability);
         }
+        CapabilityInternal buildScopeCapability = buildScopeCapabilities.getCapability(identifier);
+        if (buildScopeCapability != null) {
+            capability.prefer = buildScopeCapability.getPrefer();
+            capability.providedBy.addAll(buildScopeCapability.getProvidedBy());
+        }
         configureAction.execute(capability);
         for (ModuleIdentifier moduleIdentifier : capability.getProvidedBy()) {
             moduleToCapabilities.put(moduleIdentifier, capability);
@@ -53,6 +66,7 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
 
     @Override
     public void recordCapabilities(ModuleIdentifier module, Multimap<String, ModuleIdentifier> capabilityToModules) {
+        buildScopeCapabilities.recordCapabilities(module, capabilityToModules);
         Collection<DefaultCapability> capabilities = moduleToCapabilities.get(module);
         for (DefaultCapability capability : capabilities) {
             capabilityToModules.putAll(capability.getCapabilityId(), capability.getProvidedBy());
@@ -65,24 +79,31 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
         if (capability != null) {
             return capability.getPrefer();
         }
-        return null;
+        return buildScopeCapabilities.getPreferred(id);
     }
 
     @Override
     public boolean hasCapabilities() {
-        return !capabilities.isEmpty();
+        return !capabilities.isEmpty() || buildScopeCapabilities.hasCapabilities();
     }
 
     @Override
     public Collection<? extends CapabilityInternal> getCapabilities(ModuleIdentifier module) {
-        return moduleToCapabilities.get(module);
+        Collection<DefaultCapability> capabilities = moduleToCapabilities.get(module);
+        if (capabilities.isEmpty()) {
+            return buildScopeCapabilities.getCapabilities(module);
+        }
+        return capabilities;
     }
 
     @Override
     public CapabilityInternal getCapability(String name) {
-        return capabilities.get(name);
+        DefaultCapability capability = capabilities.get(name);
+        if (capability == null) {
+            return buildScopeCapabilities.getCapability(name);
+        }
+        return capability;
     }
-
 
     private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return NotationParserBuilder

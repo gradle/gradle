@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A single capability handler. A capability is provided by one or more modules.
@@ -24,6 +25,7 @@ import org.gradle.api.Incubating;
  * @since 4.7
  */
 @Incubating
+@HasInternalProtocol
 public interface CapabilityHandler {
     /**
      * Declares that this capability is provided by a module.

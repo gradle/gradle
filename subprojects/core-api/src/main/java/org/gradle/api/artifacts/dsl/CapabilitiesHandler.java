@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A capabilities handler can be used to declare the capabilities of a component, or other components.
@@ -30,12 +31,14 @@ import org.gradle.api.Incubating;
  *
  */
 @Incubating
+@HasInternalProtocol
 public interface CapabilitiesHandler {
     /**
      * Configures a capability.
      *
      * @param identifier the identifier of the capability to configure
      * @param configureAction the configuration of the capability
+     *
      */
     void capability(String identifier, Action<? super CapabilityHandler> configureAction);
 }

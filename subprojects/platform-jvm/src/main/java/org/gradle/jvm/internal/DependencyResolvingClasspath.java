@@ -96,6 +96,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
+        public CapabilityInternal getCapability(String name) {
+            return null;
+        }
+
+        @Override
         public void capability(String identifier, Action<? super CapabilityHandler> configureAction) {
         }
     };

@@ -15,11 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.collect.ComparisonChain;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
+import java.util.Comparator;
 import java.util.Set;
 
 public interface CapabilityInternal {
+    Comparator<ModuleIdentifier> MODULE_IDENTIFIER_COMPARATOR = new Comparator<ModuleIdentifier>() {
+        @Override
+        public int compare(ModuleIdentifier o1, ModuleIdentifier o2) {
+            return ComparisonChain.start()
+                .compare(o1.getGroup(), o2.getGroup())
+                .compare(o1.getName(), o2.getName())
+                .result();
+        }
+    };
+
     String getCapabilityId();
     Set<ModuleIdentifier> getProvidedBy();
     ModuleIdentifier getPrefer();

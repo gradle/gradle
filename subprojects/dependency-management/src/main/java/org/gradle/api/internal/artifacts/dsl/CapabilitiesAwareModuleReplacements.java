@@ -23,11 +23,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilityInternal;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public class CapabilitiesModuleReplacements implements ModuleReplacementsData {
+public class CapabilitiesAwareModuleReplacements implements ModuleReplacementsData {
     private final ModuleReplacementsData delegate;
     private final CapabilitiesHandlerInternal capabilitiesHandler;
 
-    public CapabilitiesModuleReplacements(ModuleReplacementsData delegate, CapabilitiesHandlerInternal capabilitiesHandler) {
+    public CapabilitiesAwareModuleReplacements(ModuleReplacementsData delegate, CapabilitiesHandlerInternal capabilitiesHandler) {
         this.delegate = delegate;
         this.capabilitiesHandler = capabilitiesHandler;
     }
@@ -61,7 +61,16 @@ public class CapabilitiesModuleReplacements implements ModuleReplacementsData {
     public boolean participatesInReplacements(ModuleIdentifier moduleId) {
         boolean participates = delegate.participatesInReplacements(moduleId);
         if (!participates && capabilitiesHandler.hasCapabilities()) {
-            return capabilitiesHandler.getCapabilities(moduleId) != null;
+            Collection<? extends CapabilityInternal> capabilities = capabilitiesHandler.getCapabilities(moduleId);
+            for (CapabilityInternal capability : capabilities) {
+                if (capability.getPrefer() != null) {
+                    // there's only a potential conflict if a preference is set.
+                    // if we return true when there's any capability, conflict resolution could choose automatically
+                    // between 2 modules that have _not_ set any preference, which would be wrong
+                    return true;
+                }
+            }
+            return false;
         }
         return participates;
     }

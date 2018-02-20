@@ -165,4 +165,8 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
         return new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, attributes, configDependencies);
     }
 
+    @Override
+    public ImmutableList<? extends Capability> getCapabilities() {
+        return ImmutableList.of();
+    }
 }

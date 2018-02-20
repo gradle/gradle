@@ -93,7 +93,7 @@ class ModuleResolveState implements CandidateModule {
     }
 
     public void select(ComponentState selected) {
-        assert this.selected == null;
+//        assert this.selected == null;
         this.selected = selected;
         for (ComponentState version : versions.values()) {
             version.evict();

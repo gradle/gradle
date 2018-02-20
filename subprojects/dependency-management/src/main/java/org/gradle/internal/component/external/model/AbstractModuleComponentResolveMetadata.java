@@ -57,6 +57,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
     private final ImmutableAttributes attributes;
+    private final ImmutableList<? extends Capability> capabilities;
 
     // Configurations are built on-demand, but only once.
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
@@ -75,6 +76,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributesFactory = metadata.getAttributesFactory();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
+        capabilities = metadata.getCapabilities();
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -98,6 +100,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributesFactory = metadata.getAttributesFactory();
         attributes = metadata.attributes;
         variants = metadata.variants;
+        capabilities = metadata.capabilities;
     }
 
     /**
@@ -165,7 +168,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
         List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
         for (ComponentVariant variant : variants) {
-            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules));
+            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules, capabilities));
         }
         return ImmutableList.copyOf(configurations);
     }
@@ -261,6 +264,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
+    public ImmutableList<? extends Capability> getCapabilities() {
+        return capabilities;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -279,6 +287,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(configurationDefinitions, that.configurationDefinitions)
             && Objects.equal(attributes, that.attributes)
             && Objects.equal(variants, that.variants)
+            && Objects.equal(capabilities, that.capabilities)
             && Objects.equal(contentHash, that.contentHash);
     }
 
@@ -294,6 +303,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             configurationDefinitions,
             attributes,
             variants,
+            capabilities,
             contentHash);
     }
 }
