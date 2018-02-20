@@ -53,24 +53,27 @@ val classpathManifest by tasks.creating(ClasspathManifest::class)
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), generatedResourcesDir)
 
+class CiEnvironmentProvider(private val isCiServer: Boolean, private val test: Test, private val rootProject: Project) : CommandLineArgumentProvider {
+    override fun asArguments(): Iterable<String> {
+        return if (isCiServer) {
+            mapOf(
+                "org.gradle.test.maxParallelForks" to test.maxParallelForks,
+                "org.gradle.ci.agentCount" to 2,
+                "org.gradle.ci.agentNum" to rootProject.extra["agentNum"]
+            ).map {
+                "-D${it.key}=${it.value}"
+            }
+        } else {
+            listOf()
+        }
+    }
+}
+
 val isCiServer: Boolean by rootProject.extra
 
 testTasks.all {
     maxParallelForks = rootProject.extra["maxParallelForks"] as Int
-    if (isCiServer) {
-        val ciProperties = mapOf(
-            "org.gradle.test.maxParallelForks" to maxParallelForks,
-            "org.gradle.ci.agentCount" to 2,
-            "org.gradle.ci.agentNum" to rootProject.extra["agentNum"])
-        systemProperties(ciProperties)
-
-        // Ignore Forking/agentNum properties in order to be able to pull tests
-        if (this is DistributionTest) {
-            ciProperties.keys.forEach { ignoreSystemProperty(it) }
-        } else {
-            inputs.property("systemProperties", Callable<Any> { systemProperties - ciProperties })
-        }
-    }
+    jvmArgumentProviders.add(CiEnvironmentProvider(isCiServer, this, rootProject))
     executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
     environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
     if (javaInstallationForTest.javaVersion.isJava7) {

@@ -91,7 +91,9 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
         eachDependency(new Action<DependencyResolutionControl>() {
             public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                dependencyResolutionControl.cacheFor(value, unit);
+                if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
+                    dependencyResolutionControl.cacheFor(value, unit);
+                }
             }
         });
     }

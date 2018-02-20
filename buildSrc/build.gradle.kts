@@ -140,7 +140,6 @@ tasks.withType<GroovyCompile> {
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/dependencies.gradle") }
     apply { from("../gradle/codeQuality.gradle") }
 }
 

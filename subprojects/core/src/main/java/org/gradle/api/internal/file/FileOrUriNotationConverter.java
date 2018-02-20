@@ -85,7 +85,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
         if (notation instanceof URI) {
             URI uri = (URI) notation;
-            if (uri.getScheme().equals("file")) {
+            if ("file".equals(uri.getScheme()) && uri.getPath() != null) {
                 result.converted(new File(uri.getPath()));
             } else {
                 result.converted(uri);

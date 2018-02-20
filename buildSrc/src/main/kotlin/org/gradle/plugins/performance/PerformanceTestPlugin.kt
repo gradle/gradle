@@ -402,8 +402,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
-            requiresBinZip = true
-            requiresLibsRepo = true
+            binaryDistributions.binZipRequired = true
+            libsRepository.required = true
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->

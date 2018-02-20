@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
@@ -179,7 +181,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         return identity;
     }
 
-    private class IncludePath implements MinimalFileSet {
+    private class IncludePath implements MinimalFileSet, Buildable {
         private final Configuration includePathConfig;
         private Set<File> result;
 
@@ -218,6 +220,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
                 result = files;
             }
             return result;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return includePathConfig.getBuildDependencies();
         }
     }
 }
