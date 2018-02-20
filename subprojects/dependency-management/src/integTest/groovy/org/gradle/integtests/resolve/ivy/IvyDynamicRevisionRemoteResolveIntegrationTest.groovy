@@ -1192,7 +1192,10 @@ dependencies {
     def "finds best matching version in local and remote repository with #order"() {
         given:
         def fileRepo = ivyRepo("fileRepo")
-        def httpModule = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        fileRepo.module('group', 'projectB', '1.1').publish()
+        fileRepo.module('group', 'projectC', '1.1').publish()
+        def httpModuleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        def httpModuleC = ivyHttpRepo.module('group', 'projectC', '1.2').publish()
 
         and:
         if (localFirst) {
@@ -1203,32 +1206,33 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile 'group:projectA:1.+'
+    compile "group:\$moduleName:1.+"
 }
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 """
         when: "missing from local"
-        expectGetDynamicRevision(httpModule)
+        expectGetDynamicRevision(httpModuleA)
 
         then:
+        args '-PmoduleName=projectA'
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
 
         when: "missing from remote"
-        fileRepo.module('group', 'projectA', '1.1').publish()
-        ivyHttpRepo.directoryList("group", "projectA").expectGetMissing()
+        ivyHttpRepo.directoryList("group", "projectB").expectGetMissing()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.1"
+        args '-PmoduleName=projectB'
+        checkResolve "group:projectB:1.+": "group:projectB:1.1"
 
         when: "present in both"
         server.resetExpectations()
-        httpModule = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
-        expectGetDynamicRevision(httpModule)
+        expectGetDynamicRevision(httpModuleC)
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.3"
+        args '-PmoduleName=projectC'
+        checkResolve "group:projectC:1.+": "group:projectC:1.2"
 
         where:
         order          | localFirst
