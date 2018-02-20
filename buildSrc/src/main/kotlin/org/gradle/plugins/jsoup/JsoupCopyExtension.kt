@@ -39,9 +39,9 @@ open class JsoupCopyExtension(private val task: Copy) {
         get() = task.inputs
 
     fun plugins(vararg plugins: Any) =
-        task.project.files(plugins).forEach {
-            task.inputs.file(it)
-            task.project.apply {
+        project.files(plugins).forEach {
+            inputs.file(it)
+            project.apply {
                 from(it)
                 to(this@JsoupCopyExtension)
             }
