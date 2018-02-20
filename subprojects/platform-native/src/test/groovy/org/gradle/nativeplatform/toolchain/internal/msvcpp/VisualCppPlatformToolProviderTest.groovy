@@ -22,21 +22,52 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
+import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
 class VisualCppPlatformToolProviderTest extends Specification {
+    def operatingSystem = Mock(OperatingSystemInternal)
+    def visualCpp = Mock(VisualCpp)
+    def windowsSdk = Mock(WindowsSdk)
+    def ucrt = Mock(SystemLibraries)
+    def visualStudioInstall = Mock(VisualStudioInstall)
+    def toolProvider = new VisualCppPlatformToolProvider(Mock(BuildOperationExecutor), operatingSystem, [:], visualStudioInstall, visualCpp, windowsSdk, ucrt, Mock(ExecActionFactory), Mock(CompilerOutputFileNamingSchemeFactory), Mock(WorkerLeaseService))
+
     def "windows shared link file names end with lib"() {
         given:
-        def operatingSystem = Mock(OperatingSystemInternal)
-        VisualCppPlatformToolProvider toolProvider = new VisualCppPlatformToolProvider(Mock(BuildOperationExecutor), operatingSystem, [:], Mock(VisualCpp), Mock(WindowsSdk), Mock(SystemLibraries), Mock(ExecActionFactory), Mock(CompilerOutputFileNamingSchemeFactory), Mock(WorkerLeaseService))
+        operatingSystem.internalOs >> OperatingSystem.WINDOWS
 
-        when:
-        operatingSystem.getInternalOs() >> OperatingSystem.WINDOWS
-        and:
+        expect:
         def actual = toolProvider.getSharedLibraryLinkFileName("sharedLibrary")
-
-        then:
         actual == "sharedLibrary.lib"
+    }
+
+    def "system libraries contain union of VC++ and Windows SDK and UCRT"() {
+        given:
+        def dir1 = new File("1")
+        def dir2 = new File("2")
+        def dir3 = new File("3")
+        visualCpp.includeDirs >> [dir1]
+        windowsSdk.includeDirs >> [dir2]
+        ucrt.includeDirs >> [dir3]
+
+        expect:
+        def libs = toolProvider.getSystemLibraries(ToolType.CPP_COMPILER)
+        libs.includeDirs == [dir1, dir2, dir3]
+    }
+
+    def "returns compiler metadata"() {
+        def vsVersion = VersionNumber.version(123)
+        def vcVersion = VersionNumber.version(22)
+        visualStudioInstall.version >> vsVersion
+        visualCpp.implementationVersion >> vcVersion
+
+        expect:
+        def metadata = toolProvider.getCompilerMetadata(ToolType.CPP_COMPILER)
+        metadata.visualStudioVersion == vsVersion
+        metadata.version == vcVersion
+        metadata.vendor == "Microsoft"
     }
 }

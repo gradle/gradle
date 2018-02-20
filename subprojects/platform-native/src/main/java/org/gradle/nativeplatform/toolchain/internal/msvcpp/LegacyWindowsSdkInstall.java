@@ -110,7 +110,12 @@ public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
         }
 
         @Override
-        public VersionNumber getVersion() {
+        public VersionNumber getImplementationVersion() {
+            return version;
+        }
+
+        @Override
+        public VersionNumber getSdkVersion() {
             return version;
         }
 

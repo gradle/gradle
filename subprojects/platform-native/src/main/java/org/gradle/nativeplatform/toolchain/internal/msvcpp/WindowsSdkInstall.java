@@ -23,5 +23,8 @@ import org.gradle.util.VersionNumber;
 public interface WindowsSdkInstall extends Named {
     VersionNumber getVersion();
 
+    /**
+     * Locates the Windows SDK for the given platform.
+     */
     WindowsSdk forPlatform(NativePlatformInternal platform);
 }

@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata;
 
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.util.VersionNumber;
 
-import java.io.File;
-import java.util.List;
-
-/**
- * A collection of tools.
- */
-public interface ExecutableTools {
+public interface VisualCppMetadata extends CompilerMetadata {
     /**
-     * Returns the implementation version of these tools.
+     * The version of Visual Studio, which may be different to the Visual C++ version.
      */
-    VersionNumber getImplementationVersion();
-
-    /**
-     * Returns the path entries that must be present in order to use these tools, possibly none.
-     */
-    List<File> getPath();
+    VersionNumber getVisualStudioVersion();
 }

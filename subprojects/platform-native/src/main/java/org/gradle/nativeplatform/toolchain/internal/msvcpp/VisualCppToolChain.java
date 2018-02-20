@@ -24,6 +24,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.EmptySystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -60,6 +61,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private File ucrtDir;
     private File windowsSdkDir;
     private UcrtInstall ucrt;
+    private VisualStudioInstall visualStudio;
     private VisualCppInstall visualCpp;
     private WindowsSdkInstall windowsSdk;
     private ToolChainAvailability availability;
@@ -123,12 +125,12 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
         WindowsSdk platformSdk = windowsSdk.forPlatform(targetPlatform);
-        SystemLibraries cRuntime = ucrt == null ? null : ucrt.getCRuntime(targetPlatform);
+        SystemLibraries cRuntime = ucrt == null ? new EmptySystemLibraries() : ucrt.getCRuntime(targetPlatform);
 
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, platformVisualCpp, platformSdk, cRuntime, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualStudio, platformVisualCpp, platformSdk, cRuntime, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
     }
 
     @Override
@@ -171,6 +173,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         SearchResult<VisualStudioInstall> visualStudioSearchResult = visualStudioLocator.locateComponent(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
+            visualStudio = visualStudioSearchResult.getComponent();
             visualCpp = visualStudioSearchResult.getComponent().getVisualCpp();
         }
 

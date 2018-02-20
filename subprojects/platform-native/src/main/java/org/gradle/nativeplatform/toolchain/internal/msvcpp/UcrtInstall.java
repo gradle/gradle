@@ -31,6 +31,9 @@ public class UcrtInstall extends WindowsKitInstall {
         super(baseDir, version, name);
     }
 
+    /**
+     * Returns the C runtime for the given platform.
+     */
     public SystemLibraries getCRuntime(final NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
             return new UcrtSystemLibraries("x64");
