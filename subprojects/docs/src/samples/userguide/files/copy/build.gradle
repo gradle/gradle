@@ -1,3 +1,51 @@
+// START SNIPPET copy-single-file-example
+task copyReport(type: Copy) {
+    from file("${buildDir}/reports/my-report.pdf")
+    into file("${buildDir}/toArchive")
+}
+// END SNIPPET copy-single-file-example
+
+// START SNIPPET copy-single-file-example-without-file-method
+task copyReport2(type: Copy) {
+    from "${buildDir}/reports/my-report.pdf"
+    into "${buildDir}/toArchive"
+}
+// END SNIPPET copy-single-file-example-without-file-method
+
+task myReportTask {
+    ext.outputFile = file("${buildDir}/reports/my-report.pdf")
+
+    outputs.files outputFile
+    doLast {
+        outputFile.touch()
+    }
+}
+
+task archiveReportsTask {
+    ext.dirToArchive = file("${buildDir}/toArchive")
+    inputs.dir dirToArchive
+}
+
+// START SNIPPET copy-single-file-example-with-task-properties
+task copyReport3(type: Copy) {
+    from myReportTask.outputFile
+    into archiveReportsTask.dirToArchive
+}
+// END SNIPPET copy-single-file-example-with-task-properties
+
+// START SNIPPET copy-multiple-files-example
+task copyDocsForArchiving(type: Copy) {
+    from "${buildDir}/reports/my-report.pdf", "src/docs/manual.pdf"
+    into "${buildDir}/toArchive"
+}
+// END SNIPPET copy-multiple-files-example
+
+task copyPdfDocsForArchiving(type: Copy) {
+    from "${buildDir}/reports"
+    include "*.pdf"
+    into "${buildDir}/toArchive"
+}
+
 // START SNIPPET copy-task
 task copyTask(type: Copy) {
     from 'src/main/webapp'
@@ -74,9 +122,9 @@ task nestedSpecs(type: Copy) {
     from('src/dist') {
         include '**/*.html', '**/*.png', '**/*.jpg'
     }
-    from(sourceSets.main.output) {
-        into 'WEB-INF/classes'
-    }
+//    from(sourceSets.main.output) {
+//        into 'WEB-INF/classes'
+//    }
     into('WEB-INF/libs') {
         from configurations.runtime
     }

@@ -15,6 +15,10 @@
 [[working_with_files]]
 == Working With Files
 
+////
+Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/gradle/integtests/samples/files
+////
+
 Almost every Gradle build interacts with files in some way: think source files, file dependencies, reports and so on. That's why Gradle comes with a comprehensive API that makes it simple to perform the file operations you need.
 
 The API has two parts to it:
@@ -29,17 +33,21 @@ The <<sec:locating_files,File Paths in Depth>> section covers the first of these
 
 You copy a file by creating an instance of Gradle's builtin api:org.gradle.api.tasks.Copy[] task and configuring it with the location of the file and where you want to put it. This example mimics copying a generated report into a directory that will be packed into an archive, such as a ZIP or TAR:
 
-----
-task copyReport(type: Copy) {
-    from file("${buildDir}/reports/my-report.pdf")
-    into file("${buildDir}/toArchive")
-}
-----
+++++
+<sample id="copySingleFileExample" dir="userguide/files/copy" title="How to copy a single file">
+    <sourcefile file="build.gradle" snippet="copy-single-file-example"/>
+</sample>
+++++
 
 The api:org.gradle.api.Project#file(java.lang.Object)[file()] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using api:org.gradle.api.tasks.Copy#from(java.lang.Object...)[] and which directory to copy it to using api:org.gradle.api.tasks.Copy#into(java.lang.Object)[].
 
 You can even use the path directly without the `file()` method, as explained early in the section <<sec:copying_files,File Copying in Depth>>:
 
+++++
+<sample id="copySingleFileExampleNoFileMethod" dir="userguide/files/copy" title="Using implicit string paths">
+    <sourcefile file="build.gradle" snippet="copy-single-file-example-without-file-method"/>
+</sample>
+++++
 ----
 task copyReport(type: Copy) {
     from "${buildDir}/reports/my-report.pdf"
