@@ -23,6 +23,8 @@ import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.performance.generator.tasks.*
 
+import org.w3c.dom.Document
+
 import java.io.File
 
 import javax.xml.parsers.DocumentBuilderFactory
@@ -450,12 +452,15 @@ open class PerformanceReport : JavaExec() {
 
 
 internal
-fun allTestsWereSkipped(junitXmlFile: File): Boolean {
-    val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(junitXmlFile)
-    val testsElement = xmlDoc.getElementsByTagName("tests").item(0)
-    val skippedElement = xmlDoc.getElementsByTagName("skipped").item(0)
-    return testsElement.textContent == skippedElement.textContent
-}
+fun allTestsWereSkipped(junitXmlFile: File): Boolean =
+    parseXmlFile(junitXmlFile).documentElement.run {
+        getAttribute("tests") == getAttribute("skipped")
+    }
+
+
+private
+fun parseXmlFile(file: File): Document =
+    DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
 
 
 private
