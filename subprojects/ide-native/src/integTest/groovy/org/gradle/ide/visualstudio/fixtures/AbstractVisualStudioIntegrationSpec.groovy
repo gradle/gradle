@@ -42,7 +42,7 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
         // Gradle needs to be isolated so the msbuild does not leave behind daemons
         assert executer.isRequiresGradleDistribution()
         assert !executer.usesSharedDaemons()
-        def executer = new MSBuildExecutor(testDirectory)
+        def executer = new MSBuildExecutor(testDirectory, toolChain)
         executer.withArgument('/p:Platform=Win32')
         return executer
     }
