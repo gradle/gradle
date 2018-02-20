@@ -9,7 +9,6 @@ import org.objectweb.asm.commons.Remapper
 
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.io.IOException
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -17,8 +16,8 @@ import java.io.PrintWriter
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.FileSystems
-import java.nio.file.FileVisitor
 import java.nio.file.FileVisitResult
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.jar.JarFile
@@ -72,60 +71,72 @@ open class ShadedJarCreator(
 
     private
     fun visitClassDirectory(dir: Path, classes: ClassGraph, ignored: PackagePatterns, writer: PrintWriter) {
-        Files.walkFileTree(dir, object : FileVisitor<Path> {
-            private var seenManifest: Boolean = false
+        Files.walkFileTree(dir, object : SimpleFileVisitor<Path>() {
 
-            override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-                return FileVisitResult.CONTINUE
-            }
+            private
+            var seenManifest: Boolean = false
 
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                 writer.print(file.fileName.toString() + ": ")
-                if (file.toString().endsWith(".class")) {
-                    try {
-                        val reader = ClassReader(Files.newInputStream(file))
-                        val details = classes[reader.className]
-                        details.visited = true
-                        val classWriter = ClassWriter(0)
-                        reader.accept(ClassRemapper(classWriter, object : Remapper() {
-                            override fun map(name: String): String {
-                                if (ignored.matches(name)) {
-                                    return name
-                                }
-                                val dependencyDetails = classes[name]
-                                if (dependencyDetails !== details) {
-                                    details.dependencies.add(dependencyDetails)
-                                }
-                                return dependencyDetails.outputClassName
-                            }
-                        }), ClassReader.EXPAND_FRAMES)
-
-                        writer.println("mapped class name: " + details.outputClassName)
-                        val outputFile = classesDir.resolve(details.outputClassFilename)
-                        outputFile.parentFile.mkdirs()
-                        outputFile.writeBytes(classWriter.toByteArray())
-                    } catch (exception: Exception) {
-                        throw ClassAnalysisException("Could not transform class from " + file.toFile(), exception)
+                when {
+                    file.isClassFilePath()              -> {
+                        visitClassFile(file)
                     }
-
-                } else if (file.toString().endsWith(".properties") && classes.unshadedPackages.matches(file.toString())) {
-                    writer.println("include")
-                    classes.addResource(ResourceDetails(file.toString(), file.toFile()))
-                } else if (file.toString() == JarFile.MANIFEST_NAME && !seenManifest) {
-                    seenManifest = true
-                    classes.manifest = ResourceDetails(file.toString(), file.toFile())
-                } else {
-                    writer.println("skipped")
+                    file.isUnshadedPropertiesFilePath() -> {
+                        writer.println("include")
+                        classes.addResource(ResourceDetails(file.toString(), file.toFile()))
+                    }
+                    file.isUnseenManifestFilePath()     -> {
+                        seenManifest = true
+                        classes.manifest = ResourceDetails(file.toString(), file.toFile())
+                    }
+                    else                                -> {
+                        writer.println("skipped")
+                    }
                 }
                 return FileVisitResult.CONTINUE
             }
 
-            override fun visitFileFailed(file: Path, exc: IOException): FileVisitResult {
-                return FileVisitResult.TERMINATE
-            }
+            private
+            fun Path.isClassFilePath() =
+                toString().endsWith(".class")
 
-            override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
-                return FileVisitResult.CONTINUE
+            private
+            fun Path.isUnshadedPropertiesFilePath() =
+                toString().endsWith(".properties") && classes.unshadedPackages.matches(toString())
+
+            private
+            fun Path.isUnseenManifestFilePath() =
+                toString() == JarFile.MANIFEST_NAME && !seenManifest
+
+            private
+            fun visitClassFile(file: Path) {
+                try {
+                    val reader = ClassReader(Files.newInputStream(file))
+                    val details = classes[reader.className]
+                    details.visited = true
+                    val classWriter = ClassWriter(0)
+                    reader.accept(ClassRemapper(classWriter, object : Remapper() {
+                        override fun map(name: String): String {
+                            if (ignored.matches(name)) {
+                                return name
+                            }
+                            val dependencyDetails = classes[name]
+                            if (dependencyDetails !== details) {
+                                details.dependencies.add(dependencyDetails)
+                            }
+                            return dependencyDetails.outputClassName
+                        }
+                    }), ClassReader.EXPAND_FRAMES)
+
+                    writer.println("mapped class name: " + details.outputClassName)
+                    classesDir.resolve(details.outputClassFilename).apply {
+                        parentFile.mkdirs()
+                        writeBytes(classWriter.toByteArray())
+                    }
+                } catch (exception: Exception) {
+                    throw ClassAnalysisException("Could not transform class from " + file.toFile(), exception)
+                }
             }
         })
     }
