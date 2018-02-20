@@ -321,8 +321,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             sharedTemplateDirectory = project.project(":internalPerformanceTesting").file("src/templates")
         }
         tasks.withType<AbstractProjectGeneratorTask> {
-            if (project.hasProperty("maxProjects")) {
-                project.extra.set("projects", project.property("maxProjects") as Int)
+            (project.findProperty("maxProjects") as? Int)?.let { maxProjects ->
+                project.extra.set("projects", maxProjects)
             }
         }
         tasks.withType<JvmProjectGeneratorTask> {
