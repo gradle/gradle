@@ -1,12 +1,14 @@
 The Gradle team is pleased to announce Gradle 4.6.
 
-First and foremost, this release of Gradle features extensive improvements to dependency management. You can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
-
-This release of Gradle also includes crucial features for Maven dependency compatibility: support for [importing BOMs](#bom-import), [optional dependencies](#support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#compile/runtime-scope-separation-in-pom-consumption). For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
-
-Next, this release of Gradle includes built-in support for JUnit Platform and the JUnit Jupiter/Vintage Engine, also known as [JUnit 5 support](#junit-5-support). You can use the new filtering and engines functionality in JUnit 5 using the examples provided below and in the documentation.
+First and foremost, this release of Gradle includes built-in support for JUnit Platform and the JUnit Jupiter/Vintage Engine, also known as [JUnit 5 support](#junit-5-support).
+You can use the new filtering and engines functionality in JUnit 5 using the examples provided below and in the documentation.
 
 Also regarding testing, you can now improve your testing feedback loop when running JVM-based tests using the [new fail-fast option for `Test` tasks](#fail-fast-option-for-test-tasks), which stops the build immediately after the first test failure.
+
+With this release of Gradle, you can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
+
+It also features enhanced Maven dependency compatibility: support for [importing BOMs](#bom-import), [optional dependencies](#support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#compile/runtime-scope-separation-in-pom-consumption).
+For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
 
 This version of Gradle also comes with a couple especially useful new APIs for task development. You can now [declare custom command-line flags for your custom tasks](#tasks-api-allows-custom-command-line-options), for example: `gradle myCustomTask --myfoo=bar`. In addition, [tasks that extend `Test`, `JavaExec` or `Exec` can declare rich arguments](#rich-command-line-arguments-for-test,-javaexec-or-exec-tasks) for invoking the underlying executable. This allows for better modeling of tools like annotation processors.
 
@@ -27,61 +29,6 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
-
-### Dependency constraints for transitive dependencies
-
-With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. 
-
-In the future, Gradle will also allow you to _publish_ dependency constraints when using the [Gradle module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md) (currently under development) such that library authors will be able to share these constraints with library consumers. This makes dependency constraints a better alternative over other existing mechanisms for managing transitive dependencies in Gradle.
-
-    dependencies {
-        implementation 'org.apache.httpcomponents:httpclient'
-    }
-
-    dependencies {
-        constraints {
-            // declare versions for my dependencies in a central place
-            implementation 'org.apache.httpcomponents:httpclient:4.5.3'
-            // declare versions for transitive dependencies
-            implementation 'commons-codec:commons-codec:1.11'
-        }
-    }
-
-In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at least `1.11` and Gradle will now pick that version during dependency resolution.
-
-### BOM import
-
-Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
-
-    dependencies {
-        // import a BOM
-        implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
-    
-        // define dependencies without versions
-        implementation 'com.google.code.gson:gson'
-        implementation 'dom4j:dom4j'
-    }
-
-Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
-
-**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
-
-### Support for optional dependencies in POM consumption
-
-Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
-
-**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
-
-### Compile/runtime scope separation in POM consumption
-
-Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
-
-- The compile classpath is much larger than it needs to be, slowing down compilation.
-- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
-
-Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
-
-**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### JUnit 5 support
 
@@ -169,9 +116,93 @@ In addition, this behavior can be enabled from the command line for individual b
 
 More information is available in the [Java Plugin documentation for test execution](userguide/java_plugin.html#sec:test_execution).
 
-<!--
-### Example new and noteworthy
--->
+### Allow declared reasons for dependency and resolution rules
+
+In complex builds, it can become hard to interpret dependency resolution results and why a [dependency declaration](userguide/customizing_dependency_resolution_behavior.html) or a [rule](userguide/inspecting_dependencies.html#sec:dependency_declaration_reasons) was added to a build script. To improve on this situation, we extended all the corresponding APIs with the capability to define a _reason_ for each declaration or rule. 
+
+These reasons are shown in dependency insight reports and error messages if the corresponding declaration or rule influenced the resolution result. In the future, they will also be shown in build scans.
+
+    dependencies {
+        implementation('org.ow2.asm:asm:6.0') {
+            because 'we require a JDK 9 compatible bytecode generator'
+        }
+    }
+    
+### Dependency constraints for transitive dependencies
+
+With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. 
+
+    dependencies {
+        implementation 'org.apache.httpcomponents:httpclient'
+    }
+
+    dependencies {
+        constraints {
+            implementation('org.apache.httpcomponents:httpclient:4.5.3') {
+                because 'previous versions have a bug impacting this application'
+            }
+            implementation('commons-codec:commons-codec:1.11') {
+                because 'version 1.9 pulled from httpclient has bugs affecting this application'
+            }
+        }
+    }
+
+In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at least `1.11` and Gradle will now pick that version during dependency resolution.
+
+Compared to dependency management rules you can define in the resolution strategy, which are applied after dependency resolution to _fix up_ the result, dependency constraints are declared information that participate in the dependency resolution process.
+This means that all constraints are considered in combination.
+For instance, if another dependency brings in an even higher version of `commons-codec`, Gradle will respect that.
+
+Expressing the same in a traditional dependency substitution rule requires you to repeat part of the dependency resolution process manually – which is expensive and error prone.
+That is, you would have to inspect the version that was selected and implement a decision based on the version:
+
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'commons-codec'
+            && details.requested.name == 'commons-codec'
+            && VersionNumber.parse(details.requested.version) < VersionNumber.parse('1.11')) {
+                details.useVersion '1.11'
+        }
+    }
+
+**Note:** Dependency constraints are not yet published, but that will be added in a future release.
+This means that their use currently only targets builds that do not publish artifacts to maven or ivy repositories.
+
+### BOM import
+
+Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
+
+    dependencies {
+        // import a BOM
+        implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
+    
+        // define dependencies without versions
+        implementation 'com.google.code.gson:gson'
+        implementation 'dom4j:dom4j'
+    }
+
+Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
+
+**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+
+### Support for optional dependencies in POM consumption
+
+Gradle now [creates a dependency constraint](userguide/managing_transitive_dependencies.html#sec:dependency_constraints) for each dependency declaration in a POM file with `<optional>true</optional>`.
+This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
+
+**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
+
+### Compile/runtime scope separation in POM consumption
+
+Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
+
+- The compile classpath is much larger than it needs to be, slowing down compilation.
+- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
+
+Now, if this new behavior is turned on, the Java and Java Library plugins both [honor the separation of compile and runtime scopes](userguide/javaLibraryPlugin.html#sec:java_library_separation).
+Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well.
+This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
+
+**Note:** This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 ### Customizable metadata file resolution
 
@@ -187,19 +218,6 @@ Gradle now allows you to explicitly state for [which metadata files](userguide/r
     }
 
 This avoids a 2nd request for the JAR file when the POM is missing, making dependency resolution from Maven repositories faster in this case.
-
-### Allow declared reasons for dependency and resolution rules
-
-In complex builds, it can become hard to interpret dependency resolution results and why a [dependency declaration](userguide/customizing_dependency_resolution_behavior.html) or a [rule](userguide/inspecting_dependencies.html#sec:dependency_declaration_reasons) was added to a build script. To improve on this situation, we extended all the corresponding APIs with the capability to define a _reason_ for each declaration or rule. 
-
-These reasons are shown in dependency insight reports and error messages if the corresponding declaration or rule influenced the resolution result. In the future, they will also be shown in build scans.
-
-    dependencies {
-        implementation('org.ow2.asm:asm:6.0') {
-            because 'we require a JDK 9 compatible bytecode generator'
-        }
-    }
-    
 
 ### Convenient declaration of annotation processor dependencies
 
