@@ -17,16 +17,15 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFile
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -40,56 +39,58 @@ import org.gradle.process.CommandLineArgumentProvider
 @CacheableTask
 @CompileStatic
 class IntegrationTest extends DistributionTest {
-
     IntegrationTest() {
-        samplesXml = project.layout.fileProperty()
-        userGuideOutputDir = project.layout.directoryProperty()
-        jvmArgumentProviders.add(new IntegrationTestEnvironmentProvider(this))
-        dependsOn { requiresSamples ? ':docs:extractSamples' : null }
+        userguideSamples = new UserguideSamples(project.layout)
+        jvmArgumentProviders.add(new SamplesIntegrationTestEnvironmentProvider(userguideSamples))
+        dependsOn { userguideSamples.required ? ':docs:extractSamples' : null }
+    }
+
+    @Internal
+    final UserguideSamples userguideSamples
+}
+
+class UserguideSamples {
+
+    UserguideSamples(ProjectLayout layout) {
+        samplesXml = layout.fileProperty()
+        userGuideSamplesOutput = layout.directoryProperty()
     }
 
     @Input
-    boolean requiresSamples
+    boolean required
 
-    @Internal
+    @InputFile
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     final RegularFileProperty samplesXml
 
-    @Internal
-    final DirectoryProperty userGuideOutputDir
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    final DirectoryProperty userGuideSamplesOutput
 }
 
 @CompileStatic
-class IntegrationTestEnvironmentProvider implements CommandLineArgumentProvider {
-    private final IntegrationTest test
+class SamplesIntegrationTestEnvironmentProvider implements CommandLineArgumentProvider {
+    private final UserguideSamples userguideSamples
 
-    IntegrationTestEnvironmentProvider(IntegrationTest test) {
-        this.test = test
-        def project = test.project
-        samplesXmlFile = project.provider {
-            test.requiresSamples ? test.samplesXml.getOrNull() : null
-        }
-        userGuide = project.provider {
-            test.requiresSamples ? test.userGuideOutputDir.getOrNull() : null
-        }
+    SamplesIntegrationTestEnvironmentProvider(UserguideSamples userguideSamples) {
+        this.userguideSamples = userguideSamples
     }
-    @Optional
-    @InputFile
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    final Provider<RegularFile> samplesXmlFile
 
+    @Nested
     @Optional
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    Provider<Directory> userGuide
+    UserguideSamples getUserguideSamples() {
+        userguideSamples.required ? userguideSamples : null
+    }
 
     @Override
     Iterable<String> asArguments() {
-        def systemProperties = [:]
-        if (test.requiresSamples) {
-            systemProperties['integTest.userGuideInfoDir'] = test.samplesXml.asFile.get().parentFile.absolutePath
-            systemProperties['integTest.userGuideOutputDir'] = test.userGuideOutputDir.asFile.get().absolutePath
-        }
-        DistributionTest.asSystemPropertyJvmArguments(systemProperties)
+        DistributionTest.asSystemPropertyJvmArguments(
+            userguideSamples.required ?
+                [
+                    'integTest.userGuideInfoDir'  : userguideSamples.samplesXml.asFile.get().parentFile.absolutePath,
+                    'integTest.userGuideOutputDir': userguideSamples.userGuideSamplesOutput.asFile.get().absolutePath
+                ] : [:]
+        )
     }
 }
 

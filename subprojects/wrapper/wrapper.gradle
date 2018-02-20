@@ -58,5 +58,5 @@ task executableJar(type: Jar) {
 }
 
 integTestTasks.all {
-    requiresBinZip = true
+    binaryDistributions.binZipRequired = true
 }

@@ -63,18 +63,21 @@ tasks.withType<DistributionTest> {
         systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
     }
 
-    val intTestImage: Sync by tasks
-    val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
-    val binZip: Zip by project(":distributions").tasks
+    gradleInstallationForTest.run {
+        val intTestImage: Sync by tasks
+        val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
+        gradleHomeDir.set(dir { intTestImage.destinationDir })
+        gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
+        daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
+        toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
+    }
 
-    gradleHomeDir.set(dir { intTestImage.destinationDir })
-    gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
-    toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
-    libsRepo.set(rootProject.layout.projectDirectory.dir("build/repo"))
-    distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
-    this.binZip.set(layout.file(provider { binZip.archivePath }))
-    daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-    distZipVersion = version.toString()
+    libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
+
+    binaryDistributions.run {
+        distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
+        distZipVersion = project.version.toString()
+    }
 
     project.afterEvaluate {
         reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")

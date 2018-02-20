@@ -124,8 +124,8 @@ performanceTestTasks.all { PerformanceTest task ->
     mustRunAfter tasks.withType(ProjectGeneratorTask)
     mustRunAfter tasks.withType(RemoteProject)
     mustRunAfter tasks.withType(JavaExecProjectGeneratorTask)
-    requiresBinZip = true
-    requiresLibsRepo = true
+    binaryDistributions.binZipRequired = true
+    libsRepository.required = true
 
     finalizedBy performanceReport
 

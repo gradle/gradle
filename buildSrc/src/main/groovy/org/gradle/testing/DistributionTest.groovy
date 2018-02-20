@@ -17,11 +17,9 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
-import org.gradle.api.file.Directory
+import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Classpath
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
@@ -41,17 +39,18 @@ import org.gradle.process.CommandLineArgumentProvider
 class DistributionTest extends Test {
 
     DistributionTest() {
-        dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
-        dependsOn { requiresBinZip ? ':distributions:binZip' : null }
-        dependsOn { requiresLibsRepo ? ':toolingApi:publishLocalArchives' : null }
-        gradleHomeDir = project.layout.directoryProperty()
-        gradleUserHomeDir = project.layout.directoryProperty()
-        libsRepo = project.layout.directoryProperty()
-        toolingApiShadedJarDir = project.layout.directoryProperty()
-        distsDir = project.layout.directoryProperty()
-        binZip = project.layout.fileProperty()
-        daemonRegistry = project.layout.directoryProperty()
-        jvmArgumentProviders.add(new DistributionTestEnvironmentProvider(this))
+        dependsOn { binaryDistributions.distributionsRequired  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
+        dependsOn { binaryDistributions.binZipRequired ? ':distributions:binZip' : null }
+        dependsOn { libsRepository.required ? ':toolingApi:publishLocalArchives' : null }
+
+        gradleInstallationForTest = new GradleInstallationForTestEnvironmentProvider(project)
+        jvmArgumentProviders.add(gradleInstallationForTest)
+
+        binaryDistributions = new BinaryDistributions(project.layout)
+        jvmArgumentProviders.add(new BinaryDistributionsEnvironmentProvider(binaryDistributions))
+
+        libsRepository = new LibsRepositoryEnvironmentProvider(project.layout)
+        jvmArgumentProviders.add(libsRepository)
     }
 
     @Input
@@ -63,40 +62,13 @@ class DistributionTest extends Test {
     }
 
     @Internal
-    final DirectoryProperty gradleHomeDir
+    final GradleInstallationForTestEnvironmentProvider gradleInstallationForTest
 
     @Internal
-    final DirectoryProperty gradleUserHomeDir
+    final BinaryDistributions binaryDistributions
 
     @Internal
-    final DirectoryProperty libsRepo
-
-    @Input
-    boolean requiresLibsRepo
-
-    @Internal
-    final DirectoryProperty toolingApiShadedJarDir
-
-    @Internal
-    final DirectoryProperty distsDir
-
-    @Internal
-    String distZipVersion
-
-    @Input
-    boolean requiresDists
-
-    @Input
-    boolean requiresBinZip
-
-    @Internal
-    final RegularFileProperty binZip
-
-    /** The user home dir is not wiped out by clean
-     *  Move the daemon working space underneath the build dir so they don't pile up on CI
-     */
-    @Internal
-    final DirectoryProperty daemonRegistry
+    final LibsRepositoryEnvironmentProvider libsRepository
 
     static Iterable<String> asSystemPropertyJvmArguments(Map<?, ?> systemProperties) {
         systemProperties.collect { key, value -> "-D${key}=${value}".toString() }
@@ -104,48 +76,113 @@ class DistributionTest extends Test {
 }
 
 @CompileStatic
-class DistributionTestEnvironmentProvider implements CommandLineArgumentProvider {
-    private final DistributionTest test
+class LibsRepositoryEnvironmentProvider implements CommandLineArgumentProvider {
 
-    DistributionTestEnvironmentProvider(DistributionTest test) {
-        this.test = test
-        def project = test.project
-        this.gradleDistribution = new GradleDistribution(project, test.gradleHomeDir)
-        this.distributions = project.provider {
-            test.requiresDists ? test.distsDir.getOrNull() : null
-        }
+    LibsRepositoryEnvironmentProvider(ProjectLayout layout) {
+        dir = layout.directoryProperty()
     }
+
+    @Internal
+    final DirectoryProperty dir
+
+    @Input
+    boolean required
+
+    @Override
+    Iterable<String> asArguments() {
+            DistributionTest.asSystemPropertyJvmArguments(
+                required ? ['integTest.libsRepo': dir.asFile.get().absolutePath] : [:]
+            )
+    }
+}
+
+@CompileStatic
+class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider {
+    GradleInstallationForTestEnvironmentProvider(Project project) {
+        gradleHomeDir = project.layout.directoryProperty()
+        gradleUserHomeDir = project.layout.directoryProperty()
+        toolingApiShadedJarDir = project.layout.directoryProperty()
+        daemonRegistry = project.layout.directoryProperty()
+        gradleDistribution = new GradleDistribution(project, gradleHomeDir)
+    }
+
+    /** The user home dir is not wiped out by clean
+     *  Move the daemon working space underneath the build dir so they don't pile up on CI
+     */
+    @Internal
+    final DirectoryProperty daemonRegistry
+
+    @Internal
+    final DirectoryProperty toolingApiShadedJarDir
+
+    @Internal
+    final DirectoryProperty gradleHomeDir
+
+    @Internal
+    final DirectoryProperty gradleUserHomeDir
 
     @Nested
     final GradleDistribution gradleDistribution
 
-    @Classpath
-    Set<File> getToolingApiShadedJar() {
-        return test.toolingApiShadedJarDir.isPresent() ? test.toolingApiShadedJarDir.asFileTree.files : null
+    @Override
+    Iterable<String> asArguments() {
+        DistributionTest.asSystemPropertyJvmArguments([
+            'integTest.gradleHomeDir'             : gradleHomeDir.asFile.get().absolutePath,
+            'integTest.gradleUserHomeDir'         : gradleUserHomeDir.asFile.get().absolutePath,
+            'org.gradle.integtest.daemon.registry': daemonRegistry.asFile.get().absolutePath,
+            'integTest.toolingApiShadedJarDir'    : toolingApiShadedJarDir.getAsFile().get().absolutePath
+        ])
+    }
+}
+
+class BinaryDistributions {
+
+    BinaryDistributions(ProjectLayout layout) {
+        distsDir = layout.directoryProperty()
     }
 
-    @Optional
+    @Input
+    boolean binZipRequired
+
+    @Input
+    boolean distributionsRequired
+
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    final Provider<Directory> distributions
+    final DirectoryProperty distsDir
+
+    @Internal
+    String distZipVersion
+}
+
+@CompileStatic
+class BinaryDistributionsEnvironmentProvider implements CommandLineArgumentProvider {
+    private final BinaryDistributions binaryDistributions
+
+    BinaryDistributionsEnvironmentProvider(BinaryDistributions binaryDistributions) {
+        this.binaryDistributions = binaryDistributions
+    }
+
+    @Nested
+    @Optional
+    BinaryDistributions getBinaryDistributions() {
+        binaryDistributions.distributionsRequired ? binaryDistributions : null
+    }
+
+    @Input
+    boolean getBinZipRequired() {
+        binaryDistributions.binZipRequired
+    }
 
     @Override
     Iterable<String> asArguments() {
-        def systemProperties = [
-            'integTest.gradleHomeDir'             : test.gradleHomeDir.asFile.get().absolutePath,
-            'integTest.gradleUserHomeDir'         : test.gradleUserHomeDir.asFile.get().absolutePath,
-            'org.gradle.integtest.daemon.registry': test.daemonRegistry.asFile.get().absolutePath,
-            'integTest.toolingApiShadedJarDir'    : test.toolingApiShadedJarDir.getAsFile().get().absolutePath
-
-        ]
-        if (test.requiresDists || test.requiresBinZip) {
-            systemProperties['integTest.distsDir'] = test.distsDir.asFile.getOrElse(test.binZip.asFile.get().parentFile).absolutePath
-            systemProperties['integTest.distZipVersion'] = test.distZipVersion
-        }
-        if (test.requiresLibsRepo) {
-            systemProperties['integTest.libsRepo'] = test.libsRepo.asFile.get().absolutePath
-        }
-        DistributionTest.asSystemPropertyJvmArguments(systemProperties)
+        DistributionTest.asSystemPropertyJvmArguments(
+            (binaryDistributions.binZipRequired || binaryDistributions.distributionsRequired) ?
+            [
+                'integTest.distsDir'      : binaryDistributions.distsDir.asFile.get().absolutePath,
+                'integTest.distZipVersion': binaryDistributions.distZipVersion
+            ] : [:]
+        )
     }
 }
 

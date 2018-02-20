@@ -23,10 +23,12 @@ testFixtures {
 }
 
 integTestTasks.all { task ->
-    requiresSamples = true
-    requiresLibsRepo = true
-    samplesXml.set(layout.file(provider { new File(project(':docs').docbookSrc, 'samples.xml') }))
-    userGuideOutputDir.set(layout.projectDirectory.dir(provider { new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath }))
+    userguideSamples.with {
+        required = true
+        samplesXml.set(layout.file(provider { new File(project(':docs').docbookSrc, 'samples.xml') }))
+        userGuideSamplesOutput.set(layout.projectDirectory.dir(provider { new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath }))
+    }
+    libsRepository.required = true
 
     // You can exclude the userguide samples by their ids by specifying this system property.
     // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.exclude=completeCUnitExample,nativeComponentReport
