@@ -64,7 +64,7 @@ object Config {
 
     const val teamCityUrl = "https://builds.gradle.org/"
 
-    const val adHocTestDbUrl = "jdbc:h2:./build/database"
+    const val adhocTestDbUrl = "jdbc:h2:./build/database"
 }
 
 
@@ -96,27 +96,147 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
-        val performanceTestCompile by configurations
-        val performanceTestRuntime by configurations
-        plugins.withType<EclipsePlugin> {
-            configure<EclipseModel> {
-                classpath {
-                    plusConfigurations.add(performanceTestCompile)
-                    plusConfigurations.add(performanceTestRuntime)
-                }
+    fun Project.createPerformanceTestSourceSet(): SourceSet = java.sourceSets.run {
+        val main by getting
+        val test by getting
+        val performanceTest by creating {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+        }
+        performanceTest
+    }
+
+    private
+    fun Project.addConfigurationAndDependencies() {
+        configurations {
+
+            val testCompile by getting
+
+            "performanceTestCompile" {
+                extendsFrom(testCompile)
+            }
+
+            val testRuntime by getting
+
+            "performanceTestRuntime" {
+                extendsFrom(testRuntime)
+            }
+
+            val performanceTestRuntimeClasspath by getting
+
+            "partialDistribution" {
+                extendsFrom(performanceTestRuntimeClasspath)
+            }
+
+            "junit" {
             }
         }
 
-        plugins.withType<IdeaPlugin> {
-            configure<IdeaModel> {
-                module {
-                    testSourceDirs.plus(performanceTestSourceSet.groovy.srcDirs)
-                    testSourceDirs.plus(performanceTestSourceSet.resources.srcDirs)
-                    scopes["TEST"]!!["plus"]!!.add(performanceTestCompile)
-                    scopes["TEST"]!!["plus"]!!.add(performanceTestRuntime)
+        dependencies {
+            "performanceTestCompile"(project(":internalPerformanceTesting"))
+            "junit"("junit:junit:4.12")
+        }
+    }
+
+    private
+    fun Project.createCheckNoIdenticalBuildFilesTask() {
+        tasks.create("checkNoIdenticalBuildFiles") {
+            doLast {
+                val filesBySha1 = mutableMapOf<String, MutableList<File>>()
+                buildDir.walkTopDown().forEach { file ->
+                    if (file.name.endsWith(".gradle")) {
+                        val sha1 = sha1StringFor(file)
+                        val files = filesBySha1[sha1]
+                        when (files) {
+                            null -> filesBySha1[sha1] = mutableListOf(file)
+                            else -> files.add(file)
+                        }
+                    }
+                }
+
+                filesBySha1.forEach { hash, candidates ->
+                    if (candidates.size > 1) {
+                        println("Duplicate build files found for hash '$hash' : $candidates")
+                    }
                 }
             }
+        }
+    }
+
+    private
+    fun Project.configureGeneratorTasks() {
+
+        tasks.withType<ProjectGeneratorTask> {
+            group = "Project setup"
+        }
+
+        tasks.withType<AbstractProjectGeneratorTask> {
+            (project.findProperty("maxProjects") as? Int)?.let { maxProjects ->
+                setProjects(maxProjects)
+            }
+        }
+
+        tasks.withType<JvmProjectGeneratorTask> {
+            testDependencies = configurations["junit"]
+        }
+
+        tasks.withType<TemplateProjectGeneratorTask> {
+            sharedTemplateDirectory = project(":internalPerformanceTesting").file("src/templates")
+        }
+    }
+
+    private
+    fun Project.createPrepareSamplesTask(): Task =
+        tasks.create("prepareSamples") {
+            group = "Project Setup"
+            description = "Generates all sample projects for automated performance tests"
+            dependsOn(tasks.withType<ProjectGeneratorTask>())
+            dependsOn(tasks.withType<RemoteProject>())
+            dependsOn(tasks.withType<JavaExecProjectGeneratorTask>())
+        }
+
+    private
+    fun Project.createCleanSamplesTask(): Task =
+        tasks.create<Delete>("cleanSamples") {
+            delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
+            delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
+            delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
+        }
+
+    private
+    fun Project.createPerformanceReportTask(performanceTestSourceSet: SourceSet): PerformanceReport =
+        tasks.create<PerformanceReport>("performanceReport") {
+            systemProperties(propertiesForPerformanceDb())
+            classpath = performanceTestSourceSet.runtimeClasspath
+            resultStoreClass = "org.gradle.performance.results.AllResultsStore"
+            reportDir = buildDir / Config.performanceTestReportsDir
+            outputs.upToDateWhen { false }
+        }
+
+    private
+    fun Project.createLocalPerformanceTestTasks(
+        performanceSourceSet: SourceSet,
+        prepareSamplesTask: Task,
+        performanceReportTask: PerformanceReport) {
+
+        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
+            createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask)
+                .configure()
+        }
+
+        create("performanceTest") {
+            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+        }
+
+        create("performanceExperiment") {
+            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+        }
+
+        create("fullPerformanceTest")
+
+        create("performanceAdhocTest") {
+            systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
+            channel = "adhoc"
         }
     }
 
@@ -147,6 +267,35 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
+    fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
+        val performanceTestCompile by configurations
+        val performanceTestRuntime by configurations
+        plugins.withType<EclipsePlugin> {
+            configure<EclipseModel> {
+                classpath {
+                    plusConfigurations.apply {
+                        add(performanceTestCompile)
+                        add(performanceTestRuntime)
+                    }
+                }
+            }
+        }
+
+        plugins.withType<IdeaPlugin> {
+            configure<IdeaModel> {
+                module {
+                    testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
+                    testSourceDirs = testSourceDirs + performanceTestSourceSet.resources.srcDirs
+                    scopes["TEST"]!!["plus"]!!.apply {
+                        add(performanceTestCompile)
+                        add(performanceTestRuntime)
+                    }
+                }
+            }
+        }
+    }
+
+    private
     fun Project.createDistributedPerformanceTestTask(
         name: String,
         performanceSourceSet: SourceSet,
@@ -170,33 +319,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 }
             }
         }
-
-    private
-    fun Project.createLocalPerformanceTestTasks(
-        performanceSourceSet: SourceSet,
-        prepareSamplesTask: Task,
-        performanceReportTask: PerformanceReport) {
-
-        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask)
-                .configure()
-        }
-
-        create("performanceTest") {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
-        }
-
-        create("performanceExperiment") {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
-        }
-
-        create("fullPerformanceTest")
-
-        create("performanceAdhocTest") {
-            systemProperty(PropertyNames.dbUrl, Config.adHocTestDbUrl)
-            channel = "adhoc"
-        }
-    }
 
     private
     fun Project.createLocalPerformanceTestTask(
@@ -250,10 +372,8 @@ class PerformanceTestPlugin : Plugin<Project> {
                 includeEmptyDirs = false
                 eachFile {
                     try {
-                        val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-                        val testsElement = xmlDoc.getElementsByTagName("tests").item(0)
-                        val skippedElement = xmlDoc.getElementsByTagName("skipped").item(0)
-                        if (testsElement.textContent == skippedElement.textContent) {
+                        // skip files where all tests were skipped
+                        if (allTestsWereSkipped(file)) {
                             exclude()
                         }
                     } catch (e: Exception) {
@@ -261,7 +381,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     }
                 }
                 from(performanceTest.debugArtifactsDirectory)
-                destinationDir = project.buildDir
+                destinationDir = buildDir
                 archiveName = "test-results-${junitXmlDir.name}.zip"
             }
         }
@@ -283,13 +403,13 @@ class PerformanceTestPlugin : Plugin<Project> {
             requiresBinZip = true
             requiresLibsRepo = true
             maxParallelForks = 1
-            finalizedBy(performanceReportTask)
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
                 systemProperty(PropertyNames.baselines, baselines)
             }
 
             dependsOn(prepareSamplesTask)
+            finalizedBy(performanceReportTask)
 
             mustRunAfter(tasks.withType<ProjectGeneratorTask>())
             mustRunAfter(tasks.withType<RemoteProject>())
@@ -304,126 +424,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.createPerformanceReportTask(performanceTestSourceSet: SourceSet): PerformanceReport =
-        tasks.create<PerformanceReport>("performanceReport") {
-            systemProperties(propertiesForPerformanceDb())
-            classpath = performanceTestSourceSet.runtimeClasspath
-            resultStoreClass = "org.gradle.performance.results.AllResultsStore"
-            reportDir = buildDir / Config.performanceTestReportsDir
-            outputs.upToDateWhen { false }
-        }
-
-    private
     fun Project.propertiesForPerformanceDb(): Map<String, String> =
         selectStringProperties(
             PropertyNames.dbUrl,
             PropertyNames.dbUsername,
             PropertyNames.dbPassword)
-
-    private
-    fun Project.createCleanSamplesTask(): Task =
-        tasks.create<Delete>("cleanSamples") {
-            delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
-            delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
-            delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
-        }
-
-    private
-    fun Project.createPrepareSamplesTask(): Task =
-        tasks.create("prepareSamples") {
-            group = "Project Setup"
-            description = "Generates all sample projects for automated performance tests"
-            dependsOn(tasks.withType<ProjectGeneratorTask>())
-            dependsOn(tasks.withType<RemoteProject>())
-            dependsOn(tasks.withType<JavaExecProjectGeneratorTask>())
-        }
-
-    private
-    fun Project.configureGeneratorTasks() {
-        tasks.withType<ProjectGeneratorTask> {
-            group = "Project setup"
-        }
-        tasks.withType<TemplateProjectGeneratorTask> {
-            sharedTemplateDirectory = project.project(":internalPerformanceTesting").file("src/templates")
-        }
-        tasks.withType<AbstractProjectGeneratorTask> {
-            (project.findProperty("maxProjects") as? Int)?.let { maxProjects ->
-                setProjects(maxProjects)
-            }
-        }
-        tasks.withType<JvmProjectGeneratorTask> {
-            testDependencies = configurations["junit"]
-        }
-    }
-
-    private
-    fun Project.createCheckNoIdenticalBuildFilesTask() {
-        tasks.create("checkNoIdenticalBuildFiles") {
-            doLast {
-                val filesBySha1 = mutableMapOf<String, MutableList<File>>()
-                buildDir.walkTopDown().forEach { file ->
-                    if (file.name.endsWith(".gradle")) {
-                        val sha1 = sha1StringFor(file)
-                        val files = filesBySha1[sha1]
-                        when (files) {
-                            null -> filesBySha1[sha1] = mutableListOf(file)
-                            else -> files.add(file)
-                        }
-
-                    }
-                }
-
-                filesBySha1.forEach { hash, candidates ->
-                    if (candidates.size > 1) {
-                        println("Duplicate build files found for hash '$hash' : $candidates")
-                    }
-                }
-            }
-        }
-    }
-
-    private
-    fun Project.addConfigurationAndDependencies() {
-        configurations {
-
-            val testCompile by getting
-
-            "performanceTestCompile" {
-                extendsFrom(testCompile)
-            }
-
-            val testRuntime by getting
-
-            "performanceTestRuntime" {
-                extendsFrom(testRuntime)
-            }
-
-            val performanceTestRuntimeClasspath by getting
-
-            "partialDistribution" {
-                extendsFrom(performanceTestRuntimeClasspath)
-            }
-
-            "junit" {
-            }
-        }
-
-        dependencies {
-            "performanceTestCompile"(project(":internalPerformanceTesting"))
-            "junit"("junit:junit:4.12")
-        }
-    }
-
-    private
-    fun Project.createPerformanceTestSourceSet(): SourceSet = java.sourceSets.run {
-        val main by getting
-        val test by getting
-        val performanceTest by creating {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-        }
-        performanceTest
-    }
 }
 
 
@@ -441,6 +446,15 @@ open class PerformanceReport : JavaExec() {
         args = listOf(resultStoreClass, reportDir.path)
         super.exec()
     }
+}
+
+
+internal
+fun allTestsWereSkipped(junitXmlFile: File): Boolean {
+    val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(junitXmlFile)
+    val testsElement = xmlDoc.getElementsByTagName("tests").item(0)
+    val skippedElement = xmlDoc.getElementsByTagName("skipped").item(0)
+    return testsElement.textContent == skippedElement.textContent
 }
 
 
