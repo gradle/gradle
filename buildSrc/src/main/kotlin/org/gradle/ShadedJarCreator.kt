@@ -2,8 +2,6 @@ package org.gradle
 
 import org.gradle.internal.exceptions.Contextual
 
-import com.google.common.io.ByteStreams
-
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
@@ -23,46 +21,57 @@ import java.nio.file.FileVisitor
 import java.nio.file.FileVisitResult
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.HashMap
-import java.util.HashSet
-import java.util.LinkedHashMap
-import java.util.LinkedHashSet
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
 
-open class ShadedJarCreator(val sourceJars: Iterable<File>, val jarFile: File, val analysisFile: File, val classesDir: File, val shadowPackage: String, val keepPackages: Set<String>, val unshadedPackages: Set<String>, val ignorePackages: Set<String>) {
+private
+val ignoredPackagePatterns = PackagePatterns(setOf("java"))
+
+
+open class ShadedJarCreator(
+    private val sourceJars: Iterable<File>,
+    private val jarFile: File,
+    private val analysisFile: File,
+    private val classesDir: File,
+    private val shadowPackage: String,
+    private val keepPackages: Set<String>,
+    private val unshadedPackages: Set<String>,
+    private val ignorePackages: Set<String>) {
+
     fun createJar() {
         val start = System.currentTimeMillis()
-        var writer: PrintWriter? = null
-        try {
-            writer = PrintWriter(analysisFile)
-            val classes = ClassGraph(PackagePatterns(keepPackages), PackagePatterns(unshadedPackages), PackagePatterns(ignorePackages), shadowPackage)
+        PrintWriter(analysisFile).use { writer ->
+            val classes = classGraph()
             analyse(classes, writer)
             writeJar(classes, classesDir, jarFile, writer)
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        } finally {
-            if (writer != null) {
-                writer.close()
-            }
         }
         val end = System.currentTimeMillis()
         println("Analysis took " + (end - start) + "ms.")
     }
 
-    private fun analyse(classes: ClassGraph, writer: PrintWriter) {
-        val ignored = PackagePatterns(setOf("java"))
+    private
+    fun classGraph() =
+        ClassGraph(
+            PackagePatterns(keepPackages),
+            PackagePatterns(unshadedPackages),
+            PackagePatterns(ignorePackages),
+            shadowPackage)
 
+    private
+    fun analyse(classes: ClassGraph, writer: PrintWriter) =
         sourceJars.forEach {
-            FileSystems.newFileSystem(URI.create("jar:" + it.toPath().toUri()), HashMap<String, Any>()).rootDirectories.forEach {
-                visitClassDirectory(it, classes, ignored, writer)
+            val jarUri = URI.create("jar:" + it.toPath().toUri())
+            FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
+                jarFileSystem.rootDirectories.forEach {
+                    visitClassDirectory(it, classes, ignoredPackagePatterns, writer)
+                }
             }
         }
-    }
 
-    private fun visitClassDirectory(dir: Path, classes: ClassGraph, ignored: PackagePatterns, writer: PrintWriter) {
+    private
+    fun visitClassDirectory(dir: Path, classes: ClassGraph, ignored: PackagePatterns, writer: PrintWriter) {
         Files.walkFileTree(dir, object : FileVisitor<Path> {
             private var seenManifest: Boolean = false
 
@@ -74,7 +83,7 @@ open class ShadedJarCreator(val sourceJars: Iterable<File>, val jarFile: File, v
                 writer.print(file.fileName.toString() + ": ")
                 if (file.toString().endsWith(".class")) {
                     try {
-                        var reader = ClassReader(Files.newInputStream(file))
+                        val reader = ClassReader(Files.newInputStream(file))
                         val details = classes[reader.className]
                         details.visited = true
                         val classWriter = ClassWriter(0)
@@ -92,7 +101,7 @@ open class ShadedJarCreator(val sourceJars: Iterable<File>, val jarFile: File, v
                         }), ClassReader.EXPAND_FRAMES)
 
                         writer.println("mapped class name: " + details.outputClassName)
-                        val outputFile = File(classesDir, details.outputClassName + ".class")
+                        val outputFile = classesDir.resolve(details.outputClassFilename)
                         outputFile.parentFile.mkdirs()
                         outputFile.writeBytes(classWriter.toByteArray())
                     } catch (exception: Exception) {
@@ -115,13 +124,14 @@ open class ShadedJarCreator(val sourceJars: Iterable<File>, val jarFile: File, v
                 return FileVisitResult.TERMINATE
             }
 
-            override fun postVisitDirectory(dir: Path, exc: IOException): FileVisitResult {
+            override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
                 return FileVisitResult.CONTINUE
             }
         })
     }
 
-    private fun writeJar(classes: ClassGraph, classesDir: File, jarFile: File, writer: PrintWriter) {
+    private
+    fun writeJar(classes: ClassGraph, classesDir: File, jarFile: File, writer: PrintWriter) {
         try {
             writer.println()
             writer.println("CLASS GRAPH")
@@ -130,103 +140,129 @@ open class ShadedJarCreator(val sourceJars: Iterable<File>, val jarFile: File, v
                 if (classes.manifest != null) {
                     addJarEntry(classes.manifest!!.resourceName, classes.manifest!!.sourceFile, jarOutputStream)
                 }
-                val visited = LinkedHashSet<ClassDetails>()
+                val visited = linkedSetOf<ClassDetails>()
                 for (classDetails in classes.entryPoints) {
                     visitTree(classDetails, classesDir, jarOutputStream, writer, "- ", visited)
                 }
                 for (resource in classes.resources) {
                     addJarEntry(resource.resourceName, resource.sourceFile, jarOutputStream)
                 }
-                jarOutputStream.close()
             }
         } catch (exception: Exception) {
-            throw ClassAnalysisException("Could not write shaded Jar " + jarFile, exception)
+            throw ClassAnalysisException("Could not write shaded Jar $jarFile", exception)
         }
-
     }
 
-    private fun visitTree(classDetails: ClassDetails, classesDir: File, jarOutputStream: JarOutputStream, writer: PrintWriter, prefix: String, visited: MutableSet<ClassDetails>) {
+    private
+    fun visitTree(
+        classDetails: ClassDetails,
+        classesDir: File,
+        jarOutputStream: JarOutputStream,
+        writer: PrintWriter,
+        prefix: String,
+        visited: MutableSet<ClassDetails>) {
+
         if (!visited.add(classDetails)) {
             return
         }
         if (classDetails.visited) {
             writer.println(prefix + classDetails.className)
-            val fileName = classDetails.outputClassName + ".class"
-            val classFile = File(classesDir, fileName)
+            val fileName = classDetails.outputClassFilename
+            val classFile = classesDir.resolve(fileName)
             addJarEntry(fileName, classFile, jarOutputStream)
             for (dependency in classDetails.dependencies) {
-                val childPrefix = "  " + prefix
+                val childPrefix = prefix.prependIndent("  ")
                 visitTree(dependency, classesDir, jarOutputStream, writer, childPrefix, visited)
             }
         } else {
-            writer.println(prefix + classDetails.className + " (not included)")
+            writer.println("$prefix${classDetails.className} (not included)")
         }
     }
 
-    private fun addJarEntry(entryName: String, sourceFile: File, jarOutputStream: JarOutputStream) {
+    private
+    fun addJarEntry(entryName: String, sourceFile: File, jarOutputStream: JarOutputStream) {
         jarOutputStream.putNextEntry(ZipEntry(entryName))
-        BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> ByteStreams.copy(inputStream, jarOutputStream) }
+        BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(jarOutputStream) }
         jarOutputStream.closeEntry()
     }
+}
 
-    private class ClassGraph(internal val keepPackages: PackagePatterns, internal val unshadedPackages: PackagePatterns, internal val ignorePackages: PackagePatterns, shadowPackage: String) {
-        internal val classes: MutableMap<String, ClassDetails> = LinkedHashMap()
-        internal val entryPoints: MutableSet<ClassDetails> = LinkedHashSet()
-        internal val resources: MutableSet<ResourceDetails> = LinkedHashSet()
-        internal var manifest: ResourceDetails? = null
-        internal val shadowPackagePrefix = if (shadowPackage.isEmpty()) "" else shadowPackage.replace('.', '/') + "/"
 
-        fun addResource(resource: ResourceDetails) {
-            resources.add(resource)
-        }
+private
+class ClassGraph(
+    private val keepPackages: PackagePatterns,
+    val unshadedPackages: PackagePatterns,
+    private val ignorePackages: PackagePatterns,
+    shadowPackage: String) {
 
-        operator fun get(className: String): ClassDetails {
-            var classDetails: ClassDetails? = classes[className]
-            if (classDetails == null) {
-                classDetails = ClassDetails(className, if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className)
+    private
+    val classes: MutableMap<String, ClassDetails> = linkedMapOf()
+
+    val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
+    val resources: MutableSet<ResourceDetails> = linkedSetOf()
+    var manifest: ResourceDetails? = null
+
+    internal
+    val shadowPackagePrefix =
+        if (shadowPackage.isEmpty()) ""
+        else shadowPackage.replace('.', '/') + "/"
+
+    fun addResource(resource: ResourceDetails) {
+        resources.add(resource)
+    }
+
+    operator fun get(className: String) =
+        classes.computeIfAbsent(className) {
+            val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
+            ClassDetails(className, outputClassName).also { classDetails ->
                 classes[className] = classDetails
                 if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
                     entryPoints.add(classDetails)
                 }
             }
-            return classDetails
+        }
+}
+
+private
+class ResourceDetails(val resourceName: String, val sourceFile: File)
+
+private
+class ClassDetails(val className: String, val outputClassName: String) {
+    var visited: Boolean = false
+    val dependencies: MutableSet<ClassDetails> = linkedSetOf()
+    val outputClassFilename
+        get() = "$outputClassName.class"
+}
+
+private
+class PackagePatterns(givenPrefixes: Set<String>) {
+
+    private
+    val prefixes: MutableSet<String> = hashSetOf()
+
+    private
+    val names: MutableSet<String> = hashSetOf()
+
+    init {
+        givenPrefixes.map { it.replace('.', '/') }.forEach { internalName ->
+            names.add(internalName)
+            prefixes.add("$internalName/")
         }
     }
 
-    private class ResourceDetails(internal val resourceName: String, internal val sourceFile: File)
-
-    private class ClassDetails(internal val className: String, internal val outputClassName: String) {
-        internal var visited: Boolean = false
-        internal val dependencies: MutableSet<ClassDetails> = LinkedHashSet()
-    }
-
-    private class PackagePatterns(prefixes: Set<String>) {
-        private val prefixes = HashSet<String>()
-        private val names = HashSet<String>()
-
-        init {
-            for (prefix in prefixes) {
-                val internalName = prefix.replace('.', '/')
-                this.names.add(internalName)
-                this.prefixes.add(internalName + "/")
-            }
+    fun matches(packageName: String): Boolean {
+        if (names.contains(packageName)) {
+            return true
         }
-
-        fun matches(packageName: String): Boolean {
-            if (names.contains(packageName)) {
+        for (prefix in prefixes) {
+            if (packageName.startsWith(prefix)) {
+                names.add(packageName)
                 return true
             }
-            for (prefix in prefixes) {
-                if (packageName.startsWith(prefix)) {
-                    names.add(packageName)
-                    return true
-                }
-            }
-            return false
         }
+        return false
     }
-
-    @Contextual
-    class ClassAnalysisException(message: String, cause: Throwable) : RuntimeException(message, cause)
-
 }
+
+@Contextual
+class ClassAnalysisException(message: String, cause: Throwable) : RuntimeException(message, cause)
