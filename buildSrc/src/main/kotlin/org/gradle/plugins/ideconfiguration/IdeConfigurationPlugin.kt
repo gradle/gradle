@@ -239,7 +239,7 @@ class IdeConfigurationPlugin : Plugin<Project> {
 
     @Suppress("UNCHECKED_CAST")
     private fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
-        val ideaLanguageLevel = if ((rootProject.findProperty("projectsRequiringJava8") as List<String>).contains(ideaModule.project.path)) "1.8" else "1.6"
+        val ideaLanguageLevel = if ((findProperty("projectsRequiringJava8") as List<Project>).contains(ideaModule.project)) "1.8" else "1.6"
         // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.VERSION_1_6

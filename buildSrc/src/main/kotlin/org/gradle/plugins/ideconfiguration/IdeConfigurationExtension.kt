@@ -25,9 +25,6 @@ open class IdeConfigurationExtension(val project: Project) {
             module {
                 testSourceDirs = testSourceDirs + sourceDirs
                 sourceDirs = emptySet()
-                println("Project $project")
-                println("Test $testSourceDirs")
-                println("Source $sourceDirs")
             }
         }
     }
