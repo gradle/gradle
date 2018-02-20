@@ -21,6 +21,7 @@ if (isSupportedJavaVersion(currentJavaVersion)) {
             "GradlePropertiesToolingApiCrossVersionSpec": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10], // "tooling api honours jvm args specified in gradle.properties"
 
             // Broken scala and twirl compilation
+            // Play does not fully support Java 9 yet (https://github.com/playframework/playframework/issues/7879)
             "MixedPlayAndJvmLibraryProjectIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
             "PlayAppWithFailingTestsIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
             "PlayMultiProjectApplicationIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
