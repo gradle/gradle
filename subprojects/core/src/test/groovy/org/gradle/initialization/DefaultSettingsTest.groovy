@@ -33,8 +33,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import spock.lang.Specification
 
-import java.lang.reflect.Type
-
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 
 class DefaultSettingsTest extends Specification {
