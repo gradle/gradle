@@ -16,34 +16,31 @@ import java.util.concurrent.Callable
 
 @CacheableTask
 open class PatchExternalModules : DefaultTask() {
+
     @Internal
     lateinit var modulesToPatch: Configuration
 
-    @Input
-    fun getNamesOfModulesToPatch(): Set<String> {
-        return modulesToPatch.dependencies.map { it.name }.toSet()
-    }
+    @get:Input
+    val namesOfModulesToPatch: Set<String>
+        get() = modulesToPatch.dependencies.map { it.name }.toSet()
 
     @Internal
     lateinit var allModules: Configuration
 
-    @Input
-    fun getFileNamesOfAllModules(): Set<String> {
-        return allModules.incoming.artifacts.map { it.file.name }.toSet()
-    }
+    @get:Input
+    val fileNamesOfAllModules: Set<String>
+        get() = allModules.incoming.artifacts.map { it.file.name }.toSet()
 
     @Internal
     lateinit var coreModules: Configuration
 
-    @Input
-    fun getFileNamesOfCoreModules(): Set<String> {
-        return coreModules.incoming.artifacts.map { it.file.name }.toSet()
-    }
+    @get:Input
+    val fileNamesOfCoreModules
+        get() = coreModules.incoming.artifacts.map { it.file.name }.toSet()
 
-    @Classpath
-    fun getExternalModules(): FileCollection {
-        return allModules.minus(coreModules)
-    }
+    @get:Classpath
+    val externalModules: FileCollection
+        get() = allModules.minus(coreModules)
 
     @OutputDirectory
     lateinit var destination: File
@@ -56,11 +53,11 @@ open class PatchExternalModules : DefaultTask() {
     @TaskAction
     fun patch() {
         project.sync {
-            this.from(getExternalModules())
-            this.into(destination)
+            from(externalModules)
+            into(destination)
         }
 
-        ClasspathManifestPatcher(project.rootProject, temporaryDir, allModules, getNamesOfModulesToPatch())
+        ClasspathManifestPatcher(project.rootProject, temporaryDir, allModules, namesOfModulesToPatch)
             .writePatchedFilesTo(destination)
 
         // TODO: Should this be configurable?
