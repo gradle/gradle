@@ -29,32 +29,51 @@ import java.util.concurrent.Callable
 import javax.xml.parsers.DocumentBuilderFactory
 
 
-private const val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
-private const val reportGeneratorClassName = "org.gradle.performance.results.ReportGenerator"
-private const val urlProperty = "org.gradle.performance.db.url"
-private const val workerTestTaskNameProperty = "org.gradle.performance.workerTestTaskName"
-private const val teamCityUserNameProperty = "teamCityUsername"
-private const val teamCityPasswordProperty = "teamCityPassword"
-private const val teamCityUrlValue = "https://builds.gradle.org/"
-private const val yourkitProperty = "org.gradle.performance.use_yourkit"
-private const val honestProfilerProperty = "org.gradle.performance.honestprofiler"
-private const val channelProperty = "org.gradle.performance.execution.channel"
-private const val coordinatorBuildIdProperty = "org.gradle.performance.coordinatorBuildId"
-private const val performanceTestVerboseProperty = "performanceTest.verbose"
-private const val baselinesProperty = "org.gradle.performance.baselines"
-private const val buildTypeIdProperty = "org.gradle.performance.buildTypeId"
-private const val dbUsernameProperty = "org.gradle.performance.db.username"
-private const val dbPasswordProperty = "org.gradle.performance.db.password"
-private const val branchnameProperty = "org.gradle.performance.branchName"
+private
+object PropertyNames {
 
-private val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last")
-private const val resultsStoreClassName = "org.gradle.performance.results.AllResultsStore"
+    const val dbUrl = "org.gradle.performance.db.url"
+    const val dbUsername = "org.gradle.performance.db.username"
+    const val dbPassword = "org.gradle.performance.db.password"
 
-private const val performanceTestsReportDir = "performance-tests/report"
-private const val h2DatabaseUrl = "jdbc:h2:./build/database"
-private const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
-private const val performanceTestScenarioReportFileName = "/performance-tests/scenario-report.html"
+    const val useYourkit = "org.gradle.performance.use_yourkit"
+    const val honestProfiler = "org.gradle.performance.honestprofiler"
 
+    const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
+    const val channel = "org.gradle.performance.execution.channel"
+    const val coordinatorBuildId = "org.gradle.performance.coordinatorBuildId"
+    const val performanceTestVerbose = "performanceTest.verbose"
+    const val baselines = "org.gradle.performance.baselines"
+    const val buildTypeId = "org.gradle.performance.buildTypeId"
+    const val branchName = "org.gradle.performance.branchName"
+
+    const val teamCityUsername = "teamCityUsername"
+    const val teamCityPassword = "teamCityPassword"
+}
+
+
+private
+object Config {
+
+    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last")
+
+    const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
+
+    const val performanceTestScenarioReportFileName = "performance-tests/scenario-report.html"
+
+    const val performanceTestReportsDir = "performance-tests/report"
+
+    const val teamCityUrl = "https://builds.gradle.org/"
+
+    const val adHocTestDbUrl = "jdbc:h2:./build/database"
+}
+
+
+private
+const val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
+
+
+@Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -108,16 +127,21 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: Task,
         performanceReportTask: PerformanceReport) {
 
-        createDistributedPerformanceTestTask("distributedPerformanceTest", performanceSourceSet, prepareSamplesTask, performanceReportTask).apply {
+        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
+            createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask)
+                .configure()
+        }
+
+        create("distributedPerformanceTest") {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             channel = "commits"
         }
-        createDistributedPerformanceTestTask("distributedPerformanceExperiment", performanceSourceSet, prepareSamplesTask, performanceReportTask).apply {
+        create("distributedPerformanceExperiment") {
             (options as JUnitOptions).includeCategories(performanceExperimentCategory)
             channel = "experiments"
         }
-        createDistributedPerformanceTestTask("distributedFullPerformanceTest", performanceSourceSet, prepareSamplesTask, performanceReportTask).apply {
-            baselines = baseLineList.toString()
+        create("distributedFullPerformanceTest") {
+            baselines = Config.baseLineList.toString()
             checks = "none"
             channel = "historical"
         }
@@ -132,15 +156,15 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         tasks.create<DistributedPerformanceTest>(name) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
-            scenarioList = file("$buildDir/$performanceTestScenarioListFileName")
-            scenarioReport = file("$buildDir$performanceTestScenarioReportFileName")
-            buildTypeId = stringPropertyOrNull(buildTypeIdProperty)
-            workerTestTaskName = stringPropertyOrNull(workerTestTaskNameProperty) ?: "fullPerformanceTest"
-            coordinatorBuildId = stringPropertyOrNull(coordinatorBuildIdProperty)
-            branchName = stringPropertyOrNull(branchnameProperty)
-            teamCityUrl = teamCityUrlValue
-            teamCityUsername = stringPropertyOrNull(teamCityUserNameProperty)
-            teamCityPassword = stringPropertyOrNull(teamCityPasswordProperty)
+            scenarioList = buildDir / Config.performanceTestScenarioListFileName
+            scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
+            buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
+            workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
+            coordinatorBuildId = stringPropertyOrNull(PropertyNames.coordinatorBuildId)
+            branchName = stringPropertyOrNull(PropertyNames.branchName)
+            teamCityUrl = Config.teamCityUrl
+            teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
+            teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
             afterEvaluate {
                 branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
                     channel = channel + "-" + branchName
@@ -170,7 +194,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("fullPerformanceTest")
 
         create("performanceAdhocTest") {
-            systemProperty(urlProperty, h2DatabaseUrl)
+            systemProperty(PropertyNames.dbUrl, Config.adHocTestDbUrl)
             channel = "adhoc"
         }
     }
@@ -188,19 +212,19 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
 
-            if (project.hasProperty(yourkitProperty)) {
+            if (project.hasProperty(PropertyNames.useYourkit)) {
                 testLogging.showStandardStreams = true
-                systemProperties[yourkitProperty] = "1"
+                systemProperties[PropertyNames.useYourkit] = "1"
                 outputs.upToDateWhen { false }
             }
-            if (project.hasProperty(honestProfilerProperty)) {
-                systemProperties[honestProfilerProperty] = "1"
+            if (project.hasProperty(PropertyNames.honestProfiler)) {
+                systemProperties[PropertyNames.honestProfiler] = "1"
             }
-            if (project.hasProperty(performanceTestVerboseProperty)) {
+            if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
             }
 
-            val testResultsZipTask = testResultsZipTaskFor(this,  name)
+            val testResultsZipTask = testResultsZipTaskFor(this, name)
             finalizedBy(testResultsZipTask)
             val cleanTestResultsZipTask = tasks.create<Delete>("clean${testResultsZipTask.name.capitalize()}") {
                 delete(testResultsZipTask.archivePath)
@@ -262,8 +286,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
             finalizedBy(performanceReportTask)
 
-            project.findProperty(baselinesProperty)?.let { baselines ->
-                systemProperty(baselinesProperty, baselines)
+            project.findProperty(PropertyNames.baselines)?.let { baselines ->
+                systemProperty(PropertyNames.baselines, baselines)
             }
 
             dependsOn(prepareSamplesTask)
@@ -274,7 +298,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             doFirst {
                 if (channel != null) {
-                    performanceReportTask.systemProperty(channelProperty, channel)
+                    performanceReportTask.systemProperty(PropertyNames.channel, channel)
                 }
             }
         }
@@ -285,14 +309,17 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.create<PerformanceReport>("performanceReport") {
             systemProperties(propertiesForPerformanceDb())
             classpath = performanceTestSourceSet.runtimeClasspath
-            resultStoreClass = resultsStoreClassName
-            reportDir = File(buildDir, performanceTestsReportDir)
+            resultStoreClass = "org.gradle.performance.results.AllResultsStore"
+            reportDir = buildDir / Config.performanceTestReportsDir
             outputs.upToDateWhen { false }
         }
 
     private
     fun Project.propertiesForPerformanceDb(): Map<String, String> =
-        selectStringProperties(urlProperty, dbUsernameProperty, dbPasswordProperty)
+        selectStringProperties(
+            PropertyNames.dbUrl,
+            PropertyNames.dbUsername,
+            PropertyNames.dbPassword)
 
     private
     fun Project.createCleanSamplesTask(): Task =
@@ -394,11 +421,20 @@ open class PerformanceReport : JavaExec() {
 
     @TaskAction
     override fun exec() {
-        main = reportGeneratorClassName
+        main = "org.gradle.performance.results.ReportGenerator"
         args = listOf(resultStoreClass, reportDir.path)
         super.exec()
     }
 }
+
+
+/**
+ * `dir / "sub"` is the same as `dir.resolve("sub")`.
+ *
+ * @see [File.resolve]
+ */
+operator fun File.div(child: String): File =
+    resolve(child)
 
 
 private
