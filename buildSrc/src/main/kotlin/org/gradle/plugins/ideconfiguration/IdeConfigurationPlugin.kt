@@ -35,7 +35,7 @@ import org.jsoup.parser.Parser
 import java.io.File
 
 internal
-val ideConfigurationBaseName = "ideConfiguration"
+const val ideConfigurationBaseName = "ideConfiguration"
 
 
 class IdeConfigurationPlugin : Plugin<Project> {
@@ -242,7 +242,7 @@ class IdeConfigurationPlugin : Plugin<Project> {
         val ideaLanguageLevel = if ((findProperty("projectsRequiringJava8") as List<Project>).contains(ideaModule.project)) "1.8" else "1.6"
         // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
-        ideaModule.targetBytecodeVersion = JavaVersion.VERSION_1_6
+        ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
 
     private fun removeGradleBuildOutputDirectories(module: Module) {

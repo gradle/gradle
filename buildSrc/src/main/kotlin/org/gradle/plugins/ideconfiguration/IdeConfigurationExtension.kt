@@ -28,6 +28,4 @@ open class IdeConfigurationExtension(val project: Project) {
             }
         }
     }
-
-
 }
