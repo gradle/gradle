@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskInputs
 import org.jsoup.nodes.Document
 
+import org.gradle.kotlin.dsl.*
 
 private
 val DEFAULT_TRANSFORM_EXTENSIONS = listOf("html")
@@ -63,6 +64,6 @@ open class JsoupCopyExtension(private val task: Copy) {
 
     fun transformDocument(extensions: List<String>, action: Action<Document>) =
         transform(extensions, Action {
-            action.execute(document)
+            action(document)
         })
 }

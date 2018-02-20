@@ -22,6 +22,8 @@ import java.io.FilterReader
 import java.io.Reader
 import java.io.StringReader
 
+import org.gradle.kotlin.dsl.*
+
 
 internal
 class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(reader)) {
@@ -48,7 +50,7 @@ class DeferringReader(private val source: Reader) : Reader() {
         if (delegate == null) {
             val document = Jsoup.parse(source.readText())
             val target = JsoupTransformTarget(document, parent.fileCopyDetails)
-            parent.action.execute(target)
+            parent.action(target)
             delegate = StringReader(document.toString())
         }
 
