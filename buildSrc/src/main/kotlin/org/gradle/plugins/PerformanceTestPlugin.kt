@@ -270,24 +270,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.propertiesForPerformanceDb(): Map<String, String> {
-        val properties = mutableMapOf<String, String>()
-        val url = stringPropertyOrNull(urlProperty)
-        if (url != null) {
-            properties[urlProperty] = url
-        }
-        val username = stringPropertyOrNull(dbUsernameProperty)
-        if (username != null) {
-            properties[dbUsernameProperty] = username
-        }
-        val password = stringPropertyOrNull(dbPasswordProperty)
-        if (password != null) {
-            properties[dbPasswordProperty] = password
-        }
-        return properties
-    }
-
-    private
     fun Project.createPerformanceReportTask(performanceTestSourceSet: SourceSet): PerformanceReport =
         tasks.create<PerformanceReport>("performanceReport") {
             systemProperties(propertiesForPerformanceDb())
@@ -296,6 +278,10 @@ class PerformanceTestPlugin : Plugin<Project> {
             reportDir = File(buildDir, performanceTestsReportDir)
             outputs.upToDateWhen { false }
         }
+
+    private
+    fun Project.propertiesForPerformanceDb(): Map<String, String> =
+        selectStringProperties(urlProperty, dbUsernameProperty, dbPasswordProperty)
 
     private
     fun Project.createCleanSamplesTask(): Task =
@@ -406,3 +392,10 @@ fun <T> deferred(value: () -> T): Any =
 fun Project.stringPropertyOrNull(projectPropertyName: String): String? =
     project.findProperty(projectPropertyName) as? String
 
+
+fun Project.selectStringProperties(vararg propertyNames: String): Map<String, String> =
+    propertyNames.mapNotNull { propertyName ->
+        stringPropertyOrNull(propertyName)?.let { propertyValue ->
+            propertyName to propertyValue
+        }
+    }.toMap()
