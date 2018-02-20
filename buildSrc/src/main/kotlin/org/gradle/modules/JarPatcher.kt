@@ -33,56 +33,64 @@ import java.io.File
  *     <li>an old version of `jansi`.</li>
  * </ul>
  */
-open class JarPatcher(val project: Project, val temporaryDir: File, val runtime: Configuration, val jarFile: String) {
+internal
+class JarPatcher(
+    private val project: Project,
+    private val temporaryDir: File,
+    private val runtime: Configuration,
+    private val jarFile: String) {
+
+    private
     var excludedEntries = mutableListOf<String>()
+
+    private
     var includedJars = mutableMapOf<String, List<String>>()
 
-    fun exclude(exclude: String): JarPatcher {
+    fun exclude(exclude: String) = this.also {
         excludedEntries.add(exclude)
-        return this
     }
 
-    fun includeJar(includedJar: String, vararg includes: String): JarPatcher {
-        includedJars.put(includedJar, includes.asList())
-        return this
+    fun includeJar(includedJar: String, vararg includes: String) = this.also {
+        includedJars[includedJar] = includes.asList()
     }
 
     fun writePatchedFilesTo(outputDir: File) {
-        val originalFile = runtime.files.single { it.name.startsWith(jarFile) }
         val unpackDir = unpack(originalFile)
-
-        val patchedFile = File(outputDir, originalFile.name)
-        pack(unpackDir, patchedFile)
+        pack(unpackDir, outputDir.resolve(originalFile.name))
     }
 
-    private fun unpack(file: File): File {
-        val unpackDir = File(temporaryDir, "excluding-" + file.name)
-        project.sync({
-            this.into(unpackDir)
-            this.from(project.zipTree(file))
-            this.exclude(excludedEntries)
-        })
-        return unpackDir
+    private
+    val originalFile
+        get() = runtime.files.single { it.name.startsWith(jarFile) }
+
+    private
+    fun unpack(file: File) = project.run {
+        temporaryDir.resolve("excluding-${file.name}").also { unpackDir ->
+            sync {
+                into(unpackDir)
+                from(zipTree(file))
+                exclude(excludedEntries)
+            }
+        }
     }
 
-    private fun pack(baseDir: File, destFile: File) {
+    private
+    fun pack(baseDir: File, destFile: File): Unit = project.run {
         val resolvedIncludes = mutableMapOf<File, List<String>>()
         includedJars.forEach { jarPrefix, includes ->
             runtime.files.filter { it.name.startsWith(jarPrefix) }.forEach { includedJar ->
-                resolvedIncludes.put(includedJar, includes)
+                resolvedIncludes[includedJar] = includes
             }
         }
-        project.copy({
-            this.into(baseDir)
+        copy {
+            into(baseDir)
             resolvedIncludes.forEach { sourceJar, includes ->
-                this.from(project.zipTree(sourceJar), {
-                    includes.forEach { include ->
-                        this.include(include)
-                    }
-                })
+                from(zipTree(sourceJar)) {
+                    includes.forEach { include(it) }
+                }
             }
-        })
-        project.ant.withGroovyBuilder {
+        }
+        ant.withGroovyBuilder {
             "zip"("basedir" to baseDir, "destfile" to destFile)
         }
     }
