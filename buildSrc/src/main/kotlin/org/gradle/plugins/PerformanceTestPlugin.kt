@@ -152,13 +152,22 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: Task,
         performanceReportTask: PerformanceReport) {
 
-        (createLocalPerformanceTestTask("performanceTest", performanceSourceSet, prepareSamplesTask, performanceReportTask).options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
+            createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask)
+                .configure()
+        }
 
-        (createLocalPerformanceTestTask("performanceExperiment", performanceSourceSet, prepareSamplesTask, performanceReportTask).options as JUnitOptions).includeCategories(performanceExperimentCategory)
+        create("performanceTest") {
+            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+        }
 
-        createLocalPerformanceTestTask("fullPerformanceTest", performanceSourceSet, prepareSamplesTask, performanceReportTask)
+        create("performanceExperiment") {
+            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+        }
 
-        createLocalPerformanceTestTask("performanceAdhocTest", performanceSourceSet, prepareSamplesTask, performanceReportTask).apply {
+        create("fullPerformanceTest")
+
+        create("performanceAdhocTest") {
             systemProperty(urlProperty, h2DatabaseUrl)
             channel = "adhoc"
         }
