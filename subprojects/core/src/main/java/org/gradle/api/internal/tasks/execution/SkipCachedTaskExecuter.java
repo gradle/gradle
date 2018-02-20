@@ -30,6 +30,9 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
+import org.gradle.caching.internal.version2.BuildCacheControllerV2;
+import org.gradle.caching.internal.version2.TaskOutputCacheCommandFactoryV2;
+import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,17 +46,28 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
     private final TaskOutputChangesListener taskOutputChangesListener;
     private final TaskOutputCacheCommandFactory buildCacheCommandFactory;
+    private final TaskOutputCacheCommandFactoryV2 buildCacheCommandFactoryV2;
+    private final BuildCacheControllerV2 buildCacheV2;
+    private final boolean useVersion2;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
+        BuildCacheControllerV2 buildCacheV2,
         TaskOutputChangesListener taskOutputChangesListener,
         TaskOutputCacheCommandFactory buildCacheCommandFactory,
+        TaskOutputCacheCommandFactoryV2 buildCacheCommandFactoryV2,
         TaskExecuter delegate
     ) {
         this.taskOutputChangesListener = taskOutputChangesListener;
         this.buildCacheCommandFactory = buildCacheCommandFactory;
+        this.buildCacheCommandFactoryV2 = buildCacheCommandFactoryV2;
         this.buildCache = buildCache;
+        this.buildCacheV2 = buildCacheV2;
         this.delegate = delegate;
+        this.useVersion2 = Boolean.getBoolean("org.gradle.caching.version2");
+        if (useVersion2) {
+            SingleMessageLogger.incubatingFeatureUsed("Build cache version 2");
+        }
     }
 
     @Override
@@ -76,9 +90,16 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 outputProperties = TaskPropertyUtils.resolveFileProperties(taskProperties.getOutputFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
-                        OriginTaskExecutionMetadata originMetadata = buildCache.load(
-                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskState)
-                        );
+                        OriginTaskExecutionMetadata originMetadata;
+                        if (useVersion2) {
+                            originMetadata = buildCacheV2.load(
+                                buildCacheCommandFactoryV2.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), taskOutputChangesListener, taskState)
+                            );
+                        } else {
+                            originMetadata = buildCache.load(
+                                buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), taskOutputChangesListener, taskState)
+                            );
+                        }
                         if (originMetadata != null) {
                             state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
                             context.setOriginExecutionMetadata(originMetadata);
@@ -108,7 +129,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     try {
                         TaskArtifactState taskState = context.getTaskArtifactState();
                         Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
-                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
+                        if (useVersion2) {
+                            buildCacheV2.store(buildCacheCommandFactoryV2.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
+                        } else {
+                            buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
+                        }
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
                     }

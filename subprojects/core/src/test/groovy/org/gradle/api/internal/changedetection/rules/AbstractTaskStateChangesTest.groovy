@@ -27,8 +27,8 @@ import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.GenericFileNormalizer
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.caching.internal.PropertySpec
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import spock.lang.Specification
 
@@ -51,7 +51,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
 
     protected static def fileProperties(Map<String, String> props) {
         return ImmutableSortedSet.copyOf(props.collect { entry ->
-            return new PropertySpec(
+            return new TestPropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
                 pathNormalizationStrategy: InputPathNormalizationStrategy.ABSOLUTE
@@ -59,15 +59,15 @@ abstract class AbstractTaskStateChangesTest extends Specification {
         })
     }
 
-    protected static class PropertySpec implements TaskInputFilePropertySpec {
+    private static class TestPropertySpec implements TaskInputFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
         PathNormalizationStrategy pathNormalizationStrategy
         Class<? extends FileNormalizer> normalizer = GenericFileNormalizer
 
         @Override
-        int compareTo(TaskPropertySpec o) {
-            return propertyName.compareTo(o.propertyName)
+        int compareTo(PropertySpec o) {
+            return propertyName <=> o.propertyName
         }
 
         @Override

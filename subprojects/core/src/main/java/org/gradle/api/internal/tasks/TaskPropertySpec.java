@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskPropertySpec extends Comparable<TaskPropertySpec> {
-    String getPropertyName();
+import org.gradle.caching.internal.PropertySpec;
+
+public interface TaskPropertySpec extends PropertySpec {
 }

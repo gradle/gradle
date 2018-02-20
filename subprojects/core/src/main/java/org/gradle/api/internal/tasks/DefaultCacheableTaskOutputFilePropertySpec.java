@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.caching.internal.OutputType;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
@@ -45,12 +46,12 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     }
 
     @Override
-    public File getOutputFile() {
-        Object unpackedOutput = DeferredUtil.unpack(value.call());
-        if (unpackedOutput == null) {
+    public File getOutputRoot() {
+        Object unpackedRoot = DeferredUtil.unpack(value.call());
+        if (unpackedRoot == null) {
             return null;
         }
-        return resolver.resolve(unpackedOutput);
+        return resolver.resolve(unpackedRoot);
     }
 
     @Override

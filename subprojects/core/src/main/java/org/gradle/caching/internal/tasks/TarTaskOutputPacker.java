@@ -35,12 +35,10 @@ import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.OutputType;
-import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.caching.internal.OutputPropertySpec;
+import org.gradle.caching.internal.OutputType;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.hash.HashCode;
@@ -96,7 +94,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<? extends OutputPropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -124,9 +122,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TarArchiveOutputStream tarOutput) {
+    private long pack(Collection<? extends OutputPropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TarArchiveOutputStream tarOutput) {
         long entries = 0;
-        for (ResolvedTaskOutputFilePropertySpec propertySpec : propertySpecs) {
+        for (OutputPropertySpec propertySpec : propertySpecs) {
             String propertyName = propertySpec.getPropertyName();
             Map<String, FileContentSnapshot> outputs = outputSnapshots.get(propertyName);
             try {
@@ -138,9 +136,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return entries;
     }
 
-    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, Map<String, FileContentSnapshot> outputSnapshots, TarArchiveOutputStream tarOutput) throws IOException {
+    private long packProperty(OutputPropertySpec propertySpec, Map<String, FileContentSnapshot> outputSnapshots, TarArchiveOutputStream tarOutput) throws IOException {
         String propertyName = propertySpec.getPropertyName();
-        File root = propertySpec.getOutputFile();
+        File root = propertySpec.getOutputRoot();
         if (root == null) {
             return 0;
         }
@@ -238,7 +236,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public UnpackResult unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, final InputStream input, final TaskOutputOriginReader readOrigin) throws IOException {
+    public UnpackResult unpack(final SortedSet<? extends OutputPropertySpec> propertySpecs, final InputStream input, final TaskOutputOriginReader readOrigin) throws IOException {
         TarArchiveInputStream tarInput = new TarArchiveInputStream(input);
         try {
             return unpack(propertySpecs, tarInput, readOrigin);
@@ -247,10 +245,10 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarArchiveInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
-        Map<String, ResolvedTaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<TaskFilePropertySpec, String>() {
+    private UnpackResult unpack(SortedSet<? extends OutputPropertySpec> propertySpecs, TarArchiveInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
+        Map<String, ? extends OutputPropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<OutputPropertySpec, String>() {
             @Override
-            public String apply(TaskFilePropertySpec propertySpec) {
+            public String apply(OutputPropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
@@ -274,7 +272,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 }
 
                 String propertyName = unescape(matcher.group(2));
-                ResolvedTaskOutputFilePropertySpec propertySpec = propertySpecsMap.get(propertyName);
+                OutputPropertySpec propertySpec = propertySpecsMap.get(propertyName);
                 if (propertySpec == null) {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
                 }
@@ -291,8 +289,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return new UnpackResult(originMetadata, entries, propertyFileSnapshots.build());
     }
 
-    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, ImmutableMultimap.Builder<String, FileSnapshot> fileSnapshots) throws IOException {
-        File propertyRoot = propertySpec.getOutputFile();
+    private void unpackPropertyEntry(OutputPropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, ImmutableMultimap.Builder<String, FileSnapshot> fileSnapshots) throws IOException {
+        File propertyRoot = propertySpec.getOutputRoot();
         String propertyName = propertySpec.getPropertyName();
         if (propertyRoot == null) {
             throw new IllegalStateException("Optional property should have a value: " + propertyName);

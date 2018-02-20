@@ -47,9 +47,17 @@ public class GFileUtils {
 
     public static void touch(File file) {
         try {
-            FileUtils.touch(file);
+            if (!file.createNewFile()) {
+                touchExisting(file);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void touchExisting(File file) {
+        if (!file.setLastModified(System.currentTimeMillis())) {
+            throw new UncheckedIOException("Could not update time stamp for " + file);
         }
     }
 
@@ -162,6 +170,14 @@ public class GFileUtils {
 
     public static boolean deleteQuietly(@Nullable File file) {
         return FileUtils.deleteQuietly(file);
+    }
+
+    public static boolean deleteFileQuietly(@Nullable File file) {
+        if (file != null) {
+            return file.delete();
+        } else {
+            return false;
+        }
     }
 
     public static class TailReadingException extends RuntimeException {

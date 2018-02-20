@@ -23,6 +23,11 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory;
@@ -30,6 +35,12 @@ import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildC
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
+import org.gradle.caching.internal.version2.BuildCacheControllerV2;
+import org.gradle.caching.internal.version2.DebuggingLocalBuildCacheServiceV2;
+import org.gradle.caching.internal.version2.DefaultBuildCacheControllerV2;
+import org.gradle.caching.internal.version2.DirectoryLocalBuildCacheServiceV2;
+import org.gradle.caching.internal.version2.LocalBuildCacheServiceV2;
+import org.gradle.caching.internal.version2.TaskOutputCacheCommandFactoryV2;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.hash.StreamHasher;
@@ -45,6 +56,8 @@ import org.gradle.util.Path;
 
 import java.io.File;
 
+import static org.gradle.cache.FileLockManager.LockMode.None;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.DISABLED;
 import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.ENABLED;
 import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.OFFLINE;
@@ -92,6 +105,33 @@ public class BuildCacheTaskServices {
             // must be an included build
             return rootControllerRef.getForNonRootBuild();
         }
+    }
+
+    TaskOutputCacheCommandFactoryV2 createTaskOutputCacheCommandFactoryV2(
+        TaskOutputOriginFactory taskOutputOriginFactory,
+        FileSystemMirror fileSystemMirror,
+        StringInterner stringInterner,
+        CacheScopeMapping cacheScopeMapping,
+        CacheRepository cacheRepository
+    ) {
+        String cacheV2Dir = System.getProperty("cacheV2Dir");
+        File target = cacheV2Dir == null
+            ? cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache)
+            : new File(cacheV2Dir);
+        PersistentCache persistentCache = cacheRepository
+            .cache(target)
+            .withDisplayName("Build cache V2")
+            .withLockOptions(mode(None))
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .open();
+        LocalBuildCacheServiceV2 local = new DebuggingLocalBuildCacheServiceV2(
+            new DirectoryLocalBuildCacheServiceV2(persistentCache)
+        );
+        return new TaskOutputCacheCommandFactoryV2(taskOutputOriginFactory, fileSystemMirror, stringInterner, local);
+    }
+
+    BuildCacheControllerV2 createBuildCacheControllerV2(BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultBuildCacheControllerV2(buildOperationExecutor);
     }
 
     private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {

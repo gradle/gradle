@@ -66,7 +66,7 @@ public class TaskPropertyUtils {
         ImmutableSortedSet.Builder<ResolvedTaskOutputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
         for (T property : properties) {
             CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(property);
-            builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile()));
+            builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputRoot()));
         }
         return builder.build();
     }

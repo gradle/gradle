@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.caching.internal.version2;
 
-public enum OutputType {
-    FILE, DIRECTORY
+import org.gradle.api.NonNullApi;
+
+import javax.annotation.Nullable;
+
+@NonNullApi
+public interface BuildCacheControllerV2 {
+    @Nullable
+    <T> T load(BuildCacheLoadCommandV2<T> command);
+    void store(BuildCacheStoreCommandV2 command);
 }

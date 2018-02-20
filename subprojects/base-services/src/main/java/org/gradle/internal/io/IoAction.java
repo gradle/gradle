@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.io;
 
-import org.gradle.caching.internal.OutputType;
+import java.io.IOException;
 
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
-    OutputType getOutputType();
+public interface IoAction<T> {
+    void execute(T t) throws IOException;
 }

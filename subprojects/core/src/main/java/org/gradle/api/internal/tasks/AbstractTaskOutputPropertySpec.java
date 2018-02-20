@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStra
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.caching.internal.PropertySpec;
 
 @NonNullApi
 abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
@@ -68,7 +69,7 @@ abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupp
     }
 
     @Override
-    public int compareTo(TaskPropertySpec o) {
+    public int compareTo(PropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
     }
 }
