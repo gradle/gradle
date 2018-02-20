@@ -24,7 +24,6 @@ import org.gradle.testing.PerformanceTest
 import org.gradle.testing.performance.generator.tasks.*
 
 import java.io.File
-import java.util.concurrent.Callable
 
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -428,31 +427,7 @@ open class PerformanceReport : JavaExec() {
 }
 
 
-/**
- * `dir / "sub"` is the same as `dir.resolve("sub")`.
- *
- * @see [File.resolve]
- */
-operator fun File.div(child: String): File =
-    resolve(child)
-
-
 private
 fun sha1StringFor(file: File) =
     HashUtil.createHash(file, "sha1").asHexString()
 
-
-fun <T> deferred(value: () -> T): Any =
-    Callable { value() }
-
-
-fun Project.stringPropertyOrNull(projectPropertyName: String): String? =
-    project.findProperty(projectPropertyName) as? String
-
-
-fun Project.selectStringProperties(vararg propertyNames: String): Map<String, String> =
-    propertyNames.mapNotNull { propertyName ->
-        stringPropertyOrNull(propertyName)?.let { propertyValue ->
-            propertyName to propertyValue
-        }
-    }.toMap()
