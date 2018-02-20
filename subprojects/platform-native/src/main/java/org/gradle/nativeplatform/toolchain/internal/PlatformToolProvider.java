@@ -47,7 +47,9 @@ public interface PlatformToolProvider extends ToolProvider {
 
     String getLibrarySymbolFileName(String libraryPath);
 
-    CompilerMetadata getCompilerMetadata();
+    CompilerMetadata getCompilerMetadata(ToolType compilerType);
+
+    SystemLibraries getSystemLibraries(ToolType compilerType);
 
     ToolSearchResult isToolAvailable(ToolType toolType);
 }

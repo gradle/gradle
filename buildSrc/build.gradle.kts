@@ -82,6 +82,7 @@ dependencies {
     testCompile("cglib:cglib-nodep:3.2.5")
     testCompile("org.objenesis:objenesis:2.4")
     testCompile("org.hamcrest:hamcrest-core:1.3")
+    testCompile("com.nhaarman:mockito-kotlin:1.5.0")
 
     compile("org.pegdown:pegdown:1.6.0")
     compile("org.jsoup:jsoup:1.6.3")

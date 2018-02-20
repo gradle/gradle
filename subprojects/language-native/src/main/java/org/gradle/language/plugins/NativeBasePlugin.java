@@ -23,9 +23,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -33,7 +35,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -41,9 +42,11 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Cast;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
+import org.gradle.language.PublishableComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
@@ -64,11 +67,10 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.util.GUtil;
 
 import java.util.concurrent.Callable;
 
-import static org.gradle.language.cpp.CppBinary.*;
+import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
 /**
  * A common base plugin for the native plugins.
@@ -109,8 +111,26 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
         final SoftwareComponentContainer components = project.getComponents();
 
-        // Add lifecycle tasks
+        addLifecycleTasks(tasks, components);
 
+        // Add tasks to build various kinds of components
+
+        addTasksForComponentWithExecutable(tasks, providers, buildDirectory, components);
+        addTasksForComponentWithSharedLibrary(tasks, providers, buildDirectory, components);
+        addTasksForComponentWithStaticLibrary(tasks, providers, buildDirectory, components);
+
+        // Add outgoing configurations and publications
+        final ConfigurationContainer configurations = project.getConfigurations();
+
+        project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
+
+        addOutgoingConfigurationForLinkUsage(components, configurations);
+        addOutgoingConfigurationForRuntimeUsage(components, configurations);
+
+        addPublicationsFromVariants(project, components);
+    }
+
+    private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
             @Override
             public void execute(final ComponentWithBinaries component) {
@@ -139,9 +159,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+    }
 
-        // Add tasks to build various kinds of components
-
+    private void addTasksForComponentWithExecutable(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithExecutable.class, new Action<ConfigurableComponentWithExecutable>() {
             @Override
             public void execute(final ConfigurableComponentWithExecutable executable) {
@@ -165,7 +185,6 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 link.setDebuggable(executable.isDebuggable());
 
                 executable.getLinkTask().set(link);
-                executable.getDebuggerExecutableFile().set(link.getBinaryFile());
 
                 if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
                     Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -202,8 +221,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 executable.getInstallDirectory().set(install.getInstallDirectory());
 
                 executable.getOutputs().from(executable.getInstallDirectory());
+
+                executable.getDebuggerExecutableFile().set(install.getInstalledExecutable());
             }
         });
+    }
+
+    private void addTasksForComponentWithSharedLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithSharedLibrary library) {
@@ -269,6 +293,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(library.getRuntimeFile());
             }
         });
+    }
+    
+    private void addTasksForComponentWithStaticLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithStaticLibrary library) {
@@ -294,16 +321,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(library.getLinkFile());
             }
         });
+    }
 
-        // Add outgoing configurations and publications
-
-        ObjectFactory objectFactory = project.getObjects();
-        final ConfigurationContainer configurations = project.getConfigurations();
-        final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
-        final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-
-        project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
-
+    private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
         components.withType(ConfigurableComponentWithLinkUsage.class, new Action<ConfigurableComponentWithLinkUsage>() {
             @Override
             public void execute(ConfigurableComponentWithLinkUsage component) {
@@ -312,17 +332,17 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
                 linkElements.extendsFrom(component.getImplementationDependencies());
                 linkElements.setCanBeResolved(false);
-                linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-                linkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
-                linkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
-                if (component.getLinkage() != null) {
-                    linkElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
-                }
+                AttributeContainer attributes = component.getLinkAttributes();
+                copyAttributesTo(attributes, linkElements);
+
                 linkElements.getOutgoing().artifact(component.getLinkFile());
 
                 component.getLinkElements().set(linkElements);
             }
         });
+    }
+
+    private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, new Action<ConfigurableComponentWithRuntimeUsage>() {
             @Override
             public void execute(ConfigurableComponentWithRuntimeUsage component) {
@@ -331,12 +351,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
                 runtimeElements.extendsFrom(component.getImplementationDependencies());
                 runtimeElements.setCanBeResolved(false);
-                runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                runtimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
-                runtimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
-                if (component.getLinkage() != null) {
-                    runtimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
-                }
+
+                AttributeContainer attributes = component.getRuntimeAttributes();
+                copyAttributesTo(attributes, runtimeElements);
+
                 if (component.hasRuntimeFile()) {
                     runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
                 }
@@ -344,7 +362,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 component.getRuntimeElements().set(runtimeElements);
             }
         });
+    }
 
+    private void addPublicationsFromVariants(final ProjectInternal project, final SoftwareComponentContainer components) {
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
@@ -367,17 +387,20 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                     }
                                 });
                                 for (final SoftwareComponent child : mainVariant.getVariants()) {
-                                    publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                        @Override
-                                        public void execute(MavenPublication publication) {
-                                            // TODO - should track changes to these properties
-                                            publication.setGroupId(project.getGroup().toString());
-                                            publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(child.getName(), '_'));
-                                            publication.setVersion(project.getVersion().toString());
-                                            publication.from(child);
-                                            ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                        }
-                                    });
+                                    if (child instanceof PublishableComponent) {
+                                        final ModuleVersionIdentifier coordinates = ((PublishableComponent)child).getCoordinates();
+                                        publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                            @Override
+                                            public void execute(MavenPublication publication) {
+                                                // TODO - should track changes to these properties
+                                                publication.setGroupId(coordinates.getGroup());
+                                                publication.setArtifactId(coordinates.getName());
+                                                publication.setVersion(coordinates.getVersion());
+                                                publication.from(child);
+                                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -385,6 +408,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
+    }
+
+    private void copyAttributesTo(AttributeContainer attributes, Configuration linkElements) {
+        for (Attribute<?> attribute : attributes.keySet()) {
+            Object value = attributes.getAttribute(attribute);
+            linkElements.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
+        }
     }
 
     private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {

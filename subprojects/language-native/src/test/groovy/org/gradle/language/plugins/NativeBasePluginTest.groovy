@@ -23,6 +23,7 @@ import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
+import org.gradle.language.PublishableComponent
 import org.gradle.language.internal.DefaultBinaryCollection
 import org.gradle.language.nativeplatform.internal.ComponentWithNames
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
@@ -294,7 +296,7 @@ class NativeBasePluginTest extends Specification {
 
         and:
         exeFileProp.get().asFile == linkTask.binaryFile.get().asFile
-        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
         linkTaskProp.get() == linkTask
 
         and:
@@ -355,7 +357,7 @@ class NativeBasePluginTest extends Specification {
 
         and:
         exeFileProp.get().asFile == stripTask.outputFile.get().asFile
-        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
         linkTaskProp.get() == linkTask
 
         and:
@@ -393,22 +395,28 @@ class NativeBasePluginTest extends Specification {
 
     def "adds Maven publications for component with main publication"() {
         def usage1 = Stub(UsageContext)
-        usage1.artifacts >> [Stub(PublishArtifact)]
-
-        def variant1 = Stub(SoftwareComponentInternal)
+        def artifact1 = Stub(PublishArtifact)
+        artifact1.getFile() >> projectDir.file("artifact1")
+        usage1.artifacts >> [artifact1]
+        def variant1 = Stub(PublishableVariant)
         variant1.name >> "debug"
         variant1.usages >> [usage1]
+        variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
         def usage2 = Stub(UsageContext)
-        usage2.artifacts >> [Stub(PublishArtifact)]
-
-        def variant2 = Stub(SoftwareComponentInternal)
+        def artifact2 = Stub(PublishArtifact)
+        artifact2.getFile() >> projectDir.file("artifact1")
+        usage2.artifacts >> [artifact2]
+        def variant2 = Stub(PublishableVariant)
         variant2.name >> "release"
         variant2.usages >> [usage2]
+        variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
+
+        def doNotPublish = Stub(SoftwareComponentInternal)
 
         def mainVariant = Stub(TestVariant)
         mainVariant.name >> "main"
-        mainVariant.variants >> [variant1, variant2]
+        mainVariant.variants >> [variant1, variant2, doNotPublish]
 
         def component = Stub(PublicationAwareComponent)
         component.mainPublication >> mainVariant
@@ -470,5 +478,8 @@ class NativeBasePluginTest extends Specification {
     }
 
     interface TestVariant extends ComponentWithVariants, SoftwareComponentInternal {
+    }
+
+    interface PublishableVariant extends PublishableComponent, SoftwareComponentInternal {
     }
 }

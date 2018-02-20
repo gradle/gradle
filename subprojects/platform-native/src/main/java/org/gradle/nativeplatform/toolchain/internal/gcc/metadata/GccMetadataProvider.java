@@ -22,16 +22,17 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,10 +60,6 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         return new GccMetadataProvider(execActionFactory, GccCompilerType.CLANG);
     }
 
-    public static GccMetadata broken(String message) {
-        return new BrokenResult(message);
-    }
-
     GccMetadataProvider(ExecActionFactory execActionFactory, GccCompilerType compilerType) {
         super(execActionFactory);
         this.compilerType = compilerType;
@@ -76,11 +73,6 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     @Override
     protected List<String> compilerArgs() {
         return ImmutableList.of("-dM", "-E", "-v", "-");
-    }
-
-    @Override
-    protected GccMetadata brokenMetadata(String message) {
-        return new BrokenResult(message);
     }
 
     @Override
@@ -221,13 +213,13 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
     }
 
-    private static class DefaultGccMetadata implements GccMetadata {
+    private static class DefaultGccMetadata implements GccMetadata, SystemLibraries {
         private final VersionNumber scrapedVersion;
         private final String scrapedVendor;
         private final ArchitectureInternal architecture;
         private final ImmutableList<File> systemIncludes;
 
-        public DefaultGccMetadata(VersionNumber scrapedVersion, String scrapedVendor, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
+        DefaultGccMetadata(VersionNumber scrapedVersion, String scrapedVendor, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
             this.scrapedVersion = scrapedVersion;
             this.scrapedVendor = scrapedVendor;
             this.architecture = architecture;
@@ -240,8 +232,23 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
 
         @Override
-        public ImmutableList<File> getSystemIncludes() {
+        public SystemLibraries getSystemLibraries() {
+            return this;
+        }
+
+        @Override
+        public List<File> getIncludeDirs() {
             return systemIncludes;
+        }
+
+        @Override
+        public List<File> getLibDirs() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return Collections.emptyMap();
         }
 
         @Override
@@ -250,35 +257,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
 
         @Override
-        public boolean isAvailable() {
-            return true;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
-
-        @Override
         public String getVendor() {
             return scrapedVendor;
         }
-    }
-
-    private static class BrokenResult extends AbstractBrokenMetadata implements GccMetadata {
-
-        public BrokenResult(String message) {
-            super(message);
-        }
-
-        @Override
-        public ImmutableList<File> getSystemIncludes() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ArchitectureInternal getDefaultArchitecture() {
-            throw new UnsupportedOperationException();
-        }
-
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.PublishableComponent;
 import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
@@ -28,5 +29,5 @@ import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
+public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs, PublishableComponent {
 }

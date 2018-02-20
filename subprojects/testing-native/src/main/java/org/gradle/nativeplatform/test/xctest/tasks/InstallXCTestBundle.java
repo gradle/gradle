@@ -34,7 +34,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
+import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GFileUtils;
 

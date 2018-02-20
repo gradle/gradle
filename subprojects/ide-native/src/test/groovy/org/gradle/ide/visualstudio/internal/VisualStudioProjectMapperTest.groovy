@@ -21,50 +21,7 @@ import spock.lang.Specification
 import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.*
 
 class VisualStudioProjectMapperTest extends Specification {
-    def "maps executable binary types to visual studio project"() {
-        when:
-        def targetBinary = targetBinary(componentName: "exeName", projectType: EXE)
 
-        then:
-        checkNames targetBinary, "exeNameExe", 'buildTypeOne'
-    }
-
-    def "maps library binary types to visual studio projects"() {
-        when:
-        def targetBinary = targetBinary(componentName: "libName", projectType: type)
-
-        then:
-        checkNames targetBinary, exepectedName, 'buildTypeOne'
-
-        where:
-        type | exepectedName
-        DLL  | "libNameDll"
-        LIB  | "libNameLib"
-    }
-
-    def "includes project path in visual studio project name"() {
-        when:
-        def targetBinary = targetBinary(projectPath: ":subproject:name")
-
-        then:
-        checkNames targetBinary, "subproject_name_exeNameExe", 'buildTypeOne'
-    }
-
-    def "uses single variant dimension for configuration name where not empty"() {
-        when:
-        def targetBinary = targetBinary(variantDimensions: ["flavorOne"])
-
-        then:
-        checkNames targetBinary, "exeNameExe", 'flavorOne'
-    }
-
-    def "includes variant dimensions in configuration where component has multiple dimensions"() {
-        when:
-        def targetBinary = targetBinary(variantDimensions: ["platformOne", "buildTypeOne", "flavorOne"])
-
-        then:
-        checkNames targetBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne'
-    }
 
     private VisualStudioTargetBinary targetBinary(Map<String, ?> values) {
         VisualStudioTargetBinary targetBinary = Mock(VisualStudioTargetBinary)
@@ -75,9 +32,5 @@ class VisualStudioProjectMapperTest extends Specification {
         return targetBinary
     }
 
-    private static checkNames(VisualStudioTargetBinary binary, def projectName, def configurationName) {
-        assert VisualStudioProjectMapper.getProjectName(binary) == projectName
-        assert VisualStudioProjectMapper.getConfigurationName(binary.getVariantDimensions()) == configurationName
-        true
-    }
+
 }

@@ -194,7 +194,7 @@ model {
 
     static List<WindowsSdk> getNonDefaultSdks() {
         WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
-        WindowsSdk defaultSdk = locator.locateWindowsSdks(null).sdk
-        return locator.locateAllWindowsSdks() - defaultSdk
+        WindowsSdk defaultSdk = locator.locateComponent(null).component
+        return locator.locateAllComponents() - defaultSdk
     }
 }
