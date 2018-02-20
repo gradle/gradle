@@ -385,10 +385,27 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.addConfigurationAndDependencies() {
         configurations {
-            "performanceTestCompile"().extendsFrom(configurations["testCompile"])
-            "performanceTestRuntime"().extendsFrom(configurations["testRuntime"])
-            "partialDistribution"().extendsFrom(configurations["performanceTestRuntimeClasspath"])
-            "junit"()
+
+            val testCompile by getting
+
+            "performanceTestCompile" {
+                extendsFrom(testCompile)
+            }
+
+            val testRuntime by getting
+
+            "performanceTestRuntime" {
+                extendsFrom(testRuntime)
+            }
+
+            val performanceTestRuntimeClasspath by getting
+
+            "partialDistribution" {
+                extendsFrom(performanceTestRuntimeClasspath)
+            }
+
+            "junit" {
+            }
         }
 
         dependencies {
