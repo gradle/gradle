@@ -16,7 +16,7 @@
 plugins {
     id 'java-library'
 }
-apply from: "$rootDir/gradle/taskProperties.gradle"
+apply from: "$rootDir/gradle/taskProperties.kts"
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
