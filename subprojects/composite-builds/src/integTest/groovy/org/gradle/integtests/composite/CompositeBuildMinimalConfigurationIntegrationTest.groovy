@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 /**
@@ -203,7 +202,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildB') == 1
     }
 
-    @ToBeImplemented
     def "configures included build only once when building multiple artifacts for a dependency of a referenced task"() {
         given:
         includeBuild buildB
@@ -226,8 +224,7 @@ task run {
         execute(buildA, ":run", buildArgs)
 
         and:
-        // TODO: This should only be one
-        output.count('Configured buildB') == 2
+        output.count('Configured buildB') == 1
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
