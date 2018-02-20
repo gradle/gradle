@@ -18,13 +18,15 @@ package org.gradle.plugins.jsoup
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
+
 import org.gradle.kotlin.dsl.*
+
 
 class JsoupPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         tasks.withType<Copy> {
-            this.extensions.create("jsoup", JsoupCopyExtension::class.java, this)
+            extensions.create("jsoup", JsoupCopyExtension::class.java, this)
         }
     }
 }

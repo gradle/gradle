@@ -18,16 +18,29 @@ package org.gradle.plugins.jsoup
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskInputs
 import org.jsoup.nodes.Document
 
+
+private
 val DEFAULT_TRANSFORM_EXTENSIONS = listOf("html")
 
-open class JsoupCopyExtension(val task: Copy) {
 
-    fun plugins(vararg plugins: Any) {
+class JsoupTransformTarget(val document: Document, val fileCopyDetails: FileCopyDetails)
+
+
+open class JsoupCopyExtension(private val task: Copy) {
+
+    val project: Project
+        get() = task.project
+
+    val inputs: TaskInputs
+        get() = task.inputs
+
+    fun plugins(vararg plugins: Any) =
         task.project.files(plugins).forEach {
             task.inputs.file(it)
             task.project.apply {
@@ -35,47 +48,29 @@ open class JsoupCopyExtension(val task: Copy) {
                 to(this@JsoupCopyExtension)
             }
         }
-    }
 
-    fun transform(action: Action<JsoupTransformTarget>) {
+    fun transform(action: Action<JsoupTransformTarget>) =
         transform(DEFAULT_TRANSFORM_EXTENSIONS.toTypedArray(), action)
-    }
 
-    fun transform(extensions: Array<String>, action: Closure<Any>) {
+    fun transform(extensions: Array<String>, action: Closure<Any>) =
         transform(extensions, ClosureBackedAction(action))
-    }
 
-    fun transform(extensions: Array<String>,
-                  action: Action<JsoupTransformTarget>) {
-
+    fun transform(extensions: Array<String>, action: Action<JsoupTransformTarget>) {
         task.eachFile {
-            if (extensions.any { this.name.endsWith(".${it}") }) {
-                this.filter(mapOf("fileCopyDetails" to this, "action" to action), JsoupFilterReader::class.java)
+            if (extensions.any { name.endsWith(".$it") }) {
+                filter(mapOf("fileCopyDetails" to this, "action" to action), JsoupFilterReader::class.java)
             }
         }
     }
 
-    fun transformDocument(action: Action<Document>) {
+    fun transformDocument(action: Action<Document>) =
         transformDocument(DEFAULT_TRANSFORM_EXTENSIONS.toTypedArray(), action)
-    }
 
-    fun transformDocument(extensions: Array<String>, action: Closure<Any>) {
+    fun transformDocument(extensions: Array<String>, action: Closure<Any>) =
         transformDocument(extensions, ClosureBackedAction(action))
-    }
 
-    fun transformDocument(extensions: Array<String>,
-                          action: Action<Document>) {
-
-        transform(extensions, Action<JsoupTransformTarget> {
-            action.execute(this.document)
+    fun transformDocument(extensions: Array<String>, action: Action<Document>) =
+        transform(extensions, Action {
+            action.execute(document)
         })
-    }
-
-    fun getProject(): Project {
-        return task.project
-    }
-
-    fun getInputs(): TaskInputs {
-        return task.inputs
-    }
 }

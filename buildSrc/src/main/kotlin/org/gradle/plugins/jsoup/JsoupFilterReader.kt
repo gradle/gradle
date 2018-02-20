@@ -22,6 +22,8 @@ import java.io.FilterReader
 import java.io.Reader
 import java.io.StringReader
 
+
+internal
 class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(reader)) {
 
     init {
@@ -32,14 +34,16 @@ class JsoupFilterReader(reader: Reader) : FilterReader(DeferringReader(reader)) 
     lateinit var action: Action<JsoupTransformTarget>
 }
 
-class DeferringReader(val source: Reader) : Reader() {
 
-    internal lateinit var parent: JsoupFilterReader
-    private var delegate: Reader? = null
+internal
+class DeferringReader(private val source: Reader) : Reader() {
 
-    override fun read(cbuf: CharArray?,
-                      off: Int,
-                      len: Int): Int {
+    lateinit var parent: JsoupFilterReader
+
+    private
+    var delegate: Reader? = null
+
+    override fun read(cbuf: CharArray, off: Int, len: Int): Int {
 
         if (delegate == null) {
             val document = Jsoup.parse(source.readText())
@@ -51,9 +55,6 @@ class DeferringReader(val source: Reader) : Reader() {
         return delegate!!.read(cbuf, off, len)
     }
 
-
-    override fun close() {
-        // do nothing
-    }
+    override fun close() = Unit
 }
 
