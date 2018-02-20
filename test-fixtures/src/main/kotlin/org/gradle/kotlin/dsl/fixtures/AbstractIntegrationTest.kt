@@ -1,7 +1,9 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.internal.FileUtils.toSafeFileName
+
 import org.gradle.kotlin.dsl.support.zipTo
+
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -9,8 +11,8 @@ import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
-import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.TestName
@@ -35,23 +37,23 @@ open class AbstractIntegrationTest {
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
 
     protected
-    fun withSettings(script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withSettings(script: String, produceFile: (String) -> File = ::newFile): File =
         withSettingsIn(".", script, produceFile)
 
     protected
-    fun withSettingsIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withSettingsIn(baseDir: String, script: String, produceFile: (String) -> File = ::newFile): File =
         withFile("$baseDir/settings.gradle.kts", script, produceFile)
 
     protected
-    fun withBuildScript(script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withBuildScript(script: String, produceFile: (String) -> File = ::newFile): File =
         withBuildScriptIn(".", script, produceFile)
 
     protected
-    fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = ::newFile): File =
         withFile("$baseDir/build.gradle.kts", script, produceFile)
 
     protected
-    fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = this::newFile) =
+    fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = ::newFile) =
         writeFile(produceFile(fileName), text)
 
     protected

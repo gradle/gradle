@@ -9,4 +9,5 @@ class BuildScanSampleTest : AbstractSampleTest("build-scan") {
     fun `publishes build scan`() {
         canPublishBuildScan()
     }
+
 }

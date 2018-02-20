@@ -283,7 +283,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
-        val buildFile = withBuildScript(script, produceFile = this::newOrExisting)
+        val buildFile = withBuildScript(script, produceFile = ::newOrExisting)
         return accessorsJarFor(buildFile)!!.relativeTo(buildFile.parentFile)
     }
 
