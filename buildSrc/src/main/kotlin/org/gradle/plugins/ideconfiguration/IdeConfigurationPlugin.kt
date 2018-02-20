@@ -327,7 +327,7 @@ class IdeConfigurationPlugin : Plugin<Project> {
                 <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.GradlewRunner" />
                 <option name="VM_PARAMETERS" value="" />
                 <option name="PROGRAM_PARAMETERS" value="$commandLine" />
-                <option name="WORKING_DIRECTORY" value="file://${'$'}PROJECT_DIR\$" />
+                <option name="WORKING_DIRECTORY" value="file://${'$'}PROJECT_DIR$" />
                 <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
                 <option name="ALTERNATIVE_JRE_PATH" value="" />
                 <option name="ENABLE_SWING_INSPECTOR" value="false" />
