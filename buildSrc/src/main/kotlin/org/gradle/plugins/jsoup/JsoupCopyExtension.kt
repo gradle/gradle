@@ -17,15 +17,11 @@ package org.gradle.plugins.jsoup
 
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskInputs
 import org.jsoup.nodes.Document
-import java.util.concurrent.Callable
 
 val DEFAULT_TRANSFORM_EXTENSIONS = listOf("html")
 
