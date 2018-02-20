@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -38,8 +39,17 @@ open class EmptyDirectoryCheck : DefaultTask() {
     @OutputFile
     lateinit var report: File
 
-    @Input
+    @Internal
     var isErrorWhenNotEmpty: Boolean = false
+
+    // TODO Remove this property and move @Input annotation to isErrorWhenNotEmpty
+    // once https://github.com/gradle/build-cache/issues/1030 is fixed
+    @get:Input
+    @Deprecated(
+        "See https://github.com/gradle/build-cache/issues/1030",
+        ReplaceWith("isErrorWhenNotEmpty"))
+    val errorWhenNotEmpty
+        get() = isErrorWhenNotEmpty
 
     @TaskAction
     fun ensureEmptiness() {
