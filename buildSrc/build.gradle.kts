@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
@@ -54,9 +56,9 @@ gradlePlugin {
             id = "build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
-        "pegdown" {
-            id = "pegdown"
-            implementationClass = "org.gradle.plugins.pegdown.PegDownPlugin"
+        "gradleCompile" {
+            id = "gradle-compile"
+            implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
     }
 }
@@ -80,6 +82,7 @@ dependencies {
     testCompile("cglib:cglib-nodep:3.2.5")
     testCompile("org.objenesis:objenesis:2.4")
     testCompile("org.hamcrest:hamcrest-core:1.3")
+    testCompile("com.nhaarman:mockito-kotlin:1.5.0")
 
     compile("org.pegdown:pegdown:1.6.0")
     compile("org.jsoup:jsoup:1.6.3")
@@ -115,8 +118,21 @@ tasks {
 
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
-apply {
-    from("../gradle/compile.gradle")
+fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
+    options.isFork = true
+    options.encoding = "utf-8"
+    options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+    val vendor = System.getProperty("java.vendor")
+    task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
+}
+
+tasks.withType<JavaCompile> {
+    options.isIncremental = true
+    configureCompileTask(this, options)
+}
+tasks.withType<GroovyCompile> {
+    groovyOptions.encoding = "utf-8"
+    configureCompileTask(this, options)
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {

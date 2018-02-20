@@ -17,75 +17,41 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JUnitTestEventAdapter extends RunListener {
-    private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
-    private final TestResultProcessor resultProcessor;
-    private final Clock clock;
+    private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)(\\[\\d+])?", Pattern.DOTALL);
     private final IdGenerator<?> idGenerator;
-    private final Object lock = new Object();
-    private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
-    private final Set<Description> assumptionFailed = new HashSet<Description>();
+    private final GenericJUnitTestEventAdapter<Description> adapter;
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, Clock clock,
                                  IdGenerator<?> idGenerator) {
-        assert resultProcessor instanceof org.gradle.internal.concurrent.ThreadSafe;
-        this.resultProcessor = resultProcessor;
-        this.clock = clock;
         this.idGenerator = idGenerator;
+        this.adapter = new GenericJUnitTestEventAdapter<Description>(resultProcessor, clock);
     }
 
     @Override
     public void testStarted(Description description) throws Exception {
-        TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
-        synchronized (lock) {
-            TestDescriptorInternal oldTest = executing.put(description, descriptor);
-            assert oldTest == null : String.format("Unexpected start event for %s", description);
-        }
-        resultProcessor.started(descriptor, startEvent());
+        adapter.testStarted(description, nullSafeDescriptor(idGenerator.generateId(), description));
     }
 
     @Override
     public void testFailure(Failure failure) throws Exception {
-        TestDescriptorInternal testInternal;
-        synchronized (lock) {
-            testInternal = executing.get(failure.getDescription());
-        }
-        boolean needEndEvent = false;
-        if (testInternal == null) {
-            // This can happen when, for example, a @BeforeClass or @AfterClass method fails
-            needEndEvent = true;
-            testInternal = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
-            resultProcessor.started(testInternal, startEvent());
-        }
-        resultProcessor.failure(testInternal.getId(), failure.getException());
-        if (needEndEvent) {
-            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime()));
-        }
+        adapter.testFailure(failure.getDescription(), nullSafeDescriptor(idGenerator.generateId(), failure.getDescription()), failure.getException());
     }
 
     @Override
     public void testAssumptionFailure(Failure failure) {
-        synchronized (lock) {
-            assumptionFailed.add(failure.getDescription());
-        }
+        adapter.testAssumptionFailure(failure.getDescription());
     }
 
     @Override
@@ -94,12 +60,9 @@ public class JUnitTestEventAdapter extends RunListener {
             // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
             // generate them on our own
             processIgnoredClass(description);
-            return;
+        } else {
+            adapter.testIgnored(descriptor(idGenerator.generateId(), description));
         }
-
-        TestDescriptorInternal testInternal = descriptor(idGenerator.generateId(), description);
-        resultProcessor.started(testInternal, startEvent());
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
     }
 
     private void processIgnoredClass(Description description) throws Exception {
@@ -112,24 +75,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testFinished(Description description) throws Exception {
-        long endTime = clock.getCurrentTime();
-        TestDescriptorInternal testInternal;
-        TestResult.ResultType resultType;
-        synchronized (lock) {
-            testInternal = executing.remove(description);
-            if (testInternal == null && executing.size() == 1) {
-                // Assume that test has renamed itself (this can actually happen)
-                testInternal = executing.values().iterator().next();
-                executing.clear();
-            }
-            assert testInternal != null : String.format("Unexpected end event for %s", description);
-            resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
-        }
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
-    }
-
-    private TestStartEvent startEvent() {
-        return new TestStartEvent(clock.getCurrentTime());
+        adapter.testFinished(description);
     }
 
     private TestDescriptorInternal descriptor(Object id, Description description) {
@@ -147,6 +93,10 @@ public class JUnitTestEventAdapter extends RunListener {
 
     // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
     public static String methodName(Description description) {
+        return methodName(description.toString());
+    }
+
+    public static String methodName(String description) {
         Matcher matcher = methodStringMatcher(description);
         if (matcher.matches()) {
             return matcher.group(1);
@@ -156,12 +106,16 @@ public class JUnitTestEventAdapter extends RunListener {
 
     // Use this instead of Description.getClassName(), it is not available in JUnit <= 4.5
     public static String className(Description description) {
-        Matcher matcher = methodStringMatcher(description);
-        return matcher.matches() ? matcher.group(2) : description.toString();
+        return className(description.toString());
     }
 
-    private static Matcher methodStringMatcher(Description description) {
-        return DESCRIPTOR_PATTERN.matcher(description.toString());
+    public static String className(String description) {
+        Matcher matcher = methodStringMatcher(description);
+        return matcher.matches() ? matcher.group(2) : description;
+    }
+
+    private static Matcher methodStringMatcher(String description) {
+        return DESCRIPTOR_PATTERN.matcher(description);
     }
 
 }

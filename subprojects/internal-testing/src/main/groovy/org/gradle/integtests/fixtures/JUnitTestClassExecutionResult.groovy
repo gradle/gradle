@@ -22,6 +22,8 @@ import org.hamcrest.Matcher
 import org.hamcrest.Matchers
 import org.junit.Assert
 
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+
 class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     GPathResult testClassNode
     String testClassName
@@ -52,13 +54,17 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         assert testClassNode.@errors == errors
         this
     }
-    
+
     TestClassExecutionResult assertTestCount(int tests, int skipped, int failures, int errors) {
         assert testClassNode.@tests == tests
         assert testClassNode.@skipped == skipped
         assert testClassNode.@failures == failures
         assert testClassNode.@errors == errors
         this
+    }
+
+    int getTestCount() {
+        return testClassNode.@tests.toInteger()
     }
 
     TestClassExecutionResult withResult(Closure action) {
@@ -86,6 +92,26 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+        Map<String, Node> testMethods = findTests()
+        if (!testMethods.keySet().contains(name)) {
+            return false
+        }
+
+        def failures = testMethods[name].failure
+        if (failures.size() != messageMatchers.length) {
+            return false
+        }
+
+        for (int i = 0; i < messageMatchers.length; i++) {
+            if (!messageMatchers[i].matches(failures[i].@message.text())) {
+                return false
+            }
+        }
+
+        return true
+    }
+
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         Map<String, Node> testMethods = findTests()
         String failureMethodName = "execution failure"
@@ -100,14 +126,14 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestSkipped(String name) {
-        throw new UnsupportedOperationException()
+        assertTestsSkipped(name)
     }
 
     TestClassExecutionResult assertTestsSkipped(String... testNames) {
         Map<String, Node> testMethods = findTests().findAll { name, element ->
             element."skipped".size() > 0 // Include only skipped test.
         }
-        
+
         Assert.assertThat(testMethods.keySet(), Matchers.equalTo(testNames as Set))
         this
     }
@@ -145,7 +171,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     private NodeChild testCase(String name) {
-        testClassNode.testcase.find { it.@name == name }
+        testClassNode.testcase.find { it.@name == name || it.@name == "$name()"}
     }
 
     private def findTests() {
@@ -180,7 +206,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             checked = true
         }
         Map testMethods = [:]
-        testClassNode.testcase.each { testMethods[it.@name.text()] = it }
+        testClassNode.testcase.each { testMethods[removeParentheses(it.@name.text())] = it }
         return testMethods
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
@@ -56,7 +56,7 @@ apply plugin: 'swift-application'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+        project.products.children[0].path == exe("build/install/main/debug/lib/App").absolutePath
 
         rootXcodeProject.schemeFiles.size() == 1
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
@@ -257,7 +257,7 @@ apply plugin: 'swift-application'
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebug.error.contains("Scheme App is not currently configured for the test action.")
@@ -267,7 +267,7 @@ apply plugin: 'swift-application'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
@@ -277,7 +277,7 @@ apply plugin: 'swift-application'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
@@ -300,7 +300,7 @@ apply plugin: 'swift-library'
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebug.error.contains("Scheme App is not currently configured for the test action.")
@@ -310,7 +310,7 @@ apply plugin: 'swift-library'
             .withProject(rootXcodeProject)
             .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
@@ -334,7 +334,7 @@ apply plugin: 'swift-library'
         def resultDebugWithoutXCTest = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
             .withScheme("Greeter")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultDebugWithoutXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
@@ -345,7 +345,7 @@ apply plugin: 'swift-library'
         def resultDebugWithXCTest = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
             .withScheme("Greeter")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
@@ -373,7 +373,7 @@ apply plugin: 'xctest'
         def resultTestRunner = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
             .withScheme("Greeter")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
@@ -404,7 +404,7 @@ apply plugin: 'xctest'
         def resultTestRunner = xcodebuild
             .withProject(xcodeProject("app.xcodeproj"))
             .withScheme("App")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
@@ -437,8 +437,8 @@ apply plugin: 'swift-application'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
@@ -451,8 +451,8 @@ apply plugin: 'swift-application'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
@@ -506,7 +506,7 @@ apply plugin: 'swift-application'
         xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App')
-            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+            .succeeds(XcodebuildExecutor.XcodeAction.CLEAN)
         then:
         file("build").assertDoesNotExist()
     }
@@ -672,12 +672,12 @@ application.module = 'TestApp'
         project.targets.size() == 2
         project.targets.every { it.productName == 'TestApp' }
         project.targets[0].name == 'TestApp'
-        project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
+        project.targets[0].productReference.path == exe("output/install/main/debug/lib/TestApp").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/debug/lib").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/release/lib").absolutePath
         project.targets[1].name == '[INDEXING ONLY] TestApp'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
+        project.products.children[0].path == exe("output/install/main/debug/lib/TestApp").absolutePath
     }
 
     def "honors changes to library output file locations"() {

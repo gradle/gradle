@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -55,6 +56,7 @@ public class InstallExecutable extends DefaultTask {
     private NativePlatform platform;
     private final DirectoryProperty destinationDir;
     private final RegularFileProperty executable;
+    private final RegularFileProperty installedExecutable;
     private final ConfigurableFileCollection libs;
     private final WorkerLeaseService workerLeaseService;
 
@@ -69,6 +71,13 @@ public class InstallExecutable extends DefaultTask {
         this.libs = getProject().files();
         destinationDir = newOutputDirectory();
         executable = newInputFile();
+        installedExecutable = newOutputFile();
+        installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
+            @Override
+            public RegularFile transform(Directory directory) {
+                return directory.file(executable.getAsFile().get().getName());
+            }
+        }));
     }
 
     /**
@@ -158,6 +167,16 @@ public class InstallExecutable extends DefaultTask {
     }
 
     /**
+     * The location of the installed executable file.
+     *
+     * @since 4.7
+     */
+    @Internal
+    public RegularFileProperty getInstalledExecutable() {
+        return installedExecutable;
+    }
+
+    /**
      * Workaround for when the task is given an input file that doesn't exist
      *
      * @since 4.3
@@ -242,11 +261,14 @@ public class InstallExecutable extends DefaultTask {
         });
     }
 
+    private Provider<Directory> getLibDirectory() {
+        return getInstallDirectory().dir("lib");
+    }
+
     private void installWindows() {
-        final File destination = getInstallDirectory().get().getAsFile();
         final File executable = getSourceFile().get().getAsFile();
 
-        installToDir(new File(destination, "lib"));
+        installToDir(getLibDirectory().get().getAsFile());
 
         StringBuilder toolChainPath = new StringBuilder();
         if (toolChain instanceof Gcc) {

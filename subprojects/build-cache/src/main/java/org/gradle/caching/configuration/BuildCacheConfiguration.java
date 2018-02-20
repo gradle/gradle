@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
  * Configuration for the <a href="https://docs.gradle.org/current/userguide/build_cache.html">build cache</a> for an entire Gradle build.
  *
@@ -73,6 +75,7 @@ public interface BuildCacheConfiguration {
     /**
      * Returns the remote cache configuration.
      */
+    @Nullable
     BuildCache getRemote();
 
     /**

@@ -16,29 +16,37 @@
 
 package org.gradle.language.cpp.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
+import org.gradle.swiftpm.internal.SwiftPmTarget;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 /**
  * A common base plugin for the C++ executable and library plugins
@@ -48,6 +56,13 @@ import java.util.concurrent.Callable;
 @Incubating
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
+    private final ProjectPublicationRegistry publicationRegistry;
+
+    @Inject
+    public CppBasePlugin(ProjectPublicationRegistry publicationRegistry) {
+        this.publicationRegistry = publicationRegistry;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(NativeBasePlugin.class);
@@ -57,7 +72,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        project.getGradle().getStartParameter().setGradleMetadata(true);
+        project.getGradle().getServices().get(FeaturePreviews.class).enableFeature(GRADLE_METADATA);
 
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
@@ -74,10 +89,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     @Override
                     public List<File> call() {
                         PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
-                        if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
-                            return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
-                        }
-                        return ImmutableList.of();
+                        return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
                     }
                 };
 
@@ -103,6 +115,18 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(CppSharedLibrary library) {
                 library.getCompileTask().get().setPositionIndependentCode(true);
+            }
+        });
+        project.getComponents().withType(ProductionCppComponent.class, new Action<ProductionCppComponent>() {
+            @Override
+            public void execute(final ProductionCppComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        DefaultCppComponent componentInternal = (DefaultCppComponent) component;
+                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get()), false));
+                    }
+                });
             }
         });
     }

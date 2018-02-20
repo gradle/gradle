@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -27,7 +28,12 @@ import java.util.List;
 
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor, ResolvedLocalComponentsResult {
     private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<ResolvedProjectConfiguration>();
+    private final BuildIdentifier thisBuild;
     private ComponentIdentifier rootId;
+
+    public ResolvedLocalComponentsResultGraphVisitor(BuildIdentifier thisBuild) {
+        this.thisBuild = thisBuild;
+    }
 
     @Override
     public void start(DependencyGraphNode root) {
@@ -38,7 +44,10 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     public void visitNode(DependencyGraphNode node) {
         ComponentIdentifier componentId = node.getOwner().getComponentId();
         if (!rootId.equals(componentId) && componentId instanceof ProjectComponentIdentifier) {
-            resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration((ProjectComponentIdentifier) componentId, node.getResolvedConfigurationId().getConfiguration()));
+            ProjectComponentIdentifier projectComponentId = (ProjectComponentIdentifier) componentId;
+            if (projectComponentId.getBuild().equals(thisBuild)) {
+                resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration(projectComponentId, node.getResolvedConfigurationId().getConfiguration()));
+            }
         }
     }
 

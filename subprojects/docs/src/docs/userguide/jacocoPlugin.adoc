@@ -107,6 +107,12 @@ The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtensi
         </sample>
 ++++
 
+[NOTE]
+====
+Using the configuration `append = true` (the default) causes the JaCoCo agent to append to a shared output file that may be left over from a different test execution.
+If `append = true`, Gradle disables caching for the Test task since it cannot guarantee the same results each time.
+====
+
 .Default values of the JaCoCo Task extension
 [cols="a,a", options="header"]
 |===

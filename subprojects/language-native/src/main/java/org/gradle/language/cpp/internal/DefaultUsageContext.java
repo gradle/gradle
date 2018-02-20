@@ -27,30 +27,39 @@ import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Set;
 
-class DefaultUsageContext implements UsageContext, Named {
+public class DefaultUsageContext implements UsageContext, Named {
     private final String name;
     private final Usage usage;
     private final AttributeContainer attributes;
+
     private final Set<? extends PublishArtifact> artifacts;
     private final Set<? extends ModuleDependency> dependencies;
     private final Set<? extends DependencyConstraint> dependencyConstraints;
 
     DefaultUsageContext(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-        this.name = name;
-        this.usage = usage;
-        this.attributes = configuration.getAttributes();
-        this.artifacts = artifacts;
-        this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
-        this.dependencyConstraints = configuration.getAllDependencies().withType(DependencyConstraint.class);
+        this(name, usage, configuration.getAttributes(), artifacts, configuration);
     }
 
-    DefaultUsageContext(String name, Usage usage, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Set<? extends ModuleDependency> dependencies, Set<? extends DependencyConstraint> dependencyConstraints) {
+    public DefaultUsageContext(UsageContext usageContext, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+        this(usageContext.getName(), usageContext.getUsage(), usageContext.getAttributes(), artifacts, configuration);
+    }
+
+    public DefaultUsageContext(String name, Usage usage, AttributeContainer attributes) {
+        this(name, usage, attributes, null, null);
+    }
+
+    private DefaultUsageContext(String name, Usage usage, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         this.name = name;
         this.usage = usage;
         this.attributes = attributes;
         this.artifacts = artifacts;
-        this.dependencies = dependencies;
-        this.dependencyConstraints = dependencyConstraints;
+        if (configuration!=null) {
+            this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
+            this.dependencyConstraints = configuration.getAllDependencyConstraints();
+        } else {
+            this.dependencies = null;
+            this.dependencyConstraints = null;
+        }
     }
 
     @Override
@@ -70,16 +79,19 @@ class DefaultUsageContext implements UsageContext, Named {
 
     @Override
     public Set<? extends PublishArtifact> getArtifacts() {
+        assert artifacts != null;
         return artifacts;
     }
 
     @Override
     public Set<? extends ModuleDependency> getDependencies() {
+        assert dependencies != null;
         return dependencies;
     }
 
     @Override
     public Set<? extends DependencyConstraint> getDependencyConstraints() {
+        assert dependencyConstraints != null;
         return dependencyConstraints;
     }
 }

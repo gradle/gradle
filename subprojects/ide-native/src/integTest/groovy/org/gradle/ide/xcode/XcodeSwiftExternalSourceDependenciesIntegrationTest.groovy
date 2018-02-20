@@ -125,7 +125,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
-        rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")//, "${checkoutRelativeDir(repo.name, commit.id.name, repo.id)}/greeter.xcodeproj")
+        rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(checkoutDir(repo.name, commit.id.name, repo.id).file('build/modules/main/debug'))

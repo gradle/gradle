@@ -17,7 +17,7 @@ dependencies {
     integTestRuntime project(":compositeBuilds")
     integTestRuntime project(":idePlay")
     testFixturesCompile project(":internalIntegTesting")
-    testFixturesCompile libraries.commons_httpclient.coordinate
+    testFixturesCompile libraries.commons_httpclient.coordinates
 }
 
 testFixtures {

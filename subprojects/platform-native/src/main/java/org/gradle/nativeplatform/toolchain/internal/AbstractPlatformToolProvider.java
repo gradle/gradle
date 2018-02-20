@@ -221,7 +221,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
-    public CompilerMetadata getCompilerMetadata() {
+    public CompilerMetadata getCompilerMetadata(ToolType compilerType) {
         throw unavailableTool("Compiler is not available");
     }
 }

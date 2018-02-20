@@ -522,12 +522,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.withFullDeprecationStackTraceDisabled().withStackTraceChecksDisabled()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on compile classpath'
+        outputContains 'Could not read annotation processor declarations'
 
     }
 

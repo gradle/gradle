@@ -123,6 +123,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             processor.stop();
         } finally {
             completed.countDown();
+            // Clean the interrupted status
+            // because some test class processors do work here, e.g. JUnitPlatform
+            Thread.interrupted();
         }
     }
 

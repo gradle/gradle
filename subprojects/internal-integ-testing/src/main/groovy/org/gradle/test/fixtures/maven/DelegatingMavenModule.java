@@ -102,7 +102,7 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule dependencyConstraint(Map<String, ?> attributes, Module module) {
+    public T dependencyConstraint(Map<String, ?> attributes, Module module) {
         backingModule.dependencyConstraint(attributes, module);
         return t();
     }
@@ -111,6 +111,7 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     public TestFile getArtifactFile() {
         return backingModule.getArtifactFile();
     }
+
     @Override
     public TestFile getArtifactFile(Map options) {
         return backingModule.getArtifactFile(options);

@@ -21,6 +21,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Assert
 
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+
 class HtmlTestExecutionResult implements TestExecutionResult {
 
     private File htmlReportDirectory
@@ -54,6 +56,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
     }
 
+    boolean testClassExists(String testClass) {
+        return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"))
     }
@@ -83,20 +89,20 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         private void parseTestClassFile() {
             html.select("tr > td.success:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
+                def testName = removeParentheses(it.textNodes().first().wholeText.trim())
                 testsExecuted << testName
                 testsSucceeded << testName
 
             }
             html.select("tr > td.failures:eq(0)").each {
                 def testName = it.textNodes().first().wholeText.trim()
-                testsExecuted << testName
-                def failures = getFailureMessages(testName);
-                testsFailures[it.text()] = failures
+                testsExecuted << removeParentheses(testName)
+                def failures = getFailureMessages(testName)
+                testsFailures[removeParentheses(it.text())] = failures
             }
 
             html.select("tr > td.skipped:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
+                def testName = removeParentheses(it.textNodes().first().wholeText.trim())
                 testsSkipped << testName
                 testsExecuted << testName
             }
@@ -119,6 +125,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             return this
         }
 
+        int getTestCount() {
+            return testsExecuted.size()
+        }
+
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
             assert testsSkipped == testNames as Set
             return this
@@ -137,6 +147,23 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 assert messageMatchers[i].matches(messages[i])
             }
             return this
+        }
+
+        boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+            if (!testsFailures.containsKey(name)) {
+                return false
+            }
+
+            def messages = testsFailures[name].collect { it.readLines().first() }
+            if (messages.size() != messageMatchers.length) {
+                return false
+            }
+            for (int i = 0; i < messageMatchers.length; i++) {
+                if (!messageMatchers[i].matches(messages[i])) {
+                    return false
+                }
+            }
+            return true
         }
 
         TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {

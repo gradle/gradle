@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode.plugins;
 
-import com.google.common.base.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -26,12 +25,11 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
@@ -49,6 +47,7 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -82,12 +81,14 @@ import java.io.File;
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
+    private final BuildIdentifier thisBuild;
     private DefaultXcodeExtension xcode;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
+        this.thisBuild = thisBuild.getCurrentBuild();
     }
 
     @Override
@@ -208,7 +209,7 @@ public class XcodePlugin extends IdePlugin {
                 xcode.getProject().getGroups().getTests().from(sources);
 
                 String targetName = component.getModule().get();
-                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
                 target.setDebug(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
                 target.setRelease(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
                 target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
@@ -225,7 +226,7 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private FileCollection filterArtifactsFromImplicitBuilds(Configuration configuration) {
-        return configuration.getIncoming().artifactView(fromSourceDependency(project)).getArtifacts().getArtifactFiles();
+        return configuration.getIncoming().artifactView(fromSourceDependency()).getArtifacts().getArtifactFiles();
     }
 
     private void configureXcodeForSwift(final Project project) {
@@ -239,7 +240,7 @@ public class XcodePlugin extends IdePlugin {
 
                 // TODO - should use the _install_ task for an executable
                 String targetName = component.getModule().get();
-                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
                 component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
                     @Override
                     public void execute(SwiftBinary swiftBinary) {
@@ -299,7 +300,7 @@ public class XcodePlugin extends IdePlugin {
 
                 // TODO - should use the _install_ task for an executable
                 String targetName = StringUtils.capitalize(component.getBaseName().get());
-                final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project), getBridgeTaskPath(project), sources);
                 component.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                     @Override
                     public void execute(CppBinary cppBinary) {
@@ -336,23 +337,6 @@ public class XcodePlugin extends IdePlugin {
         schemeFileTask.setXcodeProject(xcodeProject);
         schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + schemeName + ".xcscheme"));
         return schemeFileTask;
-    }
-
-    private static String toGradleCommand(Project project) {
-        Gradle gradle = project.getGradle();
-        Optional<String> gradleWrapperPath = Optional.absent();
-        if (project.file("gradlew").exists()) {
-            gradleWrapperPath = Optional.of(project.file("gradlew").getAbsolutePath());
-        }
-
-        if (gradle.getGradleHomeDir() != null) {
-            if (gradleWrapperPath.isPresent() && gradle.getGradleHomeDir().getAbsolutePath().startsWith(gradle.getGradleUserHomeDir().getAbsolutePath())) {
-                return gradleWrapperPath.get();
-            }
-            return gradle.getGradleHomeDir().getAbsolutePath() + "/bin/gradle";
-        }
-
-        return gradleWrapperPath.or("gradle");
     }
 
     private XcodeTarget newTarget(String name, String productName, String gradleCommand, String taskName, FileCollection sources) {
@@ -479,22 +463,22 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private static final Action<ArtifactView.ViewConfiguration> fromSourceDependency(final Project project) {
+    private final Action<ArtifactView.ViewConfiguration> fromSourceDependency() {
         return new Action<ArtifactView.ViewConfiguration>() {
             @Override
             public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                viewConfiguration.componentFilter(isSourceDependency((ProjectInternal) project));
+                viewConfiguration.componentFilter(isSourceDependency());
             }
         };
     }
 
-    private static final Spec<ComponentIdentifier> isSourceDependency(final ProjectInternal project) {
+    private final Spec<ComponentIdentifier> isSourceDependency() {
         return new Spec<ComponentIdentifier>() {
             @Override
             public boolean isSatisfiedBy(ComponentIdentifier id) {
                 if (id instanceof ProjectComponentIdentifier) {
                     ProjectComponentIdentifier identifier = (ProjectComponentIdentifier) id;
-                    return !identifier.getBuild().isCurrentBuild();
+                    return !identifier.getBuild().equals(thisBuild);
                 }
                 return false;
             }

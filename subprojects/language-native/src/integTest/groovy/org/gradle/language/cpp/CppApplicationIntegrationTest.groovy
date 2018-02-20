@@ -23,6 +23,8 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 import static org.gradle.util.Matchers.containsText
 
@@ -48,6 +50,11 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     @Override
     protected String getDevelopmentBinaryCompileTask() {
         return ":compileDebugCpp"
+    }
+
+    @Override
+    protected SourceElement getComponentUnderTest() {
+        return new CppApp()
     }
 
     def "skip compile, link and install tasks when no source"() {
@@ -371,7 +378,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':hello') {
                 apply plugin: 'cpp-library'
             }
-"""
+        """
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -384,6 +391,116 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         def installation = installation("app/build/install/main/debug")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("hello")
+    }
+
+    def "can directly depend on generated sources on includePath"() {
+        settingsFile << "rootProject.name = 'app'"
+
+        given:
+        file("src/main/cpp/main.cpp") << """
+            #include "foo.h"
+            
+            int main(int argc, char** argv) {
+                return EXIT_VALUE;
+            }
+        """
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            task generateHeader {
+                ext.headerDirectory = newOutputDirectory()
+                headerDirectory.set(project.layout.buildDirectory.dir("headers"))
+                doLast {
+                    def fooH = headerDirectory.file("foo.h").get().asFile
+                    fooH.parentFile.mkdirs()
+                    fooH << '''
+                        #define EXIT_VALUE 0
+                    '''
+                }
+            }
+            
+            application.binaries.whenElementFinalized { binary ->
+                def dependency = project.dependencies.create(files(generateHeader.headerDirectory))
+                binary.getIncludePathConfiguration().dependencies.add(dependency)
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+    }
+
+    def "can compile and link against a library with explicit operating system family defined"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new CppAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
+                    operatingSystems = [objects.named(OperatingSystemFamily, '${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}')]
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                library {
+                    operatingSystems = [objects.named(OperatingSystemFamily, '${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}')]
+                }
+            }
+        """
+        app.greeter.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        executable("app/build/exe/main/debug/app").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("hello")
+    }
+
+    def "fails compile and link against a library with different operating system family support"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new CppAppWithLibrary()
+
+        given:
+        def currentOperatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
+                    operatingSystems = [objects.named(OperatingSystemFamily, '${currentOperatingSystemFamily}')]
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                library {
+                    operatingSystems = [objects.named(OperatingSystemFamily, 'some-other-family')]
+                }
+            }
+        """
+        app.greeter.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        fails ":app:assemble"
+
+        failure.assertHasCause """Unable to find a matching configuration of project :hello: Configuration 'cppApiElements':
+  - Required org.gradle.native.debuggable 'true' but no value provided.
+  - Required org.gradle.native.operatingSystem '${currentOperatingSystemFamily}' but no value provided.
+  - Required org.gradle.native.optimized 'false' but no value provided.
+  - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'."""
     }
 
     def "can compile and link against a static library"() {
@@ -816,5 +933,4 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("build/install/main/debug/lib/lib1").file.assertExists()
         sharedLibrary("build/install/main/debug/lib/lib2").file.assertExists()
     }
-
 }

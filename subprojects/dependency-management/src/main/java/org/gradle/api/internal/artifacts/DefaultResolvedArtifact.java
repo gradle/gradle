@@ -20,11 +20,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -116,7 +117,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
     }
 
     @Override
-    public boolean isResolved() {
+    public boolean isResolveSynchronously() {
+        if (artifactId instanceof LocalComponentArtifactMetadata) {
+            // Don't bother resolving local components asynchronously
+            return true;
+        }
         synchronized (this) {
             return file != null || failure != null;
         }

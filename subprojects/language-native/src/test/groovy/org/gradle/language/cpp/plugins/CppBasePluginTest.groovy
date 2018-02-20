@@ -17,8 +17,11 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
+import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppPlatform
+import org.gradle.language.cpp.internal.DefaultCppApplication
 import org.gradle.language.cpp.internal.DefaultCppBinary
 import org.gradle.language.cpp.internal.DefaultCppExecutable
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary
@@ -30,8 +33,10 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
+import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -128,11 +133,33 @@ class CppBasePluginTest extends Specification {
         "testDebug" | "linkTestDebug" | "test/debug/"
     }
 
+    def "registers a Swift PM publication for each production component"() {
+        def component = Stub(DefaultCppApplication)
+        def prop = Stub(Property)
+        prop.get() >> "SomeApp"
+        component.baseName >> prop
+
+        when:
+        project.pluginManager.apply(CppBasePlugin)
+        project.components.add(component)
+        project.evaluate()
+
+        then:
+        def publications = project.services.get(ProjectPublicationRegistry).getPublications(project.path)
+        publications.size() == 1
+        publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
+    }
+
     interface CppPlatformInternal extends CppPlatform, NativePlatformInternal {}
 
     class TestPlatformToolProvider extends AbstractPlatformToolProvider {
         TestPlatformToolProvider() {
             super(null, new DefaultOperatingSystem("current", OperatingSystem.current()))
+        }
+
+        @Override
+        SystemLibraries getSystemLibraries(ToolType compilerType) {
+            throw new UnsupportedOperationException()
         }
 
         @Override

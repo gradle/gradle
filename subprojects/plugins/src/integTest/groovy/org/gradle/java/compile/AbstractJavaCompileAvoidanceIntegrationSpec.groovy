@@ -18,7 +18,7 @@ package org.gradle.java.compile
 
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.language.fixtures.HelperProcessorFixture
 import spock.lang.Issue
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
@@ -685,7 +685,7 @@ public class ToolImpl {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         // A library class used by processor at runtime, but not the generated classes
         fixture.writeSupportLibraryTo(file("a"))
@@ -794,7 +794,7 @@ public class ToolImpl {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         // The annotation
         fixture.writeApiTo(file("a"))
@@ -884,7 +884,7 @@ public class ToolImpl {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         fixture.writeSupportLibraryTo(file("a"))
         fixture.writeApiTo(file("b"))

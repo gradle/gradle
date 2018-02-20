@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
@@ -93,7 +94,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             ModelSchemaStore schemaStore = serviceRegistry.get(ModelSchemaStore.class);
-            languages.add(new Java(schemaStore));
+            BuildIdentity buildIdentity = serviceRegistry.get(BuildIdentity.class);
+            languages.add(new Java(schemaStore, buildIdentity));
         }
     }
 
@@ -103,8 +105,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
         private final JavaSourceTransformTaskConfig config;
 
-        public Java(ModelSchemaStore schemaStore) {
-            this.config = new JavaSourceTransformTaskConfig(schemaStore);
+        public Java(ModelSchemaStore schemaStore, BuildIdentity buildIdentity) {
+            this.config = new JavaSourceTransformTaskConfig(schemaStore, buildIdentity);
         }
 
         @Override
@@ -140,9 +142,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private static class JavaSourceTransformTaskConfig implements SourceTransformTaskConfig {
 
             private final ModelSchemaStore schemaStore;
+            private final BuildIdentity buildIdentity;
 
-            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore) {
+            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, BuildIdentity buildIdentity) {
                 this.schemaStore = schemaStore;
+                this.buildIdentity = buildIdentity;
             }
 
             @Override
@@ -174,7 +178,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 compile.setTargetCompatibility(targetCompatibility);
                 compile.setSourceCompatibility(targetCompatibility);
 
-                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
+                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore, buildIdentity);
                 compile.setClasspath(classpath);
             }
 
@@ -182,7 +186,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 return first(assembly.getClassDirectories());
             }
 
-            private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
+            private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, BuildIdentity thisBuild) {
                 Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
 
                 ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
@@ -194,7 +198,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
                 BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
 
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationExecutor);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationExecutor, thisBuild);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

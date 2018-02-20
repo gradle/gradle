@@ -17,28 +17,28 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.Actions;
 import org.gradle.vcs.VcsMapping;
+import org.gradle.vcs.VersionControlSpec;
+
+import javax.annotation.Nullable;
 
 public interface VcsMappingsStore {
-    Action<VcsMapping> getVcsMappingRule();
-    boolean hasRules();
+    VcsResolver asResolver();
+
     void addRule(Action<? super VcsMapping> rule, Gradle gradle);
 
-    VcsMappingsStore NO_OP = new VcsMappingsStore() {
+    VcsResolver NO_OP = new VcsResolver() {
+        @Nullable
         @Override
-        public Action<VcsMapping> getVcsMappingRule() {
-            return Actions.doNothing();
+        public VersionControlSpec locateVcsFor(ModuleComponentSelector selector) {
+            return null;
         }
 
         @Override
         public boolean hasRules() {
             return false;
-        }
-
-        @Override
-        public void addRule(Action<? super VcsMapping> rule, Gradle gradle) {
         }
     };
 }

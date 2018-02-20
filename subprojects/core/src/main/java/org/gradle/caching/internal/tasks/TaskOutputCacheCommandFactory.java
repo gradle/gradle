@@ -30,6 +30,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
@@ -38,7 +39,7 @@ import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -81,8 +82,8 @@ public class TaskOutputCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState) {
-        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState);
+    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
+        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskArtifactState);
     }
 
     public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
@@ -95,15 +96,15 @@ public class TaskOutputCacheCommandFactory {
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final TaskInternal task;
         private final TaskProperties taskProperties;
-        private final TaskOutputsGenerationListener taskOutputsGenerationListener;
+        private final TaskOutputChangesListener taskOutputChangesListener;
         private final TaskArtifactState taskArtifactState;
 
-        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState) {
+        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.task = task;
             this.taskProperties = taskProperties;
-            this.taskOutputsGenerationListener = taskOutputsGenerationListener;
+            this.taskOutputChangesListener = taskOutputChangesListener;
             this.taskArtifactState = taskArtifactState;
         }
 
@@ -114,7 +115,7 @@ public class TaskOutputCacheCommandFactory {
 
         @Override
         public BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata> load(InputStream input) {
-            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
+            taskOutputChangesListener.beforeTaskOutputChanged();
             final TaskOutputPacker.UnpackResult unpackResult;
             try {
                 unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
@@ -153,7 +154,7 @@ public class TaskOutputCacheCommandFactory {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
                 if (outputFile == null) {
-                    propertySnapshotsBuilder.put(propertyName, FileCollectionSnapshot.EMPTY);
+                    propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
                     continue;
                 }
                 List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);

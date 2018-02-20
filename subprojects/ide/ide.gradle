@@ -18,7 +18,7 @@ sourceSets.main.java.srcDirs = []
 sourceSets.main.groovy.srcDirs = ['src/main/java', 'src/main/groovy']
 
 dependencies {
-    compile libraries.groovy.coordinate
+    compile libraries.groovy.coordinates
 
     compile project(':scala')
     compile project(':core')
@@ -26,8 +26,8 @@ dependencies {
     compile project(':ear')
     compile project(':toolingApi')
     compile project(':compositeBuilds')
-    compile libraries.slf4j_api.coordinate
-    compile libraries.inject.coordinate
+    compile libraries.slf4j_api.coordinates
+    compile libraries.inject.coordinates
 
     testCompile testLibraries.xmlunit
     testCompile 'nl.jqno.equalsverifier:equalsverifier:2.1.6'

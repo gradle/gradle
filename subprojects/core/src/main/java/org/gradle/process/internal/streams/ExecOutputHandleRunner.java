@@ -67,8 +67,19 @@ public class ExecOutputHandleRunner implements Runnable {
             }
             CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
+            if (wasInterrupted(t)) {
+                return;
+            }
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }
+    }
+
+    /**
+     * This can happen e.g. on IBM JDK when a remote process was terminated. Instead of
+     * returning -1 on the next read() call, it will interrupt the current read call.
+     */
+    private boolean wasInterrupted(Throwable t) {
+        return t instanceof IOException && "Interrupted system call".equals(t.getMessage());
     }
 
     public void closeInput() throws IOException {

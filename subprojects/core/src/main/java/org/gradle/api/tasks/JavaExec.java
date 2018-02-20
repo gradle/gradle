@@ -19,6 +19,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -312,6 +313,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return javaExecHandleBuilder.getArgumentProviders();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public JavaExec setClasspath(FileCollection classpath) {
         javaExecHandleBuilder.setClasspath(classpath);
         return this;
@@ -509,5 +518,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     public List<String> getCommandLine() {
         return javaExecHandleBuilder.getCommandLine();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return javaExecHandleBuilder.getJvmArgumentProviders();
     }
 }

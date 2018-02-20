@@ -58,8 +58,6 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheOption());
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
-        options.add(new AdvancedPomSupportOption());
-        options.add(new GradleMetadataOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -119,8 +117,10 @@ public class StartParameterBuildOptions {
     }
 
     public static class ContinueOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "continue";
+
         public ContinueOption() {
-            super(null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Continue task execution after a task failure."));
         }
 
         @Override
@@ -306,32 +306,6 @@ public class StartParameterBuildOptions {
             } else {
                 settings.setNoBuildScan(true);
             }
-        }
-    }
-
-    public static class AdvancedPomSupportOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.advancedpomsupport";
-
-        public AdvancedPomSupportOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setAdvancedPomSupport(value);
-        }
-    }
-
-    public static class GradleMetadataOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.gradlemetadata";
-
-        public GradleMetadataOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setGradleMetadata(value);
         }
     }
 }

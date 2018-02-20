@@ -36,6 +36,8 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerLeaseRegistry.WorkerLease currentWorkerLease;
@@ -45,11 +47,13 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
+    private final Lock lock = new ReentrantLock();
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private DocumentationRegistry documentationRegistry;
+    private boolean stoppedNow;
 
     public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
         this.currentWorkerLease = parentWorkerLease;
@@ -69,13 +73,22 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        if (remoteProcessor == null) {
-            completion = currentWorkerLease.startChild();
-            JULRedirector.checkDeprecatedProperty(options);
-            remoteProcessor = forkProcess();
-        }
+        lock.lock();
+        try {
+            if (stoppedNow) {
+                return;
+            }
 
-        remoteProcessor.processTestClass(testClass);
+            if (remoteProcessor == null) {
+                completion = currentWorkerLease.startChild();
+                JULRedirector.checkDeprecatedProperty(options);
+                remoteProcessor = forkProcess();
+            }
+
+            remoteProcessor.processTestClass(testClass);
+        } finally {
+            lock.unlock();
+        }
     }
 
     RemoteTestClassProcessor forkProcess() {
@@ -110,6 +123,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-engine").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-launcher").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-commons").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
@@ -124,16 +141,38 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     public void stop() {
         if (remoteProcessor != null) {
             try {
-                remoteProcessor.stop();
+                lock.lock();
+                try {
+                    if (!stoppedNow) {
+                        remoteProcessor.stop();
+                    }
+                } finally {
+                    lock.unlock();
+                }
                 workerProcess.waitForStop();
             } catch (ExecException e) {
-                throw new ExecException(e.getMessage()
-                    + "\nThis problem might be caused by incorrect test process configuration."
-                    + "\nPlease refer to the test execution section in the user guide at "
-                    + documentationRegistry.getDocumentationFor("java_plugin", "sec:test_execution"), e.getCause());
+                if (!stoppedNow) {
+                    throw new ExecException(e.getMessage()
+                        + "\nThis problem might be caused by incorrect test process configuration."
+                        + "\nPlease refer to the test execution section in the user guide at "
+                        + documentationRegistry.getDocumentationFor("java_plugin", "sec:test_execution"), e.getCause());
+                }
             } finally {
                 completion.leaseFinish();
             }
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        lock.lock();
+        try {
+            stoppedNow = true;
+            if (remoteProcessor != null) {
+                workerProcess.stopNow();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }

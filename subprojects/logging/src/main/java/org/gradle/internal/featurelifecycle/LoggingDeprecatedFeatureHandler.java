@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
+public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     public static final String WARNING_SUMMARY = "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
     public static final String WARNING_LOGGING_DOCS_MESSAGE = "See";
@@ -37,16 +37,15 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
+    private static String deprecationMessage;
     private static boolean traceLoggingEnabled;
+
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
     private WarningMode warningMode;
 
     public LoggingDeprecatedFeatureHandler() {
-        this(new UsageLocationReporter() {
-            public void reportLocation(DeprecatedFeatureUsage usage, StringBuilder target) {
-            }
-        });
+        this(DoNothingReporter.INSTANCE);
     }
 
     public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter) {
@@ -58,11 +57,8 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         this.warningMode = warningMode;
     }
 
-    public void reset() {
-        messages.clear();
-    }
-
-    public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
+    @Override
+    public void featureUsed(FeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
             usage = usage.withStackTrace();
             StringBuilder message = new StringBuilder();
@@ -76,6 +72,10 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
                 LOGGER.warn(message.toString());
             }
         }
+    }
+
+    public void reset() {
+        messages.clear();
     }
 
     public void reportSuppressedDeprecations() {
@@ -150,6 +150,28 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             return traceLoggingEnabled;
         }
         return Boolean.parseBoolean(value);
+    }
+
+    private static String initDeprecationMessage() {
+        String messageBase = "has been deprecated and is scheduled to be removed in";
+        String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
+
+        return String.format("%s %s", messageBase, when);
+    }
+
+    public static String getDeprecationMessage() {
+        if (deprecationMessage == null) {
+            deprecationMessage = initDeprecationMessage();
+        }
+        return deprecationMessage;
+    }
+
+    private enum DoNothingReporter implements UsageLocationReporter {
+        INSTANCE;
+
+        @Override
+        public void reportLocation(FeatureUsage usage, StringBuilder target) {
+        }
     }
 
 }

@@ -32,11 +32,13 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -192,11 +194,15 @@ public class ModuleMetadataFileGenerator {
         }
         if (component instanceof ComponentWithVariants) {
             for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
-                ComponentData componentData = componentCoordinates.get(childComponent);
-                ModuleVersionIdentifier childCoordinates = componentData == null ? null : componentData.coordinates;
-                if (childCoordinates == null) {
-                    continue;
+                ModuleVersionIdentifier childCoordinates;
+                if (childComponent instanceof ComponentWithCoordinates) {
+                    childCoordinates = ((ComponentWithCoordinates)childComponent).getCoordinates();
+                } else {
+                    ComponentData componentData = componentCoordinates.get(childComponent);
+                    childCoordinates = componentData == null ? null : componentData.coordinates;
                 }
+
+                assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
                     for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
                         if (!started) {
@@ -357,23 +363,11 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endArray();
     }
 
-    private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter) throws IOException {
-        if (variant.getDependencyConstraints().isEmpty()) {
-            return;
-        }
-        jsonWriter.name("dependencyConstraints");
-        jsonWriter.beginArray();
-        for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
-            writeDependency(dependencyConstraint, jsonWriter);
-        }
-        jsonWriter.endArray();
-    }
-
     private void writeDependency(Dependency dependency, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         if (dependency instanceof ProjectDependency) {
             ProjectDependency projectDependency = (ProjectDependency) dependency;
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(projectDependency);
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
             jsonWriter.name("group");
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
@@ -387,8 +381,6 @@ public class ModuleMetadataFileGenerator {
             VersionConstraint vc;
             if (dependency instanceof ModuleVersionSelector) {
                 vc = ((ExternalDependency) dependency).getVersionConstraint();
-            } else if (dependency instanceof DependencyConstraint) {
-                vc = ((DependencyConstraint) dependency).getVersionConstraint();
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
@@ -398,6 +390,33 @@ public class ModuleMetadataFileGenerator {
             writeExcludes((ModuleDependency) dependency, jsonWriter);
         }
         String reason = dependency.getReason();
+        if (StringUtils.isNotEmpty(reason)) {
+            jsonWriter.name("reason");
+            jsonWriter.value(reason);
+        }
+        jsonWriter.endObject();
+    }
+
+    private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter) throws IOException {
+        if (variant.getDependencyConstraints().isEmpty()) {
+            return;
+        }
+        jsonWriter.name("dependencyConstraints");
+        jsonWriter.beginArray();
+        for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
+            writeDependencyConstraint(dependencyConstraint, jsonWriter);
+        }
+        jsonWriter.endArray();
+    }
+
+    private void writeDependencyConstraint(DependencyConstraint dependencyConstraint, JsonWriter jsonWriter) throws IOException {
+        jsonWriter.beginObject();
+        jsonWriter.name("group");
+        jsonWriter.value(dependencyConstraint.getGroup());
+        jsonWriter.name("module");
+        jsonWriter.value(dependencyConstraint.getName());
+        writeVersionConstraint(dependencyConstraint.getVersionConstraint(), jsonWriter);
+        String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {
             jsonWriter.name("reason");
             jsonWriter.value(reason);

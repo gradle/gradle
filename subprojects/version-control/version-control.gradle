@@ -23,11 +23,11 @@ dependencies {
     api project(':coreApi')
 
     implementation project(':core')
-    implementation libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
+    implementation libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation project(":internalIntegTesting")
-    testFixturesCompile libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
+    testFixturesCompile libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 }
 
 testFixtures {

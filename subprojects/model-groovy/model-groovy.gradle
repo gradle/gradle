@@ -28,11 +28,11 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 dependencies {
     api project(':baseServices')
     api project(':modelCore')
-    api libraries.groovy.coordinate
+    api libraries.groovy.coordinates
 
     implementation project(':baseServicesGroovy')
-    implementation libraries.jcip.coordinate
-    implementation libraries.guava.coordinate
+    implementation libraries.jcip.coordinates
+    implementation libraries.guava.coordinates
 }
 
 testFixtures {

@@ -19,6 +19,7 @@ package org.gradle.language.cpp.internal
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,6 +35,12 @@ class DefaultCppLibraryTest extends Specification {
 
     def setup() {
         library = new DefaultCppLibrary("main", project.objects, project, project.configurations)
+    }
+
+    def "has display name"() {
+        expect:
+        library.displayName.displayName == "C++ library 'main'"
+        library.toString() == "C++ library 'main'"
     }
 
     def "has implementation configuration"() {
@@ -72,15 +79,39 @@ class DefaultCppLibraryTest extends Specification {
     }
 
     def "can add shared library"() {
+        def targetPlatform = Stub(CppPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        def binary = library.addSharedLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def binary = library.addSharedLibrary(identity, targetPlatform, toolChain, platformToolProvider)
         binary.name == 'mainDebug'
+        binary.debuggable
+        !binary.optimized
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
     }
 
     def "can add static library"() {
+        def targetPlatform = Stub(CppPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        def binary = library.addStaticLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def binary = library.addStaticLibrary(identity, targetPlatform, toolChain, platformToolProvider)
         binary.name == 'mainDebug'
+        binary.debuggable
+        !binary.optimized
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
     }
 
     def "compile include path includes public and private header dirs"() {
@@ -92,7 +123,7 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        def binary = library.addSharedLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def binary = library.addSharedLibrary(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         binary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
@@ -147,6 +178,15 @@ class DefaultCppLibraryTest extends Specification {
         expect:
         c1.publicHeaderDirs.files == [h1] as Set
         c2.publicHeaderDirs.files == [h2] as Set
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return Stub(NativeVariantIdentity) {
+            getName() >> "debug"
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+            isDebuggable() >> true
+            isOptimized() >> false
+        }
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {

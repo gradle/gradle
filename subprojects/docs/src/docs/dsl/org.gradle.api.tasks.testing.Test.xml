@@ -61,6 +61,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>jvmArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
                 <td>enableAssertions</td>
                 <td><literal><literal>true</literal></literal></td>
             </tr>
@@ -95,6 +99,10 @@
             <tr>
                 <td>testLogging</td>
                 <td/>
+            </tr>
+            <tr>
+                <td>failFast</td>
+                <td><literal>false</literal></td>
             </tr>
         </table>
     </section>

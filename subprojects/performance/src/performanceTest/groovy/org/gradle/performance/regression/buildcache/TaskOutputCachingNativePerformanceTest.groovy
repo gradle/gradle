@@ -41,9 +41,9 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject        | task                         | maxMemory
-        'bigCppApp'        | 'assemble'                   | '256m'
-        'bigCppMulti'      | 'assemble'                   | '1G'
-        'bigNative'        | 'assemble'                   | '1G'
+        testProject        | task       | maxMemory
+        'bigCppApp'        | 'assemble' | '256m'
+        'bigCppMulti'      | 'assemble' | '1G'
+        'bigNative'        | 'assemble' | '1G'
     }
 }

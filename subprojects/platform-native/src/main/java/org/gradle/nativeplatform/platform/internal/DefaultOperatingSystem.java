@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 
 public class DefaultOperatingSystem implements OperatingSystemInternal {
     private static final OperatingSystem CURRENT_OS = OperatingSystem.current();
@@ -50,6 +51,19 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     @Override
     public OperatingSystem getInternalOs() {
         return internalOs;
+    }
+
+    @Override
+    public String toFamilyName() {
+        if (isWindows()) {
+            return OperatingSystemFamily.WINDOWS;
+        } else if (isLinux()) {
+            return OperatingSystemFamily.LINUX;
+        } else if (isMacOsX()) {
+            return OperatingSystemFamily.MAC_OS;
+        } else {
+            throw new UnsupportedOperationException("Unsupported operating system family of name '" + name + "'");
+        }
     }
 
     @Override

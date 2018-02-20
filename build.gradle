@@ -15,14 +15,13 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.build.DefaultJavaInstallation
 import org.gradle.cleanup.EmptyDirectoryCheck
-
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.modules.PatchExternalModules
 
 plugins {
     id 'java-base'
     id 'build-types'
+    id 'gradle-compile'
 }
 
 defaultTasks 'assemble'
@@ -112,7 +111,7 @@ buildTypes {
 }
 
 ext {
-    gradle_kotlin_dsl_version = '0.15.4'
+    gradle_kotlin_dsl_version = '0.15.6'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("CI")
@@ -139,7 +138,7 @@ ext {
     }
 
     internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance", "buildScanPerformance"] }
-    groovyProjects = subprojects
+    groovyProjects = subprojects - subprojects.find { it.name == 'distributionsDependencies' }
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'antlr', 'wrapper', 'osgi', 'maven',
@@ -147,7 +146,7 @@ ext {
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
-        'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
+        'testingNative', 'testingJvm', 'testingJunitPlatform', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
         'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
     ].collect { project(it) }
     implementationPluginProjects = [
@@ -166,6 +165,10 @@ ext {
         project(':messaging'),
         project(':processServices'),
         project(':resources')
+    ]
+
+    projectsRequiringJava8 = [
+        project(':testingJunitPlatform')
     ]
 }
 
@@ -284,8 +287,6 @@ dependencies {
 
 ext.allCoreRuntimeExtensions = configurations.coreRuntimeExtensions.allDependencies
 
-import org.gradle.modules.PatchExternalModules
-
 task patchExternalModules(type: PatchExternalModules) {
     allModules = configurations.externalModulesRuntime
     coreModules = configurations.coreRuntime
@@ -295,26 +296,7 @@ task patchExternalModules(type: PatchExternalModules) {
 
 task verifyIsProductionBuildEnvironment {
     doLast {
-        assert javaVersion.java8:
-            "Must use a Java 8 compatible JVM to perform this build. Current JVM is ${jvm}"
-
-        def javaHomeProperty = { propertyName -> project.findProperty(propertyName) ?: System.getProperty(propertyName) }
-        def assertJavaHomeVersion = { propertyName, javaVersion ->
-            def javaInstallationPath = javaHomeProperty(propertyName)
-            assert javaInstallationPath:
-                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Currently unset. Set -P$propertyName=/path/to/jvm/$javaVersion"
-            def javaInstallation = new DefaultJavaInstallation()
-            gradle.services.get(JavaInstallationProbe).checkJdk(file(javaInstallationPath)).configure(javaInstallation)
-            assert javaInstallation.javaVersion == javaVersion:
-                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Is currently ${javaInstallation.displayName} at $javaInstallationPath. Set -P$propertyName=/path/to/jvm/$javaVersion"
-        }
-
-        assertJavaHomeVersion("java7Home", JavaVersion.VERSION_1_7)
-        if (javaHomeProperty("testJavaHome")) {
-            assertJavaHomeVersion("testJavaHome", JavaVersion.VERSION_1_8)
-        }
+        rootProject.availableJavaInstallations.validateProductionEnvironment()
 
         def systemCharset = java.nio.charset.Charset.defaultCharset().name()
         assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
@@ -353,11 +335,8 @@ subprojects { prj ->
     }
 }
 
-gradle.buildFinished { result ->
-    def rootProject = result.gradle.rootProject
-    if (rootProject.remoteBuildCacheEnabled && !rootProject.java7HomeSet) {
-        logger.warn("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
-    }
+afterEvaluate {
+    rootProject.availableJavaInstallations.validateBuildCacheConfiguration(gradle.settings.buildCache)
 }
 
 apply from: "gradle/ciReporting.gradle"

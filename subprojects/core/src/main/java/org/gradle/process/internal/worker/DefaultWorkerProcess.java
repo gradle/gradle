@@ -64,6 +64,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
         }
     }
 
+    @Override
+    public void stopNow() {
+        // cleanup() will abort the process as desired
+        cleanup();
+    }
+
     public void setExecHandle(ExecHandle execHandle) {
         this.execHandle = execHandle;
         execHandle.addListener(new ExecHandleListener() {
@@ -195,7 +201,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     private void cleanup() {
         CompositeStoppable stoppable;
-        execHandle.abort();
         lock.lock();
         try {
             stoppable = CompositeStoppable.stoppable(acceptor, connection);
@@ -205,5 +210,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
         stoppable.stop();
+        execHandle.abort();
     }
 }

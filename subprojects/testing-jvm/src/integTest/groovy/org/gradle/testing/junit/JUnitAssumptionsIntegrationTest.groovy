@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,29 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
-@TargetCoverage({JUnitCoverage.ASSUMPTIONS})
-public class JUnitAssumptionsIntegrationTest extends MultiVersionIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.ASSUMPTIONS
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+
+@TargetCoverage({ ASSUMPTIONS + JUNIT_VINTAGE })
+class JUnitAssumptionsIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def supportsAssumptions() {
         executer.noExtraLogging()
-        buildFile << "dependencies { testCompile 'junit:junit:$version' }"
+        buildFile << """
+dependencies {
+    testCompile '$dependencyNotation'
+}
+"""
 
         when:
-        executer.withTasks('check').run()
+        run('check')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

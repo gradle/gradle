@@ -61,6 +61,10 @@ class TestNGExecutionResult implements TestExecutionResult {
         projectDir.file("$outputDirectory/index.html")
     }
 
+    boolean testClassExists(String testClass) {
+        throw new UnsupportedOperationException("Unsupported. Implement if you need it.")
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         parseResults()
         return new TestNgTestClassExecutionResult(testClass, findTestClass(testClass))
@@ -124,6 +128,10 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         throw new RuntimeException("Unsupported. Implement if you need it.");
     }
 
+    int getTestCount() {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
+    }
+
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
         def actualTestMethods = findTestMethods().keySet()
         assert actualTestMethods == testNames as Set
@@ -157,6 +165,10 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
             assert messageMatchers[i].matches(exceptions[i].message[0].text().trim())
         }
         this
+    }
+
+    boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
     }
 
     TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {

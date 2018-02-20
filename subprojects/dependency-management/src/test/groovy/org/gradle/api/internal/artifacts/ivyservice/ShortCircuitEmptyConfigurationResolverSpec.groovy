@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -25,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.specs.Specs
+import org.gradle.initialization.BuildIdentity
 import spock.lang.Specification
 
 class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
@@ -32,11 +34,12 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def delegate = Mock(ConfigurationResolver)
     def configuration = Stub(ConfigurationInternal)
     def dependencies = Stub(DependencySet)
+    def dependencyConstraints = Stub(DependencyConstraintSet)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def results = new DefaultResolverResults()
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
 
-    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory);
+    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentity))
 
     def "returns empty build dependencies when no dependencies"() {
         def depVisitor = Stub(BuildDependenciesVisitor)
@@ -44,7 +47,9 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         given:
         dependencies.isEmpty() >> true
+        dependencyConstraints.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
+        configuration.getAllDependencyConstraints() >> dependencyConstraints
 
         when:
         dependencyResolver.resolveBuildDependencies(configuration, results)
@@ -70,7 +75,9 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         given:
         dependencies.isEmpty() >> true
+        dependencyConstraints.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
+        configuration.getAllDependencyConstraints() >> dependencyConstraints
 
         when:
         dependencyResolver.resolveGraph(configuration, results)
@@ -98,7 +105,9 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def "returns empty result when no dependencies"() {
         given:
         dependencies.isEmpty() >> true
+        dependencyConstraints.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
+        configuration.getAllDependencyConstraints() >> dependencyConstraints
 
         when:
         dependencyResolver.resolveGraph(configuration, results)

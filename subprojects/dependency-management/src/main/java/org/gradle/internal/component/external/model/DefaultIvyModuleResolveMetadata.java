@@ -143,7 +143,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
-        return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 
     private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {

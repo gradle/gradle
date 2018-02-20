@@ -18,6 +18,7 @@ package org.gradle.api.internal.java;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencySet;
@@ -41,6 +42,7 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -128,7 +130,8 @@ public class JavaLibrary implements SoftwareComponentInternal {
     }
 
     private class RuntimeUsageContext extends AbstractUsageContext {
-        private DependencySet dependencies;
+        private DomainObjectSet<ModuleDependency> dependencies;
+        private DomainObjectSet<DependencyConstraint> dependencyConstraints;
 
         RuntimeUsageContext(String usageName) {
             super(usageName);
@@ -141,24 +144,24 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<ModuleDependency> getDependencies() {
-            return getRuntimeDependencies().withType(ModuleDependency.class);
+            if (dependencies == null) {
+                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies().withType(ModuleDependency.class);
+            }
+            return dependencies;
         }
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return getRuntimeDependencies().withType(DependencyConstraint.class);
-        }
-
-        private DependencySet getRuntimeDependencies() {
-            if (dependencies == null) {
-                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
+            if (dependencyConstraints == null) {
+                dependencyConstraints = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencyConstraints();
             }
-            return dependencies;
+            return dependencyConstraints;
         }
     }
 
     private class CompileUsageContext extends AbstractUsageContext {
-        private DependencySet dependencies;
+        private DomainObjectSet<ModuleDependency> dependencies;
+        private DomainObjectSet<DependencyConstraint> dependencyConstraints;
 
         CompileUsageContext(String usageName) {
             super(usageName);
@@ -171,19 +174,18 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<ModuleDependency> getDependencies() {
-            return getApiDependencies().withType(ModuleDependency.class);
+            if (dependencies == null) {
+                dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies().withType(ModuleDependency.class);
+            }
+            return dependencies;
         }
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return getApiDependencies().withType(DependencyConstraint.class);
-        }
-
-        private DependencySet getApiDependencies() {
-            if (dependencies == null) {
-                dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
+            if (dependencyConstraints == null) {
+                dependencyConstraints = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencyConstraints();
             }
-            return dependencies;
+            return dependencyConstraints;
         }
     }
 
@@ -207,7 +209,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return runtimeDependencies.withType(DependencyConstraint.class);
+            return Collections.emptySet();
         }
     }
 

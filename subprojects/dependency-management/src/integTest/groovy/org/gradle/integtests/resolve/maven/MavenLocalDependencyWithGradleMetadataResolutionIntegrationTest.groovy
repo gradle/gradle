@@ -27,8 +27,8 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 
     def setup() {
         resolve.prepare()
-        FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
     }
 
     def "uses the module metadata when present and pom is not present"() {

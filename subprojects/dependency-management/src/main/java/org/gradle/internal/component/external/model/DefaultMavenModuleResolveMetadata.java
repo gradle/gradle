@@ -46,7 +46,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
-    private final boolean advancedPomSupportEnabled;
+    private final boolean improvedPomSupportEnabled;
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
 
@@ -57,9 +57,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
-    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, boolean advancedPomSupportEnabled) {
+    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, boolean improvedPomSupportEnabled) {
         super(metadata);
-        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
+        this.improvedPomSupportEnabled = improvedPomSupportEnabled;
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
         packaging = metadata.getPackaging();
@@ -70,7 +70,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        this.advancedPomSupportEnabled = metadata.advancedPomSupportEnabled;
+        this.improvedPomSupportEnabled = metadata.improvedPomSupportEnabled;
         this.attributesFactory = metadata.attributesFactory;
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
@@ -132,7 +132,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 
     private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {
@@ -152,7 +152,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private boolean ignoreOptionalDependencies() {
-        return !advancedPomSupportEnabled;
+        return !improvedPomSupportEnabled;
     }
 
     @Override
@@ -162,7 +162,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, advancedPomSupportEnabled);
+        return new DefaultMutableMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, improvedPomSupportEnabled);
     }
 
     public String getPackaging() {
@@ -182,7 +182,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private boolean isJavaLibrary() {
-        return advancedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
+        return improvedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
     }
 
     @Nullable
@@ -237,7 +237,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
      *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
      *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
      */
-    private static class OptionalConfigurationDependencyMetadata extends ConfigurationDependencyMetadataWrapper {
+    private static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
         private final MavenDependencyDescriptor dependencyDescriptor;
 
         public OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {

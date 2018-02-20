@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -35,6 +36,8 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
+import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
@@ -57,6 +60,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -65,6 +69,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
@@ -83,6 +88,8 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * test {
  *   // enable TestNG support (default is JUnit)
  *   useTestNG()
+ *   // enable JUnit Platform (a.k.a. JUnit 5) support
+ *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
  *   systemProperty 'some.prop', 'value'
@@ -106,6 +113,9 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  *      logger.lifecycle("Running test: " + descriptor)
  *   }
  *
+ *   // Fail the 'test' task on the first test failure
+ *   failFast = true
+ *
  *   // listen to standard out and standard error of the test JVM(s)
  *   onOutput { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
@@ -119,6 +129,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * </pre>
 
  */
+@NonNullApi
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
@@ -361,6 +372,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * {@inheritDoc}
      */
     @Override
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return forkOptions.getJvmArgumentProviders();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setJvmArgs(List<String> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -422,6 +441,25 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
+    }
+
+    /**
+     * Enables fail fast behavior causing the task to fail on the first failed test.
+     */
+    @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")
+    @Override
+    public void setFailFast(boolean failFast) {
+        super.setFailFast(failFast);
+    }
+
+    /**
+     * Indicates if this task will fail on the first failed test
+     *
+     * @return whether this task will fail on the first failed test
+     */
+    @Override
+    public boolean getFailFast() {
+        return super.getFailFast();
     }
 
     /**
@@ -507,7 +545,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), this, getMaxParallelForks());
+        DefaultJavaForkOptions javaForkOptions = new DefaultJavaForkOptions(getFileResolver());
+        copyTo(javaForkOptions);
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks());
     }
 
     @TaskAction
@@ -648,6 +688,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Deprecated
     @Internal
+    @Nullable
     public File getTestClassesDir() {
         SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
         if (testClassesDirs==null || testClassesDirs.isEmpty()) {
@@ -758,7 +799,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return testFramework(null);
     }
 
-    public TestFramework testFramework(Closure testFrameworkConfigure) {
+    public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
         if (testFramework == null) {
             useJUnit(testFrameworkConfigure);
         }
@@ -767,7 +808,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     * Returns test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
      */
@@ -779,7 +820,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
      */
@@ -788,7 +829,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
      * @since 3.5
@@ -803,7 +844,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return useTestFramework(testFramework, null);
     }
 
-    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, Action<? super T> testFrameworkConfigure) {
+    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
         }
@@ -830,7 +871,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
-    public void useJUnit(Closure testFrameworkConfigure) {
+    public void useJUnit(@Nullable Closure testFrameworkConfigure) {
         useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
@@ -843,6 +884,28 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+    }
+
+    /**
+     * Specifies that JUnit Platform (a.k.a. JUnit 5) should be used to execute the tests. <p> To configure JUnit platform specific options, see {@link #useJUnitPlatform(Action)}.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void useJUnitPlatform() {
+        useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
+    }
+
+    /**
+     * Specifies that JUnit Platform (a.k.a. JUnit 5) should be used to execute the tests, configuring JUnit platform specific options. <p> The supplied action configures an instance of {@link
+     * org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions}, which can be used to configure how JUnit platform runs.
+     *
+     * @param testFrameworkConfigure An action used to configure the JUnit platform options.
+     * @since 4.6
+     */
+    @Incubating
+    public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
     }
 
     /**
@@ -913,7 +976,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
      */
-    public void setForkEvery(Long forkEvery) {
+    public void setForkEvery(@Nullable Long forkEvery) {
         if (forkEvery != null && forkEvery < 0) {
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }

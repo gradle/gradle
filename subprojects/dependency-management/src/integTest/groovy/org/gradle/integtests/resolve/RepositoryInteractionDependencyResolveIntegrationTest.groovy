@@ -197,7 +197,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         given:
         setupRepositories(REPO_TYPES)
         if (testVariant.contains('+experimental')) {
-            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         setupModuleChain(chain)
 
@@ -241,7 +241,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     def "explicit compile configuration selection works for a chain of pure maven dependencies (experimental=#experimental)"() {
         given:
         if (experimental) {
-            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         def modules = ['mavenCompile1', 'mavenCompile2', 'mavenCompile3']
         setupRepositories(modules)
@@ -273,9 +273,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        experimental | _
-        false        | _
-        true         | _
+        experimental << [false, true]
     }
 
     def "explicit compile configuration selection is broken up by dependency with Gradle metadata"() {
@@ -318,7 +316,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     @Unroll
     def "with experimental resolve behavior, explicit #conf configuration selection still works for maven dependencies"() {
         given:
-        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         def modules = ['maven', 'mavenCompile1', 'maven-gradle', 'mavenCompile2']
         setupRepositories(modules)
         setupModuleChain(modules)
@@ -354,16 +352,14 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        conf      | _
-        'runtime' | _
-        'test'    | _
+        conf << ['runtime', 'test']
     }
 
     @Unroll
     def "explicit configuration selection in ivy modules is supported=#supported if targeting a #target module (experimental=#experimental)"() {
         given:
         if (experimental) {
-            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         }
         String targetRepoName = supported? "$target-select" : target //use a different name if selection is supported to not follow the default expectations defined in leaksRuntime()
         setupRepositories([targetRepoName, 'ivy'])

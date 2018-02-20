@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
@@ -31,9 +32,12 @@ import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
@@ -45,6 +49,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Property<String> baseName;
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
+    private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -57,6 +62,8 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         baseName = objectFactory.property(String.class);
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
+        operatingSystems = new LockableSetProperty<OperatingSystemFamily>(objectFactory.setProperty(OperatingSystemFamily.class));
+        operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
     }
 
     @Override
@@ -118,5 +125,10 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public DefaultBinaryCollection<CppBinary> getBinaries() {
         return binaries;
+    }
+
+    @Override
+    public LockableSetProperty<OperatingSystemFamily> getOperatingSystems() {
+        return operatingSystems;
     }
 }

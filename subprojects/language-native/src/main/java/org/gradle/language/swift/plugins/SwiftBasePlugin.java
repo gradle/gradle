@@ -24,23 +24,30 @@ import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
-import org.gradle.language.swift.SwiftVersion;
+import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.swiftpm.internal.SwiftPmTarget;
 import org.gradle.util.VersionNumber;
 
+import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -50,6 +57,15 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
+    private final ProjectPublicationRegistry publicationRegistry;
+    private final MacOSSdkPathLocator locator;
+
+    @Inject
+    public SwiftBasePlugin(ProjectPublicationRegistry publicationRegistry, MacOSSdkPathLocator locator) {
+        this.publicationRegistry = publicationRegistry;
+        this.locator = locator;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(NativeBasePlugin.class);
@@ -76,6 +92,10 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 }
                 if (binary.isTestable()) {
                     compile.getCompilerArgs().add("-enable-testing");
+                }
+                if (binary.getTargetPlatform().getOperatingSystem().isMacOsX()) {
+                    compile.getCompilerArgs().add("-sdk");
+                    compile.getCompilerArgs().add(locator.find().getAbsolutePath());
                 }
                 compile.getModuleName().set(binary.getModule());
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
@@ -131,13 +151,25 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                             public SwiftVersion call() throws Exception {
                                 SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
                                 if (swiftSourceCompatibility == null) {
-                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
                                 }
                                 return swiftSourceCompatibility;
                             }
                         });
 
                         binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
+                    }
+                });
+            }
+        });
+        project.getComponents().withType(ProductionSwiftComponent.class, new Action<ProductionSwiftComponent>() {
+            @Override
+            public void execute(final ProductionSwiftComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
+                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get()), false));
                     }
                 });
             }

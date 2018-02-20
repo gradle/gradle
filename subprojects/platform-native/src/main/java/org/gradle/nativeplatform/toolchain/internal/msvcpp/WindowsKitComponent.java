@@ -45,6 +45,11 @@ public abstract class WindowsKitComponent implements Named {
     }
 
     @Override
+    public String toString() {
+        return name + " " + version;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
