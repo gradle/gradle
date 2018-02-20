@@ -36,6 +36,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.Capability;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -455,6 +456,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
 
             return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
+        }
+
+        @Override
+        public ImmutableList<? extends Capability> getCapabilities() {
+            return ImmutableList.of();
         }
 
         private boolean include(DefaultLocalConfigurationMetadata configuration) {

@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import spock.lang.Unroll
 
 class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -280,20 +283,28 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
                conf "cglib:cglib-nodep:3.2.5"
                conf "cglib:cglib:3.2.5"
             
-                  capabilities {
-                     capability('cglib') {
-                        providedBy 'cglib:cglib'
-                        providedBy 'cglib:cglib-nodep'
-                     }
+               capabilities {
+                  capability('cglib') {
+                     providedBy 'cglib:cglib'
+                     providedBy 'cglib:cglib-nodep'
                   }
+               }
             }
         """
 
         when:
+        repositoryInteractions {
+            'cglib:cglib-nodep:3.2.5' {
+                expectGetMetadata()
+            }
+            'cglib:cglib:3.2.5' {
+                expectGetMetadata()
+            }
+        }
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('Cannot choose between cglib:cglib-nodep or cglib:cglib because they provide the same capability: cglib')
+        failure.assertHasCause('Cannot choose between cglib:cglib or cglib:cglib-nodep because they provide the same capability: cglib')
     }
 
     @Unroll
@@ -428,6 +439,402 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
         then:
         failure.assertHasCause("Cannot choose between org:a or org:b because they provide the same capabilities (c1 and c2) but disagree on the preferred module")
+    }
+
+    /**
+     * This test highlights the case where published module declares a relocation. This is the drop-in replacement
+     * for "replacedBy" rules when a module has been relocated, and that the publisher uses Gradle. There's the
+     * ability to declare, in a newer version of the module, that it actually provides the same capability as an
+     * older version published at different coordinates.
+     *
+     * This test also makes sure that the order in which dependencies are seen in the graph do not matter.
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll
+    def "published module can declare relocation (first in graph = #first, second in graph = #second)"() {
+        given:
+        repository {
+            'asm:asm:3.0'()
+            'org.ow2.asm:asm:4.0' {
+                variant('api') {
+                    capability('asm') {
+                        providedBy 'asm:asm'
+                        providedBy 'org.ow2.asm:asm'
+                        prefer 'org.ow2.asm:asm'
+                    }
+                }
+                variant('runtime') {
+                    capability('asm') {
+                        providedBy 'asm:asm'
+                        providedBy 'org.ow2.asm:asm'
+                        prefer 'org.ow2.asm:asm'
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+               conf "$first"
+               conf "$second"
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'asm:asm:3.0' {
+                expectGetMetadata()
+            }
+            'org.ow2.asm:asm:4.0' {
+                expectResolve()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
+                    .byReason('capability asm is provided by asm:asm and org.ow2.asm:asm')
+                module('org.ow2.asm:asm:4.0')
+            }
+        }
+
+        where:
+        first << ['asm:asm:3.0', 'org.ow2.asm:asm:4.0']
+        second << ['org.ow2.asm:asm:4.0', 'asm:asm:3.0']
+    }
+
+    /**
+     * This test highlights the case where published module declares a relocation. This is a different
+     * from the case where the publisher expressed in the published module the fact that the module has
+     * been relocated. Here, we want a 3rd party module to declare that actually those two things are the
+     * same, and that one has been relocated.
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "external module can provide resolution of relocated module"() {
+        given:
+        repository {
+            'asm:asm:3.0'()
+            'org.ow2.asm:asm:4.0'()
+            'org.test:platform:1.0' {
+                capability('asm') {
+                    providedBy 'asm:asm'
+                    providedBy 'org.ow2.asm:asm'
+                    prefer 'org.ow2.asm:asm'
+                }
+            }
+        }
+
+        buildFile << """
+
+            dependencies {
+               conf 'org.test:platform:1.0'
+               conf "asm:asm:3.0"
+               conf "org.ow2.asm:asm:4.0"
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.test:platform:1.0' {
+                expectResolve()
+            }
+            'asm:asm:3.0' {
+                expectGetMetadata()
+            }
+            'org.ow2.asm:asm:4.0' {
+                expectResolve()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:platform:1.0')
+                edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
+                    .byReason('capability asm is provided by asm:asm and org.ow2.asm:asm')
+                module('org.ow2.asm:asm:4.0')
+            }
+        }
+    }
+
+    /**
+     * This test illustrates that published modules can declare capabilities, which are then discovered
+     * as we visit the graph. And if no published module declares a preference, then build should fail.
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "fails with reasonable error message if no module express preference for conflict of modules that publish the same capability"() {
+        given:
+        repository {
+            'org:testA:1.0' {
+                capability('cap') {
+                    providedBy 'org:testA'
+                }
+            }
+            'org:testB:1.0' {
+                capability('cap') {
+                    providedBy 'org:testB'
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:testA:1.0'
+                conf 'org:testB:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:testA:1.0' {
+                expectGetMetadata()
+            }
+            'org:testB:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ":checkDeps"
+
+        then:
+        failure.assertHasCause("Cannot choose between org:testA or org:testB because they provide the same capability: cap")
+    }
+
+    /**
+     * This test highlights the case where published module declares a relocation. This is a different
+     * from the case where the publisher expressed in the published module the fact that the module has
+     * been relocated. Here, we want a 3rd party module to declare that actually those two things are the
+     * same, and that one has been relocated, but also show that this 3rd party module can be in a transitive
+     * dependency.
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "external module can provide resolution of relocated module via transitive dependency"() {
+        given:
+        repository {
+            'org:a:1.0' {
+                dependsOn 'asm:asm:3.0'
+            }
+            'org:b:1.0' {
+                dependsOn 'org.ow2.asm:asm:4.0'
+            }
+            'org:c:1.0' {
+                dependsOn 'org.test:platform:1.0'
+            }
+            'asm:asm:3.0'()
+            'org.ow2.asm:asm:4.0'()
+            'org.test:platform:1.0' {
+                capability('asm') {
+                    providedBy 'asm:asm'
+                    providedBy 'org.ow2.asm:asm'
+                    prefer 'org.ow2.asm:asm'
+                }
+            }
+        }
+
+        buildFile << """
+
+            dependencies {
+               conf 'org:a:1.0'
+               conf "org:b:1.0"
+               conf "org:c:1.0"
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:a:1.0' {
+                expectResolve()
+            }
+            'org:b:1.0' {
+                expectResolve()
+            }
+            'org:c:1.0' {
+                expectResolve()
+            }
+            'org.test:platform:1.0' {
+                expectResolve()
+            }
+            'asm:asm:3.0' {
+                expectGetMetadata()
+            }
+            'org.ow2.asm:asm:4.0' {
+                expectResolve()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:a:1.0') {
+                    edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
+                        .byReason('capability asm is provided by asm:asm and org.ow2.asm:asm')
+                }
+                module('org:b:1.0') {
+                    module('org.ow2.asm:asm:4.0')
+                }
+                module('org:c:1.0') {
+                    module('org.test:platform:1.0')
+                }
+            }
+        }
+    }
+
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll
+    def "resolution from one configuration doesn't leak into a different configuration  (first in graph = #first, second in graph = #second)"() {
+        given:
+        repository {
+            'asm:asm:3.0' {
+                capability('asm') {
+                    providedBy 'asm:asm'
+                }
+            }
+            'org.ow2.asm:asm:4.0' {
+                capability('asm') {
+                    providedBy 'org.ow2.asm:asm'
+                }
+            }
+            'org.test:platform:0.9' {
+                capability('asm') {
+                    prefer 'asm:asm'
+                }
+            }
+            'org.test:platform:1.0' {
+                capability('asm') {
+                    prefer 'org.ow2.asm:asm'
+                }
+            }
+        }
+
+        buildFile << """
+
+            configurations {
+                common
+                conf.extendsFrom(common)
+                conf2.extendsFrom(common)
+                conf3.extendsFrom(common)
+            }
+
+            dependencies {
+               common "$first"
+               common "$second"
+
+               conf 'org.test:platform:1.0'
+               conf2 'org.test:platform:0.9'
+            }
+            
+            task checkConfigurations {
+                doLast {
+                    def first = configurations.conf.incoming.resolutionResult
+                    def second = configurations.conf2.incoming.resolutionResult
+                    
+                    // first configuration chooses org.ow2.asm:asm
+                    assert first.allComponents.find { (it.id instanceof ModuleComponentIdentifier) && it.id.group == 'org.ow2.asm' }
+                    assert !first.allComponents.find { (it.id instanceof ModuleComponentIdentifier) && it.id.group == 'asm' }
+                    
+                    // second one chooses asm:asm
+                    assert !second.allComponents.find { (it.id instanceof ModuleComponentIdentifier) && it.id.group == 'org.ow2.asm' }
+                    assert second.allComponents.find { (it.id instanceof ModuleComponentIdentifier) && it.id.group == 'asm' }
+                    
+                    // conf3 should fail
+                    try { 
+                        def third = configurations.conf3.incoming.resolutionResult
+                        assert false : "resolution should have failed"
+                    } catch (ex) {
+                        assert ex.cause.message.contains('Cannot choose between asm:asm or org.ow2.asm:asm because they provide the same capability: asm')
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'asm:asm:3.0' {
+                allowAll()
+            }
+            'org.ow2.asm:asm:4.0' {
+                allowAll()
+            }
+            'org.test:platform:0.9' {
+                allowAll()
+            }
+            'org.test:platform:1.0' {
+                allowAll()
+            }
+        }
+        run "checkConfigurations"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        first << ['asm:asm:3.0', 'org.ow2.asm:asm:4.0']
+        second << ['org.ow2.asm:asm:4.0', 'asm:asm:3.0']
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "can express preference for capabilities declared in published modules"() {
+        given:
+        repository {
+            'cglib:cglib-nodep:3.2.5' {
+                capability('cglib') {
+                    providedBy 'cglib:cglib-nodep'
+                }
+            }
+            'cglib:cglib:3.2.5' {
+                capability('cglib') {
+                    providedBy 'cglib:cglib'
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+               conf "cglib:cglib-nodep:3.2.5"
+               conf "cglib:cglib:3.2.5"
+            
+               capabilities {
+                  capability('cglib') {
+                     prefer 'cglib:cglib'
+                  }
+               }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'cglib:cglib:3.2.5' {
+                expectResolve()
+            }
+            'cglib:cglib-nodep:3.2.5' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+            }
+        }
     }
 }
 

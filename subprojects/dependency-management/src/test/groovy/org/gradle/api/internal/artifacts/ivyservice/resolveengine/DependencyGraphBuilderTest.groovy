@@ -108,7 +108,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements, capabilitiesHandler), Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter, TestUtil.featurePreviews(), TestUtil.attributesFactory())
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter, TestUtil.featurePreviews(), TestUtil.attributesFactory(), capabilitiesHandler)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
@@ -555,7 +555,7 @@ class DependencyGraphBuilderTest extends Specification {
     def "does not include filtered dependencies"() {
         given:
         def spec = { DependencyMetadata dep -> dep.selector.module != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements, capabilitiesHandler), spec, attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter, TestUtil.featurePreviews(), TestUtil.attributesFactory())
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter, TestUtil.featurePreviews(), TestUtil.attributesFactory(), capabilitiesHandler)
 
         def a = revision('a')
         def b = revision('b')

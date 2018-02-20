@@ -21,10 +21,13 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.dsl.CapabilitiesAwareModuleReplacements;
 import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ResolutionScopeCapabilitiesHandler;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.CachingDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator;
@@ -34,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CapabilitiesValidatingGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -69,8 +73,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ComponentSelectorConverter componentSelectorConverter;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory attributesFactory;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor, List<ResolverProviderFactory> resolverFactories, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory, VersionComparator versionComparator, ModuleExclusions moduleExclusions, ComponentSelectorConverter componentSelectorConverter, FeaturePreviews featurePreviews, ImmutableAttributesFactory attributesFactory) {
+    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor, List<ResolverProviderFactory> resolverFactories, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory, VersionComparator versionComparator, ModuleExclusions moduleExclusions, ComponentSelectorConverter componentSelectorConverter, FeaturePreviews featurePreviews, ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -80,30 +85,45 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.componentSelectorConverter = componentSelectorConverter;
         this.featurePreviews = featurePreviews;
         this.attributesFactory = attributesFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
     public void resolve(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, Spec<? super DependencyMetadata> edgeFilter, DependencyGraphVisitor graphVisitor, DependencyArtifactsVisitor artifactsVisitor, AttributesSchemaInternal consumerSchema, ArtifactTypeRegistry artifactTypeRegistry, CapabilitiesHandler capabilitiesHandler) {
         LOGGER.debug("Resolving {}", resolveContext);
         ComponentResolversChain resolvers = createResolvers(resolveContext, repositories, metadataHandler, artifactTypeRegistry);
-        DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions, buildOperationExecutor, (CapabilitiesHandlerInternal) capabilitiesHandler);
-        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector(), moduleExclusions);
+        ResolutionScopeCapabilitiesHandler resolutionScopeCapabilityHandler = createResolutionScopeCapabilityHandler((CapabilitiesHandlerInternal) capabilitiesHandler);
+        DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions, buildOperationExecutor, resolutionScopeCapabilityHandler, moduleIdentifierFactory);
+        DependencyGraphVisitor artifactsGraphVisitor = createDependencyGraphVisitor(artifactsVisitor, resolvers, resolutionScopeCapabilityHandler);
 
         // Resolve the dependency graph
         builder.resolve(resolveContext, new CompositeDependencyGraphVisitor(graphVisitor, artifactsGraphVisitor));
     }
 
-    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema, ModuleExclusions moduleExclusions, BuildOperationExecutor buildOperationExecutor, CapabilitiesHandlerInternal capabilitiesHandler) {
+    private CapabilitiesValidatingGraphVisitor createDependencyGraphVisitor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolversChain resolvers, ResolutionScopeCapabilitiesHandler resolutionScopeCapabilityHandler) {
+        return new CapabilitiesValidatingGraphVisitor(new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector(), moduleExclusions), resolutionScopeCapabilityHandler);
+    }
+
+    private ResolutionScopeCapabilitiesHandler createResolutionScopeCapabilityHandler(CapabilitiesHandlerInternal buildScopeCapabilitiesHandler) {
+        return new ResolutionScopeCapabilitiesHandler(buildScopeCapabilitiesHandler, moduleIdentifierFactory);
+    }
+
+    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema, ModuleExclusions moduleExclusions, BuildOperationExecutor buildOperationExecutor, ResolutionScopeCapabilitiesHandler capabilitiesHandler, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
 
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
-        ConflictHandler conflictHandler = createConflictHandler(resolutionStrategy, globalRules, capabilitiesHandler);
+        CapabilitiesAwareModuleReplacements capabilitiesModuleReplacements = createResolutionScopeModuleReplacements(globalRules, capabilitiesHandler);
+        ConflictHandler conflictHandler = createConflictHandler(resolutionStrategy, capabilitiesHandler, capabilitiesModuleReplacements);
 
         DependencySubstitutionApplicator applicator =
             new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(resolutionStrategy.getDependencySubstitutionRule()));
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, featurePreviews, attributesFactory);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, capabilitiesModuleReplacements, applicator, componentSelectorConverter, featurePreviews, attributesFactory, capabilitiesHandler);
+    }
+
+    private CapabilitiesAwareModuleReplacements createResolutionScopeModuleReplacements(GlobalDependencyResolutionRules globalRules, ResolutionScopeCapabilitiesHandler resolutionScopeCapabilities) {
+        return new CapabilitiesAwareModuleReplacements(globalRules.getModuleMetadataProcessor().getModuleReplacements(), resolutionScopeCapabilities);
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ArtifactTypeRegistry artifactTypeRegistry) {
@@ -122,7 +142,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         return new DefaultResolveContextToComponentResolver();
     }
 
-    private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler, CapabilitiesHandlerInternal capabilitiesHandler) {
+    private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy,
+                                                  ResolutionScopeCapabilitiesHandler capabilitiesHandler,
+                                                  CapabilitiesAwareModuleReplacements moduleReplacements) {
         ModuleConflictResolver conflictResolver = null;
         ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
         switch (conflictResolution) {
@@ -137,7 +159,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                 break;
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
-        DefaultConflictHandler defaultConflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements(), capabilitiesHandler);
+        DefaultConflictHandler defaultConflictHandler = new DefaultConflictHandler(conflictResolver, moduleReplacements);
         defaultConflictHandler.registerResolver(new DefaultCapabilitiesModuleConflictResolver(capabilitiesHandler));
         return defaultConflictHandler;
     }

@@ -16,16 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilityInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.Capability;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -37,6 +45,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the edges in the dependency graph.
@@ -152,6 +161,63 @@ class EdgeState implements DependencyGraphEdge {
         for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
             NodeState targetNodeState = resolveState.getNode(targetModuleRevision, targetConfiguration);
             this.targetNodes.add(targetNodeState);
+            discoverAndApplyCapabilities(targetConfiguration);
+        }
+    }
+
+    /**
+     * This method is responsible for adding "discovered" capabilities to the graph capabilities
+     * handler. It is possible, as we grow the graph, that new capabilities are defined, or that
+     * a preference is finally expressed for modules already seen in the graph. If it is the case,
+     * selection for affected modules is cleared, and re-executed.
+     *
+     * @param targetConfiguration the selected configuration
+     */
+    private void discoverAndApplyCapabilities(ConfigurationMetadata targetConfiguration) {
+        ImmutableList<? extends Capability> capabilities = targetConfiguration.getCapabilities();
+        CapabilitiesHandlerInternal capabilitiesHandler = resolveState.getCapabilitiesHandler();
+        for (final Capability capability : capabilities) {
+            final String prefer = capability.getPrefer();
+            capabilitiesHandler.capability(capability.getName(), new Action<CapabilityHandler>() {
+                @Override
+                public void execute(CapabilityHandler handler) {
+                    CapabilityInternal affected = (CapabilityInternal) handler;
+                    ModuleIdentifier oldPreferred = affected.getPrefer();
+                    Set<ModuleIdentifier> oldProvided = ImmutableSet.copyOf(affected.getProvidedBy());
+                    for (String provider : capability.getProvidedBy()) {
+                        handler.providedBy(provider);
+                    }
+                    if (prefer != null) {
+                        handler.prefer(prefer);
+                    }
+                    if (!Objects.equal(affected.getPrefer(), oldPreferred) || !Objects.equal(affected.getProvidedBy(), oldProvided)) {
+                        resetSelectionForAffectedCapabilities(affected);
+                    }
+                }
+
+                private void resetSelectionForAffectedCapabilities(CapabilityInternal affected) {
+                    for (ModuleIdentifier module : affected.getProvidedBy()) {
+                        ComponentState selected = resolveState.getModule(module).getSelected();
+                        if (selected != null) {
+                            List<NodeState> nodes = selected.getNodes();
+                            List<ComponentState> unattachedDependencies = selected.getUnattachedDependencies();
+                            for (ComponentState unattachedDependency : unattachedDependencies) {
+                                for (NodeState state : unattachedDependency.getNodes()) {
+                                    state.resetSelectionState();
+                                }
+                            }
+                            resolveState.getDeselectVersionAction().execute(module);
+                            for (NodeState node : nodes) {
+                                List<EdgeState> incomingEdges = node.getIncomingEdges();
+                                for (EdgeState incomingEdge : incomingEdges) {
+                                    incomingEdge.from.resetSelectionState();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
         }
     }
 

@@ -20,6 +20,7 @@ import org.gradle.internal.Cast;
 import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.gradle.CapabilitySpec;
 import org.gradle.test.fixtures.ivy.IvyDescriptor;
 import org.gradle.test.fixtures.ivy.IvyModule;
 
@@ -239,5 +240,10 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
+    }
+
+    @Override
+    public void addCapability(CapabilitySpec spec) {
+        backingModule.addCapability(spec);
     }
 }

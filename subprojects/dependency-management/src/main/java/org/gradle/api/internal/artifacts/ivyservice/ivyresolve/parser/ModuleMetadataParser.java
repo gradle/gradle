@@ -32,6 +32,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.component.external.model.Capability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -107,6 +109,8 @@ public class ModuleMetadataParser {
             String name = reader.nextName();
             if ("attributes".equals(name)) {
                 metadata.setAttributes(consumeAttributes(reader));
+            }  else if (name.equals("capabilities")) {
+                metadata.setCapabilities(consumeCapabilities(reader));
             } else {
                 consumeAny(reader);
             }
@@ -215,6 +219,41 @@ public class ModuleMetadataParser {
         }
         reader.endArray();
         return dependencies;
+    }
+
+    private ImmutableList<? extends Capability> consumeCapabilities(JsonReader reader) throws IOException {
+        ImmutableList.Builder<Capability> capabilities = ImmutableList.builder();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            reader.beginObject();
+            String name = null;
+            String prefer = null;
+            ImmutableList<String> providedBy = null;
+            while (reader.peek() != END_OBJECT) {
+                String val = reader.nextName();
+                if (val.equals("name")) {
+                    name = reader.nextString();
+                } else if (val.equals("prefer")) {
+                    prefer = reader.nextString();
+                } else if (val.equals("providedBy")) {
+                    providedBy = readStringArray(reader);
+                }
+            }
+            capabilities.add(new DefaultImmutableCapability(name, providedBy, prefer));
+            reader.endObject();
+        }
+        reader.endArray();
+        return capabilities.build();
+    }
+
+    private ImmutableList<String> readStringArray(JsonReader reader) throws IOException {
+        ImmutableList.Builder<String> strings = new ImmutableList.Builder<String>();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            strings.add(reader.nextString());
+        }
+        reader.endArray();
+        return strings.build();
     }
 
     private List<ModuleDependencyConstraint> consumeDependencyConstraints(JsonReader reader) throws IOException {

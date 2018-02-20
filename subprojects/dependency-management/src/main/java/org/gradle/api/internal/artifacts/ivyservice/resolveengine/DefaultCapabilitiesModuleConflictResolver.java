@@ -57,12 +57,15 @@ class DefaultCapabilitiesModuleConflictResolver implements ModuleConflictResolve
         ModuleIdentifier selected = null;
         String selectedCapability = null;
         for (String capability : capabilitiesToCandidates.keySet()) {
-            int inConflict = countEffectiveConflicts(details, capabilitiesToCandidates, capability);
-            if (inConflict > 1) {
+            boolean inConflict = hasEffectiveConflict(details, capabilitiesToCandidates, capability);
+            if (inConflict) {
                 // there's a conflict between different modules with the same capability
                 ModuleIdentifier preferred = capabilitiesHandler.getPreferred(capability);
                 if (preferred == null) {
-                    throw new RuntimeException("Cannot choose between " + Joiner.on(" or ").join(details.getParticipants()) + " because they provide the same capability: " + capability);
+                    // if there's no preference, there's still a possibility that another module
+                    // added later in the graph provides one, so we cannot fail early and keep the conflict unresolved
+                    // see CapabilitiesValidatingGraphVisitor
+                    continue;
                 } else if (selected != null && !selected.equals(preferred)) {
                     // in case there are more than one capability, we must choose the same preferred version for each, or we fail
                     throw new RuntimeException("Cannot choose between " + Joiner.on(" or ").join(details.getParticipants()) + " because they provide the same capabilities (" + selectedCapability + " and " + capability + ") but disagree on the preferred module");
@@ -76,15 +79,18 @@ class DefaultCapabilitiesModuleConflictResolver implements ModuleConflictResolve
         }
     }
 
-    private <T extends ComponentResolutionState> int countEffectiveConflicts(ConflictResolverDetails<T> details, Multimap<String, ModuleIdentifier> capabilitiesToCandidates, String capability) {
+    private <T extends ComponentResolutionState> boolean hasEffectiveConflict(ConflictResolverDetails<T> details, Multimap<String, ModuleIdentifier> capabilitiesToCandidates, String capability) {
         Collection<ModuleIdentifier> allModulesProvidingCapability = capabilitiesToCandidates.get(capability);
         int inConflict = 0;
         for (ModuleIdentifier participant : details.getParticipants()) {
             if (allModulesProvidingCapability.contains(participant)) {
                 inConflict++;
+                if (inConflict == 2) {
+                    return true;
+                }
             }
         }
-        return inConflict;
+        return false;
     }
 
     private <T extends ComponentResolutionState> void rejectCandidates(Collection<? extends T> candidates, ModuleIdentifier selected) {

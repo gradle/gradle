@@ -46,11 +46,17 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ImmutableList<GradleDependencyMetadata> dependencies;
     private final VariantMetadataRules variantMetadataRules;
     private final ImmutableAttributes componentLevelAttributes;
+    private final ImmutableList<? extends Capability> capabilities;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
     private ImmutableAttributesFactory attributesFactory;
 
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
+    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId,
+                                       ComponentVariant variant,
+                                       ImmutableAttributes componentLevelAttributes,
+                                       ImmutableAttributesFactory attributesFactory,
+                                       VariantMetadataRules variantMetadataRules,
+                                       ImmutableList<? extends Capability> capabilities) {
         this.componentId = componentId;
         this.variant = new RuleAwareVariant(variant);
         this.attributesFactory = attributesFactory;
@@ -66,6 +72,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
             dependencies.add(new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(dependencyConstraint.getGroup(), dependencyConstraint.getModule(), dependencyConstraint.getVersionConstraint()), true, dependencyConstraint.getReason()));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
+        this.capabilities = capabilities;
     }
 
     @Override
@@ -126,6 +133,11 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
         return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+    }
+
+    @Override
+    public ImmutableList<? extends Capability> getCapabilities() {
+        return capabilities;
     }
 
     @Override

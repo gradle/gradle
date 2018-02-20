@@ -29,4 +29,6 @@ public interface CapabilitiesHandlerInternal extends CapabilitiesHandler {
     boolean hasCapabilities();
 
     Collection<? extends CapabilityInternal> getCapabilities(ModuleIdentifier module);
+
+    CapabilityInternal getCapability(String name);
 }

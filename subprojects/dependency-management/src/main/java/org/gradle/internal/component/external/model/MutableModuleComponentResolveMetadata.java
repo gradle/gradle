@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
@@ -95,4 +96,14 @@ public interface MutableModuleComponentResolveMetadata {
      * Returns the metadata rules container for this module
      */
     VariantMetadataRules getVariantMetadataRules();
+
+    /**
+     * Returns the list of capabilities this component declares. A component may declare capabilities
+     * for other components.
+     *
+     * @return the capability list this component declares.
+     */
+    ImmutableList<? extends Capability> getCapabilities();
+
+    void setCapabilities(ImmutableList<? extends Capability> capabilities);
 }
