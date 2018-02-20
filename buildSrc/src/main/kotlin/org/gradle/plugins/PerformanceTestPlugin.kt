@@ -332,15 +332,20 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createCheckNoIdenticalBuildFilesTask() {
         tasks.create("checkNoIdenticalBuildFiles") {
             doLast {
-                val files = mapOf<String, MutableList<File>>().withDefault { mutableListOf() }
-                buildDir.walkTopDown().forEach {
-                    if (it.name.endsWith(".gradle")) {
-                        val hash = HashUtil.createHash(it, "sha1").asHexString()
-                        files[hash]!!.add(it)
+                val filesBySha1 = mutableMapOf<String, MutableList<File>>()
+                buildDir.walkTopDown().forEach { file ->
+                    if (file.name.endsWith(".gradle")) {
+                        val sha1 = sha1StringFor(file)
+                        val files = filesBySha1[sha1]
+                        when (files) {
+                            null -> filesBySha1[sha1] = mutableListOf(file)
+                            else -> files.add(file)
+                        }
+
                     }
                 }
 
-                files.forEach { hash, candidates ->
+                filesBySha1.forEach { hash, candidates ->
                     if (candidates.size > 1) {
                         println("Duplicate build files found for hash '$hash' : $candidates")
                     }
@@ -392,6 +397,11 @@ open class PerformanceReport : JavaExec() {
         super.exec()
     }
 }
+
+
+private
+fun sha1StringFor(file: File) =
+    HashUtil.createHash(file, "sha1").asHexString()
 
 
 fun <T> deferred(value: () -> T): Any =
