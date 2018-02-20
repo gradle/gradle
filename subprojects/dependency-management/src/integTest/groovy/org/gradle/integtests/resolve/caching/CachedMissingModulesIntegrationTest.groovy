@@ -22,7 +22,7 @@ import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    public void "caches missing module when module found in another repository"() {
+    def "caches missing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -52,6 +52,48 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         server.resetExpectations() // Missing status in repo1 is cached
+
+        then:
+        succeeds('showMissing')
+    }
+
+    def "caches missing changing module when module found in another repository"() {
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleInRepo1 = repo1.module("group", "projectA", "1.2")
+        def moduleInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}"}
+    ivy { url "${repo2.uri}"}
+}
+configurations {
+    missing
+    all {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
+dependencies {
+    missing group: 'group', name: 'projectA', version: '1.2', changing: true
+}
+task showMissing { doLast { println configurations.missing.files } }
+"""
+
+        when:
+        moduleInRepo1.ivy.expectGetMissing()
+        moduleInRepo1.jar.expectHeadMissing()
+        moduleInRepo2.ivy.expectGet()
+        moduleInRepo2.jar.expectGet()
+
+        then:
+        succeeds("showMissing")
+
+        when:
+        server.resetExpectations() // Missing status in repo1 is cached
+        moduleInRepo2.ivy.expectHead()
+        moduleInRepo2.jar.expectHead()
 
         then:
         succeeds('showMissing')
@@ -191,6 +233,137 @@ Required by:
 
         then:
         run 'retrieve'
+    }
+
+    def "previously cached empty version list is ignored when no result can be found"() {
+        given:
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo1'
+                    url '${repo1.uri}'
+                }
+                maven {
+                    name 'repo2'
+                    url '${repo2.uri}'
+                }
+            }
+            configurations {
+                compile
+            }
+            dependencies {
+                compile "group:projectA:\$depVersion"
+            }
+
+            task retrieve(type: Sync) {
+                into 'libs'
+                from configurations.compile
+            }
+            """
+
+        when:
+        def repo1MetaData = repo1.getModuleMetaData("group", "projectA")
+        def repo1DirList = repo1.directory("group", "projectA")
+        def repo1Module = repo1.module("group", "projectA", "2.0")
+        def repo2MetaData = repo2.getModuleMetaData("group", "projectA")
+        def repo2Module = repo2.module("group", "projectA", "1.0").publish()
+
+        repo1MetaData.expectGetMissing()
+        repo1DirList.expectGetMissing()
+        repo2MetaData.expectGet()
+        repo2Module.pom.expectGet()
+        repo2Module.artifact.expectGet()
+
+        then:
+        succeeds 'retrieve', '-PdepVersion=1.+'
+
+        when:
+        server.resetExpectations()
+        repo1Module.publish()
+        repo1MetaData.expectGet()
+        repo1Module.pom.expectGet()
+        repo1Module.artifact.expectGet()
+        repo2MetaData.expectHead()
+
+        then:
+        succeeds 'retrieve', '-PdepVersion=2.+'
+
+    }
+
+    def "needs explicit refresh of dependencies when dynamic version appears in a previously empty repository"() {
+        given:
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo1'
+                    url '${repo1.uri}'
+                }
+                maven {
+                    name 'repo2'
+                    url '${repo2.uri}'
+                }
+            }
+            configurations {
+                all {
+                    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+                }
+                compile
+            }
+            dependencies {
+                compile "group:projectA:1.+"
+            }
+
+            task retrieve(type: Sync) {
+                into 'libs'
+                from configurations.compile
+            }
+            """
+
+        when:
+        def repo1MetaData = repo1.getModuleMetaData("group", "projectA")
+        def repo1DirList = repo1.directory("group", "projectA")
+        def repo1Module = repo1.module("group", "projectA", "1.1")
+        def repo2MetaData = repo2.getModuleMetaData("group", "projectA")
+        def repo2Module = repo2.module("group", "projectA", "1.0").publish()
+        def repo2Module2 = repo2.module("group", "projectA", "1.1")
+
+        repo1MetaData.expectGetMissing()
+        repo1DirList.expectGetMissing()
+        repo2MetaData.expectGet()
+        repo2Module.pom.expectGet()
+        repo2Module.artifact.expectGet()
+
+        then:
+        succeeds 'retrieve'
+
+        when:
+        server.resetExpectations()
+        repo1Module.publish()
+        repo2MetaData.expectHead()
+
+        then:
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+
+        when:
+        server.resetExpectations()
+        repo1Module.publish()
+        repo1MetaData.expectGet()
+        repo1Module.pom.expectGet()
+        repo1Module.artifact.expectGet()
+        repo2MetaData.expectHead()
+        repo2Module.pom.expectHead()
+
+        then:
+        succeeds 'retrieve', '--refresh-dependencies'
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+
     }
 
     def "cached missing module is ignored if module is not available in any repo"() {

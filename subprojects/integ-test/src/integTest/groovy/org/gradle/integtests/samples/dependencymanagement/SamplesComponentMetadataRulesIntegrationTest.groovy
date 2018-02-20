@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -23,12 +23,12 @@ import org.junit.Rule
 
 class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'componentMetadataRules')
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample('componentMetadataRules')
+    @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run custom status scheme sample" () {
-        given:
-        inDirectory("componentMetadataRules")
+        executer.inDirectory(sample.dir)
 
         when:
         succeeds "listApi"
@@ -37,10 +37,9 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
         output.contains("Resolved: api-2.0.jar")
     }
 
-    @UsesSample('componentMetadataRules')
+    @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run custom status scheme with module sample" () {
-        given:
-        inDirectory("componentMetadataRules")
+        executer.inDirectory(sample.dir)
 
         when:
         succeeds "listLib"
@@ -49,10 +48,9 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
         output.contains("Resolved: lib-1.9.jar")
     }
 
-    @UsesSample('componentMetadataRules')
+    @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run custom status scheme with rule source sample" () {
-        given:
-        inDirectory("componentMetadataRules")
+        executer.inDirectory(sample.dir)
 
         when:
         succeeds "listWithRule"
@@ -61,10 +59,9 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
         output.contains("Resolved: api-1.9.jar")
     }
 
-    @UsesSample('componentMetadataRules')
+    @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run ivy metadata rule" () {
-        given:
-        inDirectory("componentMetadataRules")
+        executer.inDirectory(sample.dir)
 
         when:
         succeeds "listWithIvyRule"

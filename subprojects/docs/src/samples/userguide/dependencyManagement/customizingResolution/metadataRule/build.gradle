@@ -1,5 +1,3 @@
-import org.gradle.model.Mutate
-
 repositories {
     ivy {
         url "$projectDir/repo"
