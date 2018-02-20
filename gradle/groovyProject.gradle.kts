@@ -63,7 +63,7 @@ java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), genera
 plugins.withType<IdeaPlugin> {
     configure<IdeaModel> {
         module {
-            sourceDirs = generatedSourceDirs + generatedResourcesDir
+            sourceDirs = sourceDirs + generatedResourcesDir
             testSourceDirs = testSourceDirs + generatedTestResourcesDir
         }
     }
