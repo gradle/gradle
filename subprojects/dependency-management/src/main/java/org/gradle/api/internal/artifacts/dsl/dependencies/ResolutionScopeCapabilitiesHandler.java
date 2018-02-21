@@ -54,11 +54,11 @@ public class ResolutionScopeCapabilitiesHandler implements CapabilitiesHandlerIn
         if (capability == null) {
             capability = new DefaultCapability(notationParser, identifier);
             capabilities.put(identifier, capability);
-        }
-        CapabilityInternal buildScopeCapability = buildScopeCapabilities.getCapability(identifier);
-        if (buildScopeCapability != null) {
-            capability.prefer = buildScopeCapability.getPrefer();
-            capability.providedBy.addAll(buildScopeCapability.getProvidedBy());
+            CapabilityInternal buildScopeCapability = buildScopeCapabilities.getCapability(identifier);
+            if (buildScopeCapability != null) {
+                capability.prefer = buildScopeCapability.getPrefer();
+                capability.providedBy.addAll(buildScopeCapability.getProvidedBy());
+            }
         }
         configureAction.execute(capability);
         for (ModuleIdentifier moduleIdentifier : capability.getProvidedBy()) {

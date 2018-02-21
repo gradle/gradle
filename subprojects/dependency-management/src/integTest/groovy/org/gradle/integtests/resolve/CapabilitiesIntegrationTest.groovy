@@ -1018,5 +1018,63 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
             }
         }
     }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "fails if 2 modules disagree on a preference"() {
+        given:
+        repository {
+            'org:a:1.0' {
+                capability('cap') {
+                    prefer 'org:impl1'
+                }
+            }
+            'org:b:1.0' {
+                capability('cap') {
+                    prefer 'org:impl2'
+                }
+            }
+            'org:impl1:1.0'()
+            'org:impl2:1.0'()
+        }
+
+        buildFile << """
+        
+            dependencies {
+                capabilities {
+                    capability('cap') {
+                        providedBy 'org:impl1'
+                        providedBy 'org:impl2'
+                    }
+                }
+                
+                conf 'org:a:1.0'
+                conf 'org:b:1.0'
+                conf 'org:impl1:1.0'
+                conf 'org:impl2:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:a:1.0' {
+                expectGetMetadata()
+            }
+            'org:b:1.0' {
+                expectGetMetadata()
+            }
+            'org:impl1:1.0' {
+                expectGetMetadata()
+            }
+            'org:impl2:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Module org:b:1.0 prefers module org:impl2 for capability 'cap' but another module prefers org:impl1")
+    }
 }
 
