@@ -60,6 +60,10 @@ gradlePlugin {
             id = "gradle-compile"
             implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
+        "performanceTest" {
+            id = "performance-test"
+            implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
+        }
     }
 }
 

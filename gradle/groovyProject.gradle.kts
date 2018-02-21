@@ -108,7 +108,7 @@ apply {
     }
 
     if (file("src/performanceTest").isDirectory) {
-        from("$rootDir/gradle/performanceTest.gradle")
+        plugin("performance-test")
     }
 
     if (file("src/jmh").isDirectory) {
