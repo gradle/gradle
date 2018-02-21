@@ -84,7 +84,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
             }
             TaskInternal binaryLifecycleTask = taskFactory.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
             binaryLifecycleTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            binaryLifecycleTask.setDescription("Check " + binary);
+            binaryLifecycleTask.setDescription("Checks " + binary);
             binary.setCheckTask(binaryLifecycleTask);
         }
 
