@@ -16,9 +16,7 @@
 
 package org.gradle.testing.internal.util
 
-import org.junit.ClassRule
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -27,9 +25,8 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
 @SuppressWarnings("GroovyUnreachableStatement")
 class RetryRuleTest extends Specification {
 
-    @ClassRule
     @Shared
-    TemporaryFolder temporaryFolder = new TemporaryFolder()
+    Map<String, Integer> iterationPerTest = [:]
 
     @Rule
     RetryRule retryRule = retryIf({ t -> t instanceof IOException })
@@ -40,16 +37,17 @@ class RetryRuleTest extends Specification {
     final complexField = []
     int simpleField = 1
 
+    int incrementAndGetIterationCount() {
+        def key = specificationContext.currentFeature.name
+        int currentNumber = iterationPerTest[key] ?: 0
+        iterationPerTest[key] = ++currentNumber
+        currentNumber
+    }
+
     int iteration
 
     def setup() {
-        def specificationFile = new File(temporaryFolder.root, specificationContext.currentFeature.name)
-        if (!specificationFile.exists()) {
-            specificationFile.createNewFile()
-            specificationFile.text = "1"
-        }
-        iteration = specificationFile.text as Integer
-        specificationFile.text = iteration + 1
+        iteration = incrementAndGetIterationCount()
     }
 
     def "should pass when expected exception happens once"() {
