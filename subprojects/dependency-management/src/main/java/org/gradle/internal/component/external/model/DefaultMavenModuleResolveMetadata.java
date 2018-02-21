@@ -132,7 +132,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
+        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
+        if (improvedPomSupportEnabled) {
+            dependency.alwaysUseAttributeMatching();
+        }
+        return dependency;
     }
 
     private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {
