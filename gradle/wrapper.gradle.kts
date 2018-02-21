@@ -27,13 +27,12 @@ fun wrapperUpdateTask(name: String, label: String) {
 
     task(configureWrapperTaskName) {
         doLast {
-            val versionObject = groovy.json.JsonSlurper().parseText(URL("https://services.gradle.org/versions/$label").readText())
-            if (versionObject == null) {
+            val versionParts: Map<String, Any?> = groovy.json.JsonSlurper().parseText(URL("https://services.gradle.org/versions/$label").readText()) as Map<String, Any?>
+            if (versionParts.isEmpty()) {
                 throw GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
             }
-            val (version, downloadUrl) = versionObject.withGroovyBuilder {
-                getProperty("version") as String to getProperty("downloadUrl") as String
-            }
+            val version = versionParts["version"].toString()
+            val downloadUrl = versionParts["downloadUrl"].toString()
             println("updating wrapper to $label version: ${version} (downloadUrl: ${downloadUrl})")
             wrapperTask.distributionUrl = downloadUrl
         }
