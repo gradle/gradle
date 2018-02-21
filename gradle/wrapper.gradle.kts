@@ -1,5 +1,3 @@
-import java.net.URL
-
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -15,6 +13,15 @@ import java.net.URL
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.net.URL
+
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
+@JsonIgnoreProperties(ignoreUnknown=true)
+data class VersionInfo(
+    val version: String, val downloadUrl: String)
 
 fun wrapperUpdateTask(name: String, label: String) {
     val wrapperTaskName = "${name}Wrapper"
@@ -27,14 +34,10 @@ fun wrapperUpdateTask(name: String, label: String) {
 
     task(configureWrapperTaskName) {
         doLast {
-            val versionParts: Map<String, Any?> = groovy.json.JsonSlurper().parseText(URL("https://services.gradle.org/versions/$label").readText()) as Map<String, Any?>
-            if (versionParts.isEmpty()) {
-                throw GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
-            }
-            val version = versionParts["version"].toString()
-            val downloadUrl = versionParts["downloadUrl"].toString()
-            println("updating wrapper to $label version: ${version} (downloadUrl: ${downloadUrl})")
-            wrapperTask.distributionUrl = downloadUrl
+            val jsonText = URL("https://services.gradle.org/versions/$label").readText()
+            val versionInfo = jacksonObjectMapper().readValue<VersionInfo>(jsonText)
+            println("updating wrapper to $label version: ${versionInfo.version} (downloadUrl: ${versionInfo.downloadUrl})")
+            wrapperTask.distributionUrl = versionInfo.downloadUrl
         }
     }
 }
