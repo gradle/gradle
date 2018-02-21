@@ -54,7 +54,7 @@ open class JsoupCopyExtension(private val task: Copy) {
     fun transform(extensions: List<String>, action: Action<JsoupTransformTarget>) {
         task.eachFile {
             if (extensions.any { name.endsWith(".$it") }) {
-                filter<JsoupFilterReader>(mapOf("fileCopyDetails" to this, "action" to action))
+                filter<JsoupFilterReader>("fileCopyDetails" to this, "action" to action)
             }
         }
     }
