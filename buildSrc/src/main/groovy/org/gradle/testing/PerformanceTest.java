@@ -18,8 +18,10 @@ package org.gradle.testing;
 
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -40,57 +42,57 @@ public class PerformanceTest extends DistributionTest {
     }
 
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    public void setBaselines(String baselines) {
+    public void setBaselines(@Nullable String baselines) {
         this.baselines = baselines;
         systemProperty("org.gradle.performance.baselines", baselines);
     }
 
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getBaselines() {
         return baselines;
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
-    public void setWarmups(String warmups) {
+    public void setWarmups(@Nullable String warmups) {
         this.warmups = warmups;
         systemProperty("org.gradle.performance.execution.warmups", warmups);
     }
 
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getWarmups() {
         return warmups;
     }
 
     @Option(option = "runs", description = "Number of iterations of measurements")
-    public void setRuns(String runs) {
+    public void setRuns(@Nullable String runs) {
         this.runs = runs;
         systemProperty("org.gradle.performance.execution.runs", runs);
     }
 
 
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getRuns() {
         return runs;
     }
 
     @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
-    public void setChecks(String checks) {
+    public void setChecks(@Nullable String checks) {
         this.checks = checks;
         systemProperty("org.gradle.performance.execution.checks", checks);
     }
 
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getChecks() {
         return checks;
     }
 
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getChannel() {
         return channel;
     }
 
     @Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
-    public void setChannel(String channel) {
+    public void setChannel(@Nullable String channel) {
         this.channel = channel;
         systemProperty("org.gradle.performance.execution.channel", channel);
     }
