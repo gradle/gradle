@@ -16,28 +16,46 @@
 
 package org.gradle.testing.internal.util
 
+import org.gradle.util.GUtil
+import org.junit.ClassRule
 import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 class RetryRuleWithSetupRerunTest extends SuperSpecification {
 
+    private static final String ITERATION_PROPERTY_NAME = "iteration"
+    private static final String SETUP_CALL_COUNT_PROPERTY_NAME = "setupCallCount"
+
     @Rule
     RetryRule retryRule = retryIf({ t -> t instanceof IOException })
 
-    int iteration = 0
+    int iteration
 
-    int setupCallCount = 0
+    int setupCallCount
 
     def setup() {
-        setupCallCount++
+        def specificationFile = new File(temporaryFolder.root, specificationContext.currentFeature.name)
+        if (!specificationFile.exists()) {
+            specificationFile.createNewFile()
+            def properties = new Properties()
+            properties.setProperty(ITERATION_PROPERTY_NAME, "1")
+            properties.setProperty(SETUP_CALL_COUNT_PROPERTY_NAME, "1")
+            GUtil.saveProperties(properties, specificationFile)
+        }
+        def properties = GUtil.loadProperties(specificationFile)
+        iteration = properties.getProperty(ITERATION_PROPERTY_NAME) as Integer
+        setupCallCount = properties.getProperty(SETUP_CALL_COUNT_PROPERTY_NAME) as Integer
+
+        properties.setProperty(ITERATION_PROPERTY_NAME, (iteration + 1).toString())
+        properties.setProperty(SETUP_CALL_COUNT_PROPERTY_NAME, (setupCallCount + 1).toString())
+        GUtil.saveProperties(properties, specificationFile)
     }
 
     def "reruns all setup methods if specification is passed to rule"() {
-        given:
-        iteration++
-
         when:
         throwWhen(new IOException(), iteration < 2)
 
@@ -47,9 +65,6 @@ class RetryRuleWithSetupRerunTest extends SuperSpecification {
     }
 
     def "reruns all setup methods if specification is passed to rule for both retries"() {
-        given:
-        iteration++
-
         when:
         throwWhen(new IOException(), iteration < 3)
 
@@ -60,16 +75,33 @@ class RetryRuleWithSetupRerunTest extends SuperSpecification {
 
     private static void throwWhen(Throwable throwable, boolean condition) {
         if (condition) {
-            throw throwable;
+            throw throwable
         }
     }
 }
 
 class SuperSpecification extends Specification {
-    int superSetupCallCount = 0
+    private static final String SUPER_SETUP_CALL_COUNT_PROPERTY_NAME = "setupCallCount"
+
+    @Shared
+    @ClassRule
+    TemporaryFolder temporaryFolder = new TemporaryFolder()
+
+    int superSetupCallCount
 
     def setup() {
-        superSetupCallCount++
+        def specificationFile = new File(temporaryFolder.root, specificationContext.currentFeature.name + "super")
+        if (!specificationFile.exists()) {
+            specificationFile.createNewFile()
+            def properties = new Properties()
+            properties.setProperty(SUPER_SETUP_CALL_COUNT_PROPERTY_NAME, "1")
+            GUtil.saveProperties(properties, specificationFile)
+        }
+        def properties = GUtil.loadProperties(specificationFile)
+        superSetupCallCount = properties.getProperty(SUPER_SETUP_CALL_COUNT_PROPERTY_NAME) as Integer
+
+        properties.setProperty(SUPER_SETUP_CALL_COUNT_PROPERTY_NAME, (superSetupCallCount + 1).toString())
+        GUtil.saveProperties(properties, specificationFile)
     }
 }
 
