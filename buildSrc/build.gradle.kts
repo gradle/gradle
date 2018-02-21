@@ -93,7 +93,7 @@ dependencies {
     compile("me.champeau.gradle:japicmp-gradle-plugin:0.2.4")
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")
-    compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2")
+    compile("com.google.code.gson:gson:2.7")
 
     constraints {
         compile("org.codehaus.groovy:groovy-all:2.4.12")

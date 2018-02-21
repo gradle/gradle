@@ -15,11 +15,8 @@
  */
 import java.net.URL
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.google.gson.Gson
 
-@JsonIgnoreProperties(ignoreUnknown=true)
 data class VersionInfo(
     val version: String, val downloadUrl: String)
 
@@ -35,7 +32,7 @@ fun wrapperUpdateTask(name: String, label: String) {
     task(configureWrapperTaskName) {
         doLast {
             val jsonText = URL("https://services.gradle.org/versions/$label").readText()
-            val versionInfo = jacksonObjectMapper().readValue<VersionInfo>(jsonText)
+            val versionInfo = Gson().fromJson(jsonText, VersionInfo::class.java)
             println("updating wrapper to $label version: ${versionInfo.version} (downloadUrl: ${versionInfo.downloadUrl})")
             wrapperTask.distributionUrl = versionInfo.downloadUrl
         }
