@@ -55,13 +55,10 @@ class JarPatcher(
     }
 
     fun writePatchedFilesTo(outputDir: File) {
+        val originalFile = runtime.files.single { it.name.startsWith(jarFile) }
         val unpackDir = unpack(originalFile)
         pack(unpackDir, outputDir.resolve(originalFile.name))
     }
-
-    private
-    val originalFile
-        get() = runtime.files.single { it.name.startsWith(jarFile) }
 
     private
     fun unpack(file: File) = project.run {
