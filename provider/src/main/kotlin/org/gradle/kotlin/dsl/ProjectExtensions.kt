@@ -35,7 +35,6 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginManager
 
 import org.gradle.api.provider.ListProperty
