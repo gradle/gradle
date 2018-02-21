@@ -83,14 +83,19 @@ open class ClasspathManifestPatcher(
             .map { it.file.name }.sorted().joinToString(",")
 
     private
-    fun unpack(file: File) = project.run {
-        temporaryDir.resolve(file.name).also { unpackDir ->
-            sync {
-                into(unpackDir)
-                from(zipTree(file))
+    fun unpack(file: File) =
+        unpackDirFor(file).also { unpackDir ->
+            project.run {
+                sync {
+                    into(unpackDir)
+                    from(zipTree(file))
+                }
             }
         }
-    }
+
+    private
+    fun unpackDirFor(file: File) =
+        temporaryDir.resolve(file.name)
 
     private
     fun pack(baseDir: File, destFile: File): Unit = project.run {

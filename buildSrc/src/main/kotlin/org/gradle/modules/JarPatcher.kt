@@ -61,15 +61,20 @@ class JarPatcher(
     }
 
     private
-    fun unpack(file: File) = project.run {
-        temporaryDir.resolve("excluding-${file.name}").also { unpackDir ->
-            sync {
-                into(unpackDir)
-                from(zipTree(file))
-                exclude(excludedEntries)
+    fun unpack(file: File) =
+        unpackDirFor(file).also { unpackDir ->
+            project.run {
+                sync {
+                    into(unpackDir)
+                    from(zipTree(file))
+                    exclude(excludedEntries)
+                }
             }
         }
-    }
+
+    private
+    fun unpackDirFor(file: File) =
+        temporaryDir.resolve("excluding-${file.name}")
 
     private
     fun pack(baseDir: File, destFile: File): Unit = project.run {
