@@ -20,8 +20,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -31,7 +31,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the fully qualified name of the Main class to be executed.
      */
-    @Optional @Input
+    @Nullable @Input
     String getMain();
 
     /**
@@ -46,7 +46,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the arguments passed to the main class to be executed.
      */
-    @Optional @Input
+    @Nullable @Input
     List<String> getArgs();
 
     /**

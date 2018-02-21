@@ -24,7 +24,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
@@ -180,7 +179,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     @Incubating
-    @Optional
+    @Nullable
     public File getConfigurationScript() {
         return configurationScript;
     }
@@ -255,7 +254,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      *     <dd>Enable or disable all optimizations. Note that some optimizations might be mutually exclusive.
      * </dl>
      */
-    @Optional @Input
+    @Nullable @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
     }

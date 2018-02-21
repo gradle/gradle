@@ -27,12 +27,12 @@ import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -116,7 +116,7 @@ public class CreateStartScripts extends ConventionTask {
      * The environment variable to use to provide additional options to the JVM.
      */
     @Input
-    @Optional
+    @Nullable
     public String getOptsEnvironmentVar() {
         if (GUtil.isTrue(optsEnvironmentVar)) {
             return optsEnvironmentVar;
@@ -133,7 +133,7 @@ public class CreateStartScripts extends ConventionTask {
      * The environment variable to use to control exit value (Windows only).
      */
     @Input
-    @Optional
+    @Nullable
     public String getExitEnvironmentVar() {
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
@@ -209,7 +209,7 @@ public class CreateStartScripts extends ConventionTask {
      * The application's default JVM options. Defaults to an empty list.
      */
     @Input
-    @Optional
+    @Nullable
     public Iterable<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
     }

@@ -24,7 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
@@ -34,6 +33,7 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -68,7 +68,7 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @Optional
+    @Nullable
     @Input
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
@@ -79,7 +79,7 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--test-framework'
      */
-    @Optional
+    @Nullable
     @Input
     public String getTestFramework() {
         return testFramework;

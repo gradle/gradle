@@ -21,6 +21,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.invocation.BuildController;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -92,7 +93,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      */
-    @Optional @InputFile
+    @Nullable @InputFile
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
     }

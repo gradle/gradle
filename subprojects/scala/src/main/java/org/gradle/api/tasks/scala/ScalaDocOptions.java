@@ -17,13 +17,13 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -75,7 +75,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the text to appear in the window title.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -90,7 +90,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the main frame title.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getDocTitle() {
         return docTitle;
     }
@@ -105,7 +105,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the header for each page.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getHeader() {
         return header;
     }
@@ -120,7 +120,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getFooter() {
         return footer;
     }
@@ -135,7 +135,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the top text for each page.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getTop() {
         return top;
     }
@@ -150,7 +150,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getBottom() {
         return bottom;
     }
@@ -168,7 +168,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
     @PathSensitive(PathSensitivity.ABSOLUTE)
-    @InputFile @Optional
+    @InputFile @Nullable
     @Deprecated
     public File getStyleSheet() {
         DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.getStyleSheet");
@@ -190,7 +190,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * Returns the additional parameters passed to the compiler.
      * Each parameter starts with '-'.
      */
-    @Input @Optional
+    @Input @Nullable
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }

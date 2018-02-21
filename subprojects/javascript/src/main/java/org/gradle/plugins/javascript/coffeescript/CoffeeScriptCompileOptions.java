@@ -17,15 +17,15 @@
 package org.gradle.plugins.javascript.coffeescript;
 
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class CoffeeScriptCompileOptions implements Serializable {
 
     private String encoding = "UTF-8";
 
-    @Optional @Input
+    @Nullable @Input
     public String getEncoding() {
         return encoding;
     }

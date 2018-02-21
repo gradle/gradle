@@ -21,12 +21,12 @@ import com.google.common.collect.Maps;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -388,7 +388,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
      * javadoc -doctitle "Java&lt;sup&gt;&lt;font size=\"-2\"&gt;TM&lt;/font&gt;&lt;/sup&gt;" com.mypackage
      */
-    @Optional @Input
+    @Nullable @Input
     public String getDocTitle() {
         return docTitle.getValue();
     }
@@ -409,7 +409,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The footer will be placed to the right of the lower navigation bar. footer may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
      */
-    @Optional @Input
+    @Nullable @Input
     public String getFooter() {
         return footer.getValue();
     }
@@ -431,7 +431,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The text may contain HTML tags and white space, though if it does, it must be enclosed in quotes.
      * Any internal quotation marks within text may have to be escaped.
      */
-    @Optional @Input
+    @Nullable @Input
     public String getBottom() {
         return bottom.getValue();
     }
@@ -464,7 +464,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * if you want to link to a file system that has no web server, you can use a file: link -- however,
      * do this only if everyone wanting to access the generated documentation shares the same file system.
      */
-    @Optional @Input
+    @Nullable @Input
     public List<String> getLinks() {
         return links.getValue();
     }
@@ -507,7 +507,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This can be a URL (http: or file:) or file path, and can be absolute or relative. If relative,
      * make it relative to the current directory from where javadoc was run. Do not include the package-list filename.
      */
-    @Optional @Input
+    @Nullable @Input
     public List<JavadocOfflineLink> getLinksOffline() {
         return linksOffline.getValue();
     }
@@ -599,7 +599,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Other Packages
      * <br>java.new
      */
-    @Optional @Input
+    @Nullable @Input
     public Map<String, List<String>> getGroups() {
         return groups.getValue();
     }
@@ -804,7 +804,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * javadoc -helpfile C:/user/myhelp.html java.awt
      */
-    @Optional @PathSensitive(NAME_ONLY) @InputFile
+    @Nullable @PathSensitive(NAME_ONLY) @InputFile
     public File getHelpFile() {
         return helpFile.getValue();
     }
@@ -825,7 +825,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      */
-    @Optional @PathSensitive(NAME_ONLY) @InputFile
+    @Nullable @PathSensitive(NAME_ONLY) @InputFile
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
     }
@@ -879,7 +879,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Also see -encoding and -docencoding.
      */
-    @Optional @Input
+    @Nullable @Input
     public String getCharSet() {
         return charSet.getValue();
     }
@@ -902,7 +902,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Also see -encoding and -charset.
      */
-    @Optional @Input
+    @Nullable @Input
     public String getDocEncoding() {
         return docEncoding.getValue();
     }
@@ -940,7 +940,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -tag tagname:Xaoptcmf:"taghead".
      */
-    @Optional @Input
+    @Nullable @Input
     public List<String> getTags() {
         return tags.getValue();
     }
@@ -965,7 +965,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -taglet class.
      */
-    @Optional @Input
+    @Nullable @Input
     public List<String> getTaglets() {
         return taglets.getValue();
     }
@@ -986,7 +986,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -tagletpath tagletpathlist.
      */
-    @Optional @Classpath
+    @Nullable @Classpath
     public List<File> getTagletPath() {
         return tagletPath.getValue();
     }
@@ -1028,7 +1028,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -excludedocfilessubdir name1:name2...
      */
-    @Optional @Input
+    @Nullable @Input
     public List<String> getExcludeDocFilesSubDir() {
         return excludeDocFilesSubDir.getValue();
     }
@@ -1049,7 +1049,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -noqualifier all | packagename1:packagename2:...
      */
-    @Optional @Input
+    @Nullable @Input
     public List<String> getNoQualifiers() {
         return noQualifiers.getValue();
     }

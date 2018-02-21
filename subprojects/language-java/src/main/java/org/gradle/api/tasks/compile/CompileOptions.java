@@ -32,7 +32,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -174,7 +173,7 @@ public class CompileOptions extends AbstractOptions {
      * case the platform default encoding will be used.
      */
     @Input
-    @Optional
+    @Nullable
     public String getEncoding() {
         return encoding;
     }
@@ -291,7 +290,7 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Optional
+    @Nullable
     @CompileClasspath
     public FileCollection getBootstrapClasspath() {
         return bootstrapClasspath;
@@ -310,7 +309,7 @@ public class CompileOptions extends AbstractOptions {
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
     @Input
-    @Optional
+    @Nullable
     public String getExtensionDirs() {
         return extensionDirs;
     }
@@ -462,7 +461,7 @@ public class CompileOptions extends AbstractOptions {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @Optional
+    @Nullable
     @Incubating
     public FileCollection getSourcepath() {
         return sourcepath;
@@ -484,7 +483,6 @@ public class CompileOptions extends AbstractOptions {
      * @return The annotation processor path, or {@code null} to use the compile classpath.
      * @since 3.4
      */
-    @Optional
     @Internal // Handled on the compile task
     @Nullable
     public FileCollection getAnnotationProcessorPath() {
@@ -506,7 +504,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Optional
     @Nullable
     @Incubating
     @OutputDirectory

@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -239,7 +238,7 @@ public class Javadoc extends SourceTask {
      * @return The title, possibly null.
      */
     @Input
-    @Optional
+    @Nullable
     public String getTitle() {
         return title;
     }
@@ -345,7 +344,7 @@ public class Javadoc extends SourceTask {
      *
      * @return The executable. May be null.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getExecutable() {
         return executable;
     }

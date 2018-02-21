@@ -20,11 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -102,7 +102,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
      * Legal values: none, source, line, vars, notailcalls
      */
     @Input
-    @Optional
+    @Nullable
     public String getDebugLevel() {
         return debugLevel;
     }
@@ -126,7 +126,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Encoding of source files.
      */
-    @Input @Optional
+    @Input @Nullable
     public String getEncoding() {
         return encoding;
     }
@@ -154,7 +154,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      */
-    @Optional @Input
+    @Nullable @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }

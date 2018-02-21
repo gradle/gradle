@@ -22,7 +22,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
@@ -31,6 +30,7 @@ import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -140,7 +140,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
     }
 
     @Input
-    @Optional
+    @Nullable
     public String getGradleArgs() {
         return gradleArgs;
     }

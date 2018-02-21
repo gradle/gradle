@@ -19,7 +19,8 @@ package org.gradle.testing;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.Optional;
+
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -45,7 +46,7 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.baselines", baselines);
     }
 
-    @Input @Optional
+    @Input @Nullable
     public String getBaselines() {
         return baselines;
     }
@@ -56,7 +57,7 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.execution.warmups", warmups);
     }
 
-    @Input @Optional
+    @Input @Nullable
     public String getWarmups() {
         return warmups;
     }
@@ -68,7 +69,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
 
-    @Input @Optional
+    @Input @Nullable
     public String getRuns() {
         return runs;
     }
@@ -79,12 +80,12 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.execution.checks", checks);
     }
 
-    @Input @Optional
+    @Input @Nullable
     public String getChecks() {
         return checks;
     }
 
-    @Input @Optional
+    @Input @Nullable
     public String getChannel() {
         return channel;
     }

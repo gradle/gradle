@@ -24,7 +24,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -44,6 +43,7 @@ import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -112,7 +112,7 @@ public class TwirlCompile extends SourceTask {
      * Returns the default imports that will be used when compiling templates.
      * @return The imports that will be used.
      */
-    @Optional @Input
+    @Nullable @Input
     public TwirlImports getDefaultImports() {
         return defaultImports;
     }

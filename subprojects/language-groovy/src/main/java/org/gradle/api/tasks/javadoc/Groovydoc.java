@@ -29,7 +29,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -238,7 +237,7 @@ public class Groovydoc extends SourceTask {
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
      */
     @Input
-    @Optional
+    @Nullable
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -256,7 +255,7 @@ public class Groovydoc extends SourceTask {
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
      */
     @Input
-    @Optional
+    @Nullable
     public String getDocTitle() {
         return docTitle;
     }
@@ -274,7 +273,7 @@ public class Groovydoc extends SourceTask {
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
      */
     @Input
-    @Optional
+    @Nullable
     public String getHeader() {
         return header;
     }
@@ -292,7 +291,7 @@ public class Groovydoc extends SourceTask {
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
      */
     @Input
-    @Optional
+    @Nullable
     public String getFooter() {
         return footer;
     }
@@ -310,7 +309,7 @@ public class Groovydoc extends SourceTask {
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
      */
     @Nested
-    @Optional
+    @Nullable
     public TextResource getOverviewText() {
         return overview;
     }

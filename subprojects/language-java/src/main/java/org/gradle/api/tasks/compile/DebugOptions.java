@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
+
+import javax.annotation.Nullable;
 
 /**
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
@@ -44,7 +45,7 @@ public class DebugOptions extends AbstractOptions {
      * By default, only source and line debugging information will be generated.
      */
     @Input
-    @Optional
+    @Nullable
     public String getDebugLevel() {
         return debugLevel;
     }

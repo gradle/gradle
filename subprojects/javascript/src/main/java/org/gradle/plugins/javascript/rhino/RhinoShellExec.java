@@ -21,7 +21,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.JavaExec;
-import org.gradle.api.tasks.Optional;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.CollectionUtils;
 
@@ -108,7 +107,6 @@ public class RhinoShellExec extends JavaExec {
      * Script file.
      */
     @InputFile
-    @Optional
     @Nullable
     public File getScript() {
         return script == null ? null : getProject().file(script);

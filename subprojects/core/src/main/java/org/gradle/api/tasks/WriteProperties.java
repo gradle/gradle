@@ -24,6 +24,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -154,7 +155,7 @@ public class WriteProperties extends DefaultTask {
      * Returns the optional comment to add at the beginning of the properties file.
      */
     @Input
-    @Optional
+    @Nullable
     public String getComment() {
         return comment;
     }

@@ -19,8 +19,8 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -43,7 +43,7 @@ public class ForkOptions extends BaseForkOptions {
      * <p>Setting the executable disables task output caching.</p>
      */
     @Input
-    @Optional
+    @Nullable
     public String getExecutable() {
         return executable;
     }

@@ -27,12 +27,12 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.RelativePathUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,7 +108,7 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     @OutputFile
-    @Optional
+    @Nullable
     public File getDestinationFile() {
         return destinationFile.getOrNull();
     }
@@ -143,7 +143,7 @@ public class JacocoTaskExtension {
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
     @Input
-    @Optional
+    @Nullable
     public List<String> getIncludes() {
         return includes;
     }
@@ -156,7 +156,7 @@ public class JacocoTaskExtension {
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
      */
     @Input
-    @Optional
+    @Nullable
     public List<String> getExcludes() {
         return excludes;
     }
@@ -169,7 +169,7 @@ public class JacocoTaskExtension {
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      */
     @Input
-    @Optional
+    @Nullable
     public List<String> getExcludeClassLoaders() {
         return excludeClassLoaders;
     }
@@ -196,7 +196,7 @@ public class JacocoTaskExtension {
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      */
     @Input
-    @Optional
+    @Nullable
     public String getSessionId() {
         return sessionId;
     }
@@ -233,7 +233,7 @@ public class JacocoTaskExtension {
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
      */
     @Input
-    @Optional
+    @Nullable
     public String getAddress() {
         return address;
     }
@@ -246,7 +246,7 @@ public class JacocoTaskExtension {
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
     @Input
-    @Optional
+    @Nullable
     public int getPort() {
         return port;
     }
@@ -261,7 +261,7 @@ public class JacocoTaskExtension {
      * @since 3.4
      */
     @LocalState
-    @Optional
+    @Nullable
     public File getClassDumpDir() {
         return classDumpDir;
     }

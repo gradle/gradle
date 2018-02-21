@@ -25,8 +25,8 @@ import org.gradle.api.internal.file.copy.DefaultZipCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 
+import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 
 /**
@@ -119,7 +119,7 @@ public class Zip extends AbstractArchiveTask {
      * @since 2.14
      */
     @Incubating
-    @Input @Optional
+    @Input @Nullable
     public String getMetadataCharset() {
         return this.metadataCharset;
     }

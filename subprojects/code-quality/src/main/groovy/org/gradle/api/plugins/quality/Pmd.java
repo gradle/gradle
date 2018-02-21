@@ -34,7 +34,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
@@ -44,6 +43,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -195,7 +195,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      */
     @Incubating
     @Nested
-    @Optional
+    @Nullable
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -316,7 +316,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.8
      */
     @Classpath
-    @Optional
+    @Nullable
     @Incubating
     public FileCollection getClasspath() {
         return classpath;
