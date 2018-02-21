@@ -4,6 +4,7 @@ import org.gradle.build.DefaultJavaInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.DistributionTest
 
 import java.util.concurrent.Callable
@@ -121,4 +122,13 @@ apply {
 
 val compileAll by tasks.creating {
     dependsOn(compileTasks)
+}
+
+plugins.withType<IdeaPlugin> {
+    configure<IdeaModel> {
+        module {
+            sourceDirs = sourceDirs + generatedResourcesDir
+            testSourceDirs = testSourceDirs + generatedTestResourcesDir
+        }
+    }
 }
