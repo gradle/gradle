@@ -16,13 +16,17 @@ import java.net.URL
  * limitations under the License.
  */
 
-fun wrapperUpdateTask(name: String, label: String, tasks: TaskContainer) {
+fun wrapperUpdateTask(name: String, label: String) {
     val wrapperTaskName = "${name}Wrapper"
     val configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
 
-    tasks.create(configureWrapperTaskName) {
+    val wrapperTask = task<Wrapper>(wrapperTaskName) {
+        dependsOn(configureWrapperTaskName)
+        group = "wrapper"
+    }
+
+    task(configureWrapperTaskName) {
         doLast {
-            val wrapperTask = tasks.get(wrapperTaskName) as Wrapper
             val versionObject = groovy.json.JsonSlurper().parseText(URL("https://services.gradle.org/versions/$label").readText())
             if (versionObject == null) {
                 throw GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
@@ -33,11 +37,6 @@ fun wrapperUpdateTask(name: String, label: String, tasks: TaskContainer) {
             println("updating wrapper to $label version: ${version} (downloadUrl: ${downloadUrl})")
             wrapperTask.distributionUrl = downloadUrl
         }
-    }
-
-    tasks.create<Wrapper>(wrapperTaskName) {
-        dependsOn(configureWrapperTaskName)
-        group = "wrapper"
     }
 }
 
@@ -50,6 +49,6 @@ tasks.withType<Wrapper>() {
         batchScript.writeText(batchScript.readText().replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts"))
     }
 }
-wrapperUpdateTask("nightly", "nightly", tasks)
-wrapperUpdateTask("rc", "release-candidate", tasks)
-wrapperUpdateTask("current", "current", tasks)
+wrapperUpdateTask("nightly", "nightly")
+wrapperUpdateTask("rc", "release-candidate")
+wrapperUpdateTask("current", "current")
