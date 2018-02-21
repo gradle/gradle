@@ -18,6 +18,8 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import javax.annotation.Nullable
+
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -45,6 +47,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 // Should be ignored because it's not a getter
+                @${Nullable.name}
                 public int getWithParameter(int count) {
                     return count;
                 }
