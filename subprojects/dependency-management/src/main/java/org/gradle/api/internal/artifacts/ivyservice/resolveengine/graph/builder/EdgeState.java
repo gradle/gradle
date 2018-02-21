@@ -173,55 +173,66 @@ class EdgeState implements DependencyGraphEdge {
      *
      * @param targetConfiguration the selected configuration
      */
-    private void discoverAndApplyCapabilities(ConfigurationMetadata targetConfiguration) {
+    private void discoverAndApplyCapabilities(final ConfigurationMetadata targetConfiguration) {
         ImmutableList<? extends CapabilityDescriptor> capabilities = targetConfiguration.getCapabilities();
         CapabilitiesHandlerInternal capabilitiesHandler = resolveState.getCapabilitiesHandler();
         for (final CapabilityDescriptor capability : capabilities) {
             final String prefer = capability.getPrefer();
-            capabilitiesHandler.capability(capability.getName(), new Action<CapabilityHandler>() {
-                @Override
-                public void execute(CapabilityHandler handler) {
-                    CapabilityInternal affected = (CapabilityInternal) handler;
-                    ModuleIdentifier oldPreferred = affected.getPrefer();
-                    Set<ModuleIdentifier> oldProvided = ImmutableSet.copyOf(affected.getProvidedBy());
-                    for (String provider : capability.getProvidedBy()) {
-                        handler.providedBy(provider);
-                    }
-                    if (prefer != null) {
-                        CapabilityHandler.Preference preference = handler.prefer(prefer);
-                        if (capability.getReason() != null) {
-                            preference.because(capability.getReason());
-                        }
-                    }
-                    if (!Objects.equal(affected.getPrefer(), oldPreferred) || !Objects.equal(affected.getProvidedBy(), oldProvided)) {
-                        resetSelectionForAffectedCapabilities(affected);
-                    }
-                }
-
-                private void resetSelectionForAffectedCapabilities(CapabilityInternal affected) {
-                    for (ModuleIdentifier module : affected.getProvidedBy()) {
-                        ComponentState selected = resolveState.getModule(module).getSelected();
-                        if (selected != null) {
-                            List<NodeState> nodes = selected.getNodes();
-                            List<ComponentState> unattachedDependencies = selected.getUnattachedDependencies();
-                            for (ComponentState unattachedDependency : unattachedDependencies) {
-                                for (NodeState state : unattachedDependency.getNodes()) {
-                                    state.resetSelectionState();
-                                }
-                            }
-                            resolveState.getDeselectVersionAction().execute(module);
-                            for (NodeState node : nodes) {
-                                List<EdgeState> incomingEdges = node.getIncomingEdges();
-                                for (EdgeState incomingEdge : incomingEdges) {
-                                    incomingEdge.from.resetSelectionState();
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
+            addCapabilityToResolutionState(capabilitiesHandler, capability, prefer);
         }
+    }
+
+    private void addCapabilityToResolutionState(CapabilitiesHandlerInternal capabilitiesHandler, final CapabilityDescriptor capability, final String prefer) {
+        capabilitiesHandler.capability(capability.getName(), new Action<CapabilityHandler>() {
+            @Override
+            public void execute(CapabilityHandler handler) {
+                CapabilityInternal affected = (CapabilityInternal) handler;
+                ModuleIdentifier oldPreferred = affected.getPrefer();
+                Set<ModuleIdentifier> oldProvided = ImmutableSet.copyOf(affected.getProvidedBy());
+                for (String provider : capability.getProvidedBy()) {
+                    handler.providedBy(provider);
+                }
+                if (prefer != null) {
+                    trySetPreference(handler, affected, oldPreferred);
+                }
+                if (!Objects.equal(affected.getPrefer(), oldPreferred) || !Objects.equal(affected.getProvidedBy(), oldProvided)) {
+                    resetSelectionForAffectedCapabilities(affected);
+                }
+            }
+
+            private void trySetPreference(CapabilityHandler handler, CapabilityInternal affected, ModuleIdentifier oldPreferred) {
+                CapabilityHandler.Preference preference = handler.prefer(prefer);
+                if (capability.getReason() != null) {
+                    preference.because(capability.getReason());
+                }
+                if (oldPreferred != null && !Objects.equal(affected.getPrefer(), oldPreferred)) {
+                    // todo: would be nice to actually know what other module has set the preference, but it's a bit expensive to track
+                    throw new RuntimeException("Module " + targetModuleRevision + " prefers module " + prefer + " for capability '" + capability.getName() + "' but another module prefers " + oldPreferred);
+                }
+            }
+
+            private void resetSelectionForAffectedCapabilities(CapabilityInternal affected) {
+                for (ModuleIdentifier module : affected.getProvidedBy()) {
+                    ComponentState selected = resolveState.getModule(module).getSelected();
+                    if (selected != null) {
+                        List<NodeState> nodes = selected.getNodes();
+                        List<ComponentState> unattachedDependencies = selected.getUnattachedDependencies();
+                        for (ComponentState unattachedDependency : unattachedDependencies) {
+                            for (NodeState state : unattachedDependency.getNodes()) {
+                                state.resetSelectionState();
+                            }
+                        }
+                        resolveState.getDeselectVersionAction().execute(module);
+                        for (NodeState node : nodes) {
+                            List<EdgeState> incomingEdges = node.getIncomingEdges();
+                            for (EdgeState incomingEdge : incomingEdges) {
+                                incomingEdge.from.resetSelectionState();
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     @Override
