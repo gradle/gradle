@@ -93,6 +93,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
+import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
@@ -128,7 +129,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class, instantiator);
         project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class, instantiator);
-        project.getExtensions().create(NativeToolChainRegistryInternal.class, "toolChains", DefaultNativeToolChainRegistry.class, instantiator);
+        project.getExtensions().create(NativeToolChainRegistry.class, "toolChains", DefaultNativeToolChainRegistry.class, instantiator);
     }
 
     static class Rules extends RuleSource {
@@ -164,7 +165,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Model
         NativeToolChainRegistryInternal toolChains(ExtensionContainer extensionContainer) {
-            return extensionContainer.getByType(NativeToolChainRegistryInternal.class);
+            return Cast.cast(NativeToolChainRegistryInternal.class, extensionContainer.getByType(NativeToolChainRegistry.class));
         }
 
         @Model
