@@ -12,12 +12,13 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.PrintWriter
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.FileSystems
+import java.nio.file.FileVisitor
 import java.nio.file.FileVisitResult
-import java.nio.file.SimpleFileVisitor
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.jar.JarFile
@@ -71,10 +72,13 @@ open class ShadedJarCreator(
 
     private
     fun visitClassDirectory(dir: Path, classes: ClassGraph, ignored: PackagePatterns, writer: PrintWriter) {
-        Files.walkFileTree(dir, object : SimpleFileVisitor<Path>() {
+        Files.walkFileTree(dir, object : FileVisitor<Path> {
 
             private
             var seenManifest: Boolean = false
+
+            override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?) =
+                FileVisitResult.CONTINUE
 
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                 writer.print("${file.fileName}: ")
@@ -96,6 +100,12 @@ open class ShadedJarCreator(
                 }
                 return FileVisitResult.CONTINUE
             }
+
+            override fun visitFileFailed(file: Path?, exc: IOException?) =
+                FileVisitResult.TERMINATE
+
+            override fun postVisitDirectory(dir: Path?, exc: IOException?) =
+                FileVisitResult.CONTINUE
 
             private
             fun Path.isClassFilePath() =
