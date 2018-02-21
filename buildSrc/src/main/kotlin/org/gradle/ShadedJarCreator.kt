@@ -47,7 +47,7 @@ open class ShadedJarCreator(
             writeJar(classes, classesDir, jarFile, writer)
         }
         val end = System.currentTimeMillis()
-        println("Analysis took " + (end - start) + "ms.")
+        println("Analysis took ${end - start}ms.")
     }
 
     private
@@ -61,7 +61,7 @@ open class ShadedJarCreator(
     private
     fun analyse(classes: ClassGraph, writer: PrintWriter) =
         sourceJars.forEach {
-            val jarUri = URI.create("jar:" + it.toPath().toUri())
+            val jarUri = URI.create("jar:${it.toPath().toUri()}")
             FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
                 jarFileSystem.rootDirectories.forEach {
                     visitClassDirectory(it, classes, ignoredPackagePatterns, writer)
@@ -77,7 +77,7 @@ open class ShadedJarCreator(
             var seenManifest: Boolean = false
 
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                writer.print(file.fileName.toString() + ": ")
+                writer.print("${file.fileName}: ")
                 when {
                     file.isClassFilePath()              -> {
                         visitClassFile(file)
@@ -129,13 +129,13 @@ open class ShadedJarCreator(
                         }
                     }), ClassReader.EXPAND_FRAMES)
 
-                    writer.println("mapped class name: " + details.outputClassName)
+                    writer.println("mapped class name: ${details.outputClassName}")
                     classesDir.resolve(details.outputClassFilename).apply {
                         parentFile.mkdirs()
                         writeBytes(classWriter.toByteArray())
                     }
                 } catch (exception: Exception) {
-                    throw ClassAnalysisException("Could not transform class from " + file.toFile(), exception)
+                    throw ClassAnalysisException("Could not transform class from ${file.toFile()}", exception)
                 }
             }
         })
