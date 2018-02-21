@@ -9,7 +9,7 @@ buildscript {
     }
 
     configure(listOf(repositories, project.repositories)) {
-        maven(url = "https://repo.gradle.org/gradle/repo")
+        gradlePluginPortal()
     }
 }
 

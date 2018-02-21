@@ -4,7 +4,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
 
-val kotlinRepo = "https://repo.gradle.org/gradle/repo"
+val kotlinRepo = "https://plugins.gradle.org/m2/"
 
 
 fun loadExtraPropertiesOf(project: Project) = project.run {
