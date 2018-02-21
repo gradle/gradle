@@ -20,8 +20,10 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 
+import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import javax.inject.Inject
@@ -32,13 +34,17 @@ class PluginRequestsHandler @Inject constructor(
     private val autoAppliedPluginHandler: AutoAppliedPluginHandler) {
 
     fun handle(
-        pluginRequests: PluginRequests,
+        pluginRequests: PluginRequests?,
         scriptHandler: ScriptHandlerInternal,
         target: PluginAwareInternal,
         targetScope: ClassLoaderScope) {
 
+        val effectivePluginRequests = pluginRequests
+            ?.let { withAutoAppliedPluginsFor(target, it) }
+            ?: DefaultPluginRequests.EMPTY
+
         pluginRequestApplicator.applyPlugins(
-            withAutoAppliedPluginsFor(target, pluginRequests),
+            effectivePluginRequests,
             scriptHandler,
             target.pluginManager,
             targetScope)

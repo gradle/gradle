@@ -33,7 +33,7 @@ import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
  *
  * @see [KotlinClosure1]
  */
-fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
+fun <T> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
     KotlinClosure1(action, this, this)
 
 
@@ -84,7 +84,7 @@ open class KotlinClosure0<V : Any>(
  *
  * @see [Closure]
  */
-class KotlinClosure1<in T : Any, V : Any>(
+class KotlinClosure1<in T : Any?, V : Any>(
     val function: T.() -> V?,
     owner: Any? = null,
     thisObject: Any? = null) : Closure<V?>(owner, thisObject) {
@@ -106,7 +106,7 @@ class KotlinClosure1<in T : Any, V : Any>(
  *
  * @see [Closure]
  */
-class KotlinClosure2<in T : Any, in U : Any, V : Any>(
+class KotlinClosure2<in T : Any?, in U : Any?, V : Any>(
     val function: (T, U) -> V?,
     owner: Any? = null,
     thisObject: Any? = null) : Closure<V?>(owner, thisObject) {

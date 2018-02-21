@@ -37,39 +37,39 @@ import kotlin.reflect.KClass
 
 
 internal
-fun kotlinScriptTargetFor(target: Any): KotlinScriptTarget<out Any> =
+fun kotlinScriptTargetFor(target: Any, topLevelScript: Boolean): KotlinScriptTarget<out Any> =
     when (target) {
-        is Project  -> projectScriptTarget(target)
-        is Settings -> settingsScriptTarget(target)
+        is Project  -> projectScriptTarget(target, topLevelScript)
+        is Settings -> settingsScriptTarget(target, topLevelScript)
         else        -> unsupportedTarget(target)
     }
 
 
-internal
+private
 fun unsupportedTarget(target: Any): Nothing =
     throw IllegalArgumentException("Unsupported target ${target::class.qualifiedName}: $target")
 
 
 private
-fun settingsScriptTarget(settings: Settings) =
+fun settingsScriptTarget(settings: Settings, topLevelScript: Boolean) =
     KotlinScriptTarget(
         settings,
         type = Settings::class,
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class,
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript },
         rootDir = settings.rootDir)
 
 
 private
-fun projectScriptTarget(project: Project): KotlinScriptTarget<Project> =
+fun projectScriptTarget(project: Project, topLevelScript: Boolean): KotlinScriptTarget<Project> =
     KotlinScriptTarget(
         project,
         type = Project::class,
         scriptTemplate = KotlinBuildScript::class,
-        buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
-        pluginsBlockTemplate = KotlinPluginsBlock::class,
+        buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
+        pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
         rootDir = project.rootDir,
-        accessorsClassPath = { accessorsClassPathFor(project, it) },
+        accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
         prepare = {
             project.run {
                 afterEvaluate {
@@ -79,15 +79,29 @@ fun projectScriptTarget(project: Project): KotlinScriptTarget<Project> =
         })
 
 
+private
+fun accessorsClassPathProviderFor(project: Project, topLevelScript: Boolean): AccessorsClassPathProvider =
+    if (topLevelScript) { classPath -> accessorsClassPathFor(project, classPath) }
+    else emptyAccessorsClassPathProvider
+
+
+internal
+typealias AccessorsClassPathProvider = (ClassPath) -> AccessorsClassPath
+
+
+private
+val emptyAccessorsClassPathProvider: AccessorsClassPathProvider = { AccessorsClassPath.empty }
+
+
 internal
 data class KotlinScriptTarget<T : Any>(
     val `object`: T,
     val type: KClass<T>,
     val scriptTemplate: KClass<*>,
-    val buildscriptBlockTemplate: KClass<*>? = null,
+    val buildscriptBlockTemplate: KClass<*>?,
     val pluginsBlockTemplate: KClass<*>? = null,
     val rootDir: File,
-    val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
+    val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val prepare: () -> Unit = {}) {
 
     fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath(classPath)

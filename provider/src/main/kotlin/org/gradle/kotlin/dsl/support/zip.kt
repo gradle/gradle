@@ -19,9 +19,11 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 
@@ -57,3 +59,28 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
     }
 }
 
+
+internal
+fun unzipTo(outputDirectory: File, zipFile: File) {
+    ZipFile(zipFile).use { zip ->
+        for (entry in zip.entries()) {
+            unzipEntryTo(outputDirectory, zip, entry)
+        }
+    }
+}
+
+
+private
+fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
+    val output = File(outputDirectory, entry.name)
+    if (entry.isDirectory) {
+        output.mkdirs()
+    } else {
+        zip.getInputStream(entry).use { it.copyTo(output) }
+    }
+}
+
+
+private
+fun InputStream.copyTo(file: File): Long =
+    file.outputStream().use { copyTo(it) }

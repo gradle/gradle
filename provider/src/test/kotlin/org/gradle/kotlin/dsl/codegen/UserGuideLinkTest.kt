@@ -39,7 +39,7 @@ class UserGuideLinkTest {
                 "scala", "scala-base", "signing", "standard-tool-chains",
                 "visual-studio",
                 "war",
-                "windows-resource-script", "windows-resources", "wrapper")
+                "windows-resource-script", "windows-resources")
         linkedPlugins.forEach {
             assertThat(
                 "$it is linked",
@@ -56,7 +56,8 @@ class UserGuideLinkTest {
                 "language-base", "lifecycle-base",
                 "publishing",
                 "rhino",
-                "scala-lang")
+                "scala-lang",
+                "wrapper")
         unlinkedPlugins.forEach {
             assertThat(
                 "$it is not linked",
