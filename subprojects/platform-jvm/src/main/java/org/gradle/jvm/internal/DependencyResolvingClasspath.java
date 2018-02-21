@@ -16,22 +16,16 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.Multimap;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
-import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilityInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.NoOpCapabilitiesHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
@@ -67,44 +61,12 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
-    private final static CapabilitiesHandler NO_CAPABILITIES = new CapabilitiesHandlerInternal() {
-        @Override
-        public void recordCapabilities(ModuleIdentifier module, Multimap<String, ModuleIdentifier> capabilityToModules) {
-        }
-
-        @Override
-        public ModuleIdentifier getPreferred(String capability) {
-            return null;
-        }
-
-        @Override
-        public boolean hasCapabilities() {
-            return false;
-        }
-
-        @Override
-        public Collection<? extends CapabilityInternal> getCapabilities(ModuleIdentifier module) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public CapabilityInternal getCapability(String name) {
-            return null;
-        }
-
-        @Override
-        public void capability(String identifier, Action<? super CapabilityHandler> configureAction) {
-        }
-    };
-
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
     private final BinarySpecInternal binary;
@@ -224,7 +186,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             public ArtifactTypeContainer create() {
                 throw new UnsupportedOperationException();
             }
-        }, NO_CAPABILITIES);
+        }, NoOpCapabilitiesHandler.INSTANCE);
         return result;
     }
 

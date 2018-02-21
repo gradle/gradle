@@ -46,7 +46,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ImmutableList<GradleDependencyMetadata> dependencies;
     private final VariantMetadataRules variantMetadataRules;
     private final ImmutableAttributes componentLevelAttributes;
-    private final ImmutableList<? extends Capability> capabilities;
+    private final ImmutableList<? extends CapabilityDescriptor> capabilities;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
     private ImmutableAttributesFactory attributesFactory;
@@ -56,7 +56,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
                                        ImmutableAttributes componentLevelAttributes,
                                        ImmutableAttributesFactory attributesFactory,
                                        VariantMetadataRules variantMetadataRules,
-                                       ImmutableList<? extends Capability> capabilities) {
+                                       ImmutableList<? extends CapabilityDescriptor> capabilities) {
         this.componentId = componentId;
         this.variant = new RuleAwareVariant(variant);
         this.attributesFactory = attributesFactory;
@@ -136,7 +136,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public ImmutableList<? extends Capability> getCapabilities() {
+    public ImmutableList<? extends CapabilityDescriptor> getCapabilities() {
         return capabilities;
     }
 

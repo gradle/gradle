@@ -166,7 +166,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     }
 
     @Override
-    public ImmutableList<? extends Capability> getCapabilities() {
+    public ImmutableList<? extends CapabilityDescriptor> getCapabilities() {
         return ImmutableList.of();
     }
 }

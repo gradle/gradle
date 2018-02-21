@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -23,6 +24,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
@@ -103,6 +105,11 @@ public class ResolutionScopeCapabilitiesHandler implements CapabilitiesHandlerIn
             return buildScopeCapabilities.getCapability(name);
         }
         return capability;
+    }
+
+    @Override
+    public ImmutableList<? extends CapabilityDescriptor> listCapabilities() {
+        throw new UnsupportedOperationException("This method shouldn't be called on a resolution scope handler");
     }
 
     private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

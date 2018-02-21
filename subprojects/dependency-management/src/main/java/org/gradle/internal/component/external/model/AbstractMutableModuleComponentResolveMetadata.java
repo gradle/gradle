@@ -65,7 +65,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
-    private ImmutableList<? extends Capability> capabilities = ImmutableList.of();
+    private ImmutableList<? extends CapabilityDescriptor> capabilities = ImmutableList.of();
 
     AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this.attributesFactory = attributesFactory;
@@ -257,12 +257,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public ImmutableList<? extends Capability> getCapabilities() {
+    public ImmutableList<? extends CapabilityDescriptor> getCapabilities() {
         return capabilities;
     }
 
     @Override
-    public void setCapabilities(ImmutableList<? extends Capability> capabilities) {
+    public void setCapabilities(ImmutableList<? extends CapabilityDescriptor> capabilities) {
         this.capabilities = capabilities;
     }
 

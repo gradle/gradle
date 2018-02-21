@@ -218,6 +218,11 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         configureAction.execute(capabilitiesHandler);
     }
 
+    @Override
+    public CapabilitiesHandler getCapabilities() {
+        return capabilitiesHandler;
+    }
+
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
 
         @Override

@@ -459,4 +459,14 @@ public interface DependencyHandler {
      */
     @Incubating
     void capabilities(Action<? super CapabilitiesHandler> configureAction);
+
+    /**
+     * Returns the capabilities definitions for this handler.
+     *
+     * @return the capabilities
+     *
+     * @since 4.7
+     */
+    @Incubating
+    CapabilitiesHandler getCapabilities();
 }

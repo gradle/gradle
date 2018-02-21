@@ -57,7 +57,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
     private final ImmutableAttributes attributes;
-    private final ImmutableList<? extends Capability> capabilities;
+    private final ImmutableList<? extends CapabilityDescriptor> capabilities;
 
     // Configurations are built on-demand, but only once.
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
@@ -264,7 +264,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public ImmutableList<? extends Capability> getCapabilities() {
+    public ImmutableList<? extends CapabilityDescriptor> getCapabilities() {
         return capabilities;
     }
 

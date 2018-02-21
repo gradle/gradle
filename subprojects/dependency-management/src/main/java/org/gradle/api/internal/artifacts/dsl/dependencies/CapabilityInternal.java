@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import com.google.common.collect.ComparisonChain;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -32,8 +33,34 @@ public interface CapabilityInternal {
         }
     };
 
+    /**
+     * @return the identifier of the capability
+     */
     String getCapabilityId();
+
+    /**
+     * @return the set of modules which provide this capability
+     */
     Set<ModuleIdentifier> getProvidedBy();
+
+    /**
+     * If 2+ modules on the graph provide the same capability, one of them needs
+     * to be preferred. If not null, tells which one to use.
+     *
+     * @return the module which should be preferred
+     */
     ModuleIdentifier getPrefer();
+
+    /**
+     * A human readable explanation why the preferred module should be used
+     * @return the reason why to use the preferred module
+     */
     String getReason();
+
+    /**
+     * This method is used whenever we have a project dependency, to convert from the internal
+     * representation of capabilities to their consumable form.
+     * @return a capability descriptor
+     */
+    CapabilityDescriptor toCapabilityDescriptor();
 }
