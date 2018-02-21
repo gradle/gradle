@@ -69,10 +69,10 @@ class TaskOutputOriginFixture extends UserInitScriptExecuterFixture {
                             }
                             gradle.ext.origins[buildOperation.details.task.identityPath] = entry
                             
-                            println "Finished task: " + buildOperation.details.task.identityPath
+                            //  println "Finished task: " + buildOperation.details.task.identityPath
                         }
                     }
-                    void progress($BuildOperationDescriptor.name buildOperation, ${OperationProgressEvent.name} progressEvent){
+                    void progress(Object buildOperationId, ${OperationProgressEvent.name} progressEvent){
                     }
                 })
                 

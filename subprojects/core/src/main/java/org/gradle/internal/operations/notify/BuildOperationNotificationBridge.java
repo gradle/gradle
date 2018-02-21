@@ -141,9 +141,9 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 if (active.containsKey(parentId)) {
                     parents.put(id, parentId);
                 } else {
-                    Object activeParent = parents.get(parentId);
-                    if (activeParent != null) {
-                        parents.put(id, activeParent);
+                    parentId = parents.get(parentId);
+                    if (parentId != null) {
+                        parents.put(id, parentId);
                     }
                 }
             }
@@ -171,14 +171,14 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         }
 
         @Override
-        public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+        public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
             Object details = progressEvent.getDetails();
             if (details == null) {
                 return;
             }
 
             // Find the nearest parent up that we care about and use that as the parent.
-            Object owner = findOwner(buildOperation);
+            Object owner = findOwner(buildOperationId);
             if (owner == null) {
                 return;
             }
@@ -186,8 +186,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             notificationListener.progress(new Progress(owner, progressEvent.getTime(), details));
         }
 
-        private Object findOwner(BuildOperationDescriptor buildOperation) {
-            Object id = buildOperation.getId();
+        private Object findOwner(Object id) {
             if (active.containsKey(id)) {
                 return id;
             } else {
@@ -211,7 +210,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 maybeThrow(e);
             }
         }
-
 
     }
 

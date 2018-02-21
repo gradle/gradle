@@ -278,14 +278,14 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         when:
         broadcast.started(d1, new OperationStartEvent(0))
-        broadcast.progress(d1, new OperationProgressEvent(0, 1))
-        broadcast.progress(d1, new OperationProgressEvent(0, null))
+        broadcast.progress(d1.id, new OperationProgressEvent(0, 1))
+        broadcast.progress(d1.id, new OperationProgressEvent(0, null))
 
         broadcast.started(d2, null)
-        broadcast.progress(d2, new OperationProgressEvent(0, 1))
+        broadcast.progress(d2.id, new OperationProgressEvent(0, 2))
 
         broadcast.started(d3, new OperationStartEvent(0))
-        broadcast.progress(d3, new OperationProgressEvent(0, 1))
+        broadcast.progress(d3.id, new OperationProgressEvent(0, 1))
         broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
 
 
@@ -301,6 +301,12 @@ class BuildOperationNotificationBridgeTest extends Specification {
         1 * listener2.progress(_) >> { BuildOperationProgressNotification n ->
             assert n.notificationOperationId == d1.id
             assert n.notificationOperationProgressDetails == 1
+        }
+
+        then:
+        1 * listener2.progress(_) >> { BuildOperationProgressNotification n ->
+            assert n.notificationOperationId == d1.id
+            assert n.notificationOperationProgressDetails == 2
         }
 
         then:

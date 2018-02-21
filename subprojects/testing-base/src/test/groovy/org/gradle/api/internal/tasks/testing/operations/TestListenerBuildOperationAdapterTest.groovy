@@ -98,7 +98,7 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         }
 
         1 * listener.progress(_, _) >> {
-            assert testOpDescriptor == it[0]
+            assert testOpDescriptor.id == it[0]
             assert it[1].details.output == testOutputEvent
         }
     }

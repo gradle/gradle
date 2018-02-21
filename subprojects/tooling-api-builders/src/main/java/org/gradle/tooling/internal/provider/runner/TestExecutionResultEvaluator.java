@@ -139,7 +139,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
     }
 
     @Override
-    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+    public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
     }
 
     @Override

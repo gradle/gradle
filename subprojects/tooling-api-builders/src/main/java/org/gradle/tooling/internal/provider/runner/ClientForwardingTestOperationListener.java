@@ -66,8 +66,7 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     }
 
     @Override
-    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-
+    public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
     }
 
     @Override

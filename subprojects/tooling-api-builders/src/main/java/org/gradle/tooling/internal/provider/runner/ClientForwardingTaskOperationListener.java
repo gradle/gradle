@@ -78,7 +78,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     }
 
     @Override
-    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+    public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationProgressEvent;
 
 import java.util.Map;
@@ -30,8 +29,8 @@ class SerializedOperationProgress implements SerializedOperation {
     final Object details;
     final String detailsClassName;
 
-    SerializedOperationProgress(BuildOperationDescriptor descriptor, OperationProgressEvent progressEvent) {
-        this.id = ((OperationIdentifier) descriptor.getId()).getId();
+    SerializedOperationProgress(Object id, OperationProgressEvent progressEvent) {
+        this.id = ((OperationIdentifier) id).getId();
         this.time = progressEvent.getTime();
         this.details = transform(progressEvent.getDetails());
         this.detailsClassName = details == null ? null : progressEvent.getDetails().getClass().getName();
