@@ -34,6 +34,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -307,10 +308,25 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithNullableOutputFile extends TaskWithAction {
+        @OutputFile
+        @Nullable
+        public File getOutputFile() {
+            return null;
+        }
+    }
+
     public static class TaskWithOptionalOutputFiles extends TaskWithAction {
-        @SuppressWarnings("deprecation")
         @OutputFiles
         @org.gradle.api.tasks.Optional
+        public List<File> getOutputFiles() {
+            return null;
+        }
+    }
+
+    public static class TaskWithNullableOutputFiles extends TaskWithAction {
+        @OutputFiles
+        @Nullable
         public List<File> getOutputFiles() {
             return null;
         }
@@ -351,10 +367,27 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithNullableOutputDir extends TaskWithAction {
+        @OutputDirectory
+        @Nullable
+        public File getOutputDir() {
+            return null;
+        }
+    }
+
     public static class TaskWithOptionalOutputDirs extends TaskWithAction {
         @SuppressWarnings("deprecation")
         @OutputDirectories
         @org.gradle.api.tasks.Optional
+        public File getOutputDirs() {
+            return null;
+        }
+
+    }
+
+    public static class TaskWithNullableOutputDirs extends TaskWithAction {
+        @OutputDirectories
+        @Nullable
         public File getOutputDirs() {
             return null;
         }
@@ -393,6 +426,14 @@ public class AnnotationProcessingTasks {
     public static class TaskWithOptionalInputFile extends TaskWithAction {
         @InputFile
         @org.gradle.api.tasks.Optional
+        public File getInputFile() {
+            return null;
+        }
+    }
+
+    public static class TaskWithNullableInputFile extends TaskWithAction {
+        @InputFile
+        @Nullable
         public File getInputFile() {
             return null;
         }
@@ -491,6 +532,20 @@ public class AnnotationProcessingTasks {
 
         @Nested
         @org.gradle.api.tasks.Optional
+        public Bean getBean() {
+            return bean;
+        }
+    }
+
+    public static class TaskWithNullableNestedBean extends TaskWithAction {
+        private final Bean bean;
+
+        public TaskWithNullableNestedBean(Bean bean) {
+            this.bean = bean;
+        }
+
+        @Nested
+        @Nullable
         public Bean getBean() {
             return bean;
         }

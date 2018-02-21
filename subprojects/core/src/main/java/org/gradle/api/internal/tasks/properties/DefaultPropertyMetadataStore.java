@@ -142,6 +142,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         return ImmutableSet.<Class<? extends Annotation>>builder()
             .addAll(propertyTypeAnnotations)
             .add(Optional.class)
+            .add(Nullable.class)
             .add(SkipWhenEmpty.class)
             .add(PathSensitive.class)
             .build();
