@@ -1076,5 +1076,83 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
         then:
         failure.assertHasCause("Module org:b:1.0 prefers module org:impl2 for capability 'cap' but another module prefers org:impl1")
     }
+
+    /**
+     * This test case **documents a limitation of the current implementation**. It should not behave that way.
+     * What it says is that if a module in one version gives a preference for a capability, and that another
+     * version of that module gives a different preference, then because the first version is evicted, it should
+     * actually use the preference from the second version. But in practice, we remember the first choice, and
+     * it fails saying that 2 modules chose different preference.
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "preference from evicted version is left-over when it should not"() {
+        given:
+        repository {
+            'org:a:1.0' {
+                capability('cap') {
+                    prefer 'org:c'
+                }
+            }
+            'org:a:1.1' {
+                capability('cap') {
+                    prefer 'org:d'
+                }
+            }
+            'org:b:1.0' {
+                dependsOn 'org:a:1.1'
+            }
+            'org:c:1.0' {
+                capability('cap') {
+                    providedBy('org:c')
+                }
+            }
+            'org:d:1.0' {
+                capability('cap') {
+                    providedBy('org:d')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'org:b:1.0'
+                
+                // those two are in conflict, a:1.0 chooses c, a:1.1 chooses d
+                // since a:1.0 is evicted, d should be selected
+                conf 'org:c:1.0'
+                conf 'org:d:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:a:1.0' {
+                expectGetMetadata()
+            }
+            'org:a:1.1' {
+                expectGetMetadata()
+//                expectResolve()
+            }
+            'org:b:1.0' {
+                expectGetMetadata()
+//                expectResolve()
+            }
+            'org:c:1.0' {
+                expectGetMetadata()
+            }
+            'org:d:1.0' {
+                expectGetMetadata()
+//                expectResolve()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        // This is the current implementation. It should actually pass and select d
+        failure.assertHasCause('Module org:a:1.1 prefers module org:d for capability \'cap\' but another module prefers org:c')
+    }
 }
 
