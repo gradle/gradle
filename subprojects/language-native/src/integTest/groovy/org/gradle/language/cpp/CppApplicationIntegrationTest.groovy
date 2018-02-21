@@ -393,6 +393,44 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
+    def "can directly depend on generated sources on includePath"() {
+        settingsFile << "rootProject.name = 'app'"
+
+        given:
+        file("src/main/cpp/main.cpp") << """
+            #include "foo.h"
+            
+            int main(int argc, char** argv) {
+                return EXIT_VALUE;
+            }
+        """
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            task generateHeader {
+                ext.headerDirectory = newOutputDirectory()
+                headerDirectory.set(project.layout.buildDirectory.dir("headers"))
+                doLast {
+                    def fooH = headerDirectory.file("foo.h").get().asFile
+                    fooH.parentFile.mkdirs()
+                    fooH << '''
+                        #define EXIT_VALUE 0
+                    '''
+                }
+            }
+            
+            application.binaries.whenElementFinalized { binary ->
+                def dependency = project.dependencies.create(files(generateHeader.headerDirectory))
+                binary.getIncludePathConfiguration().dependencies.add(dependency)
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+    }
+
     def "can compile and link against a library with explicit operating system family defined"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()

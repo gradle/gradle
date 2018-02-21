@@ -28,12 +28,12 @@ if (isCiServer) {
             tasks.withType(Reporting).find { it.state.failure }.collect { it.reports.html.destination }.unique().each { prepareReportForCIPublishing(buildSrcOrSubProject.name, it)}
         }
         subprojects { subproject ->
-            tasks.withType(ValidateTaskProperties).find { it.state.failure }.collect { it.outputFile }.unique().each { prepareReportForCIPublishing(subproject.name, it) }
+            tasks.withType(ValidateTaskProperties).find { it.state.failure }.collect { it.outputFile.asFile.get() }.unique().each { prepareReportForCIPublishing(subproject.name, it) }
             tasks.withType(org.gradle.plugins.classycle.Classycle).find { it.state.failure }.collect { it.reportFile }.unique().each { prepareReportForCIPublishing(subproject.name, it) }
             tasks.withType(me.champeau.gradle.japicmp.JapicmpTask).collect { new File(it.richReport.destinationDir, it.richReport.reportName) }.unique().each { prepareReportForCIPublishing(subproject.name, it) }
             tasks.withType(org.gradle.testing.DistributedPerformanceTest).collect { it.scenarioReport.parentFile }.unique().each { prepareReportForCIPublishing(subproject.name, it) }
-            tasks.withType(org.gradle.testing.DistributionTest).find { it.state.failure }.collect { it.daemonRegistry }.unique().each { prepareReportForCIPublishing("all-logs", it) } //daemons are shared by all subprojects
-            tasks.withType(org.gradle.testing.DistributionTest).find { it.state.failure }.collect { new File(it.gradleUserHomeDir, "worker-1/test-kit-daemon") }.unique().each { prepareReportForCIPublishing("all-logs", it) } //test-kit daemons are shared by all subprojects
+            tasks.withType(org.gradle.testing.DistributionTest).find { it.state.failure }.collect { it.gradleInstallationForTest.daemonRegistry.get().asFile }.unique().each { prepareReportForCIPublishing("all-logs", it) } //daemons are shared by all subprojects
+            tasks.withType(org.gradle.testing.DistributionTest).find { it.state.failure }.collect { it.gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/test-kit-daemon").get().asFile }.unique().each { prepareReportForCIPublishing("all-logs", it) } //test-kit daemons are shared by all subprojects
         }
     }
 }

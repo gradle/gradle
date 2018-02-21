@@ -179,9 +179,10 @@ apply from: "gradle/dependencies.gradle"
 apply from: "gradle/dependenciesMetadataRules.gradle"
 apply from: "gradle/minifiedDependencies.gradle"
 apply from: "gradle/testDependencies.gradle"
-apply from: "gradle/wrapper.gradle"
-apply plugin: "ide-configuration"
-apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/wrapper.gradle.kts"
+apply from: "gradle/idea.gradle"
+apply from: "gradle/eclipse.gradle"
+apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle.kts"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
@@ -295,17 +296,7 @@ task patchExternalModules(type: PatchExternalModules) {
 
 task verifyIsProductionBuildEnvironment {
     doLast {
-        assert javaVersion.java8:
-            "Must use a Java 8 compatible JVM to perform this build. Current JVM is ${jvm}"
-
-        def assertJavaHomeVersion = { propertyName, javaInstallation, javaVersion ->
-            assert javaInstallation.javaVersion == javaVersion:
-                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Is currently ${javaInstallation.displayName} at $javaInstallation.javaHome. Set -P$propertyName=/path/to/jvm/$javaVersion"
-        }
-
-        assertJavaHomeVersion("java7Home", availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7), JavaVersion.VERSION_1_7)
-        assertJavaHomeVersion("testJavaHome", availableJavaInstallations.javaInstallationForTest, JavaVersion.VERSION_1_8)
+        rootProject.availableJavaInstallations.validateProductionEnvironment()
 
         def systemCharset = java.nio.charset.Charset.defaultCharset().name()
         assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
@@ -344,10 +335,9 @@ subprojects { prj ->
     }
 }
 
-gradle.buildFinished { result ->
-    def rootProject = result.gradle.rootProject
-    if (!rootProject.availableJavaInstallations.validBuildCacheConfiguration) {
-        logger.warn("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
+afterEvaluate {
+    if (gradle.startParameter.isBuildCacheEnabled()) {
+        rootProject.availableJavaInstallations.validateBuildCacheConfiguration(gradle.settings.buildCache)
     }
 }
 

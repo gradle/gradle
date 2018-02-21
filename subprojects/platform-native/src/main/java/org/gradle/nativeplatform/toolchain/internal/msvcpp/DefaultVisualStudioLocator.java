@@ -25,6 +25,9 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioM
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
@@ -177,7 +180,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         // populates descriptors, last descriptor in wins for a given architecture
         Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(basePath, vsPath);
+            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -205,7 +208,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         // populates descriptors, last descriptor in wins for a given architecture
         Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(basePath, vsPath);
+            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }

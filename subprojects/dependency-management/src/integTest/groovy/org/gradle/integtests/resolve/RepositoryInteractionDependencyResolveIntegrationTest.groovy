@@ -41,10 +41,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
             // classic maven and ivy metadata interpretation does not honor api/runtime separation
             return true
         }
-        if (testVariant == 'api+experimental' && repoType == 'ivy' && prevRepoType != 'maven') {
-            // maven now honors api/runtime separation
-            // it also works for ivy if it is chained behind a maven repo, because we then do an explicit selection of the 'compile' configuration
-            // and if the ivy modules provides a 'compile', which we do here as ivy-publishing would, the configuration is selected
+        if (testVariant == 'api+experimental' && repoType == 'ivy') {
+            // With improved POM support, Maven does not leak runtime when 'api' variant is requested
             return true
         }
         return false
@@ -273,9 +271,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        experimental | _
-        false        | _
-        true         | _
+        experimental << [false, true]
     }
 
     def "explicit compile configuration selection is broken up by dependency with Gradle metadata"() {
@@ -354,9 +350,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        conf      | _
-        'runtime' | _
-        'test'    | _
+        conf << ['runtime', 'test']
     }
 
     @Unroll

@@ -2,10 +2,12 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.file.ContentFilterable
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskContainer
+import java.io.FilterReader
 
 
 // This file contains members intended to be pulled upstream into the next Gradle Kotlin DSL release
@@ -33,8 +35,8 @@ fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
  * @throws [UnknownDomainObjectException] When the given task is not found.
  * @throws [IllegalStateException] When the given task cannot be cast to the expected type.
  */
-inline
 @Suppress("extension_shadowed_by_member")
+inline
 fun <reified T : Any> TaskContainer.getByName(name: String) =
     getByName(name).let {
         it as? T
@@ -50,3 +52,13 @@ fun <reified T : Any> TaskContainer.getByName(name: String) =
  */
 operator fun <T> Spec<T>.invoke(arg: T): Boolean =
     isSatisfiedBy(arg)
+
+
+inline
+fun <reified T : FilterReader> ContentFilterable.filter(vararg properties: Pair<String, Any?>) =
+    filter(mapOf(*properties), T::class.java)
+
+
+inline
+fun <reified T : FilterReader> ContentFilterable.filter(properties: Map<String, Any?>) =
+    filter(properties, T::class.java)

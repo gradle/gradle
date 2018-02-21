@@ -21,7 +21,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
 import java.io.BufferedReader;
@@ -54,11 +53,6 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
     }
 
     @Override
-    protected SwiftcMetadata brokenMetadata(String message) {
-        return new BrokenMetadata(message);
-    }
-
-    @Override
     public CompilerType getCompilerType() {
         return SWIFTC_COMPILER_TYPE;
     }
@@ -81,26 +75,18 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
                     return new DefaultSwiftcMetadata(line, version);
                 }
             }
-            return new BrokenMetadata(String.format("Could not determine %s metadata: %s produced unexpected output.", getCompilerType().getDescription(), swiftc.getName()));
+            throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", getCompilerType().getDescription(), swiftc.getName()));
         } catch (IOException e) {
             // Should not happen when reading from a StringReader
             throw new UncheckedIOException(e);
         }
     }
 
-    private class BrokenMetadata extends AbstractBrokenMetadata implements SwiftcMetadata {
-
-        public BrokenMetadata(String message) {
-            super(message);
-        }
-
-    }
-
     private class DefaultSwiftcMetadata implements SwiftcMetadata {
         private final String versionString;
         private final VersionNumber version;
 
-        public DefaultSwiftcMetadata(String versionString, VersionNumber version) {
+        DefaultSwiftcMetadata(String versionString, VersionNumber version) {
             this.versionString = versionString;
             this.version = version;
         }
@@ -113,15 +99,5 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
         public VersionNumber getVersion() {
             return version;
         }
-
-        @Override
-        public boolean isAvailable() {
-            return true;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
     }
-
 }

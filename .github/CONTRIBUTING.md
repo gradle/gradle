@@ -48,6 +48,8 @@ You can generate the IntelliJ projects by running
 
     ./gradlew idea
 
+then open the generated `gradle.ipr` file.
+
 ### Eclipse
 
 You can generate the Eclipse projects by running

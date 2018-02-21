@@ -28,8 +28,10 @@ import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
@@ -114,17 +116,20 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
-        if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
+        PlatformVisualCpp platformVisualCpp = visualCpp == null ? null : visualCpp.forPlatform(targetPlatform);
+        if (platformVisualCpp == null) {
             result.unavailable(String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
+        PlatformWindowsSdk platformSdk = windowsSdk.forPlatform(targetPlatform);
+        SystemLibraries cRuntime = ucrt == null ? null : ucrt.getCRuntime(targetPlatform);
 
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
+        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, platformVisualCpp, platformSdk, cRuntime, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
     }
 
     @Override
@@ -162,6 +167,8 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             return;
         }
 
+        // TODO - this selection should happen per target platform
+
         SearchResult<VisualStudioInstall> visualStudioSearchResult = visualStudioLocator.locateComponent(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
@@ -182,7 +189,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
                 ucrt = ucrtSearchResult.getComponent();
             }
         }
-
     }
 
     @Override

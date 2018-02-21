@@ -703,6 +703,68 @@ The TestNG framework has a quite similar concept. In TestNG you can specify diff
             </sample>
 ++++
 
+[[using_junit5]]
+==== Using JUnit 5
+
+http://junit.org/junit5[JUnit 5] is the latest version of the well-known JUnit test framework.
+Unlike its predecessor, JUnit 5 is modularized and composed of several modules:
+
+    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+
+The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new http://junit.org/junit5/docs/current/user-guide/#writing-tests[programming model]
+ and http://junit.org/junit5/docs/current/user-guide/#extensions[extension model] for writing tests and extensions in JUnit 5. JUnit Vintage provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
+
+The following code enables JUnit Platform support in `build.gradle`:
+
+    test {
+        useJUnitPlatform()
+    }
+
+See api:org.gradle.api.tasks.testing.Test#useJUnitPlatform()[] for more details.
+
+[NOTE]
+====
+There're some known limitations on JUnit 5, e.g. tests in static nested classes won't be discovered and classes are still displayed by its name instead of `@DisplayName`.
+They'll be fixed in future version of Gradle. If you find more, please don't hesitate to tell us: https://github.com/gradle/gradle/issues/new
+====
+
+[[compiling_and_executing_junit_jupiter_tests]]
+===== Compiling and executing JUnit Jupiter tests
+
+To enable JUnit Jupiter support, add the following dependencies:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterdependencies" dir="testing/junitplatform/jupiter" title="JUnit Jupiter dependencies">
+    <sourcefile file="build.gradle" snippet="jupiter-dependencies"/>
+</sample>
+++++
+
+Put the following code into `src/test/java`:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterexample" dir="testing/junitplatform/engine" title="Jupiter test example">
+    <sourcefile file="src/test/java/org/gradle/junitplatform/JupiterTest.java" snippet="jupiter-example"/>
+</sample>
+++++
+
+Now you can run `gradle test` to see the results.
+
+A Jupiter sample can be found at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle.
+
+[[executing_legacy_tests_with_junit_vintage]]
+===== Executing legacy tests with JUnit Vintage
+
+If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="vintagedependencies" dir="testing/junitplatform/engine/" title="JUnit Vintage dependencies">
+    <sourcefile file="build.gradle" snippet="vintage-dependencies"/>
+</sample>
+++++
+
+In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
+
+A sample of mixed tests can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.
 
 [[test_execution_order]]
 ==== Test execution order in TestNG

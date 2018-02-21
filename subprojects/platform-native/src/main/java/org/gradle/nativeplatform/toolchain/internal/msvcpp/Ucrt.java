@@ -17,9 +17,13 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class Ucrt extends WindowsKitComponent {
 
@@ -27,20 +31,39 @@ public class Ucrt extends WindowsKitComponent {
         super(baseDir, version, name);
     }
 
-    public File[] getIncludeDirs() {
-        return new File[] {
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/ucrt")
-        };
-    }
-
-    public File getLibDir(NativePlatformInternal platform) {
-        String platformDir = "x86";
+    public SystemLibraries getCRuntime(final NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
-            platformDir = "x64";
+            return new UcrtSystemLibraries("x64");
         }
         if (platform.getArchitecture().isArm()) {
-            platformDir = "arm";
+            return new UcrtSystemLibraries("arm");
         }
-        return new File(getBaseDir(), "Lib/" + getVersion().toString() + "/ucrt/" + platformDir);
+        if (platform.getArchitecture().isI386()) {
+            return new UcrtSystemLibraries("x86");
+        }
+        throw new UnsupportedOperationException(String.format("Supported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
+    }
+
+    private class UcrtSystemLibraries implements SystemLibraries {
+        private final String platformDirName;
+
+        UcrtSystemLibraries(String platformDirName) {
+            this.platformDirName = platformDirName;
+        }
+
+        @Override
+        public List<File> getIncludeDirs() {
+            return Collections.singletonList(new File(getBaseDir(), "Include/" + getVersion() + "/ucrt"));
+        }
+
+        @Override
+        public List<File> getLibDirs() {
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion() + "/ucrt/" + platformDirName));
+        }
+
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return Collections.emptyMap();
+        }
     }
 }

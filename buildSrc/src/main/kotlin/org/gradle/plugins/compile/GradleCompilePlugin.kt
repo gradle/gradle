@@ -22,8 +22,7 @@ open class GradleCompilePlugin : Plugin<Project> {
             extensions.create(
                 "availableJavaInstallations",
                 AvailableJavaInstallations::class.java,
-                listOfNotNull(resolveJavaHomePath("java7Home", project)),
-                resolveJavaHomePath("testJavaHome", project),
+                project,
                 javaInstallationProbe
             )
         }
@@ -56,12 +55,5 @@ open class GradleCompilePlugin : Plugin<Project> {
             is JavaCompile -> jdkForCompilation
             else -> availableJavaInstallations.currentJavaInstallation
         }.displayName)
-    }
-
-    private
-    fun resolveJavaHomePath(propertyName: String, project: Project): String? = when {
-        project.hasProperty(propertyName) -> project.property(propertyName) as String
-        System.getProperty(propertyName) != null -> System.getProperty(propertyName)
-        else -> null
     }
 }

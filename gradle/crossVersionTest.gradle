@@ -40,7 +40,7 @@ crossVersionTestTasks.all { CrossVersionTest task ->
     group = "verification"
     testClassesDirs = sourceSets.crossVersionTest.output.classesDirs
     classpath = sourceSets.crossVersionTest.runtimeClasspath
-    requiresLibsRepo = true
+    libsRepository.required = true
 }
 
 task crossVersionTest(type: CrossVersionTest) {

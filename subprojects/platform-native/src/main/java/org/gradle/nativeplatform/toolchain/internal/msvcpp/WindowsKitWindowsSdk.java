@@ -20,6 +20,10 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class WindowsKitWindowsSdk extends WindowsKitComponent implements WindowsSdk {
     private final File binDir;
@@ -30,36 +34,61 @@ public class WindowsKitWindowsSdk extends WindowsKitComponent implements Windows
     }
 
     @Override
-    public File getResourceCompiler(NativePlatformInternal platform) {
-        return new File(getBinDir(platform), "rc.exe");
-    }
-
-    @Override
-    public File getBinDir(NativePlatformInternal platform) {
+    public PlatformWindowsSdk forPlatform(final NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
-            return new File(binDir, "x64");
+            return new WindowsKitBackedSdk("x64");
         }
         if (platform.getArchitecture().isArm()) {
-            return new File(binDir, "arm");
+            return new WindowsKitBackedSdk("arm");
         }
-        return new File(binDir, "x86");
+        if (platform.getArchitecture().isI386()) {
+            return new WindowsKitBackedSdk("x86");
+        }
+        throw new UnsupportedOperationException(String.format("Unsupported %s for %s.", platform.getArchitecture().getDisplayName(), toString()));
     }
 
-    public File[] getIncludeDirs() {
-        return new File[] {
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/um"),
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/shared")
-        };
-    }
+    private class WindowsKitBackedSdk implements PlatformWindowsSdk {
+        private final String platformDirName;
 
-    public File getLibDir(NativePlatformInternal platform) {
-        String platformDir = "x86";
-        if (platform.getArchitecture().isAmd64()) {
-            platformDir = "x64";
+        WindowsKitBackedSdk(String platformDirName) {
+            this.platformDirName = platformDirName;
         }
-        if (platform.getArchitecture().isArm()) {
-            platformDir = "arm";
+
+        @Override
+        public VersionNumber getVersion() {
+            return WindowsKitWindowsSdk.this.getVersion();
         }
-        return new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDir);
+
+        @Override
+        public List<File> getIncludeDirs() {
+            return Arrays.asList(
+                new File(getBaseDir(), "Include/" + getVersion().toString() + "/um"),
+                new File(getBaseDir(), "Include/" + getVersion().toString() + "/shared")
+            );
+        }
+
+        @Override
+        public List<File> getLibDirs() {
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDirName));
+        }
+
+        @Override
+        public File getResourceCompiler() {
+            return new File(getBinDir(), "rc.exe");
+        }
+
+        @Override
+        public Map<String, String> getPreprocessorMacros() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public List<File> getPath() {
+            return Collections.singletonList(getBinDir());
+        }
+
+        private File getBinDir() {
+            return new File(binDir, platformDirName);
+        }
     }
 }

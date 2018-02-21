@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.Architectures
+import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata
@@ -440,9 +441,10 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def result = visualStudioLocator.locateComponent(vsDir)
 
         then:
-        result.component.visualCpp.getCompiler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
-        result.component.visualCpp.getLibraryPath(platform(targetPlatform)) == expectedBuilder.getLibPath(vcDir)
-        result.component.visualCpp.getAssembler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)
+        def platformVisualCpp = result.component.visualCpp.forPlatform(platform(targetPlatform))
+        platformVisualCpp.compilerExecutable == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
+        platformVisualCpp.libDirs == [expectedBuilder.getLibPath(vcDir)]
+        platformVisualCpp.assemblerExecutable == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)
 
         where:
         os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
@@ -479,9 +481,10 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def result = visualStudioLocator.locateComponent(vsDir)
 
         then:
-        result.component.visualCpp.getCompiler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
-        result.component.visualCpp.getLibraryPath(platform(targetPlatform)) == expectedBuilder.getLibPath(vcDir)
-        result.component.visualCpp.getAssembler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)
+        def platformVisualCpp = result.component.visualCpp.forPlatform(platform(targetPlatform))
+        platformVisualCpp.compilerExecutable == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
+        platformVisualCpp.libDirs == [expectedBuilder.getLibPath(vcDir)]
+        platformVisualCpp.assemblerExecutable == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)
 
         where:
         os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
@@ -576,6 +579,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
     def platform(String name) {
         return Stub(NativePlatformInternal) {
+            getOperatingSystem() >> {
+                new DefaultOperatingSystem("windows 10")
+            }
             getArchitecture() >> {
                 Architectures.forInput(name)
             }

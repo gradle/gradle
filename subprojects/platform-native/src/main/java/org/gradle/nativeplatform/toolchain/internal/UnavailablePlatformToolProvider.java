@@ -128,7 +128,12 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
-    public CompilerMetadata getCompilerMetadata() {
+    public SystemLibraries getSystemLibraries(ToolType compilerType) {
+        return new EmptySystemLibraries();
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata(ToolType compilerType) {
         throw failure();
     }
 }
