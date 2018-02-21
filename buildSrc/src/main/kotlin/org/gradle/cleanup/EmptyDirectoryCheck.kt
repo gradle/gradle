@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.cleanup
 
 import org.gradle.api.DefaultTask
@@ -21,35 +20,48 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+
+import java.io.File
+
 
 /**
  * Ensures that a directory is empty or writes the names of files in
  * the directory to a report file.
  */
-class EmptyDirectoryCheck extends DefaultTask {
+open class EmptyDirectoryCheck : DefaultTask() {
+
     @InputFiles
-    FileTree targetDir
+    lateinit var targetDir: FileTree
 
     @OutputFile
-    File report
+    lateinit var report: File
 
-    @Input
-    boolean errorWhenNotEmpty
+    @Internal
+    var isErrorWhenNotEmpty: Boolean = false
+
+    // TODO Remove this property and move @Input annotation to isErrorWhenNotEmpty
+    // once https://github.com/gradle/build-cache/issues/1030 is fixed
+    @get:Input
+    @Deprecated(
+        "See https://github.com/gradle/build-cache/issues/1030",
+        ReplaceWith("isErrorWhenNotEmpty"))
+    val errorWhenNotEmpty
+        get() = isErrorWhenNotEmpty
 
     @TaskAction
-    def ensureEmptiness() {
-        def hasFile = false
-        targetDir.visit { visitDetails ->
-            def f = visitDetails.getFile()
-            if (f.isFile()) {
+    fun ensureEmptiness() {
+        var hasFile = false
+        targetDir.visit {
+            if (file.isFile) {
                 hasFile = true
-                report << f.path + "\n"
+                report.appendText(file.path + "\n")
             }
         }
-        if (hasFile && errorWhenNotEmpty) {
-            throw new GradleException("The directory ${targetDir.asPath} was not empty.")
+        if (hasFile && isErrorWhenNotEmpty) {
+            throw GradleException("The directory ${targetDir.asPath} was not empty.")
         }
     }
 }
