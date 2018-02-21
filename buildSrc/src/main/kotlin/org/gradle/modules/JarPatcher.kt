@@ -46,11 +46,11 @@ class JarPatcher(
     private
     var includedJars = mutableMapOf<String, List<String>>()
 
-    fun exclude(exclude: String) = this.also {
+    fun exclude(exclude: String) = also {
         excludedEntries.add(exclude)
     }
 
-    fun includeJar(includedJar: String, vararg includes: String) = this.also {
+    fun includeJar(includedJar: String, vararg includes: String) = also {
         includedJars[includedJar] = includes.asList()
     }
 
@@ -83,7 +83,7 @@ class JarPatcher(
             into(baseDir)
             resolvedIncludes.forEach { sourceJar, includes ->
                 from(zipTree(sourceJar)) {
-                    includes.forEach { include(it) }
+                    include(includes)
                 }
             }
         }
