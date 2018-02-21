@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.Set;
@@ -71,5 +74,14 @@ class DefaultCapability implements CapabilityHandler, CapabilityInternal {
     @Override
     public String getReason() {
         return reason;
+    }
+
+    @Override
+    public CapabilityDescriptor toCapabilityDescriptor() {
+        ImmutableList.Builder<String> providers = new ImmutableList.Builder<String>();
+        for (ModuleIdentifier identifier : providedBy) {
+            providers.add(identifier.toString());
+        }
+        return new DefaultImmutableCapability(id, providers.build(), prefer == null ? null : prefer.toString(), reason);
     }
 }

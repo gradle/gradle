@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.Capability;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 
 import java.util.Collection;
@@ -89,5 +89,5 @@ public interface ConfigurationMetadata extends HasAttributes {
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
-    ImmutableList<? extends Capability> getCapabilities();
+    ImmutableList<? extends CapabilityDescriptor> getCapabilities();
 }

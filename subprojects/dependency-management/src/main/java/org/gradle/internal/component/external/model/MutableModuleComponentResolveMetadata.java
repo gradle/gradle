@@ -103,7 +103,7 @@ public interface MutableModuleComponentResolveMetadata {
      *
      * @return the capability list this component declares.
      */
-    ImmutableList<? extends Capability> getCapabilities();
+    ImmutableList<? extends CapabilityDescriptor> getCapabilities();
 
-    void setCapabilities(ImmutableList<? extends Capability> capabilities);
+    void setCapabilities(ImmutableList<? extends CapabilityDescriptor> capabilities);
 }

@@ -17,8 +17,9 @@ package org.gradle.internal.component.external.model;
 
 import java.util.List;
 
-public interface Capability {
+public interface CapabilityDescriptor {
     String getName();
     List<String> getProvidedBy();
     String getPrefer();
+    String getReason();
 }

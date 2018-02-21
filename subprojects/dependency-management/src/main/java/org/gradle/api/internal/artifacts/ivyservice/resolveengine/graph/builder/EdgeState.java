@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.Capability;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -174,9 +174,9 @@ class EdgeState implements DependencyGraphEdge {
      * @param targetConfiguration the selected configuration
      */
     private void discoverAndApplyCapabilities(ConfigurationMetadata targetConfiguration) {
-        ImmutableList<? extends Capability> capabilities = targetConfiguration.getCapabilities();
+        ImmutableList<? extends CapabilityDescriptor> capabilities = targetConfiguration.getCapabilities();
         CapabilitiesHandlerInternal capabilitiesHandler = resolveState.getCapabilitiesHandler();
-        for (final Capability capability : capabilities) {
+        for (final CapabilityDescriptor capability : capabilities) {
             final String prefer = capability.getPrefer();
             capabilitiesHandler.capability(capability.getName(), new Action<CapabilityHandler>() {
                 @Override
@@ -188,7 +188,10 @@ class EdgeState implements DependencyGraphEdge {
                         handler.providedBy(provider);
                     }
                     if (prefer != null) {
-                        handler.prefer(prefer);
+                        CapabilityHandler.Preference preference = handler.prefer(prefer);
+                        if (capability.getReason() != null) {
+                            preference.because(capability.getReason());
+                        }
                     }
                     if (!Objects.equal(affected.getPrefer(), oldPreferred) || !Objects.equal(affected.getProvidedBy(), oldProvided)) {
                         resetSelectionForAffectedCapabilities(affected);

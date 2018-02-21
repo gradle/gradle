@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.external.model.Capability
+import org.gradle.internal.component.external.model.CapabilityDescriptor
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -102,9 +102,10 @@ class ModuleMetadataParserTest extends Specification {
 
     def "parses component metadata capabilities"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
-        def capabilities = ImmutableList.<Capability>of(
-            new DefaultImmutableCapability("slf4j binding", ImmutableList.of("foo", "bar"), "foo"),
-            new DefaultImmutableCapability("cap", ImmutableList.of("blah"), null)
+        def capabilities = ImmutableList.<CapabilityDescriptor>of(
+            new DefaultImmutableCapability("slf4j binding", ImmutableList.of("foo", "bar"), "foo", null),
+            new DefaultImmutableCapability("cap", ImmutableList.of("blah"), null, null),
+            new DefaultImmutableCapability("cap2", ImmutableList.of("blah"), null, "because")
         )
 
         when:
@@ -113,7 +114,9 @@ class ModuleMetadataParserTest extends Specification {
         "formatVersion": "0.3", 
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "capabilities": [
             {"name": "slf4j binding", "providedBy": ["foo", "bar"], "prefer": "foo" },
-            {"name": "cap", "providedBy": ["blah"] }] },
+            {"name": "cap", "providedBy": ["blah"] },
+            {"name": "cap2", "providedBy": ["blah"], "reason": "because" }
+            ] },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
 '''), metadata)

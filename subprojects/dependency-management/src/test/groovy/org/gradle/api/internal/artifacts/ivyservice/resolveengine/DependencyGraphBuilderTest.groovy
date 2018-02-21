@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal
+import org.gradle.api.internal.artifacts.dsl.dependencies.NoOpCapabilitiesHandler
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
@@ -1001,14 +1002,14 @@ class DependencyGraphBuilderTest extends Specification {
     def revision(String name, String revision = '1.0') {
         // TODO Shouldn't really be using the local component implementation here
         def id = newId("group", name, revision)
-        def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release", attributesSchema)
+        def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release", attributesSchema, NoOpCapabilitiesHandler.INSTANCE)
         metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true)
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
     }
 
     def project(String name, String revision = '1.0', List<String> extraConfigs = []) {
-        def metaData = new DefaultLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema)
+        def metaData = new DefaultLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema, NoOpCapabilitiesHandler.INSTANCE)
         metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true)
         extraConfigs.each { String config ->
             metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, attributes, true, true)

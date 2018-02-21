@@ -836,5 +836,187 @@ class CapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
             }
         }
     }
+
+    /**
+     * This test case shows that a project dependency, typically a "platform" subproject, can express preferences
+     * for capabilities found in the dependency graph.
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll
+    def "can express preference for capabilities declared in published modules by a project dependency"() {
+        given:
+        repository {
+            'cglib:cglib-nodep:3.2.5' {
+                capability('cglib') {
+                    providedBy 'cglib:cglib-nodep'
+                }
+            }
+            'cglib:cglib:3.2.5' {
+                capability('cglib') {
+                    providedBy 'cglib:cglib'
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+               conf "cglib:cglib-nodep:3.2.5"
+               conf "cglib:cglib:3.2.5"
+            
+               conf project(':platform')
+            }
+        """
+
+        settingsFile << "include 'platform'"
+        file('platform/build.gradle') << """
+            configurations.create('default')
+            
+            dependencies {
+               capabilities {
+                  capability('cglib') {
+                     prefer 'cglib:cglib' ${customReason ? "because '$customReason'" : ''}
+                  }
+               }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'cglib:cglib:3.2.5' {
+                expectResolve()
+            }
+            'cglib:cglib-nodep:3.2.5' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(':platform', 'test:platform:') {
+                    variant 'default'
+                    noArtifacts()
+                }
+                module('cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason(customReason ?: 'capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+            }
+        }
+
+        where:
+        customReason << [null, 'custom reason']
+    }
+
+    /**
+     * This test case shows that we can detect a conflict between project dependencies which provide
+     * the same capability. This would typically happen if a project provides multiple implementations
+     * for the same API, but only one of them can be used at the same time.
+     */
+    @RequiredFeatures(
+        // we only need one iteration of this test, which doesn't use external repos
+        [
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+        ]
+    )
+    def "can detect conflict for capabilities declared in subprojects"() {
+        settingsFile << """
+            include 'foo-impl-0'
+            include 'foo-impl-1'
+        """
+
+        buildFile << """
+
+           dependencies {
+               conf project(':foo-impl-0')
+               conf project(':foo-impl-1')
+           }
+
+        """
+        2.times {
+            file("foo-impl-$it/build.gradle") << """
+                configurations.create('default')
+                dependencies {
+                   capabilities {
+                       capability('cap') {
+                           providedBy 'test:foo-impl-$it'
+                       }
+                   }
+                }
+            """
+        }
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot choose between test:foo-impl-0 or test:foo-impl-1 because they provide the same capability: cap")
+
+    }
+
+    /**
+     * This test case shows that we can resolve the conflict between 2 projects that provide the
+     * same capability.
+     */
+    @RequiredFeatures(
+        // we only need one iteration of this test, which doesn't use external repos
+        [
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+        ]
+    )
+
+    def "can fix conflict for capabilities declared in subprojects"() {
+        settingsFile << """
+            include 'fooImpl0'
+            include 'fooImpl1'
+        """
+
+        buildFile << """
+
+           dependencies {
+               conf project(':fooImpl0')
+               conf project(':fooImpl1')
+               
+               capabilities {
+                  capability('cap') { prefer 'test:fooImpl0' }
+               }
+           }
+
+        """
+        2.times {
+            file("fooImpl$it/build.gradle") << """
+                configurations.create('default')
+                dependencies {
+                   capabilities {
+                       capability('cap') {
+                           providedBy 'test:foo-impl-$it'
+                       }
+                   }
+                }
+            """
+        }
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(':fooImpl0', 'test:fooImpl0:') {
+                    variant 'default'
+                    noArtifacts()
+                }
+                // This shows that while we can fix the error, conflict resolution is not able to remove
+                // the project dependency from the graph
+                project(':fooImpl1', 'test:fooImpl1:') {
+                    variant 'default'
+                    noArtifacts()
+                }
+            }
+        }
+    }
 }
 

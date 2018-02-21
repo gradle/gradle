@@ -20,15 +20,17 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public class DefaultImmutableCapability implements Capability {
+public class DefaultImmutableCapability implements CapabilityDescriptor {
     private final String name;
     private final ImmutableList<String> providedBy;
     private final String prefer;
+    private final String reason;
 
-    public DefaultImmutableCapability(String name, ImmutableList<String> providedBy, String prefer) {
+    public DefaultImmutableCapability(String name, ImmutableList<String> providedBy, String prefer, String reason) {
         this.name = name;
         this.providedBy = providedBy;
         this.prefer = prefer;
+        this.reason = reason;
     }
 
     @Override
@@ -42,12 +44,13 @@ public class DefaultImmutableCapability implements Capability {
         DefaultImmutableCapability that = (DefaultImmutableCapability) o;
         return Objects.equal(name, that.name)
             && Objects.equal(providedBy, that.providedBy)
-            && Objects.equal(prefer, that.prefer);
+            && Objects.equal(prefer, that.prefer)
+            && Objects.equal(reason, that.reason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, providedBy, prefer);
+        return Objects.hashCode(name, providedBy, prefer, reason);
     }
 
     @Override
@@ -66,7 +69,12 @@ public class DefaultImmutableCapability implements Capability {
     }
 
     @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
     public String toString() {
-        return "Capability '" + name + "' provided by " + providedBy + (prefer == null ? "" : " prefers " + prefer);
+        return "Capability '" + name + "' provided by " + providedBy + (prefer == null ? "" : " prefers " + prefer) + (reason == null ? "" : " because " + reason);
     }
 }

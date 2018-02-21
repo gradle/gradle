@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -23,6 +24,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
@@ -81,6 +83,19 @@ public class DefaultCapabilitiesHandler implements CapabilitiesHandlerInternal {
     @Override
     public CapabilityInternal getCapability(String name) {
         return capabilities.get(name);
+    }
+
+    @Override
+    public ImmutableList<? extends CapabilityDescriptor> listCapabilities() {
+        Collection<DefaultCapability> values = capabilities.values();
+        if (values.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<CapabilityDescriptor> view = new ImmutableList.Builder<CapabilityDescriptor>();
+        for (final DefaultCapability value : values) {
+            view.add(value.toCapabilityDescriptor());
+        }
+        return view.build();
     }
 
 

@@ -37,7 +37,7 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.model.Capability;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -157,11 +157,12 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeCapabilities(ImmutableList<? extends Capability> capabilities) throws IOException {
+        private void writeCapabilities(ImmutableList<? extends CapabilityDescriptor> capabilities) throws IOException {
             encoder.writeSmallInt(capabilities.size());
-            for (Capability capability : capabilities) {
+            for (CapabilityDescriptor capability : capabilities) {
                 encoder.writeString(capability.getName());
                 encoder.writeNullableString(capability.getPrefer());
+                encoder.writeNullableString(capability.getReason());
                 List<String> providedBy = capability.getProvidedBy();
                 encoder.writeSmallInt(providedBy.size());
                 for (String s : providedBy) {
@@ -433,18 +434,19 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private ImmutableList<Capability> readCapabilities() throws IOException {
+        private ImmutableList<CapabilityDescriptor> readCapabilities() throws IOException {
             int count = decoder.readSmallInt();
-            ImmutableList.Builder<Capability> capabilities = new ImmutableList.Builder<Capability>();
+            ImmutableList.Builder<CapabilityDescriptor> capabilities = new ImmutableList.Builder<CapabilityDescriptor>();
             for (int i=0; i<count; i++) {
                 String name = decoder.readString();
                 String prefer = decoder.readNullableString();
+                String reason = decoder.readNullableString();
                 int providedCount = decoder.readSmallInt();
                 ImmutableList.Builder<String> providedBy = new ImmutableList.Builder<String>();
                 for (int j=0; j<providedCount; j++) {
                     providedBy.add(decoder.readString());
                 }
-                capabilities.add(new DefaultImmutableCapability(name, providedBy.build(), prefer));
+                capabilities.add(new DefaultImmutableCapability(name, providedBy.build(), prefer, reason));
             }
             return capabilities.build();
         }

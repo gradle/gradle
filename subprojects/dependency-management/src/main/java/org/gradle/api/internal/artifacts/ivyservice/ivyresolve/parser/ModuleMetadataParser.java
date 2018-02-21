@@ -32,7 +32,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.component.external.model.Capability;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -221,13 +221,14 @@ public class ModuleMetadataParser {
         return dependencies;
     }
 
-    private ImmutableList<? extends Capability> consumeCapabilities(JsonReader reader) throws IOException {
-        ImmutableList.Builder<Capability> capabilities = ImmutableList.builder();
+    private ImmutableList<? extends CapabilityDescriptor> consumeCapabilities(JsonReader reader) throws IOException {
+        ImmutableList.Builder<CapabilityDescriptor> capabilities = ImmutableList.builder();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             reader.beginObject();
             String name = null;
             String prefer = null;
+            String reason = null;
             ImmutableList<String> providedBy = null;
             while (reader.peek() != END_OBJECT) {
                 String val = reader.nextName();
@@ -237,9 +238,11 @@ public class ModuleMetadataParser {
                     prefer = reader.nextString();
                 } else if (val.equals("providedBy")) {
                     providedBy = readStringArray(reader);
+                } else if (val.equals("reason")) {
+                    reason = reader.nextString();
                 }
             }
-            capabilities.add(new DefaultImmutableCapability(name, providedBy, prefer));
+            capabilities.add(new DefaultImmutableCapability(name, providedBy, prefer, reason));
             reader.endObject();
         }
         reader.endArray();
