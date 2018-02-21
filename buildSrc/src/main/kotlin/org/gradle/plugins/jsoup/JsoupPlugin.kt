@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugins.jsoup
 
-import org.jsoup.nodes.Document
-import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.tasks.Copy
 
-class JsoupTransformTarget {
+import org.gradle.kotlin.dsl.*
 
-    final Document document
-    final FileCopyDetails fileCopyDetails
 
-    JsoupTransformTarget(Document document, FileCopyDetails fileCopyDetails) {
-        this.document = document
-        this.fileCopyDetails = fileCopyDetails
+class JsoupPlugin : Plugin<Project> {
+
+    override fun apply(project: Project): Unit = project.run {
+        tasks.withType<Copy> {
+            extensions.create("jsoup", JsoupCopyExtension::class.java, this)
+        }
     }
-
 }
