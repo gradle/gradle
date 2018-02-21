@@ -11,7 +11,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import java.io.File
-import java.util.concurrent.Callable
 
 
 @CacheableTask
@@ -47,7 +46,7 @@ open class PatchExternalModules : DefaultTask() {
 
     init {
         description = "Patches the classpath manifests and content of external modules such as gradle-kotlin-dsl to match the Gradle runtime configuration."
-        dependsOn(Callable { modulesToPatch })
+        dependsOn(project.provider { modulesToPatch })
     }
 
     @TaskAction
