@@ -34,7 +34,7 @@ class PathNormalisingKeyFileStoreTest extends Specification {
 
     def setup() {
         fsBase = dir.createDir("fs")
-        store = new PathNormalisingKeyFileStore(new DefaultPathKeyFileStore(fsBase))
+        store = new PathNormalisingKeyFileStore(fsBase)
     }
 
     def "can move to filestore"() {

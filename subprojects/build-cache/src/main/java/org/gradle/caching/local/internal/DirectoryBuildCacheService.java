@@ -67,7 +67,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         public void execute(@Nonnull File file) {
             try {
                 // Mark as recently used
-                GFileUtils.touch(file);
+                GFileUtils.touchExisting(file);
 
                 Closer closer = Closer.create();
                 FileInputStream stream = closer.register(new FileInputStream(file));
