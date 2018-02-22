@@ -26,6 +26,7 @@ import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Shared
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -47,6 +48,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         }
     )
 
+    @Shared
     def iteration = 0
 
     def "retries for unexpected exceptions thrown by old Gradle version (meta test)"() {

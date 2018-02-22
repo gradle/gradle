@@ -17,59 +17,71 @@
 package org.gradle.testing.internal.util
 
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 class RetryRuleWithSetupRerunTest extends SuperSpecification {
+    @Shared
+    Map<String, Integer> iterationPerTest = [:]
 
     @Rule
     RetryRule retryRule = retryIf({ t -> t instanceof IOException })
 
-    int iteration = 0
+    int incrementAndGetIterationCount() {
+        def key = specificationContext.currentFeature.name
+        int currentNumber = iterationPerTest[key] ?: 0
+        iterationPerTest[key] = ++currentNumber
+        currentNumber
+    }
 
-    int setupCallCount = 0
+    int iteration
 
     def setup() {
-        setupCallCount++
+        iteration = incrementAndGetIterationCount()
     }
 
     def "reruns all setup methods if specification is passed to rule"() {
-        given:
-        iteration++
-
         when:
         throwWhen(new IOException(), iteration < 2)
 
         then:
-        setupCallCount == 2
+        iteration == 2
         superSetupCallCount == 2
     }
 
     def "reruns all setup methods if specification is passed to rule for both retries"() {
-        given:
-        iteration++
-
         when:
         throwWhen(new IOException(), iteration < 3)
 
         then:
-        setupCallCount == 3
+        iteration == 3
         superSetupCallCount == 3
     }
 
     private static void throwWhen(Throwable throwable, boolean condition) {
         if (condition) {
-            throw throwable;
+            throw throwable
         }
     }
 }
 
 class SuperSpecification extends Specification {
-    int superSetupCallCount = 0
+    @Shared
+    Map<String, Integer> superIterationPerTest = [:]
+
+    int superSetupCallCount
+
+    int incrementAndGetSuperIterationCount() {
+        def key = specificationContext.currentFeature.name
+        int currentNumber = superIterationPerTest[key] ?: 0
+        superIterationPerTest[key] = ++currentNumber
+        currentNumber
+    }
 
     def setup() {
-        superSetupCallCount++
+        superSetupCallCount = incrementAndGetSuperIterationCount()
     }
 }
 

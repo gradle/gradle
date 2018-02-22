@@ -16,8 +16,10 @@
 
 package org.gradle.integtests.tooling.fixture
 
-class ContinuousBuildCrossVersionToolingApiSpecificationRetryRuleTest extends ContinuousBuildToolingApiSpecification {
+import spock.lang.Shared
 
+class ContinuousBuildCrossVersionToolingApiSpecificationRetryRuleTest extends ContinuousBuildToolingApiSpecification {
+    @Shared
     def iteration = 0
 
     def "retries if continuous build test times out"() {
