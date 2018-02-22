@@ -50,8 +50,13 @@ val SourceSet.groovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { groovy }
 
 
+val SourceSet.allGroovy: SourceDirectorySet
+    get() = withConvention(GroovySourceSet::class) { allGroovy }
+
+
 fun Project.idea(configure: IdeaModel.() -> Unit): Unit =
     extensions.configure("idea", configure)
+
 
 fun Project.eclipse(configure: EclipseModel.() -> Unit): Unit =
     extensions.configure("eclipse", configure)

@@ -68,6 +68,9 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "configureTaskPropertyValidation" {
+            id = "configure-task-properties-validation"
+            implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
     }
 }
 
