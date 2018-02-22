@@ -66,15 +66,13 @@ class RetryRule implements MethodRule {
                 if (shouldReallyRetry(t1)) {
                     try {
                         println "Retrying (2nd attempt) " + method
-                        runCleanup(specification?.specificationContext?.currentSpec)
-                        reRunSetup(specification?.specificationContext?.currentSpec)
+                        resetSpec(specification?.specificationContext?.currentSpec)
                         base.evaluate()
                     } catch (Throwable t2) {
                         if (shouldReallyRetry(t2)) {
                             try {
                                 println "Retrying (3rd attempt) " + method
-                                runCleanup(specification?.specificationContext?.currentSpec)
-                                reRunSetup(specification?.specificationContext?.currentSpec)
+                                resetSpec(specification?.specificationContext?.currentSpec)
                                 base.evaluate()
                             } catch (Throwable t3) {
                                 throw new RetryFailure(t3)
@@ -90,6 +88,12 @@ class RetryRule implements MethodRule {
         } as Statement
     }
 
+    private void resetSpec(SpecInfo currentSpec) {
+        runCleanup(currentSpec)
+        reRunInitializers(currentSpec)
+        reRunSetup(currentSpec)
+    }
+
     private void runCleanup(SpecInfo spec) {
         if (spec != null) {
             runCleanup(spec.getSuperSpec())
@@ -102,10 +106,16 @@ class RetryRule implements MethodRule {
     private void reRunSetup(SpecInfo spec) {
         if (spec != null) {
             reRunSetup(spec.getSuperSpec())
-            spec.getInitializerMethod()?.invoke(specification)
             for (MethodInfo method : spec.getSetupMethods()) {
                 method.invoke(specification)
             }
+        }
+    }
+
+    private void reRunInitializers(SpecInfo spec) {
+        if (spec != null) {
+            reRunInitializers(spec.getSuperSpec())
+            spec.getInitializerMethod()?.invoke(specification)
         }
     }
 
