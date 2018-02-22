@@ -102,7 +102,6 @@ class RetryRule implements MethodRule {
     private void reRunSetup(SpecInfo spec) {
         if (spec != null) {
             reRunSetup(spec.getSuperSpec())
-            spec.getInitializerMethod()?.invoke(specification)
             for (MethodInfo method : spec.getSetupMethods()) {
                 method.invoke(specification)
             }

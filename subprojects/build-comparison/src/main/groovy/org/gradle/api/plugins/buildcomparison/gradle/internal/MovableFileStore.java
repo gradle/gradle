@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.resource.local.FileStore;
 
-/**
- * File store that accepts the target path as the key for the entry.
- */
-public interface PathKeyFileStore extends FileStore<String>, FileStoreSearcher<String> {
-    @Nullable
-    LocallyAvailableResource get(String key);
+import java.io.File;
+
+public interface MovableFileStore<K> extends FileStore<K> {
+    void moveFileStore(File destination);
 }

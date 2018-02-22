@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.javadoc
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import org.gradle.util.WrapUtil
 
@@ -42,7 +42,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
         task.setClasspath(configurationMock)
         task.setExecutable(executable)
         task.setToolChain(toolChain)
-        GFileUtils.touch(new File(srcDir, "file.java"))
+        FileUtils.touch(new File(srcDir, "file.java"))
     }
 
     def defaultExecution() {

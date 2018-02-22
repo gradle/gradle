@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ideconfiguration
 
-package org.gradle.internal.resource.local;
+import org.gradle.api.Project
 
-import javax.annotation.Nullable;
+import accessors.*
 
-/**
- * File store that accepts the target path as the key for the entry.
- */
-public interface PathKeyFileStore extends FileStore<String>, FileStoreSearcher<String> {
-    @Nullable
-    LocallyAvailableResource get(String key);
+
+open class IdeConfigurationExtension(private val project: Project) {
+
+    fun makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13(): Unit = project.run {
+        idea {
+            module {
+                testSourceDirs = testSourceDirs + sourceDirs
+                sourceDirs = emptySet()
+            }
+        }
+    }
 }
