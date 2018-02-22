@@ -29,6 +29,22 @@
         appendix toc,title
     </xsl:param>
 
+    <!-- Omit numbers from examples, figures, and tables -->
+    <xsl:param name="local.l10n.xml" select="document('')"/>
+    <l:i18n xmlns:l="http://docbook.sourceforge.net/xmlns/l10n/1.0">
+        <l:l10n language="en">
+            <l:context name="title">
+                <l:template name="example" text="Example: %t"/>
+                <l:template name="figure" text="Figure: %t"/>
+                <l:template name="table" text="%t"/>
+            </l:context>
+        </l:l10n>
+    </l:i18n>
+
+    <xsl:template match="example" mode="label.markup"/>
+    <xsl:template match="figure" mode="label.markup"/>
+    <xsl:template match="table" mode="label.markup"/>
+
     <!--
       Customize HTML page titles to include "User Guide" and version to help
       with Google results. See issue doc-portal#9.
