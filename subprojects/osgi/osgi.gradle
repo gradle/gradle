@@ -15,13 +15,13 @@
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
 
     compile project(':core')
     compile project(':plugins')
 
-    compile libraries.slf4j_api.coordinates
-    compile libraries.bndlib.coordinates
+    compile Libraries.slf4jApi.coordinates
+    compile Libraries.bndlib.coordinates
 }
 
 testFixtures {

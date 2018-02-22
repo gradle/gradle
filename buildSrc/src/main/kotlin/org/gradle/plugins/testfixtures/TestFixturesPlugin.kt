@@ -18,8 +18,6 @@ package org.gradle.plugins.testfixtures
 import accessors.groovy
 import accessors.java
 
-import library
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -29,10 +27,6 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
-
-import testLibraries
-import testLibrary
-
 
 /**
  * Test Fixtures Plugin.
@@ -97,9 +91,9 @@ open class TestFixturesPlugin : Plugin<Project> {
         dependencies {
             outputDirs(testFixtures.output)
             testFixturesUsageCompile(project(path))
-            testFixturesCompile(library("junit"))
-            testFixturesCompile(testLibrary("spock"))
-            testLibraries("jmock").forEach { testFixturesCompile(it) }
+            testFixturesCompile(Libraries.junit.coordinates)
+            testFixturesCompile(TestLibraries.spock)
+            TestLibraries.jmock.forEach { testFixturesCompile(it) }
 
             constraints {
                 testFixturesCompile("cglib:cglib-nodep") {

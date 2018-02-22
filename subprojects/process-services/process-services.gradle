@@ -12,8 +12,8 @@ dependencies {
 
     implementation project(':messaging')
     implementation project(':native')
-    implementation libraries.guava.coordinates
-    implementation libraries.slf4j_api.coordinates
+    implementation Libraries.guava.coordinates
+    implementation Libraries.slf4jApi.coordinates
 }
 
 testFixtures {

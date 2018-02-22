@@ -15,14 +15,14 @@
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
 
     compile project(':core')
     compile project(':plugins')
     compile project(':workers')
     compile project(':reporting')
 
-    compile libraries.slf4j_api.coordinates
+    compile Libraries.slf4jApi.coordinates
 
     // minimal dependencies to make our code compile
     // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime

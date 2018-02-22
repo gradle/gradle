@@ -30,10 +30,10 @@ val javaInstallationForTest = rootProject.the<AvailableJavaInstallations>().java
 
 dependencies {
     val testCompile by configurations
-    testCompile(library("junit"))
-    testCompile(library("groovy"))
-    testCompile(testLibrary("spock"))
-    testLibraries("jmock").forEach { testCompile(it) }
+    testCompile(Libraries.junit.coordinates)
+    testCompile(Libraries.groovy.coordinates)
+    testCompile(TestLibraries.spock)
+    TestLibraries.jmock.forEach { testCompile(it) }
 
     components {
         withModule("org.spockframework:spock-core") {

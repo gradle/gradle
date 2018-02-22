@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    compile(library("groovy"))
+    compile(Libraries.groovy.coordinates)
     compile(project(":core"))
     compile(project(":plugins"))
     compile(project(":publish"))

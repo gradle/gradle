@@ -28,12 +28,12 @@ plugins {
 }
 dependencies {
     constraints {
-        libraries.keys.forEach { libId ->
-            add("default", library(libId)) {
+        Libraries.all.forEach { lib ->
+            add("default", lib.coordinates) {
                 version {
-                    strictly(libraryVersion(libId))
+                    strictly(lib.version)
                 }
-                because(libraryReason(libId))
+                because(lib.reason)
             }
         }
 

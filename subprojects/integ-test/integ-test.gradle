@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    integTestCompile libraries.groovy.coordinates
-    integTestCompile libraries.ant.coordinates
-    integTestCompile testLibraries.jsoup
+    integTestCompile Libraries.groovy.coordinates
+    integTestCompile Libraries.ant.coordinates
+    integTestCompile TestLibraries.jsoup
 
     integTestRuntime allTestRuntimeDependencies
 

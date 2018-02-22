@@ -15,11 +15,11 @@
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
     compile project(':core')
     compile project(':plugins')
     compile project(':reporting')
-    testCompile testLibraries.jsoup
+    testCompile TestLibraries.jsoup
 }
 
 testFixtures {

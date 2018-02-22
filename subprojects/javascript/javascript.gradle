@@ -15,13 +15,13 @@
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
 
-    compile libraries.rhino.coordinates
-    compile libraries.gson.coordinates // used by JsHint.coordinates
-    compile libraries.simple.coordinates // used by http package in envjs.coordinates
+    compile Libraries.rhino.coordinates
+    compile Libraries.gson.coordinates // used by JsHint.coordinates
+    compile Libraries.simple.coordinates // used by http package in envjs.coordinates
     compile project(':core'), project(":plugins"), project(':workers')
-    compile libraries.inject.coordinates
+    compile Libraries.inject.coordinates
 
     // Required by JavaScriptExtension#getGoogleApisRepository()
     compile project(':dependencyManagement')

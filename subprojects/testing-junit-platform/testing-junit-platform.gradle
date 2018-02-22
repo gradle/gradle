@@ -22,5 +22,5 @@ dependencies {
     compile project(':languageJava')
     compile project(':testingBase')
     compile project(':testingJvm')
-    compile libraries.junitPlatform.coordinates
+    compile Libraries.junitPlatform.coordinates
 }
