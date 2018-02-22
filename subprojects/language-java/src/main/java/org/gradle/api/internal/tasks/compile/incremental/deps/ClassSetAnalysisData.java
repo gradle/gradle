@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -38,10 +37,6 @@ public class ClassSetAnalysisData {
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Multimap<String, String> classesToChildren) {
-        this(filePathToClassName, dependents, classesToConstants, asMap(classesToChildren));
-    }
-
     public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
@@ -49,20 +44,13 @@ public class ClassSetAnalysisData {
         this.classesToChildren = classesToChildren;
     }
 
-    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
-        ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
-        for (K key : multimap.keySet()) {
-            builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
-        }
-        return builder.build();
-    }
-
     public String getClassNameForFile(String filePath) {
         return filePathToClassName.get(filePath);
     }
 
     public DependentsSet getDependents(String className) {
-        return dependents.get(className);
+        DependentsSet dependentsSet = dependents.get(className);
+        return dependentsSet == null ? DefaultDependentsSet.EMPTY : dependentsSet;
     }
 
     public IntSet getConstants(String className) {

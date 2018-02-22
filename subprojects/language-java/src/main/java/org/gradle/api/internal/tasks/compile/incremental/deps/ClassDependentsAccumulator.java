@@ -101,6 +101,15 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), parentToChildren);
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), asMap(parentToChildren));
     }
+
+    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
+        ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
+        for (K key : multimap.keySet()) {
+            builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
+        }
+        return builder.build();
+    }
+
 }
