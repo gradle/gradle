@@ -64,6 +64,10 @@ gradlePlugin {
             id = "performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
         }
+        "ideConfiguration" {
+            id = "ide-configuration"
+            implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
+        }
     }
 }
 

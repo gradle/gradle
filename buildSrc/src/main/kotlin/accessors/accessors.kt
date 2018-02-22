@@ -27,6 +27,9 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.api.tasks.SourceSet
 
+import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
+
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withConvention
 
@@ -45,3 +48,10 @@ val Project.reporting
 
 val SourceSet.groovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { groovy }
+
+
+fun Project.idea(configure: IdeaModel.() -> Unit): Unit =
+    extensions.configure("idea", configure)
+
+fun Project.eclipse(configure: EclipseModel.() -> Unit): Unit =
+    extensions.configure("eclipse", configure)

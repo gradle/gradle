@@ -72,4 +72,6 @@ class PrepareVersionsInfo extends DefaultTask {
     }
 }
 
-apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
+ideConfiguration {
+    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
+}
