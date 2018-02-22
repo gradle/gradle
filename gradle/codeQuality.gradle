@@ -4,7 +4,7 @@ apply plugin: 'codenarc'
 def validateTaskPropertiesForConfiguration(Configuration configuration) {
     // Apply to all projects depending on :core
     configuration.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
-        project.apply from: "$rootDir/gradle/taskProperties.gradle"
+        project.apply from: "$rootDir/gradle/taskProperties.gradle.kts"
     }
 }
 
