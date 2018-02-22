@@ -66,7 +66,7 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         fails "compileJava"
 
         and:
-        errorOutput.contains("Generated file 'AThing' must have exactly one originating element, but had 0.")
+        errorOutput.contains("Generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
     def "processors can't access resources"() {
@@ -92,6 +92,6 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         fails "compileJava"
 
         and:
-        errorOutput.contains("Generated file 'ServiceRegistry' must have exactly one originating element, but had 2.")
+        errorOutput.contains("Generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
 }
