@@ -24,7 +24,7 @@ You can find all releases and their checksums on the link:https://gradle.org/rel
 
 [[sec:prerequisites]]
 === Prerequisites
-Gradle runs on all major operating systems and requires only a link:http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java JDK] version 7 or higher to be installed. To check, run `java -version`. You should see something like this:
+Gradle runs on all major operating systems and requires only a link:http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java JDK] version 7 or higher to run. To check, run `java -version`. You should see something like this:
 
 ----
 ❯ java -version
@@ -146,7 +146,7 @@ JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
 OS:           Mac OS X 10.13.3 x86_64
 ----
 
-If you run into any trouble, see the <<troubleshooting,section on troubleshooting installation>>.
+If you run into any trouble, see the <<sec:troubleshooting_installation,section on troubleshooting installation>>.
 
 You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:https://gradle.org/releases[releases page]) and following these <<sec:verification,verification instructions>>.
 
@@ -156,7 +156,7 @@ You can verify the integrity of the Gradle distribution by downloading the SHA-2
 Now that you have Gradle installed, use these resources for getting started:
 
  * Create your first Gradle project by following the link:https://guides.gradle.org/creating-new-gradle-builds/[Creating New Gradle Builds] tutorial.
- * Sign up for a link:https://gradle.org/training/intro-to-gradle/[live Gradle introduction] with a Gradle core engineer.
+ * Sign up for a link:https://gradle.org/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
  * Learn how to achieve common tasks through the <<command_line_interface,command-line interface>>.
  * <<build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
  * Subscribe to the link:https://newsletter.gradle.com/[Gradle Newsletter] for monthly release and community updates.
