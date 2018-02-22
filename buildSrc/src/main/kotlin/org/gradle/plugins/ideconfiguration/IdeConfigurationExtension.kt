@@ -16,13 +16,14 @@
 package org.gradle.plugins.ideconfiguration
 
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.configure
-import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.kotlin.dsl.*
 
-open class IdeConfigurationExtension(private val project: Project)  {
+import accessors.*
+
+
+open class IdeConfigurationExtension(private val project: Project) {
+
     fun makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13(): Unit = project.run {
-        configure<IdeaModel> {
+        idea {
             module {
                 testSourceDirs = testSourceDirs + sourceDirs
                 sourceDirs = emptySet()
