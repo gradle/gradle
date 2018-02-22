@@ -86,7 +86,7 @@ You can see a dependency tree and see which resolved dependency versions differe
 </figure>
 ++++
 
-The link:https://scans.gradle.com/s/woivcb4z67b42/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
+The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
 
 === Troubleshooting slow Gradle builds
 
