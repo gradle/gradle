@@ -303,6 +303,11 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                         it.url.contains("${'$'}MODULE_DIR$/build/") && !it.url.contains("generated-resources")
                 }
         }
+        // remove all build directories from sourceFolders
+        // f.e. buildInit module contains such a sourceFolder
+        module.sourceFolders.removeAll {
+            it.url.contains("${'$'}MODULE_DIR$/build/")
+        }
     }
 
     private
