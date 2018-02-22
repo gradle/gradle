@@ -19,6 +19,8 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -69,6 +71,7 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     def canWorkWithPowerMock() {
         given:
         buildFile << """
