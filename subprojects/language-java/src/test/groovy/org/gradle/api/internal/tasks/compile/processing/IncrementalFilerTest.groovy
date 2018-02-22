@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.processing;
+package org.gradle.api.internal.tasks.compile.processing
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import spock.lang.Specification
 
 import javax.annotation.processing.Filer
@@ -25,18 +26,19 @@ import javax.lang.model.element.Name
 import javax.lang.model.element.PackageElement
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
-import javax.tools.StandardLocation;
+import javax.tools.StandardLocation
 
 abstract class IncrementalFilerTest extends Specification {
-    def delegate = Stub(Filer)
-    def messager = Mock(Messager)
-    def filer
+    Filer delegate = Stub(Filer)
+    AnnotationProcessingResult result = new AnnotationProcessingResult()
+    Messager messager = Mock(Messager)
+    Filer filer
 
     def setup() {
-        filer = createFiler(delegate, messager)
+        filer = createFiler(delegate, result, messager)
     }
 
-    abstract Filer createFiler(Filer filer, Messager messager)
+    abstract Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager)
 
     def "fails when a package element is given as an originating element"() {
         when:
@@ -60,6 +62,18 @@ abstract class IncrementalFilerTest extends Specification {
 
         then:
         1 * messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors are not allowed to create resources.")
+    }
+
+    def "adds originating types to the processing result"() {
+        when:
+        filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
+        filer.createSourceFile("Bar", type("B"))
+
+        then:
+        result.generatedTypesByOrigin.size() == 2
+        result.generatedTypesByOrigin["A"] == ["Foo"] as Set
+        result.generatedTypesByOrigin["B"] == ["Foo", "Bar"] as Set
+
     }
 
     PackageElement pkg(String packageName) {

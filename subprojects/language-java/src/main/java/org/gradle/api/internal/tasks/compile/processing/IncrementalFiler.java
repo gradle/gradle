@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -37,29 +38,32 @@ import java.util.Set;
  */
 abstract class IncrementalFiler implements Filer {
     private final Filer delegate;
+    private final AnnotationProcessingResult result;
     private final Messager messager;
 
-    IncrementalFiler(Filer delegate, Messager messager) {
+    IncrementalFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
         this.delegate = delegate;
+        this.result = result;
         this.messager = messager;
     }
 
     @Override
     public final JavaFileObject createSourceFile(CharSequence name, Element... originatingElements) throws IOException {
-        checkGeneratedType(name, originatingElements, messager);
+        recordGeneratedType(name, originatingElements, messager);
         return delegate.createSourceFile(name, originatingElements);
     }
 
     @Override
     public final JavaFileObject createClassFile(CharSequence name, Element... originatingElements) throws IOException {
-        checkGeneratedType(name, originatingElements, messager);
+        recordGeneratedType(name, originatingElements, messager);
         return delegate.createClassFile(name, originatingElements);
     }
-    
-    private void checkGeneratedType(CharSequence name, Element[] originatingElements, Messager messager) {
+
+    private void recordGeneratedType(CharSequence name, Element[] originatingElements, Messager messager) {
         String generatedType = name.toString();
         Set<String> originatingTypes = getTopLevelTypeNames(originatingElements);
         checkGeneratedType(generatedType, originatingTypes, messager);
+        result.addGeneratedType(generatedType, originatingTypes);
     }
 
     protected abstract void checkGeneratedType(String generatedType, Set<String> orignatingTypes, Messager messager);

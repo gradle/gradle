@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+
 import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
@@ -23,8 +25,8 @@ import javax.tools.Diagnostic
 class SingleOriginFilerTest extends IncrementalFilerTest {
 
     @Override
-    Filer createFiler(Filer filer, Messager messager) {
-        new SingleOriginFiler(delegate, messager)
+    Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
+        new SingleOriginFiler(delegate, result, messager)
     }
 
     def "fails when no originating elements are given"() {

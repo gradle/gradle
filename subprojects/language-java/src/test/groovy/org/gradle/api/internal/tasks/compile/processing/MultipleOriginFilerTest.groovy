@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
+
 import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
 
 class MultipleOriginFilerTest extends IncrementalFilerTest {
 
+
     @Override
-    Filer createFiler(Filer filer, Messager messager) {
-        new MultipleOriginFiler(delegate, messager)
+    Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
+        new MultipleOriginFiler(delegate, result, messager)
     }
 
     def "fails when no originating elements are given"() {

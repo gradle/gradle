@@ -36,12 +36,14 @@ public class ClassSetAnalysisData {
     final Map<String, DependentsSet> dependents;
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
+    final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
+        this.fullRebuildCause = fullRebuildCause;
     }
 
     public String getClassNameForFile(String filePath) {
@@ -49,6 +51,9 @@ public class ClassSetAnalysisData {
     }
 
     public DependentsSet getDependents(String className) {
+        if (fullRebuildCause != null) {
+            return new DependencyToAll(fullRebuildCause);
+        }
         DependentsSet dependentsSet = dependents.get(className);
         return dependentsSet == null ? DefaultDependentsSet.EMPTY : dependentsSet;
     }
@@ -109,7 +114,9 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build());
+            String fullRebuildCause = decoder.readNullableString();
+
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
         }
 
         @Override
@@ -144,6 +151,8 @@ public class ClassSetAnalysisData {
                     writeClassName(className, classNameMap, encoder);
                 }
             }
+
+            encoder.writeNullableString(value.fullRebuildCause);
         }
 
         private DependentsSet readDependentsSet(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
