@@ -91,8 +91,8 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
     }
 }
 
-private val Project.java
+val Project.java
     get() = the<JavaPluginConvention>()
 
-private val SourceSet.allGroovy: SourceDirectorySet
+val SourceSet.allGroovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { allGroovy }
