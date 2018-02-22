@@ -20,30 +20,19 @@ import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import spock.lang.Shared
 
 class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
 
-    @Shared
-    Map<String, Integer> iterationPerTest = [:]
-
-    int incrementAndGetIterationCount() {
-        def key = specificationContext.currentFeature.name
-        int currentNumber = iterationPerTest[key] ?: 0
-        iterationPerTest[key] = ++currentNumber
-        currentNumber
-    }
-
-    int iteration
-
     def setup() {
-        iteration = incrementAndGetIterationCount()
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
         requireIsolatedTestKitDir = true
     }
 
+    def iteration = 0
+
     def "retries on clock shift issue for <2.10"() {
         given:
+        iteration++
         def isVersionWithIssue = gradleVersion < GradleVersion.version('2.10')
 
         when:
@@ -56,6 +45,9 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
 
     @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "retries if expected socket exception occurs"() {
+        given:
+        iteration++
+
         when:
         logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.",
@@ -68,6 +60,9 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
 
     @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java environments"() {
+        given:
+        iteration++
+
         when:
         logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
@@ -79,6 +74,9 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
 
     @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on client side"() {
+        given:
+        iteration++
+
         when:
         logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
@@ -90,6 +88,9 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
 
     @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on daemon side"() {
+        given:
+        iteration++
+
         when:
         logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)

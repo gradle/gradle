@@ -17,11 +17,9 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import spock.lang.Shared
 
 class RetryRuleContinuousIntegrationTest extends AbstractContinuousIntegrationTest{
 
-    @Shared
     def iteration = 0
 
     def "retries if continuous build test times out"() {

@@ -17,7 +17,6 @@
 package org.gradle.testing.internal.util
 
 import org.junit.Rule
-import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
@@ -25,32 +24,18 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
 @SuppressWarnings("GroovyUnreachableStatement")
 class RetryRuleTest extends Specification {
 
-    @Shared
-    Map<String, Integer> iterationPerTest = [:]
-
     @Rule
     RetryRule retryRule = retryIf({ t -> t instanceof IOException })
 
     @Rule
     ExpectedFailureRule expectedFailureRule = new ExpectedFailureRule()
 
-    final complexField = []
-    int simpleField = 1
-
-    int incrementAndGetIterationCount() {
-        def key = specificationContext.currentFeature.name
-        int currentNumber = iterationPerTest[key] ?: 0
-        iterationPerTest[key] = ++currentNumber
-        currentNumber
-    }
-
-    int iteration
-
-    def setup() {
-        iteration = incrementAndGetIterationCount()
-    }
+    int iteration = 0
 
     def "should pass when expected exception happens once"() {
+        given:
+        iteration++
+
         when:
         throwWhen(new IOException(), iteration == 1)
 
@@ -59,6 +44,9 @@ class RetryRuleTest extends Specification {
     }
 
     def "should pass when expected exception happens twice"() {
+        given:
+        iteration++
+
         when:
         throwWhen(new IOException(), iteration <= 2)
 
@@ -67,6 +55,9 @@ class RetryRuleTest extends Specification {
     }
 
     def "should retry and pass when spock expects a specific exception"() {
+        given:
+        iteration++
+
         when:
         throwWhen(new IOException(), iteration == 1)
         throwWhen(new RuntimeException("test"), iteration == 2)
@@ -78,6 +69,9 @@ class RetryRuleTest extends Specification {
 
     @ExpectedFailure(expected = RetryFailure.class)
     def "should fail when expected exception happens three times"() {
+        given:
+        iteration++
+
         when:
         throwWhen(new IOException(), iteration <= 3)
 
@@ -87,6 +81,9 @@ class RetryRuleTest extends Specification {
 
     @ExpectedFailure(expected = RuntimeException.class)
     def "should fail when expected exception happens once and another exception happens on next execution"() {
+        given:
+        iteration++
+
         when:
         throwWhen(new IOException(), iteration == 1)
         throwWhen(new RuntimeException(), iteration == 2)
@@ -106,22 +103,14 @@ class RetryRuleTest extends Specification {
 
     @ExpectedFailure(expected = RuntimeException.class)
     def "should fail when unexpected exception happens once"() {
+        given:
+        iteration++
+
         when:
         throwWhen(new RuntimeException(), iteration == 1)
 
         then:
         true
-    }
-
-    def "re-runs field initializers"() {
-        when:
-        complexField.add("1")
-        simpleField ++
-        throwWhen(new IOException(), iteration <= 2)
-
-        then:
-        complexField.size() == 1
-        simpleField == 2
     }
 
     private static void throwWhen(Throwable throwable, boolean condition) {
