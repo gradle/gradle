@@ -17,11 +17,12 @@
 
 The following is a collection of common issues and suggestions for addressing them. You can get other tips and search the link:https://discuss.gradle.org/c/help-discuss[Gradle forums] and link:https://stackoverflow.com/questions/tagged/gradle[StackOverflow #gradle] answers, as well as Gradle documentation from link:https://help.gradle.org/[help.gradle.org].
 
+[[sec:troubleshooting_installation]]
 === Troubleshooting Gradle installation
 
 If you followed the <<installation,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
 
-If you installed Gradle outside of just invoking the <<gradle_wrapper,Gradle wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+If you installed Gradle outside of just invoking the <<gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
 
 You should see something like this:
 
@@ -29,11 +30,11 @@ You should see something like this:
 ❯ gradle --version
 
 -----------------------------------------------------------
-Gradle 4.5.1
+Gradle 4.6
 ------------------------------------------------------------
 
-Build time:   2018-02-05 13:22:49 UTC
-Revision:     37007e1c012001ff09973e0bd095139239ecd3b3
+Build time:   2018-02-21 15:28:42 UTC
+Revision:     819e0059da49f469d3e9b2896dc4e72537c4847d
 
 Groovy:       2.4.12
 Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
@@ -61,7 +62,8 @@ You’ll need to ensure that a link:http://www.oracle.com/technetwork/java/javas
 
 ==== Permission denied
 
-If you get "permission denied", that means that Gradle likely exists in the correct place, but it is not executable. You can fix this using `chmod +x path/to/executable` on *nix-based systems.
+If you get "permission denied", that means that Gradle likely exists in the correct place, but it is not executable.
+You can fix this using `chmod +x path/to/executable` on *nix-based systems.
 
 ==== Other installation failures
 
@@ -70,7 +72,7 @@ If `gradle --version` works, but all of your builds fail with the same error, it
 You can verify the problem is with Gradle scripts by running `gradle help` which executes configuration scripts, but no Gradle tasks. If the error persists, build configuration is problematic.
 If not, then the problem exists within the execution of one or more of the requested tasks (Gradle executes configuration scripts first, and then executes build steps).
 
-
+[[sec:troubleshooting_dependency_resolution]]
 === Debugging dependency resolution
 
 Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution>>.
@@ -88,13 +90,15 @@ You can see a dependency tree and see which resolved dependency versions differe
 
 The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
 
+[[sec:troubleshooting_performance]]
 === Troubleshooting slow Gradle builds
 
 For build performance issues (including “slow sync time”), see the guide to link:https://guides.gradle.org/performance/[Improving the Performance of Gradle Builds].
 
-Android developers should watch a presentation by the Android SDK Tools team about link:https://youtu.be/7ll-rkLCtyk[Speeding Up Your Android Gradle Builds]. Many tips are also covered in the Android Studio user guide link:https://developer.android.com/studio/build/optimize-your-build.html[on optimizing build speed].
+Android developers should watch a presentation by the Android SDK Tools team about link:https://youtu.be/7ll-rkLCtyk[Speeding Up Your Android Gradle Builds].
+Many tips are also covered in the Android Studio user guide link:https://developer.android.com/studio/build/optimize-your-build.html[on optimizing build speed].
 
-
+[[sec:troubleshooting_build_logic]]
 === Debugging build logic
 
 ==== Attaching a debugger to your build
@@ -118,7 +122,8 @@ The following video demonstrates how to debug an example build using IntelliJ ID
 </figure>
 ++++
 
-**NOTE:** You must either stop running Gradle Daemons or run with `--no-daemon` when using debug mode.
+[NOTE]
+You must either stop running Gradle Daemons or run with `--no-daemon` when using debug mode.
 
 ==== Adding and changing logging
 
@@ -126,7 +131,8 @@ In addition to <<sec:command_line_logging,controlling logging verbosity>>, you c
 
 You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
 
-**Note:** Additional logs from the <<gradle_daemon,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
+[NOTE]
+Additional logs from the <<gradle_daemon,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
 
 ==== Task executed when it should have been UP-TO-DATE
 
@@ -144,9 +150,11 @@ You can also replace much of Gradle’s logging with your own by registering var
 You can learn what the task outcomes mean from <<sec:task_outcomes,this listing>>.
 
 
+[[sec:troubleshooting_ide_integration]]
 === Debugging IDE integration
 
-Many infrequent errors within IDEs can be solved by "refreshing" Gradle. See also more documentation on working with Gradle link:https://www.jetbrains.com/help/idea/gradle.html[in IntelliJ IDEA] and link:http://www.vogella.com/tutorials/EclipseGradle/article.html[in Eclipse].
+Many infrequent errors within IDEs can be solved by "refreshing" Gradle.
+See also more documentation on working with Gradle link:https://www.jetbrains.com/help/idea/gradle.html[in IntelliJ IDEA] and link:http://www.vogella.com/tutorials/EclipseGradle/article.html[in Eclipse].
 
 ==== Refreshing IntelliJ IDEA
 
