@@ -265,12 +265,9 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
         sourceFolders.forEach {
             it.attributes().apply {
-                if (get("isTestSource") == "true") {
-                    remove("isTestSource")
-                    put("type", "java-test-resource")
-                } else {
-                    put("type", "java-resource")
-                }
+                val isTestSource = get("isTestSource") == "true"
+                remove("isTestSource")
+                put("type", if (isTestSource) "java-test-resource" else "java-resource")
             }
         }
     }
