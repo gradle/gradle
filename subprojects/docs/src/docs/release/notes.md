@@ -5,9 +5,19 @@ You can use the new filtering and engines functionality in JUnit 5 using the exa
 
 Also regarding testing, you can now improve your testing feedback loop when running JVM-based tests using the [new fail-fast option for `Test` tasks](#fail-fast-option-for-test-tasks), which stops the build immediately after the first test failure.
 
-With this release of Gradle, you can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
+    // Example JUnit 5 and fail-fast test configuration
+    test {
+        useJUnitPlatform {
+            excludeTags 'slow'
+            includeEngines 'junit-jupiter', 'junit-vintage'
+        }
+        
+        failFast = true
+    }
 
-It also features enhanced Maven dependency compatibility: support for [importing BOMs](#bom-import), [optional dependencies](#support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#compile/runtime-scope-separation-in-pom-consumption).
+Next, you can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
+
+This release also features enhanced Maven dependency compatibility: support for [importing BOMs](#bom-import), [optional dependencies](#support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#compile/runtime-scope-separation-in-pom-consumption).
 For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
 
 This version of Gradle also comes with a couple especially useful new APIs for task development. You can now [declare custom command-line flags for your custom tasks](#tasks-api-allows-custom-command-line-options), for example: `gradle myCustomTask --myfoo=bar`. In addition, [tasks that extend `Test`, `JavaExec` or `Exec` can declare rich arguments](#rich-command-line-arguments-for-test,-javaexec-or-exec-tasks) for invoking the underlying executable. This allows for better modeling of tools like annotation processors.
@@ -20,11 +30,11 @@ We hope you will build happiness with Gradle 4.6, and we look forward to your fe
 
 ## Upgrade instructions
 
-Switch your build to use Gradle 4.6 RC1 quickly by updating your wrapper properties:
+Switch your build to use Gradle 4.6 quickly by updating your wrapper properties:
 
-`gradle wrapper --gradle-version=4.6-rc-1`
+    gradle wrapper --gradle-version=4.6
 
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+Standalone downloads are available at [gradle.org/install](https://gradle.org/install). 
 
 ## New and noteworthy
 
