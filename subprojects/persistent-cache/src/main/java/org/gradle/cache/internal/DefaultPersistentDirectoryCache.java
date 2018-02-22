@@ -121,7 +121,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 } else {
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
                     long timeInDays = TimeUnit.MILLISECONDS.toDays(duration);
-                    LOGGER.info("{} has not been cleaned up in {} days", DefaultPersistentDirectoryCache.this, timeInDays);
+                    LOGGER.debug("{} has last been cleaned up {} days ago", DefaultPersistentDirectoryCache.this, timeInDays);
                     return timeInDays >= CLEANUP_INTERVAL;
                 }
             }
