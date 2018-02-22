@@ -116,7 +116,6 @@ rootProject.name = "gradle"
 // List of subprojects that have a Groovy DSL build script.
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = listOf(
-    "distributions-dependencies",
     "distributions",
     "base-services-groovy",
     "logging",
