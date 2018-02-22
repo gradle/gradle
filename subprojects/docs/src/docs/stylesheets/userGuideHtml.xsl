@@ -65,8 +65,6 @@
 
                         <h3 id="using-gradle-builds">Using Gradle Builds</h3>
                         <ul>
-                            <li><a href="/userguide/build_cache.html">Build Cache</a></li>
-                            <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
                             <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#customizing-execution" aria-expanded="false" aria-controls="customizing-execution">Customizing Execution</a>
                                 <ul id="customizing-execution">
@@ -78,6 +76,7 @@
                             <li><a href="/userguide/intro_multi_project_builds.html">Executing Multi-Project Builds</a></li>
                             <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
                             <li><a href="/userguide/troubleshooting.html">Troubleshooting</a></li>
+                            <li><a href="https://docs.gradle.com/build-scan-plugin">Using Build Scans</a></li>
                         </ul>
 
                         <h3 id="tutorials">Project Tutorials</h3>
@@ -138,6 +137,7 @@
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-build-scripts" aria-expanded="false" aria-controls="authoring-build-scripts">Build Configuration Scripts</a>
                                 <ul id="authoring-build-scripts">
+                                    <li><a href="/userguide/build_cache.html">Build Cache Basics</a></li>
                                     <li><a href="/userguide/build_init_plugin.html">Build Initialization</a></li>
                                     <li><a href="/userguide/build_lifecycle.html">Build Lifecycle</a></li>
                                     <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
@@ -156,16 +156,18 @@
                                 <ul id="dependency-management">
                                     <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
                                     <li><a href="/userguide/dependency_management_terminology.html">Dependency Management Terminology</a></li>
-                                    <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
                                     <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
-                                    <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
                                     <li><a href="/userguide/repository_types.html">Repository Types</a></li>
-                                    <li><a href="/userguide/dependency_cache.html">Dependency Cache</a></li>
-                                    <li><a href="/userguide/customizing_dependency_resolution_behavior.html">Customizing Dependency Resolution Behavior</a></li>
+                                    <li><p></p></li>
+                                    <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
+                                    <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
                                     <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
                                     <li><a href="/userguide/managing_dependency_configurations.html">Managing Dependency Configurations</a></li>
                                     <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>
                                     <li><a href="/userguide/troubleshooting_dependency_resolution.html">Troubleshooting Dependency Resolution</a></li>
+                                    <li><p></p></li>
+                                    <li><a href="/userguide/customizing_dependency_resolution_behavior.html">Customizing Dependency Resolution Behavior</a></li>
+                                    <li><a href="/userguide/dependency_cache.html">Dependency Cache Internals</a></li>
                                     <li><a href="/userguide/working_with_dependencies.html">Working with Dependencies</a></li>
                                 </ul>
                             </li>
