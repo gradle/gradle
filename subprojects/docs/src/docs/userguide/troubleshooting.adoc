@@ -15,29 +15,169 @@
 [[troubleshooting]]
 == Troubleshooting
 
+The following is a collection of common issues and suggestions for addressing them. You can get other tips and search the link:https://discuss.gradle.org/c/help-discuss[Gradle forums] and link:https://stackoverflow.com/questions/tagged/gradle[StackOverflow #gradle] answers, as well as Gradle documentation from link:https://help.gradle.org/[help.gradle.org].
 
-[NOTE]
-====
- 
-This chapter is currently a work in progress.
- 
-====
+=== Troubleshooting Gradle installation
 
-When using Gradle (or any software package), you can run into problems. You may not understand how to use a particular feature, or you may encounter a defect. Or, you may have a general question about Gradle.
+If you followed the <<installation,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
 
-This chapter gives some advice for troubleshooting problems and explains how to get help with your problems.
+If you installed Gradle outside of just invoking the <<gradle_wrapper,Gradle wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+
+You should see something like this:
+
+----
+❯ gradle --version
+
+-----------------------------------------------------------
+Gradle 4.5.1
+------------------------------------------------------------
+
+Build time:   2018-02-05 13:22:49 UTC
+Revision:     37007e1c012001ff09973e0bd095139239ecd3b3
+
+Groovy:       2.4.12
+Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
+JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
+OS:           Mac OS X 10.13.3 x86_64
+----
+
+If not, here are some things you might see instead.
+
+==== Command not found: gradle
+
+If you get "command not found: gradle", you need to ensure that Gradle is properly added to your `PATH`.
+
+==== JAVA_HOME is set to an invalid directory
+
+If you get something like:
+
+----
+ERROR: JAVA_HOME is set to an invalid directory
+
+Please set the JAVA_HOME variable in your environment to match the location of your Java installation.
+----
+
+You’ll need to ensure that a link:http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java Development Kit] version 7 or higher is link:https://www.java.com/en/download/help/index_installing.xml[properly installed], the `JAVA_HOME` environment variable is set, and link:https://www.java.com/en/download/help/path.xml[Java is added to your `PATH`].
+
+==== Permission denied
+
+If you get "permission denied", that means that Gradle likely exists in the correct place, but it is not executable. You can fix this using `chmod +x path/to/executable` on *nix-based systems.
+
+==== Other installation failures
+
+If `gradle --version` works, but all of your builds fail with the same error, it is possible there is a problem with one of your Gradle build configuration scripts.
+
+You can verify the problem is with Gradle scripts by running `gradle help` which executes configuration scripts, but no Gradle tasks. If the error persists, build configuration is problematic.
+If not, then the problem exists within the execution of one or more of the requested tasks (Gradle executes configuration scripts first, and then executes build steps).
 
 
-[[sec:working_through_problems]]
-=== Working through problems
+=== Debugging dependency resolution
 
-If you are encountering problems, one of the first things to try is using the very latest release of Gradle. New versions of Gradle are released frequently with bug fixes and new features. The problem you are having may have been fixed in a new release.
+Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution>>.
 
-If you are using the Gradle Daemon, try temporarily disabling the daemon (you can pass the command line switch `--no-daemon`). More information about troubleshooting the daemon process is located in <<gradle_daemon>>.
+You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
-[[sec:troubleshooting_getting_help]]
-=== Getting help
+++++
+<figure>
+    <title>Debugging dependency conflicts with build scans</title>
+    <imageobject>
+        <imagedata fileref="img/troubleshooting-dependency-management-build-scan.png"/>
+    </imageobject>
+</figure>
+++++
 
-The place to go for help with Gradle is http://forums.gradle.org[http://forums.gradle.org]. The Gradle Forums is the place where you can report problems and ask questions of the Gradle developers and other community members.
+The link:https://scans.gradle.com/s/woivcb4z67b42/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
 
-If something's not working for you, posting a question or problem report to the forums is the fastest way to get help. It's also the place to post improvement suggestions or new ideas. The development team frequently posts news items and announces releases via the forum, making it a great way to stay up to date with the latest Gradle developments.
+=== Troubleshooting slow Gradle builds
+
+For build performance issues (including “slow sync time”), see the guide to link:https://guides.gradle.org/performance/[Improving the Performance of Gradle Builds].
+
+Android developers should watch a presentation by the Android SDK Tools team about link:https://youtu.be/7ll-rkLCtyk[Speeding Up Your Android Gradle Builds]. Many tips are also covered in the Android Studio user guide link:https://developer.android.com/studio/build/optimize-your-build.html[on optimizing build speed].
+
+
+=== Debugging build logic
+
+==== Attaching a debugger to your build
+
+You can set breakpoints and debug <<sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+
+----
+❯ gradle help -Dorg.gradle.debug=true --no-daemon
+----
+
+In addition, if you’ve adopted the Kotlin DSL, you can also debug build scripts themselves.
+
+The following video demonstrates how to debug an example build using IntelliJ IDEA.
+
+++++
+<figure>
+    <title>Interactive debugging of a build script</title>
+    <imageobject>
+        <imagedata fileref="img/remote-debug-gradle.gif"/>
+    </imageobject>
+</figure>
+++++
+
+**NOTE:** You must either stop running Gradle Daemons or run with `--no-daemon` when using debug mode.
+
+==== Adding and changing logging
+
+In addition to <<sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. “UP-TO-DATE”) in lifecycle logging using the <<sec:command_line_customizing_log_format,`--console=verbose` flag>>.
+
+You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
+
+**Note:** Additional logs from the <<gradle_daemon,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
+
+==== Task executed when it should have been UP-TO-DATE
+
+`--info` logs explain why a task was executed, though build scans do this is searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
+
+++++
+<figure>
+    <title>Debugging incremental build with a build scan</title>
+    <imageobject>
+        <imagedata fileref="img/troubleshooting-task-execution-build-scan.png"/>
+    </imageobject>
+</figure>
+++++
+
+You can learn what the task outcomes mean from <<sec:task_outcomes,this listing>>.
+
+
+=== Debugging IDE integration
+
+Many infrequent errors within IDEs can be solved by "refreshing" Gradle. See also more documentation on working with Gradle link:https://www.jetbrains.com/help/idea/gradle.html[in IntelliJ IDEA] and link:http://www.vogella.com/tutorials/EclipseGradle/article.html[in Eclipse].
+
+==== Refreshing IntelliJ IDEA
+
+**NOTE:** This only works for Gradle projects link:https://www.jetbrains.com/help/idea/gradle.html#link_gradle_project[linked to IntelliJ].
+
+From the main menu, go to `View` > `Tool Windows` > `Gradle`. Then click on the _Refresh_ icon.
+
+++++
+<figure>
+    <title>Refreshing a Gradle project in IntelliJ IDEA</title>
+    <imageobject>
+        <imagedata fileref="img/troubleshooting-refresh-intellij.png"/>
+    </imageobject>
+</figure>
+++++
+
+==== Refreshing Eclipse (using Buildship)
+
+If you're using link:https://projects.eclipse.org/projects/tools.buildship[Buildship] for the Eclipse IDE, you can re-synchronize your Gradle build by opening the "Gradle Tasks" view and clicking the "Refresh" icon, or by executing the `Gradle` > `Refresh Gradle Project` command from the context menu while editing a Gradle script.
+
+++++
+<figure>
+    <title>Refreshing a Gradle project in Eclipse Buildship</title>
+    <imageobject>
+        <imagedata fileref="img/troubleshooting-refresh-eclipse.png"/>
+    </imageobject>
+</figure>
+++++
+
+=== Getting additional help
+
+If you didn't find a fix for your issue here, please reach out to the Gradle community on the link:https://discuss.gradle.org/c/help-discuss[help forum] or search relevant developer resources using link:https://help.gradle.org/[help.gradle.org].
+
+If you believe you've found a bug in Gradle, please link:https://github.com/gradle/gradle/issues[file an issue] on GitHub.
