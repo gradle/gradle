@@ -194,8 +194,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.2
      */
     @Incubating
-    @Nested
     @Nullable
+    @Nested
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -315,8 +315,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @since 2.8
      */
-    @Classpath
     @Nullable
+    @Classpath
     @Incubating
     public FileCollection getClasspath() {
         return classpath;

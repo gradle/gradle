@@ -46,7 +46,7 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.baselines", baselines);
     }
 
-    @Input @Nullable
+    @Nullable @Input
     public String getBaselines() {
         return baselines;
     }
@@ -57,7 +57,7 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.execution.warmups", warmups);
     }
 
-    @Input @Nullable
+    @Nullable @Input
     public String getWarmups() {
         return warmups;
     }
@@ -69,7 +69,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
 
-    @Input @Nullable
+    @Nullable @Input
     public String getRuns() {
         return runs;
     }
@@ -80,12 +80,12 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.execution.checks", checks);
     }
 
-    @Input @Nullable
+    @Nullable @Input
     public String getChecks() {
         return checks;
     }
 
-    @Input @Nullable
+    @Nullable @Input
     public String getChannel() {
         return channel;
     }

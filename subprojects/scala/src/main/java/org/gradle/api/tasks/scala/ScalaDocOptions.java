@@ -75,7 +75,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the text to appear in the window title.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -90,7 +90,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the main frame title.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getDocTitle() {
         return docTitle;
     }
@@ -105,7 +105,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the header for each page.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getHeader() {
         return header;
     }
@@ -120,7 +120,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getFooter() {
         return footer;
     }
@@ -135,7 +135,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the top text for each page.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getTop() {
         return top;
     }
@@ -150,7 +150,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getBottom() {
         return bottom;
     }
@@ -168,7 +168,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
     @PathSensitive(PathSensitivity.ABSOLUTE)
-    @InputFile @Nullable
+    @Nullable @InputFile
     @Deprecated
     public File getStyleSheet() {
         DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.getStyleSheet");
@@ -190,7 +190,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * Returns the additional parameters passed to the compiler.
      * Each parameter starts with '-'.
      */
-    @Input @Nullable
+    @Nullable @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }

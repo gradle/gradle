@@ -119,7 +119,7 @@ public class Zip extends AbstractArchiveTask {
      * @since 2.14
      */
     @Incubating
-    @Input @Nullable
+    @Nullable @Input
     public String getMetadataCharset() {
         return this.metadataCharset;
     }

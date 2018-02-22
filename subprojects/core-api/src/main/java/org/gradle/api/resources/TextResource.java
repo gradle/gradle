@@ -76,8 +76,8 @@ public interface TextResource extends Buildable {
      *
      * @return the input properties registered when this resource is used as task input
      */
-    @Input
     @Nullable
+    @Input
     Object getInputProperties();
 
     /**
@@ -86,9 +86,9 @@ public interface TextResource extends Buildable {
      *
      * @return the input files registered when this resource is used as task input
      */
+    @Nullable
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    @Nullable
     FileCollection getInputFiles();
 
     @Internal

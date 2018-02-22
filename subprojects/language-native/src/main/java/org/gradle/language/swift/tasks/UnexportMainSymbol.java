@@ -73,8 +73,8 @@ public class UnexportMainSymbol extends SourceTask {
     /**
      * Object file that may contain a main symbol.
      */
-    @InputFile
     @Nullable
+    @InputFile
     public File getMainObject() {
         if (mainObjectFile == null) {
             mainObjectFile = findMainObject();

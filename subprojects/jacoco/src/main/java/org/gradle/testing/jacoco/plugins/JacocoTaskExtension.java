@@ -107,8 +107,8 @@ public class JacocoTaskExtension {
     /**
      * The path for the execution data to be written to.
      */
-    @OutputFile
     @Nullable
+    @OutputFile
     public File getDestinationFile() {
         return destinationFile.getOrNull();
     }
@@ -142,8 +142,8 @@ public class JacocoTaskExtension {
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
-    @Input
     @Nullable
+    @Input
     public List<String> getIncludes() {
         return includes;
     }
@@ -155,8 +155,8 @@ public class JacocoTaskExtension {
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
      */
-    @Input
     @Nullable
+    @Input
     public List<String> getExcludes() {
         return excludes;
     }
@@ -168,8 +168,8 @@ public class JacocoTaskExtension {
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      */
-    @Input
     @Nullable
+    @Input
     public List<String> getExcludeClassLoaders() {
         return excludeClassLoaders;
     }
@@ -195,8 +195,8 @@ public class JacocoTaskExtension {
     /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      */
-    @Input
     @Nullable
+    @Input
     public String getSessionId() {
         return sessionId;
     }
@@ -232,8 +232,8 @@ public class JacocoTaskExtension {
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
      */
-    @Input
     @Nullable
+    @Input
     public String getAddress() {
         return address;
     }
@@ -245,8 +245,8 @@ public class JacocoTaskExtension {
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
-    @Input
     @Nullable
+    @Input
     public int getPort() {
         return port;
     }
@@ -260,8 +260,8 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
-    @LocalState
     @Nullable
+    @LocalState
     public File getClassDumpDir() {
         return classDumpDir;
     }

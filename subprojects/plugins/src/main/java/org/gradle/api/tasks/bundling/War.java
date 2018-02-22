@@ -180,9 +180,9 @@ public class War extends Jar {
      *
      * @return The {@code web.xml} file.
      */
+    @Nullable
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
-    @Nullable
     public File getWebXml() {
         return webXml;
     }

@@ -154,8 +154,8 @@ public class WriteProperties extends DefaultTask {
     /**
      * Returns the optional comment to add at the beginning of the properties file.
      */
-    @Input
     @Nullable
+    @Input
     public String getComment() {
         return comment;
     }

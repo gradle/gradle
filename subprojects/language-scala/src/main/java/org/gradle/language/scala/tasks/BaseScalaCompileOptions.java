@@ -101,8 +101,8 @@ public class BaseScalaCompileOptions extends AbstractOptions {
      * Generate debugging information.
      * Legal values: none, source, line, vars, notailcalls
      */
-    @Input
     @Nullable
+    @Input
     public String getDebugLevel() {
         return debugLevel;
     }
@@ -126,7 +126,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Encoding of source files.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getEncoding() {
         return encoding;
     }

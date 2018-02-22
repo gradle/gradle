@@ -106,8 +106,8 @@ public class RhinoShellExec extends JavaExec {
     /**
      * Script file.
      */
-    @InputFile
     @Nullable
+    @InputFile
     public File getScript() {
         return script == null ? null : getProject().file(script);
     }

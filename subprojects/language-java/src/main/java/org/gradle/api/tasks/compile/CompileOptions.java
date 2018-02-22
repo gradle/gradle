@@ -172,8 +172,8 @@ public class CompileOptions extends AbstractOptions {
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    @Input
     @Nullable
+    @Input
     public String getEncoding() {
         return encoding;
     }
@@ -308,8 +308,8 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    @Input
     @Nullable
+    @Input
     public String getExtensionDirs() {
         return extensionDirs;
     }
@@ -459,10 +459,10 @@ public class CompileOptions extends AbstractOptions {
      * @return the source path
      * @see #setSourcepath(FileCollection)
      */
+    @Incubating
+    @Nullable
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @Nullable
-    @Incubating
     public FileCollection getSourcepath() {
         return sourcepath;
     }
@@ -483,8 +483,8 @@ public class CompileOptions extends AbstractOptions {
      * @return The annotation processor path, or {@code null} to use the compile classpath.
      * @since 3.4
      */
-    @Internal // Handled on the compile task
     @Nullable
+    @Internal // Handled on the compile task
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
     }
@@ -504,8 +504,8 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Nullable
     @Incubating
+    @Nullable
     @OutputDirectory
     public File getAnnotationProcessorGeneratedSourcesDirectory() {
         return annotationProcessorGeneratedSourcesDirectory.getOrNull();

@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -66,13 +67,13 @@ public class LinkSharedLibrary extends AbstractLinkTask {
      *
      * @since 4.4
      */
-    @Nullable @OutputFile
+    @Optional @OutputFile
     public RegularFileProperty getImportLibrary() {
         return importLibrary;
     }
 
-    @Input
     @Nullable
+    @Input
     public String getInstallName() {
         return installName;
     }

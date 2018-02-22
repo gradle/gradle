@@ -139,8 +139,8 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         this.gradleExe = gradleExe;
     }
 
-    @Input
     @Nullable
+    @Input
     public String getGradleArgs() {
         return gradleArgs;
     }

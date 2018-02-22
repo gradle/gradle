@@ -64,8 +64,8 @@ public interface JacocoLimit extends Serializable {
     /**
      * Gets the minimum expected value for limit. Default to null.
      */
-    @Input
     @Nullable
+    @Input
     BigDecimal getMinimum();
 
     /**
@@ -78,8 +78,8 @@ public interface JacocoLimit extends Serializable {
     /**
      * Gets the maximum expected value for limit. Default to null.
      */
-    @Input
     @Nullable
+    @Input
     BigDecimal getMaximum();
 
     /**

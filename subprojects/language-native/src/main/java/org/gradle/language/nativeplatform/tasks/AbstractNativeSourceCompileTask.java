@@ -73,7 +73,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
     /**
      * Returns the pre-compiled header to be used during compilation
      */
-    @Nested @Nullable
+    @Nullable @Nested
     public PreCompiledHeader getPreCompiledHeader() {
         return preCompiledHeader;
     }
@@ -87,8 +87,8 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
      *
      * @since 4.4
      */
-    @Nested
     @Nullable
+    @Nested
     protected CompilerVersion getCompilerVersion() {
         NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
         NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();

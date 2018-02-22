@@ -73,8 +73,8 @@ public class BaseForkOptions extends AbstractOptions {
      * Returns any additional JVM arguments for the compiler process.
      * Defaults to the empty list.
      */
-    @Input
     @Nullable
+    @Input
     public List<String> getJvmArgs() {
         return jvmArgs;
     }

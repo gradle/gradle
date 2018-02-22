@@ -27,7 +27,7 @@ public interface FindBugsReportsInternal extends FindBugsReports {
     @Internal
     SingleFileReport getFirstEnabled();
 
-    @Input
     @Nullable
+    @Input
     Boolean getWithMessagesFlag();
 }

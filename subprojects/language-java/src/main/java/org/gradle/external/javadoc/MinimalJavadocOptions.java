@@ -34,14 +34,14 @@ import java.util.List;
  * Provides the core Javadoc options.
  */
 public interface MinimalJavadocOptions {
-    @Input @Nullable
+    @Nullable @Input
     String getOverview();
 
     void setOverview(String overview);
 
     MinimalJavadocOptions overview(String overview);
 
-    @Input @Nullable
+    @Nullable @Input
     JavadocMemberLevel getMemberLevel();
 
     void setMemberLevel(JavadocMemberLevel memberLevel);
@@ -56,7 +56,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions showAll();
 
-    @Input @Nullable
+    @Nullable @Input
     String getDoclet();
 
     void setDoclet(String docletClass);
@@ -70,7 +70,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions docletpath(File ... docletpath);
 
-    @Input @Nullable
+    @Nullable @Input
     String getSource();
 
     void setSource(String source);
@@ -121,14 +121,14 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions breakIterator();
 
-    @Input @Nullable
+    @Nullable @Input
     String getLocale();
 
     void setLocale(String locale);
 
     MinimalJavadocOptions locale(String locale);
 
-    @Input @Nullable
+    @Nullable @Input
     String getEncoding();
 
     void setEncoding(String encoding);
@@ -156,14 +156,14 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions destinationDirectory(File directory);
 
-    @Input @Nullable
+    @Nullable @Input
     String getWindowTitle();
 
     void setWindowTitle(String windowTitle);
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
-    @Input @Nullable
+    @Nullable @Input
     String getHeader();
 
     void setHeader(String header);

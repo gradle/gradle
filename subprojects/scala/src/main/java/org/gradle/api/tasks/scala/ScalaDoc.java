@@ -114,7 +114,7 @@ public class ScalaDoc extends SourceTask {
     /**
      * Returns the documentation title.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getTitle() {
         return title;
     }

@@ -378,8 +378,8 @@ public class Wrapper extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @Input
     @Nullable
+    @Input
     public String getDistributionSha256Sum() {
         return distributionSha256Sum;
     }

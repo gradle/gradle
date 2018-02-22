@@ -99,8 +99,8 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @return The output file. May be null.
      */
-    @OutputFile
     @Nullable
+    @OutputFile
     public File getOutputFile() {
         return outputFile;
     }

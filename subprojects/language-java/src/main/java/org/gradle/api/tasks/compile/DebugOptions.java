@@ -44,8 +44,8 @@ public class DebugOptions extends AbstractOptions {
      *
      * By default, only source and line debugging information will be generated.
      */
-    @Input
     @Nullable
+    @Input
     public String getDebugLevel() {
         return debugLevel;
     }

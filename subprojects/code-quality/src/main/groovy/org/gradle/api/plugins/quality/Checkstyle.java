@@ -222,8 +222,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
-    @Input
     @Nullable
+    @Input
     public Map<String, Object> getConfigProperties() {
         return configProperties;
     }
@@ -244,9 +244,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @since 4.0
      */
     @Incubating
+    @Nullable
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    @Nullable
     public File getConfigDir() {
         File configDirectory = configDir.getOrNull();
         if (configDirectory!=null && configDirectory.exists()) {

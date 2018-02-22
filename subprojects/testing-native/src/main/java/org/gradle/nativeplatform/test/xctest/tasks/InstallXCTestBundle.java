@@ -148,8 +148,8 @@ public class InstallXCTestBundle extends DefaultTask {
     }
 
     @SkipWhenEmpty
-    @InputFile
     @Nullable
+    @InputFile
     protected File getBundleBinary() {
         RegularFile bundle = getBundleBinaryFile().get();
         File bundleFile = bundle.getAsFile();

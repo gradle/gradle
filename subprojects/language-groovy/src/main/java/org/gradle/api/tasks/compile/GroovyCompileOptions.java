@@ -176,10 +176,10 @@ public class GroovyCompileOptions extends AbstractOptions {
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
+    @Nullable
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     @Incubating
-    @Nullable
     public File getConfigurationScript() {
         return configurationScript;
     }

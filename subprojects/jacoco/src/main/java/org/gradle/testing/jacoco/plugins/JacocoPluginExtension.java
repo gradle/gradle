@@ -142,8 +142,8 @@ public class JacocoPluginExtension {
             this.jacoco = jacoco;
         }
 
-        @Nested
         @Nullable
+        @Nested
         public JacocoTaskExtension getJacoco() {
             return jacoco.isEnabled() ? jacoco : null;
         }

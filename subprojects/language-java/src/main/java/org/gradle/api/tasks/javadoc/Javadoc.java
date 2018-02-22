@@ -237,8 +237,8 @@ public class Javadoc extends SourceTask {
      *
      * @return The title, possibly null.
      */
-    @Input
     @Nullable
+    @Input
     public String getTitle() {
         return title;
     }
@@ -344,7 +344,7 @@ public class Javadoc extends SourceTask {
      *
      * @return The executable. May be null.
      */
-    @Input @Nullable
+    @Nullable @Input
     public String getExecutable() {
         return executable;
     }
