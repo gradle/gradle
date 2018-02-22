@@ -116,7 +116,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     fun Project.configureIdeaForRootProject() {
         idea {
             module {
-                excludeDirs = excludeDirs.plus(rootExcludeDirs)
+                excludeDirs = excludeDirs + rootExcludeDirs
             }
 
             project {
@@ -127,11 +127,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                         withJsoup { document ->
                             val projectElement = document.getElementsByTag("project").first()
                             configureCompilerConfiguration(projectElement)
-                            projectElement.removeExistingChildElement("component[name=GradleSettings]")
-                                .appendElement("component")
-                                .attr("name", "GradleSettings")
-                                .appendElement("option")
-                                .attr("SDK_HOME", gradle.gradleHomeDir!!.absolutePath)
+                            configureGradleSettings(projectElement)
                             configureCopyright(projectElement)
                             projectElement.removeExistingChildElement("component[name=ProjectCodeStyleSettingsManager]")
                                 .append(CODE_STYLE_SETTINGS)
@@ -161,6 +157,15 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                 }
             }
         }
+    }
+
+    private
+    fun Project.configureGradleSettings(projectElement: Element) {
+        projectElement.removeExistingChildElement("component[name=GradleSettings]")
+            .appendElement("component")
+            .attr("name", "GradleSettings")
+            .appendElement("option")
+            .attr("SDK_HOME", gradle.gradleHomeDir!!.absolutePath)
     }
 
     private
@@ -253,7 +258,8 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
     private
     fun configureSourceFolders(document: Document) {
-        val sourceFolders = document.select("component[name=NewModuleRootManager]").first()
+        val sourceFolders = document
+            .select("component[name=NewModuleRootManager]").first()
             .select("content").first()
             .select("sourceFolder[url$=/resources]")
 
@@ -267,11 +273,12 @@ open class IdeConfigurationPlugin : Plugin<Project> {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
+        @Suppress("UNCHECKED_CAST")
+        val projectsRequiringJava8 = property("projectsRequiringJava8") as List<Project>
         val ideaLanguageLevel =
-            if ((findProperty("projectsRequiringJava8") as List<Project>).contains(ideaModule.project)) "1.8"
+            if (ideaModule.project in projectsRequiringJava8) "1.8"
             else "1.6"
         // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
