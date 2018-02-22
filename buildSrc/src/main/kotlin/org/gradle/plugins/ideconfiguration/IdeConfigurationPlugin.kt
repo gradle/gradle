@@ -264,11 +264,13 @@ open class IdeConfigurationPlugin : Plugin<Project> {
             .select("sourceFolder[url$=/resources]")
 
         sourceFolders.forEach {
-            if (it.hasAttr("isTestSource")) {
-                it.removeAttr("isTestSource")
-                it.attr("type", "java-test-resource")
-            } else {
-                it.attr("type", "java-resource")
+            it.attributes().apply {
+                if (get("isTestSource") == "true") {
+                    remove("isTestSource")
+                    put("type", "java-test-resource")
+                } else {
+                    put("type", "java-resource")
+                }
             }
         }
     }
