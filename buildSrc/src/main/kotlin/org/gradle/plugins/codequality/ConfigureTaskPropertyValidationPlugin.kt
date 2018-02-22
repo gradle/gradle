@@ -27,6 +27,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 import accessors.java
+import accessors.reporting
 
 private
 const val validateTaskName = "validateTaskProperties"
@@ -62,7 +63,7 @@ class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
 
     private
     fun Project.addValidateTask() {
-        val reportFileName = "reports/task-properties/report.txt"
+        val reportFileName= "task-properties/report.txt"
         afterEvaluate {
             // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
             // whether the task already exists.
@@ -73,7 +74,7 @@ class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
                     classes = mainSourceSet.output.classesDirs
                     classpath = mainSourceSet.runtimeClasspath
                     // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
-                    outputFile.set(layout.buildDirectory.file(reportFileName))
+                    outputFile.set(reporting.baseDirectory.file(reportFileName))
                     failOnWarning = true
                 }
             }

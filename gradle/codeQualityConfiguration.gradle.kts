@@ -34,7 +34,7 @@ import java.io.File
 
 // As this script is also accessed from the buildSrc project,
 // we can't use rootProject for the path as both builds share the same config directory.
-val codeQualityConfigDir = File(buildscript.sourceFile!!.parentFile.parentFile, "config")
+val codeQualityConfigDir = buildscript.sourceFile!!.parentFile.parentFile.resolve("config")
 
 configureCheckstyle(codeQualityConfigDir)
 configureCodenarc(codeQualityConfigDir)
@@ -45,7 +45,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
     }
 
     configure<CheckstyleExtension> {
-        configDir = File(codeQualityConfigDir, "checkstyle")
+        configDir = codeQualityConfigDir.resolve("checkstyle")
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
@@ -53,7 +53,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
                     configFile = File(configDir, "checkstyle-groovy.xml")
                     source(allGroovy)
                     classpath = compileClasspath
-                    reports.xml.destination = File(reportsDir, "${this@all.name}-groovy.xml")
+                    reports.xml.destination = reportsDir.resolve("${this@all.name}-groovy.xml")
                 }
             }
         }
@@ -83,7 +83,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
     }
 
     configure<CodeNarcExtension> {
-        configFile = File(codeQualityConfigDir, "codenarc.xml")
+        configFile = codeQualityConfigDir.resolve("codenarc.xml")
     }
 
     tasks.withType<CodeNarc> {

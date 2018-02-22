@@ -71,6 +71,7 @@ gradlePlugin {
         "configureTaskPropertyValidation" {
             id = "configure-task-properties-validation"
             implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
+        }
     }
 }
 
@@ -148,7 +149,7 @@ tasks.withType<GroovyCompile> {
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/codeQuality.gradle") }
+    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
 }
 
 apply { from("../gradle/ciReporting.gradle") }
