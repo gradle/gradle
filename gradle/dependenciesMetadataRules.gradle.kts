@@ -20,11 +20,11 @@ subprojects {
             withLibraryDependencies("maven3") {
                 removeAll {
                     it.name != "maven-settings-builder" &&
-                    it.name != "maven-model" &&
-                    it.name != "maven-model-builder" &&
-                    it.name != "maven-artifact" &&
-                    it.name != "maven-aether-provider" &&
-                    it.group != "org.sonatype.aether"
+                        it.name != "maven-model" &&
+                        it.name != "maven-model-builder" &&
+                        it.name != "maven-artifact" &&
+                        it.name != "maven-aether-provider" &&
+                        it.group != "org.sonatype.aether"
                 }
             }
             withLibraryDependencies("awsS3_core") {
@@ -34,7 +34,7 @@ subprojects {
                 removeAll { it.group == "com.googlecode.javaewah" }
             }
             withLibraryDependencies("maven3_wagon_http_shared4") {
-               removeAll { it.group == "org.jsoup" }
+                removeAll { it.group == "org.jsoup" }
             }
             withLibraryDependencies("aether_connector") {
                 removeAll { it.group == "org.sonatype.sisu" }
@@ -95,7 +95,7 @@ fun ComponentMetadataHandler.replaceJCLWithAdapter(module: String) {
         allVariants {
             withDependencies {
                 removeAll { it.group == "commons-logging" }
-                add ("org.slf4j:jcl-over-slf4j:1.7.10") {
+                add("org.slf4j:jcl-over-slf4j:1.7.10") {
                     because("We do not want non-slf4j logging implementations on the classpath")
                 }
             }
@@ -108,7 +108,7 @@ fun ComponentMetadataHandler.replaceJCLConstraintWithAdapter(module: String) {
         allVariants {
             withDependencyConstraints {
                 removeAll { it.group == "commons-logging" }
-                add ("org.slf4j:jcl-over-slf4j:1.7.10") {
+                add("org.slf4j:jcl-over-slf4j:1.7.10") {
                     because("We do not want non-slf4j logging implementations on the classpath")
                 }
             }
@@ -121,7 +121,7 @@ fun ComponentMetadataHandler.replaceLog4JWithAdapter(module: String) {
         allVariants {
             withDependencies {
                 removeAll { it.group == "log4j" }
-                add ("org.slf4j:log4j-over-slf4j:1.7.16") {
+                add("org.slf4j:log4j-over-slf4j:1.7.16") {
                     because("We do not want non-slf4j logging implementations on the classpath")
                 }
             }

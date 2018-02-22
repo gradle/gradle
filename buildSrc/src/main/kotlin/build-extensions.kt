@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.extra
+
+import org.gradle.kotlin.dsl.*
 
 
 // This file contains Kotlin extensions for the gradle/gradle build
