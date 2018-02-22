@@ -45,3 +45,7 @@ val Project.reporting
 
 val SourceSet.groovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { groovy }
+
+
+val SourceSet.allGroovy: SourceDirectorySet
+    get() = withConvention(GroovySourceSet::class) { allGroovy }

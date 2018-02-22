@@ -64,6 +64,10 @@ gradlePlugin {
             id = "performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
         }
+        "configureTaskPropertyValidation" {
+            id = "configure-task-properties-validation"
+            implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
+        }
     }
 }
 
@@ -141,7 +145,7 @@ tasks.withType<GroovyCompile> {
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/codeQuality.gradle") }
+    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
 }
 
 apply { from("../gradle/ciReporting.gradle") }
@@ -178,3 +182,5 @@ tasks {
     val build by getting
     build.dependsOn(checkSameDaemonArgs)
 }
+
+tasks.get("test").onlyIf { false }
