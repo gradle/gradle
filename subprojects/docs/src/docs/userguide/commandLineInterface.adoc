@@ -399,6 +399,7 @@ Log in debug mode (includes normal stacktrace).
 
 Lifecycle is the default log level.
 
+[[sec:command_line_customizing_log_format]]
 ==== Customizing log format
 You can control the use of rich output (colors and font variants) by specifying the "console" mode in the following ways:
 
