@@ -39,13 +39,8 @@ class IncrementalResultStoringDecorator implements Compiler<JavaCompileSpec> {
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
-
-        if (!(out instanceof RecompilationNotNecessary)) {
-            updater.updateAnalysis(spec);
-        }
-
+        updater.updateAnalysis(spec, out);
         writer.storeJarSnapshots(spec.getCompileClasspath());
-
         return out;
     }
 }

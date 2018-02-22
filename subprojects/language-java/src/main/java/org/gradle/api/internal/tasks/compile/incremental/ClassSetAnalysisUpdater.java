@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnal
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.internal.Stash;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.time.Time;
@@ -56,7 +57,10 @@ public class ClassSetAnalysisUpdater {
         this.fileHasher = fileHasher;
     }
 
-    public void updateAnalysis(JavaCompileSpec spec) {
+    public void updateAnalysis(JavaCompileSpec spec, WorkResult result) {
+        if (result instanceof RecompilationNotNecessary) {
+            return;
+        }
         Timer clock = Time.startTimer();
         Set<File> baseDirs = Sets.newLinkedHashSet();
         baseDirs.add(spec.getDestinationDir());

@@ -33,22 +33,15 @@ class IncrementalResultStoringDecoratorTest extends Specification {
     @Subject finalizer = new IncrementalResultStoringDecorator(compiler, writer, infoUpdater)
 
     def "performs finalization"() {
+        given:
+        def result = Stub(WorkResult)
+
         when:
         finalizer.execute(compileSpec)
 
         then:
-        1 * compiler.execute(compileSpec) >> Mock(WorkResult)
-        1 * infoUpdater.updateAnalysis(compileSpec)
-        1 * writer.storeJarSnapshots(_)
-        0 * _
-    }
-
-    def "does not update if rebuild was not required"() {
-        when:
-        finalizer.execute(compileSpec)
-
-        then:
-        1 * compiler.execute(compileSpec) >> Mock(RecompilationNotNecessary)
+        1 * compiler.execute(compileSpec) >> result
+        1 * infoUpdater.updateAnalysis(compileSpec, result)
         1 * writer.storeJarSnapshots(_)
         0 * _
     }
