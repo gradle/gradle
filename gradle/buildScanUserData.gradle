@@ -86,7 +86,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     .each {
                     def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
                     def reportPath
-                    // see: ciReporting.gradle
+                    // see: CiReportingPlugin.kts
                     if (it.destination.directory) {
                         reportPath = "report-${task.project.name}-${it.destination.name}.zip"
                     }

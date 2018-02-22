@@ -68,6 +68,10 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "ciReporting" {
+            id = "ci-reporting"
+            implementationClass = "org.gradle.plugins.reporting.CiReportingPlugin"
+        }
     }
 }
 
@@ -148,7 +152,38 @@ if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "tr
     apply { from("../gradle/codeQuality.gradle") }
 }
 
-apply { from("../gradle/ciReporting.gradle") }
+if (isCiServer) {
+    gradle.buildFinished {
+        allprojects {
+            tasks.all {
+                if (this is Reporting<*> && state.failure != null) {
+                    val reportContainer = this.reports
+                    val reportDestination = reportContainer.getByName("html").destination
+                    prepareReportForCIPublishing(this@allprojects, reportDestination, this@allprojects.name)
+                }
+            }
+        }
+    }
+}
+
+fun prepareReportForCIPublishing(project: Project, report: File, projectName: String) {
+    project.run {
+        if (report.isDirectory) {
+            val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
+            ant.withGroovyBuilder {
+                "zip"("destFile" to destFile) {
+                    "fileset"("dir" to report)
+                }
+            }
+        } else {
+            copy {
+                from(report)
+                into(rootProject.buildDir)
+                rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
+            }
+        }
+    }
+}
 
 fun readProperties(propertiesFile: File) = Properties().apply {
     propertiesFile.inputStream().use { fis ->

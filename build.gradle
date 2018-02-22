@@ -340,4 +340,4 @@ afterEvaluate {
     }
 }
 
-apply from: "gradle/ciReporting.gradle"
+apply plugin: "ci-reporting"
