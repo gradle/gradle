@@ -24,6 +24,7 @@ public interface PropertyNode<SELF extends PropertyNode<SELF>> {
     @Nullable
     String getPropertyName();
     boolean isRoot();
-    Iterator<SELF> getIterator();
     Class<?> getBeanClass();
+    boolean isIterable();
+    Iterator<SELF> getIterator();
 }

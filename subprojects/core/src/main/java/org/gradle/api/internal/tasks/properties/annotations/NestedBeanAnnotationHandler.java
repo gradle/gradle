@@ -56,7 +56,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
         if (nested != null) {
             AbstractNestedPropertyContext.collectNestedProperties(
-                new BeanNode(propertyValue.getPropertyName(), nested),
+                BeanNode.create(propertyValue.getPropertyName(), nested),
                 new ImplementationDeclaringPropertyContext(context, visitor, specFactory));
         } else if (!propertyValue.isOptional()) {
             visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyValue.getPropertyName(), new AbsentPropertyValue()));
