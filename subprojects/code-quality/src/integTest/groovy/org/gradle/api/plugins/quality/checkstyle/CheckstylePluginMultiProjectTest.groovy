@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality
+package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
@@ -24,15 +25,15 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         given:
         def rootProject = multiProjectBuild('rootCheckStyle', ['child']) {
             settingsFile << """
-include 'child:grand'
-"""
+                include 'child:grand'
+            """
         }
         rootProject.file("child/grand/build.gradle") << """
-apply plugin: "java"
-apply plugin: "checkstyle"
+            apply plugin: "java"
+            apply plugin: "checkstyle"
 
-${mavenCentralRepository()}
-"""
+            ${mavenCentralRepository()}
+        """
         rootProject.file('child/grand/src/main/java/Dummy.java') << "public class Dummy {}${getPlatformLineSeparator()}"
         rootProject.file('child/grand', 'config/checkstyle/checkstyle.xml') << "INVALID AND SHOULD NEVER BE READ"
         rootProject.file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
@@ -53,7 +54,7 @@ ${mavenCentralRepository()}
         """
     }
 
-    private static File checkStyleReportFile(File projectDir) {
+    static File checkStyleReportFile(File projectDir) {
         new File(projectDir, 'build/reports/checkstyle/main.html')
     }
 }
