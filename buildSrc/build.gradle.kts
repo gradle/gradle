@@ -154,33 +154,29 @@ if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "tr
 
 if (isCiServer) {
     gradle.buildFinished {
-        allprojects {
-            tasks.all {
-                if (this is Reporting<*> && state.failure != null) {
-                    val reportContainer = this.reports
-                    val reportDestination = reportContainer.getByName("html").destination
-                    prepareReportForCIPublishing(this@allprojects, reportDestination, this@allprojects.name)
-                }
+        tasks.all {
+            if (this is Reporting<*> && state.failure != null) {
+                val reportContainer = this.reports
+                val reportDestination = reportContainer.getByName("html").destination
+                prepareReportForCIPublishing(reportDestination)
             }
         }
     }
 }
 
-fun prepareReportForCIPublishing(project: Project, report: File, projectName: String) {
-    project.run {
-        if (report.isDirectory) {
-            val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
-            ant.withGroovyBuilder {
-                "zip"("destFile" to destFile) {
-                    "fileset"("dir" to report)
-                }
+fun Project.prepareReportForCIPublishing(report: File) {
+    if (report.isDirectory) {
+        val destFile = File("${rootProject.buildDir}/report-$name-${report.name}.zip")
+        ant.withGroovyBuilder {
+            "zip"("destFile" to destFile) {
+                "fileset"("dir" to report)
             }
-        } else {
-            copy {
-                from(report)
-                into(rootProject.buildDir)
-                rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
-            }
+        }
+    } else {
+        copy {
+            from(report)
+            into(rootProject.buildDir)
+            rename { "report-$name-${report.parentFile.name}-${report.name}" }
         }
     }
 }

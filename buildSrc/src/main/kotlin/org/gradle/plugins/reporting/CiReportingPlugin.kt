@@ -21,69 +21,64 @@ import java.io.File
  */
 open class CiReportingPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
-        project.run {
+    override fun apply(project: Project) = project.run {
 
-            val isCiServer: Boolean = System.getenv().containsKey("CI")
+        val isCiServer = System.getenv().containsKey("CI")
 
-            if (isCiServer) {
-                gradle.buildFinished {
-                    val reports = mutableMapOf<File, String>()
-                    allprojects {
-                        tasks.all {
-                            if (this is Reporting<*> && state.failure != null) {
-                                val reportContainer = this.reports
-                                val reportDestination = reportContainer.getByName("html").destination
-                                reports[reportDestination] = this@allprojects.name
-                            }
+        if (isCiServer) {
+            gradle.buildFinished {
+                val reports = mutableMapOf<File, String>()
+                allprojects {
+                    tasks.all {
+                        if (this is Reporting<*> && state.failure != null) {
+                            val reportContainer = this.reports
+                            val reportDestination = reportContainer.getByName("html").destination
+                            reports[reportDestination] = project.name
                         }
-                    }
-
-                    subprojects {
-                        val projectName = name
-                        tasks.all {
-                            if (state.failure != null) {
-                                when (this) {
-                                    is ValidateTaskProperties -> reports[outputFile.asFile.get()] = projectName
-                                    is Classycle -> reports[reportFile] = projectName
-                                    is DistributionTest -> {
-                                        reports[File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon")] = "all-logs"
-                                        reports[gradleInstallationForTest.daemonRegistry.asFile.get()] = "all-logs"
-                                    }
-                                }
-                            }
-                            when (this) {
-                                is JapicmpTask -> reports[File(richReport.destinationDir, richReport.reportName)] = projectName
-                                is DistributedPerformanceTest -> reports[scenarioReport.parentFile] = projectName
-                            }
-                        }
-                    }
-
-                    reports.forEach {
-                        prepareReportForCIPublishing(project, it.key, it.value)
                     }
                 }
-            }
 
+                subprojects {
+                    val projectName = name
+                    tasks.all {
+                        if (state.failure != null) {
+                            when (this) {
+                                is ValidateTaskProperties -> reports[outputFile.asFile.get()] = projectName
+                                is Classycle -> reports[reportFile] = projectName
+                                is DistributionTest -> {
+                                    reports[File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon")] = "all-logs"
+                                    reports[gradleInstallationForTest.daemonRegistry.asFile.get()] = "all-logs"
+                                }
+                            }
+                        }
+                        when (this) {
+                            is JapicmpTask -> reports[File(richReport.destinationDir, richReport.reportName)] = projectName
+                            is DistributedPerformanceTest -> reports[scenarioReport.parentFile] = projectName
+                        }
+                    }
+                }
+
+                reports.forEach {
+                    prepareReportForCIPublishing(it.key, it.value)
+                }
+            }
         }
     }
 
-    private fun prepareReportForCIPublishing(project: Project, report: File, projectName: String) {
+    private fun Project.prepareReportForCIPublishing(report: File, projectName: String) {
         if (report.exists()) {
-            project.run {
-                if (report.isDirectory) {
-                    val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
-                    ant.withGroovyBuilder {
-                        "zip"("destFile" to destFile) {
-                            "fileset"("dir" to report)
-                        }
+            if (report.isDirectory) {
+                val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
+                ant.withGroovyBuilder {
+                    "zip"("destFile" to destFile) {
+                        "fileset"("dir" to report)
                     }
-                } else {
-                    copy {
-                        from(report)
-                        into(rootProject.buildDir)
-                        rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
-                    }
+                }
+            } else {
+                copy {
+                    from(report)
+                    into(rootProject.buildDir)
+                    rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
                 }
             }
         }

@@ -22,6 +22,7 @@ plugins {
     id 'java-base'
     id 'build-types'
     id 'gradle-compile'
+    id 'ci-reporting'
 }
 
 defaultTasks 'assemble'
@@ -339,5 +340,3 @@ afterEvaluate {
         rootProject.availableJavaInstallations.validateBuildCacheConfiguration(gradle.settings.buildCache)
     }
 }
-
-apply plugin: "ci-reporting"
