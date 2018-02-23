@@ -49,10 +49,6 @@ fun Settings.configureLocalCache() {
 fun Settings.configureRemoteCache() {
     val isRemoteBuildCacheEnabled = remoteCacheUrl != null && gradle.startParameter.isBuildCacheEnabled && !gradle.startParameter.isOffline
 
-    gradle.rootProject {
-        this.extra.set("remoteBuildCacheEnabled", isRemoteBuildCacheEnabled)
-    }
-
     if (!isRemoteBuildCacheEnabled) {
         return
     }
