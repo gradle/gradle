@@ -1,8 +1,10 @@
 apply<GreetingPlugin>()
 
 configure<GreetingPluginExtension> {
-    message = "Hi from Gradle"
-    outputFiles = files("$buildDir/a.txt", "$buildDir/b.txt")
+    message.set("Hi from Gradle")
+    outputFiles.from(
+        project.layout.buildDirectory.file("a.txt"),
+        project.layout.buildDirectory.file("b.txt"))
 }
 
 open class GreetingPlugin : Plugin<Project> {
@@ -11,49 +13,38 @@ open class GreetingPlugin : Plugin<Project> {
 
         // Add the 'greeting' extension object
         val greeting = project.extensions.create(
-            "greeting",
-            GreetingPluginExtension::class.java,
-            project)
+                "greeting",
+                GreetingPluginExtension::class.java,
+                project)
 
         // Add a task that uses the configuration
         project.tasks {
             "hello"(Greeting::class) {
                 group = "Greeting"
-                provideMessage(greeting.messageProvider)
-                outputFiles = greeting.outputFiles
+                message.set(greeting.message)
+                outputFiles.setFrom(greeting.outputFiles)
             }
         }
     }
 }
 
 open class GreetingPluginExtension(project: Project) {
-
-    private
-    val messageProperty = project.objects.property<String>()
-
-    var message by messageProperty
-
-    val messageProvider: Provider<String> get() = messageProperty
-
-    var outputFiles by project.files()
+    val message = project.objects.property<String>()
+    val outputFiles: ConfigurableFileCollection = project.files()
 }
 
 open class Greeting : DefaultTask() {
-
-    private
-    val messageProperty = project.objects.property<String>()
-
     @get:Input
-    var message by messageProperty
+    val message = project.objects.property<String>()
 
     @get:OutputFiles
-    var outputFiles by project.files()
-
-    fun provideMessage(message: Provider<String>) = messageProperty.set(message)
+    val outputFiles: ConfigurableFileCollection = project.files()
 
     @TaskAction
     fun printMessage() {
-        logger.info("Writing message '$message' to files ${outputFiles.files}")
+        val message = message.get()
+        val outputFiles = outputFiles.files
+        logger.info("Writing message '$message' to files $outputFiles")
         outputFiles.forEach { it.writeText(message) }
     }
 }
