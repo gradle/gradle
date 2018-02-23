@@ -17,6 +17,11 @@
 
 ////
 Integration tests under gradle/subprojects/integ-test/src/integTest/groovy/org/gradle/integtests/samples/files
+
+To run:
+
+   ./gradlew intTestImage docs:extractSamples integtest:integTest --tests "*SamplesCopyIntegrationTest"
+   ./gradlew intTestImage docs:extractSamples integtest:integTest --tests "*SamplesFilesMiscIntegrationTest"
 ////
 
 Almost every Gradle build interacts with files in some way: think source files, file dependencies, reports and so on. That's why Gradle comes with a comprehensive API that makes it simple to perform the file operations you need.
@@ -48,21 +53,14 @@ You can even use the path directly without the `file()` method, as explained ear
     <sourcefile file="build.gradle" snippet="copy-single-file-example-without-file-method"/>
 </sample>
 ++++
-----
-task copyReport(type: Copy) {
-    from "${buildDir}/reports/my-report.pdf"
-    into "${buildDir}/toArchive"
-}
-----
 
 Although hard-coded paths make for simple examples, they also make the build brittle. It's better to use a reliable, single source of truth, such as a task or shared project property. In the following modified example, we use a report task defined elsewhere that has the report's location stored in its `outputFile` property:
 
-----
-task copyReport(type: Copy) {
-    from myReportTask.outputFile
-    into archiveReportsTask.dirToArchive
-}
-----
+++++
+<sample id="copySingleFileExampleWithTaskProps" dir="userguide/files/copy" title="Prefer task/project properties over hard-coded paths">
+    <sourcefile file="build.gradle" snippet="copy-single-file-example-with-task-properties"/>
+</sample>
+++++
 
 We have also assumed that the reports will be archived by `archiveReportsTask`, which provides us with the directory that will be archived and hence where we want to put the copies of the reports.
 
@@ -71,36 +69,53 @@ We have also assumed that the reports will be archived by `archiveReportsTask`, 
 
 You can extend the previous examples to multiple files very easily by providing multiple arguments to `from()`:
 
-----
-task copyReports(type: Copy) {
-    from "${buildDir}/reports/my-report.pdf", "src/docs/manual.pdf"
-    into "${buildDir}/toArchive"
-}
-----
+++++
+<sample id="copyMultipleFilesExample" dir="userguide/files/copy" title="Using multiple arguments with from()">
+    <sourcefile file="build.gradle" snippet="copy-multiple-files-example"/>
+</sample>
+++++
 
 Now two files are copied into the archive directory. You can also use multiple `from()` statements to do the same thing, as shown in the first example of the section <<File Copying in Depth,sec:copying_files>>.
 
 What if you want to copy all the PDFs in a directory without having to specify each one? You can easily attach both inclusion and exclusion patterns to the copy specification. Here we use a pattern to include only PDFs:
 
-----
-task copyReports(type: Copy) {
-    from "${buildDir}/reports"
-    include "*.pdf"
-    into "${buildDir}/toArchive"
-}
-----
+++++
+<sample id="copyMultipleFilesFlatFilterExample" dir="userguide/files/copy" title="Using a flat filter">
+    <sourcefile file="build.gradle" snippet="copy-multiple-files-with-flat-filter-example"/>
+</sample>
+++++
 
-One thing to note in this example is that only PDFs directly in the `reports` directory are copied. If there are PDFs in subdirectories of `reports`, they'll be left out. You can change that by using an Ant-style glob pattern (`\**/*`):
+One thing to note, as demonstrated in the following diagram, is that only the PDFs that reside directly in the `reports` directory are copied:
 
-----
-task copyReports(type: Copy) {
-    from "${buildDir}/reports"
-    include "**/*.pdf"
-    into "${buildDir}/toArchive"
-}
-----
+++++
+<figure>
+    <title>The effect of a flat filter on copying</title>
+    <imageobject>
+        <imagedata fileref="img/copy-with-flat-filter-example.png" width="170mm"/>
+    </imageobject>
+</figure>
+++++
 
-This approach has the side effect of copying the directory structure below `reports` as well as the files. This may be what you want. It may not be. There are many such decisions you need to make when copying files, but rest assured that there are very few requirements that can't be handled elegantly by Gradle copy specifications.
+You can include files in subdirectories by using an Ant-style glob pattern (`\**/*`), as done in this updated example:
+
+++++
+<sample id="copyMultipleFilesDeepFilterExample" dir="userguide/files/copy" title="Using a deep filter">
+    <sourcefile file="build.gradle" snippet="copy-multiple-files-with-deep-filter-example"/>
+</sample>
+++++
+
+This task has the following effect:
+
+++++
+<figure>
+    <title>The effect of a deep filter on copying</title>
+    <imageobject>
+        <imagedata fileref="img/copy-with-deep-filter-example.png" width="170mm"/>
+    </imageobject>
+</figure>
+++++
+
+One thing to bear in mind is that a deep filter like this has the side effect of copying the directory structure below `reports` as well as the files. This may be what you want. Or you may want the destination to be a flat directory of PDFs. Such differences in behavior are common requirements in builds, which is why Gradle provides elegant solutions to almost all use cases.
 
 Read the in-depth sections later in the chapter for more detail on how the file operations work in Gradle and what options you have for configuring them.
 
@@ -109,25 +124,21 @@ Read the in-depth sections later in the chapter for more detail on how the file 
 
 You may have the need to copy not just files, but the directory structure they reside in as well. This is, in fact, the default behavior when you specify a directory as the `from()` argument. So the following will copy everything in the `reports` directory, including all its subdirectories:
 
-----
-task copyReports(type: Copy) {
-    from "${buildDir}/reports"
-    into "${buildDir}/toArchive"
-}
-----
+++++
+<sample id="copyDirExample" dir="userguide/files/copy" title="Copying an entire directory">
+    <sourcefile file="build.gradle" snippet="copy-directory-example"/>
+</sample>
+++++
 
 The key aspect that users struggle with is controlling how much of the directory structure goes to the destination. In the above example, do you get a `toArchive/reports` directory or does everything in `reports` go straight into `toArchive`? The answer is the latter. If a directory is part of the `from()` path, then it _won't_ appear in the destination.
 
 So how do you ensure that `reports` itself is copied across, but not any other directory in `$buildDir`? The answer is to add it as an include pattern:
 
-----
-task copyReports(type: Copy) {
-    from("${buildDir}") {
-        include "reports/**"
-    }
-    into "${buildDir}/toArchive"
-}
-----
+++++
+<sample id="copyDirIncludingItselfExample" dir="userguide/files/copy" title="Copying an entire directory, including itself">
+    <sourcefile file="build.gradle" snippet="copy-directory-including-itself-example"/>
+</sample>
+++++
 
 You'll get the same behavior as before except with one extra level of directory in the destination, i.e. `toArchive/reports`.
 
@@ -140,14 +151,11 @@ From the perspective of Gradle, packing files into an archive is effectively a c
 
 The simplest case involves archiving the entire contents of a directory, which this example demonstrates by creating a ZIP of the `toArchive` directory:
 
-----
-task packageDistribution(type: Zip) {
-    archiveName = "my-distribution.zip"
-    destinationDir = file("${buildDir}/dist")
-
-    from "${buildDir}/toArchive"
-}
-----
+++++
+<sample id="createArchiveExample" dir="userguide/files/copy" title="Archiving a directory as a ZIP">
+    <sourcefile file="build.gradle" snippet="create-archive-example"/>
+</sample>
+++++
 
 Notice how we specify the destination and name of the archive instead of an `into()`. These are both required, although the `base` plugin provides some conventional values for these, meaning you will often not see them set explicitly. The next example demonstrates this and you can learn more in the <<sec:archive_naming,archive naming>> section.
 
@@ -155,24 +163,11 @@ Each type of archive has its own task type, the most common ones being api:org.g
 
 One of the most common scenarios involves copying files into specified subdirectories of the archive. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
 
-----
-plugins {
-    id 'base'
-}
-
-version = "1.0.0"
-
-task packageDistribution(type: Zip) {
-    from("${buildDir}/toArchive") {
-        exclude "**/*.pdf"
-    }
-
-    from("${buildDir}/toArchive") {
-        include "**/*.pdf"
-        into "docs"
-    }
-}
-----
+++++
+<sample id="createArchiveWithBasePluginExample" dir="userguide/files/archivesWithBasePlugin" title="Using the Base Plugin for its archive name convention">
+    <sourcefile file="build.gradle" snippet="create-archive-with-base-plugin-example"/>
+</sample>
+++++
 
 As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration. See <<Using child specifications>> for more information on this feature.
 
@@ -183,12 +178,11 @@ Archives are effectively self-contained file systems, so unpacking them is a cas
 
 The two functions of interest are api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree[], which produce a api:org.gradle.api.file.FileTree[] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
-----
-task unpackFiles(type: Copy) {
-    from zipTree("src/resources/thirdPartyResources.zip")
-    into "${buildDir}/resources"
-}
-----
+++++
+<sample id="unpackArchiveExample" dir="userguide/files/archives" title="Unpacking a ZIP file">
+    <sourcefile file="build.gradle" snippet="unpack-archive-example"/>
+</sample>
+++++
 
 As with a normal copy, you can control which files are unpacked via filters and even rename files as they are unpacked.
 
@@ -201,26 +195,22 @@ Many tasks need to create directories to store the files they generate, which is
 
 In cases where you need to create a directory manually, you can use the api:org.gradle.api.Project#mkdir[] method from within your build scripts or custom task implementations. Here's a simple example:
 
-----
-task ensureDirectory {
-    doLast {
-        mkdir "images"
-    }
-}
-----
+++++
+<sample id="createDirectoryExample" dir="userguide/files/misc" title="Manually creating a directory">
+    <sourcefile file="build.gradle" snippet="mkdir-example"/>
+</sample>
+++++
 
 [[sec:moving_files_example]]
 === Moving files and directories
 
 Gradle has no API for moving files and directories around, but you can use the <<sec:ant,Apache Ant integration>> to easily do that, as shown in this example:
 
-----
-task moveReports {
-    doLast {
-        ant.move file: "${buildDir}/reports", todir: "${buildDir}/toArchive"
-    }
-}
-----
+++++
+<sample id="moveExample" dir="userguide/files/misc" title="Moving a directory using the Ant task">
+    <sourcefile file="build.gradle" snippet="move-example"/>
+</sample>
+++++
 
 This is not a common requirement and should be used sparingly as you lose information and can easily break a build. It's generally preferable to copy directories and files instead.
 
@@ -231,29 +221,19 @@ The files used and generated by your builds sometimes don't have names that suit
 
 The following example removes the "-staging-" marker from the names of any files that include it in a Java web application:
 
-----
-task rename(type: Copy) {
-    from "src/main/webapp"
-    into "${buildDir}/explodedWar"
-
-    rename '(.+)-staging-(.+)', '$1$2'
-}
-----
+++++
+<sample id="renameOnCopyExample" dir="userguide/files/copy" title="Renaming files as they are copied">
+    <sourcefile file="build.gradle" snippet="rename-on-copy-example"/>
+</sample>
+++++
 
 You can use regular expressions for this, as in the above example, or closures that use more complex logic to determine the target filename. For example, the following task truncates filenames:
 
-----
-task copyWithTruncate(type: Copy) {
-    from "${buildDir}/reports"
-    rename { String filename ->
-        if (filename.size() > 10) {
-            return filename[0..7] + "~" + filename.size()
-        }
-        else return filename
-    }
-    into "${buildDir}/toArchive"
-}
-----
+++++
+<sample id="truncateNamesExample" dir="userguide/files/copy" title="Truncating filenames as they are copied">
+    <sourcefile file="build.gradle" snippet="truncate-names-example"/>
+</sample>
+++++
 
 As with filtering, you can also apply renaming to a subset of files to copy by configuring it on a `from()` instead of at the task level.
 
@@ -264,21 +244,19 @@ You can easily delete files and directories using either the api:org.gradle.api.
 
 For example, the following task deletes the entire contents of a build's output directory:
 
-----
-task myClean(type: Delete) {
-    delete buildDir
-}
-----
+++++
+<sample id="deleteExample" dir="userguide/files/misc" title="Deleting a directory">
+    <sourcefile file="build.gradle" snippet="delete-example"/>
+</sample>
+++++
 
 If you want more control over which files are deleted, you can't use inclusions and exclusions in the same way as for copying files. Instead, you have to use the builtin filtering mechanisms of `files()` and `fileTree()`. The following example does just that to clear out temporary files from a source directory:
 
-----
-task cleanTempFiles(type: Delete) {
-    delete fileTree("src").matching {
-        include "**/*.tmp"
-    }
-}
-----
+++++
+<sample id="deleteWithFilterExample" dir="userguide/files/misc" title="Deleting files matching a specific pattern">
+    <sourcefile file="build.gradle" snippet="delete-with-filter-example"/>
+</sample>
+++++
 
 
 You'll learn more about file collections and file trees in the next section.
@@ -308,9 +286,11 @@ As you can see, you can pass strings, `File` instances and `Path` instances to t
 
 What happens in the case of multi-project builds? The `file()` method will always turn relative paths into paths that are relative to the current project directory, which may be a child project. If you want to use a path that's relative to the _root project_ directory, then you need to use the special api:org.gradle.api.Project#getRootDir()[] property to construct an absolute path, like so:
 
-----
-File configFile = file("${rootDir}/shared/config.xml")
-----
+++++
+<sample id="usingRootDirProperty" dir="userguide/files/misc/project2" title="Creating a path relative to a parent project">
+    <sourcefile file="build.gradle" snippet="using-root-dir-property"/>
+</sample>
+++++
 
 Let's say you're working on a multi-project build in a `dev/projects/AcmeHealth` directory. You use the above example in the build of the library you're fixing — at `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`. The file path will resolve to the absolute version of `dev/projects/AcmeHealth/shared/config.xml`.
 
@@ -341,7 +321,7 @@ File collections have some important attributes in Gradle. They can be:
 _Lazy creation_ of a file collection is useful when you need to evaluate the files that make up a collection when the build runs. In the following example, we query the file system to find out what files exist in a particular directory and make them a file collection:
 
 ++++
-<sample id="fileCollections" dir="userguide/files/fileCollections" title="Implementing a file collection">
+<sample id="fileCollectionsWithClosure" dir="userguide/files/fileCollections" title="Implementing a file collection">
     <sourcefile file="build.gradle" snippet="closure"/>
     <output args="-q list"/>
 </sample>
@@ -354,7 +334,7 @@ _Iterating over a file collection_ can be done through the `each()` method on th
 The following example demonstrates such iteration as well as how you can convert file collections to other types using the `as` operator or supported properties:
 
 ++++
-<sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
+<sample id="fileCollectionsUsage" dir="userguide/files/fileCollections" title="Using a file collection">
     <sourcefile file="build.gradle" snippet="usage"/>
     <test args="-q usage"/>
 </sample>
@@ -366,11 +346,12 @@ For example, imagine `collection` in the above example gains an extra file or tw
 
 Live collections are also important when it comes to _filtering_. If you want to use a subset of a file collection, you can take advantage of the api:org.gradle.api.file.FileCollection#filter(org.gradle.api.specs.Spec)[] method to determine which files to "keep". In the following example, we create a new collection that consists of only the files that end with .txt in the source collection:
 
-----
-FileCollection textFiles = collection.filter { File f ->
-    f.name.endsWith(".txt")
-}
-----
+++++
+<sample id="fileCollectionsFiltering" dir="userguide/files/fileCollections" title="Filtering a file collection">
+    <sourcefile file="build.gradle" snippet="filtering-file-collections"/>
+    <output args="-q filterTextFiles"/>
+</sample>
+++++
 
 If `collection` changes at any time, either by adding or removing files from itself, then `textFiles` will immediately reflect the change because it is also a live collection. Note that the closure you pass to `filter()` takes a `File` as an argument and should return a boolean.
 
@@ -598,21 +579,11 @@ Consider a scenario in which you want to copy static website resources in multip
 
 Instead, Gradle allows you to create standalone, reusable copy specs using the api:org.gradle.api.Project#copySpec(org.gradle.api.Action)[] method. The following example shows you how to create such a copy spec and use it in multiple copying-based tasks:
 
-----
-def webAssetsSpec = copySpec {
-    include '**/*.html', '**/*.png', '**/*.jpg'
-}
-
-task copyAssets(type: Copy) {
-    into "${buildDir}/explodedWar"
-    with webAssetsSpec
-}
-
-task archiveApp(type: Zip) {
-    from "otherResources"
-    with webAssetsSpec
-}
-----
+++++
+<sample id="sharingCopySpecs" dir="userguide/files/copy" title="Sharing copy specifications">
+    <sourcefile file="build.gradle" snippet="standalone-copyspec"/>
+</sample>
+++++
 
 As you can see, the api:org.gradle.api.file.CopySpec#with(org.gradle.api.file.CopySpec...)[] method is the key to incorporating an existing copy specification into another one.
 

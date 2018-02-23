@@ -34,17 +34,80 @@ task copyReport3(type: Copy) {
 // END SNIPPET copy-single-file-example-with-task-properties
 
 // START SNIPPET copy-multiple-files-example
-task copyDocsForArchiving(type: Copy) {
+task copyReportsForArchiving(type: Copy) {
     from "${buildDir}/reports/my-report.pdf", "src/docs/manual.pdf"
     into "${buildDir}/toArchive"
 }
 // END SNIPPET copy-multiple-files-example
 
-task copyPdfDocsForArchiving(type: Copy) {
+// START SNIPPET copy-multiple-files-with-flat-filter-example
+task copyPdfReportsForArchiving(type: Copy) {
     from "${buildDir}/reports"
     include "*.pdf"
     into "${buildDir}/toArchive"
 }
+// END SNIPPET copy-multiple-files-with-flat-filter-example
+
+// START SNIPPET copy-multiple-files-with-deep-filter-example
+task copyAllPdfReportsForArchiving(type: Copy) {
+    from "${buildDir}/reports"
+    include "**/*.pdf"
+    into "${buildDir}/toArchive"
+}
+// END SNIPPET copy-multiple-files-with-deep-filter-example
+
+// START SNIPPET copy-directory-example
+task copyReportsDirForArchiving(type: Copy) {
+    from "${buildDir}/reports"
+    into "${buildDir}/toArchive"
+}
+// END SNIPPET copy-directory-example
+
+// START SNIPPET copy-directory-including-itself-example
+task copyReportsDirForArchiving2(type: Copy) {
+    from("${buildDir}") {
+        include "reports/**"
+    }
+    into "${buildDir}/toArchive"
+}
+// END SNIPPET copy-directory-including-itself-example
+
+// START SNIPPET create-archive-example
+task packageDistribution(type: Zip) {
+    archiveName = "my-distribution.zip"
+    destinationDir = file("${buildDir}/dist")
+
+    from "${buildDir}/toArchive"
+}
+// END SNIPPET create-archive-example
+
+// START SNIPPET rename-on-copy-example
+task copyFromStaging(type: Copy) {
+    from "src/main/webapp"
+    into "${buildDir}/explodedWar"
+
+    rename '(.+)-staging(.+)', '$1$2'
+}
+// END SNIPPET rename-on-copy-example
+
+// START SNIPPET truncate-names-example
+task copyWithTruncate(type: Copy) {
+    from "${buildDir}/reports"
+    rename { String filename ->
+        if (filename.size() > 10) {
+            return filename[0..7] + "~" + filename.size()
+        }
+        else return filename
+    }
+    into "${buildDir}/toArchive"
+}
+// END SNIPPET truncate-names-example
+
+
+
+
+
+
 
 // START SNIPPET copy-task
 task copyTask(type: Copy) {
@@ -175,3 +238,21 @@ task test {
     dependsOn copyMethod
     dependsOn copyMethodWithExplicitDependencies
 }
+
+// START SNIPPET standalone-copyspec
+def webAssetsSpec = copySpec {
+    include '**/*.html', '**/*.png', '**/*.jpg'
+    rename '(.+)-staging(.+)', '$1$2'
+}
+
+task copyAssets(type: Copy) {
+    into "${buildDir}/explodedWar"
+    from "src/main/webapp"
+    with webAssetsSpec
+}
+
+task archiveApp(type: Zip) {
+    from "otherResources"
+    with webAssetsSpec
+}
+// END SNIPPET standalone-copyspec

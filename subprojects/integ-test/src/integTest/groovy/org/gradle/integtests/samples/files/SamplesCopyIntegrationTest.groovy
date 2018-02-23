@@ -19,12 +19,9 @@ package org.gradle.integtests.samples.files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
-
-    private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
@@ -34,8 +31,7 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.inDirectory(sample.dir)
         def reportsDir = sample.dir.file('build/reports')
-        reportsDir.mkdir()
-        reportsDir.file('my-report.pdf').touch()
+        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport')
@@ -49,8 +45,7 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.inDirectory(sample.dir)
         def reportsDir = sample.dir.file('build/reports')
-        reportsDir.mkdir()
-        reportsDir.file('my-report.pdf').touch()
+        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport2')
@@ -64,8 +59,7 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.inDirectory(sample.dir)
         def reportsDir = sample.dir.file('build/reports')
-        reportsDir.mkdir()
-        reportsDir.file('my-report.pdf').touch()
+        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport3')
@@ -79,102 +73,210 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.inDirectory(sample.dir)
         def reportsDir = sample.dir.file('build/reports')
-        reportsDir.mkdir()
-        reportsDir.file('my-report.pdf').touch()
+        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
-        succeeds('copyReport3')
+        succeeds('copyReportsForArchiving')
 
         then:
         sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        sample.dir.file('build/toArchive/manual.pdf').isFile()
     }
-/*
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/withoutVersion")
-    def "can use declare and resolve dependency without version"() {
+
+    @UsesSample("userguide/files/copy")
+    def "can filter files to a specific type"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def reportsDir = sample.dir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
+        reportsDir.file('numbers.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/reports"
+        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
+
+        when:
+        succeeds('copyPdfReportsForArchiving')
+
+        then:
+        sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').assertDoesNotExist()
+        sample.dir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
+        sample.dir.file('build/toArchive/numbers.csv').assertDoesNotExist()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can filter files to a specific type including in subdirectories"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def reportsDir = sample.dir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
+        reportsDir.file('numbers.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/reports"
+        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
+
+        when:
+        succeeds('copyAllPdfReportsForArchiving')
+
+        then:
+        sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
+        sample.dir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
+        sample.dir.file('build/toArchive/numbers.csv').assertDoesNotExist()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can copy a directory"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def reportsDir = sample.dir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
+        reportsDir.file('numbers.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/reports"
+        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
+
+        when:
+        succeeds('copyReportsDirForArchiving')
+
+        then:
+        sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
+        sample.dir.file('build/toArchive/numbers.csv').isFile()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can copy a directory, including itself"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def reportsDir = sample.dir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
+        reportsDir.file('numbers.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/reports"
+        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
+
+        when:
+        succeeds('copyReportsDirForArchiving2')
+
+        then:
+        sample.dir.file('build/toArchive/reports/my-report.pdf').isFile()
+        sample.dir.file('build/toArchive/reports/metrics/scatterPlot.pdf').isFile()
+        sample.dir.file('build/toArchive/reports/numbers.csv').isFile()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can archive a directory"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def archivesDir = sample.dir.file('build/toArchive')
+        archivesDir.createDir().file('my-report.pdf').touch()
+        archivesDir.createDir().file('numbers.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/toArchive"
+        archivesDir.createDir("metrics").file("scatterPlot.pdf").touch()
+
+        when:
+        succeeds('packageDistribution')
+
+        then:
+        def tmpOutDir = sample.dir.file("tmp")
+        def zipFile = sample.dir.file('build/dist/my-distribution.zip')
+        zipFile.isFile()
+        zipFile.unzipTo(tmpOutDir)
+        tmpOutDir.file('my-report.pdf').isFile()
+        tmpOutDir.file('numbers.csv').isFile()
+        tmpOutDir.file('metrics/scatterPlot.pdf').isFile()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can rename files as they are copied"() {
+        given:
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds(COPY_LIBS_TASK_NAME)
+        succeeds('copyFromStaging')
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+        def outputDir = sample.dir.file("build/explodedWar")
+        outputDir.file('web.xml').isFile()
+        outputDir.file('index.html').isFile()
+        outputDir.file('products/gradle.html').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/dynamicVersion")
-    def "can use declare and resolve dependency with dynamic version"() {
+    @UsesSample("userguide/files/copy")
+    def "can truncate filenames as they are copied"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def reportsDir = sample.dir.file('build/reports')
+        reportsDir.createDir().file('my-report.pdf').touch()
+        reportsDir.file('numbers-long.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/reports"
+        reportsDir.createDir("metrics").file("plot.pdf").touch()
+
+        when:
+        succeeds('copyWithTruncate')
+
+        then:
+        sample.dir.file('build/toArchive/my-repor~13').isFile()
+        sample.dir.file('build/toArchive/metrics/plot.pdf').isFile()
+        sample.dir.file('build/toArchive/numbers-~16').isFile()
+    }
+
+    @UsesSample("userguide/files/archivesWithBasePlugin")
+    def "can create an archive with a convention-based name"() {
+        given:
+        executer.inDirectory(sample.dir)
+        def archivesDir = sample.dir.file('build/toArchive')
+        archivesDir.createDir().file('my-report.pdf').touch()
+        archivesDir.createDir().file('numbers.csv').touch()
+
+        and: "A PDF report in a subdirectory of build/toArchive"
+        archivesDir.createDir("metrics").file("scatterPlot.pdf").touch()
+
+        when:
+        succeeds('packageDistribution')
+
+        then:
+        def tmpOutDir = sample.dir.file("tmp")
+        def zipFile = sample.dir.file('build/distributions/archives-example-1.0.0.zip')
+        zipFile.isFile()
+        zipFile.unzipTo(tmpOutDir)
+        tmpOutDir.file('docs/my-report.pdf').isFile()
+        tmpOutDir.file('docs/metrics/scatterPlot.pdf').isFile()
+        tmpOutDir.file('numbers.csv').isFile()
+    }
+
+    @UsesSample("userguide/files/archives")
+    def "can unpack a ZIP file"() {
+        given:
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('copyLibs')
+        succeeds('unpackFiles')
 
         then:
-        sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+        def outputDir = sample.dir.file("build/resources")
+        outputDir.file('libs/first.txt').isFile()
+        outputDir.file('libs/other.txt').isFile()
+        outputDir.file('docs.txt').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")
-    def "can use declare and resolve dependency with changing version"() {
+    @UsesSample("userguide/files/copy")
+    def "can use a standalone copyspec within a copy"() {
+        given:
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds(COPY_LIBS_TASK_NAME)
+        succeeds('copyAssets')
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
+        def outputDir = sample.dir.file("build/explodedWar")
+        outputDir.file('web.xml').assertDoesNotExist()
+        outputDir.file('index-staging.html').assertDoesNotExist()
+        outputDir.file('index.html').isFile()
+        outputDir.file('logo.png').isFile()
+        outputDir.file('products/gradle.html').isFile()
     }
-
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/fileDependencies")
-    def "can use declare and resolve file dependencies"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        sample.dir.file('build/libs/antcontrib.jar').isFile()
-        sample.dir.file('build/libs/commons-lang.jar').isFile()
-        sample.dir.file('build/libs/log4j.jar').isFile()
-        sample.dir.file('build/libs/a.exe').isFile()
-        sample.dir.file('build/libs/b.exe').isFile()
-    }
-
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/projectDependencies")
-    def "can declare and resolve project dependencies"() {
-        executer.inDirectory(sample.dir)
-
-        expect:
-        succeeds('assemble')
-    }
-
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnly")
-    def "can resolve dependency with artifact-only declaration"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        assertSingleLib('jquery-3.2.1.js')
-    }
-
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier")
-    def "can resolve dependency with artifact-only declaration with classifier"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        assertSingleLib('jquery-3.2.1-min.js')
-    }
-
-    private TestFile[] listFilesInBuildLibsDir() {
-        sample.dir.file('build/libs').listFiles()
-    }
-
-    private void assertSingleLib(String filename) {
-        def libs = listFilesInBuildLibsDir()
-        assert libs.size() == 1
-        assert libs[0].name == filename
-    }
-*/
 }

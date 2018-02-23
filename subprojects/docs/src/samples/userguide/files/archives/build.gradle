@@ -1,3 +1,10 @@
+// START SNIPPET unpack-archive-example
+task unpackFiles(type: Copy) {
+    from zipTree("src/resources/thirdPartyResources.zip")
+    into "${buildDir}/resources"
+}
+// END SNIPPET unpack-archive-example
+
 // START SNIPPET zip
 apply plugin: 'java'
 

@@ -3,7 +3,7 @@ import java.nio.file.Paths
 // START SNIPPET simple-params
 FileCollection collection = files('src/file1.txt',
                                   new File('src/file2.txt'),
-                                  ['src/file3.txt', 'src/file4.txt'],
+                                  ['src/file3.csv', 'src/file4.csv'],
                                   Paths.get('src', 'file5.txt'))
 // END SNIPPET simple-params
 
@@ -52,9 +52,25 @@ task usage {
         File file2 = collection as File
 
         // Add and subtract collections
-        def union = collection + files('src/file3.txt')
-        def different = collection - files('src/file3.txt')
+        def union = collection + files('src/file2.txt')
+        def different = collection - files('src/file2.txt')
 
         //END SNIPPET usage
+    }
+}
+
+task filterTextFiles {
+    doLast {
+        // START SNIPPET filtering-file-collections
+        FileCollection textFiles = collection.filter { File f ->
+            f.name.endsWith(".txt")
+        }
+        // END SNIPPET filtering-file-collections
+
+        textFiles.collect { relativePath(it) }.sort().each { File f ->
+            println f.name
+        }
+
+        assert textFiles.files*.name.sort()  == ['file1.txt', 'file2.txt', 'file3.txt']
     }
 }
