@@ -68,6 +68,10 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "publishPublicLibraries" {
+            id = "publish-public-libraries"
+            implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
+        }
     }
 }
 

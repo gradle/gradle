@@ -208,19 +208,25 @@ allprojects {
 
 subprojects {
     version = rootProject.version
+}
 
-    if (project in groovyProjects) {
+groovyProjects.each {
+    it.with {
         apply from: "$rootDir/gradle/groovyProject.gradle.kts"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
         apply from: "$rootDir/gradle/java9plus.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }
+}
 
-    if (project in publishedProjects) {
-        apply from: "$rootDir/gradle/publish.gradle"
+publishedProjects.each {
+    it.with {
+        apply plugin: "publish-public-libraries"
     }
+}
 
+subprojects {
     apply from: "$rootDir/gradle/codeQuality.gradle"
 }
 
