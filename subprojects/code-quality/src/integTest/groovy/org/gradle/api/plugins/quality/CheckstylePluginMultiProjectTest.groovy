@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
@@ -32,7 +33,7 @@ apply plugin: "checkstyle"
 
 ${mavenCentralRepository()}
 """
-        rootProject.file('child/grand/src/main/java/Dummy.java') << "public class Dummy {}\n"
+        rootProject.file('child/grand/src/main/java/Dummy.java') << "public class Dummy {}${getPlatformLineSeparator()}"
         rootProject.file('child/grand', 'config/checkstyle/checkstyle.xml') << "INVALID AND SHOULD NEVER BE READ"
         rootProject.file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
