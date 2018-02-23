@@ -566,6 +566,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         where:
         type                                      | prop               | value                            | expected
         TaskWithNestedBean                        | "bean.class"       | [null]                           | Bean.class
+        TaskWithNestedObject                      | "bean.key.class"   | [['key': new Bean()]]            | Bean.class
         TaskWithNestedIterable                    | "beans.\$0.class"  | [new Bean()]                     | Bean.class
         TaskWithNestedIterable                    | "beans.name.value" | [new NamedBean("name", "value")] | "value"
         TaskWithNestedBeanWithPrivateClass        | "bean.class"       | [null, null]                     | Bean2.class

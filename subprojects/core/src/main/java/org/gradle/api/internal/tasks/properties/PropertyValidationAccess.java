@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -114,10 +115,24 @@ public class PropertyValidationAccess {
 
         @Override
         public Iterator<BeanTypeNode> getIterator() {
-            TypeToken<Iterable> typeToken = Cast.uncheckedCast(beanType);
-            ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
-            TypeToken<?> nestedType = TypeToken.of(type.getActualTypeArguments()[0]);
-            return Iterators.singletonIterator(new BeanTypeNode(getPropertyName() + "*", nestedType));
+            if (Map.class.isAssignableFrom(beanType.getRawType())) {
+                TypeToken<?> nestedType = extractNestedType(Map.class, 1);
+                return Iterators.singletonIterator(new BeanTypeNode(getQualifiedPropertyName("<key>"), nestedType));
+            }
+            TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
+            return Iterators.singletonIterator(new BeanTypeNode(determinePropertyName(nestedType), nestedType));
+        }
+
+        private String determinePropertyName(TypeToken<?> nestedType) {
+            return Named.class.isAssignableFrom(nestedType.getRawType())
+                        ? getQualifiedPropertyName("<name>")
+                        : getPropertyName() + "*";
+        }
+
+        private <T> TypeToken<?> extractNestedType(Class<T> parameterizedSuperClass, int typeParameterIndex) {
+            TypeToken<T> typeToken = Cast.uncheckedCast(beanType);
+            ParameterizedType type = (ParameterizedType) typeToken.getSupertype(parameterizedSuperClass).getType();
+            return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
         }
     }
 

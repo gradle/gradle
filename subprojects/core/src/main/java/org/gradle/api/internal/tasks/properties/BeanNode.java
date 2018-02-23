@@ -23,6 +23,7 @@ import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
+import java.util.Map;
 
 public class BeanNode extends AbstractPropertyNode<BeanNode> {
     private final Object bean;
@@ -38,14 +39,20 @@ public class BeanNode extends AbstractPropertyNode<BeanNode> {
 
     @Override
     public Iterator<BeanNode> getIterator() {
+        if (bean instanceof Map<?, ?>) {
+            return Iterators.transform(((Map<?, ?>) bean).entrySet().iterator(), new Function<Map.Entry<?, ?>, BeanNode>() {
+                @Override
+                public BeanNode apply(Map.Entry<?, ?> input) {
+                    return createBeanNode(input.getKey().toString(), input.getValue());
+                }
+            });
+        }
         return Iterators.transform(((Iterable<?>) bean).iterator(), new Function<Object, BeanNode>() {
             private int count = 0;
 
             @Override
             public BeanNode apply(@Nullable Object input) {
-                String childPropertyName = getQualifiedPropertyName(determinePropertyName(input));
-                Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + childPropertyName + "'");
-                return new BeanNode(childPropertyName, bean);
+                return createBeanNode(determinePropertyName(input), input);
             }
 
             private String determinePropertyName(@Nullable Object input) {
@@ -55,5 +62,11 @@ public class BeanNode extends AbstractPropertyNode<BeanNode> {
                 return "$" + count++;
             }
         });
+    }
+
+    private BeanNode createBeanNode(String propertyName, @Nullable Object input) {
+        String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
+        Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + qualifiedPropertyName + "'");
+        return new BeanNode(qualifiedPropertyName, bean);
     }
 }

@@ -441,6 +441,19 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithNestedObject extends TaskWithAction {
+        Object bean;
+
+        public TaskWithNestedObject(Object bean) {
+            this.bean = bean;
+        }
+
+        @Nested
+        public Object getBean() {
+            return bean;
+        }
+    }
+
     public static class TaskWithNestedIterable extends TaskWithAction {
         Object bean;
 
