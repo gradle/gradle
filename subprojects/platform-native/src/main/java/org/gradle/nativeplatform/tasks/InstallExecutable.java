@@ -32,7 +32,6 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
@@ -44,6 +43,7 @@ import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.platform.base.ToolChain;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -182,7 +182,7 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.3
      */
     @SkipWhenEmpty
-    @Optional
+    @Nullable
     @InputFile
     protected File getInputFileIfExists() {
         RegularFileProperty sourceFile = getSourceFile();

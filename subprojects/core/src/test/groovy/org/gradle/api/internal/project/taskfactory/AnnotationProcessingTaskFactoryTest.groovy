@@ -209,11 +209,17 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         where:
         type                                      | property
         TaskWithOptionalInputFile                 | 'input-file'
+        TaskWithNullableInputFile                 | 'input-file'
         TaskWithOptionalOutputFile                | 'output-file'
+        TaskWithNullableOutputFile                | 'output-file'
         TaskWithOptionalOutputFiles               | 'output-files'
+        TaskWithNullableOutputFiles               | 'output-files'
         TaskWithOptionalOutputDir                 | 'output-dir'
+        TaskWithNullableOutputDir                 | 'output-dir'
         TaskWithOptionalOutputDirs                | 'output-dirs'
+        TaskWithNullableOutputDirs                | 'output-dirs'
         TaskWithOptionalNestedBean                | 'bean'
+        TaskWithNullableNestedBean                | 'bean'
         TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
         arguments = type == TaskWithOptionalNestedBean ? [null] : []
     }

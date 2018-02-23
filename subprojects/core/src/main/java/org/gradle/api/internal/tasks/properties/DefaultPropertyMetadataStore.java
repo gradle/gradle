@@ -22,6 +22,7 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
@@ -102,6 +103,12 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         new NoOpPropertyAnnotationHandler(Internal.class),
         new NoOpPropertyAnnotationHandler(OptionValues.class)
     );
+    private static final Predicate<Annotation> NOT_NULLABLE = new Predicate<Annotation>() {
+        @Override
+        public boolean apply(Annotation input) {
+            return !input.annotationType().equals(Nullable.class);
+        }
+    };
 
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
@@ -142,6 +149,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         return ImmutableSet.<Class<? extends Annotation>>builder()
             .addAll(propertyTypeAnnotations)
             .add(Optional.class)
+            .add(Nullable.class)
             .add(SkipWhenEmpty.class)
             .add(PathSensitive.class)
             .build();
@@ -197,7 +205,8 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
 
     private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyMetadata propertyContext) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
-        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
+        Collection<Annotation> methodAnnotationsWithoutNullable = Collections2.filter(methodAnnotations, NOT_NULLABLE);
+        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotationsWithoutNullable.isEmpty()) {
             propertyContext.validationMessage("is private and annotated with an input or output annotation");
         }
         if (field == null) {
@@ -211,7 +220,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
             return fieldAnnotations;
         }
 
-        for (Annotation methodAnnotation : methodAnnotations) {
+        for (Annotation methodAnnotation : methodAnnotationsWithoutNullable) {
             Iterator<Annotation> iFieldAnnotation = fieldAnnotations.iterator();
             while (iFieldAnnotation.hasNext()) {
                 Annotation fieldAnnotation = iFieldAnnotation.next();

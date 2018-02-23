@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
@@ -41,6 +40,7 @@ import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.WrapperExecutor;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -378,8 +378,8 @@ public class Wrapper extends DefaultTask {
      * @since 4.5
      */
     @Incubating
+    @Nullable
     @Input
-    @Optional
     public String getDistributionSha256Sum() {
         return distributionSha256Sum;
     }
@@ -397,7 +397,7 @@ public class Wrapper extends DefaultTask {
      */
     @Incubating
     @Option(option = "gradle-distribution-sha256-sum", description = "The SHA-256 hash sum of the gradle distribution.")
-    public void setDistributionSha256Sum(String distributionSha256Sum) {
+    public void setDistributionSha256Sum(@Nullable String distributionSha256Sum) {
         this.distributionSha256Sum = distributionSha256Sum;
     }
 

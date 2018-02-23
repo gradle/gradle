@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
@@ -74,12 +73,12 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
     /**
      * Returns the pre-compiled header to be used during compilation
      */
-    @Nested @Optional
+    @Nullable @Nested
     public PreCompiledHeader getPreCompiledHeader() {
         return preCompiledHeader;
     }
 
-    public void setPreCompiledHeader(PreCompiledHeader preCompiledHeader) {
+    public void setPreCompiledHeader(@Nullable PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
     }
 
@@ -88,9 +87,8 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
      *
      * @since 4.4
      */
-    @Nested
-    @Optional
     @Nullable
+    @Nested
     protected CompilerVersion getCompilerVersion() {
         NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
         NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();

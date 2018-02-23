@@ -25,13 +25,13 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.testing.AbstractTestTask;
+import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestTestExecutionSpec;
-import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestExecuter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -87,7 +87,7 @@ public class XCTest extends AbstractTestTask {
      * Workaround for when the task is given an input file that doesn't exist
      */
     @SkipWhenEmpty
-    @Optional
+    @Nullable
     @InputFile
     protected File getRunScript() {
         RegularFile runScript = getRunScriptFile().get();

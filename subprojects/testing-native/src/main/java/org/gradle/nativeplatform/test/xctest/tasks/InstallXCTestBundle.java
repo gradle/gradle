@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
@@ -38,6 +37,7 @@ import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -148,8 +148,8 @@ public class InstallXCTestBundle extends DefaultTask {
     }
 
     @SkipWhenEmpty
+    @Nullable
     @InputFile
-    @Optional
     protected File getBundleBinary() {
         RegularFile bundle = getBundleBinaryFile().get();
         File bundleFile = bundle.getAsFile();

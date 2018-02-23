@@ -25,7 +25,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -33,6 +32,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -73,8 +73,8 @@ public class UnexportMainSymbol extends SourceTask {
     /**
      * Object file that may contain a main symbol.
      */
+    @Nullable
     @InputFile
-    @Optional
     public File getMainObject() {
         if (mainObjectFile == null) {
             mainObjectFile = findMainObject();

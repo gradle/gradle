@@ -17,13 +17,13 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -75,7 +75,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the text to appear in the window title.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -83,14 +83,14 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the text to appear in the window title.
      */
-    public void setWindowTitle(String windowTitle) {
+    public void setWindowTitle(@Nullable String windowTitle) {
         this.windowTitle = windowTitle;
     }
 
     /**
      * Returns the HTML text to appear in the main frame title.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getDocTitle() {
         return docTitle;
     }
@@ -98,14 +98,14 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the main frame title.
      */
-    public void setDocTitle(String docTitle) {
+    public void setDocTitle(@Nullable String docTitle) {
         this.docTitle = docTitle;
     }
 
     /**
      * Returns the HTML text to appear in the header for each page.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getHeader() {
         return header;
     }
@@ -113,14 +113,14 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the header for each page.
      */
-    public void setHeader(String header) {
+    public void setHeader(@Nullable String header) {
         this.header = header;
     }
 
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getFooter() {
         return footer;
     }
@@ -128,14 +128,14 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the footer for each page.
      */
-    public void setFooter(String footer) {
+    public void setFooter(@Nullable String footer) {
         this.footer = footer;
     }
 
     /**
      * Returns the HTML text to appear in the top text for each page.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getTop() {
         return top;
     }
@@ -143,14 +143,14 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the top text for each page.
      */
-    public void setTop(String top) {
+    public void setTop(@Nullable String top) {
         this.top = top;
     }
 
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getBottom() {
         return bottom;
     }
@@ -158,7 +158,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the bottom text for each page.
      */
-    public void setBottom(String bottom) {
+    public void setBottom(@Nullable String bottom) {
         this.bottom = bottom;
     }
 
@@ -168,7 +168,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
     @PathSensitive(PathSensitivity.ABSOLUTE)
-    @InputFile @Optional
+    @Nullable @InputFile
     @Deprecated
     public File getStyleSheet() {
         DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.getStyleSheet");
@@ -181,7 +181,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
     @Deprecated
-    public void setStyleSheet(File styleSheet) {
+    public void setStyleSheet(@Nullable File styleSheet) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.setStyleSheet");
         this.styleSheet = styleSheet;
     }
@@ -190,7 +190,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * Returns the additional parameters passed to the compiler.
      * Each parameter starts with '-'.
      */
-    @Input @Optional
+    @Nullable @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
@@ -199,7 +199,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * Sets the additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      */
-    public void setAdditionalParameters(List<String> additionalParameters) {
+    public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
 

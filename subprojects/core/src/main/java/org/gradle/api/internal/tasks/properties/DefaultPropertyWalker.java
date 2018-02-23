@@ -130,7 +130,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         @Override
         public boolean isOptional() {
-            return isAnnotationPresent(Optional.class);
+            return isAnnotationPresent(Optional.class) || isAnnotationPresent(Nullable.class);
         }
 
         @Nullable

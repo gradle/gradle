@@ -23,7 +23,6 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -31,6 +30,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -114,12 +114,12 @@ public class ScalaDoc extends SourceTask {
     /**
      * Returns the documentation title.
      */
-    @Input @Optional
+    @Nullable @Input
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 

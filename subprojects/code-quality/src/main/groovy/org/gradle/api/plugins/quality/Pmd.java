@@ -34,7 +34,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
@@ -44,6 +43,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -194,8 +194,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.2
      */
     @Incubating
+    @Nullable
     @Nested
-    @Optional
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -210,7 +210,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.2
      */
     @Incubating
-    public void setRuleSetConfig(TextResource ruleSetConfig) {
+    public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
 
@@ -315,8 +315,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @since 2.8
      */
+    @Nullable
     @Classpath
-    @Optional
     @Incubating
     public FileCollection getClasspath() {
         return classpath;
@@ -332,7 +332,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.8
      */
     @Incubating
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
     }
 }

@@ -326,6 +326,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             'Input'
         }
 
+        @Nullable
         @OutputFile
         private File getOutputFile() {
             null
@@ -347,6 +348,23 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             "is private and annotated with an input or output annotation",
             "is private and annotated with an input or output annotation",
         ]
+    }
+
+    class TaskWithNullableOnPrivateProperties extends DefaultTask {
+        @Nullable
+        private String getNullable() {
+            'Input'
+        }
+    }
+
+    def "@Nullable on private properties is no validation error"() {
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+
+        when:
+        def metadata = metadataStore.getTypeMetadata(TaskWithNullableOnPrivateProperties).propertiesMetadata
+
+        then:
+        metadata*.validationMessages.flatten().empty
     }
 
     class TaskWithConflictingPropertyTypes extends DefaultTask {

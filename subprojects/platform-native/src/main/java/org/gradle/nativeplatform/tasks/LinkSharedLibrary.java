@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -71,13 +72,13 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         return importLibrary;
     }
 
+    @Nullable
     @Input
-    @Optional
     public String getInstallName() {
         return installName;
     }
 
-    public void setInstallName(String installName) {
+    public void setInstallName(@Nullable String installName) {
         this.installName = installName;
     }
 

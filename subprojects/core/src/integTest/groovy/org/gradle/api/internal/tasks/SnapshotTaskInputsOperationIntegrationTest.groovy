@@ -21,13 +21,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import spock.lang.Unroll
+
+import javax.annotation.Nullable
 
 @Unroll
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
@@ -262,7 +263,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 }   
 
                 @$Nested.name
-                @$Optional.name
+                @$Nullable.name
                 Object bean
             }
 

@@ -26,8 +26,12 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
 import spock.lang.Specification
 
+import javax.annotation.Nullable
 import java.nio.file.Path
 
 class PropertyValidationAccessTest extends Specification {
@@ -171,6 +175,29 @@ class PropertyValidationAccessTest extends Specification {
         problems.keySet() == validationProblems(TaskWithNonAnnotatedProperty, [
             "property 'inputFiles' is not annotated with an input or output annotation"
         ])
+    }
+
+    static class TaskWithOnlySecondaryAnnotations extends DefaultTask {
+        @Nullable
+        String getNullable() { "Only nullable" }
+        @org.gradle.api.tasks.Optional
+        String getOptional() { "Only optional" }
+        @SkipWhenEmpty
+        String getSkipWhenEmpty() { "Only skipWhenEmpty" }
+        @PathSensitive(PathSensitivity.RELATIVE)
+        String getPathSensitive() { "Only pathSensitive" }
+    }
+
+    def "warns about properties only having secondary annotations"() {
+        def propertyValidationAccess = new PropertyValidationAccess()
+        def problems = new HashMap<String, Boolean>()
+        when:
+        propertyValidationAccess.collectTaskValidationProblems(TaskWithOnlySecondaryAnnotations, problems)
+
+        then:
+        problems.keySet() == validationProblems(TaskWithOnlySecondaryAnnotations, ['nullable', 'optional', 'skipWhenEmpty', 'pathSensitive'].collect {
+            "property '${it}' is not annotated with an input or output annotation"
+        })
     }
 
     private static Set<String> validationProblems(Class<?> task, List messages) {

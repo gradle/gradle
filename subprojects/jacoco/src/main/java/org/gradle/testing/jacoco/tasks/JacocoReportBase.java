@@ -27,7 +27,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
@@ -35,6 +34,7 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -120,28 +120,28 @@ public abstract class JacocoReportBase extends JacocoBase {
     /**
      * Additional class dirs that coverage data should be reported for.
      */
-    @Optional
+    @Nullable
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getAdditionalClassDirs() {
         return additionalClassDirs;
     }
 
-    public void setAdditionalClassDirs(FileCollection additionalClassDirs) {
+    public void setAdditionalClassDirs(@Nullable FileCollection additionalClassDirs) {
         this.additionalClassDirs = additionalClassDirs;
     }
 
     /**
      * Additional source dirs for the classes coverage data is being reported for.
      */
-    @Optional
+    @Nullable
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getAdditionalSourceDirs() {
         return additionalSourceDirs;
     }
 
-    public void setAdditionalSourceDirs(FileCollection additionalSourceDirs) {
+    public void setAdditionalSourceDirs(@Nullable FileCollection additionalSourceDirs) {
         this.additionalSourceDirs = additionalSourceDirs;
     }
 

@@ -20,13 +20,13 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -101,7 +101,7 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     // Workaround for when the task is given an input file that doesn't exist
-    @Optional @InputFile
+    @Nullable @InputFile
     protected File getInputFileIfExists() {
         File inputFile = getInputFile();
         if (inputFile != null && inputFile.exists()) {
@@ -116,7 +116,7 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param inputFile The input file. Use null to use the output file.
      */
-    public void setInputFile(File inputFile) {
+    public void setInputFile(@Nullable File inputFile) {
         this.inputFile = inputFile;
     }
 
