@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.not
@@ -117,24 +118,31 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withBuildSrc()
 
-        withFile("classes.jar")
+        val buildSrcDependency =
+            withFile("buildSrc-dependency.jar")
+
+        withFile("buildSrc/build.gradle", """
+            dependencies { compile(files("../${buildSrcDependency.name}")) }
+        """)
+
+        val rootProjectDependency = withFile("rootProject-dependency.jar")
 
         withFile("build.gradle", """
             buildscript {
-                dependencies { classpath(files("classes.jar")) }
+                dependencies { classpath(files("${rootProjectDependency.name}")) }
             }
         """)
 
         val scriptPlugin = withFile("plugin.gradle.kts")
 
-        val classPath = canonicalClassPathFor(projectRoot, scriptPlugin)
+        val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
         assertThat(
-            classPath,
-            not(hasItem(existing("classes.jar"))))
-
-        assertContainsBuildSrc(classPath)
-
-        assertContainsGradleKotlinDslJars(classPath)
+            scriptPluginClassPath.map { it.name },
+            allOf(
+                not(hasItem(rootProjectDependency.name)),
+                hasItem(buildSrcDependency.name)))
+        assertContainsBuildSrc(scriptPluginClassPath)
+        assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }
 
     @Test

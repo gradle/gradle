@@ -22,21 +22,20 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
+
 import org.gradle.groovy.scripts.TextResourceScriptSource
 
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
-import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.provider.initScriptClassPathFor
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
@@ -226,20 +225,17 @@ val Project.settings
 
 private
 val Project.scriptCompilationClassPath
-    get() = serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf((this as ProjectInternal).classLoaderScope)
+    get() = compilationClassPathOf((this as ProjectInternal).classLoaderScope)
 
 
 private
 val Project.defaultScriptCompilationClassPath
-    get() = DefaultClassPath.of(project.buildSrcClassPath + gradleKotlinDslOf(rootProject))
+    get() = compilationClassPathOf((rootProject as ProjectInternal).baseClassLoaderScope)
 
 
 private
-val Project.buildSrcClassPath
-    get() = ClasspathUtil
-        .getClasspath(buildscript.classLoader)
-        .asFiles
-        .filter { it.name == "buildSrc.jar" }
+fun Project.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
+    serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(classLoaderScope)
 
 
 private
