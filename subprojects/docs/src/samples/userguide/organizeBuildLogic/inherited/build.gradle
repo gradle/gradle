@@ -1,0 +1,7 @@
+// Define an extra property
+ext.srcDirName = 'src/java'
+
+// Define a method
+def getSrcDir(project) {
+    return project.file(srcDirName)
+}

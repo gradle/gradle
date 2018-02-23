@@ -1,0 +1,71 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'commons-math:commons-math:1.1'
+    }
+}
+
+configurations {
+   spi
+}
+
+// START SNIPPET dependencies
+// START SNIPPET project-dependencies
+dependencies {
+    compile project(':shared')
+// END SNIPPET project-dependencies
+// END SNIPPET dependencies
+    compile module("commons-lang:commons-lang:2.4") {
+        dependency("commons-io:commons-io:1.2")
+    }
+// START SNIPPET dependencies
+// START SNIPPET project-dependencies
+}
+// END SNIPPET dependencies
+// END SNIPPET project-dependencies
+
+// Just a smoke test that using this option does not lead to any exception
+compileJava.options.compilerArgs = ['-Xlint:unchecked']
+
+task spiJar(type: Jar) {
+    appendix = 'spi'
+    from sourceSets.main.output
+    include 'org/gradle/api/'
+}
+
+artifacts {
+  spi spiJar
+}
+
+// START SNIPPET dists
+task dist(type: Zip) {
+    dependsOn spiJar
+    from 'src/dist'
+    into('libs') {
+        from spiJar.archivePath
+        from configurations.runtime
+    }
+}
+
+artifacts {
+   archives dist
+}
+// END SNIPPET dists
+
+// We want to test if commons-math was properly added to the build script classpath
+org.apache.commons.math.fraction.Fraction lhs = new org.apache.commons.math.fraction.Fraction(1, 3);
+org.gradle.buildsrc.BuildSrcClass bsc = new org.gradle.buildsrc.BuildSrcClass()
+
+task checkProjectDependency(dependsOn: project(':shared').jar) {
+    doLast {
+        File cachedSharedJarDir = new File(gradle.gradleUserHomeDir, "cache/multiproject/shared/jars")
+        copy {
+            from project(':shared').jar.archivePath
+            into cachedSharedJarDir
+        }
+        File sharedJar = configurations.compile.files.find { File file -> file.name.startsWith('shared') }
+        assert sharedJar.absolutePath == project(':shared').jar.archivePath.absolutePath
+    }
+}

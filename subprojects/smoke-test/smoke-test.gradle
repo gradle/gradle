@@ -1,0 +1,70 @@
+import org.gradle.testing.SmokeTest
+
+sourceSets {
+    smokeTest {
+        compileClasspath += main.output + test.output
+        runtimeClasspath += compileClasspath
+    }
+}
+
+configurations {
+    smokeTestCompile.extendsFrom testCompile
+    smokeTestRuntime.extendsFrom testRuntime
+    partialDistribution.extendsFrom smokeTestRuntimeClasspath
+}
+
+dependencies {
+    smokeTestCompile project(':testKit')
+    smokeTestCompile project(":internalIntegTesting")
+    smokeTestCompile testLibraries.spock
+
+    smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
+    smokeTestRuntimeOnly project(':codeQuality')
+    smokeTestRuntimeOnly project(':ide')
+    smokeTestRuntimeOnly project(':ivy')
+    smokeTestRuntimeOnly project(':jacoco')
+    smokeTestRuntimeOnly project(':maven')
+    smokeTestRuntimeOnly project(':plugins')
+    smokeTestRuntimeOnly project(':toolingApiBuilders')
+}
+
+testFixtures {
+    from(':core')
+    from(':versionControl')
+}
+
+processSmokeTestResources {
+    from ("$rootDir/gradle") {
+        into "org/gradle/smoketests/cache-init-scripts"
+        include "overlappingTaskOutputsStatsInit.gradle"
+    }
+}
+
+tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
+    group = "Verification"
+    description = "Runs Smoke tests"
+    testClassesDirs = sourceSets.smokeTest.output.classesDirs
+    classpath = sourceSets.smokeTest.runtimeClasspath
+    maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+    idea {
+        module {
+            sourceSets.smokeTest.allSource.srcDirs.each {
+                testSourceDirs += it
+            }
+            scopes.TEST.plus.add(configurations.smokeTestCompile)
+            scopes.TEST.plus.add(configurations.smokeTestRuntime)
+        }
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.smokeTestCompile)
+            plusConfigurations.add(configurations.smokeTestRuntime)
+        }
+    }
+}

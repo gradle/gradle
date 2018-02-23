@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="sample">
+    <target name="ivyConfigure">
+         <ivy:configure/>
+    </target>
+    <target name="retrieveFromAnt" depends="ivyConfigure">
+        <ivy:retrieve conf="default" pattern="${buildDir}/antRetrieve/[artifact].[ext]"/>
+    </target>
+</project>

@@ -1,0 +1,10 @@
+:compileMainJarMainJava
+:processMainJarMainResources
+:mainApiJar
+:compileClientJarClientJava
+:clientApiJar
+:createClientJar
+:clientJar
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

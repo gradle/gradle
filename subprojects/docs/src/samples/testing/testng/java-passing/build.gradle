@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'org.testng:testng:6.3.1'
+}
+
+test {
+   useTestNG(){
+       useDefaultListeners = true
+   }
+}

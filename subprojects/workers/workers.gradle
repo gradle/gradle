@@ -1,0 +1,17 @@
+plugins {
+    id 'classycle'
+}
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+dependencies {
+    compile project(':core')
+    compile libraries.jcip.coordinates
+
+    integTestCompile project(':internalIntegTesting')
+}
+
+testFixtures {
+    from(':core')
+    from(':logging')
+}

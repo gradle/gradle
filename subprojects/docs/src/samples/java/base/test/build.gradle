@@ -1,0 +1,11 @@
+dependencies {
+    compile 'junit:junit:4.12', project(':prod')
+}
+
+task test(type: Test) {
+    testClassesDirs = sourceSets.main.output.classesDirs
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+check.dependsOn test
+

@@ -1,0 +1,65 @@
+subprojects {
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+repositories {
+<% if (repository) { %>
+    maven {
+        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
+    }
+<% } %>
+    mavenCentral()
+}
+
+dependencies {
+    compile 'commons-lang:commons-lang:2.5'
+    compile "commons-httpclient:commons-httpclient:3.0"
+    compile "commons-codec:commons-codec:1.2"
+    compile "org.slf4j:jcl-over-slf4j:1.7.10"
+    compile "org.codehaus:groovy:groovy-all:2.4.10"
+    compile "commons-codec:commons-codec:1.2"
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.testng:testng:6.4'
+    runtime 'com.googlecode:reflectasm:1.01'
+
+    <% if (dependencies) { dependencies.each { %>
+    compile "${it.shortNotation()}" <% } %>
+    <% } %>
+}
+
+test {
+    if (!JavaVersion.current().java8Compatible) {
+        jvmArgs '-XX:MaxPermSize=512m'
+    }
+    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+}
+
+<% if (groovyProject) { %>
+apply plugin: 'groovy'
+dependencies {
+    compile 'org.codehaus:groovy:groovy-all:2.4.10'
+}
+<% } %>
+
+<% if (scalaProject) { %>
+apply plugin: 'scala'
+dependencies {
+    compile 'org.scala-lang:scala-library:2.9.2'
+}
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        useAnt = false
+        fork = true
+        if (!JavaVersion.current().java8Compatible) {
+            forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+        }
+    }
+}
+<% } %>
+
+task dependencyReport(type: DependencyReportTask) {
+    outputFile = new File(buildDir, "dependencies.txt")
+}
+}

@@ -1,0 +1,7 @@
+task copy(type: Copy)
+
+task copy(overwrite: true) {
+    doLast {
+        println('I am the new one.')
+    }
+}

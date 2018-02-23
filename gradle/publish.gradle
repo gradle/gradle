@@ -1,0 +1,73 @@
+apply plugin: 'maven'
+
+configurations {
+    publishCompile
+    publishRuntime
+    compile {
+        extendsFrom publishCompile
+    }
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from { sourceSets.main.java.srcDirs + sourceSets.main.groovy.srcDirs }
+}
+
+task generatePom {
+    ext.pomFile = new File(temporaryDir, 'pom.xml')
+    doLast {
+        dependencies {
+            configurations.publishCompile.allDependencies.withType(ProjectDependency).each {
+                publishRuntime "org.gradle:${it.dependencyProject.archivesBaseName}:${version}"
+            }
+            configurations.publishCompile.allDependencies.withType(ExternalDependency).each {
+                publishRuntime it
+            }
+        }
+
+        def localDeployer = install.repositories.mavenInstaller
+
+        configure(localDeployer) {
+            pom.scopeMappings.mappings.clear()
+            pom.scopeMappings.addMapping(300, configurations.publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
+            pom.groupId = project.group
+            pom.artifactId = archivesBaseName
+            pom.version = version
+            pom.writeTo(pomFile)
+        }
+    }
+}
+
+artifacts {
+    publishRuntime jar
+    publishRuntime sourceJar
+    publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generatePom.pomFile, generatePom)
+}
+
+uploadArchives { task ->
+    onlyIf { !project.hasProperty("noUpload") }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(task)) {
+            // check properties defined and fail early
+            artifactoryUserName
+            artifactoryUserPassword
+        }
+    }
+
+    configuration = configurations.publishRuntime
+    dependsOn generatePom
+    uploadDescriptor = false
+    doFirst {
+        repositories {
+            ivy {
+                def repo = "https://gradle.artifactoryonline.com/gradle/libs-${isSnapshot ? 'snapshots' : 'releases'}-local"
+                artifactPattern "${repo}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+                credentials {
+                    username = artifactoryUserName
+                    password = artifactoryUserPassword
+                }
+            }
+        }
+    }
+}

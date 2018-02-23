@@ -1,0 +1,34 @@
+apply plugin: 'cpp'
+
+// START SNIPPET flavors
+model {
+    flavors {
+        english
+        french
+    }
+    components {
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                if (flavor == flavors.french) {
+                    cppCompiler.define "FRENCH"
+                }
+            }
+        }
+    }
+}
+// END SNIPPET flavors
+
+model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            cppCompiler.define "DLL_EXPORT"
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib library: 'hello'
+            }
+        }
+    }
+}

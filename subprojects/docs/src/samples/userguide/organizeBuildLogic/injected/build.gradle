@@ -1,0 +1,22 @@
+subprojects {
+    // Define a new property
+    ext.srcDirName = 'src/java'
+
+    // Define a method using a closure as the method body
+    ext.srcDir = { file(srcDirName) }
+
+    // Define a task
+    task show {
+        doLast {
+            println 'project: ' + project.path
+            println 'srcDirName: ' + srcDirName
+            File srcDir = srcDir()
+            println 'srcDir: ' + rootProject.relativePath(srcDir)
+        }
+    }
+}
+
+// Inject special case configuration into a particular project
+project(':child2') {
+    ext.srcDirName = "$srcDirName/legacy"
+}

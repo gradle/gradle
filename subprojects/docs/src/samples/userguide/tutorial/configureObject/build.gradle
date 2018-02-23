@@ -1,0 +1,10 @@
+task configure {
+    doLast {
+        def pos = configure(new java.text.FieldPosition(10)) {
+            beginIndex = 1
+            endIndex = 5
+        }
+        println pos.beginIndex
+        println pos.endIndex
+    }
+}

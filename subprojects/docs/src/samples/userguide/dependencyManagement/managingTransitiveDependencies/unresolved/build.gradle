@@ -1,0 +1,11 @@
+//START SNIPPET unresolved-transitive-dependencies
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'log4j:log4j:1.2.15'
+}
+//END SNIPPET unresolved-transitive-dependencies

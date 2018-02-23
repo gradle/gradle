@@ -1,0 +1,11 @@
+commons-codec:commons-codec:1.7 (conflict resolution)
+   variant "default"
+\--- scm
+
+commons-codec:commons-codec:1.6 -> 1.7
+   variant "default"
+\--- org.apache.httpcomponents:httpclient:4.3.6
+     \--- org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r
+          \--- scm
+
+A web-based, searchable dependency report is available by adding the --scan option.

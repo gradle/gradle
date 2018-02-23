@@ -1,0 +1,31 @@
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    gradleApi
+    gradleApi.extendsFrom groovy
+    compile.extendsFrom gradleApi
+}
+
+dependencies {
+    gradleApi gradleApi()
+    compile localGroovy()
+    compile 'com.google.guava:guava:11.0.2'
+}
+
+task dist(type: Zip) {
+    description = 'Creates a custom Gradle distribution containing the custom plugins'
+    // Make sure you give this distribution a name that indicates that it is not the standard distribution
+    archiveName = "custom-gradle-${gradle.gradleVersion}.zip"
+    into("custom-gradle-${gradle.gradleVersion}") {
+        into('init.d') { from 'src/initScripts' }
+        into('init.d/libs') {
+            from jar
+            from configurations.runtime - configurations.gradleApi
+        }
+        from gradle.gradleHomeDir
+    }
+}

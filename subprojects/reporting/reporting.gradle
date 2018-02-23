@@ -1,0 +1,35 @@
+plugins {
+    id 'javascript-base'
+}
+
+sourceCompatibility = 1.6
+
+configurations {
+    reports
+}
+
+repositories {
+    javaScript.googleApis()
+}
+
+dependencies {
+    compile libraries.groovy.coordinates
+    compile project(':core')
+    compile libraries.jatl.coordinates
+
+    testCompile testLibraries.jsoup
+    integTestRuntime project(':codeQuality')
+    integTestRuntime project(':jacoco')
+
+    reports "jquery:jquery.min:1.11.0@js"
+}
+
+testFixtures {
+    from(':core')
+}
+
+task reportResources(type: Copy) {
+    from configurations.reports
+    into "$generatedResourcesDir/org/gradle/reporting"
+}
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources

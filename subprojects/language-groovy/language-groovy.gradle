@@ -1,0 +1,26 @@
+plugins {
+    id 'classycle'
+}
+
+// Compiler daemon
+sourceCompatibility = 1.6
+
+dependencies {
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":languageJava")
+
+    // TODO - get rid of this cycle
+    integTestRuntime project(':plugins')
+}
+
+testFixtures {
+    from(':core')
+    from(':languageJvm', 'integTest')
+    from(':languageJvm', 'testFixtures')
+}
+
+classycle {
+    excludePatterns = ['org/gradle/api/internal/tasks/compile/**',
+                       'org/gradle/api/tasks/javadoc/**']
+}

@@ -1,0 +1,85 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        repositories {
+            ivy {
+                url "${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+            }
+        }
+    }
+}
+
+project(":project1") {
+    dependencies {
+       compile 'junit:junit:4.12'
+    }
+
+
+    // START SNIPPET customize-identity
+    publishing {
+        publications {
+            ivy(IvyPublication) {
+                organisation 'org.gradle.sample'
+                module 'project1-sample'
+                revision '1.1'
+                descriptor.status = 'milestone'
+                descriptor.branch = 'testing'
+                descriptor.extraInfo 'http://my.namespace', 'myElement', 'Some value'
+
+                from components.java
+            }
+        }
+    }
+    // END SNIPPET customize-identity
+}
+
+project(":project2") {
+    // START SNIPPET multiple-publications
+    task apiJar(type: Jar) {
+        baseName "publishing-api"
+        from sourceSets.main.output
+        exclude '**/impl/**'
+    }
+    // END SNIPPET multiple-publications
+
+    dependencies {
+       compile 'commons-collections:commons-collections:3.2.2', project(':project1')
+    }
+
+    // START SNIPPET multiple-publications
+    publishing {
+        publications {
+            impl(IvyPublication) {
+                organisation 'org.gradle.sample.impl'
+                module 'project2-impl'
+                revision '2.3'
+
+                from components.java
+            }
+            api(IvyPublication) {
+    // END SNIPPET multiple-publications
+                configurations {
+                    "default" {
+                        extend "compile"
+                    }
+                    compile {}
+                }
+                artifact(apiJar) {
+                    conf "compile"
+                }
+
+    // START SNIPPET multiple-publications
+                organisation 'org.gradle.sample'
+                module 'project2-api'
+                revision '2'
+            }
+        }
+    }
+    // END SNIPPET multiple-publications
+}

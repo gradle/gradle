@@ -1,0 +1,21 @@
+/**
+ * Process execution abstractions.
+ */
+plugins {
+    id 'java-library'
+}
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+dependencies {
+    api project(':baseServices')
+
+    implementation project(':messaging')
+    implementation project(':native')
+    implementation libraries.guava.coordinates
+    implementation libraries.slf4j_api.coordinates
+}
+
+testFixtures {
+    from(':core')
+}

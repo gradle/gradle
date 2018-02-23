@@ -1,0 +1,27 @@
+// START SNIPPET apply-plugin
+apply plugin: 'objective-c'
+// END SNIPPET apply-plugin
+
+// START SNIPPET executables
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+// END SNIPPET executables
+
+// START SNIPPET all-binaries
+model {
+    binaries {
+        all {
+            //on macOS we need different settings than on Linux or Windows
+            if (targetPlatform.operatingSystem.macOsX) {
+                linker.args "-framework", "Foundation"
+            } else {
+                objcCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                linker.args "-lgnustep-base", "-lobjc"
+            }
+        }
+    }
+}
+// END SNIPPET all-binaries

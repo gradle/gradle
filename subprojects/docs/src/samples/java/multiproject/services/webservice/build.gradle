@@ -1,0 +1,15 @@
+apply plugin: 'war'
+
+version = '2.5'
+
+// START SNIPPET dependency-configurations
+dependencies {
+// END SNIPPET dependency-configurations    
+    compile project(':shared'), 'commons-collections:commons-collections:3.2.2@jar', 'commons-io:commons-io:1.2', 'commons-lang:commons-lang:2.4@jar'
+// START SNIPPET dependency-configurations
+    compile project(path: ':api', configuration: 'spi')
+// END SNIPPET dependency-configurations
+    runtime project(':api')
+// START SNIPPET dependency-configurations
+}
+// END SNIPPET dependency-configurations

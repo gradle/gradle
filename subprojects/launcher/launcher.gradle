@@ -1,0 +1,65 @@
+import org.gradle.build.GradleStartScriptGenerator
+
+plugins {
+    id 'classycle'
+}
+
+// Main entry point requires Java 5
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+configurations {
+    startScriptGenerator
+}
+
+dependencies {
+    compile project(':baseServices')
+    compile project(':jvmServices')
+    compile project(':core')
+    compile project(':cli')
+    compile project(':buildOption')
+    compile project(':toolingApi')
+    compile project(':native')
+    compile project(':logging')
+
+    compile libraries.asm.coordinates
+    compile libraries.commons_io.coordinates
+    compile libraries.slf4j_api.coordinates
+
+    integTestCompile project(':internalIntegTesting')
+    // Needed for testing debug command line option (JDWPUtil)
+    integTestCompile files(rootProject.availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7).toolsJar ?: [])
+    integTestRuntime project(':plugins')
+    integTestRuntime project(':languageNative')
+
+    testFixturesCompile project(':internalIntegTesting')
+}
+
+testFixtures {
+    from(':core')
+    from(':languageJava')
+    from(':messaging')
+    from(':logging')
+}
+
+integTestTasks.all {
+    maxParallelForks = Math.min(3, rootProject.maxParallelForks)
+}
+
+task configureJar {
+    doLast {
+        def classpath = [":baseServices", ":coreApi", ":core"].collect { project(it).jar.archivePath.name }.join(" ")
+        jar.manifest.mainAttributes('Class-Path': classpath)
+    }
+}
+
+jar {
+    dependsOn configureJar
+    manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
+}
+
+task startScripts(type: GradleStartScriptGenerator) {
+    startScriptsDir = new File("$buildDir/startScripts")
+    launcherJar = jar.outputs.files
+}
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false

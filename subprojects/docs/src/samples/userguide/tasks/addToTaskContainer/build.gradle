@@ -1,0 +1,10 @@
+tasks.create(name: 'hello') {
+    doLast {
+        println "hello"
+    }
+}
+
+tasks.create(name: 'copy', type: Copy) {
+    from(file('srcDir'))
+    into(buildDir)
+}

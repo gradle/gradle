@@ -1,0 +1,5 @@
+:compileMainJarMainJava
+:processMainJarMainResources
+:mainApiJar
+:compileBrokenclientJarBrokenclientJava FAILED
+4 actionable tasks: 4 executed

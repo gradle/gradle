@@ -1,0 +1,9 @@
+evaluationDependsOn(':producer')
+
+def message = rootProject.producerMessage
+
+task consume {
+    doLast {
+        println("Consuming message: " + message)
+    }
+}

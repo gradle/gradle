@@ -1,0 +1,48 @@
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
+        project.tasks.create('hello', Greeting) {
+            message = extension.message
+            outputFiles = extension.outputFiles
+        }
+    }
+}
+
+class GreetingPluginExtension {
+    final Property<String> message
+    final ConfigurableFileCollection outputFiles
+
+    GreetingPluginExtension(Project project) {
+        message = project.objects.property(String)
+        message.set('Hello from GreetingPlugin')
+        outputFiles = project.files()
+    }
+
+    void setOutputFiles(FileCollection outputFiles) {
+        this.outputFiles.setFrom(outputFiles)
+    }
+}
+
+class Greeting extends DefaultTask {
+    final Property<String> message = project.objects.property(String)
+    final ConfigurableFileCollection outputFiles = project.files()
+
+    void setOutputFiles(FileCollection outputFiles) {
+        this.outputFiles.setFrom(outputFiles)
+    }
+
+    @TaskAction
+    void printMessage() {
+        outputFiles.each {
+            logger.quiet "Writing message 'Hi from Gradle' to file"
+            it.text = message.get()
+        }
+    }
+}
+
+apply plugin: GreetingPlugin
+
+greeting {
+    message = 'Hi from Gradle'
+    outputFiles = files('a.txt', 'b.txt')
+}

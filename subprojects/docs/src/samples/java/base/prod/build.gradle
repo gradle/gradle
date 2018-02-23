@@ -1,0 +1,12 @@
+dependencies {
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    "default" configurations.runtime
+}
+
+task jar(type: Jar) {
+    from sourceSets.main.output
+}
+
+artifacts {
+    runtime jar
+}

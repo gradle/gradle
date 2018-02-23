@@ -1,0 +1,17 @@
+dependencies {
+    compile project(':core')
+    compile project(':dependencyManagement')
+    compile project(':launcher')
+
+    integTestRuntime project(":toolingApiBuilders")
+    integTestRuntime project(":pluginDevelopment")
+    integTestRuntime project(":testKit")
+}
+
+testFixtures {
+    from(':dependencyManagement')
+    from(':ide')
+    from(':launcher')
+}
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false

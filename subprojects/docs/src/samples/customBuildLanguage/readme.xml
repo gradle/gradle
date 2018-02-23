@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<sample>
+    <para>This sample demonstrates how to add some custom elements to the build DSL. It also demonstrates the use of
+        custom plug-ins to organize build logic.
+    </para>
+
+    <para>The build is composed of 2 types of projects. The first type of project represents a product, and the second
+        represents a product module. Each product includes one or more product modules, and each product module may be
+        included in multiple products. That is, there is a many-to-many relationship between these products and product
+        modules. For each product, the build produces a ZIP containing the runtime classpath for each product module
+        included in the product. The ZIP also contains some product-specific files.
+    </para>
+
+    <para>The custom elements can be seen in the build script for the product projects (for example,
+        <filename>basicEdition/build.gradle</filename>). Notice that the build script uses the
+        <literal>product { }</literal> element. This is a custom element.
+    </para>
+
+    <para>The build scripts of each project contain only declarative elements. The bulk of the work is done by 2
+        custom plug-ins found in <filename>buildSrc/src/main/groovy</filename>.
+    </para>
+</sample>

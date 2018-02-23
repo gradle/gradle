@@ -1,0 +1,1 @@
+GET     /user                          controllers.user.Application.index

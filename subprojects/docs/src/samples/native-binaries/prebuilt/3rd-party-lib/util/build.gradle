@@ -1,0 +1,22 @@
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug
+        release
+    }
+    components {
+        util(NativeLibrarySpec) {
+            binaries.all {
+                if (buildType == buildTypes.debug) {
+                    cppCompiler.define 'DEBUG'
+                    if (toolChain in VisualCpp) {
+                        cppCompiler.args '/Zi'
+                        linker.args '/DEBUG'
+                    } else {
+                        cppCompiler.args "-g"
+                    }
+                }
+            }
+        }
+    }
+}

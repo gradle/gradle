@@ -1,0 +1,10 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+compileGroovy {
+    options.fork = true
+    options.forkOptions.javaHome = file(jdkHome)
+}

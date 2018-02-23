@@ -1,0 +1,24 @@
+plugins {
+    id 'strict-compile'
+}
+
+sourceCompatibility = 1.6
+
+dependencies {
+    compile libraries.groovy.coordinates
+    compile project(':core')
+    compile project(':dependencyManagement')
+    compile project(':workers')
+    compile libraries.commons_collections.coordinates
+    testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
+}
+
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':diagnostics', 'testFixtures')
+}
+
+// classycle {
+//     excludePatterns = ['org.gradle.language.base.internal/**']
+// }

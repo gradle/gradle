@@ -1,0 +1,17 @@
+subprojects {
+    apply plugin: 'java-base'
+
+    sourceCompatibility = 1.7
+    version = '1.0'
+
+    repositories {
+        mavenCentral()
+    }
+
+    sourceSets {
+        main {
+            java.srcDir "$projectDir/java"
+            resources.srcDir "$projectDir/java"
+        }
+    }
+}

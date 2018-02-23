@@ -1,0 +1,6 @@
+apply plugin: 'greeting'
+
+task wrapper(type: Wrapper) {
+    // Need to configure the wrapper to point to the custom distribution
+    distributionUrl = uri("../plugin/build/distributions/custom-gradle-${gradle.gradleVersion}.zip")
+}

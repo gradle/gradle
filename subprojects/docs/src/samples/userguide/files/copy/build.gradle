@@ -1,0 +1,126 @@
+// START SNIPPET copy-task
+task copyTask(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/explodedWar'
+}
+// END SNIPPET copy-task
+
+// START SNIPPET copy-task-with-patterns
+task copyTaskWithPatterns(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/explodedWar'
+    include '**/*.html'
+    include '**/*.jsp'
+    exclude { details -> details.file.name.endsWith('.html') &&
+                         details.file.text.contains('staging') }
+}
+// END SNIPPET copy-task-with-patterns
+
+// START SNIPPET copy-task-2
+task anotherCopyTask(type: Copy) {
+    // Copy everything under src/main/webapp
+    from 'src/main/webapp'
+    // Copy a single file
+    from 'src/staging/index.html'
+    // Copy the output of a task
+    from copyTask
+    // Copy the output of a task using Task outputs explicitly.
+    from copyTaskWithPatterns.outputs
+    // Copy the contents of a Zip file
+    from zipTree('src/main/assets.zip')
+    // Determine the destination directory later
+    into { getDestDir() }
+}
+// END SNIPPET copy-task-2
+
+def getDestDir() {
+    file('some-dir')
+}
+
+// START SNIPPET copy-method
+task copyMethod {
+    doLast {
+        copy {
+            from 'src/main/webapp'
+            into 'build/explodedWar'
+            include '**/*.html'
+            include '**/*.jsp'
+        }
+    }
+}
+// END SNIPPET copy-method
+
+// START SNIPPET copy-method-with-dependency
+task copyMethodWithExplicitDependencies{
+    // up-to-date check for inputs, plus add copyTask as dependency
+    inputs.files copyTask
+    outputs.dir 'some-dir' // up-to-date check for outputs
+    doLast{
+        copy {
+            // Copy the output of copyTask
+            from copyTask
+            into 'some-dir'
+        }
+    }
+}
+// END SNIPPET copy-method-with-dependency
+
+configurations { runtime }
+
+// START SNIPPET nested-specs
+task nestedSpecs(type: Copy) {
+    into 'build/explodedWar'
+    exclude '**/*staging*'
+    from('src/dist') {
+        include '**/*.html'
+    }
+    into('libs') {
+        from configurations.runtime
+    }
+}
+// END SNIPPET nested-specs
+
+// START SNIPPET rename-files
+task rename(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/explodedWar'
+    // Use a closure to map the file name
+    rename { String fileName ->
+        fileName.replace('-staging-', '')
+    }
+    // Use a regular expression to map the file name
+    rename '(.+)-staging-(.+)', '$1$2'
+    rename(/(.+)-staging-(.+)/, '$1$2')
+}
+// END SNIPPET rename-files
+
+// START SNIPPET filter-files
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task filter(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/explodedWar'
+    // Substitute property tokens in files
+    expand(copyright: '2009', version: '2.3.1')
+    expand(project.properties)
+    // Use some of the filters provided by Ant
+    filter(FixCrLfFilter)
+    filter(ReplaceTokens, tokens: [copyright: '2009', version: '2.3.1'])
+    // Use a closure to filter each line
+    filter { String line ->
+        "[$line]"
+    }
+    // Use a closure to remove lines
+    filter { String line ->
+        line.startsWith('-') ? null : line
+    }
+    filteringCharset = 'UTF-8'
+}
+// END SNIPPET filter-files
+
+task test {
+    dependsOn tasks.withType(Copy)
+    dependsOn copyMethod
+    dependsOn copyMethodWithExplicitDependencies
+}

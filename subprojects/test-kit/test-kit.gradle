@@ -1,0 +1,24 @@
+plugins {
+    id 'strict-compile'
+}
+
+dependencies {
+    compile project(':core')
+    compile project(':toolingApi')
+    compile libraries.commons_io.coordinates
+    runtime project(':native')
+    integTestRuntime project(':toolingApiBuilders')
+    integTestRuntime project(':pluginDevelopment')
+}
+
+testFixtures {
+    from(':core')
+}
+
+task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
+    description "Runs the TestKit version compatibility tests"
+    systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
+    systemProperties['org.gradle.integtest.executer'] = 'forking'
+}
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false

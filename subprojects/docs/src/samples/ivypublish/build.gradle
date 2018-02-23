@@ -1,0 +1,86 @@
+
+allprojects {
+    apply plugin: 'java'
+}
+
+version = '1.0'
+group = 'org.gradle.test'
+
+dependencies {
+   compile 'junit:junit:4.12', project(':subproject')
+}
+
+ant {
+    importBuild "$projectDir/build.xml"
+    buildDir = owner.buildDir.toString()
+}
+
+File localPublicationsDir = file("$buildDir/repo")
+
+repositories {
+    mavenCentral()
+}
+
+task sourceJar(type: Jar) {
+    baseName = 'ivypublishSource'
+    from sourceSets.main.java
+    classifier = 'src'
+}
+
+artifacts {
+    archives sourceJar
+}
+
+uploadArchives {
+    uploadDescriptor = true
+    repositories {
+        ivy {
+            ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
+            artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
+        }
+    }
+    doLast {
+        File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
+        assert ["ivy.xml", "ivy.xml.sha1", "ivypublish.jar", "ivypublish.jar.sha1", "ivypublishSource.jar", "ivypublishSource.jar.sha1"] as Set == repoDir.listFiles().collect { it.name } as Set
+        assert jar.archivePath.size() == new File(repoDir, 'ivypublish.jar').size()
+        sourceJar.archivePath.size() == new File(repoDir, 'ivypublishSource.jar').size()
+
+        def ns = new groovy.xml.Namespace("http://ant.apache.org/ivy/maven", 'm')
+        def root = new XmlParser().parse(new File(repoDir, 'ivy.xml'))
+        assert root.publications.artifact.find { it.@name == 'ivypublishSource' }.attribute(ns.classifier) == 'src'
+        assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'apiElements', 'compile', 'compileClasspath', 'compileOnly', 'default',
+                                                                          'implementation', 'runtime', 'runtimeClasspath', 'runtimeElements',
+                                                                          'runtimeOnly', 'testCompile', 'testCompileClasspath', 'testCompileOnly',
+                                                                          'testImplementation', 'testRuntime', 'testRuntimeClasspath', 'testRuntimeOnly', 'annotationProcessor', 'testAnnotationProcessor'] as Set
+        assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.12', conf: 'compile->default']
+        assert root.dependencies.dependency.find { it.@org == 'ivypublish' }.attributes() == [org: 'ivypublish', name: 'subproject', rev: 'unspecified',
+                conf: 'compile->default']
+    }
+}
+
+// It would be nice to test if the stuff published by Gradle can be read by a native ivy ant script.
+// The tasks below are supposed to do this. But due to a serious Ivy bugs we can't do it at the
+// moment (e.g. https://issues.apache.org/jira/browse/IVY-1110). As soon as this bug is fixed, we
+// should uncomment the below.
+
+//ivyConfigure.doLast {
+//    def cacheDir = ant.properties['ivy.cache.dir'] + '/org.gradle.test'
+//    println cacheDir
+//    ant.delete(dir: cacheDir, verbose: true)
+//}
+//
+//retrieveFromAnt {
+//    dependsOn uploadArchives
+//    doLast {
+//        File retrieveDir = new File("$buildDir/antRetrieve")
+//        Assert.assertEquals(retrieveDir.listFiles().collect { it.name } as Set,
+//                ["ivypublish.jar", "ivypublishSource.jar"] as Set)
+//        Assert.assertEquals(jar.archivePath.size(), new File(retrieveDir, 'ivypublish.jar').size())
+//        Assert.assertEquals(sourceJar.archivePath.size(), new File(retrieveDir, 'ivypublishSource.jar').size())
+//    }
+//}
+
+
+
+
+

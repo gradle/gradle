@@ -1,0 +1,22 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
+sourceCompatibility = 1.6
+
+dependencies {
+    compile project(":platformBase")
+    compile project(":core")
+    compile project(":diagnostics")
+
+    // To pick up JavaToolChainInternal implementation
+    // TODO - get rid of cycle
+    integTestRuntime project(':languageJava')
+}
+
+testFixtures {
+    from(':core')
+    from(':diagnostics')
+    from(':platformBase')
+}

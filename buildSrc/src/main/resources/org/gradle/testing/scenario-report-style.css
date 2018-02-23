@@ -1,0 +1,55 @@
+body {
+    font-family: sans-serif;
+    font-size: 10pt;
+    margin: 3em;
+    color: #444;
+}
+
+h2 {
+    font-size: 14pt;
+    margin-top: 2em;
+}
+
+h3 {
+    margin-top: 2em;
+    margin-bottom: 1.4em;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    white-space: nowrap;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 12px;
+    padding-right: 12px;
+    text-align: left;
+    vertical-align: bottom;
+}
+
+.failure, .failure a {
+    background-color: #ecdada;
+    border-color: #b60808;
+}
+
+.code {
+    display: inline-block;
+    margin-top: 0em;
+    margin-bottom: 1em;
+}
+
+.code pre {
+    font-size: 9pt;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 0;
+    background-color: #f7f7f7;
+    border: solid 1px #d0d0d0;
+    min-width: 700px;
+    width: auto !important;
+    width: 700px;
+}

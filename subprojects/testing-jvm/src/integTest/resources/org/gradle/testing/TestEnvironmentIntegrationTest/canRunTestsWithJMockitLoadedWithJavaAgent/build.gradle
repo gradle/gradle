@@ -1,0 +1,19 @@
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    jmockit
+    testCompile.extendsFrom jmockit
+}
+
+dependencies {
+    jmockit "com.googlecode.jmockit:jmockit:0.999.13"
+    testCompile "junit:junit:4.12"
+}
+
+test {
+    jvmArgs "-javaagent:${configurations.jmockit.singleFile.absolutePath}"
+}

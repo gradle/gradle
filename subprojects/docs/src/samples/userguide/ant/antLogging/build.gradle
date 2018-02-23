@@ -1,0 +1,7 @@
+ant.lifecycleLogLevel = "INFO"
+
+task hello {
+    doLast {
+        ant.echo(level: "info", message: "hello from info priority!")
+    }
+}

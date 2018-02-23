@@ -1,0 +1,5 @@
+rootProject.name = 'multirepo-app'
+
+file('modules').listFiles().each { File moduleBuild ->
+    includeBuild moduleBuild
+}

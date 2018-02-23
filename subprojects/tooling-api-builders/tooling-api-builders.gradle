@@ -1,0 +1,16 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
+dependencies {
+    compile project(':core')
+    compile project(':testingJvm')
+    compile project(':launcher')
+    compile project(':toolingApi')
+    compile project(':compositeBuilds')
+}
+
+strictCompile {
+    ignoreDeprecations = true
+}

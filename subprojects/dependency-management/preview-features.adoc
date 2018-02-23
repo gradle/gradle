@@ -1,0 +1,25 @@
+# Gradle 5.0 Feature Previews
+
+## New Gradle `.module` metadata format
+
+In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a new module metadata format, that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
+
+The new metadata format is still under active development. The latest version of the specification can be found https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md[here]. Currently there are the following issues with enabling it in Gradle 4.x:
+
+- We do not yet guarantee backward or forward compatibility for the metadata file format. Thus, resolution may change when upgrading Gradle, if a metadata file is published with an old format.
+- An additional request is required for Maven and Ivy repositories to check for the new metadata file.
+
+[NOTE]
+Activate this feature in Gradle 4.6+ by setting `org.gradle.gradlemetadata=true` in _gradle.properties_.
+
+### Publishing `.module` metadata files
+
+If this feature preview is activated, the _maven-publish_ and _ivy-publlish_ plugins automatically publish a `.module` file in addition to the `pom`/`iny.xml` metadata file. If these modules are consumed by Gradle, _dependency constraints_ and _version constraints_, for examples strict versions, are preserved. By still publishing the traditional metadata formats, compatibility with Maven and Ivy is still ensured as much as possible.
+
+The `.module` files are used to automatically publish the `api` and `runtime` variants of  Java libraries. These variants are honoured during dependency resolution. Additional publishing features will be added in the future which will allow for the publication of additional variants.
+
+### Consuming `.module` metadata files
+
+If this feature preview is activated, Gradle automatically searches for a `.module` file for each dependency in a Maven or Ivy repository. If the file is found, it is preferred over the `pom`/`ivy.xml` file.
+
+If a `.module` file is found, _dependency constraints_ and _version constraints_ of the dependency are consumed from that file and are honored during dependency resolution.

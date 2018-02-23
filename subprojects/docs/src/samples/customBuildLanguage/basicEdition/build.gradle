@@ -1,0 +1,9 @@
+apply plugin: 'product'
+
+// A custom build element. This defines the product to build
+product {
+    displayName 'Basic Edition'
+    // Which modules to include in this product?
+    module project(':identityManagement')
+    module project(':billing')
+}

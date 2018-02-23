@@ -1,0 +1,13 @@
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.12"
+}
+
+test {
+    systemProperties 'java.security.manager': 'org.gradle.MySecurityManager'
+}

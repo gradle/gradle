@@ -1,0 +1,59 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[installation]]
+== Installing Gradle
+
+
+[[sec:prerequisites]]
+=== Prerequisites
+
+Gradle requires a Java JDK or JRE to be installed, version 7 or higher (to check, use `java -version`). Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
+
+Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to the installation directory of the desired JDK.
+
+[[sec:download]]
+=== Download
+
+You can download one of the Gradle distributions from the {website}/downloads[Gradle web site].
+
+[[sec:unpacking]]
+=== Unpacking
+
+The Gradle distribution comes packaged as a ZIP. The full distribution contains:
+
+* The Gradle binaries.
+* The user guide (HTML and PDF).
+* The DSL reference guide.
+* The API documentation (Javadoc).
+* Extensive samples, including the examples referenced in the user guide, along with some complete and more complex builds you can use as a starting point for your own build.
+* The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution or checkout the sources from the source repository. See the {website}/development[Gradle web site] for details.
+
+
+[[sec:installation_environment_variables]]
+=== Environment variables
+
+For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add `__GRADLE_HOME__/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
+
+[[sec:running_and_testing_your_installation]]
+=== Running and testing your installation
+
+You run Gradle via the `gradle` command. To check if Gradle is properly installed just type `gradle -v`. The output shows the Gradle version and also the local environment configuration (Groovy, JVM version, OS, etc.). The displayed Gradle version should match the distribution you have downloaded.
+
+[[sec:jvm_options]]
+=== JVM options
+
+JVM options for running Gradle can be set via environment variables. You can use either `GRADLE_OPTS` or `JAVA_OPTS`, or both. `JAVA_OPTS` is by convention an environment variable shared by many Java applications. A typical use case would be to set the HTTP proxy in `JAVA_OPTS` and the memory options in `GRADLE_OPTS`. Those variables can also be set at the beginning of the `gradle` or `gradlew` script.
+
+Note that it's not currently possible to set JVM options for Gradle on the command line.

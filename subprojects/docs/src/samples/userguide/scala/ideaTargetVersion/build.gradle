@@ -1,0 +1,8 @@
+apply plugin: "scala"
+apply plugin: "idea"
+
+// START SNIPPET scala-idea-target-version
+idea {
+    targetVersion = "13"
+}
+// END SNIPPET scala-idea-target-version

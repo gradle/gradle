@@ -1,0 +1,25 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'org.testng:testng:6.3.1'
+}
+
+test {
+	useTestNG() {
+        suiteXmlBuilder().suite(name: 'testing-testng') {
+            test (name : 'testing-testng', annotations : 'JDK', verbose:'1') {
+                classes([:]) {
+                    'class' (name: 'org.gradle.testng.UserImplTest') {
+                        methods([:]) {
+                            include(name: 'testOkFirstName')
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

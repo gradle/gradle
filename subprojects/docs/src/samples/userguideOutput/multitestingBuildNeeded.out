@@ -1,0 +1,27 @@
+:shared:compileJava
+:shared:processResources
+:shared:classes
+:shared:jar
+:api:compileJava
+:api:processResources
+:api:classes
+:api:jar
+:api:assemble
+:api:compileTestJava
+:api:processTestResources
+:api:testClasses
+:api:test
+:api:check
+:api:build
+:shared:assemble
+:shared:compileTestJava
+:shared:processTestResources
+:shared:testClasses
+:shared:test
+:shared:check
+:shared:build
+:shared:buildNeeded
+:api:buildNeeded
+
+BUILD SUCCESSFUL in 0s
+12 actionable tasks: 12 executed

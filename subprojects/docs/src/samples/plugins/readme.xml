@@ -1,0 +1,23 @@
+<sample>
+    <para>A set of projects that show how to implement, test, publish and use a custom plugins with the latest technology.</para>
+    <para>This sample contains the following projects:</para>
+    <itemizedlist>
+        <listitem>
+            <para>The <filename>buildscript</filename> directory contains a project that uses the old <code>buildscript</code> syntax for using plugins.</para>
+        </listitem>
+        <listitem>
+            <para>The <filename>dsl</filename> directory contains the a project that uses the new <code>plugins</code> syntax for using plugins.</para>
+        </listitem>
+        <listitem>
+            <para>
+                The <filename>publishing</filename> directory contains a complete example of the modern publishing plugins working with the java-gradle-plugin
+                to produce two plugins shipped in the same jar and being published to both an ivy and maven repository.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                The <filename>consuming</filename> directory contains an example of resolving plugins from custom repositories instead the Gradle Plugin Portal.
+            </para>
+        </listitem>
+    </itemizedlist>
+</sample>

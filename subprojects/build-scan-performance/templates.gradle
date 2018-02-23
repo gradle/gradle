@@ -1,0 +1,46 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import groovy.json.JsonSlurper
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+
+tasks.withType(JvmProjectGeneratorTask) {
+    if(project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
+}
+
+task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
+    doFirst {
+        templateArgs.buildScanPluginVersion = {
+            def pluginInfo = file("$rootDir/incoming/plugin.json")
+            assert pluginInfo.exists()
+            def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
+            assert json.versionNumber
+            json.versionNumber
+        }()
+    }
+
+    dependencyGraph {
+        size = 100
+        depth = 4
+        useSnapshotVersions = true
+    }
+
+    projects = 25
+    sourceFiles = 25
+    subProjectTemplates = ['project-with-source', 'with-verbose-junit']
+    templateArgs = [fullTestLogging: true, halfTestsFail: true]
+}

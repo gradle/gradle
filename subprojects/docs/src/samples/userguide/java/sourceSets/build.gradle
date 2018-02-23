@@ -1,0 +1,64 @@
+apply plugin: 'java'
+
+if (hasProperty('showOutput')) {
+
+// START SNIPPET access-source-set
+// Various ways to access the main source set
+println sourceSets.main.output.classesDirs
+println sourceSets['main'].output.classesDirs
+sourceSets {
+    println main.output.classesDirs
+}
+sourceSets {
+    main {
+        println output.classesDirs
+    }
+}
+
+// Iterate over the source sets
+sourceSets.all {
+    println name
+}
+// END SNIPPET access-source-set
+
+}
+
+// START SNIPPET define-source-set
+sourceSets {
+    intTest
+}
+// END SNIPPET define-source-set
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET source-set-dependencies
+sourceSets {
+    intTest
+}
+
+dependencies {
+    intTestCompile 'junit:junit:4.12'
+    intTestRuntime 'org.ow2.asm:asm-all:4.0'
+}
+// END SNIPPET source-set-dependencies
+
+// START SNIPPET jar
+task intTestJar(type: Jar) {
+    from sourceSets.intTest.output
+}
+// END SNIPPET jar
+
+// START SNIPPET javadoc
+task intTestJavadoc(type: Javadoc) {
+    source sourceSets.intTest.allJava
+}
+// END SNIPPET javadoc
+
+// START SNIPPET test
+task intTest(type: Test) {
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+}
+// END SNIPPET test

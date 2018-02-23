@@ -1,0 +1,17 @@
+:compileOperatorsTestPassingCUnitExeOperatorsC
+:operatorsTestCUnitLauncher
+:compileOperatorsTestPassingCUnitExeOperatorsTestC
+:compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher
+:linkOperatorsTestPassingCUnitExe
+:operatorsTestPassingCUnitExe
+:installOperatorsTestPassingCUnitExe
+:runOperatorsTestPassingCUnitExe
+:checkOperatorsTestPassingCUnitExe
+:buildDependentsOperatorsTestPassingCUnitExe
+:compileOperatorsPassingStaticLibraryOperatorsC
+:createOperatorsPassingStaticLibrary
+:operatorsPassingStaticLibrary
+:buildDependentsOperatorsPassingStaticLibrary
+
+BUILD SUCCESSFUL in 0s
+9 actionable tasks: 9 executed

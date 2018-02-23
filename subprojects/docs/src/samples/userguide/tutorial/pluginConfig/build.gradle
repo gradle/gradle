@@ -1,0 +1,9 @@
+apply plugin: 'java'
+
+compileJava.destinationDir = file("$buildDir/output/classes")
+
+task show {
+    doLast {
+        println relativePath(compileJava.destinationDir)
+    }
+}

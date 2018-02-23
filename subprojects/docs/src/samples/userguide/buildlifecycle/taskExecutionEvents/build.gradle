@@ -1,0 +1,20 @@
+task ok
+
+task broken(dependsOn: ok) {
+    doLast {
+        throw new RuntimeException('broken')
+    }
+}
+
+gradle.taskGraph.beforeTask { Task task ->
+    println "executing $task ..."
+}
+
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+    if (state.failure) {
+        println "FAILED"
+    }
+    else {
+        println "done"
+    }
+}

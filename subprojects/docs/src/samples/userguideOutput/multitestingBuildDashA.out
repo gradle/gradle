@@ -1,0 +1,14 @@
+:api:compileJava
+:api:processResources
+:api:classes
+:api:jar
+:api:assemble
+:api:compileTestJava
+:api:processTestResources
+:api:testClasses
+:api:test
+:api:check
+:api:build
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

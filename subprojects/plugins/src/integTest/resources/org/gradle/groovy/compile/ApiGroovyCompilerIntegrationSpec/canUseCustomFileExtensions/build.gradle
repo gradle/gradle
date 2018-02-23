@@ -1,0 +1,15 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.12"
+}
+
+sourceSets.test.groovy.filter.includes = ["**/*.spec"]
+
+compileTestGroovy {
+    groovyOptions.fileExtensions = ["spec"]
+}

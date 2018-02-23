@@ -1,0 +1,11 @@
+apply {
+  plugin 'announce'
+  plugin 'java'
+}
+
+// START SNIPPET full-example
+announce {
+  announceTwitterUsername = 'AnnounceExampleTwitterAccount'
+  announceTwitterPassword = 'your-password'
+}
+// END SNIPPET full-example

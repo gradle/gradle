@@ -1,0 +1,6 @@
+include 'api', 'webapp'
+
+rootProject.children.each {
+    it.buildFile.parentFile.mkdirs()
+    it.buildFile.text = ''
+}

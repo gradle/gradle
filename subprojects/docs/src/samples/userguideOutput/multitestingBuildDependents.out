@@ -1,0 +1,31 @@
+:shared:compileJava
+:shared:processResources
+:shared:classes
+:shared:jar
+:api:compileJava
+:api:processResources
+:api:classes
+:api:jar
+:api:assemble
+:api:compileTestJava
+:api:processTestResources
+:api:testClasses
+:api:test
+:api:check
+:api:build
+:services:personService:compileJava
+:services:personService:processResources
+:services:personService:classes
+:services:personService:jar
+:services:personService:assemble
+:services:personService:compileTestJava
+:services:personService:processTestResources
+:services:personService:testClasses
+:services:personService:test
+:services:personService:check
+:services:personService:build
+:services:personService:buildDependents
+:api:buildDependents
+
+BUILD SUCCESSFUL in 0s
+17 actionable tasks: 17 executed

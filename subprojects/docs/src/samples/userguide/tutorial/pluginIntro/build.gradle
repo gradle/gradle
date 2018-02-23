@@ -1,0 +1,17 @@
+// START SNIPPET apply-by-id
+apply plugin: 'java'
+
+task show {
+    doLast {
+        println relativePath(compileJava.destinationDir)
+        println relativePath(processResources.destinationDir)
+    }
+}
+// END SNIPPET apply-by-id
+// START SNIPPET apply-by-type
+apply plugin: JavaPlugin
+// END SNIPPET apply-by-type
+// START SNIPPET explicit-apply
+apply plugin: 'java'
+apply plugin: 'groovy'
+// END SNIPPET explicit-apply

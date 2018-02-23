@@ -1,0 +1,14 @@
+:compileJava
+:processResources
+:classes
+:jar
+:assemble
+:compileTestJava
+:processTestResources
+:testClasses
+:test
+:check
+:build
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

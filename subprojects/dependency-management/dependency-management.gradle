@@ -1,0 +1,56 @@
+
+sourceCompatibility = 1.6
+
+configurations {
+    mvn3Input
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile project(":core")
+    compile project(":resources")
+    compile project(":versionControl")
+    compile project(":resourcesHttp")
+
+    compile libraries.asm.coordinates
+    compile libraries.asm_commons.coordinates
+    compile libraries.asm_util.coordinates
+    compile libraries.commons_lang.coordinates
+    compile libraries.commons_io.coordinates
+    compile libraries.ivy.coordinates
+    compile libraries.slf4j_api.coordinates
+    compile libraries.gson.coordinates
+    compile libraries.jcip.coordinates
+
+    runtime libraries.bouncycastle_provider.coordinates
+    runtime project(":installationBeacon")
+
+    compile libraries.maven3.coordinates
+
+    testCompile libraries.nekohtml.coordinates
+
+    integTestRuntime project(":ivy")
+    integTestRuntime project(":maven")
+    integTestRuntime project(":resourcesS3")
+    integTestRuntime project(":resourcesSftp")
+    integTestRuntime project(":testKit")
+
+    testFixturesCompile project(":internalIntegTesting")
+}
+
+testFixtures {
+    from(':core')
+    from(':messaging')
+    from(':modelCore')
+    from(':versionControl')
+}
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+
+classpathManifest {
+    additionalProjects = [project(':runtimeApiInfo')]
+}

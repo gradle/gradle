@@ -1,0 +1,30 @@
+apply plugin: "cpp"
+
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                // Define a preprocessor macro
+                cppCompiler.define "NDEBUG"
+                // Add some additional compiler arguments
+                if (toolChain in Gcc) {
+                    cppCompiler.args "-fno-access-control", "-fconserve-space"
+                }
+            }
+        }
+    }
+    tasks { t ->
+        $.components.main.binaries.each { binary ->
+            def stripTask = binary.tasks.taskName("strip")
+            t.create(stripTask) {
+                dependsOn binary.tasks.link
+                doFirst {
+                    if (binary.toolChain in Gcc) {
+                        ["strip", binary.tasks.link.outputFile].execute().waitForOrKill(1000)
+                    }
+                }
+            }
+            binary.tasks.build.dependsOn stripTask
+        }
+    }
+}

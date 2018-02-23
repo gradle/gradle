@@ -1,0 +1,46 @@
+<!--
+ *
+ * Copyright 2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+-->
+<html>
+    <body>
+      Classes for running external processes.
+
+      <h3>ExecHandle</h3>
+
+      <p>The {@link org.gradle.util.exec.ExecHandle} is the class that maps to the external process and provides control
+      methods to start/abort or wait for the external process to terminate (normally or by a failure).</p>
+
+      <h3>ExecHandleBuilder</h3>
+
+      <p>Creating an instance of {@link org.gradle.util.exec.ExecHandle} is done using the {@link org.gradle.util.exec.ExecHandleBuilder}
+      that provides a bunch of usefull functions to set the arguments/... .</p>
+
+      <h3>ExecHandleListener</h3>
+
+      <p>It is also possible to add listeners {@link org.gradle.util.exec.ExecHandleListener} to the {@link org.gradle.util.exec.ExecHandle} that are called
+      when the {@link org.gradle.util.exec.ExecHandle} changes from state {@link org.gradle.util.exec.ExecHandleState}.</p>
+
+      <h3>ExecOutputHandle</h3>
+
+      <p>In order to prevent the external process from blocking (because the output buffers are full)
+      the standard output and error output are fetch continuously by two Threads until the process terminates.
+      These Threads pass the output to an {@link org.gradle.util.exec.ExecOutputHandle}. The default behaviour is to pass all the output
+      to the standard output and error output of the parent process. By passing in other {@link org.gradle.util.exec.ExecOutputHandle} this
+      behaviour can be customized.</p>
+
+    </body>
+</html>

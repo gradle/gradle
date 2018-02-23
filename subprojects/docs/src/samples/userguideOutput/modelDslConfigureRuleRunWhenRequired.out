@@ -1,0 +1,6 @@
+configuring person
+:showPerson
+Hello John Smith!
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

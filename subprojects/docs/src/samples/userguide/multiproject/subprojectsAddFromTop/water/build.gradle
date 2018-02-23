@@ -1,0 +1,19 @@
+allprojects {
+    task hello {
+        doLast { task ->
+            println "I'm $task.project.name"
+        }
+    }
+}
+subprojects {
+    hello {
+        doLast {
+            println "- I depend on water"
+        }
+    }
+}
+project(':bluewhale').hello {
+    doLast {
+        println "- I'm the largest animal that has ever lived on this planet."
+    }
+}

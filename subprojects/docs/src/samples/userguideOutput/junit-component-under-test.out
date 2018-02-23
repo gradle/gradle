@@ -1,0 +1,7 @@
+:compileMainJarMainJava
+:processMainJarMainResources
+:compileTestMainJarBinaryTestJava
+:testMainJarBinaryTest
+
+BUILD SUCCESSFUL in 0s
+4 actionable tasks: 4 executed

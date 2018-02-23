@@ -1,0 +1,22 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
+sourceCompatibility = 1.6
+
+dependencies {
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":platformBase")
+
+    testRuntime project(":languageJava")
+
+    testFixturesCompile project(":internalIntegTesting")
+}
+
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':launcher', 'testFixtures')
+}

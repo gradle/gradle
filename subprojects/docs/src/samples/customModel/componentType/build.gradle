@@ -1,0 +1,93 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@Managed
+interface ImageComponent extends LibrarySpec {
+    String getTitle()
+    void setTitle(String title)
+    List<String> getSizes()
+    void setSizes(List<String> sizes)
+}
+
+@Managed
+interface ImageBinary extends BinarySpec {
+    String getTitle()
+    void setTitle(String title)
+    String getSize()
+    void setSize(String size)
+}
+
+class MyImageRenderingPlugin extends RuleSource {
+    @ComponentType
+    void registerComponent(TypeBuilder<ImageComponent> builder) {
+    }
+
+    @ComponentType
+    void registerBinary(TypeBuilder<ImageBinary> builder) {
+    }
+
+    @ComponentBinaries
+    void createBinariesForBinaryComponent(ModelMap<ImageBinary> binaries, ImageComponent library) {
+        library.sizes.each { fontSize ->
+            binaries.create(fontSize) {
+                size = fontSize;
+                title = library.title
+            }
+        }
+    }
+
+    @BinaryTasks
+    void createRenderingTasks(ModelMap<Task> tasks, ImageBinary binary) {
+        tasks.create(binary.tasks.taskName("render", "svg"), RenderSvg){
+            it.content = binary.title;
+            it.fontSize = binary.size;
+            it.outputFile = new File(it.project.buildDir, "renderedSvg/${binary.title}_${binary.size}.svg")
+        }
+    }
+}
+
+
+class RenderSvg extends DefaultTask{
+    @Input String content;
+    @Input String fontSize;
+    @OutputFile File outputFile;
+
+    @TaskAction void paint(){
+        outputFile.write("""
+             <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="16 8 400 100" preserveAspectRatio="xMidYMid meet" zoomAndPan="disable" onload="">
+             <text x="50" y="70" id="e1_texte" style="fill: #000000; font-family: Verdana; font-size: ${fontSize}; stroke: #008000; font-style: normal; font-weight: bold;">$content</text></svg>
+             """.stripIndent());
+
+    }
+}
+
+apply plugin:MyImageRenderingPlugin
+
+model {
+    components {
+        imageA(ImageComponent) {
+            title = "TitleA"
+            sizes = ["14px", "28px", "40px"]
+        }
+        imageB(ImageComponent) {
+            title = "TitleB"
+            sizes = ["14px", "28px", "40px"]
+        }
+    }
+}
+
+

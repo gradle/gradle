@@ -1,0 +1,5 @@
+:a-hello
+[ant:echo] Hello, from Ant
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

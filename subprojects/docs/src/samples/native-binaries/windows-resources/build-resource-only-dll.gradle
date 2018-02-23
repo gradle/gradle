@@ -1,0 +1,27 @@
+apply plugin: 'windows-resources'
+
+// START SNIPPET resource-only-library
+model {
+    components {
+        helloRes(NativeLibrarySpec) {
+            binaries.all {
+                rcCompiler.args "/v"
+                linker.args "/noentry", "/machine:x86"
+            }
+            // START SNIPPET windows-resource-set
+            sources {
+                rc {
+                    source {
+                        srcDirs "src/hello/rc"
+                    }
+                    exportedHeaders {
+                        srcDirs "src/hello/headers"
+                    }
+                }
+            }
+            // END SNIPPET windows-resource-set
+        }
+    }
+}
+// END SNIPPET resource-only-library
+

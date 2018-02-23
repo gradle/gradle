@@ -1,0 +1,17 @@
+org.gradle.messaging.actor.ActorFactory
+org.gradle.api.internal.DynamicObject
+org.gradle.api.internal.DynamicObjectHelper
+org.gradle.api.internal.file.copy.CopyActionImpl
+org.gradle.api.internal.file.copy.FileCopyActionImpl
+org.gradle.api.internal.file.copy.ReadableCopySpec
+org.gradle.api.tasks.bundling.Zip$ZipCopyActionImpl
+org.gradle.listener.ListenerBroadcast
+org.gradle.listener.ListenerManager
+org.gradle.platform.base.internal.toolchain.ToolResolver
+org.gradle.runtime.jvm.toolchain.JavaToolChain
+org.gradle.api.internal.tasks.compile.Compiler
+org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler
+org.gradle.api.internal.xml.XmlTransformer
+org.gradle.api.internal.XmlTransformer
+org.gradle.api.internal.tasks.testing.detection.TestExecuter
+org.gradle.api.internal.tasks.testing.junit.report.TestReporter

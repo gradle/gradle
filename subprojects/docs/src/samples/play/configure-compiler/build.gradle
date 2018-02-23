@@ -1,0 +1,38 @@
+// START SNIPPET play-idea
+plugins {
+    id 'play'
+    id 'idea'
+}
+// END SNIPPET play-idea
+
+repositories {
+    jcenter()
+    maven {
+        name "lightbend-maven-release"
+        url "https://repo.lightbend.com/lightbend/maven-releases"
+    }
+    ivy {
+        name "lightbend-ivy-release"
+        url "https://repo.lightbend.com/lightbend/ivy-releases"
+        layout "ivy"
+    }
+}
+
+dependencies {
+    play 'commons-lang:commons-lang:2.6'
+    playTest "com.google.guava:guava:17.0"
+}
+
+// START SNIPPET play-configure-compiler
+model {
+    components {
+        play {
+            binaries.all {
+                tasks.withType(PlatformScalaCompile) {
+                    scalaCompileOptions.additionalParameters = ["-feature", "-language:implicitConversions"]
+                }
+            }
+        }
+    }
+}
+// END SNIPPET play-configure-compiler

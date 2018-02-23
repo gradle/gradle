@@ -1,0 +1,11 @@
+task taskX {
+    doLast {
+        println 'taskX'
+    }
+}
+task taskY {
+    doLast {
+        println 'taskY'
+    }
+}
+taskY.mustRunAfter taskX

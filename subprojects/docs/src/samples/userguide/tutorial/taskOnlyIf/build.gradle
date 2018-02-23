@@ -1,0 +1,7 @@
+task hello {
+    doLast {
+        println 'hello world'
+    }
+}
+
+hello.onlyIf { !project.hasProperty('skipHello') }

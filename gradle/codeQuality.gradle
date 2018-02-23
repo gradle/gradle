@@ -1,0 +1,70 @@
+apply plugin: 'checkstyle'
+apply plugin: 'codenarc'
+
+def validateTaskPropertiesForConfiguration(Configuration configuration) {
+    // Apply to all projects depending on :core
+    configuration.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
+        project.apply from: "$rootDir/gradle/taskProperties.gradle"
+    }
+}
+
+plugins.withType(JavaBasePlugin) {
+    validateTaskPropertiesForConfiguration(configurations.compile)
+}
+plugins.withType(JavaLibraryPlugin) {
+    validateTaskPropertiesForConfiguration(configurations.api)
+}
+
+def codeQualityConfigDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
+
+codenarc {
+    configFile = new File(codeQualityConfigDir, "codenarc.xml")
+}
+
+checkstyle {
+    configDir = new File(codeQualityConfigDir, "checkstyle")
+}
+
+tasks.withType(CodeNarc) {
+    reports.xml.enabled = true
+}
+
+dependencies {
+    codenarc 'org.codenarc:CodeNarc:1.0'
+    components {
+        withModule('org.codenarc:CodeNarc') {
+            allVariants {
+                withDependencies {
+                    it.removeAll { it.group == 'org.codehaus.groovy' }
+                    it.add('org.codehaus.groovy:groovy-all') {
+                        version { prefer '2.4.12' }
+                        because 'We use groovy-all everywhere'
+                    }
+                }
+            }
+        }
+    }
+}
+
+plugins.withType(GroovyBasePlugin) {
+    sourceSets.all { sourceSet ->
+        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
+            configFile = new File(checkstyle.configDir, "checkstyle-groovy.xml")
+            source sourceSet.allGroovy
+            classpath = sourceSet.compileClasspath
+            reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
+        }
+    }
+}
+
+def codeQualityTasks = tasks.matching { task ->
+    [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle, org.gradle.plugin.devel.tasks.ValidateTaskProperties].any { it.isInstance(task) }
+}
+
+task codeQuality {
+    dependsOn codeQualityTasks
+}
+
+tasks.withType(Test) {
+    shouldRunAfter codeQualityTasks
+}

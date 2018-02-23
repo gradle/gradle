@@ -1,0 +1,16 @@
+// START SNIPPET use-plugin
+apply plugin: "cpp"
+// END SNIPPET use-plugin
+
+// START SNIPPET args
+model {
+    components {
+        main(NativeLibrarySpec) {
+            binaries.withType(SharedLibraryBinarySpec) {
+                // Define a preprocessor macro that only applies to shared libraries
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
+    }
+}
+// END SNIPPET args

@@ -1,0 +1,11 @@
+apply plugin: 'java'
+
+version = 1.0
+
+task myZip(type: Zip) {
+    from 'somedir'
+}
+
+println myZip.archiveName
+println relativePath(myZip.destinationDir)
+println relativePath(myZip.archivePath)

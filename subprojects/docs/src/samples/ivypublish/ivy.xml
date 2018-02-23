@@ -1,0 +1,6 @@
+<ivy-module version="1.0" xmlns:e="http://ant.apache.org/ivy/extra">
+    <info organisation="org.gradle.test" module="antModule" revision="1.0"/>
+    <dependencies>
+		<dependency org="org.gradle.test" name="ivypublish" rev="1.0" changing="true" conf="default->default"/>
+    </dependencies>
+</ivy-module>

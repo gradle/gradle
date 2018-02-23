@@ -1,0 +1,10 @@
+task(hello) {
+    doLast {
+        println "hello"
+    }
+}
+
+task(copy, type: Copy) {
+    from(file('srcDir'))
+    into(buildDir)
+}

@@ -1,0 +1,28 @@
+// START SNIPPET use-plugin
+apply plugin: 'announce'
+// END SNIPPET use-plugin
+// START SNIPPET use-build-announcements-plugin
+apply plugin: 'build-announcements'
+// END SNIPPET use-build-announcements-plugin
+
+//START SNIPPET announce-plugin-conf
+announce {  
+  username = 'myId'
+  password = 'myPassword'
+}
+//END SNIPPET announce-plugin-conf
+
+
+//START SNIPPET announce-usage
+task helloWorld {
+    doLast {
+        println "Hello, world!"
+    }
+}  
+
+helloWorld.doLast {  
+    announce.announce("helloWorld completed!", "twitter")
+    announce.announce("helloWorld completed!", "local")
+}
+//END SNIPPET announce-usage
+

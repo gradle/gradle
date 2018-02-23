@@ -1,0 +1,133 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+def run(String commandLine) {
+    def process = commandLine.execute([], rootDir)
+    assert process.waitFor() == 0
+    process.text.trim()
+}
+
+def execAsync = { Runnable f ->
+    def latch = new java.util.concurrent.CountDownLatch(1)
+    Thread.start {
+        try {
+            f.run()
+        } catch (ex) {
+            rootProject.logger.warn("Build scan user data async exec failed", ex)
+        } finally {
+            latch.countDown()
+        }
+    }
+}
+
+def setCommitId = { String commitId ->
+    buildScan.value "Git Commit ID", commitId
+    buildScan.link "Source", "https://github.com/gradle/gradle/commit/" + commitId
+}
+
+pluginManager.withPlugin("com.gradle.build-scan") {
+    if (gradle.startParameter.taskNames in [["verifyTestFilesCleanup"], ["killExistingProcessesStartedByGradle"]]) {
+        buildScan.publishOnFailure()
+    } else {
+        buildScan.publishAlways()
+    }
+
+    if (isCiServer) {
+        buildScan.tag "CI"
+        buildScan.tag System.getenv("TEAMCITY_BUILDCONF_NAME")
+        buildScan.link "TeamCity Build", System.getenv("BUILD_URL")
+        buildScan.value "Build ID", System.getenv("BUILD_ID")
+        setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+    } else {
+        buildScan.tag "LOCAL"
+
+        execAsync {
+            def commitId = run('git rev-parse --verify HEAD')
+            setCommitId commitId
+
+            def status = run 'git status --porcelain'
+            if (status) {
+                buildScan.tag "dirty"
+                buildScan.value "Git Status", status
+            }
+        }
+    }
+
+    execAsync {
+        def branchName = run 'git rev-parse --abbrev-ref HEAD'
+        if (branchName && branchName != 'HEAD') {
+            buildScan.tag branchName
+            buildScan.value "Git Branch Name", branchName
+        }
+    }
+
+    // Capture reports from Reporting tasks
+    if (System.getenv("CI")) {
+        def capturedReportingTypes = ['html'] // can add xml, text, junitXml if wanted
+        def basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
+
+        gradle.taskGraph.afterTask { Task task, TaskState state ->
+            if (task instanceof Reporting && state.failure) {
+                (task.reports as ReportContainer<Report>)
+                    .findAll { it.name in capturedReportingTypes && it.enabled && it.destination.exists() }
+                    .each {
+                    def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
+                    def reportPath
+                    // see: ciReporting.gradle
+                    if (it.destination.directory) {
+                        reportPath = "report-${task.project.name}-${it.destination.name}.zip"
+                    }
+                    else {
+                        reportPath = "report-${task.project.name}-${it.destination.parentFile.name}-${it.destination.name}"
+                    }
+                    def reportLink = "$basePath/$reportPath"
+                    task.project.buildScan.link linkName, reportLink
+                }
+            }
+        }
+    }
+
+    // Capture individual issues for some reports
+    gradle.taskGraph.afterTask { Task task, TaskState state ->
+        if (task instanceof Checkstyle) {
+            if (state.failure && task.reports.xml.destination.exists()) {
+                def checkstyle = new XmlSlurper().parse(task.reports.xml.destination)
+                def errors = checkstyle.file.collect { fileTag ->
+                    fileTag.error.collect {
+                        String filePath = task.project.rootProject.relativePath(fileTag.@name.text())
+                        "${filePath}:${it.@line}:${it.@column} \u2192 ${it.@message}"
+                    }
+                }.flatten()
+                errors.each { task.project.buildScan.value 'Checkstyle Issue', it }
+            }
+        }
+        if (task instanceof CodeNarc) {
+            if (state.failure && task.reports.xml.destination.exists()) {
+                def codenarc = new XmlSlurper().parse(task.reports.xml.destination)
+                def errors = codenarc.Package.collect {
+                    it.File.collect { fileTag ->
+                        fileTag.Violation.collect {
+                            String filePath = task.project.rootProject.relativePath(fileTag.@name.text())
+                            "${filePath}:${it.@lineNumber} \u2192 ${it.Message.text()}"
+                        }
+                    }.flatten()
+                }.flatten()
+                errors.each { task.project.buildScan.value 'CodeNarc Issue', it }
+            }
+        }
+    }
+}
+

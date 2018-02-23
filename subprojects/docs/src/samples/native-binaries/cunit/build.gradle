@@ -1,0 +1,69 @@
+// START SNIPPET complete-example
+// START SNIPPET terse-example
+apply plugin: "c"
+apply plugin: 'cunit-test-suite'
+
+model {
+    flavors {
+        passing
+        failing
+    }
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+    }
+// END SNIPPET terse-example
+    repositories {
+        libs(PrebuiltLibraries) {
+            cunit {
+                headers.srcDir "libs/cunit/2.1-2/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                        file("libs/cunit/2.1-2/lib/" +
+                             findCUnitLibForPlatform(targetPlatform))
+                }
+            }
+        }
+    }
+// START SNIPPET terse-example
+    components {
+        operators(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+    testSuites {
+        operatorsTest(CUnitTestSuiteSpec) {
+            testing $.components.operators
+        }
+    }
+}
+// END SNIPPET terse-example
+// START SNIPPET configure-test-binary
+model {
+    binaries {
+        withType(CUnitTestSuiteBinarySpec) {
+            lib library: "cunit", linkage: "static"
+
+            if (flavor == flavors.failing) {
+                cCompiler.define "PLUS_BROKEN"
+            }
+        }
+    }
+}
+// END SNIPPET configure-test-binary
+// END SNIPPET complete-example
+
+def findCUnitLibForPlatform(Platform platform) {
+    if (platform.operatingSystem.windows) {
+//        return "vs2010/cunit.lib"
+//        return "vs2013/cunit.lib"
+        return "vs2015/cunit.lib"
+//        return "cygwin/cunit.lib"
+//        return "mingw/cunit.lib"
+    } else if (platform.operatingSystem.macOsX) {
+        return "osx/libcunit.a"
+    } else {
+        return "linux/libcunit.a"
+    }
+}

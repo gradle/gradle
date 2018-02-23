@@ -1,0 +1,9 @@
+<ivysettings>
+    <settings defaultResolver="main"/>
+    <resolvers>
+        <filesystem name="main" checkmodified="true" validate="true">
+            <ivy pattern="${buildDir}/repo/ivy-[revision].xml"/>
+            <artifact pattern="${buildDir}/repo/[module]-[revision].[ext]"/>
+        </filesystem>
+    </resolvers>
+</ivysettings>

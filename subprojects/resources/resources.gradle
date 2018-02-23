@@ -1,0 +1,25 @@
+/*
+ * A set of general-purpose resource abstractions.
+ */
+plugins {
+    id 'java-library'
+    id 'classycle'
+}
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+dependencies {
+    api project(':baseServices')
+    api project(':messaging')
+    api project(':native')
+    api project(':modelCore')
+
+    implementation libraries.guava.coordinates
+    implementation libraries.commons_io.coordinates
+
+    integTestImplementation project(':internalIntegTesting')
+}
+
+testFixtures {
+    from(':core')
+}

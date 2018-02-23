@@ -1,0 +1,26 @@
+plugins {
+    id 'classycle'
+}
+
+dependencies {
+    testFixturesCompile project(':internalIntegTesting')
+}
+
+testFixtures {
+    from(':core')
+}
+
+tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
+    options {
+        excludeCategories 'org.gradle.soak.categories.SoakTest'
+    }
+}
+
+task('soakTest', type: org.gradle.testing.SoakTest) {
+    testClassesDirs = sourceSets.integTest.output.classesDirs
+    classpath = sourceSets.integTest.runtimeClasspath
+    systemProperties['org.gradle.soaktest'] = 'true'
+    options {
+        includeCategories 'org.gradle.soak.categories.SoakTest'
+    }
+}

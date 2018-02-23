@@ -1,0 +1,28 @@
+apply plugin: 'c'
+
+model {
+    components {
+        main(NativeExecutableSpec) { m ->
+            binaries.all {
+                sources {
+                    if (targetPlatform.operatingSystem.windows) {
+                        platformWindows(CSourceSet) {
+                            source.srcDir "src/main/windows"
+                            lib m.sources.c
+                        }
+                    } else if (targetPlatform.operatingSystem.linux) {
+                        platformLinux(CSourceSet) {
+                            source.srcDir "src/main/linux"
+                            lib m.sources.c
+                        }
+                    } else if (targetPlatform.operatingSystem.macOsX) {
+                        platformMacOSX(CSourceSet) {
+                            source.srcDir "src/main/mac"
+                            lib m.sources.c
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

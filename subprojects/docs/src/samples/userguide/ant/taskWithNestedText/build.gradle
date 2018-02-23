@@ -1,0 +1,5 @@
+task hello {
+    doLast {
+        ant.echo('hello from Ant')
+    }
+}

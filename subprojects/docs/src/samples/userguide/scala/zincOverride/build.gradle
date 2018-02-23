@@ -1,0 +1,17 @@
+apply plugin: "scala"
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET all-dependency
+configurations.all {
+    resolutionStrategy.force "org.scala-lang:scala-library:2.11.7"
+}
+// END SNIPPET all-dependency
+
+// START SNIPPET zinc-dependency
+configurations.zinc {
+    resolutionStrategy.force "org.scala-lang:scala-library:2.10.5"
+}
+// END SNIPPET zinc-dependency

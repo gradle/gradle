@@ -1,0 +1,3 @@
+// START SNIPPET task
+task verifyUrl(type: UrlVerify)
+// END SNIPPET task

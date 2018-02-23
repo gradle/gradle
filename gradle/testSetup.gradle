@@ -1,0 +1,4 @@
+
+// Calculate the set of released versions - do this at configuration time because we need this to create various tasks
+// At some point, make this a configuration rule
+ext.releasedVersions = new org.gradle.build.ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))

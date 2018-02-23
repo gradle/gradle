@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  This is the base POM for all dependent and inherited POMS of the DPJW application
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.test</groupId>
+    <artifactId>testApp</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+    <name>A Test Project</name>
+    <description>Some Test project</description>
+    <build>
+        <plugins>
+            <!-- set this project compiler to jdk version 1.6 -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+
+            </plugin>
+            <!-- the test plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/HistoryConfigurationTest.java</exclude>
+                        <exclude>**/TestDataFactory.java</exclude>
+                    </excludes>
+                    <forkMode>once</forkMode>
+                    <reportFormat>xml</reportFormat>
+                </configuration>
+            </plugin>
+        </plugins>
+        <extensions>
+            <extension>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.0.7</version>
+            </extension>
+        </extensions>
+    </build>
+</project>

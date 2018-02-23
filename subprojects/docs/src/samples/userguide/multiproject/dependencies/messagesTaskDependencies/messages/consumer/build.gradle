@@ -1,0 +1,5 @@
+task consume(dependsOn: ':producer:produce') {
+    doLast {
+        println("Consuming message: ${rootProject.producerMessage}")
+    }
+}

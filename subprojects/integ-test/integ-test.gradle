@@ -1,0 +1,46 @@
+plugins {
+    id 'classycle'
+}
+
+dependencies {
+    integTestCompile libraries.groovy.coordinates
+    integTestCompile libraries.ant.coordinates
+    integTestCompile testLibraries.jsoup
+
+    integTestRuntime allTestRuntimeDependencies
+
+    crossVersionTestCompile project(':scala')
+    crossVersionTestCompile project(':ide')
+    crossVersionTestCompile project(':codeQuality')
+    crossVersionTestCompile project(':signing')
+
+    crossVersionTestRuntime allTestRuntimeDependencies
+}
+
+testFixtures {
+    from(':diagnostics', 'integTest')
+    from(':platformNative', 'integTest')
+}
+
+integTestTasks.all { task ->
+    userguideSamples.with {
+        required = true
+        samplesXml.set(layout.file(provider { new File(project(':docs').docbookSrc, 'samples.xml') }))
+        userGuideSamplesOutput.set(layout.projectDirectory.dir(provider { new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath }))
+    }
+    libsRepository.required = true
+
+    // You can exclude the userguide samples by their ids by specifying this system property.
+    // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.exclude=completeCUnitExample,nativeComponentReport
+    systemProperty "org.gradle.userguide.samples.exclude", System.getProperty("org.gradle.userguide.samples.exclude")
+    // You can filter the userguide samples to be run by specifying this system property.
+    // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.filter=signing/.+
+    systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
+}
+
+parallelIntegTest {
+    systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
+}
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

@@ -1,0 +1,13 @@
+buildscript {
+    repositories {
+        // To function outside a composite, a plugin repository would be required.
+    }
+    dependencies {
+        classpath 'org.sample:greeting-plugin:1.0-SNAPSHOT'
+    }
+}
+apply plugin: 'org.sample.greeting'
+
+task greetBob(type: org.sample.GreetingTask) {
+    who = 'Bob'
+}

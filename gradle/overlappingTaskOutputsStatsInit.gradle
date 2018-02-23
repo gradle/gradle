@@ -1,0 +1,115 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.api.internal.tasks.*
+
+def taskInfos = []
+
+class TaskOutputInfo {
+    Class type
+    String path
+    Map<String, File> outputs
+}
+
+gradle.addListener(new TaskExecutionAdapter() {
+    @Override
+    void afterExecute(Task task, TaskState state) {
+        def type = task.getClass()
+        if (type.name.endsWith("_Decorated")) {
+            type = type.superclass
+        }
+        def outputs = task.outputs.fileProperties
+            .findAll { it instanceof CacheableTaskOutputFilePropertySpec }
+            .findAll {
+                try {
+                    it.outputFile != null
+                } catch (Exception ignored) {
+                    // Sometimes for some non-cacheable tasks some non-optional outputs can be null
+                    // and throw an error when tried to be resolved
+                    return false
+                }
+            }
+            .collectEntries { [it.propertyName, it.outputFile] }
+
+        def info = new TaskOutputInfo(
+            type: type,
+            path: task.path,
+            outputs: outputs
+        )
+        taskInfos.add info
+    }
+})
+gradle.addListener(new BuildAdapter() {
+    @Override
+    void buildFinished(BuildResult result) {
+        println ""
+        println "Overlapping task outputs while executing '${gradle.startParameter.taskNames.join(" ")}':"
+        println ""
+        taskInfos.sort { a, b ->
+            a.path <=> b.path
+        }
+        def byPath = [:].withDefault { [:].withDefault { [] } }
+        def root = rootProject.projectDir
+        taskInfos.each { taskInfo ->
+            taskInfo.outputs.each { outputName, outputFile ->
+                byPath[outputFile][outputName].add(taskInfo)
+            }
+        }
+        taskInfos.each { taskInfo ->
+            taskInfo.outputs.each { outputName, outputFile ->
+                def path = outputFile
+                while (true) {
+                    path = path.parentFile
+                    if (path == null || path == root) {
+                        break;
+                    }
+                    if (byPath.containsKey(path)) {
+                        byPath[path][outputName].add(taskInfo)
+                    }
+                }
+            }
+        }
+        def tasksAffected = []
+        byPath.each { path, byName ->
+            if (byName.values().flatten()*.path.unique().size() > 1) {
+                println "  - ${relPath(root, path)} has overlap between:"
+                byName.each { outputName, tasks ->
+                    tasks.each { task ->
+                        println "      - ${task.path}.$outputName ($task.type.name)"
+                    }
+                    tasksAffected.addAll tasks
+                }
+            }
+        }
+        if (tasksAffected.empty) {
+            println "  No tasks with overlapping outputs found"
+        } else {
+            println ""
+            println "  Tasks affected by type:"
+            println ""
+            tasksAffected*.type.unique().sort { a, b -> a.name <=> b.name }.each { type ->
+                println "    - ${type.name}"
+                tasksAffected.findAll { task -> task.type == type }.unique { it.path }.each { task ->
+                    println "      - ${task.path}"
+                }
+            }
+        }
+    }
+})
+
+def relPath(File root, File full) {
+    root.toURI().relativize(full.toURI()).toString()
+}

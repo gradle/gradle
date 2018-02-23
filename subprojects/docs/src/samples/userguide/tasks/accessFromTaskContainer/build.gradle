@@ -1,0 +1,4 @@
+task hello
+
+println tasks.hello.name
+println tasks['hello'].name

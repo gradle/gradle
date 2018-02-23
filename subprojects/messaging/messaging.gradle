@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+    id 'classycle'
+}
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+dependencies {
+    api project(':baseServices')
+    api libraries.slf4j_api.coordinates
+
+    implementation libraries.kryo.coordinates
+}
+
+testFixtures {
+    from(':core')
+}

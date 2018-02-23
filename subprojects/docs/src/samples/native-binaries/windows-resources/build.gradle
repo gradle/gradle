@@ -1,0 +1,30 @@
+apply plugin: 'cpp'
+// START SNIPPET apply-plugin
+apply plugin: 'windows-resources'
+// END SNIPPET apply-plugin
+
+model {
+    components {
+        hello(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    lib library: 'hello'
+                }
+            }
+        }
+    }
+
+    binaries {
+        all {
+            linker.args "user32.lib"
+        }
+
+        // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
+    }
+}

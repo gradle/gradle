@@ -1,0 +1,16 @@
+initscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2" }
+    }
+    dependencies {
+        classpath "com.gradle:build-scan-plugin:1.12.1"
+    }
+}
+if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")) {
+    rootProject {
+        apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+        buildScan {
+            server = "https://e.grdev.net"
+        }
+    }
+}

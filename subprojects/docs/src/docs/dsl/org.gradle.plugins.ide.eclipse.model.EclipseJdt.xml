@@ -1,0 +1,38 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>sourceCompatibility</td>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>targetCompatibility</td>
+                <td><literal>project.targetCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>file</td>
+                <td/>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>file</td>
+            </tr>
+        </table>
+    </section>
+</section>

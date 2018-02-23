@@ -1,0 +1,34 @@
+// START SNIPPET tasks
+apply plugin: GreetingPlugin
+
+// our default greeting
+greeting = "Hello!"
+
+task hello(type: GreetingTask)
+
+task bonjour(type: GreetingTask) {
+    greeting = "Bonjour!"
+}
+// END SNIPPET tasks
+
+// START SNIPPET plugin
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.tasks.withType(GreetingTask) { task ->
+            task.conventionMapping.greeting = { project.greeting }
+        }
+    }
+}
+// END SNIPPET plugin
+
+// START SNIPPET task
+class GreetingTask extends DefaultTask {
+
+    String greeting
+
+    @TaskAction
+    def greet() {
+        println getGreeting()
+    }
+}
+// END SNIPPET task

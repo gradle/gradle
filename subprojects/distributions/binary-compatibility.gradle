@@ -1,0 +1,164 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+import japicmp.model.JApiChangeStatus
+import me.champeau.gradle.japicmp.JapicmpTask
+import org.gradle.api.attributes.Attribute
+import org.gradle.binarycompatibility.rules.*
+import org.gradle.binarycompatibility.transforms.*
+import org.gradle.binarycompatibility.AcceptedApiChanges
+import org.gradle.binarycompatibility.CleanAcceptedApiChanges
+
+repositories {
+    ['distributions', 'distributions-snapshots'].each { distUrl ->
+        ivy {
+            name 'Gradle distributions'
+            url 'https://services.gradle.org'
+            layout 'pattern', {
+                ivy '[module]-ivy.xml'
+                artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+            }
+        }
+    }
+}
+
+ext {
+    apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
+    acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
+    compatibilityBaselineVersion = releasedVersions.mostRecentRelease
+    foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
+}
+
+def ARTIFACT_TYPE = Attribute.of('artifactType', String)
+
+configurations {
+    baseline
+    baselineClasspath {
+        extendsFrom baseline
+        attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
+    }
+}
+
+Set publicProjects = pluginProjects + implementationPluginProjects + publicGroovyProjects - [project(':smokeTest'), project(':soak')]
+def projects = publicProjects.collect { it.archivesBaseName - 'gradle-' }
+
+dependencies {
+    baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
+
+    // This transform takes the Gradle zip distribution,
+    // and unzips the Gradle jar files that it contains in a directory
+    registerTransform {
+        from.attribute(ARTIFACT_TYPE, 'zip')
+        to.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+        artifactTransform(ExplodeZipAndFindJars)
+    }
+    registerTransform {
+        from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+        to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
+        artifactTransform(FindGradleClasspath)
+    }
+
+    projects.each { projectName ->
+        // This transform uses the result of the exploded zip extraction
+        // and returns a single jar file based on the lookup project name
+        registerTransform {
+            from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+            to.attribute(ARTIFACT_TYPE, projectName)
+            artifactTransform(FindGradleJar) {
+                params(projectName)
+            }
+        }
+    }
+}
+
+def baselineConfigurations = []
+projects.each { projectName ->
+    def appendixName = projectName.split('-')*.capitalize().join('')
+    baselineConfigurations << configurations.create("japicmp-baseline-${appendixName}") {
+        extendsFrom configurations.baseline
+        attributes.attribute(ARTIFACT_TYPE, projectName)
+    }
+}
+
+task checkBinaryCompatibility(type: JapicmpTask) {
+    dependsOn publicProjects.jar
+
+    inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
+    inputs.property("baseline.version", compatibilityBaselineVersion)
+    inputs.property("currentVersion", baseVersion)
+    inputs.files("foldersWithAPISources", foldersWithAPISources)
+
+    oldClasspath = configurations.baselineClasspath
+    newClasspath = files(publicProjects.configurations.runtimeClasspath)
+    oldArchives = files(baselineConfigurations)
+    newArchives = files(publicProjects.jar)
+
+    // binary breaking change checking setup
+    onlyModified = true
+    failOnModification = false // we rely on the custom report to fail or not
+    ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
+    richReport {
+        includedClasses = toPatterns(publicApiIncludes)
+        excludedClasses = toPatterns(publicApiExcludes)
+
+        title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
+        destinationDir = file("$buildDir/reports/binary-compatibility")
+        reportName = "report.html"
+        addRule(IncubatingInternalInterfaceAddedRule, [acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(), publicApiPatterns: includedClasses])
+        addRule(MethodsRemovedInInternalSuperClassRule, [acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(), publicApiPatterns: includedClasses])
+        addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
+        addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
+        addSetupRule(SinceAnnotationMissingRuleAPISourceFoldersSetup, foldersWithAPISources.collectEntries { [(it): it] })
+        addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: baseVersion])
+        addPostProcessRule(AcceptedRegressionsRulePostProcess)
+    }
+}
+check.dependsOn(checkBinaryCompatibility)
+
+task cleanAcceptedApiChanges(type: CleanAcceptedApiChanges) {
+    description = 'Cleans up all existing accepted API changes.'
+    jsonFile = apiChangesJsonFile
+}
+
+static List<String> toPatterns(List<String> packages) {
+    def patterns = packages.collect {
+        it.replaceAll('\\*\\*', '###')
+            .replaceAll('/\\*', '/[A-Z][a-z_A-Z0-9]+')
+            .replaceAll('/', '[.]')
+            .replaceAll('###', '.*?')
+    }
+    patterns
+}
+
+static Map<String, String> loadBreakingChanges(File file) {
+    def map = [:]
+    if (file.exists()) {
+        file.eachLine { line ->
+            line = line.trim()
+            if (line) {
+                def (lookup, reason) = line.split(';')
+                map[lookup] = reason
+            }
+        }
+    }
+    map
+}
+

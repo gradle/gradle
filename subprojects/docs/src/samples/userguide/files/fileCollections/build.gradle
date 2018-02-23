@@ -1,0 +1,60 @@
+import java.nio.file.Paths
+
+// START SNIPPET simple-params
+FileCollection collection = files('src/file1.txt',
+                                  new File('src/file2.txt'),
+                                  ['src/file3.txt', 'src/file4.txt'],
+                                  Paths.get('src', 'file5.txt'))
+// END SNIPPET simple-params
+
+file('src').mkdirs()
+file('src/dir1').mkdirs()
+file('src/file1.txt').mkdirs()
+file('src2').mkdirs()
+file('src2/dir1').mkdirs()
+file('src2/dir2').mkdirs()
+
+// START SNIPPET closure
+task list {
+    doLast {
+        File srcDir
+
+        // Create a file collection using a closure
+        collection = files { srcDir.listFiles() }
+
+        srcDir = file('src')
+        println "Contents of $srcDir.name"
+        collection.collect { relativePath(it) }.sort().each { println it }
+
+        srcDir = file('src2')
+        println "Contents of $srcDir.name"
+        collection.collect { relativePath(it) }.sort().each { println it }
+    }
+}
+// END SNIPPET closure
+
+task usage {
+    doLast {
+        collection = files('src/file1.txt')
+
+        //START SNIPPET usage
+        // Iterate over the files in the collection
+        collection.each { File file ->
+            println file.name
+        }
+
+        // Convert the collection to various types
+        Set set = collection.files
+        Set set2 = collection as Set
+        List list = collection as List
+        String path = collection.asPath
+        File file = collection.singleFile
+        File file2 = collection as File
+
+        // Add and subtract collections
+        def union = collection + files('src/file3.txt')
+        def different = collection - files('src/file3.txt')
+
+        //END SNIPPET usage
+    }
+}
