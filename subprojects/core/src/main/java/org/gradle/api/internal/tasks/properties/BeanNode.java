@@ -22,8 +22,10 @@ import com.google.common.collect.Iterators;
 import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
 
@@ -91,10 +93,15 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
         public Iterator<BeanNode> getIterator() {
             return Iterators.transform(iterable.iterator(), new Function<Object, BeanNode>() {
                 private int count = 0;
+                private Set<String> seenNames = new HashSet<String>();
 
                 @Override
                 public BeanNode apply(@Nullable Object input) {
-                    return createChildNode(determinePropertyName(input), input);
+                    String propertyName = determinePropertyName(input);
+                    Preconditions.checkState(seenNames.add(propertyName),
+                        "Nested iterables can only contain beans with unique names. Duplicate name: '%s'.",
+                        getQualifiedPropertyName(propertyName));
+                    return createChildNode(propertyName, input);
                 }
 
                 private String determinePropertyName(@Nullable Object input) {

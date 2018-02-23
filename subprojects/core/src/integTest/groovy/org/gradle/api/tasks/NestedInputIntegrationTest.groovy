@@ -658,6 +658,30 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cycles between nested beans are not allowed. Cycle detected between: 'nested' and 'nested.nested'.")
     }
 
+    def "duplicate names in nested iterable cause the build to fail"() {
+        buildFile << taskWithNestedInput()
+        buildFile << """
+            class NamedBean implements Named {
+                @Internal
+                final String name
+                @Input
+                final String value
+        
+                NamedBean(String name, String value) {
+                    this.value = value
+                    this.name = name
+                }
+            }
+            
+            myTask.nested = [new NamedBean('name', 'value1'), new NamedBean('name', 'value2')]           
+        """
+
+        expect:
+        fails "myTask"
+        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
+        failure.assertHasCause("Nested iterables can only contain beans with unique names. Duplicate name: 'nested.name'.")
+    }
+
     def "implementation of nested property in Groovy build script is tracked"() {
         setupTaskClassWithNestedAction()
         buildFile << """
@@ -848,6 +872,30 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 bean = NestedBean.newInstance()
                 bean.input = file("input.txt")
                 bean.output = file("build/output.txt")
+            }
+        """
+    }
+
+    private static String taskWithNestedInput() {
+        """
+            class TaskWithNestedInput extends DefaultTask {
+                @Nested
+                Object nested
+                
+                @Input
+                String input = "Hello"
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = input
+                }
+            }
+
+            task myTask(type: TaskWithNestedInput) {
+                outputFile = file('build/output.txt')
             }
         """
     }

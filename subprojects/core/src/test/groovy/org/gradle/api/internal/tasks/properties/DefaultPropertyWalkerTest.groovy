@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties
 
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.DefaultTask
+import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
@@ -29,6 +30,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
@@ -158,6 +160,30 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    def "nested iterable beans must have unique names"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = [new NamedNestedBean('name', 'value1'), new NamedNestedBean('name', 'value2')]
+
+        when:
+        visitProperties(task)
+
+        then:
+        IllegalStateException e = thrown(IllegalStateException)
+        e.message == "Nested iterables can only contain beans with unique names. Duplicate name: 'nested.name'."
+    }
+
+    static class NamedNestedBean implements Named {
+        @Internal
+        final String name
+        @Input
+        final String value
+
+        NamedNestedBean(String name, String value) {
+            this.value = value
+            this.name = name
+        }
     }
 
     static class TaskWithNestedObject extends DefaultTask {
