@@ -52,7 +52,12 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
         if (!taskProperties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
-            return NoHistoryArtifactState.INSTANCE;
+            if (task.hasTaskActions()) {
+                return NoOutputsArtifactState.WITH_ACTIONS;
+            } else {
+                return NoOutputsArtifactState.WITHOUT_ACTIONS;
+
+            }
         }
 
         TaskArtifactState state = repository.getStateFor(task, taskProperties);
