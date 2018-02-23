@@ -20,7 +20,8 @@ dependencies {
     compile project(':reporting')
     compile project(':platformBase')
 
-    compile libraries.kryo.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.kryo.coordinates
 
     testFixturesCompile project(':internalIntegTesting')
 }

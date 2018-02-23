@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 public class XcodebuildExecutor {
     public enum XcodeAction {
@@ -112,7 +112,7 @@ public class XcodebuildExecutor {
 
     private TestFile findXcodeBuild() {
         TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
-        assertTrue(xcodebuild.exists(), "This test requires xcode to be installed in " + xcodebuild.getAbsolutePath());
+        assertTrue("This test requires xcode to be installed in " + xcodebuild.getAbsolutePath(), xcodebuild.exists());
         return xcodebuild;
     }
 }
