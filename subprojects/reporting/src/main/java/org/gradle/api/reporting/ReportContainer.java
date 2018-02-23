@@ -21,10 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.OutputFiles;
 import org.gradle.util.Configurable;
 
 import java.io.File;
@@ -92,14 +89,17 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
     boolean isEmpty();
 
     @Incubating
-    @OutputDirectories
+    @Internal
+    @Deprecated
     Map<String, File> getEnabledDirectoryReportDestinations();
 
     @Incubating
-    @OutputFiles
+    @Internal
+    @Deprecated
     Map<String, File> getEnabledFileReportDestinations();
 
     @Incubating
-    @Input
+    @Internal
+    @Deprecated
     SortedSet<String> getEnabledReportNames();
 }

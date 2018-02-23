@@ -28,6 +28,7 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -115,6 +116,11 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         getStore().add(report);
         index();
         return report;
+    }
+
+    @Nested
+    public Map<String, T> getEnabledReports() {
+        return getEnabled().getAsMap();
     }
 
     @Override
