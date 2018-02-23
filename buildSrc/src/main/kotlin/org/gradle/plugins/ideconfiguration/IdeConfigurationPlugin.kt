@@ -169,27 +169,6 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     }
 
     private
-    fun XmlProvider.withJsoup(function: (Document) -> Unit) {
-        val xml = asString()
-        val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
-        document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        function(document)
-        xml.delete(0, xml.length)
-        xml.append(document.toString())
-    }
-
-    private
-    fun Element.createOrEmptyOutChildElement(childName: String): Element {
-        val children = getElementsByTag(childName)
-        if (children.isEmpty()) {
-            return appendElement(childName)
-        }
-        val child = children.first()
-        child.children().remove()
-        return child
-    }
-
-    private
     fun configureGradleRunConfigurations(runManagerComponent: org.jsoup.nodes.Element) {
         runManagerComponent.attr("selected", "Application.Gradle")
         runManagerComponent.removeExistingChildElement("configuration[name=gradle]")
@@ -219,15 +198,6 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                 .attr("class", "java.lang.String")
                 .attr("itemvalue", itemValue)
         }
-    }
-
-    private
-    fun Element.removeExistingChildElement(childSelector: String): Element {
-        val existingRunners = select(childSelector)
-        if (!existingRunners.isEmpty()) {
-            existingRunners.remove()
-        }
-        return this
     }
 
     private
@@ -420,6 +390,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     }
 }
 
+
 private
 val Project.rootExcludeDirs
     get() = setOf<File>(
@@ -454,6 +425,7 @@ const val GRADLE_CONFIGURATION = """
        <method />
     </configuration>
 """
+
 
 private
 const val CODE_STYLE_SETTINGS = """
@@ -491,6 +463,7 @@ const val CODE_STYLE_SETTINGS = """
     </component>
 """
 
+
 private
 const val GROOVY_COMPILER_SETTINGS = """
     <component name="GroovyCompilerProjectConfiguration">
@@ -500,3 +473,36 @@ const val GROOVY_COMPILER_SETTINGS = """
         <option name="heapSize" value="2000" />
     </component>
 """
+
+
+private
+fun XmlProvider.withJsoup(function: (Document) -> Unit) {
+    val xml = asString()
+    val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
+    document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
+    function(document)
+    xml.delete(0, xml.length)
+    xml.append(document.toString())
+}
+
+
+private
+fun Element.createOrEmptyOutChildElement(childName: String): Element {
+    val children = getElementsByTag(childName)
+    if (children.isEmpty()) {
+        return appendElement(childName)
+    }
+    val child = children.first()
+    child.children().remove()
+    return child
+}
+
+
+private
+fun Element.removeExistingChildElement(childSelector: String): Element {
+    val existingRunners = select(childSelector)
+    if (!existingRunners.isEmpty()) {
+        existingRunners.remove()
+    }
+    return this
+}
