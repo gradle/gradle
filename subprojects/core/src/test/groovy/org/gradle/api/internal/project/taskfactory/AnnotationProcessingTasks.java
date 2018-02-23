@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Named;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -441,10 +442,10 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithNestedIterable extends TaskWithAction {
-        Bean bean = new Bean();
+        Object bean;
 
-        public TaskWithNestedIterable(File inputFile) {
-            bean.inputFile = inputFile;
+        public TaskWithNestedIterable(Object nested) {
+            bean = nested;
         }
 
         @Nested
@@ -512,6 +513,39 @@ public class AnnotationProcessingTasks {
 
         public File getInputFile() {
             return inputFile;
+        }
+    }
+
+    public static class BeanWithInput {
+        private final String input;
+
+        public BeanWithInput(String input) {
+            this.input = input;
+        }
+
+        @Input
+        public String getInput() {
+            return input;
+        }
+    }
+
+    public static class NamedBean implements Named {
+        private final String name;
+        private final String value;
+
+        public NamedBean(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Input
+        public String getValue() {
+            return value;
         }
     }
 

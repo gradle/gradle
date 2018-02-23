@@ -564,14 +564,15 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop              | value        | expected
-        TaskWithNestedBean                        | "bean.class"      | [null]       | Bean.class
-        TaskWithNestedIterable                    | "beans.\$0.class" | [null]       | Bean.class
-        TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] | Bean2.class
-        TaskWithOptionalNestedBean                | "bean.class"      | [null]       | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null         | null
-        TaskWithInput                             | "inputValue"      | ["value"]    | "value"
-        TaskWithBooleanInput                      | "inputValue"      | [true]       | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop               | value                            | expected
+        TaskWithNestedBean                        | "bean.class"       | [null]                           | Bean.class
+        TaskWithNestedIterable                    | "beans.\$0.class"  | [new Bean()]                     | Bean.class
+        TaskWithNestedIterable                    | "beans.name.value" | [new NamedBean("name", "value")] | "value"
+        TaskWithNestedBeanWithPrivateClass        | "bean.class"       | [null, null]                     | Bean2.class
+        TaskWithOptionalNestedBean                | "bean.class"       | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"       | null                             | null
+        TaskWithInput                             | "inputValue"       | ["value"]                        | "value"
+        TaskWithBooleanInput                      | "inputValue"       | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
     }
 
     @Unroll
@@ -608,7 +609,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
         TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
         TaskWithNestedBean                        | [null]                         | ["bean.class"]                                  | ["bean.inputFile"]      | []
-        TaskWithNestedIterable                    | [null]                         | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
+        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
         TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
         TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
