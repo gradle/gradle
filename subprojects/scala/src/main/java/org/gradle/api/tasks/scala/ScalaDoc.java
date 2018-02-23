@@ -119,7 +119,7 @@ public class ScalaDoc extends SourceTask {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 

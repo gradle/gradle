@@ -210,7 +210,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.2
      */
     @Incubating
-    public void setRuleSetConfig(TextResource ruleSetConfig) {
+    public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
 
@@ -332,7 +332,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.8
      */
     @Incubating
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
     }
 }

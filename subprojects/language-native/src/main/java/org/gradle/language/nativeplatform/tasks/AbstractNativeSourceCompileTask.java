@@ -78,7 +78,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         return preCompiledHeader;
     }
 
-    public void setPreCompiledHeader(PreCompiledHeader preCompiledHeader) {
+    public void setPreCompiledHeader(@Nullable PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
     }
 

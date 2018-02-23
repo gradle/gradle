@@ -192,7 +192,7 @@ public class War extends Jar {
      *
      * @param webXml The {@code web.xml} file. Maybe null.
      */
-    public void setWebXml(File webXml) {
+    public void setWebXml(@Nullable File webXml) {
         this.webXml = webXml;
     }
 

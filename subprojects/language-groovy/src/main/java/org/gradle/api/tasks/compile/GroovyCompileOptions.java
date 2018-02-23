@@ -263,7 +263,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
      * Only takes effect when compiling against Groovy 1.8 or higher.
      */
-    public void setOptimizationOptions(Map<String, Boolean> optimizationOptions) {
+    public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
         this.optimizationOptions = optimizationOptions;
     }
 

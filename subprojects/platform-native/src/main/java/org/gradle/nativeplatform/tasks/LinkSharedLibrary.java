@@ -78,7 +78,7 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         return installName;
     }
 
-    public void setInstallName(String installName) {
+    public void setInstallName(@Nullable String installName) {
         this.installName = installName;
     }
 

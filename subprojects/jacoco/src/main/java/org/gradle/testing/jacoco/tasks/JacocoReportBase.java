@@ -127,7 +127,7 @@ public abstract class JacocoReportBase extends JacocoBase {
         return additionalClassDirs;
     }
 
-    public void setAdditionalClassDirs(FileCollection additionalClassDirs) {
+    public void setAdditionalClassDirs(@Nullable FileCollection additionalClassDirs) {
         this.additionalClassDirs = additionalClassDirs;
     }
 
@@ -141,7 +141,7 @@ public abstract class JacocoReportBase extends JacocoBase {
         return additionalSourceDirs;
     }
 
-    public void setAdditionalSourceDirs(FileCollection additionalSourceDirs) {
+    public void setAdditionalSourceDirs(@Nullable FileCollection additionalSourceDirs) {
         this.additionalSourceDirs = additionalSourceDirs;
     }
 

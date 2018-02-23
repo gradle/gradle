@@ -83,7 +83,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the text to appear in the window title.
      */
-    public void setWindowTitle(String windowTitle) {
+    public void setWindowTitle(@Nullable String windowTitle) {
         this.windowTitle = windowTitle;
     }
 
@@ -98,7 +98,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the main frame title.
      */
-    public void setDocTitle(String docTitle) {
+    public void setDocTitle(@Nullable String docTitle) {
         this.docTitle = docTitle;
     }
 
@@ -113,7 +113,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the header for each page.
      */
-    public void setHeader(String header) {
+    public void setHeader(@Nullable String header) {
         this.header = header;
     }
 
@@ -128,7 +128,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the footer for each page.
      */
-    public void setFooter(String footer) {
+    public void setFooter(@Nullable String footer) {
         this.footer = footer;
     }
 
@@ -143,7 +143,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the top text for each page.
      */
-    public void setTop(String top) {
+    public void setTop(@Nullable String top) {
         this.top = top;
     }
 
@@ -158,7 +158,7 @@ public class ScalaDocOptions extends AbstractOptions {
     /**
      * Sets the HTML text to appear in the bottom text for each page.
      */
-    public void setBottom(String bottom) {
+    public void setBottom(@Nullable String bottom) {
         this.bottom = bottom;
     }
 
@@ -181,7 +181,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
      */
     @Deprecated
-    public void setStyleSheet(File styleSheet) {
+    public void setStyleSheet(@Nullable File styleSheet) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.setStyleSheet");
         this.styleSheet = styleSheet;
     }
@@ -199,7 +199,7 @@ public class ScalaDocOptions extends AbstractOptions {
      * Sets the additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      */
-    public void setAdditionalParameters(List<String> additionalParameters) {
+    public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
 

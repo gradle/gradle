@@ -163,7 +163,7 @@ public class WriteProperties extends DefaultTask {
     /**
      * Sets the optional comment to add at the beginning of the properties file.
      */
-    public void setComment(String comment) {
+    public void setComment(@Nullable String comment) {
         this.comment = comment;
     }
 

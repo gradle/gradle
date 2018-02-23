@@ -214,7 +214,7 @@ public class CreateStartScripts extends ConventionTask {
         return defaultJvmOpts;
     }
 
-    public void setDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
+    public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
         this.defaultJvmOpts = defaultJvmOpts;
     }
 
@@ -230,11 +230,11 @@ public class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
-    public void setOptsEnvironmentVar(String optsEnvironmentVar) {
+    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
-    public void setExitEnvironmentVar(String exitEnvironmentVar) {
+    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 

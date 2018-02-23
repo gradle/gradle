@@ -231,7 +231,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
-    public void setConfigProperties(Map<String, Object> configProperties) {
+    public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
         this.configProperties = configProperties;
     }
 

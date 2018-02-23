@@ -83,7 +83,7 @@ public class BaseForkOptions extends AbstractOptions {
      * Sets any additional JVM arguments for the compiler process.
      * Defaults to the empty list.
      */
-    public void setJvmArgs(List<String> jvmArgs) {
+    public void setJvmArgs(@Nullable List<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }
 

@@ -21,13 +21,10 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
-import javax.annotation.Nullable;
-
 public interface FindBugsReportsInternal extends FindBugsReports {
     @Internal
     SingleFileReport getFirstEnabled();
 
-    @Nullable
     @Input
     Boolean getWithMessagesFlag();
 }

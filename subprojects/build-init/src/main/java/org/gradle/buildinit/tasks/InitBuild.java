@@ -68,7 +68,6 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @Nullable
     @Input
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
@@ -152,7 +151,7 @@ public class InitBuild extends DefaultTask {
     }
 
     @Option(option = "test-framework", description = "Set alternative test framework to be used.")
-    public void setTestFramework(String testFramework) {
+    public void setTestFramework(@Nullable String testFramework) {
         this.testFramework = testFramework;
     }
 

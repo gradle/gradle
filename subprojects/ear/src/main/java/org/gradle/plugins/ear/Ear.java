@@ -215,7 +215,7 @@ public class Ear extends Jar {
         return libDirName;
     }
 
-    public void setLibDirName(String libDirName) {
+    public void setLibDirName(@Nullable String libDirName) {
         this.libDirName = libDirName;
     }
 

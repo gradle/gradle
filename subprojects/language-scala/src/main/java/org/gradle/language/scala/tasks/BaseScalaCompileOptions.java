@@ -107,7 +107,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         return debugLevel;
     }
 
-    public void setDebugLevel(String debugLevel) {
+    public void setDebugLevel(@Nullable String debugLevel) {
         this.debugLevel = debugLevel;
     }
 
@@ -131,7 +131,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(@Nullable String encoding) {
         this.encoding = encoding;
     }
 
@@ -159,7 +159,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
         return additionalParameters;
     }
 
-    public void setAdditionalParameters(List<String> additionalParameters) {
+    public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
 

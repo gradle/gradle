@@ -110,7 +110,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @param outputFile The output file. May be null.
      */
-    public void setOutputFile(File outputFile) {
+    public void setOutputFile(@Nullable File outputFile) {
         this.outputFile = outputFile;
     }
 

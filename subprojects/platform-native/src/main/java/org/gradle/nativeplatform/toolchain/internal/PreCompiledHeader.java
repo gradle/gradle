@@ -62,7 +62,7 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         return prefixHeaderFile;
     }
 
-    public void setPrefixHeaderFile(File prefixHeaderFile) {
+    public void setPrefixHeaderFile(@Nullable File prefixHeaderFile) {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
@@ -71,7 +71,7 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         return includeString;
     }
 
-    public void setIncludeString(String includeString) {
+    public void setIncludeString(@Nullable String includeString) {
         this.includeString = includeString;
     }
 

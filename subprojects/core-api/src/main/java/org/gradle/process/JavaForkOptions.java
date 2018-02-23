@@ -82,7 +82,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
      */
-     void setDefaultCharacterEncoding(String defaultCharacterEncoding);
+     void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
 
     /**
      * Returns the minimum heap size for the process, if any.
@@ -97,7 +97,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param heapSize The minimum heap size. Use null for the default minimum heap size.
      */
-    void setMinHeapSize(String heapSize);
+    void setMinHeapSize(@Nullable String heapSize);
 
     /**
      * Returns the maximum heap size for the process, if any.
@@ -112,7 +112,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param heapSize The heap size. Use null for the default maximum heap size.
      */
-    void setMaxHeapSize(String heapSize);
+    void setMaxHeapSize(@Nullable String heapSize);
 
     /**
      * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
@@ -130,7 +130,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param arguments The arguments. Must not be null.
      * @since 4.0
      */
-    void setJvmArgs(List<String> arguments);
+    void setJvmArgs(@Nullable List<String> arguments);
 
     /**
      * Sets the extra arguments to use to launch the JVM for the process. System properties
@@ -138,7 +138,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param arguments The arguments. Must not be null.
      */
-    void setJvmArgs(Iterable<?> arguments);
+    void setJvmArgs(@Nullable Iterable<?> arguments);
 
     /**
      * Adds some arguments to use to launch the JVM for the process.

@@ -246,7 +246,7 @@ public class Javadoc extends SourceTask {
     /**
      * <p>Sets the title for the generated documentation.</p>
      */
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
@@ -349,7 +349,7 @@ public class Javadoc extends SourceTask {
         return executable;
     }
 
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         this.executable = executable;
     }
 }

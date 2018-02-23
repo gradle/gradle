@@ -55,7 +55,7 @@ public class ForkOptions extends BaseForkOptions {
      *
      * <p>Setting the executable disables task output caching.</p>
      */
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         this.executable = executable;
     }
 

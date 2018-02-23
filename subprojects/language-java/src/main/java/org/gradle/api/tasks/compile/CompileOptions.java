@@ -182,7 +182,7 @@ public class CompileOptions extends AbstractOptions {
      * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    public void setEncoding(String encoding) {
+    public void setEncoding(@Nullable String encoding) {
         this.encoding = encoding;
     }
 
@@ -301,7 +301,7 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+    public void setBootstrapClasspath(@Nullable FileCollection bootstrapClasspath) {
         this.bootstrapClasspath = bootstrapClasspath;
     }
 
@@ -317,7 +317,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    public void setExtensionDirs(String extensionDirs) {
+    public void setExtensionDirs(@Nullable String extensionDirs) {
         this.extensionDirs = extensionDirs;
     }
 
@@ -473,7 +473,7 @@ public class CompileOptions extends AbstractOptions {
      * @param sourcepath the source path
      */
     @Incubating
-    public void setSourcepath(FileCollection sourcepath) {
+    public void setSourcepath(@Nullable FileCollection sourcepath) {
         this.sourcepath = sourcepath;
     }
 
@@ -517,7 +517,7 @@ public class CompileOptions extends AbstractOptions {
      * @since 4.3
      */
     @Incubating
-    public void setAnnotationProcessorGeneratedSourcesDirectory(File file) {
+    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
     }
 

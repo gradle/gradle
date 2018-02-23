@@ -104,7 +104,7 @@ public class GradleBuild extends ConventionTask {
      * @param file The build file. May be null to use the default build file for the build.
      * @since 4.0
      */
-    public void setBuildFile(File file) {
+    public void setBuildFile(@Nullable File file) {
         setBuildFile((Object) file);
     }
 
@@ -113,7 +113,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @param file The build file. May be null to use the default build file for the build.
      */
-    public void setBuildFile(Object file) {
+    public void setBuildFile(@Nullable Object file) {
         getStartParameter().setBuildFile(getProject().file(file));
     }
 

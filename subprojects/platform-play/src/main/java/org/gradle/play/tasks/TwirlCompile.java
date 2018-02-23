@@ -121,7 +121,7 @@ public class TwirlCompile extends SourceTask {
      * Sets the default imports to be used when compiling templates.
      * @param defaultImports The imports to be used.
      */
-    public void setDefaultImports(TwirlImports defaultImports) {
+    public void setDefaultImports(@Nullable TwirlImports defaultImports) {
         this.defaultImports = defaultImports;
     }
 

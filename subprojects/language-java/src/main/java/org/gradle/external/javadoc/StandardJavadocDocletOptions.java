@@ -393,7 +393,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return docTitle.getValue();
     }
 
-    public void setDocTitle(String docTitle) {
+    public void setDocTitle(@Nullable String docTitle) {
         this.docTitle.setValue(docTitle);
     }
 
@@ -414,7 +414,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return footer.getValue();
     }
 
-    public void setFooter(String footer) {
+    public void setFooter(@Nullable String footer) {
         this.footer.setValue(footer);
     }
 
@@ -436,7 +436,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return bottom.getValue();
     }
 
-    public void setBottom(String bottom) {
+    public void setBottom(@Nullable String bottom) {
         this.bottom.setValue(bottom);
     }
 
@@ -469,7 +469,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return links.getValue();
     }
 
-    public void setLinks(List<String> links) {
+    public void setLinks(@Nullable List<String> links) {
         this.links.setValue(links);
     }
 
@@ -512,7 +512,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return linksOffline.getValue();
     }
 
-    public void setLinksOffline(List<JavadocOfflineLink> linksOffline) {
+    public void setLinksOffline(@Nullable List<JavadocOfflineLink> linksOffline) {
         this.linksOffline.setValue(linksOffline);
     }
 
@@ -604,7 +604,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return groups.getValue();
     }
 
-    public void setGroups(Map<String, List<String>> groups) {
+    public void setGroups(@Nullable Map<String, List<String>> groups) {
         this.groups.setValue(groups);
     }
 
@@ -809,7 +809,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return helpFile.getValue();
     }
 
-    public void setHelpFile(File helpFile) {
+    public void setHelpFile(@Nullable File helpFile) {
         this.helpFile.setValue(helpFile);
     }
 
@@ -830,7 +830,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return stylesheetFile.getValue();
     }
 
-    public void setStylesheetFile(File stylesheetFile) {
+    public void setStylesheetFile(@Nullable File stylesheetFile) {
         this.stylesheetFile.setValue(stylesheetFile);
     }
 
@@ -884,7 +884,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return charSet.getValue();
     }
 
-    public void setCharSet(String charSet) {
+    public void setCharSet(@Nullable String charSet) {
         this.charSet.setValue(charSet);
     }
 
@@ -907,7 +907,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return docEncoding.getValue();
     }
 
-    public void setDocEncoding(String docEncoding) {
+    public void setDocEncoding(@Nullable String docEncoding) {
         this.docEncoding.setValue(docEncoding);
     }
 
@@ -945,7 +945,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return tags.getValue();
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(@Nullable List<String> tags) {
         this.tags.setValue(tags);
     }
 
@@ -970,7 +970,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return taglets.getValue();
     }
 
-    public void setTaglets(List<String> taglets) {
+    public void setTaglets(@Nullable List<String> taglets) {
         this.taglets.setValue(taglets);
     }
 
@@ -991,7 +991,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return tagletPath.getValue();
     }
 
-    public void setTagletPath(List<File> tagletPath) {
+    public void setTagletPath(@Nullable List<File> tagletPath) {
         this.tagletPath.setValue(tagletPath);
     }
 
@@ -1033,7 +1033,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return excludeDocFilesSubDir.getValue();
     }
 
-    public void setExcludeDocFilesSubDir(List<String> excludeDocFilesSubDir) {
+    public void setExcludeDocFilesSubDir(@Nullable List<String> excludeDocFilesSubDir) {
         this.excludeDocFilesSubDir.setValue(excludeDocFilesSubDir);
     }
 
@@ -1054,7 +1054,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noQualifiers.getValue();
     }
 
-    public void setNoQualifiers(List<String> noQualifiers) {
+    public void setNoQualifiers(@Nullable List<String> noQualifiers) {
         this.noQualifiers.setValue(noQualifiers);
     }
 

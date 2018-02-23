@@ -148,7 +148,7 @@ public class JacocoTaskExtension {
         return includes;
     }
 
-    public void setIncludes(List<String> includes) {
+    public void setIncludes(@Nullable List<String> includes) {
         this.includes = includes;
     }
 
@@ -161,7 +161,7 @@ public class JacocoTaskExtension {
         return excludes;
     }
 
-    public void setExcludes(List<String> excludes) {
+    public void setExcludes(@Nullable List<String> excludes) {
         this.excludes = excludes;
     }
 
@@ -174,7 +174,7 @@ public class JacocoTaskExtension {
         return excludeClassLoaders;
     }
 
-    public void setExcludeClassLoaders(List<String> excludeClassLoaders) {
+    public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
         this.excludeClassLoaders = excludeClassLoaders;
     }
 
@@ -201,7 +201,7 @@ public class JacocoTaskExtension {
         return sessionId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setSessionId(@Nullable String sessionId) {
         this.sessionId = sessionId;
     }
 
@@ -238,14 +238,13 @@ public class JacocoTaskExtension {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(@Nullable String address) {
         this.address = address;
     }
 
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
-    @Nullable
     @Input
     public int getPort() {
         return port;
@@ -271,7 +270,7 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
-    public void setClassDumpDir(File classDumpDir) {
+    public void setClassDumpDir(@Nullable File classDumpDir) {
         this.classDumpDir = classDumpDir;
     }
 

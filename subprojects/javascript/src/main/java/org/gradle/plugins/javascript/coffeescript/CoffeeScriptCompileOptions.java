@@ -30,7 +30,7 @@ public class CoffeeScriptCompileOptions implements Serializable {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(@Nullable String encoding) {
         this.encoding = encoding;
     }
 }

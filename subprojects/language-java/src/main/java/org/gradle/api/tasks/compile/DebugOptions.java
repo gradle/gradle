@@ -53,7 +53,7 @@ public class DebugOptions extends AbstractOptions {
     /**
      * Sets which debug information is to be generated.
      */
-    public void setDebugLevel(String debugLevel) {
+    public void setDebugLevel(@Nullable String debugLevel) {
         this.debugLevel = debugLevel;
     }
 }

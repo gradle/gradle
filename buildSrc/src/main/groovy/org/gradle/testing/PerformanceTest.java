@@ -41,7 +41,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    public void setBaselines(String baselines) {
+    public void setBaselines(@Nullable String baselines) {
         this.baselines = baselines;
         systemProperty("org.gradle.performance.baselines", baselines);
     }
@@ -52,7 +52,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
-    public void setWarmups(String warmups) {
+    public void setWarmups(@Nullable String warmups) {
         this.warmups = warmups;
         systemProperty("org.gradle.performance.execution.warmups", warmups);
     }
@@ -63,7 +63,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
     @Option(option = "runs", description = "Number of iterations of measurements")
-    public void setRuns(String runs) {
+    public void setRuns(@Nullable String runs) {
         this.runs = runs;
         systemProperty("org.gradle.performance.execution.runs", runs);
     }
@@ -75,7 +75,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
     @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
-    public void setChecks(String checks) {
+    public void setChecks(@Nullable String checks) {
         this.checks = checks;
         systemProperty("org.gradle.performance.execution.checks", checks);
     }
@@ -91,7 +91,7 @@ public class PerformanceTest extends DistributionTest {
     }
 
     @Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
-    public void setChannel(String channel) {
+    public void setChannel(@Nullable String channel) {
         this.channel = channel;
         systemProperty("org.gradle.performance.execution.channel", channel);
     }

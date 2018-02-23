@@ -37,14 +37,14 @@ public interface MinimalJavadocOptions {
     @Nullable @Input
     String getOverview();
 
-    void setOverview(String overview);
+    void setOverview(@Nullable String overview);
 
     MinimalJavadocOptions overview(String overview);
 
     @Nullable @Input
     JavadocMemberLevel getMemberLevel();
 
-    void setMemberLevel(JavadocMemberLevel memberLevel);
+    void setMemberLevel(@Nullable JavadocMemberLevel memberLevel);
 
     MinimalJavadocOptions showFromPublic();
 
@@ -59,7 +59,7 @@ public interface MinimalJavadocOptions {
     @Nullable @Input
     String getDoclet();
 
-    void setDoclet(String docletClass);
+    void setDoclet(@Nullable String docletClass);
 
     MinimalJavadocOptions doclet(String docletClass);
 
@@ -73,7 +73,7 @@ public interface MinimalJavadocOptions {
     @Nullable @Input
     String getSource();
 
-    void setSource(String source);
+    void setSource(@Nullable String source);
 
     MinimalJavadocOptions source(String source);
 
@@ -96,7 +96,7 @@ public interface MinimalJavadocOptions {
     @Nullable @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
     List<File> getExtDirs();
 
-    void setExtDirs(List<File> extDirs);
+    void setExtDirs(@Nullable List<File> extDirs);
 
     MinimalJavadocOptions extDirs(File ... extDirs);
 
@@ -124,49 +124,49 @@ public interface MinimalJavadocOptions {
     @Nullable @Input
     String getLocale();
 
-    void setLocale(String locale);
+    void setLocale(@Nullable String locale);
 
     MinimalJavadocOptions locale(String locale);
 
     @Nullable @Input
     String getEncoding();
 
-    void setEncoding(String encoding);
+    void setEncoding(@Nullable String encoding);
 
     MinimalJavadocOptions encoding(String encoding);
 
     @Nullable @Input
     List<String> getJFlags();
 
-    void setJFlags(List<String> jFlags);
+    void setJFlags(@Nullable List<String> jFlags);
 
     MinimalJavadocOptions jFlags(String ... jFlags);
 
     @Nullable @PathSensitive(PathSensitivity.NONE) @InputFiles
     List<File> getOptionFiles();
 
-    void setOptionFiles(List<File> optionFiles);
+    void setOptionFiles(@Nullable List<File> optionFiles);
 
     MinimalJavadocOptions optionFiles(File ... argumentFiles);
 
     @Internal
     File getDestinationDirectory();
 
-    void setDestinationDirectory(File directory);
+    void setDestinationDirectory(@Nullable File directory);
 
     MinimalJavadocOptions destinationDirectory(File directory);
 
     @Nullable @Input
     String getWindowTitle();
 
-    void setWindowTitle(String windowTitle);
+    void setWindowTitle(@Nullable String windowTitle);
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
     @Nullable @Input
     String getHeader();
 
-    void setHeader(String header);
+    void setHeader(@Nullable String header);
 
     StandardJavadocDocletOptions header(String header);
 
@@ -175,7 +175,7 @@ public interface MinimalJavadocOptions {
     @Internal
     List<String> getSourceNames();
 
-    void setSourceNames(List<String> sourceNames);
+    void setSourceNames(@Nullable List<String> sourceNames);
 
     MinimalJavadocOptions sourceNames(String ... sourceNames);
 

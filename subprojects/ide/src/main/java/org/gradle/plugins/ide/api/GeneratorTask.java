@@ -116,7 +116,7 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param inputFile The input file. Use null to use the output file.
      */
-    public void setInputFile(File inputFile) {
+    public void setInputFile(@Nullable File inputFile) {
         this.inputFile = inputFile;
     }
 

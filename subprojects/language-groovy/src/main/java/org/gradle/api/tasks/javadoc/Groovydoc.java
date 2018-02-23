@@ -247,7 +247,7 @@ public class Groovydoc extends SourceTask {
      *
      * @param windowTitle A text for the windows title
      */
-    public void setWindowTitle(String windowTitle) {
+    public void setWindowTitle(@Nullable String windowTitle) {
         this.windowTitle = windowTitle;
     }
 
@@ -265,7 +265,7 @@ public class Groovydoc extends SourceTask {
      *
      * @param docTitle the docTitle as HTML
      */
-    public void setDocTitle(String docTitle) {
+    public void setDocTitle(@Nullable String docTitle) {
         this.docTitle = docTitle;
     }
 
@@ -283,7 +283,7 @@ public class Groovydoc extends SourceTask {
      *
      * @param header the header as HTML
      */
-    public void setHeader(String header) {
+    public void setHeader(@Nullable String header) {
         this.header = header;
     }
 
@@ -301,7 +301,7 @@ public class Groovydoc extends SourceTask {
      *
      * @param footer the footer as HTML
      */
-    public void setFooter(String footer) {
+    public void setFooter(@Nullable String footer) {
         this.footer = footer;
     }
 
@@ -319,7 +319,7 @@ public class Groovydoc extends SourceTask {
      * <p>
      * <b>Example:</b> {@code overviewText = resources.text.fromFile("/overview.html")}
      */
-    public void setOverviewText(TextResource overviewText) {
+    public void setOverviewText(@Nullable TextResource overviewText) {
         this.overview = overviewText;
     }
 
