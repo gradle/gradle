@@ -129,9 +129,9 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                             configureCompilerConfiguration(projectElement)
                             configureGradleSettings(projectElement)
                             configureCopyright(projectElement)
-                            projectElement.removeExistingChildElement("component[name=ProjectCodeStyleSettingsManager]")
+                            projectElement.removeBySelector("component[name=ProjectCodeStyleSettingsManager]")
                                 .append(CODE_STYLE_SETTINGS)
-                            projectElement.removeExistingChildElement("component[name=GroovyCompilerProjectConfiguration]")
+                            projectElement.removeBySelector("component[name=GroovyCompilerProjectConfiguration]")
                                 .append(GROOVY_COMPILER_SETTINGS)
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
@@ -161,7 +161,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
     private
     fun Project.configureGradleSettings(projectElement: Element) {
-        projectElement.removeExistingChildElement("component[name=GradleSettings]")
+        projectElement.removeBySelector("component[name=GradleSettings]")
             .appendElement("component")
             .attr("name", "GradleSettings")
             .appendElement("option")
@@ -171,13 +171,13 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     private
     fun configureGradleRunConfigurations(runManagerComponent: org.jsoup.nodes.Element) {
         runManagerComponent.attr("selected", "Application.Gradle")
-        runManagerComponent.removeExistingChildElement("configuration[name=gradle]")
+        runManagerComponent.removeBySelector("configuration[name=gradle]")
             .append(GRADLE_CONFIGURATION)
         val gradleRunners = mapOf(
             "Regenerate IDEA metadata" to "idea",
             "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives")
         gradleRunners.forEach { runnerName, commandLine ->
-            runManagerComponent.removeExistingChildElement("configuration[name=$runnerName]")
+            runManagerComponent.removeBySelector("configuration[name=$runnerName]")
                 .append(getGradleRunnerConfiguration(runnerName, commandLine))
         }
         val remoteDebugConfigurationName = "Remote debug port 5005"
@@ -189,7 +189,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     fun configureListItems(remoteDebugConfigurationName: String, gradleRunners: Map<String, String>, runManagerComponent: Element) {
         val listItemValues = mutableListOf("Application.Gradle", remoteDebugConfigurationName)
         listItemValues += gradleRunners.values
-        val list = runManagerComponent.removeExistingChildElement("list")
+        val list = runManagerComponent.removeBySelector("list")
             .appendElement("list")
             .attr("size", listItemValues.size.toString())
         listItemValues.forEachIndexed { index, itemValue ->
@@ -202,7 +202,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
     private
     fun configureRemoteDebugConfiguration(runManagerComponent: org.jsoup.nodes.Element, configurationName: String) {
-        runManagerComponent.removeExistingChildElement("configuration[name=$configurationName]").append("""
+        runManagerComponent.removeBySelector("configuration[name=$configurationName]").append("""
                 <configuration default="false" name="$configurationName" type="Remote" factoryName="Remote">
                   <option name="USE_SOCKET_TRANSPORT" value="true" />
                   <option name="SERVER_MODE" value="false" />
@@ -299,7 +299,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     private
     fun configureFrameworkDetectionExcludes(root: Element) {
         val componentName = "FrameworkDetectionExcludesConfiguration"
-        root.removeExistingChildElement("component[name=$componentName]")
+        root.removeBySelector("component[name=$componentName]")
             .appendElement("component").attr("name", componentName)
             .appendElement("type").attr("id", "android")
             .appendElement("type").attr("id", "web")
@@ -326,7 +326,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     fun configureCompilerConfiguration(root: Element) {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
-        compilerConfiguration.removeExistingChildElement("option[name=BUILD_PROCESS_HEAP_SIZE]")
+        compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
             .appendElement("option")
             .attr("name", "BUILD_PROCESS_HEAP_SIZE")
             .attr("value", "2048")
@@ -479,10 +479,9 @@ private
 fun XmlProvider.withJsoup(function: (Document) -> Unit) {
     val xml = asString()
     val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
-    document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
     function(document)
-    xml.delete(0, xml.length)
-    xml.append(document.toString())
+    document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
+    xml.replace(0, xml.length, document.toString())
 }
 
 
@@ -492,17 +491,12 @@ fun Element.createOrEmptyOutChildElement(childName: String): Element {
     if (children.isEmpty()) {
         return appendElement(childName)
     }
-    val child = children.first()
-    child.children().remove()
-    return child
+    return children.first().apply {
+        children().remove()
+    }
 }
 
 
 private
-fun Element.removeExistingChildElement(childSelector: String): Element {
-    val existingRunners = select(childSelector)
-    if (!existingRunners.isEmpty()) {
-        existingRunners.remove()
-    }
-    return this
-}
+fun Element.removeBySelector(selector: String): Element =
+    apply { select(selector).remove() }
