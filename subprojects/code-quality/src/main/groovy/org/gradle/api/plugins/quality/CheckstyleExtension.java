@@ -92,7 +92,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * Path to other Checkstyle configuration files. By default, this path is {@code $projectDir/config/checkstyle}
+     * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
