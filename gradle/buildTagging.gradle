@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * This script is applied externally by the CI processes. It is not used by the build itself.
+ */
+
 buildscript {
     repositories {
         maven { url 'https://gradle.artifactoryonline.com/gradle/gradle-build-internal' }
