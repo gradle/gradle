@@ -198,7 +198,7 @@ class CachingKotlinCompiler(
     fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
         val operation = progressLoggerFactory
             .newOperation(this::class.java)
-            .start("Compiling script into cache", "Compiling $description into local build cache")
+            .start("Compiling script into cache", "Compiling $description into local compilation cache")
         try {
             return action()
         } finally {
