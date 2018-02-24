@@ -18,7 +18,6 @@ package org.gradle.api.reporting;
 
 import org.gradle.api.Namer;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
 
 import java.io.File;
@@ -91,7 +90,6 @@ public interface Report extends Serializable, Configurable<Report> {
      *
      * @return The location on the filesystem of the report when it is generated
      */
-    @Internal
     File getDestination();
 
     /**

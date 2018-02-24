@@ -311,7 +311,6 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @ToBeImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         defaultLanguage('en')
@@ -331,9 +330,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds('clean', 'check')
 
         then:
-        // TODO These should match
-        !!! nonSkippedTasks.contains(':checkstyleMain')
-        !!! errorOutput.contains("[ant:checkstyle] [WARN]")
+        nonSkippedTasks.contains(':checkstyleMain')
+        errorOutput.contains("[ant:checkstyle] [WARN]")
     }
 
     private goodCode() {
@@ -358,7 +356,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         normaliseFileSeparators(resources.getResource('/checkstyle-custom-stylesheet.xsl').getAbsolutePath())
     }
 
-    private Matcher<String> containsClass(String className) {
+    private static Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
 
