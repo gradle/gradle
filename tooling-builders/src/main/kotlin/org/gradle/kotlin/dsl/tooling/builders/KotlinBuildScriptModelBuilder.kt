@@ -195,7 +195,7 @@ val KotlinBuildScriptModelParameter.noScriptPath
 
 private
 val KotlinBuildScriptModelParameter.settingsScript
-    get() = scriptFile?.name == "settings.gradle.kts"
+    get() = scriptFile?.name?.run { equals("settings.gradle.kts") || endsWith(".settings.gradle.kts") } ?: false
 
 
 private

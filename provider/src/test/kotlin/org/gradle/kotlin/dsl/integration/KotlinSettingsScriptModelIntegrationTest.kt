@@ -37,4 +37,37 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
     }
+
+    @Test
+    fun `can fetch classpath of settings script plugin`() {
+
+        withBuildSrc()
+
+        // TODO: buildscript.dependencies (#180)
+        val settingsDependency = withFile("settings-dependency.jar", "")
+        val settings = withFile("my.settings.gradle.kts", """
+            buildscript {
+                dependencies {
+                    classpath(files("${TextUtil.normaliseFileSeparators(settingsDependency.path)}"))
+                }
+            }
+        """)
+
+        val projectDependency = withFile("project-dependency.jar", "")
+        withFile("build.gradle", """
+            buildscript {
+                dependencies {
+                    classpath(files("${TextUtil.normaliseFileSeparators(projectDependency.path)}"))
+                }
+            }
+        """)
+
+        val classPath = canonicalClassPathFor(projectRoot, settings)
+
+        assertContainsBuildSrc(classPath)
+        assertContainsGradleKotlinDslJars(classPath)
+        //TODO: buildscript.dependencies (#180)
+        // assertIncludes(classPath, settingsDependency)
+        assertExcludes(classPath, projectDependency)
+    }
 }
