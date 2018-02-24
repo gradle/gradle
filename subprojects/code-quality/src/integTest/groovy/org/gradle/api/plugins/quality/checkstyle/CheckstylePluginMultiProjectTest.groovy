@@ -21,26 +21,45 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
-    def "configures checkstyle extension to read config from root project"() {
+    def "configures checkstyle extension to read config from root project in a single project build"() {
+        given:
+        buildFile << javaProjectUsingCheckstyle()
+        file('src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+
+        expect:
+        succeeds("checkstyleMain")
+        checkStyleReportFile(testDirectory).text.contains('Dummy.java')
+    }
+
+    def "configures checkstyle extension to read config from root project in a flat multi-project build"() {
         given:
         def rootProject = multiProjectBuild('rootCheckStyle', ['child']) {
             settingsFile << """
                 include 'child:grand'
             """
         }
-        rootProject.file("child/grand/build.gradle") << """
-            apply plugin: "java"
-            apply plugin: "checkstyle"
-
-            ${mavenCentralRepository()}
-        """
-        rootProject.file('child/grand/src/main/java/Dummy.java') << "public class Dummy {}${getPlatformLineSeparator()}"
-        rootProject.file('child/grand', 'config/checkstyle/checkstyle.xml') << "INVALID AND SHOULD NEVER BE READ"
+        rootProject.file('child/grand/build.gradle') << javaProjectUsingCheckstyle()
+        rootProject.file('child/grand/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        rootProject.file('child/grand', 'config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
         rootProject.file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         expect:
-        succeeds(":child:grand:checkstyleMain")
+        succeeds(':child:grand:checkstyleMain')
         checkStyleReportFile(rootProject.file('child/grand')).text.contains('Dummy.java')
+    }
+
+    def "configures checkstyle extension to read config from root project in a deeply nested multi-project build"() {
+        given:
+        def rootProject = multiProjectBuild('rootCheckStyle', ['a:b:c'])
+        rootProject.file('a/b/c/build.gradle') << javaProjectUsingCheckstyle()
+        rootProject.file('a/b/c/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        rootProject.file('a/b/c', 'config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
+        rootProject.file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+
+        expect:
+        succeeds(':a:b:c:checkstyleMain')
+        checkStyleReportFile(rootProject.file('a/b/c')).text.contains('Dummy.java')
     }
 
     static String simpleCheckStyleConfig() {
@@ -54,7 +73,24 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         """
     }
 
+    static String invalidCheckStyleConfig() {
+        'INVALID AND SHOULD NEVER BE READ'
+    }
+
     static File checkStyleReportFile(File projectDir) {
         new File(projectDir, 'build/reports/checkstyle/main.html')
+    }
+
+    static String javaProjectUsingCheckstyle() {
+        """
+            apply plugin: 'java'
+            apply plugin: 'checkstyle'
+
+            ${mavenCentralRepository()}
+        """
+    }
+
+    static String javaClassWithNewLineAtEnd() {
+        "public class Dummy {}${getPlatformLineSeparator()}"
     }
 }
