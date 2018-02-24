@@ -28,7 +28,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         expect:
-        succeeds("checkstyleMain")
+        succeeds('checkstyleMain')
         checkStyleReportFile(testDirectory).text.contains('Dummy.java')
     }
 
