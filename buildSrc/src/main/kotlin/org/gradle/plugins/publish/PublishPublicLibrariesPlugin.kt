@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.plugins.MavenRepositoryHandlerConvention
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.*
@@ -60,15 +61,17 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
                 }
 
                 val install by tasks.getting(Upload::class)
-                val mavenInstaller by install.repositories
-
-                (mavenInstaller as MavenResolver).apply {
-                    pom.scopeMappings.mappings.clear()
-                    pom.scopeMappings.addMapping(300, publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
-                    pom.groupId = project.group.toString()
-                    pom.artifactId = base.archivesBaseName
-                    pom.version = project.version.toString()
-                    pom.writeTo(pomFile)
+                install.repositories {
+                    withConvention(MavenRepositoryHandlerConvention::class) {
+                        mavenInstaller {
+                            pom.scopeMappings.mappings.clear()
+                            pom.scopeMappings.addMapping(300, publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
+                            pom.groupId = project.group.toString()
+                            pom.artifactId = base.archivesBaseName
+                            pom.version = project.version.toString()
+                            pom.writeTo(pomFile)
+                        }
+                    }
                 }
             }
         }
