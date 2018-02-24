@@ -18,14 +18,12 @@ package org.gradle.plugins.publish
 import accessors.base
 import accessors.java
 import accessors.groovy
-import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
@@ -35,8 +33,7 @@ import java.util.*
 
 open class PublishPublicLibrariesPlugin : Plugin<Project> {
 
-    override
-    fun apply(project: Project): Unit = project.run {
+    override fun apply(project: Project): Unit = project.run {
         apply {
             plugin("maven")
         }
@@ -55,7 +52,7 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
             doLast {
                 dependencies {
                     publishCompile.allDependencies.withType<ProjectDependency>().forEach {
-                        publishRuntime("org.gradle:${it.dependencyProject.base.archivesBaseName}:${version}")
+                        publishRuntime("org.gradle:${it.dependencyProject.base.archivesBaseName}:$version")
                     }
                     publishCompile.allDependencies.withType<ExternalDependency>().forEach {
                         publishRuntime(it)
@@ -88,7 +85,7 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
 
                 var artifactoryUserName: String? = null
                 var artifactoryUserPassword: String? = null
-                gradle.taskGraph.whenReady(Action<TaskExecutionGraph> {
+                gradle.taskGraph.whenReady({
                     if (hasTask(this@getting)) {
                         // check properties defined and fail early
                         artifactoryUserName = project.property("artifactoryUserName") as String
@@ -105,7 +102,7 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
                             // TODO Refactor eventually versioning.gradle that isSnapshot is not stored as an extra property
                             val libsType = if ((project.extra.get("isSnapshot") as Boolean)) "snapshots" else "releases"
                             val repo = "https://gradle.artifactoryonline.com/gradle/libs-$libsType-local"
-                            artifactPattern("${repo}/${project.group.toString().replace("\\.", "/")}/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
+                            artifactPattern("$repo/${project.group.toString().replace("\\.", "/")}/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
                             credentials {
                                 username = artifactoryUserName
                                 password = artifactoryUserPassword
