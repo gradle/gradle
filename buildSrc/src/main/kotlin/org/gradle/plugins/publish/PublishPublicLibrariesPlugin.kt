@@ -18,14 +18,17 @@ package org.gradle.plugins.publish
 import accessors.base
 import accessors.java
 import accessors.groovy
+import groovy.lang.MissingPropertyException
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
-import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.*
@@ -39,89 +42,138 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
             plugin("maven")
         }
 
-        val publishCompile by configurations.creating
-        val publishRuntime by configurations.creating
-        val compile by configurations.getting {
-            extendsFrom(publishCompile)
-        }
-        lateinit var pomFile: File
-
-        val generatePom by tasks.creating {
-            pomFile = File(temporaryDir, "pom.xml")
-            extra.set("pomFile", pomFile)
-
-            doLast {
-                dependencies {
-                    publishCompile.allDependencies.withType<ProjectDependency>().forEach {
-                        publishRuntime("org.gradle:${it.dependencyProject.base.archivesBaseName}:$version")
-                    }
-                    publishCompile.allDependencies.withType<ExternalDependency>().forEach {
-                        publishRuntime(it)
-                    }
-                }
-
-                val install by tasks.getting(Upload::class)
-                install.repositories {
-                    withConvention(MavenRepositoryHandlerConvention::class) {
-                        mavenInstaller {
-                            pom.scopeMappings.mappings.clear()
-                            pom.scopeMappings.addMapping(300, publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
-                            pom.groupId = project.group.toString()
-                            pom.artifactId = base.archivesBaseName
-                            pom.version = project.version.toString()
-                            pom.writeTo(pomFile)
-                        }
-                    }
-                }
-            }
-        }
+        val generatePom by tasks.creating(GeneratePom::class)
 
         val sourceJar by tasks.creating(Jar::class) {
             classifier = "sources"
-            val main by java.sourceSets
             from(main.java.srcDirs + main.groovy.srcDirs)
         }
 
-        tasks {
-            val uploadArchives by getting(Upload::class) {
-                onlyIf { !project.hasProperty("noUpload") }
+        val uploadArchives by tasks.getting(Upload::class) {
+            // TODO Add magic property to upcoming configuration interface
+            onlyIf { !project.hasProperty("noUpload") }
+            configuration = generatePom.publishRuntime
+            dependsOn(generatePom)
+            isUploadDescriptor = false
 
-                var artifactoryUserName: String? = null
-                var artifactoryUserPassword: String? = null
-                gradle.taskGraph.whenReady({
-                    if (hasTask(this@getting)) {
-                        // check properties defined and fail early
-                        artifactoryUserName = project.property("artifactoryUserName") as String
-                        artifactoryUserPassword = project.property("artifactoryUserPassword") as String
-                    }
-                })
+            // TODO Remove once task configuration on demand is available and we can enforce properties at task configuration time
+            failEarlyIfCredentialsAreNotSet(this)
 
-                configuration = publishRuntime
-                dependsOn(generatePom)
-                isUploadDescriptor = false
-                doFirst {
-                    repositories {
-                        ivy {
-                            // TODO Refactor eventually versioning.gradle that isSnapshot is not stored as an extra property
-                            val libsType = if ((project.extra.get("isSnapshot") as Boolean)) "snapshots" else "releases"
-                            val repo = "https://gradle.artifactoryonline.com/gradle/libs-$libsType-local"
-                            artifactPattern("$repo/${project.group.toString().replace("\\.", "/")}/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
-                            credentials {
-                                username = artifactoryUserName
-                                password = artifactoryUserPassword
-                            }
-                        }
+            repositories {
+                ivy {
+                    artifactPattern("$repoUrl/$groupId/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
+                    credentials {
+                        username = artifactoryUserName
+                        password = artifactoryUserPassword
                     }
                 }
             }
         }
 
         artifacts {
-            add(publishRuntime.name, tasks["jar"])
-            add(publishRuntime.name, sourceJar)
-            add(publishRuntime.name, DefaultPublishArtifact(base.archivesBaseName, "pom", "pom", null, Date(), pomFile, generatePom))
+            add(generatePom.publishRuntime.name, tasks["jar"])
+            add(generatePom.publishRuntime.name, sourceJar)
+            add(generatePom.publishRuntime.name, DefaultPublishArtifact(base.archivesBaseName,
+                "pom",
+                "pom",
+                null,
+                Date(),
+                generatePom.pomFile,
+                generatePom))
         }
 
     }
 
+    private
+    val Project.repoUrl: String
+        get() {
+            // TODO Refactor versioning.gradle that isSnapshot is not stored as an extra property
+            val libsType = if ((rootProject.extra.get("isSnapshot") as Boolean)) "snapshots" else "releases"
+            return "https://gradle.artifactoryonline.com/gradle/libs-$libsType-local"
+        }
+
+    private
+    val Project.groupId: String
+        get() = group.toString().replace("\\.", "/")
+
+    private fun Project.failEarlyIfCredentialsAreNotSet(upload: Upload) {
+        gradle.taskGraph.whenReady({
+            if (hasTask(upload)) {
+                if (artifactoryUserName.isNullOrEmpty()) {
+                    throw MissingPropertyException("artifactoryUserName is not set!")
+                }
+                if (artifactoryUserPassword.isNullOrEmpty()) {
+                    throw MissingPropertyException("artifactoryUserPassword is not set!")
+                }
+            }
+        })
+    }
+
+
+    // TODO Add magic property to upcoming configuration interface
+    private
+    val Project.artifactoryUserName
+        get() = findProperty("artifactoryUserName") as String?
+
+    // TODO Add magic property to upcoming configuration interface
+    private
+    val Project.artifactoryUserPassword
+        get() = findProperty("artifactoryUserPassword") as String?
+
+    private
+    val Project.main
+        get() = java.sourceSets["main"]
 }
+
+open class GeneratePom : DefaultTask() {
+    @InputFile
+    val pomFile = File(temporaryDir, "pom.xml")
+
+    // TODO How to annotate?
+    val publishCompile by project.configurations.creating
+
+    // TODO How to annotate?
+    val publishRuntime by project.configurations.creating
+
+    init {
+        // Subprojects assign dependencies to publishCompile to indicate that they should be part of the published pom.
+        // Therefore compile needs to contain those dependencies and extend publishCompile
+        val compile by project.configurations.getting {
+            extendsFrom(publishCompile)
+        }
+    }
+
+    @TaskAction
+    fun generatePom(): Unit = project.run {
+        val install by tasks.getting(Upload::class)
+        install.repositories {
+            withConvention(MavenRepositoryHandlerConvention::class) {
+                mavenInstaller {
+                    pom {
+                        scopeMappings.mappings.clear()
+                        scopeMappings.addMapping(300, publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
+                        groupId = project.group.toString()
+                        artifactId = base.archivesBaseName
+                        version = project.version.toString()
+                        writeTo(pomFile)
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun Project.addDependenciesToPublishConfigurations() {
+        dependencies {
+            publishCompile.allDependencies.withType<ProjectDependency>().forEach {
+                publishRuntime("org.gradle:${it.dependencyProject.base.archivesBaseName}:$version")
+            }
+            publishCompile.allDependencies.withType<ExternalDependency>().forEach {
+                publishRuntime(it)
+            }
+        }
+    }
+}
+
+
+
