@@ -43,7 +43,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(rootProject.file('child/grand')).text.contains('Dummy.java')
     }
 
-    private static String simpleCheckStyleConfig() {
+    static String simpleCheckStyleConfig() {
         """
 <!DOCTYPE module PUBLIC
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
