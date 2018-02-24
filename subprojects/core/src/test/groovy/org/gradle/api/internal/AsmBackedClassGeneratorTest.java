@@ -327,6 +327,13 @@ public class AsmBackedClassGeneratorTest {
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for private class 'PrivateBean'."));
         }
+
+        try {
+            generator.newInstance(FinalBean.class);
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo("Cannot create a proxy class for final class 'FinalBean'."));
+        }
     }
 
     @Test
@@ -1308,6 +1315,10 @@ public class AsmBackedClassGeneratorTest {
     public static abstract class AbstractBean {
         abstract void implementMe();
     }
+
+    public static final class FinalBean {
+    }
+
 
     private static class PrivateBean {
     }
