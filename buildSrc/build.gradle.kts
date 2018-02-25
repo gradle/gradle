@@ -68,6 +68,10 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "configureIntegrationTests" {
+            id = "configure-integration-tests"
+            implementationClass = "org.gradle.plugins.integrationtests.ConfigureIntegrationTestsPlugin"
+        }
     }
 }
 
@@ -182,3 +186,5 @@ tasks {
     val build by getting
     build.dependsOn(checkSameDaemonArgs)
 }
+
+tasks["test"].onlyIf { false }

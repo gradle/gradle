@@ -17,6 +17,7 @@
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
 import org.gradle.modules.PatchExternalModules
+import org.gradle.build.ReleasedVersionsFromVersionControl
 
 plugins {
     id 'java-base'
@@ -116,6 +117,7 @@ ext {
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("CI")
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
+    releasedVersions = new ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))
 
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
@@ -182,7 +184,6 @@ apply from: "gradle/testDependencies.gradle"
 apply from: "gradle/wrapper.gradle.kts"
 apply plugin: "ide-configuration"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle.kts"
-apply from: "gradle/testSetup.gradle"
 apply from: "gradle/publicApi.gradle"
 apply from: "gradle/updateReleasedVersions.gradle"
 apply from: "gradle/dependenciesCheck.gradle"
@@ -210,7 +211,6 @@ subprojects {
     if (project in groovyProjects) {
         apply from: "$rootDir/gradle/groovyProject.gradle.kts"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
-        apply from: "$rootDir/gradle/java9plus.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }

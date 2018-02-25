@@ -98,14 +98,7 @@ jarTasks.all {
 
 apply {
     plugin("test-fixtures")
-
-    if (file("src/integTest").isDirectory) {
-        from("$rootDir/gradle/integTest.gradle.kts")
-    }
-
-    if (file("src/crossVersionTest").isDirectory) {
-        from("$rootDir/gradle/crossVersionTest.gradle")
-    }
+    plugin("configure-integration-tests")
 
     if (file("src/performanceTest").isDirectory) {
         plugin("performance-test")
