@@ -34,7 +34,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         def attributes = TestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
-        def selection = new DefaultComponentResult(12L,
+        def selection = new DetachedComponentResult(12L,
             newId("org", "foo", "2.0"),
             VersionSelectionReasons.requested(),
             componentIdentifier, 'default',
