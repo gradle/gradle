@@ -894,11 +894,11 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
     }
 
-    def "can find a unique snapshot in a Maven file repository"() {
+    def "can find a non-unique snapshot in a Maven file repository"() {
         given:
         def fileRepo = maven("fileRepo")
         def projectA = fileRepo.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
-        projectA.publish()
+        projectA.withNonUniqueSnapshots().publish()
         buildFile << """
 repositories {
     maven {
@@ -1041,9 +1041,113 @@ Required by:
 """)
     }
 
-    private expectModuleServed(MavenHttpModule module) {
+    @Issue("gradle/gradle#1397")
+    def "resolve and cache latest snapshot from remote"() {
+        def localRepo = mavenRepo("local")
+        def remoteRepo = mavenHttpRepo("remote")
+        def remoteRepo2 = mavenHttpRepo("remote2")
+
+        given:
+        buildFile << """
+repositories {
+    maven { url "${localRepo.uri}" }
+    maven { url "${remoteRepo.uri}" }
+    maven { url "${remoteRepo2.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle.integtests.resolve:project:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and: "same snapshot module is published locally and remotely"
+        def localProject = localRepo.module("org.gradle.integtests.resolve", "project", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def remoteProject = remoteRepo.module("org.gradle.integtests.resolve", "project", "1.0-SNAPSHOT").withTimestamp("20170215120000").publish()
+
+        when: "Remote will serve latest snapshot"
+        expectModuleServed(remoteProject)
+        // expecting remoteRepo2 will not be checked for latest snapshot
+
+        and: "We resolve dependencies"
+        run 'retrieve'
+
+        then: "Latest snapshot was resolved from remote"
+        file('libs').assertHasDescendants('project-1.0-SNAPSHOT.jar')
+        def snapshot = file('libs/project-1.0-SNAPSHOT.jar').assertIsCopyOf(remoteProject.artifactFile).snapshot()
+
+        when: "We resolve with snapshots cached: no server requests"
+        server.resetExpectations()
+        def result = run('retrieve')
+
+        then: "Everything is up to date"
+        result.assertTaskSkipped(':retrieve')
+        file('libs/project-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
+    }
+
+    @Issue("gradle/gradle#1397")
+    def "resolve latest snapshot from local"() {
+        def localRepo = mavenRepo("local")
+        def remoteRepo = mavenHttpRepo("remote")
+        def remoteRepo2 = mavenHttpRepo("remote2")
+
+        given:
+        buildFile << """
+repositories {
+    maven { url "${localRepo.uri}" }
+    maven { url "${remoteRepo.uri}" }
+    maven { url "${remoteRepo2.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle.integtests.resolve:project:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and: "same snapshot module is published locally and remotely"
+        def localProject = localRepo.module("org.gradle.integtests.resolve", "project", "1.0-SNAPSHOT").withNonUniqueSnapshots().withTimestamp("20170215120000").publish()
+        def remoteProject = remoteRepo.module("org.gradle.integtests.resolve", "project", "1.0-SNAPSHOT").publish()
+
+        when: "Remote is checked for snapshot"
+        expectModuleChecked(remoteProject)
+        // expecting remoteRepo2 will not be checked for latest snapshot
+
+        and: "We resolve dependencies"
+        run 'retrieve'
+
+        then: "Latest snapshot was found locally"
+        file('libs').assertHasDescendants('project-1.0-SNAPSHOT.jar')
+        def snapshot = file('libs/project-1.0-SNAPSHOT.jar').assertIsCopyOf(localProject.artifactFile).snapshot()
+
+        when: "We resolve with snapshots cached: no server requests"
+        server.resetExpectations()
+        def result = run('retrieve')
+
+        then: "Everything is up to date"
+        result.assertTaskSkipped(':retrieve')
+        file('libs/project-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
+    }
+
+    private expectModuleChecked(MavenHttpModule module) {
         module.metaData.expectGet()
         module.pom.expectGet()
+    }
+
+    private expectModuleServed(MavenHttpModule module) {
+        expectModuleChecked(module)
         module.artifact.expectGet()
     }
 

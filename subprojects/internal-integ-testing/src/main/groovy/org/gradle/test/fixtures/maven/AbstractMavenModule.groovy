@@ -34,6 +34,8 @@ import java.text.SimpleDateFormat
 
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {
     protected static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
+    protected static final String MAVEN_METADATA_LOCAL_FILE = "maven-metadata-local.xml"
+
     private final TestFile rootDir
     final TestFile moduleDir
     final String groupId
@@ -49,6 +51,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
+    private String timestamp = "20100101120000"
+    private boolean remote = false
 
     AbstractMavenModule(TestFile rootDir, TestFile moduleDir, String groupId, String artifactId, String version) {
         this.rootDir = rootDir
@@ -319,12 +323,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     DefaultRootMavenMetaData getRootMetaData() {
-        new DefaultRootMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+        new DefaultRootMavenMetaData("$moduleRootPath/${getMetaDataFileName()}", rootMetaDataFile)
     }
 
     @Override
     DefaultSnapshotMavenMetaData getSnapshotMetaData() {
-        new DefaultSnapshotMavenMetaData("$path/${MAVEN_METADATA_FILE}", snapshotMetaDataFile)
+        new DefaultSnapshotMavenMetaData("$path/${getMetaDataFileName()}", snapshotMetaDataFile)
     }
 
     @Override
@@ -351,17 +355,37 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return moduleDir.file("$artifactId-${publishArtifactVersion}.pom")
     }
 
+    String getMetaDataFileName() {
+        return remote ? MAVEN_METADATA_FILE : MAVEN_METADATA_LOCAL_FILE
+    }
+
+    @Override
+    boolean isRemote() {
+        return remote
+    }
+
+    @Override
+    void setRemote(boolean remote) {
+        this.remote = remote
+    }
+
+    @Override
+    MavenModule withTimestamp(String timestamp) {
+        this.timestamp = timestamp
+        return this
+    }
+
     @Override
     TestFile getMetaDataFile() {
-        moduleDir.file(MAVEN_METADATA_FILE)
+        moduleDir.file(getMetaDataFileName())
     }
 
     TestFile getRootMetaDataFile() {
-        moduleDir.parentFile.file(MAVEN_METADATA_FILE)
+        moduleDir.parentFile.file(getMetaDataFileName())
     }
 
     TestFile getSnapshotMetaDataFile() {
-        moduleDir.file(MAVEN_METADATA_FILE)
+        moduleDir.file(getMetaDataFileName())
     }
 
     TestFile artifactFile(Map<String, ?> options) {
@@ -424,7 +448,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     Date getPublishTimestamp() {
-        return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
+        return new Date(updateFormat.parse(timestamp).time + publishCount * 1000)
     }
 
     private void publishModuleMetadata() {

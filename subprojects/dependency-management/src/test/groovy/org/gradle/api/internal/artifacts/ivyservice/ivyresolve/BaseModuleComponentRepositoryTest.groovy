@@ -23,15 +23,17 @@ class BaseModuleComponentRepositoryTest extends Specification {
     final localAccess = Mock(ModuleComponentRepositoryAccess)
     final remoteAccess = Mock(ModuleComponentRepositoryAccess)
 
-    def "delegates id and name methods"() {
+    def "delegates id, name and remote methods"() {
         when:
         final repository = new BaseModuleComponentRepository(delegate, localAccess, remoteAccess)
         1 * delegate.id >> "id"
         1 * delegate.name >> "name"
+        1 * delegate.remote >> true
 
         then:
         repository.id == "id"
         repository.name == "name"
+        repository.remote
     }
 
     def "delegates access methods"() {

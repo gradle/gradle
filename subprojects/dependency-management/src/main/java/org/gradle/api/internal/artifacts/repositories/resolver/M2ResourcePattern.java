@@ -47,13 +47,17 @@ public class M2ResourcePattern extends AbstractResourcePattern {
     }
 
     private String maybeSubstituteTimestamp(ModuleComponentArtifactMetadata artifact, String pattern) {
-        if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
+        if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier && !isLocal()) {
             MavenUniqueSnapshotComponentIdentifier snapshotId = (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
             pattern = pattern
                     .replaceFirst("\\-\\[revision\\]", "-" + snapshotId.getTimestampedVersion())
                     .replace("[revision]", snapshotId.getSnapshotVersion());
         }
         return pattern;
+    }
+
+    private boolean isLocal() {
+        return this.getPattern().startsWith("file:");
     }
 
     public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {

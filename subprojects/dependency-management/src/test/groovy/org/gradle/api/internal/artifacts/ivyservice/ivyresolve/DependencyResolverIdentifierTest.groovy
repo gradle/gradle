@@ -103,5 +103,9 @@ class DependencyResolverIdentifierTest extends Specification {
             throw new UnsupportedOperationException()
         }
 
+        @Override
+        boolean isRemote() {
+            return true
+        }
     }
 }

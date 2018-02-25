@@ -62,6 +62,16 @@ class M2ResourcePatternTest extends Specification {
         pattern.getLocation(artifact1).path == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
     }
 
+    def "doesn't substitutes snapshot artifact attributes into pattern for local repository"() {
+        def pattern = new M2ResourcePattern("file:/.m2/" + MavenPattern.M2_PATTERN)
+        def snapshotId = new MavenUniqueSnapshotComponentIdentifier("group", "projectA", "1.2-SNAPSHOT", "2014-timestamp-3333")
+
+        def artifact1 = new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
+
+        expect:
+        pattern.getLocation(artifact1).path == 'file:/.m2/group/projectA/1.2-SNAPSHOT/projectA-1.2-SNAPSHOT.pom'
+    }
+
     def "determines artifact location by substituting artifact attributes into pattern and resolving relative to base URI"() {
         def pattern = new M2ResourcePattern(new URI("http://server/lookup"), "[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         def artifact = artifact(group, module, version)

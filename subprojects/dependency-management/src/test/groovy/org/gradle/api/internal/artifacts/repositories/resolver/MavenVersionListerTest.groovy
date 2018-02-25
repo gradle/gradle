@@ -195,6 +195,35 @@ class MavenVersionListerTest extends Specification {
         0 * resourceAccessor._
     }
 
+    def "parses maven-metadata-local.xml"() {
+        LocallyAvailableExternalResource resource = Mock()
+        def metaDataResource = new ExternalResourceName('file:/.m2/org/acme/testproject/maven-metadata-local.xml')
+        MavenVersionLister lister = new MavenVersionLister(new MavenMetadataLoader(resourceAccessor, fileStore))
+
+        when:
+        lister.listVersions(module, [pattern("file:/.m2/" + MavenPattern.M2_PATTERN)], result)
+        def versions = result.versions
+
+        then:
+        versions == ['1.1', '1.2'] as Set
+        result.attempted == [metaDataResource.toString()]
+
+        and:
+        1 * resourceAccessor.getResource(metaDataResource, null, _, null) >> resource
+        1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+<metadata>
+    <versioning>
+        <versions>
+            <version>1.1</version>
+            <version>1.2</version>
+        </versions>
+    </versioning>
+</metadata>""".bytes))
+        }
+        0 * resourceAccessor._
+        0 * resource._
+    }
+
     def pattern(String pattern) {
         return new M2ResourcePattern(pattern)
     }

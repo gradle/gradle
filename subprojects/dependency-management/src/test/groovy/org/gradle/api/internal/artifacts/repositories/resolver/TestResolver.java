@@ -85,5 +85,10 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
         };
     }
 
+    @Override
+    public boolean isRemote() {
+        return true;
+    }
+
     interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata {}
 }

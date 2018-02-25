@@ -297,8 +297,8 @@ Required by:
     def "mavenLocal skipped if contains pom but no artifact for snapshot"() {
         given:
         def anotherRepo = maven("another-local-repo")
-        m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
-        def moduleARemote = anotherRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish()
+        m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
+        def moduleARemote = anotherRepo.module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
 
         and:
         buildFile.text = """

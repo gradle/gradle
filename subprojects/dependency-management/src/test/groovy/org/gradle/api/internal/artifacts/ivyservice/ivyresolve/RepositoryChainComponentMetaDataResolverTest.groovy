@@ -24,16 +24,21 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
-class ResolverProviderComponentMetaDataResolverTest extends Specification {
+class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "project"), "1.0")
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
+    final changingMetaData1 = mavenMetaData("1.1-SNAPSHOT")
+    final changingMetaData2 = mavenMetaData("1.1-SNAPSHOT", "20180303203010")
+    final changingMetaData3 = mavenMetaData("1.1-SNAPSHOT", null)
+    final changingModuleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.1-SNAPSHOT")
 
     final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)
@@ -41,6 +46,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     def remoteAccess = Mock(ModuleComponentRepositoryAccess)
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
+    def localAccess3 = Mock(ModuleComponentRepositoryAccess)
+    def remoteAccess3 = Mock(ModuleComponentRepositoryAccess)
 
     final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
     final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy, transformer)
@@ -55,14 +62,19 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     }
 
     def addRepo2() {
-        addModuleComponentRepository("repo2", localAccess2, remoteAccess2)
+        addModuleComponentRepository("repo2", localAccess2, remoteAccess2, true)
     }
 
-    def addModuleComponentRepository(def name, def repoLocalAccess, def repoRemoteAccess) {
+    def addRepo3() {
+        addModuleComponentRepository("repo3", localAccess3, remoteAccess3, true)
+    }
+
+    def addModuleComponentRepository(def name, def repoLocalAccess, def repoRemoteAccess, def remote = false) {
         def repo = Stub(ModuleComponentRepository) {
             getLocalAccess() >> repoLocalAccess
             getRemoteAccess() >> repoRemoteAccess
             getName() >> name
+            isRemote() >> remote
         }
         resolver.add(repo)
         repo
@@ -556,6 +568,105 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         0 * result._
     }
 
+    def "can find latest snapshot in remote repo"() {
+        given:
+        addRepo1()
+        def repo2 = addRepo2()
+        addRepo3()
+
+        when:
+        resolver.resolve(changingModuleComponentId, componentRequestMetaData, result)
+
+        then:
+        1 * localAccess.resolveComponentMetaData(changingModuleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.resolved(changingMetaData1)
+        }
+        1 * localAccess2.resolveComponentMetaData(changingModuleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.resolved(changingMetaData2)
+        }
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == changingMetaData2
+            assert it.repository == repo2
+            changingMetaData2
+        }
+        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
+            assert metaData == this.changingMetaData2
+        }
+
+        and:
+        0 * localAccess._
+        0 * localAccess2._
+        0 * localAccess3._
+        0 * remoteAccess._
+        0 * result._
+    }
+
+    def "can find latest snapshot in local repo"() {
+        given:
+        def repo = addRepo1()
+        addRepo2()
+        addRepo3()
+
+        when:
+        resolver.resolve(changingModuleComponentId, componentRequestMetaData, result)
+
+        then:
+        1 * localAccess.resolveComponentMetaData(changingModuleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.resolved(changingMetaData2)
+        }
+        1 * localAccess2.resolveComponentMetaData(changingModuleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.resolved(changingMetaData1)
+        }
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == changingMetaData2
+            assert it.repository == repo
+            changingMetaData2
+        }
+        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
+            assert metaData == this.changingMetaData2
+        }
+
+        and:
+        0 * localAccess._
+        0 * localAccess2._
+        0 * localAccess3._
+        0 * remoteAccess._
+        0 * result._
+    }
+
+    def "local snapshot without timestamp"() {
+        given:
+        addRepo1()
+        def repo2 = addRepo2()
+        addRepo3()
+
+        when:
+        resolver.resolve(changingModuleComponentId, componentRequestMetaData, result)
+
+        then:
+        1 * localAccess.resolveComponentMetaData(changingModuleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.resolved(changingMetaData3)
+        }
+        1 * localAccess2.resolveComponentMetaData(changingModuleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.resolved(changingMetaData1)
+        }
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == changingMetaData1
+            assert it.repository == repo2
+            changingMetaData1
+        }
+        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
+            assert metaData == this.changingMetaData1
+        }
+
+        and:
+        0 * localAccess._
+        0 * localAccess2._
+        0 * localAccess3._
+        0 * remoteAccess._
+        0 * result._
+    }
+
     def descriptor(String version) {
         def descriptor = Stub(ModuleDescriptor)
         descriptor.resolvedModuleRevisionId >> IvyUtil.createModuleRevisionId("org", "module", version)
@@ -567,6 +678,16 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             toString() >> version
             getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
             getDescriptor() >> descriptor(version)
+        }
+    }
+
+    def mavenMetaData(String version, String timestamp = "20180303202500") {
+        return Stub(MavenModuleResolveMetadata) {
+            toString() >> version
+            getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
+            getDescriptor() >> descriptor(version)
+            isChanging() >> version.endsWith("SNAPSHOT")
+            getSnapshotTimestamp() >> timestamp
         }
     }
 }

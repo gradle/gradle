@@ -34,6 +34,7 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         this.repoRoot = repoRoot
         this.moduleRootUriPath = "${repoRoot}/${backingModule.moduleRootPath}"
         this.uriPath = "${repoRoot}/${backingModule.path}"
+        backingModule.setRemote(true)
     }
 
     HttpArtifact getArtifact(Map options = [:]) {

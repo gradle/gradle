@@ -40,7 +40,14 @@ public class MavenVersionLister {
         List<String> versions = Lists.newArrayList();
         boolean hasResult = false;
         for (ResourcePattern pattern : patterns) {
-            ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
+
+            String metadataFileName = "maven-metadata.xml";
+
+            // Maven metadata filename for local repository is in form: maven-metadata-<repo-id>.xml
+            if (pattern.getPattern().startsWith("file:")) {
+                metadataFileName = "maven-metadata-local.xml";
+            }
+            ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve(metadataFileName);
 
             if (searched.add(metadataLocation)) {
                 result.attempted(metadataLocation);

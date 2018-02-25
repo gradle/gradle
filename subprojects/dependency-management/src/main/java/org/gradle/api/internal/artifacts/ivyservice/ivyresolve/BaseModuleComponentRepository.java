@@ -70,4 +70,9 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isRemote() {
+        return delegate.isRemote();
+    }
+
 }

@@ -50,6 +50,8 @@ public interface ModuleComponentRepository {
      */
     ModuleComponentRepositoryAccess getRemoteAccess();
 
+    boolean isRemote();
+
     // TODO - put this somewhere else
     Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache();
 

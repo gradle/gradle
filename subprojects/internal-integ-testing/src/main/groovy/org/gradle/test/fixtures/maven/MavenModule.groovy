@@ -119,6 +119,12 @@ interface MavenModule extends Module {
 
     TestFile getMetaDataFile()
 
+    boolean isRemote()
+
+    void setRemote(boolean remote)
+
+    MavenModule withTimestamp(String timestamp)
+
     MavenPom getParsedPom()
 
     ModuleArtifact getRootMetaData()

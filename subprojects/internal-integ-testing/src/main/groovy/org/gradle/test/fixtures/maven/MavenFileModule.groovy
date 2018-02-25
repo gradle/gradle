@@ -81,7 +81,7 @@ class MavenFileModule extends AbstractMavenModule {
 
     @Override
     protected boolean publishesMetaDataFile() {
-        uniqueSnapshots && version.endsWith("-SNAPSHOT")
+        uniqueSnapshots && version.endsWith("-SNAPSHOT") || !isRemote()
     }
 
 }

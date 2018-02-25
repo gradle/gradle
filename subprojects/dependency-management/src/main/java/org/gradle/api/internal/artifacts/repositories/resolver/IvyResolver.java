@@ -122,6 +122,11 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         return remoteRepositoryAccess;
     }
 
+    @Override
+    public boolean isRemote() {
+        return !isLocal();
+    }
+
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {

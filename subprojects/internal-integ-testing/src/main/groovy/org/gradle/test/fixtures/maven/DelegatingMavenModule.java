@@ -252,6 +252,22 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public boolean isRemote() {
+        return backingModule.isRemote();
+    }
+
+    @Override
+    public void setRemote(boolean remote) {
+        backingModule.setRemote(remote);
+    }
+
+    @Override
+    public T withTimestamp(String timestamp) {
+        backingModule.withTimestamp(timestamp);
+        return t();
+    }
+
+    @Override
     public boolean getUniqueSnapshots() {
         return backingModule.getUniqueSnapshots();
     }

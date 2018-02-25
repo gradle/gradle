@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -151,10 +152,20 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                     break;
                 case Resolved:
                     RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, metaDataResolveResult.getMetaData());
-                    if (!metaDataResolveResult.getMetaData().isMissing()) {
+                    if (moduleResolution.module instanceof MavenModuleResolveMetadata && moduleResolution.module.isChanging()) {
+                        if (best == null) {
+                            best = moduleResolution;
+                        } else if (getTimestamp(moduleResolution) > getTimestamp(best)) {
+                            best = moduleResolution;
+                        }
+                        if (moduleResolution.repository.isRemote()) {
+                            return best;
+                        }
+                    } else if (!metaDataResolveResult.getMetaData().isMissing()) {
                         return moduleResolution;
+                    } else {
+                        best = best != null ? best : moduleResolution;
                     }
-                    best = best != null ? best : moduleResolution;
                     break;
                 default:
                     throw new IllegalStateException("Unexpected state for resolution: " + metaDataResolveResult.getState());
@@ -162,5 +173,14 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
 
         return best;
+    }
+
+    private long getTimestamp(RepositoryChainModuleResolution best) {
+        String snapshotTimestamp = ((MavenModuleResolveMetadata) best.module).getSnapshotTimestamp();
+        if (snapshotTimestamp == null) {
+            LOGGER.warn("SNAPSHOT timestamp could not be resolved. Probably published in non-standard way.");
+            return 0;
+        }
+        return Long.parseLong(snapshotTimestamp.replaceAll("[\\.-]", ""));
     }
 }

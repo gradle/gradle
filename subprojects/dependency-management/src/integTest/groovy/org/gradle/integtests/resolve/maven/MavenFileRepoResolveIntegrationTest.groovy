@@ -22,7 +22,7 @@ class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTe
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
         def moduleB = mavenRepo().module('group', 'projectB', '9.1')
-        moduleA.publish()
+        moduleA.withNonUniqueSnapshots().publish()
         moduleB.publish()
 
         and:

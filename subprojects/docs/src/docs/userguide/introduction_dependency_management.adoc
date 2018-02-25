@@ -64,6 +64,8 @@ Gradle takes your dependency declarations and repository definitions and attempt
 
 ** For a dynamic version, a 'higher' concrete version is preferred over a 'lower' version.
 
+** For a changing modules, a 'latest' available module is preferred. The search for 'latest' available module ends when module is found in remote repository, potentially multiple local repositories are searched. The 'latest' module is determined by timestamp found in `maven-metadata.xml` or `maven-metadata-local.xml` files.
+
 ** Modules declared by a module metadata file (`.module`, `.pom` or `ivy.xml` file) are preferred over modules that have an artifact file only.
 
 ** Modules from earlier repositories are preferred over modules in later repositories.

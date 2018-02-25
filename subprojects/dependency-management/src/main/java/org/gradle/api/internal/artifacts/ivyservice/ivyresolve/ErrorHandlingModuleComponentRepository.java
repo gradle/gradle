@@ -92,6 +92,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     }
 
     @Override
+    public boolean isRemote() {
+        return delegate.isRemote();
+    }
+
+    @Override
     public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
         return delegate.getArtifactCache();
     }

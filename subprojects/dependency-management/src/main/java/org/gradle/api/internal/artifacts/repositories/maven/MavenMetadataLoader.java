@@ -78,12 +78,17 @@ public class MavenMetadataLoader {
                             throws SAXException {
                         if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
                             mavenMetadata.timestamp = getText();
-                        }
-                        if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+                        } else if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
                             mavenMetadata.buildNumber = getText();
-                        }
-                        if ("metadata/versioning/versions/version".equals(getContext())) {
+                        } else if ("metadata/versioning/versions/version".equals(getContext())) {
                             mavenMetadata.versions.add(getText().trim());
+                        } else if ("metadata/versioning/lastUpdated".equals(getContext())) {
+                            // timestamp will be null for local repositories
+                            if (mavenMetadata.timestamp == null) {
+                                String lastUpdated = getText();
+                                mavenMetadata.timestamp = lastUpdated.substring(0, 8) + "." + lastUpdated.substring(8, lastUpdated.length());
+                                mavenMetadata.buildNumber = "0";
+                            }
                         }
                         super.endElement(uri, localName, qName);
                     }

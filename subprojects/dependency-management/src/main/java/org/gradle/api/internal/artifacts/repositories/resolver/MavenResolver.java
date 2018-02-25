@@ -137,7 +137,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     @Override
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
 
-        if (moduleSource instanceof MavenUniqueSnapshotModuleSource) {
+        if (moduleSource instanceof MavenUniqueSnapshotModuleSource && !this.isLocal()) {
             return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSource), (MavenUniqueSnapshotModuleSource) moduleSource);
         }
 
@@ -170,7 +170,15 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             //do not attempt to download maven-metadata.xml for incomplete identifiers
             return null;
         }
-        ExternalResourceName metadataLocation = wholePattern.toModuleVersionPath(module).resolve("maven-metadata.xml");
+
+        String metadataFileName = "maven-metadata.xml";
+
+        // Maven metadata filename for local repository is in form: maven-metadata-<repo-id>.xml
+        if (isLocal()) {
+            metadataFileName = "maven-metadata-local.xml";
+        }
+
+        ExternalResourceName metadataLocation = wholePattern.toModuleVersionPath(module).resolve(metadataFileName);
         result.attempted(metadataLocation);
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
@@ -205,6 +213,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
+    }
+
+    @Override
+    public boolean isRemote() {
+        return !isLocal();
     }
 
     public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {
