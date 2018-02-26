@@ -90,13 +90,12 @@ public class VisualStudioPlugin extends IdePlugin {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, fileResolver, artifactRegistry);
             final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
             getLifecycleTask().dependsOn(solution);
-            Task openTask = addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
+            addWorkspaceOpenTask(solution, project.getProviders().provider(new Callable<File>() {
                 @Override
                 public File call() throws Exception {
                     return solution.getSolutionFile().getLocation();
                 }
             }));
-            openTask.setDescription("Opens the Visual Studio solution");
         } else {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry);
             getLifecycleTask().dependsOn(extension.getProjects());

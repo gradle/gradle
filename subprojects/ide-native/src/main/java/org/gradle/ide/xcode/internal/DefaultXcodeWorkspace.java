@@ -19,4 +19,8 @@ package org.gradle.ide.xcode.internal;
 import org.gradle.ide.xcode.XcodeWorkspace;
 
 public class DefaultXcodeWorkspace implements XcodeWorkspace {
+    @Override
+    public String getDisplayName() {
+        return "Xcode workspace";
+    }
 }

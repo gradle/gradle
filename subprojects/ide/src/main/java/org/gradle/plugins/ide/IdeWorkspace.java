@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide;
 
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 
 /**
@@ -24,5 +25,5 @@ import org.gradle.api.Incubating;
  * @since 4.7
  */
 @Incubating
-public interface IdeWorkspace {
+public interface IdeWorkspace extends Describable {
 }

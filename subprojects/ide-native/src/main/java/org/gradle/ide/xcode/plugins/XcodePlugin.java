@@ -87,7 +87,7 @@ public class XcodePlugin extends IdePlugin {
     private final ObjectFactory objectFactory;
     private final BuildIdentifier thisBuild;
     private final IdeArtifactRegistry artifactRegistry;
-    private DefaultXcodeExtension xcode;
+    private DefaultXcodeProject xcodeProject;
 
     @Inject
     public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild, IdeArtifactRegistry artifactRegistry) {
@@ -108,26 +108,27 @@ public class XcodePlugin extends IdePlugin {
         lifecycleTask.setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
 
         if (isRoot()) {
-            xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeRootExtension.class, "xcode", DefaultXcodeRootExtension.class, objectFactory);
+            DefaultXcodeRootExtension xcode = (DefaultXcodeRootExtension) project.getExtensions().create(XcodeRootExtension.class, "xcode", DefaultXcodeRootExtension.class, objectFactory);
+            xcodeProject = xcode.getProject();
             final GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project);
             lifecycleTask.dependsOn(workspaceTask);
-            Task openTask = addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
+            addWorkspaceOpenTask(xcode.getWorkspace(), project.getProviders().provider(new Callable<File>() {
                 @Override
                 public File call() {
                     return toXcodeWorkspacePackageDir(project);
                 }
             }));
-            openTask.setDescription("Opens the Xcode workspace");
         } else {
-            xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
+            DefaultXcodeExtension xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
+            xcodeProject = xcode.getProject();
         }
 
-        xcode.getProject().setLocationDir(project.file(project.getName() + ".xcodeproj"));
+        xcodeProject.setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
         GenerateXcodeProjectFileTask projectTask = createProjectTask(project);
         lifecycleTask.dependsOn(projectTask);
 
-        project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcode.getProject(), project));
+        project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcodeProject, project));
 
         configureForSwiftPlugin(project);
         configureForCppPlugin(project);
@@ -140,14 +141,14 @@ public class XcodePlugin extends IdePlugin {
     private void includeBuildFilesInProject(Project project) {
         // TODO: Add other build like files `build.gradle.kts`, `settings.gradle(.kts)`, other `.gradle`, `gradle.properties`
         if (project.getBuildFile().exists()) {
-            xcode.getProject().getGroups().getRoot().from(project.getBuildFile());
+            xcodeProject.getGroups().getRoot().from(project.getBuildFile());
         }
     }
 
     private void configureXcodeCleanTask(Project project) {
         getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
         Delete cleanTask = project.getTasks().create("cleanXcodeProject", Delete.class);
-        cleanTask.delete(xcode.getProject().getLocationDir());
+        cleanTask.delete(xcodeProject.getLocationDir());
         if (isRoot()) {
             cleanTask.delete(toXcodeWorkspacePackageDir(project));
         }
@@ -155,16 +156,16 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private GenerateXcodeProjectFileTask createProjectTask(final Project project) {
-        File xcodeProjectPackageDir = xcode.getProject().getLocationDir();
+        File xcodeProjectPackageDir = xcodeProject.getLocationDir();
 
         GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
         workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
 
         GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
         projectFileTask.dependsOn(workspaceSettingsFileTask);
-        projectFileTask.dependsOn(xcode.getProject().getTaskDependencies());
+        projectFileTask.dependsOn(xcodeProject.getTaskDependencies());
         projectFileTask.dependsOn(project.getTasks().withType(GenerateSchemeFileTask.class));
-        projectFileTask.setXcodeProject(xcode.getProject());
+        projectFileTask.setXcodeProject(xcodeProject);
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
 
         return projectFileTask;
@@ -221,7 +222,7 @@ public class XcodePlugin extends IdePlugin {
             public void execute(Project project) {
                 SwiftXCTestSuite component = project.getExtensions().getByType(SwiftXCTestSuite.class);
                 FileCollection sources = component.getSwiftSource();
-                xcode.getProject().getGroups().getTests().from(sources);
+                xcodeProject.getGroups().getTests().from(sources);
 
                 String targetName = component.getModule().get();
                 final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
@@ -235,7 +236,7 @@ public class XcodePlugin extends IdePlugin {
                         target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
                     }
                 });
-                xcode.getProject().addTarget(target);
+                xcodeProject.addTarget(target);
             }
         });
     }
@@ -251,7 +252,7 @@ public class XcodePlugin extends IdePlugin {
                 // TODO: Assumes there's a single 'main' Swift component
                 ProductionSwiftComponent component = project.getComponents().withType(ProductionSwiftComponent.class).getByName("main");
                 FileCollection sources = component.getSwiftSource();
-                xcode.getProject().getGroups().getSources().from(sources);
+                xcodeProject.getGroups().getSources().from(sources);
 
                 // TODO - should use the _install_ task for an executable
                 String targetName = component.getModule().get();
@@ -278,9 +279,9 @@ public class XcodePlugin extends IdePlugin {
 
                 target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
                 target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
-                xcode.getProject().addTarget(target);
+                xcodeProject.addTarget(target);
 
-                createSchemeTask(project.getTasks(), targetName, xcode.getProject());
+                createSchemeTask(project.getTasks(), targetName, xcodeProject);
             }
         });
     }
@@ -308,10 +309,10 @@ public class XcodePlugin extends IdePlugin {
                 // TODO: Assumes there's a single 'main' C++ component
                 ProductionCppComponent component = project.getComponents().withType(ProductionCppComponent.class).getByName("main");
                 FileCollection sources = component.getCppSource();
-                xcode.getProject().getGroups().getSources().from(sources);
+                xcodeProject.getGroups().getSources().from(sources);
 
                 FileCollection headers = component.getHeaderFiles();
-                xcode.getProject().getGroups().getHeaders().from(headers);
+                xcodeProject.getGroups().getHeaders().from(headers);
 
                 // TODO - should use the _install_ task for an executable
                 String targetName = StringUtils.capitalize(component.getBaseName().get());
@@ -337,9 +338,9 @@ public class XcodePlugin extends IdePlugin {
 
                 target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
                 target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
-                xcode.getProject().addTarget(target);
+                xcodeProject.addTarget(target);
 
-                createSchemeTask(project.getTasks(), targetName, xcode.getProject());
+                createSchemeTask(project.getTasks(), targetName, xcodeProject);
             }
         });
     }
@@ -466,7 +467,7 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private final Action<ArtifactView.ViewConfiguration> fromSourceDependency() {
+    private Action<ArtifactView.ViewConfiguration> fromSourceDependency() {
         return new Action<ArtifactView.ViewConfiguration>() {
             @Override
             public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
@@ -475,7 +476,7 @@ public class XcodePlugin extends IdePlugin {
         };
     }
 
-    private final Spec<ComponentIdentifier> isSourceDependency() {
+    private Spec<ComponentIdentifier> isSourceDependency() {
         return new Spec<ComponentIdentifier>() {
             @Override
             public boolean isSatisfiedBy(ComponentIdentifier id) {
