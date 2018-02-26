@@ -111,7 +111,7 @@ buildTypes {
 }
 
 ext {
-    gradle_kotlin_dsl_version = '0.15.6'
+    gradle_kotlin_dsl_version = '0.16.0'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("CI")
