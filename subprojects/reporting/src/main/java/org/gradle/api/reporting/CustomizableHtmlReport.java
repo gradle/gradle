@@ -37,6 +37,6 @@ public interface CustomizableHtmlReport extends SingleFileReport {
      *
      * @param stylesheet the stylesheet to use to generate the HTML report
      */
-    void setStylesheet(TextResource stylesheet);
+    void setStylesheet(@Nullable TextResource stylesheet);
 
 }

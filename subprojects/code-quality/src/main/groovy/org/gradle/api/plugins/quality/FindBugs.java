@@ -183,6 +183,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The filename of a filter specifying which bugs are reported.
      */
     @Internal
+    @Nullable
     public File getIncludeFilter() {
         TextResource config = getIncludeFilterConfig();
         return config == null ? null : config.asFile();
@@ -198,6 +199,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
+    @Nullable
     @Internal
     public File getExcludeFilter() {
         TextResource config = getExcludeFilterConfig();
@@ -214,6 +216,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
+    @Nullable
     @Internal
     public File getExcludeBugsFilter() {
         TextResource config = getExcludeBugsFilterConfig();
