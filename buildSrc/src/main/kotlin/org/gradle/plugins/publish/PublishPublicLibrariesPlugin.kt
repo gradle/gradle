@@ -145,6 +145,7 @@ open class GeneratePom : DefaultTask() {
 
     @TaskAction
     fun generatePom(): Unit = project.run {
+        addDependenciesToPublishConfigurations()
         val install by tasks.getting(Upload::class)
         install.repositories {
             withConvention(MavenRepositoryHandlerConvention::class) {
