@@ -208,7 +208,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         for (String name : names) {
             Object value = environmentVariables.get(name);
             if (value != null) {
-                VisualCppToolChain.LOGGER.warn("Ignoring value '{}' set for environment variable '{}'.", value, name);
+                VisualCppToolChain.LOGGER.debug("Ignoring value '{}' set for environment variable '{}'.", value, name);
                 invocation.addEnvironmentVar(name, "");
             }
         }
