@@ -37,8 +37,10 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.XcodeProject;
+import org.gradle.ide.xcode.XcodeRootExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
+import org.gradle.ide.xcode.internal.DefaultXcodeRootExtension;
 import org.gradle.ide.xcode.internal.XcodePropertyAdapter;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
@@ -105,10 +107,8 @@ public class XcodePlugin extends IdePlugin {
         Task lifecycleTask = getLifecycleTask();
         lifecycleTask.setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
 
-        xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
-        xcode.getProject().setLocationDir(project.file(project.getName() + ".xcodeproj"));
-
         if (isRoot()) {
+            xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeRootExtension.class, "xcode", DefaultXcodeRootExtension.class, objectFactory);
             final GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project);
             lifecycleTask.dependsOn(workspaceTask);
             Task openTask = addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
@@ -118,7 +118,11 @@ public class XcodePlugin extends IdePlugin {
                 }
             }));
             openTask.setDescription("Opens the Xcode workspace");
+        } else {
+            xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
         }
+
+        xcode.getProject().setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
         GenerateXcodeProjectFileTask projectTask = createProjectTask(project);
         lifecycleTask.dependsOn(projectTask);
