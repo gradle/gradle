@@ -19,6 +19,8 @@ package org.gradle.api.reporting;
 import org.gradle.api.Incubating;
 import org.gradle.api.resources.TextResource;
 
+import javax.annotation.Nullable;
+
 /**
  * A HTML Report whose generation can be customized with a XSLT stylesheet.
  */
@@ -30,6 +32,7 @@ public interface CustomizableHtmlReport extends SingleFileReport {
      *
      * @return the stylesheet to use to generate the HTML report
      */
+    @Nullable
     TextResource getStylesheet();
 
     /**
