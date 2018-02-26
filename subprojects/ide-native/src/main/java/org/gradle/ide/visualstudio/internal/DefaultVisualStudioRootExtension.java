@@ -37,7 +37,7 @@ public class DefaultVisualStudioRootExtension extends DefaultVisualStudioExtensi
     }
 
     @Override
-    public void solution(Action<VisualStudioSolution> configAction) {
+    public void solution(Action<? super VisualStudioSolution> configAction) {
         configAction.execute(solution);
     }
 }

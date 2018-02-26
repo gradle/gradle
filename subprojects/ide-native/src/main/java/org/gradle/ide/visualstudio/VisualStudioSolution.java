@@ -20,6 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.plugins.ide.IdeWorkspace;
 
 /**
  * A visual studio solution, representing one or more native binaries in a build.
@@ -44,7 +45,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface VisualStudioSolution extends Named, Buildable {
+public interface VisualStudioSolution extends Named, Buildable, IdeWorkspace {
     /**
      * Configuration for the generated solution file.
      */

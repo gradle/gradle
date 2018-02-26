@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.xcode;
+package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.ide.xcode.XcodeWorkspace;
 
-/**
- * The configuration for mapping a C++ or Swift project to an XCode project.
- *
- * @since 4.2
- */
-@Incubating
-public interface XcodeExtension {
-    /**
-     * Returns the generated Xcode project for this Gradle project.
-     */
-    XcodeProject getProject();
+public class DefaultXcodeWorkspace implements XcodeWorkspace {
 }
