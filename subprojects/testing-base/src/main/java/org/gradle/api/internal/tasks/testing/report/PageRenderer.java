@@ -79,7 +79,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
             htmlWriter.startElement("a")
                 .attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())))
                 .attribute("title", test.getClassResults().getName())
-                .characters(test.getClassResults().getSimpleName())
+                .characters(test.getClassResults().getReportName())
                 .endElement();
             htmlWriter.characters(".");
             String link = asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())) + "#" + test.getName();

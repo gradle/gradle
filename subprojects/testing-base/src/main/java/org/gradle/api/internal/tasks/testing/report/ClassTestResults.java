@@ -68,10 +68,14 @@ public class ClassTestResults extends CompositeTestResults {
         return displayName;
     }
 
-    public String getSimpleName() {
+    public String getReportName() {
         if (displayName != null && !displayName.equals(name)) {
             return displayName;
         }
+        return getSimpleName();
+    }
+
+    public String getSimpleName() {
         String simpleName = StringUtils.substringAfterLast(name, ".");
         if (simpleName.equals("")) {
             return name;

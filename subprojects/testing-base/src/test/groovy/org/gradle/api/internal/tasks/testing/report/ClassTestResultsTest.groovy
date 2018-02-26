@@ -20,9 +20,9 @@ import spock.lang.Specification
 class ClassTestResultsTest extends Specification {
     def determinesSimpleName() {
         expect:
-        new ClassTestResults(1, 'org.gradle.Test', null).simpleName == 'Test'
-        new ClassTestResults(2, 'Test', null).simpleName == 'Test'
-        new ClassTestResults(1, 'org.gradle.Test', 'TestDisplay', null).simpleName == 'TestDisplay'
-        new ClassTestResults(2, 'Test', 'TestDisplay', null).simpleName == 'TestDisplay'
+        new ClassTestResults(1, 'org.gradle.Test', null).reportName == 'Test'
+        new ClassTestResults(2, 'Test', null).reportName == 'Test'
+        new ClassTestResults(1, 'org.gradle.Test', 'TestDisplay', null).reportName == 'TestDisplay'
+        new ClassTestResults(2, 'Test', 'TestDisplay', null).reportName == 'TestDisplay'
     }
 }
