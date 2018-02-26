@@ -33,7 +33,8 @@ open class CiReportingPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.prepareReportsForCiPublishing() {
+    private
+    fun Project.prepareReportsForCiPublishing() {
         val failedTaskGenericHtmlReports = failedTasks(allprojects).flatMap {
             it.failedTaskGenericHtmlReports()
         }
@@ -49,21 +50,24 @@ open class CiReportingPlugin : Plugin<Project> {
         }
     }
 
-    private fun failedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.failure != null } }
+    private
+    fun failedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.failure != null } }
 
-    private fun executedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.executed } }
+    private
+    fun executedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.executed } }
 
-    private fun Task.failedTaskGenericHtmlReports(): Collection<Pair<File, String>> {
-        return if (this is Reporting<*>) {
+    private
+    fun Task.failedTaskGenericHtmlReports() = when(this) {
+        is Reporting<*> -> {
             val reportContainer = this.reports
             val reportDestination = reportContainer.getByName("html").destination
             listOf(reportDestination to project.name)
-        } else {
-            listOf()
         }
+        else -> listOf()
     }
 
-    private fun Task.failedTaskCustomReports() = when (this) {
+    private
+    fun Task.failedTaskCustomReports() = when (this) {
         is ValidateTaskProperties -> listOf(outputFile.asFile.get() to project.name)
         is Classycle -> listOf(reportFile to project.name)
         is DistributionTest -> listOf(
@@ -73,13 +77,15 @@ open class CiReportingPlugin : Plugin<Project> {
         else -> listOf()
     }
 
-    private fun Task.attachedReportLocations(): Collection<Pair<File, String>> = when (this) {
+    private
+    fun Task.attachedReportLocations(): Collection<Pair<File, String>> = when (this) {
         is JapicmpTask -> listOf(File(richReport.destinationDir, richReport.reportName) to project.name)
         is DistributedPerformanceTest -> listOf(scenarioReport.parentFile to project.name)
         else -> listOf()
     }
 
-    private fun Project.prepareReportForCIPublishing(report: File, projectName: String) {
+    private
+    fun Project.prepareReportForCIPublishing(report: File, projectName: String) {
         if (report.exists()) {
             if (report.isDirectory) {
                 val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
