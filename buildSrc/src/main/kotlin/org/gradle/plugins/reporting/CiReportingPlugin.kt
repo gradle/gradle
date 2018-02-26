@@ -34,47 +34,49 @@ open class CiReportingPlugin : Plugin<Project> {
     }
 
     private fun Project.prepareReportsForCiPublishing() {
-        val reports = mutableMapOf<File, String>()
-        allprojects {
-            tasks.all {
-                gatherReportLocationForGenericHtmlReport(reports)
-            }
+        val failedTaskGenericHtmlReports = failedTasks(allprojects).flatMap {
+            it.failedTaskGenericHtmlReports()
+        }
+        val attachedReports = executedTasks(subprojects).flatMap {
+            it.attachedReportLocations()
+        }
+        val failedTaskCustomReports = failedTasks(subprojects).flatMap {
+            it.failedTaskCustomReports()
         }
 
-        subprojects {
-            tasks.all {
-                gatherReportLocationForCustomTasks(reports, project.name)
-            }
-        }
-
-        reports.forEach {
+        (failedTaskGenericHtmlReports + attachedReports + failedTaskCustomReports).toMap().forEach {
             prepareReportForCIPublishing(it.key, it.value)
         }
     }
 
-    private fun Task.gatherReportLocationForGenericHtmlReport(reports: MutableMap<File, String>) {
-        if (this is Reporting<*> && state.failure != null) {
+    private fun failedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.failure != null } }
+
+    private fun executedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.executed } }
+
+    private fun Task.failedTaskGenericHtmlReports(): Collection<Pair<File, String>> {
+        return if (this is Reporting<*>) {
             val reportContainer = this.reports
             val reportDestination = reportContainer.getByName("html").destination
-            reports[reportDestination] = project.name
+            listOf(reportDestination to project.name)
+        } else {
+            listOf()
         }
     }
 
-    private fun Task.gatherReportLocationForCustomTasks(reports: MutableMap<File, String>, projectName: String) {
-        if (state.failure != null) {
-            when (this) {
-                is ValidateTaskProperties -> reports[outputFile.asFile.get()] = projectName
-                is Classycle -> reports[reportFile] = projectName
-                is DistributionTest -> {
-                    reports[File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon")] = "all-logs"
-                    reports[gradleInstallationForTest.daemonRegistry.asFile.get()] = "all-logs"
-                }
-            }
-        }
-        when (this) {
-            is JapicmpTask -> reports[File(richReport.destinationDir, richReport.reportName)] = projectName
-            is DistributedPerformanceTest -> reports[scenarioReport.parentFile] = projectName
-        }
+    private fun Task.failedTaskCustomReports() = when (this) {
+        is ValidateTaskProperties -> listOf(outputFile.asFile.get() to project.name)
+        is Classycle -> listOf(reportFile to project.name)
+        is DistributionTest -> listOf(
+            File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon") to "all-logs",
+            gradleInstallationForTest.daemonRegistry.asFile.get() to "all-logs"
+        )
+        else -> listOf()
+    }
+
+    private fun Task.attachedReportLocations(): Collection<Pair<File, String>> = when (this) {
+        is JapicmpTask -> listOf(File(richReport.destinationDir, richReport.reportName) to project.name)
+        is DistributedPerformanceTest -> listOf(scenarioReport.parentFile to project.name)
+        else -> listOf()
     }
 
     private fun Project.prepareReportForCIPublishing(report: File, projectName: String) {
