@@ -54,6 +54,14 @@
                 "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
                 "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.IdeaPlugin",
+            "member": "Class org.gradle.plugins.ide.idea.IdeaPlugin",
+            "acceptation": "Introduced IDE workspace abstraction",
+            "changes": [
+                "org.gradle.plugins.ide.IdeWorkspace"
+            ]
         }
     ]
 }
