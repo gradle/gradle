@@ -47,6 +47,7 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
+import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -79,7 +80,7 @@ import java.util.concurrent.Callable;
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task. For projects that have the Java plugin applied, the tasks receive additional Java-specific
  * configuration.
  */
-public class IdeaPlugin extends IdePlugin {
+public class IdeaPlugin extends IdePlugin implements IdeWorkspace {
     private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
         @Override
         public boolean apply(Project project) {
