@@ -828,7 +828,9 @@ Cross-compiling is possible with the api:org.gradle.nativeplatform.toolchain.Gcc
 
 Gradle has the ability to generate Visual Studio project and solution files for the native components defined in your build. This ability is added by the `visual-studio` plugin. For a multi-project build, all projects with native components (and the root project) should have this plugin applied.
 
-When the `visual-studio` plugin is applied to the root project, a task named `visualStudio` is created, which will generate a Visual Studio Solution file containing all components in the build. This solution will include a Visual Studio Project for each component, as well as configuring each component to build using Gradle.
+When the `visual-studio` plugin is applied to the root project, a task named `visualStudio` is created, which will generate a Visual Studio solution file containing all components in the build. This solution will include a Visual Studio project for each component, as well as configuring each component to build using Gradle.
+
+A task named `openVisualStudio` is also created by the `visual-studio` plugin when the project is the root project. This task generates the Visual Studio solution and then opens the solution in Visual Studio. This means you can simply run `gradlew openVisualStudio` from the root project to generate and open the Visual Studio solution in one convenient step.
 
 The content of the generated visual studio files can be modified via API hooks, provided by the `visualStudio` extension. Take a look at the 'visual-studio' sample, or see api:org.gradle.ide.visualstudio.VisualStudioExtension#getProjects[] and api:org.gradle.ide.visualstudio.VisualStudioRootExtension#getSolution[] in the API documentation for more details.
 
