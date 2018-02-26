@@ -45,6 +45,11 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     }
 
     @Override
+    public String getDisplayName() {
+        return "Visual Studio solution";
+    }
+
+    @Override
     public String getName() {
         return name;
     }

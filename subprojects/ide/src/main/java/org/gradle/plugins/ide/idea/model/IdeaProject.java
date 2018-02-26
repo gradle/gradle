@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.Path;
 
@@ -108,8 +109,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaProject {
-
+public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectPathRegistry projectPathRegistry;
@@ -132,6 +132,11 @@ public class IdeaProject {
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectPathRegistry.class);
         this.localComponentRegistry = services.get(LocalComponentRegistry.class);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "IDEA project";
     }
 
     /**

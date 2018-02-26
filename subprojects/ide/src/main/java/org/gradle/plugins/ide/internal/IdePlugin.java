@@ -26,6 +26,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.process.ExecSpec;
 
@@ -109,8 +110,8 @@ public abstract class IdePlugin implements Plugin<Project> {
     protected void onApply(Project target) {
     }
 
-    protected Task addWorkspaceOpenTask(final GeneratorTask<?> task) {
-        return addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
+    protected Task addWorkspaceOpenTask(IdeWorkspace workspace, final GeneratorTask<?> task) {
+        return addWorkspaceOpenTask(workspace, project.getProviders().provider(new Callable<File>() {
             @Override
             public File call() {
                 return task.getOutputFile();
@@ -118,10 +119,11 @@ public abstract class IdePlugin implements Plugin<Project> {
         }));
     }
 
-    protected Task addWorkspaceOpenTask(final Provider<? extends File> workspace) {
+    protected Task addWorkspaceOpenTask(IdeWorkspace workspace, final Provider<? extends File> workspaceLocation) {
         Task openTask = project.getTasks().create("open" + StringUtils.capitalize(getLifecycleTaskName()));
         openTask.dependsOn(lifecycleTask);
         openTask.setGroup("IDE");
+        openTask.setDescription("Opens the " + workspace.getDisplayName());
         openTask.doLast(new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -129,12 +131,12 @@ public abstract class IdePlugin implements Plugin<Project> {
                     project.exec(new Action<ExecSpec>() {
                         @Override
                         public void execute(ExecSpec execSpec) {
-                            execSpec.commandLine("open", workspace.get());
+                            execSpec.commandLine("open", workspaceLocation.get());
                         }
                     });
                 } else {
                     try {
-                        Desktop.getDesktop().open(workspace.get());
+                        Desktop.getDesktop().open(workspaceLocation.get());
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
