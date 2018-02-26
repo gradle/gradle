@@ -165,11 +165,11 @@ public class IdeaPlugin extends IdePlugin {
 
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
-            final GenerateIdeaProject task = project.getTasks().create("ideaProject", GenerateIdeaProject.class);
-            task.setDescription("Generates IDEA project file (IPR)");
-            XmlFileContentMerger ipr = new XmlFileContentMerger(task.getXmlTransformer());
+            final GenerateIdeaProject projectTask = project.getTasks().create("ideaProject", GenerateIdeaProject.class);
+            projectTask.setDescription("Generates IDEA project file (IPR)");
+            XmlFileContentMerger ipr = new XmlFileContentMerger(projectTask.getXmlTransformer());
             IdeaProject ideaProject = instantiator.newInstance(IdeaProject.class, project, ipr);
-            task.setIdeaProject(ideaProject);
+            projectTask.setIdeaProject(ideaProject);
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -218,13 +218,15 @@ public class IdeaPlugin extends IdePlugin {
             conventionMapping.map("pathFactory", new Callable<PathFactory>() {
                 @Override
                 public PathFactory call() {
-                    return new PathFactory().addPathVariable("PROJECT_DIR", task.getOutputFile().getParentFile());
+                    return new PathFactory().addPathVariable("PROJECT_DIR", projectTask.getOutputFile().getParentFile());
                 }
             });
 
-            addWorker(task);
-        }
+            addWorker(projectTask);
 
+            Task openTask = addWorkspaceOpenTask(projectTask);
+            openTask.setDescription("Opens the IDEA project");
+        }
     }
 
     private static IdeaModel ideaModelFor(Project project) {
