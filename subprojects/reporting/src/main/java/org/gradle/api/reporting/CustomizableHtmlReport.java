@@ -23,8 +23,6 @@ import org.gradle.api.tasks.Optional;
 
 import javax.annotation.Nullable;
 
-import javax.annotation.Nullable;
-
 /**
  * A HTML Report whose generation can be customized with a XSLT stylesheet.
  */

@@ -578,6 +578,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "nested iterable beans can be iterables themselves"() {
+        buildFile << nestedBeanWithStringInput()
         buildFile << """
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
@@ -592,16 +593,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
-            class NestedBean {
-                @Input
-                String input
-            }
-            
             def inputString = project.findProperty('input') ?: 'input'
             
             task myTask(type: TaskWithNestedIterable) {
                 outputFile = file('build/output.txt')
-                beans = [[new NestedBean(input: inputString)], [new NestedBean(input: 'secondInput')]]
+                beans = [[new NestedBean(inputString)], [new NestedBean('secondInput')]]
             }
         """
         def task = ':myTask'
@@ -660,19 +656,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
     def "duplicate names in nested iterable cause the build to fail"() {
         buildFile << taskWithNestedInput()
+        buildFile << namedBeanClass()
         buildFile << """
-            class NamedBean implements Named {
-                @Internal
-                final String name
-                @Input
-                final String value
-        
-                NamedBean(String name, String value) {
-                    this.value = value
-                    this.name = name
-                }
-            }
-            
             myTask.nested = [new NamedBean('name', 'value1'), new NamedBean('name', 'value2')]           
         """
 
@@ -680,6 +665,73 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         fails "myTask"
         failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
         failure.assertHasCause("Nested iterables can only contain beans with unique names. Duplicate name: 'nested.name'.")
+    }
+
+    def "task with named nested beans is incremental"() {
+        buildFile << taskWithNestedInput()
+        buildFile << namedBeanClass()
+        buildFile << """                                   
+            myTask.nested = [new NamedBean(project.property('namedName'), 'value1'), new NamedBean('name', 'value2')]           
+        """
+        def taskPath = ':myTask'
+
+        when:
+        run taskPath, '-PnamedName=name1'
+        then:
+        executedAndNotSkipped taskPath
+
+        when:
+        run taskPath, '-PnamedName=name1'
+        then:
+        skipped taskPath
+
+        when:
+        run taskPath, '-PnamedName=different', '--info'
+        then:
+        executedAndNotSkipped taskPath
+        output.contains("Input property 'nested.different.class' has been added for task ':myTask'")
+        output.contains("Input property 'nested.name1.class' has been removed for task ':myTask'")
+    }
+
+    def "task with nested map is incremental"() {
+        buildFile << taskWithNestedInput()
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """                                   
+            myTask.nested = [(project.property('key')): new NestedBean('value1'), key2: new NestedBean('value2')]           
+        """
+        def taskPath = ':myTask'
+
+        when:
+        run taskPath, '-Pkey=key1'
+        then:
+        executedAndNotSkipped taskPath
+
+        when:
+        run taskPath, '-Pkey=key1'
+        then:
+        skipped taskPath
+
+        when:
+        run taskPath, '-Pkey=different', '--info'
+        then:
+        executedAndNotSkipped taskPath
+        output.contains("Input property 'nested.different.class' has been added for task ':myTask'")
+        output.contains("Input property 'nested.key1.class' has been removed for task ':myTask'")
+    }
+
+
+    private static String namedBeanClass() {
+        """
+            class NamedBean implements Named {
+                @Internal final String name
+                @Input final String value
+
+                NamedBean(name, value) {
+                    this.name = name
+                    this.value = value
+                }
+            }
+        """
     }
 
     def "implementation of nested property in Groovy build script is tracked"() {
@@ -899,4 +951,17 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
+    private static String nestedBeanWithStringInput() {
+        """
+            class NestedBean {
+                @Input final String input
+                
+                NestedBean(String input) {
+                    this.input = input
+                }
+            }
+        """
+    }
+
 }
