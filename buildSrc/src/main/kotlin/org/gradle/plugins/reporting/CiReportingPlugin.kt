@@ -3,6 +3,7 @@ package org.gradle.plugins.reporting
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.reporting.Reporting
 import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
@@ -27,41 +28,52 @@ open class CiReportingPlugin : Plugin<Project> {
 
         if (isCiServer) {
             gradle.buildFinished {
-                val reports = mutableMapOf<File, String>()
-                allprojects {
-                    tasks.all {
-                        if (this is Reporting<*> && state.failure != null) {
-                            val reportContainer = this.reports
-                            val reportDestination = reportContainer.getByName("html").destination
-                            reports[reportDestination] = project.name
-                        }
-                    }
-                }
+                prepareReportsForCiPublishing()
+            }
+        }
+    }
 
-                subprojects {
-                    val projectName = name
-                    tasks.all {
-                        if (state.failure != null) {
-                            when (this) {
-                                is ValidateTaskProperties -> reports[outputFile.asFile.get()] = projectName
-                                is Classycle -> reports[reportFile] = projectName
-                                is DistributionTest -> {
-                                    reports[File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon")] = "all-logs"
-                                    reports[gradleInstallationForTest.daemonRegistry.asFile.get()] = "all-logs"
-                                }
-                            }
-                        }
-                        when (this) {
-                            is JapicmpTask -> reports[File(richReport.destinationDir, richReport.reportName)] = projectName
-                            is DistributedPerformanceTest -> reports[scenarioReport.parentFile] = projectName
-                        }
-                    }
-                }
+    private fun Project.prepareReportsForCiPublishing() {
+        val reports = mutableMapOf<File, String>()
+        allprojects {
+            tasks.all {
+                gatherReportLocationForGenericHtmlReport(reports)
+            }
+        }
 
-                reports.forEach {
-                    prepareReportForCIPublishing(it.key, it.value)
+        subprojects {
+            tasks.all {
+                gatherReportLocationForCustomTasks(reports, project.name)
+            }
+        }
+
+        reports.forEach {
+            prepareReportForCIPublishing(it.key, it.value)
+        }
+    }
+
+    private fun Task.gatherReportLocationForGenericHtmlReport(reports: MutableMap<File, String>) {
+        if (this is Reporting<*> && state.failure != null) {
+            val reportContainer = this.reports
+            val reportDestination = reportContainer.getByName("html").destination
+            reports[reportDestination] = project.name
+        }
+    }
+
+    private fun Task.gatherReportLocationForCustomTasks(reports: MutableMap<File, String>, projectName: String) {
+        if (state.failure != null) {
+            when (this) {
+                is ValidateTaskProperties -> reports[outputFile.asFile.get()] = projectName
+                is Classycle -> reports[reportFile] = projectName
+                is DistributionTest -> {
+                    reports[File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon")] = "all-logs"
+                    reports[gradleInstallationForTest.daemonRegistry.asFile.get()] = "all-logs"
                 }
             }
+        }
+        when (this) {
+            is JapicmpTask -> reports[File(richReport.destinationDir, richReport.reportName)] = projectName
+            is DistributedPerformanceTest -> reports[scenarioReport.parentFile] = projectName
         }
     }
 
