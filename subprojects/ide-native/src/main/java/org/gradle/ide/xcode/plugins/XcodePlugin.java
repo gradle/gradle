@@ -72,6 +72,7 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin for creating a XCode project for a gradle project.
@@ -108,8 +109,15 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
         if (isRoot()) {
-            GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project);
+            final GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project);
             lifecycleTask.dependsOn(workspaceTask);
+            Task openTask = addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
+                @Override
+                public File call() {
+                    return toXcodeWorkspacePackageDir(project);
+                }
+            }));
+            openTask.setDescription("Opens the Xcode workspace");
         }
 
         GenerateXcodeProjectFileTask projectTask = createProjectTask(project);

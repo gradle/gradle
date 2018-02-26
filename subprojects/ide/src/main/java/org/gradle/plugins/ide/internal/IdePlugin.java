@@ -17,14 +17,22 @@ package org.gradle.plugins.ide.internal;
 
 import com.google.common.base.Optional;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.plugins.ide.api.GeneratorTask;
+import org.gradle.process.ExecSpec;
 
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.Callable;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private Task lifecycleTask;
@@ -99,6 +107,41 @@ public abstract class IdePlugin implements Plugin<Project> {
     }
 
     protected void onApply(Project target) {
+    }
+
+    protected Task addWorkspaceOpenTask(final GeneratorTask<?> task) {
+        return addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
+            @Override
+            public File call() {
+                return task.getOutputFile();
+            }
+        }));
+    }
+
+    protected Task addWorkspaceOpenTask(final Provider<? extends File> workspace) {
+        Task openTask = project.getTasks().create("open" + StringUtils.capitalize(getLifecycleTaskName()));
+        openTask.dependsOn(lifecycleTask);
+        openTask.setGroup("IDE");
+        openTask.doLast(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (OperatingSystem.current().isMacOsX()) {
+                    project.exec(new Action<ExecSpec>() {
+                        @Override
+                        public void execute(ExecSpec execSpec) {
+                            execSpec.commandLine("open", workspace.get());
+                        }
+                    });
+                } else {
+                    try {
+                        Desktop.getDesktop().open(workspace.get());
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            }
+        });
+        return openTask;
     }
 
     protected abstract String getLifecycleTaskName();

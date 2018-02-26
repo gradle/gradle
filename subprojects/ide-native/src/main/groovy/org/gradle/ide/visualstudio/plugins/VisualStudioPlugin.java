@@ -53,6 +53,8 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.concurrent.Callable;
 
 
 /**
@@ -86,7 +88,15 @@ public class VisualStudioPlugin extends IdePlugin {
         final VisualStudioExtensionInternal extension;
         if (isRoot()) {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, fileResolver, artifactRegistry);
-            getLifecycleTask().dependsOn(((VisualStudioRootExtension)extension).getSolution());
+            final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
+            getLifecycleTask().dependsOn(solution);
+            Task openTask = addWorkspaceOpenTask(project.getProviders().provider(new Callable<File>() {
+                @Override
+                public File call() throws Exception {
+                    return solution.getSolutionFile().getLocation();
+                }
+            }));
+            openTask.setDescription("Opens the Visual Studio solution");
         } else {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry);
             getLifecycleTask().dependsOn(extension.getProjects());
