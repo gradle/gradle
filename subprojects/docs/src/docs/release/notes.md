@@ -74,8 +74,8 @@ You can find more information on [test grouping and filtering in the Java Plugin
 To enable `JUnit Jupiter` support, add the following dependencies:
 
     dependencies {
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.3'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
     }      
 
 Put your first `Jupiter` test into `src/test/java/foo/bar`:
@@ -104,7 +104,7 @@ If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JU
     
     dependencies {
         testCompileOnly 'junit:junit:4.12' 
-        testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:4.12.3' 
+        testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.1.0' 
     }
     
 You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
