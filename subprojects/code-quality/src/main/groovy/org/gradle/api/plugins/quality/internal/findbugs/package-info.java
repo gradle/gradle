@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * Plugins which measure and enforce code quality.
- */
 @NonNullApi
-package org.gradle.api.plugins.quality;
+package org.gradle.api.plugins.quality.internal.findbugs;
 
 import org.gradle.api.NonNullApi;

@@ -20,11 +20,12 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
-import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
+import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,7 +83,7 @@ public class FindBugsSpecBuilder {
     }
 
 
-    public FindBugsSpecBuilder withEffort(String effort) {
+    public FindBugsSpecBuilder withEffort(@Nullable String effort) {
         if (effort != null && !VALID_EFFORTS.contains(effort)) {
             throw new InvalidUserDataException("Invalid value for FindBugs 'effort' property: " + effort);
         }
@@ -90,7 +91,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withReportLevel(String reportLevel) {
+    public FindBugsSpecBuilder withReportLevel(@Nullable String reportLevel) {
         if (reportLevel != null && !VALID_REPORT_LEVELS.contains(reportLevel)) {
             throw new InvalidUserDataException("Invalid value for FindBugs 'reportLevel' property: " + reportLevel);
         }
@@ -98,22 +99,22 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withMaxHeapSize(String maxHeapSize) {
+    public FindBugsSpecBuilder withMaxHeapSize(@Nullable String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
         return this;
     }
 
-    public FindBugsSpecBuilder withVisitors(Collection<String> visitors) {
+    public FindBugsSpecBuilder withVisitors(@Nullable Collection<String> visitors) {
         this.visitors = visitors;
         return this;
     }
 
-    public FindBugsSpecBuilder withOmitVisitors(Collection<String> omitVisitors) {
+    public FindBugsSpecBuilder withOmitVisitors(@Nullable Collection<String> omitVisitors) {
         this.omitVisitors = omitVisitors;
         return this;
     }
 
-    public FindBugsSpecBuilder withExcludeFilter(File excludeFilter) {
+    public FindBugsSpecBuilder withExcludeFilter(@Nullable File excludeFilter) {
         if (excludeFilter != null && !excludeFilter.canRead()) {
             String errorStr = String.format("Cannot read file specified for FindBugs 'excludeFilter' property: %s", excludeFilter);
             throw new InvalidUserDataException(errorStr);
@@ -123,7 +124,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withIncludeFilter(File includeFilter) {
+    public FindBugsSpecBuilder withIncludeFilter(@Nullable File includeFilter) {
         if (includeFilter != null && !includeFilter.canRead()) {
             String errorStr = String.format("Cannot read file specified for FindBugs 'includeFilter' property: %s", includeFilter);
             throw new InvalidUserDataException(errorStr);
@@ -133,7 +134,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withExcludeBugsFilter(File excludeBugsFilter) {
+    public FindBugsSpecBuilder withExcludeBugsFilter(@Nullable File excludeBugsFilter) {
         if (excludeBugsFilter != null && !excludeBugsFilter.canRead()) {
             String errorStr = String.format("Cannot read file specified for FindBugs 'excludeBugsFilter' property: %s", excludeBugsFilter);
             throw new InvalidUserDataException(errorStr);
@@ -144,7 +145,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withExtraArgs(Collection<String> extraArgs) {
+    public FindBugsSpecBuilder withExtraArgs(@Nullable Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
         return this;
     }
@@ -154,7 +155,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withJvmArgs(Collection<String> jvmArgs) {
+    public FindBugsSpecBuilder withJvmArgs(@Nullable Collection<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
         return this;
     }
@@ -255,19 +256,19 @@ public class FindBugsSpecBuilder {
         return new FindBugsSpec(args, maxHeapSize, debugEnabled, jvmArgs == null ? Collections.<String>emptyList() : jvmArgs);
     }
 
-    private boolean has(String str) {
+    private boolean has(@Nullable String str) {
         return str != null && str.length() > 0;
     }
 
-    private boolean has(File file) {
+    private boolean has(@Nullable File file) {
         return file != null && file.canRead();
     }
 
-    private boolean has(Collection<?> collection) {
+    private boolean has(@Nullable Collection<?> collection) {
         return collection != null && !collection.isEmpty();
     }
 
-    private boolean has(FileCollection fileCollection) {
+    private boolean has(@Nullable FileCollection fileCollection) {
         return fileCollection != null && !fileCollection.isEmpty();
     }
 
