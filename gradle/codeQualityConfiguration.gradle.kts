@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.plugins.GroovyBasePlugin
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaLibraryPlugin
-import org.gradle.api.plugins.quality.CheckstyleExtension
-import org.gradle.api.plugins.quality.CodeNarc
-import org.gradle.api.plugins.quality.CodeNarcExtension
-import org.gradle.kotlin.dsl.*
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.tasks.SourceSet
-import org.gradle.plugin.devel.tasks.ValidateTaskProperties
-import java.io.File
-
 // This script can not be moved to buildSrc/main/kotlin as it is also used by the buildSrc build.
 
 // As this script is also accessed from the buildSrc project,
