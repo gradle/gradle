@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
+package org.gradle.plugins.ide.internal;
 
-import org.gradle.util.VersionNumber;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-import java.io.File;
-
-public interface VisualCppMetadata {
-    File getVisualCppDir();
-    VersionNumber getVersion();
+public class IdeServices extends AbstractPluginServiceRegistry {
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(DefaultIdeArtifactRegistry.class);
+    }
 }

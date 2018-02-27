@@ -47,8 +47,4 @@ public class VisualStudioLocatorTestFixture {
     public static VswhereVersionLocator getVswhereLocator() {
         return new DefaultVswhereVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current());
     }
-
-    public static MSBuildVersionLocator getMSBuildLocator() {
-        return new MSBuildVersionLocator(getVswhereLocator());
-    }
 }
