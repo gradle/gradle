@@ -50,5 +50,5 @@ public interface DependencyConstraint extends ModuleVersionSelector {
      *
      * @since 4.6
      */
-    void because(String reason);
+    void because(@Nullable String reason);
 }

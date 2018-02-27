@@ -28,7 +28,7 @@ public interface ExecutableTools {
     /**
      * Returns the implementation version of these tools.
      */
-    VersionNumber getVersion();
+    VersionNumber getImplementationVersion();
 
     /**
      * Returns the path entries that must be present in order to use these tools, possibly none.

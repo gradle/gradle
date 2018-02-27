@@ -16,5 +16,5 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-public interface UcrtLocator extends WindowsComponentLocator<Ucrt> {
+public interface UcrtLocator extends WindowsComponentLocator<UcrtInstall> {
 }

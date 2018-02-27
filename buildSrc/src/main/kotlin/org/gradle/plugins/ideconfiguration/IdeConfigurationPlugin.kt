@@ -116,7 +116,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     fun Project.configureIdeaForRootProject() {
         idea {
             module {
-                excludeDirs = excludeDirs.plus(rootExcludeDirs)
+                excludeDirs = excludeDirs + rootExcludeDirs
             }
 
             project {
@@ -127,15 +127,11 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                         withJsoup { document ->
                             val projectElement = document.getElementsByTag("project").first()
                             configureCompilerConfiguration(projectElement)
-                            projectElement.removeExistingChildElement("component[name=GradleSettings]")
-                                .appendElement("component")
-                                .attr("name", "GradleSettings")
-                                .appendElement("option")
-                                .attr("SDK_HOME", gradle.gradleHomeDir!!.absolutePath)
+                            configureGradleSettings(projectElement)
                             configureCopyright(projectElement)
-                            projectElement.removeExistingChildElement("component[name=ProjectCodeStyleSettingsManager]")
+                            projectElement.removeBySelector("component[name=ProjectCodeStyleSettingsManager]")
                                 .append(CODE_STYLE_SETTINGS)
-                            projectElement.removeExistingChildElement("component[name=GroovyCompilerProjectConfiguration]")
+                            projectElement.removeBySelector("component[name=GroovyCompilerProjectConfiguration]")
                                 .append(GROOVY_COMPILER_SETTINGS)
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
@@ -164,36 +160,24 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     }
 
     private
-    fun XmlProvider.withJsoup(function: (Document) -> Unit) {
-        val xml = asString()
-        val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
-        document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-        function(document)
-        xml.delete(0, xml.length)
-        xml.append(document.toString())
-    }
-
-    private
-    fun Element.createOrEmptyOutChildElement(childName: String): Element {
-        val children = getElementsByTag(childName)
-        if (children.isEmpty()) {
-            return appendElement(childName)
-        }
-        val child = children.first()
-        child.children().remove()
-        return child
+    fun Project.configureGradleSettings(projectElement: Element) {
+        projectElement.removeBySelector("component[name=GradleSettings]")
+            .appendElement("component")
+            .attr("name", "GradleSettings")
+            .appendElement("option")
+            .attr("SDK_HOME", gradle.gradleHomeDir!!.absolutePath)
     }
 
     private
     fun configureGradleRunConfigurations(runManagerComponent: org.jsoup.nodes.Element) {
         runManagerComponent.attr("selected", "Application.Gradle")
-        runManagerComponent.removeExistingChildElement("configuration[name=gradle]")
+        runManagerComponent.removeBySelector("configuration[name=gradle]")
             .append(GRADLE_CONFIGURATION)
         val gradleRunners = mapOf(
             "Regenerate IDEA metadata" to "idea",
             "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives")
         gradleRunners.forEach { runnerName, commandLine ->
-            runManagerComponent.removeExistingChildElement("configuration[name=$runnerName]")
+            runManagerComponent.removeBySelector("configuration[name=$runnerName]")
                 .append(getGradleRunnerConfiguration(runnerName, commandLine))
         }
         val remoteDebugConfigurationName = "Remote debug port 5005"
@@ -205,7 +189,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     fun configureListItems(remoteDebugConfigurationName: String, gradleRunners: Map<String, String>, runManagerComponent: Element) {
         val listItemValues = mutableListOf("Application.Gradle", remoteDebugConfigurationName)
         listItemValues += gradleRunners.values
-        val list = runManagerComponent.removeExistingChildElement("list")
+        val list = runManagerComponent.removeBySelector("list")
             .appendElement("list")
             .attr("size", listItemValues.size.toString())
         listItemValues.forEachIndexed { index, itemValue ->
@@ -217,17 +201,8 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     }
 
     private
-    fun Element.removeExistingChildElement(childSelector: String): Element {
-        val existingRunners = select(childSelector)
-        if (!existingRunners.isEmpty()) {
-            existingRunners.remove()
-        }
-        return this
-    }
-
-    private
     fun configureRemoteDebugConfiguration(runManagerComponent: org.jsoup.nodes.Element, configurationName: String) {
-        runManagerComponent.removeExistingChildElement("configuration[name=$configurationName]").append("""
+        runManagerComponent.removeBySelector("configuration[name=$configurationName]").append("""
                 <configuration default="false" name="$configurationName" type="Remote" factoryName="Remote">
                   <option name="USE_SOCKET_TRANSPORT" value="true" />
                   <option name="SERVER_MODE" value="false" />
@@ -253,25 +228,26 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
     private
     fun configureSourceFolders(document: Document) {
-        val sourceFolders = document.select("component[name=NewModuleRootManager]").first()
+        val sourceFolders = document
+            .select("component[name=NewModuleRootManager]").first()
             .select("content").first()
             .select("sourceFolder[url$=/resources]")
 
         sourceFolders.forEach {
-            if (it.hasAttr("isTestSource")) {
-                it.removeAttr("isTestSource")
-                it.attr("type", "java-test-resource")
-            } else {
-                it.attr("type", "java-resource")
+            it.attributes().apply {
+                val isTestSource = get("isTestSource") == "true"
+                remove("isTestSource")
+                put("type", if (isTestSource) "java-test-resource" else "java-resource")
             }
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
+        @Suppress("UNCHECKED_CAST")
+        val projectsRequiringJava8 = property("projectsRequiringJava8") as List<Project>
         val ideaLanguageLevel =
-            if ((findProperty("projectsRequiringJava8") as List<Project>).contains(ideaModule.project)) "1.8"
+            if (ideaModule.project in projectsRequiringJava8) "1.8"
             else "1.6"
         // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
@@ -293,6 +269,11 @@ open class IdeConfigurationPlugin : Plugin<Project> {
                         // required by DefaultModuleRegistry
                         it.url.contains("${'$'}MODULE_DIR$/build/") && !it.url.contains("generated-resources")
                 }
+        }
+        // remove all build directories from sourceFolders
+        // f.e. buildInit module contains such a sourceFolder
+        module.sourceFolders.removeAll {
+            it.url.contains("${'$'}MODULE_DIR$/build/")
         }
     }
 
@@ -318,7 +299,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     private
     fun configureFrameworkDetectionExcludes(root: Element) {
         val componentName = "FrameworkDetectionExcludesConfiguration"
-        root.removeExistingChildElement("component[name=$componentName]")
+        root.removeBySelector("component[name=$componentName]")
             .appendElement("component").attr("name", componentName)
             .appendElement("type").attr("id", "android")
             .appendElement("type").attr("id", "web")
@@ -345,7 +326,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     fun configureCompilerConfiguration(root: Element) {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
-        compilerConfiguration.removeExistingChildElement("option[name=BUILD_PROCESS_HEAP_SIZE]")
+        compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
             .appendElement("option")
             .attr("name", "BUILD_PROCESS_HEAP_SIZE")
             .attr("value", "2048")
@@ -409,6 +390,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
     }
 }
 
+
 private
 val Project.rootExcludeDirs
     get() = setOf<File>(
@@ -443,6 +425,7 @@ const val GRADLE_CONFIGURATION = """
        <method />
     </configuration>
 """
+
 
 private
 const val CODE_STYLE_SETTINGS = """
@@ -480,6 +463,7 @@ const val CODE_STYLE_SETTINGS = """
     </component>
 """
 
+
 private
 const val GROOVY_COMPILER_SETTINGS = """
     <component name="GroovyCompilerProjectConfiguration">
@@ -489,3 +473,30 @@ const val GROOVY_COMPILER_SETTINGS = """
         <option name="heapSize" value="2000" />
     </component>
 """
+
+
+private
+fun XmlProvider.withJsoup(function: (Document) -> Unit) {
+    val xml = asString()
+    val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
+    function(document)
+    document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
+    xml.replace(0, xml.length, document.toString())
+}
+
+
+private
+fun Element.createOrEmptyOutChildElement(childName: String): Element {
+    val children = getElementsByTag(childName)
+    if (children.isEmpty()) {
+        return appendElement(childName)
+    }
+    return children.first().apply {
+        children().remove()
+    }
+}
+
+
+private
+fun Element.removeBySelector(selector: String): Element =
+    apply { select(selector).remove() }

@@ -33,6 +33,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -115,8 +116,9 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The environment variable to use to provide additional options to the JVM.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getOptsEnvironmentVar() {
         if (GUtil.isTrue(optsEnvironmentVar)) {
             return optsEnvironmentVar;
@@ -132,8 +134,9 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The environment variable to use to control exit value (Windows only).
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getExitEnvironmentVar() {
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
@@ -208,13 +211,14 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The application's default JVM options. Defaults to an empty list.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public Iterable<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
     }
 
-    public void setDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
+    public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
         this.defaultJvmOpts = defaultJvmOpts;
     }
 
@@ -230,11 +234,11 @@ public class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
-    public void setOptsEnvironmentVar(String optsEnvironmentVar) {
+    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
-    public void setExitEnvironmentVar(String exitEnvironmentVar) {
+    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 

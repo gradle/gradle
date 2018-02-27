@@ -14,9 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.ide.xcode;
 
-import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Provider;
+import org.gradle.plugins.ide.IdeWorkspace;
 
-public interface PlatformWindowsSdk extends WindowsTools, SystemLibraries {
+/**
+ * Represents the generated Xcode workspace.
+ *
+ * @since 4.7
+ */
+@Incubating
+public interface XcodeWorkspace extends IdeWorkspace {
+    /**
+     * Returns the location of the generated workspace.
+     */
+    @Override
+    Provider<Directory> getLocation();
 }

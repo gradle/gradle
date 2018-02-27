@@ -54,6 +54,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.SingleMessageLogger;
@@ -76,11 +77,13 @@ public class EclipsePlugin extends IdePlugin {
 
     private final Instantiator instantiator;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
+    private final IdeArtifactRegistry artifactRegistry;
 
     @Inject
-    public EclipsePlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider) {
+    public EclipsePlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
         this.instantiator = instantiator;
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
+        this.artifactRegistry = artifactRegistry;
     }
 
     @Override
@@ -113,8 +116,8 @@ public class EclipsePlugin extends IdePlugin {
     private void registerEclipseArtifacts(Project project) {
         EclipseProject eclipseProject = project.getExtensions().getByType(EclipseModel.class).getProject();
 
-        registerIdeArtifact(createArtifact(eclipseProject, "project", project));
-        registerIdeArtifact(createArtifact(eclipseProject, "classpath", project));
+        artifactRegistry.registerIdeArtifact(createArtifact(eclipseProject, "project", project));
+        artifactRegistry.registerIdeArtifact(createArtifact(eclipseProject, "classpath", project));
     }
 
     private static PublishArtifact createArtifact(EclipseProject eclipseProject, String extension, Project project) {
@@ -388,13 +391,6 @@ public class EclipsePlugin extends IdePlugin {
         action.execute(task);
         plugin.addWorker(task);
     }
-
-    private static final Predicate<Project> HAS_ECLIPSE_PLUGIN = new Predicate<Project>() {
-        @Override
-        public boolean apply(Project project) {
-            return project.getPlugins().hasPlugin(EclipsePlugin.class);
-        }
-    };
 
     private static class EclipseArtifact extends DefaultPublishArtifact {
         private final EclipseProject eclipseProject;

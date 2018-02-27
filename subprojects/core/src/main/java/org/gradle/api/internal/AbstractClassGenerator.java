@@ -97,15 +97,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             return generatedClass.asSubclass(type);
         }
 
-        if (Modifier.isPrivate(type.getModifiers())) {
+        int modifiers = type.getModifiers();
+        if (Modifier.isPrivate(modifiers)) {
             throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",
                     type.getSimpleName()));
         }
-        if (Modifier.isAbstract(type.getModifiers())) {
+        if (Modifier.isAbstract(modifiers)) {
             throw new GradleException(String.format("Cannot create a proxy class for abstract class '%s'.",
                     type.getSimpleName()));
         }
-
+        if (Modifier.isFinal(modifiers)) {
+            throw new GradleException(String.format("Cannot create a proxy class for final class '%s'.",
+                type.getSimpleName()));
+        }
         Class<? extends T> subclass;
         try {
             ClassMetaData classMetaData = inspectType(type);

@@ -26,6 +26,7 @@ import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,16 +44,18 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final DefaultConfigFile projectFile;
     private final DefaultConfigFile filtersFile;
     private final String name;
-    private final String projectPath;
     private final String componentName;
+    private final VersionNumber visualStudioVersion;
+    private final VersionNumber sdkVersion;
     private final List<File> additionalFiles = new ArrayList<File>();
     private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
-    public DefaultVisualStudioProject(String name, String projectPath, String componentName, PathToFileResolver fileResolver, Instantiator instantiator) {
+    public DefaultVisualStudioProject(String name, String componentName, VersionNumber visualStudioVersion, VersionNumber sdkVersion, PathToFileResolver fileResolver, Instantiator instantiator) {
         this.name = name;
-        this.projectPath = projectPath;
         this.componentName = componentName;
+        this.visualStudioVersion = visualStudioVersion;
+        this.sdkVersion = sdkVersion;
         projectFile = instantiator.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
         filtersFile = instantiator.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
     }
@@ -131,6 +134,14 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     @Override
     public String getName() {
         return name;
+    }
+
+    public VersionNumber getVisualStudioVersion() {
+        return visualStudioVersion;
+    }
+
+    public VersionNumber getSdkVersion() {
+        return sdkVersion;
     }
 
     @Override
