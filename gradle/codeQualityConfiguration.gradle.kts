@@ -84,7 +84,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
 
 fun Project.configureCodeQualityTasks() =
     tasks {
-        val codeQualityTasks = matching { it is CodeNarc || it is Checkstyle || it is ValidateTaskProperties }
+        val codeQualityTasks = matching { it is CodeNarc || it is Checkstyle }
         "codeQuality" {
             dependsOn(codeQualityTasks)
         }
