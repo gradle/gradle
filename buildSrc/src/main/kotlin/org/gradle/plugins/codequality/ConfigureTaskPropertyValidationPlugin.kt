@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
-import org.gradle.api.tasks.SourceSet
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 
 import accessors.*
@@ -72,10 +71,10 @@ fun Project.addValidateTask() {
         // whether the task already exists.
         if (tasks.findByName(validateTaskName) != null) {
             tasks.create<ValidateTaskProperties>(validateTaskName) {
-                val mainSourceSet = java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-                dependsOn(mainSourceSet.output)
-                classes = mainSourceSet.output.classesDirs
-                classpath = mainSourceSet.runtimeClasspath
+                val main by java.sourceSets
+                dependsOn(main.output)
+                classes = main.output.classesDirs
+                classpath = main.runtimeClasspath
                 // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
                 outputFile.set(reporting.baseDirectory.file(reportFileName))
                 failOnWarning = true
