@@ -92,7 +92,7 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
         @Override
         public Iterator<BeanNode> getIterator() {
             return Iterators.transform(iterable.iterator(), new Function<Object, BeanNode>() {
-                private int count = 0;
+                private int count = -1;
                 private Set<String> seenNames = new HashSet<String>();
 
                 @Override
@@ -105,10 +105,11 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
                 }
 
                 private String determinePropertyName(@Nullable Object input) {
+                    count++;
                     if (input instanceof Named) {
                         return ((Named) input).getName();
                     }
-                    return "$" + count++;
+                    return "$" + count;
                 }
             });
         }

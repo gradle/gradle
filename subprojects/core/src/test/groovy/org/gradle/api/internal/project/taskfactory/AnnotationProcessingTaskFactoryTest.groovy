@@ -576,6 +576,14 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithBooleanInput                      | "inputValue"       | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
     }
 
+    def "iterable nested properties are named by index"() {
+        given:
+        def task = expectTaskCreated(TaskWithNestedObject, [[new Bean(), new NamedBean('name', 'value'), new Bean()]] as Object[])
+
+        expect:
+        inputProperties(task).keySet() == ['bean.$0.class', 'bean.name.class', 'bean.name.value', 'bean.$2.class'] as Set
+    }
+
     @Unroll
     def "registers properties #allTaskProperties on #type.simpleName"() {
         given:
