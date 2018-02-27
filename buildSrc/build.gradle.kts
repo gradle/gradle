@@ -156,9 +156,7 @@ if (isCiServer) {
     gradle.buildFinished {
         tasks.all {
             if (this is Reporting<*> && state.failure != null) {
-                val reportContainer = this.reports
-                val reportDestination = reportContainer.getByName("html").destination
-                prepareReportForCIPublishing(reportDestination)
+                prepareReportForCIPublishing(this.reports["html"].destination)
             }
         }
     }

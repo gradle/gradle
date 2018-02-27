@@ -24,7 +24,7 @@ open class CiReportingPlugin : Plugin<Project> {
 
     override fun apply(project: Project) = project.run {
 
-        val isCiServer = System.getenv().containsKey("CI")
+        val isCiServer = "CI" in System.getenv()
 
         if (isCiServer) {
             gradle.buildFinished {
@@ -45,8 +45,9 @@ open class CiReportingPlugin : Plugin<Project> {
             it.failedTaskCustomReports()
         }
 
-        (failedTaskGenericHtmlReports + attachedReports + failedTaskCustomReports).toMap().forEach {
-            prepareReportForCIPublishing(it.key, it.value)
+        val allReports = failedTaskGenericHtmlReports + attachedReports + failedTaskCustomReports
+        allReports.distinctBy { (report, _) -> report }.forEach { (report, projectName) ->
+            prepareReportForCiPublishing(report, projectName)
         }
     }
 
@@ -59,11 +60,10 @@ open class CiReportingPlugin : Plugin<Project> {
     private
     fun Task.failedTaskGenericHtmlReports() = when(this) {
         is Reporting<*> -> {
-            val reportContainer = this.reports
-            val reportDestination = reportContainer.getByName("html").destination
-            listOf(reportDestination to project.name)
+            val htmlReport = this.reports.getByName("html")
+            listOf(htmlReport.destination to project.name)
         }
-        else -> listOf()
+        else -> emptyList()
     }
 
     private
@@ -71,24 +71,24 @@ open class CiReportingPlugin : Plugin<Project> {
         is ValidateTaskProperties -> listOf(outputFile.asFile.get() to project.name)
         is Classycle -> listOf(reportFile to project.name)
         is DistributionTest -> listOf(
-            File(gradleInstallationForTest.gradleUserHomeDir.asFile.get(), "worker-1/test-kit-daemon") to "all-logs",
-            gradleInstallationForTest.daemonRegistry.asFile.get() to "all-logs"
+            gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/test-kit-daemon").get().asFile to "all-logs",
+            gradleInstallationForTest.daemonRegistry.get().asFile to "all-logs"
         )
-        else -> listOf()
+        else -> emptyList()
     }
 
     private
-    fun Task.attachedReportLocations(): Collection<Pair<File, String>> = when (this) {
-        is JapicmpTask -> listOf(File(richReport.destinationDir, richReport.reportName) to project.name)
+    fun Task.attachedReportLocations() = when (this) {
+        is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName) to project.name)
         is DistributedPerformanceTest -> listOf(scenarioReport.parentFile to project.name)
-        else -> listOf()
+        else -> emptyList()
     }
 
     private
-    fun Project.prepareReportForCIPublishing(report: File, projectName: String) {
+    fun Project.prepareReportForCiPublishing(report: File, projectName: String) {
         if (report.exists()) {
             if (report.isDirectory) {
-                val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
+                val destFile = rootProject.layout.buildDirectory.file("report-$projectName-${report.name}.zip").get().asFile
                 ant.withGroovyBuilder {
                     "zip"("destFile" to destFile) {
                         "fileset"("dir" to report)
