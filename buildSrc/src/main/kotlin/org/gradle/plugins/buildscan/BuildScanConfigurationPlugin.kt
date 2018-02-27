@@ -153,7 +153,7 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
                 ":baseServices:compileJava" to listOf("classpath"))
 
             project.buildScan.buildFinished({
-                allprojects.map { it.tasks }.flatten().forEach {
+                allprojects.flatMap { it.tasks }.forEach {
                     if (it.state.executed && (tasksToInvestigateForCacheWithPaths.contains(it.path)
                             || taskPropertiesWithFullFileSnapshot.keys.contains(it.path))) {
                         if (tasksToInvestigateForCacheWithPaths.contains(it.path)) {
