@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.reporting.Reporting
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 import org.gradle.plugins.classycle.Classycle
@@ -24,7 +25,6 @@ import java.io.File
 open class CiReportingPlugin : Plugin<Project> {
 
     override fun apply(project: Project) = project.run {
-
         if (BuildEnvironment.isCiServer) {
             gradle.buildFinished {
                 prepareReportsForCiPublishing()
@@ -57,11 +57,8 @@ open class CiReportingPlugin : Plugin<Project> {
     fun executedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.executed } }
 
     private
-    fun Task.failedTaskGenericHtmlReports() = when(this) {
-        is Reporting<*> -> {
-            val htmlReport = this.reports.getByName("html")
-            listOf(htmlReport.destination to project.name)
-        }
+    fun Task.failedTaskGenericHtmlReports() = when (this) {
+        is Reporting<*> -> listOf(this.reports["html"].destination to project.name)
         else -> emptyList()
     }
 
