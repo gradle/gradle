@@ -17,6 +17,8 @@
 package org.gradle.ide.xcode;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Provider;
 import org.gradle.plugins.ide.IdeWorkspace;
 
 /**
@@ -26,4 +28,9 @@ import org.gradle.plugins.ide.IdeWorkspace;
  */
 @Incubating
 public interface XcodeWorkspace extends IdeWorkspace {
+    /**
+     * Returns the location of the generated workspace.
+     */
+    @Override
+    Provider<Directory> getLocation();
 }
