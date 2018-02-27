@@ -18,7 +18,11 @@
 
 // As this script is also accessed from the buildSrc project,
 // we can't use rootProject for the path as both builds share the same config directory.
-val codeQualityConfigDir = buildscript.sourceFile!!.parentFile.parentFile.resolve("config")
+val codeQualityConfigDir = buildscript.sourceFile!!.let {
+    // Work around https://github.com/gradle/kotlin-dsl/issues/736, remove this once fixed
+    if (rootDir.name == "buildSrc") it.parentFile.parentFile
+    else it.parentFile.parentFile.parentFile
+}.resolve("config")
 
 configureCheckstyle(codeQualityConfigDir)
 configureCodenarc(codeQualityConfigDir)
