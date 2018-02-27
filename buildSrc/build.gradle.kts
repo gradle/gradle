@@ -106,6 +106,7 @@ dependencies {
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")
     compile("com.google.code.gson:gson:2.7")
+    compile("com.gradle:build-scan-plugin:1.12.1")
 
     constraints {
         compile("org.codehaus.groovy:groovy-all:2.4.12")
