@@ -62,6 +62,16 @@
             "changes": [
                 "org.gradle.plugins.ide.IdeWorkspace"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.GeneratorTask",
+            "member": "Constructor org.gradle.plugins.ide.api.GeneratorTask(boolean)",
+            "acceptation": "Task constructor for internal use only"
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.XmlGeneratorTask",
+            "member": "Constructor org.gradle.plugins.ide.api.XmlGeneratorTask(boolean)",
+            "acceptation": "Task constructor for internal use only"
         }
     ]
 }
