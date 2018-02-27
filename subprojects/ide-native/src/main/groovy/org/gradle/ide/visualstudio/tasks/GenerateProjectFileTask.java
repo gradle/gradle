@@ -31,6 +31,7 @@ import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -97,6 +98,8 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         DefaultVisualStudioProject vsProject = visualStudioProject;
         projectFile.setGradleCommand(buildGradleCommand());
         projectFile.setProjectUuid(DefaultVisualStudioProject.getUUID(getOutputFile()));
+        projectFile.setVisualStudioVersion(visualStudioProject.getVisualStudioVersion());
+        projectFile.setSdkVersion(visualStudioProject.getSdkVersion());
 
         for (File sourceFile : vsProject.getSourceFiles()) {
             projectFile.addSourceFile(sourceFile);
@@ -139,13 +142,14 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         this.gradleExe = gradleExe;
     }
 
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getGradleArgs() {
         return gradleArgs;
     }
 
-    public void setGradleArgs(String gradleArgs) {
+    public void setGradleArgs(@Nullable String gradleArgs) {
         this.gradleArgs = gradleArgs;
     }
 }

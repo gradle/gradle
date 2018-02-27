@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+@NonNullApi
+package org.gradle.api.reporting.internal;
 
-import org.gradle.nativeplatform.toolchain.internal.NativeLanguageTools;
-import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
-
-public interface PlatformVisualCpp extends NativeLanguageTools, SystemLibraries {
-}
+import org.gradle.api.NonNullApi;

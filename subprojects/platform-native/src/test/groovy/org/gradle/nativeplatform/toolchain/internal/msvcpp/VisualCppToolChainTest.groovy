@@ -43,8 +43,8 @@ class VisualCppToolChainTest extends Specification {
     final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = Mock(CompilerOutputFileNamingSchemeFactory)
     final BuildOperationExecutor buildOperationExecutor = Stub(BuildOperationExecutor)
     final SearchResult<VisualStudioInstall> visualStudioLookup = Stub(SearchResult)
-    final SearchResult<WindowsSdk> windowsSdkLookup = Stub(SearchResult)
-	final SearchResult<Ucrt> ucrtLookup = Stub(SearchResult)
+    final SearchResult<WindowsSdkInstall> windowsSdkLookup = Stub(SearchResult)
+	final SearchResult<UcrtInstall> ucrtLookup = Stub(SearchResult)
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
     final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
@@ -124,7 +124,7 @@ class VisualCppToolChainTest extends Specification {
         visualStudioLookup.component >> visualStudio
 
         windowsSdkLookup.available >> true
-        windowsSdkLookup.component >> Stub(WindowsSdk)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
 
         ucrtLookup.available >> false
         visualStudio.visualCpp >> visualCpp
@@ -147,10 +147,10 @@ class VisualCppToolChainTest extends Specification {
         visualStudioLookup.component >> visualStudio
 
         windowsSdkLookup.available >> true
-        windowsSdkLookup.component >> Stub(WindowsSdk)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
 
         visualStudio.visualCpp >> visualCpp
-        visualCpp.forPlatform(platform) >> Stub(PlatformVisualCpp)
+        visualCpp.forPlatform(platform) >> Stub(VisualCpp)
 
         and:
         def platformToolChain = toolChain.select(platform)
@@ -174,7 +174,7 @@ class VisualCppToolChainTest extends Specification {
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
         windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> windowsSdkLookup
         windowsSdkLookup.available >> true
-        windowsSdkLookup.component >> Stub(WindowsSdk)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
 		ucrtLookup.available >> false
 
         and:
@@ -217,10 +217,10 @@ class VisualCppToolChainTest extends Specification {
         visualStudioLookup.component >> visualStudio
 
         windowsSdkLookup.available >> true
-        windowsSdkLookup.component >> Stub(WindowsSdk)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
 
         visualStudio.visualCpp >> visualCpp
-        visualCpp.forPlatform(platform) >> Stub(PlatformVisualCpp)
+        visualCpp.forPlatform(platform) >> Stub(VisualCpp)
 
         def action = Mock(Action)
         toolChain.eachPlatform(action)

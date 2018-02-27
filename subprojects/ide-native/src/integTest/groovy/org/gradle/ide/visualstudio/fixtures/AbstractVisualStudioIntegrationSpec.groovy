@@ -20,7 +20,7 @@ import org.gradle.ide.fixtures.IdeCommandLineUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
-class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
     protected static String filePath(String... paths) {
         return (paths as List).join(';')
     }
@@ -42,7 +42,7 @@ class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainInte
         // Gradle needs to be isolated so the msbuild does not leave behind daemons
         assert executer.isRequiresGradleDistribution()
         assert !executer.usesSharedDaemons()
-        def executer = new MSBuildExecutor(testDirectory)
+        def executer = new MSBuildExecutor(testDirectory, toolChain)
         executer.withArgument('/p:Platform=Win32')
         return executer
     }

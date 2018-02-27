@@ -20,6 +20,9 @@ import org.gradle.nativeplatform.toolchain.internal.ExecutableTools;
 
 import java.io.File;
 
+/**
+ * Windows SDK tools.
+ */
 public interface WindowsTools extends ExecutableTools {
     File getResourceCompiler();
 }

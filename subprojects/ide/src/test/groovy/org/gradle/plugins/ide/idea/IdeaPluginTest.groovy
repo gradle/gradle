@@ -23,6 +23,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -31,8 +32,29 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
     private ProjectInternal anotherChildProject
 
     def setup() {
-        childProject = TestUtil.createChildProject(project, "child", new File("."))
-        anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
+        childProject = TestUtil.createChildProject(project, "child")
+        anotherChildProject = TestUtil.createChildProject(project, "child2")
+    }
+
+    def "adds extension to root project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.idea instanceof IdeaModel
+        project.idea.project != null
+        project.idea.project.location.get().asFile == project.file("test.ipr")
+        project.idea.module.outputFile == project.file("test.iml")
+    }
+
+    def "adds extension to child project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        childProject.idea instanceof IdeaModel
+        childProject.idea.project == null
+        childProject.idea.module.outputFile == childProject.file("child.iml")
     }
 
     def "adds 'ideaProject' task to root project"() {
@@ -50,6 +72,14 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
         childProject.tasks.findByName('ideaProject') == null
         childProject.tasks.findByName('cleanIdeaProject') == null
+    }
+
+    def "adds 'openIdea' task to root project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.tasks.openIdea != null
     }
 
     def "configures idea project"() {

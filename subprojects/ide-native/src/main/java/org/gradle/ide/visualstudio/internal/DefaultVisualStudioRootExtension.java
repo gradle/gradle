@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.visualstudio.VisualStudioRootExtension;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
@@ -26,9 +27,9 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 public class DefaultVisualStudioRootExtension extends DefaultVisualStudioExtension implements VisualStudioRootExtension, VisualStudioExtensionInternal {
     private final VisualStudioSolution solution;
 
-    public DefaultVisualStudioRootExtension(String projectName, Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry) {
+    public DefaultVisualStudioRootExtension(String projectName, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry) {
         super(instantiator, fileResolver, ideArtifactRegistry);
-        this.solution = instantiator.newInstance(DefaultVisualStudioSolution.class, projectName, fileResolver, instantiator, ideArtifactRegistry);
+        this.solution = objectFactory.newInstance(DefaultVisualStudioSolution.class, projectName);
     }
 
     @Override
@@ -37,7 +38,7 @@ public class DefaultVisualStudioRootExtension extends DefaultVisualStudioExtensi
     }
 
     @Override
-    public void solution(Action<VisualStudioSolution> configAction) {
+    public void solution(Action<? super VisualStudioSolution> configAction) {
         configAction.execute(solution);
     }
 }

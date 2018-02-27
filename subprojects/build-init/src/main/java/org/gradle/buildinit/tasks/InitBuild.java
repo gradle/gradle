@@ -34,6 +34,7 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -79,6 +80,7 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--test-framework'
      */
+    @Nullable
     @Optional
     @Input
     public String getTestFramework() {
@@ -152,7 +154,7 @@ public class InitBuild extends DefaultTask {
     }
 
     @Option(option = "test-framework", description = "Set alternative test framework to be used.")
-    public void setTestFramework(String testFramework) {
+    public void setTestFramework(@Nullable String testFramework) {
         this.testFramework = testFramework;
     }
 

@@ -43,6 +43,9 @@ public interface TaskInternal extends Task, Configurable<Task> {
     List<ContextAwareTaskAction> getTaskActions();
 
     @Internal
+    boolean hasTaskActions();
+
+    @Internal
     Spec<? super TaskInternal> getOnlyIf();
 
     @Deprecated

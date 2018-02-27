@@ -26,6 +26,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -352,7 +353,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Nullable @Optional @Input
     public String getExecutable() {
         return javaExecHandleBuilder.getExecutable();
     }

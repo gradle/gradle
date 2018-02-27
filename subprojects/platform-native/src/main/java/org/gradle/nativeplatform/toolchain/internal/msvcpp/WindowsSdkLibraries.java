@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
+package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.util.VersionNumber;
 
-import java.io.File;
-
-public interface VisualStudioMetadata {
-    enum Compatibility { LEGACY, VS2017_OR_LATER }
-
-    VersionNumber getVersion();
-
-    File getInstallDir();
-
-    File getVisualCppDir();
-
-    VersionNumber getVisualCppVersion();
-
-    Compatibility getCompatibility();
+/**
+ * System libraries provided by the windows SDK.
+ */
+public interface WindowsSdkLibraries extends SystemLibraries {
+    VersionNumber getSdkVersion();
 }
