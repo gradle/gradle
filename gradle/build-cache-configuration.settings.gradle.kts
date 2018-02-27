@@ -34,9 +34,9 @@ import java.net.URI
 
 val remoteCacheUrl = System.getProperty("gradle.cache.remote.url")?.let { URI(it) }
 val isCiServer = System.getenv().containsKey("CI")
-val remotePush = !(System.getProperty("gradle.cache.remote.push") == "false")
-val remoteCacheUsername = System.getProperty("gradle.cache.remote.username")
-val remoteCachePassword =  System.getProperty("gradle.cache.remote.password")
+val remotePush = System.getProperty("gradle.cache.remote.push") != "false"
+val remoteCacheUsername = System.getProperty("gradle.cache.remote.username", "")
+val remoteCachePassword = System.getProperty("gradle.cache.remote.password", "")
 
 fun Settings.configureLocalCache() {
     buildCache {
@@ -57,7 +57,7 @@ fun Settings.configureRemoteCache() {
         remote(HttpBuildCache::class.java) {
             url = remoteCacheUrl
             isPush = isCiServer && remotePush
-            if (!remoteCacheUsername.isNullOrEmpty() && !remoteCachePassword.isNullOrEmpty()) {
+            if (remoteCacheUsername.isNotEmpty() && remoteCachePassword.isNotEmpty()) {
                 credentials {
                     username = remoteCacheUsername
                     password = remoteCachePassword
