@@ -18,6 +18,9 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 
 import java.io.File;
 
@@ -37,32 +40,44 @@ public class VisualStudioProjectConfiguration {
         this.binary = binary;
     }
 
+    @Input
     public String getName() {
         return name;
     }
 
+    @Input
     public String getConfigurationName() {
         return configurationName;
     }
 
+    @Input
     public String getPlatformName() {
         return platformName;
     }
 
+    @Nested
     public VisualStudioTargetBinary getTargetBinary() {
         return binary;
     }
 
+    @Internal
     public final String getType() {
         return "Makefile";
     }
 
+    @Internal
     public DefaultVisualStudioProject getProject() {
         return vsProject;
     }
 
+    @Internal
     public PublishArtifact getPublishArtifact() {
         return new VisualStudioProjectConfigurationArtifact();
+    }
+
+    @Input
+    public String getBinaryOutputPath() {
+        return binary.getOutputFile().getAbsolutePath();
     }
 
     private class VisualStudioProjectConfigurationArtifact extends DefaultPublishArtifact {

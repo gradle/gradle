@@ -22,7 +22,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
@@ -43,6 +45,10 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
     private DefaultVisualStudioProject visualStudioProject;
     private String gradleExe;
     private String gradleArgs;
+
+    public GenerateProjectFileTask() {
+        super(true);
+    }
 
     public void initGradleCommand() {
         final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
@@ -73,17 +79,19 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
-    @Internal
+    @Nested
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
     }
 
     @Override
+    @Internal
     public File getInputFile() {
         return null;
     }
 
     @Override
+    @OutputFile
     public File getOutputFile() {
         return visualStudioProject.getProjectFile().getLocation();
     }

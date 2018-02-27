@@ -60,7 +60,13 @@ public class GeneratorTask<T> extends ConventionTask {
     protected T domainObject;
 
     public GeneratorTask() {
-        getOutputs().upToDateWhen(Specs.satisfyNone());
+        this(false);
+    }
+    
+    protected GeneratorTask(boolean incremental) {
+        if (!incremental) {
+            getOutputs().upToDateWhen(Specs.satisfyNone());
+        }
     }
 
     @SuppressWarnings("UnusedDeclaration")

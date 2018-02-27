@@ -19,6 +19,8 @@ package org.gradle.ide.visualstudio.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.ide.visualstudio.TextProvider;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioSolution;
@@ -36,6 +38,7 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
     private DefaultVisualStudioSolution solution;
 
     public GenerateSolutionFileTask() {
+        super(true);
         generator = new ConfigurationObjectGenerator();
     }
 
@@ -43,17 +46,19 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
         this.solution = (DefaultVisualStudioSolution) solution;
     }
 
-    @Internal
+    @Nested
     public VisualStudioSolution getSolution() {
         return solution;
     }
 
     @Override
+    @Internal
     public File getInputFile() {
         return null;
     }
 
     @Override
+    @OutputFile
     public File getOutputFile() {
         return this.solution.getSolutionFile().getLocation();
     }

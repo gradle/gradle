@@ -17,18 +17,23 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.TextConfigFile;
 import org.gradle.ide.visualstudio.TextProvider;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -73,18 +78,46 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
         return name;
     }
 
+    @Override
     public SolutionFile getSolutionFile() {
         return solutionFile;
     }
 
     @Override
+    @Internal
     public List<LocalComponentArtifactMetadata> getProjectArtifacts() {
         return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectInternal.ARTIFACT_TYPE);
     }
 
     @Override
+    @Internal
     public List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts() {
         return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectConfiguration.ARTIFACT_TYPE);
+    }
+
+    @Input
+    public List<String> getProjectFilePaths() {
+        return CollectionUtils.collect(getProjectArtifacts(), new Transformer<String, LocalComponentArtifactMetadata>() {
+            @Override
+            public String transform(LocalComponentArtifactMetadata metadata) {
+                return metadata.getFile().getAbsolutePath();
+            }
+        });
+    }
+
+    @Input
+    public List<String> getConfigurationNames() {
+        return CollectionUtils.collect(getProjectConfigurationArtifacts(), new Transformer<String, LocalComponentArtifactMetadata>() {
+            @Override
+            public String transform(LocalComponentArtifactMetadata metadata) {
+                return metadata.getName().getName();
+            }
+        });
+    }
+
+    @Nested
+    public List<Action<? super TextProvider>> getSolutionFileActions() {
+        return solutionFile.getTextActions();
     }
 
     @Override
@@ -108,6 +141,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             this.location = defaultLocation;
         }
 
+        @Internal
         public File getLocation() {
             return fileResolver.resolve(location);
         }
@@ -120,6 +154,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             actions.add(action);
         }
 
+        @Nested
         public List<Action<? super TextProvider>> getTextActions() {
             return actions;
         }

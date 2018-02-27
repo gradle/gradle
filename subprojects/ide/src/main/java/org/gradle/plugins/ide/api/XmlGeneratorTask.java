@@ -29,6 +29,11 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     private final XmlTransformer xmlTransformer = new XmlTransformer();
 
     public XmlGeneratorTask() {
+        this(false);
+    }
+
+    protected XmlGeneratorTask(boolean incremental) {
+        super(incremental);
         generator = new PersistableConfigurationObjectGenerator<T>() {
             @Override
             public T create() {
