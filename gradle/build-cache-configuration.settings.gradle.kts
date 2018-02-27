@@ -1,5 +1,3 @@
-import java.net.URI
-
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -15,6 +13,8 @@ import java.net.URI
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.net.URI
+
 
 /*
  * This script is applied to the settings in buildSrc and the main build. That is why we
