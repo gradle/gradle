@@ -22,9 +22,9 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.util.Configurable;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -88,18 +88,12 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
     @Internal
     boolean isEmpty();
 
+    /**
+     * Returns the enabled reports, keyed by report name.
+     *
+     * @since 4.7
+     */
     @Incubating
-    @Internal
-    @Deprecated
-    Map<String, File> getEnabledDirectoryReportDestinations();
-
-    @Incubating
-    @Internal
-    @Deprecated
-    Map<String, File> getEnabledFileReportDestinations();
-
-    @Incubating
-    @Internal
-    @Deprecated
-    SortedSet<String> getEnabledReportNames();
+    @Nested
+    Map<String, T> getEnabledReports();
 }
