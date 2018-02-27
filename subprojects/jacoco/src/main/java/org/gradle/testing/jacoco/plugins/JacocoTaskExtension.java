@@ -353,7 +353,7 @@ public class JacocoTaskExtension {
             this.workingDirectory = workingDirectory;
         }
 
-        public void append(String name, Object value) {
+        public void append(String name, @Nullable Object value) {
             if (value != null
                 && !((value instanceof Collection) && ((Collection) value).isEmpty())
                 && !((value instanceof String) && (StringUtils.isEmpty((String) value)))
