@@ -149,6 +149,18 @@ public interface ProjectConnection {
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
 
     /**
+     * Creates a builder for an executer which can be used to run actions in different phases of the build.
+     * The actions are serialized into the build process and executed, then its result is serialized back to the caller.
+     *
+     * <p>Requires Gradle 4.7 or later.
+     *
+     * @return The builder.
+     * @since 4.7
+     */
+    @Incubating
+    PhasedBuildActionExecuter.Builder phasedAction();
+
+    /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
      * @since 1.0-milestone-3
      */

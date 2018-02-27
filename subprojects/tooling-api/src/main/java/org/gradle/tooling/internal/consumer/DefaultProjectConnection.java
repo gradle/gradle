@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.PhasedBuildActionExecuter;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
@@ -65,4 +66,8 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildActionExecuter<T>(buildAction, connection, parameters);
     }
 
+    @Override
+    public PhasedBuildActionExecuter.Builder phasedAction() {
+        return new DefaultPhasedBuildActionExecuter.Builder(connection, parameters);
+    }
 }
