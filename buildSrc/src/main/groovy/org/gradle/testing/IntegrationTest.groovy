@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
+import org.gradle.api.Named
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
@@ -41,7 +42,7 @@ import org.gradle.process.CommandLineArgumentProvider
 class IntegrationTest extends DistributionTest {
     IntegrationTest() {
         userguideSamples = new UserguideSamples(project.layout)
-        jvmArgumentProviders.add(new SamplesIntegrationTestEnvironmentProvider(userguideSamples))
+        jvmArgumentProviders.add(new UserguideIntegrationTestEnvironmentProvider(userguideSamples))
         dependsOn { userguideSamples.required ? ':docs:extractSamples' : null }
     }
 
@@ -69,28 +70,33 @@ class UserguideSamples {
 }
 
 @CompileStatic
-class SamplesIntegrationTestEnvironmentProvider implements CommandLineArgumentProvider {
-    private final UserguideSamples userguideSamples
+class UserguideIntegrationTestEnvironmentProvider implements CommandLineArgumentProvider, Named {
+    private final UserguideSamples samples
 
-    SamplesIntegrationTestEnvironmentProvider(UserguideSamples userguideSamples) {
-        this.userguideSamples = userguideSamples
+    UserguideIntegrationTestEnvironmentProvider(UserguideSamples samples) {
+        this.samples = samples
     }
 
     @Nested
     @Optional
-    UserguideSamples getUserguideSamples() {
-        userguideSamples.required ? userguideSamples : null
+    UserguideSamples getSamples() {
+        samples.required ? samples : null
     }
 
     @Override
     Iterable<String> asArguments() {
         DistributionTest.asSystemPropertyJvmArguments(
-            userguideSamples.required ?
+            samples.required ?
                 [
-                    'integTest.userGuideInfoDir'  : userguideSamples.samplesXml.asFile.get().parentFile.absolutePath,
-                    'integTest.userGuideOutputDir': userguideSamples.userGuideSamplesOutput.asFile.get().absolutePath
+                    'integTest.userGuideInfoDir'  : samples.samplesXml.asFile.get().parentFile.absolutePath,
+                    'integTest.userGuideOutputDir': samples.userGuideSamplesOutput.asFile.get().absolutePath
                 ] : [:]
         )
+    }
+
+    @Override
+    String getName() {
+        return "userguide"
     }
 }
 

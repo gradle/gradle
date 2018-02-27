@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
+import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -76,7 +77,7 @@ class DistributionTest extends Test {
 }
 
 @CompileStatic
-class LibsRepositoryEnvironmentProvider implements CommandLineArgumentProvider {
+class LibsRepositoryEnvironmentProvider implements CommandLineArgumentProvider, Named {
 
     LibsRepositoryEnvironmentProvider(ProjectLayout layout) {
         dir = layout.directoryProperty()
@@ -94,10 +95,15 @@ class LibsRepositoryEnvironmentProvider implements CommandLineArgumentProvider {
                 required ? ['integTest.libsRepo': dir.asFile.get().absolutePath] : [:]
             )
     }
+
+    @Override
+    String getName() {
+        return "libsRepository"
+    }
 }
 
 @CompileStatic
-class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider {
+class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider, Named {
     GradleInstallationForTestEnvironmentProvider(Project project) {
         gradleHomeDir = project.layout.directoryProperty()
         gradleUserHomeDir = project.layout.directoryProperty()
@@ -133,6 +139,11 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
             'integTest.toolingApiShadedJarDir'    : toolingApiShadedJarDir.getAsFile().get().absolutePath
         ])
     }
+
+    @Override
+    String getName() {
+        return "gradleInstallationForTest"
+    }
 }
 
 class BinaryDistributions {
@@ -156,33 +167,38 @@ class BinaryDistributions {
 }
 
 @CompileStatic
-class BinaryDistributionsEnvironmentProvider implements CommandLineArgumentProvider {
-    private final BinaryDistributions binaryDistributions
+class BinaryDistributionsEnvironmentProvider implements CommandLineArgumentProvider, Named {
+    private final BinaryDistributions distributions
 
-    BinaryDistributionsEnvironmentProvider(BinaryDistributions binaryDistributions) {
-        this.binaryDistributions = binaryDistributions
+    BinaryDistributionsEnvironmentProvider(BinaryDistributions distributions) {
+        this.distributions = distributions
     }
 
     @Nested
     @Optional
-    BinaryDistributions getBinaryDistributions() {
-        binaryDistributions.distributionsRequired ? binaryDistributions : null
+    BinaryDistributions getDistributions() {
+        distributions.distributionsRequired ? distributions : null
     }
 
     @Input
     boolean getBinZipRequired() {
-        binaryDistributions.binZipRequired
+        distributions.binZipRequired
     }
 
     @Override
     Iterable<String> asArguments() {
         DistributionTest.asSystemPropertyJvmArguments(
-            (binaryDistributions.binZipRequired || binaryDistributions.distributionsRequired) ?
+            (distributions.binZipRequired || distributions.distributionsRequired) ?
             [
-                'integTest.distsDir'      : binaryDistributions.distsDir.asFile.get().absolutePath,
-                'integTest.distZipVersion': binaryDistributions.distZipVersion
+                'integTest.distsDir'      : distributions.distsDir.asFile.get().absolutePath,
+                'integTest.distZipVersion': distributions.distZipVersion
             ] : [:]
         )
+    }
+
+    @Override
+    String getName() {
+        return "binaryDistributions"
     }
 }
 
