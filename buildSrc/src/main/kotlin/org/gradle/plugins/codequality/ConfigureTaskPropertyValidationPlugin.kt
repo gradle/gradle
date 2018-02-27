@@ -22,20 +22,20 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.withType
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
-import accessors.java
-import accessors.reporting
+
+import accessors.*
+
+import org.gradle.kotlin.dsl.*
+
 
 private
 const val validateTaskName = "validateTaskProperties"
 
-class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
 
-    override
-    fun apply(project: Project): Unit = project.run {
+open class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
+
+    override fun apply(project: Project): Unit = project.run {
         plugins.withType<JavaBasePlugin> {
             validateTaskPropertiesForConfiguration(configurations["compile"])
         }
@@ -44,41 +44,42 @@ class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
             validateTaskPropertiesForConfiguration(configurations["api"])
         }
     }
+}
 
-    private
-    fun Project.validateTaskPropertiesForConfiguration(configuration: Configuration) {
 
-        // Apply to all projects depending on :core
-        // TODO Add a comment on why those projects.
-        val coreProject = project(":core")
+private
+fun Project.validateTaskPropertiesForConfiguration(configuration: Configuration) {
 
-        if (this == coreProject) {
+    // Apply to all projects depending on :core
+    // TODO Add a comment on why those projects.
+    val coreProject = project(":core")
+
+    if (this == coreProject) {
+        addValidateTask()
+    } else {
+        configuration.dependencies.withType<ProjectDependency>().matching { it.dependencyProject == coreProject }.all {
             addValidateTask()
-        } else {
-            configuration.dependencies.withType<ProjectDependency>().matching { it.dependencyProject == coreProject }.all {
-                addValidateTask()
+        }
+    }
+}
+
+
+private
+fun Project.addValidateTask() {
+    val reportFileName = "task-properties/report.txt"
+    afterEvaluate {
+        // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
+        // whether the task already exists.
+        if (tasks.findByName(validateTaskName) != null) {
+            tasks.create<ValidateTaskProperties>(validateTaskName) {
+                val mainSourceSet = java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+                dependsOn(mainSourceSet.output)
+                classes = mainSourceSet.output.classesDirs
+                classpath = mainSourceSet.runtimeClasspath
+                // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
+                outputFile.set(reporting.baseDirectory.file(reportFileName))
+                failOnWarning = true
             }
         }
     }
-
-    private
-    fun Project.addValidateTask() {
-        val reportFileName= "task-properties/report.txt"
-        afterEvaluate {
-            // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
-            // whether the task already exists.
-            if (tasks.findByName(validateTaskName) != null) {
-                tasks.create<ValidateTaskProperties>(validateTaskName) {
-                    val mainSourceSet = java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-                    dependsOn(mainSourceSet.output)
-                    classes = mainSourceSet.output.classesDirs
-                    classpath = mainSourceSet.runtimeClasspath
-                    // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
-                    outputFile.set(reporting.baseDirectory.file(reportFileName))
-                    failOnWarning = true
-                }
-            }
-        }
-    }
-
 }
