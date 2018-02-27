@@ -15,22 +15,10 @@
  */
 import java.net.URI
 
-
 /*
  * This script is applied to the settings in buildSrc and the main build. That is why we
  * need this to be a script unless we can model dual usage better with composite/included builds or another solution.
  */
-
-/* Currently IntelliJ assumes that script plugins configure project objects. That is why we need to declare the receiver
- * object for the functions explicitly to have IDE support. The build would run successfully without declaring
- * the receiver object, if this script is applied from a settings.gradle.kts
- *
- * Note that this script has the ending .settings.gradle.kts. This will eventually used to make IntelliJ aware that
- * this is configuring a settings object.
- *
- */
-
-
 
 val remoteCacheUrl = System.getProperty("gradle.cache.remote.url")?.let { URI(it) }
 val isCiServer = System.getenv().containsKey("CI")
@@ -38,21 +26,14 @@ val remotePush = System.getProperty("gradle.cache.remote.push") != "false"
 val remoteCacheUsername = System.getProperty("gradle.cache.remote.username", "")
 val remoteCachePassword = System.getProperty("gradle.cache.remote.password", "")
 
-fun Settings.configureLocalCache() {
-    buildCache {
-        local {
-            isEnabled = !isCiServer
-        }
+buildCache {
+    local {
+        isEnabled = !isCiServer
     }
 }
 
-fun Settings.configureRemoteCache() {
-    val isRemoteBuildCacheEnabled = remoteCacheUrl != null && gradle.startParameter.isBuildCacheEnabled && !gradle.startParameter.isOffline
-
-    if (!isRemoteBuildCacheEnabled) {
-        return
-    }
-
+val isRemoteBuildCacheEnabled = remoteCacheUrl != null && gradle.startParameter.isBuildCacheEnabled && !gradle.startParameter.isOffline
+if (isRemoteBuildCacheEnabled) {
     buildCache {
         remote(HttpBuildCache::class.java) {
             url = remoteCacheUrl
@@ -66,9 +47,3 @@ fun Settings.configureRemoteCache() {
         }
     }
 }
-
-// IntelliJ does not recognize those calls yet. See comment above. The build will run fine though.
-configureLocalCache()
-configureRemoteCache()
-
-
