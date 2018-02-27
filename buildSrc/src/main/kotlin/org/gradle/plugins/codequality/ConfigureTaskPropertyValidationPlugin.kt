@@ -32,6 +32,10 @@ private
 const val validateTaskName = "validateTaskProperties"
 
 
+private
+const val reportFileName = "task-properties/report.txt"
+
+
 open class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -47,25 +51,25 @@ open class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
 
 
 private
-fun Project.validateTaskPropertiesForConfiguration(configuration: Configuration) {
-
-    // Apply to all projects depending on :core
-    // TODO Add a comment on why those projects.
-    val coreProject = project(":core")
-
-    if (this == coreProject) {
-        addValidateTask()
-    } else {
-        configuration.dependencies.withType<ProjectDependency>().matching { it.dependencyProject == coreProject }.all {
-            addValidateTask()
+fun Project.validateTaskPropertiesForConfiguration(configuration: Configuration) =
+    project(":core").let { coreProject ->
+        // Apply to all projects depending on :core
+        // TODO Add a comment on why those projects.
+        when (this) {
+            coreProject -> addValidateTask()
+            else        -> {
+                configuration.dependencies.withType<ProjectDependency>()
+                    .matching { it.dependencyProject == coreProject }
+                    .all {
+                        addValidateTask()
+                    }
+            }
         }
     }
-}
 
 
 private
-fun Project.addValidateTask() {
-    val reportFileName = "task-properties/report.txt"
+fun Project.addValidateTask() =
     afterEvaluate {
         // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
         // whether the task already exists.
@@ -81,4 +85,3 @@ fun Project.addValidateTask() {
             }
         }
     }
-}
