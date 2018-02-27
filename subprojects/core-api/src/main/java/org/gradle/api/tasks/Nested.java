@@ -30,7 +30,12 @@ import java.lang.annotation.Target;
  * <p>The implementation of the nested bean is tracked as an input, too.
  * This allows tracking behavior such as {@link org.gradle.api.Action}s as task inputs.</p>
  *
- * <p>This annotation supports iterable values by treating each element as a separate nested input.</p>
+ * <p>This annotation supports iterable values by treating each element as a separate nested bean.
+ * If an element of the iterable implements {@link org.gradle.api.Named}, then the name is used as property name.
+ * If it does not, the index in the iterable prefixed by {@code $} is used, e.g. {@code $0}</p>
+ *
+ * <p>This annotation supports map values by treating each value of the map as a separate nested bean.
+ * The keys of the map are used as property names.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

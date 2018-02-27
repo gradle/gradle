@@ -10,6 +10,21 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Support for mapped nested inputs
+
+When dealing with task inputs, it may be that not all values are known upfront.
+For example, when configuring reports for the findbugs plugin, it is not clear which one will be enabled when the task executes.
+For each report itself it is easy to declare the inputs and outputs, this is just a matter of annotating the concrete report class.
+Now it is also easy to [declare the map of enabled reports](https://github.com/gradle/gradle/blob/2376cd3824ea683c1af122f8a582ceb6ef51ec3b/subprojects/reporting/src/main/java/org/gradle/api/reporting/internal/DefaultReportContainer.java#L121-L124) as an input:
+    
+    @Nested
+    public Map<String, Report> getEnabledReports() {
+        return getEnabled().getAsMap();
+    }            
+    
+This causes each report to be added as a [nested input](userguide/more_about_tasks.html#sec:task_input_nested_inputs) with the key as a name.
+For example, the output directory of the Findbugs html report is added as `reports.html.destination` by the above declaration.
+    
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
