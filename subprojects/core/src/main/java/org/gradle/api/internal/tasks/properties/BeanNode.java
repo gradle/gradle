@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
@@ -39,116 +37,87 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
         return new SimpleBeanNode(propertyName, bean);
     }
 
-    protected BeanNode(@Nullable String propertyName, Object bean) {
-        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + propertyName + "'").getClass());
+    protected BeanNode(@Nullable String propertyName, Class<?> beanClass) {
+        super(propertyName, beanClass);
     }
 
     public abstract Object getBean();
+}
+
+abstract class BaseBeanNode<T> extends BeanNode {
+
+    private final T bean;
+
+    protected BaseBeanNode(@Nullable String propertyName, T bean) {
+        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + propertyName + "'").getClass());
+        this.bean = bean;
+    }
+
+    @Override
+    public T getBean() {
+        return bean;
+    }
 
     protected BeanNode createChildNode(String propertyName, @Nullable Object input) {
         String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
         Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + qualifiedPropertyName + "'");
         return BeanNode.create(qualifiedPropertyName, bean);
     }
+}
 
-    private static class SimpleBeanNode extends BeanNode {
-
-        private final Object bean;
-
-        public SimpleBeanNode(@Nullable String propertyName, Object bean) {
-            super(propertyName, bean);
-            this.bean = bean;
-        }
-
-        @Override
-        public Object getBean() {
-            return bean;
-        }
-
-        @Override
-        public boolean isIterable() {
-            return false;
-        }
-
-        @Override
-        public Iterator<BeanNode> getIterator() {
-            throw new UnsupportedOperationException();
-        }
+class SimpleBeanNode extends BaseBeanNode<Object> {
+    public SimpleBeanNode(@Nullable String propertyName, Object bean) {
+        super(propertyName, bean);
     }
 
-    private static class IterableBeanNode extends BeanNode {
-        private final Iterable<?> iterable;
+    @Override
+    public boolean unpackToQueue(Queue<BeanNode> queue) {
+        return false;
+    }
+}
 
-        public IterableBeanNode(@Nullable String propertyName, Iterable<?> iterable) {
-            super(propertyName, iterable);
-            this.iterable = iterable;
-        }
-
-        @Override
-        public boolean isIterable() {
-            return true;
-        }
-
-        @Override
-        public Iterator<BeanNode> getIterator() {
-            return Iterators.transform(iterable.iterator(), new Function<Object, BeanNode>() {
-                private int count = 0;
-                private Set<String> seenNames = new HashSet<String>();
-
-                @Override
-                public BeanNode apply(@Nullable Object input) {
-                    String propertyName = determinePropertyName(input);
-                    Preconditions.checkState(seenNames.add(propertyName),
-                        "Nested iterables can only contain beans with unique names. Duplicate name: '%s'.",
-                        getQualifiedPropertyName(propertyName));
-                    return createChildNode(propertyName, input);
-                }
-
-                private String determinePropertyName(@Nullable Object input) {
-                    String name = input instanceof Named
-                        ? ((Named) input).getName()
-                        : "$" + count;
-                    count++;
-                    return name;
-                }
-            });
-        }
-
-        @Override
-        public Object getBean() {
-            return iterable;
-        }
+class IterableBeanNode extends BaseBeanNode<Iterable<?>> {
+    public IterableBeanNode(@Nullable String propertyName, Iterable<?> iterable) {
+        super(propertyName, iterable);
     }
 
-    private static class MapBeanNode extends BeanNode {
-        private final Map<?, ?> map;
+    @Override
+    public boolean unpackToQueue(Queue<BeanNode> queue) {
+        int count = 0;
+        Set<String> seenNames = new HashSet<String>();
+        for (Object input : getBean()) {
+            String propertyName = determinePropertyName(input, count);
+            count++;
+            Preconditions.checkState(seenNames.add(propertyName),
+                "Nested iterables can only contain beans with unique names. Duplicate name: '%s'.",
+                getQualifiedPropertyName(propertyName));
+            queue.add(createChildNode(propertyName, input));
 
-        public MapBeanNode(@Nullable String propertyName, Map<?, ?> map) {
-            super(propertyName, map);
-            this.map = map;
         }
+        return true;
+    }
 
-        @Override
-        public boolean isIterable() {
-            return true;
-        }
+    private String determinePropertyName(@Nullable Object input, int count) {
+        return input instanceof Named
+            ? ((Named) input).getName()
+            : "$" + count;
+    }
+}
 
-        @Override
-        public Iterator<BeanNode> getIterator() {
-            return Iterators.transform(map.entrySet().iterator(), new Function<Map.Entry<?, ?>, BeanNode>() {
-                @Override
-                public BeanNode apply(Map.Entry<?, ?> input) {
-                    return createChildNode(
-                        Preconditions.checkNotNull(input.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
-                        input.getValue()
-                    );
-                }
-            });
-        }
+class MapBeanNode extends BaseBeanNode<Map<?, ?>> {
+    public MapBeanNode(@Nullable String propertyName, Map<?, ?> map) {
+        super(propertyName, map);
+    }
 
-        @Override
-        public Object getBean() {
-            return map;
+    @Override
+    public boolean unpackToQueue(Queue<BeanNode> queue) {
+        for (Map.Entry<?, ?> entry : getBean().entrySet()) {
+            BeanNode childNode = createChildNode(
+                Preconditions.checkNotNull(entry.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
+                entry.getValue()
+            );
+            queue.add(childNode);
         }
+        return true;
     }
 }

@@ -81,8 +81,8 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
 
         @Override
-        public boolean isIterable(BeanNode node) {
-            return delegate.isIterable(node);
+        public boolean shouldUnpack(BeanNode node) {
+            return delegate.shouldUnpack(node);
         }
     }
 

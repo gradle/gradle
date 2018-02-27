@@ -122,7 +122,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         then:
         1 * propertyValue.value >> nestedBean
         1 * propertyValue.getPropertyName() >> nestedPropertyName
-        1 * context.isIterable({ it.propertyName == nestedPropertyName }) >> false
+        1 * context.shouldUnpack({ it.propertyName == nestedPropertyName }) >> false
         1 * context.addNested({ it.propertyName == nestedPropertyName })
         1 * propertyVisitor.visitInputProperty({ it.propertyName == "${nestedPropertyName}.class"}) >> { arguments ->
             taskInputPropertySpec = arguments[0]
