@@ -34,7 +34,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
                 tasks.create<Checkstyle>(getTaskName("checkstyle", "groovy")) {
-                    configFile = File(configDir, "checkstyle-groovy.xml")
+                    configFile = configDir.resolve("checkstyle-groovy.xml")
                     source(allGroovy)
                     classpath = compileClasspath
                     reports.xml.destination = reportsDir.resolve("${this@all.name}-groovy.xml")
