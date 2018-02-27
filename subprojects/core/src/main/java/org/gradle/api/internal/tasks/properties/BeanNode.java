@@ -92,7 +92,7 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
         @Override
         public Iterator<BeanNode> getIterator() {
             return Iterators.transform(iterable.iterator(), new Function<Object, BeanNode>() {
-                private int count = -1;
+                private int count = 0;
                 private Set<String> seenNames = new HashSet<String>();
 
                 @Override
@@ -105,11 +105,11 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
                 }
 
                 private String determinePropertyName(@Nullable Object input) {
+                    String name = input instanceof Named
+                        ? ((Named) input).getName()
+                        : "$" + count;
                     count++;
-                    if (input instanceof Named) {
-                        return ((Named) input).getName();
-                    }
-                    return "$" + count;
+                    return name;
                 }
             });
         }
@@ -138,7 +138,10 @@ public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
             return Iterators.transform(map.entrySet().iterator(), new Function<Map.Entry<?, ?>, BeanNode>() {
                 @Override
                 public BeanNode apply(Map.Entry<?, ?> input) {
-                    return createChildNode(input.getKey().toString(), input.getValue());
+                    return createChildNode(
+                        Preconditions.checkNotNull(input.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
+                        input.getValue()
+                    );
                 }
             });
         }

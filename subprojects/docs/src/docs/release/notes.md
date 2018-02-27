@@ -10,10 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Support for mapped nested inputs
+### Support for mapped and named nested inputs
 
 When dealing with task inputs, it may be that not all values are known upfront.
-For example, when configuring reports for the findbugs plugin, it is not clear which one will be enabled when the task executes.
+For example, for the `findbugs` plugin, it is not clear at configuration time which reports will be enabled by the time the task executes.
 For each report itself it is easy to declare the inputs and outputs, this is just a matter of annotating the concrete report class.
 Now it is also easy to [declare the map of enabled reports](https://github.com/gradle/gradle/blob/2376cd3824ea683c1af122f8a582ceb6ef51ec3b/subprojects/reporting/src/main/java/org/gradle/api/reporting/internal/DefaultReportContainer.java#L121-L124) as an input:
     
@@ -23,7 +23,11 @@ Now it is also easy to [declare the map of enabled reports](https://github.com/g
     }            
     
 This causes each report to be added as a [nested input](userguide/more_about_tasks.html#sec:task_input_nested_inputs) with the key as a name.
-For example, the output directory of the Findbugs html report is added as `reports.html.destination` by the above declaration.
+For example, the output directory of the FindBugs html report is added as `reports.html.destination` by the above declaration.
+
+When annotating an iterable with [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html), Gradle already treats each element as a separate nested input.
+In addition, if the element implements `Named`, the `name` is now used as property name.
+This allows for declaring nice names when adding `CommandLineArgumentProviders`, as for example done by [`JacocoAgent`](https://github.com/gradle/gradle/blob/1c6fa2d1fa794456d48a5268f6c2dfb85ff30cbf/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L139-L163).
     
 ## Promoted features
 

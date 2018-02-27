@@ -588,7 +588,9 @@ Hence it can discover all sub-properties declared by a runtime sub-type.
 
 When adding `@api:org.gradle.api.tasks.Nested[]` to an iterable, each element is treated as a separate nested input.
 Each nested input in the iterable is assigned a name, which by default is the dollar sign followed by the index in the iterable, e.g. `$2`.
-If the elements of the iterable implement `@api:org.gradle.api.Named[]`, then `Named.getName()` is used as the name of the nested input.
+If an element of the iterable implements `api:org.gradle.api.Named[]`, then the name is used as property name.
+The ordering of the elements in the iterable is crucial for for reliable up-to-date checks and caching if not all of the elements implement `api:org.gradle.api.Named[]`.
+Multiple elements which have the same name are not allowed.
 
 When adding `@api:org.gradle.api.tasks.Nested[]` to a map, then for each value a nested input is added, using the key as name.
 

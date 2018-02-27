@@ -667,7 +667,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Nested iterables can only contain beans with unique names. Duplicate name: 'nested.name'.")
     }
 
-    def "task with named nested beans is incremental"() {
+    def "input changes for task with named nested beans"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
         buildFile << """                                   
@@ -693,7 +693,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Input property 'nested.name1.class' has been removed for task ':myTask'")
     }
 
-    def "task with nested map is incremental"() {
+    def "input changes for task with nested map"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
         buildFile << """                                   
