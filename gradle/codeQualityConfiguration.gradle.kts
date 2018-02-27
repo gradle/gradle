@@ -28,13 +28,14 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
         plugin("checkstyle")
     }
 
+    val checkStyleConfigDir = codeQualityConfigDir.resolve("checkstyle")
     configure<CheckstyleExtension> {
-        configDir = codeQualityConfigDir.resolve("checkstyle")
+        configDir = checkStyleConfigDir
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
                 tasks.create<Checkstyle>(getTaskName("checkstyle", "groovy")) {
-                    configFile = configDir.resolve("checkstyle-groovy.xml")
+                    configFile = checkStyleConfigDir.resolve("checkstyle-groovy.xml")
                     source(allGroovy)
                     classpath = compileClasspath
                     reports.xml.destination = reportsDir.resolve("${this@all.name}-groovy.xml")
