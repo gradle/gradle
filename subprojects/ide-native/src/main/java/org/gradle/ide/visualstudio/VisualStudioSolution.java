@@ -19,6 +19,8 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugins.ide.IdeWorkspace;
 
@@ -50,4 +52,10 @@ public interface VisualStudioSolution extends Named, Buildable, IdeWorkspace {
      * Configuration for the generated solution file.
      */
     TextConfigFile getSolutionFile();
+
+    /**
+     * Returns the location of the generated solution file.
+     */
+    @Override
+    Provider<RegularFile> getLocation();
 }

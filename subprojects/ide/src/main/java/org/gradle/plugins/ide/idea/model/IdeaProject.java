@@ -21,8 +21,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
@@ -121,7 +124,7 @@ public class IdeaProject implements IdeWorkspace {
     private JavaVersion targetBytecodeVersion;
     private String vcs;
     private Set<String> wildcards = Sets.newLinkedHashSet();
-    private File outputFile;
+    private RegularFileProperty outputFile;
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;
 
@@ -132,11 +135,17 @@ public class IdeaProject implements IdeWorkspace {
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectPathRegistry.class);
         this.localComponentRegistry = services.get(LocalComponentRegistry.class);
+        this.outputFile = project.getLayout().fileProperty();
     }
 
     @Override
     public String getDisplayName() {
         return "IDEA project";
+    }
+
+    @Override
+    public Provider<RegularFile> getLocation() {
+        return outputFile;
     }
 
     /**
@@ -304,11 +313,11 @@ public class IdeaProject implements IdeWorkspace {
      * See the examples in the docs for {@link IdeaProject}.
      */
     public File getOutputFile() {
-        return outputFile;
+        return outputFile.get().getAsFile();
     }
 
     public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+        this.outputFile.set(outputFile);
     }
 
     /**

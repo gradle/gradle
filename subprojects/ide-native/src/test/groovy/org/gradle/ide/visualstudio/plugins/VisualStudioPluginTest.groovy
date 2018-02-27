@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.xcode.plugins
+package org.gradle.ide.visualstudio.plugins
 
-import org.gradle.ide.xcode.XcodeExtension
-import org.gradle.ide.xcode.XcodeRootExtension
+import org.gradle.ide.visualstudio.VisualStudioExtension
+import org.gradle.ide.visualstudio.VisualStudioRootExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
-
-class XcodePluginTest extends Specification {
+class VisualStudioPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
@@ -32,28 +31,29 @@ class XcodePluginTest extends Specification {
 
     def "adds extension to root project"() {
         when:
-        project.pluginManager.apply(XcodePlugin)
+        project.pluginManager.apply(VisualStudioPlugin)
 
         then:
-        project.xcode instanceof XcodeRootExtension
-        project.xcode.workspace.location.get().asFile == project.file("root.xcworkspace")
+        project.visualStudio instanceof VisualStudioRootExtension
+        project.visualStudio.solution.location.get().asFile == project.file("root.sln")
     }
 
     def "adds extension to child project"() {
         def child = ProjectBuilder.builder().withParent(project).withProjectDir(projectDir).withName("child").build()
 
         when:
-        child.pluginManager.apply(XcodePlugin)
+        child.pluginManager.apply(VisualStudioPlugin)
 
         then:
-        child.xcode instanceof XcodeExtension
+        child.visualStudio instanceof VisualStudioExtension
     }
 
-    def "adds 'openXcode' task"() {
+    def "adds 'openVisualStudio' task"() {
         when:
-        project.pluginManager.apply(XcodePlugin)
+        project.pluginManager.apply(VisualStudioPlugin)
 
         then:
-        project.tasks.openXcode != null
+        project.tasks.openVisualStudio != null
     }
+
 }

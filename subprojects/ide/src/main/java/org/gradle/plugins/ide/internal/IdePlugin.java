@@ -23,17 +23,15 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
-import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.process.ExecSpec;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private Task lifecycleTask;
@@ -110,16 +108,14 @@ public abstract class IdePlugin implements Plugin<Project> {
     protected void onApply(Project target) {
     }
 
-    protected Task addWorkspaceOpenTask(IdeWorkspace workspace, final GeneratorTask<?> task) {
-        return addWorkspaceOpenTask(workspace, project.getProviders().provider(new Callable<File>() {
+    protected Task addWorkspaceOpenTask(final IdeWorkspace workspace) {
+        lifecycleTask.doLast(new Action<Task>() {
             @Override
-            public File call() {
-                return task.getOutputFile();
+            public void execute(Task task) {
+                System.out.println(String.format("Generated %s at %s", workspace.getDisplayName(), new ConsoleRenderer().asClickableFileUrl(workspace.getLocation().get().getAsFile())));
             }
-        }));
-    }
+        });
 
-    protected Task addWorkspaceOpenTask(IdeWorkspace workspace, final Provider<? extends File> workspaceLocation) {
         Task openTask = project.getTasks().create("open" + StringUtils.capitalize(getLifecycleTaskName()));
         openTask.dependsOn(lifecycleTask);
         openTask.setGroup("IDE");
@@ -131,12 +127,12 @@ public abstract class IdePlugin implements Plugin<Project> {
                     project.exec(new Action<ExecSpec>() {
                         @Override
                         public void execute(ExecSpec execSpec) {
-                            execSpec.commandLine("open", workspaceLocation.get());
+                            execSpec.commandLine("open", workspace.getLocation().get());
                         }
                     });
                 } else {
                     try {
-                        Desktop.getDesktop().open(workspaceLocation.get());
+                        Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }

@@ -18,7 +18,6 @@ package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeRootExtension;
-import org.gradle.ide.xcode.XcodeWorkspace;
 
 import javax.inject.Inject;
 
@@ -32,7 +31,7 @@ public class DefaultXcodeRootExtension extends DefaultXcodeExtension implements 
     }
 
     @Override
-    public XcodeWorkspace getWorkspace() {
+    public DefaultXcodeWorkspace getWorkspace() {
         return workspace;
     }
 }
