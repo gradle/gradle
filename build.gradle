@@ -219,7 +219,8 @@ subprojects {
         apply from: "$rootDir/gradle/publish.gradle"
     }
 
-    apply from: "$rootDir/gradle/codeQuality.gradle"
+    apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
+    apply plugin: "configure-task-properties-validation"
 }
 
 configurations {
