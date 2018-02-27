@@ -146,20 +146,13 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
         if (gradle.startParameter.isBuildCacheEnabled) {
             buildScan.tag("CACHED")
 
-            val tasksToInvestigateForCacheWithPaths = if (project.hasProperty("cache.investigate.tasks.paths"))
-                project.property("cache.investigate.tasks.paths").toString().split(",") else listOf(":baseServices:classpathManifest")
-
-            val taskPropertiesWithFullFileSnapshot = mapOf(
-                ":baseServices:compileJava" to listOf("classpath"))
+            val tasksToInvestigate = System.getProperty("cache.investigate.tasks")?.split(",") ?: listOf(":baseServices:classpathManifest")
 
             project.buildScan.buildFinished({
                 allprojects.flatMap { it.tasks }.forEach {
-                    if (it.state.executed && (tasksToInvestigateForCacheWithPaths.contains(it.path)
-                            || taskPropertiesWithFullFileSnapshot.keys.contains(it.path))) {
-                        if (tasksToInvestigateForCacheWithPaths.contains(it.path)) {
-                            val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
-                            Visitor(project.buildScan, hasher, it).visit(it::class.java.classLoader)
-                        }
+                    if (it.state.executed && (it.path in tasksToInvestigate)) {
+                        val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
+                        Visitor(project.buildScan, hasher, it).visit(it::class.java.classLoader)
                     }
                 }
             })
