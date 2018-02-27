@@ -97,7 +97,7 @@ dependencies {
     testCompile("com.nhaarman:mockito-kotlin:1.5.0")
 
     compile("org.pegdown:pegdown:1.6.0")
-    compile("org.jsoup:jsoup:1.6.3")
+    compile("org.jsoup:jsoup:1.11.2")
     compile("me.champeau.gradle:japicmp-gradle-plugin:0.2.4")
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")

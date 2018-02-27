@@ -29,10 +29,10 @@ import java.util.List;
 
 public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     private final WindowsSdkLocator legacyWindowsSdkLocator;
-    private final WindowsComponentLocator<WindowsKitWindowsSdk> windowsKitWindowsSdkLocator;
+    private final WindowsComponentLocator<WindowsKitSdkInstall> windowsKitWindowsSdkLocator;
 
     @VisibleForTesting
-    DefaultWindowsSdkLocator(WindowsSdkLocator legacyWindowsSdkLocator, WindowsComponentLocator<WindowsKitWindowsSdk> windowsKitWindowsSdkLocator) {
+    DefaultWindowsSdkLocator(WindowsSdkLocator legacyWindowsSdkLocator, WindowsComponentLocator<WindowsKitSdkInstall> windowsKitWindowsSdkLocator) {
         this.legacyWindowsSdkLocator = legacyWindowsSdkLocator;
         this.windowsKitWindowsSdkLocator = windowsKitWindowsSdkLocator;
     }
@@ -42,29 +42,29 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public SearchResult<WindowsSdk> locateComponent(@Nullable File candidate) {
+    public SearchResult<WindowsSdkInstall> locateComponent(@Nullable File candidate) {
         return new SdkSearchResult(legacyWindowsSdkLocator.locateComponent(candidate), windowsKitWindowsSdkLocator.locateComponent(candidate));
     }
 
     @Override
-    public List<WindowsSdk> locateAllComponents() {
-        List<WindowsSdk> allSdks = Lists.newArrayList();
+    public List<WindowsSdkInstall> locateAllComponents() {
+        List<WindowsSdkInstall> allSdks = Lists.newArrayList();
         allSdks.addAll(legacyWindowsSdkLocator.locateAllComponents());
         allSdks.addAll(windowsKitWindowsSdkLocator.locateAllComponents());
         return allSdks;
     }
 
-    private static class SdkSearchResult implements SearchResult<WindowsSdk> {
-        final SearchResult<WindowsSdk> legacySearchResult;
-        final SearchResult<WindowsKitWindowsSdk> windowsKitSearchResult;
+    private static class SdkSearchResult implements SearchResult<WindowsSdkInstall> {
+        final SearchResult<WindowsSdkInstall> legacySearchResult;
+        final SearchResult<WindowsKitSdkInstall> windowsKitSearchResult;
 
-        SdkSearchResult(SearchResult<WindowsSdk> legacySearchResult, SearchResult<WindowsKitWindowsSdk> windowsKitSearchResult) {
+        SdkSearchResult(SearchResult<WindowsSdkInstall> legacySearchResult, SearchResult<WindowsKitSdkInstall> windowsKitSearchResult) {
             this.legacySearchResult = legacySearchResult;
             this.windowsKitSearchResult = windowsKitSearchResult;
         }
 
         @Override
-        public WindowsSdk getComponent() {
+        public WindowsSdkInstall getComponent() {
             if (windowsKitSearchResult.isAvailable()) {
                 return windowsKitSearchResult.getComponent();
             } else if (legacySearchResult.isAvailable()) {

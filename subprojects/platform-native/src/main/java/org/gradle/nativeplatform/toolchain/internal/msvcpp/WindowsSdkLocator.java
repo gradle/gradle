@@ -15,5 +15,5 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-public interface WindowsSdkLocator extends WindowsComponentLocator<WindowsSdk> {
+public interface WindowsSdkLocator extends WindowsComponentLocator<WindowsSdkInstall> {
 }

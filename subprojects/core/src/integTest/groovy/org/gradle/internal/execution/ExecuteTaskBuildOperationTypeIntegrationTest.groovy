@@ -63,7 +63,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
             it.details.taskPath == ":t"
         }
 
-        op.result.upToDateMessages == ["Task has not declared any outputs."]
+        op.result.upToDateMessages == ["Task has not declared any outputs despite executing actions."]
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 

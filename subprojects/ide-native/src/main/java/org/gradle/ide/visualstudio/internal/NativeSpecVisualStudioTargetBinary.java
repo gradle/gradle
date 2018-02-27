@@ -42,6 +42,7 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,6 +78,18 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     @Override
     public String getVisualStudioConfigurationName() {
         return makeName(getVariantDimensions());
+    }
+
+    @Override
+    public VersionNumber getVisualStudioVersion() {
+        // Assume VS 2015
+        return VersionNumber.parse("14.0");
+    }
+
+    @Override
+    public VersionNumber getSdkVersion() {
+        // Assume 8.1
+        return VersionNumber.parse("8.1");
     }
 
     @Override

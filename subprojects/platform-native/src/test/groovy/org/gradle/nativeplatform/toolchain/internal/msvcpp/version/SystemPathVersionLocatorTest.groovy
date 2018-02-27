@@ -22,8 +22,6 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.*
-
 class SystemPathVersionLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -36,7 +34,7 @@ class SystemPathVersionLocatorTest extends Specification {
         def compiler = vsDir.file("cl.exe")
 
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * os.findInPath("cl.exe") >> compiler
@@ -55,7 +53,7 @@ class SystemPathVersionLocatorTest extends Specification {
         def compiler = vsDir.file("cl.exe")
 
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * os.findInPath("cl.exe") >> compiler
@@ -71,7 +69,7 @@ class SystemPathVersionLocatorTest extends Specification {
 
     def "returns an empty list when no compilers are found on the path"() {
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * os.findInPath("cl.exe") >> null
@@ -86,7 +84,7 @@ class SystemPathVersionLocatorTest extends Specification {
         def compiler = vsDir.file("cl.exe")
 
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * os.findInPath("cl.exe") >> compiler
@@ -96,7 +94,7 @@ class SystemPathVersionLocatorTest extends Specification {
         metadata.isEmpty()
     }
 
-    VisualStudioMetadata vsMetadata(File dir, String version) {
+    VisualStudioInstallCandidate vsMetadata(File dir, String version) {
         return new VisualStudioMetadataBuilder()
             .installDir(dir)
             .version(VersionNumber.parse(version))

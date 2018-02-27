@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.tasks.TaskAction
 import spock.lang.Specification
 
 class SkipTaskWithNoActionsExecuterTest extends Specification {
@@ -41,7 +40,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def skipsTaskWithNoActionsAndMarksUpToDateIfAllItsDependenciesWereSkipped() {
         given:
-        task.taskActions >> []
+        task.hasTaskActions() >> false
         dependencyState.skipped >> true
         taskExecutionGraph.hasTask(task) >> true
 
@@ -57,7 +56,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def skipsTaskWithNoActionsAndMarksOutOfDateDateIfAnyOfItsDependenciesWereNotSkipped() {
         given:
-        task.taskActions >> []
+        task.hasTaskActions() >> false
         dependencyState.skipped >> false
         taskExecutionGraph.hasTask(task) >> true
 
@@ -73,7 +72,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def skipsTaskWhichIsNotPartOfTheTaskGraph() {
         given:
-        task.taskActions >> []
+        task.hasTaskActions() >> false
         dependency.skipped >> false
         taskExecutionGraph.hasTask(task) >> false
 
@@ -89,7 +88,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def executesTaskWithActions() {
         given:
-        task.taskActions >> [{} as TaskAction]
+        task.hasTaskActions() >> true
 
         when:
         executor.execute(task, state, executionContext)

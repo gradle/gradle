@@ -26,16 +26,15 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.minimumVersion = '4.0'
+        runner.targetVersions = ["4.6-20180213002356+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
         runner.testProject = TEST_PROJECT_NAME
 
         given:
-        def baseline = "4.6-20180213002356+0000"
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = [baseline]
         runner.args = ["-PnoExcludes"]
 
         when:
@@ -51,10 +50,8 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         startServer()
 
         given:
-        def baseline = "4.6-20180125002142+0000"
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = [baseline]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'

@@ -26,7 +26,7 @@ public class CppSharedLibraryVisualStudioTargetBinary extends AbstractCppBinaryV
     private final CppSharedLibrary binary;
 
     public CppSharedLibraryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppSharedLibrary binary) {
-        super(projectName, projectPath, component);
+        super(projectName, projectPath, component, binary);
         this.binary = binary;
     }
 

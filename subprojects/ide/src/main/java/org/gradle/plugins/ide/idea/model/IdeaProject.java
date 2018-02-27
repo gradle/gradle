@@ -21,11 +21,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.Path;
 
@@ -108,8 +112,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaProject {
-
+public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectPathRegistry projectPathRegistry;
@@ -121,7 +124,7 @@ public class IdeaProject {
     private JavaVersion targetBytecodeVersion;
     private String vcs;
     private Set<String> wildcards = Sets.newLinkedHashSet();
-    private File outputFile;
+    private RegularFileProperty outputFile;
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;
 
@@ -132,6 +135,17 @@ public class IdeaProject {
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectPathRegistry.class);
         this.localComponentRegistry = services.get(LocalComponentRegistry.class);
+        this.outputFile = project.getLayout().fileProperty();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "IDEA project";
+    }
+
+    @Override
+    public Provider<RegularFile> getLocation() {
+        return outputFile;
     }
 
     /**
@@ -299,11 +313,11 @@ public class IdeaProject {
      * See the examples in the docs for {@link IdeaProject}.
      */
     public File getOutputFile() {
-        return outputFile;
+        return outputFile.get().getAsFile();
     }
 
     public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+        this.outputFile.set(outputFile);
     }
 
     /**

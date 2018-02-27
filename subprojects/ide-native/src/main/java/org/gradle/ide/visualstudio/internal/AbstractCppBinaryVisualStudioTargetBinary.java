@@ -21,7 +21,15 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLibraries;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMetadata;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.List;
@@ -31,11 +39,29 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
     protected final String projectName;
     private final String projectPath;
     private final CppComponent component;
+    private final VersionNumber visualStudioVersion;
+    private final VersionNumber windowsSdkVersion;
 
-    public AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component) {
+    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppBinary binary) {
         this.projectName = projectName;
         this.projectPath = projectPath;
         this.component = component;
+        PlatformToolProvider provider = ((DefaultCppBinary) binary).getPlatformToolProvider();
+        CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
+        if (compilerMetadata instanceof VisualCppMetadata) {
+            visualStudioVersion = ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
+        } else {
+            // Assume VS 2015
+            visualStudioVersion = VersionNumber.version(14);
+        }
+        SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
+        if (systemLibraries instanceof WindowsSdkLibraries) {
+            WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
+            windowsSdkVersion = sdkLibraries.getSdkVersion();
+        } else {
+            // Assume 8.1
+            windowsSdkVersion = VersionNumber.parse("8.1");
+        }
     }
 
     abstract CppBinary getBinary();
@@ -71,6 +97,16 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
         }
 
         return projectPath + ":" + taskName;
+    }
+
+    @Override
+    public VersionNumber getVisualStudioVersion() {
+        return visualStudioVersion;
+    }
+
+    @Override
+    public VersionNumber getSdkVersion() {
+        return windowsSdkVersion;
     }
 
     @Override
