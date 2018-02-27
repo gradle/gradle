@@ -26,6 +26,7 @@ val codeQualityConfigDir = buildscript.sourceFile!!.let {
 
 configureCheckstyle(codeQualityConfigDir)
 configureCodenarc(codeQualityConfigDir)
+configureCodeQualityTasks()
 
 fun Project.configureCheckstyle(codeQualityConfigDir: File) {
     apply {
@@ -79,6 +80,19 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
         reports.xml.isEnabled = true
     }
 }
+
+
+fun Project.configureCodeQualityTasks() =
+    tasks {
+        val codeQualityTasks = matching { it is CodeNarc || it is Checkstyle || it is ValidateTaskProperties }
+        "codeQuality" {
+            dependsOn(codeQualityTasks)
+        }
+        withType<Test> {
+            shouldRunAfter(codeQualityTasks)
+        }
+    }
+
 
 val Project.java
     get() = the<JavaPluginConvention>()
