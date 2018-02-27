@@ -17,6 +17,7 @@
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
 import org.gradle.modules.PatchExternalModules
+import org.gradle.BuildEnvironment
 
 plugins {
     id 'java-base'
@@ -115,7 +116,7 @@ ext {
     gradle_kotlin_dsl_version = '0.16.0'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
-    isCiServer = System.getenv().containsKey("CI")
+    isCiServer = BuildEnvironment.isCiServer
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {

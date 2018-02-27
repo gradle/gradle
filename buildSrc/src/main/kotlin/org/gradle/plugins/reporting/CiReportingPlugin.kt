@@ -1,6 +1,7 @@
 package org.gradle.plugins.reporting
 
 import me.champeau.gradle.japicmp.JapicmpTask
+import org.gradle.BuildEnvironment
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -24,9 +25,7 @@ open class CiReportingPlugin : Plugin<Project> {
 
     override fun apply(project: Project) = project.run {
 
-        val isCiServer = "CI" in System.getenv()
-
-        if (isCiServer) {
+        if (BuildEnvironment.isCiServer) {
             gradle.buildFinished {
                 prepareReportsForCiPublishing()
             }
