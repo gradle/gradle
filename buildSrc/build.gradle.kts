@@ -68,6 +68,10 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "configureJavaProjects" {
+            id = "configure-java-projects"
+            implementationClass = "org.gradle.plugins.javaprojects.ConfigureJavaProjectsPlugin"
+        }
     }
 }
 
