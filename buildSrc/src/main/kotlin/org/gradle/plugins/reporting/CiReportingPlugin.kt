@@ -68,7 +68,7 @@ open class CiReportingPlugin : Plugin<Project> {
 
     private
     fun Task.failedTaskCustomReports() = when (this) {
-        is ValidateTaskProperties -> listOf(outputFile.asFile.get() to project.name)
+        is ValidateTaskProperties -> listOf(outputFile.get().asFile to project.name)
         is Classycle -> listOf(reportFile to project.name)
         is DistributionTest -> listOf(
             gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/test-kit-daemon").get().asFile to "all-logs",
