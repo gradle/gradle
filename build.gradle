@@ -115,7 +115,7 @@ buildTypes {
 }
 
 ext {
-    gradle_kotlin_dsl_version = '0.15.6'
+    gradle_kotlin_dsl_version = '0.16.0'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("CI")
@@ -186,8 +186,6 @@ apply from: "gradle/wrapper.gradle.kts"
 apply plugin: "ide-configuration"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle.kts"
 apply from: "gradle/testSetup.gradle"
-apply from: "gradle/fix-GRADLE-2492.gradle"
-apply from: 'gradle/customM2Check.gradle'
 apply from: "gradle/publicApi.gradle"
 apply from: "gradle/updateReleasedVersions.gradle"
 apply from: "gradle/dependenciesCheck.gradle"
@@ -224,7 +222,8 @@ subprojects {
         apply from: "$rootDir/gradle/publish.gradle"
     }
 
-    apply from: "$rootDir/gradle/codeQuality.gradle"
+    apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
+    apply plugin: "configure-task-properties-validation"
 }
 
 configurations {

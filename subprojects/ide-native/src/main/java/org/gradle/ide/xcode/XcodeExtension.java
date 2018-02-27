@@ -19,11 +19,14 @@ package org.gradle.ide.xcode;
 import org.gradle.api.Incubating;
 
 /**
- * The configuration for mapping a C++ or Swift project to XCode IDE.
+ * The configuration for mapping a C++ or Swift project to an XCode project.
  *
  * @since 4.2
  */
 @Incubating
 public interface XcodeExtension {
+    /**
+     * Returns the generated Xcode project for this Gradle project.
+     */
     XcodeProject getProject();
 }

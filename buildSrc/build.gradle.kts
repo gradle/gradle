@@ -68,6 +68,10 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "configureTaskPropertyValidation" {
+            id = "configure-task-properties-validation"
+            implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
+        }
         "buildscanConfiguration" {
             id = "buildscan-configuration"
             implementationClass = "org.gradle.plugins.buildscan.BuildScanConfigurationPlugin"
@@ -102,7 +106,6 @@ dependencies {
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")
     compile("com.google.code.gson:gson:2.7")
-    compile("com.gradle:build-scan-plugin:1.12.1")
 
     constraints {
         compile("org.codehaus.groovy:groovy-all:2.4.12")
@@ -150,7 +153,7 @@ tasks.withType<GroovyCompile> {
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/codeQuality.gradle") }
+    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
 }
 
 apply { from("../gradle/ciReporting.gradle") }

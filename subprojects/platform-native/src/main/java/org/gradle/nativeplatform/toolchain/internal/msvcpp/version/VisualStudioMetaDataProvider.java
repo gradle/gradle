@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 import java.io.File;
 
 public interface VisualStudioMetaDataProvider {
-    VisualStudioMetadata getVisualStudioMetadataFromInstallDir(File installDir);
+    VisualStudioInstallCandidate getVisualStudioMetadataFromInstallDir(File installDir);
 
-    VisualStudioMetadata getVisualStudioMetadataFromCompiler(File compilerFile);
+    VisualStudioInstallCandidate getVisualStudioMetadataFromCompiler(File compilerFile);
 }

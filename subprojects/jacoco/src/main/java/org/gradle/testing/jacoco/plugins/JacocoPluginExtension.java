@@ -32,6 +32,7 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -142,8 +143,9 @@ public class JacocoPluginExtension {
             this.jacoco = jacoco;
         }
 
-        @Nested
+        @Nullable
         @Optional
+        @Nested
         public JacocoTaskExtension getJacoco() {
             return jacoco.isEnabled() ? jacoco : null;
         }

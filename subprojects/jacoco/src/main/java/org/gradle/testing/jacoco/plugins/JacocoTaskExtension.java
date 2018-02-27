@@ -33,6 +33,7 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.RelativePathUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,8 +108,9 @@ public class JacocoTaskExtension {
     /**
      * The path for the execution data to be written to.
      */
-    @OutputFile
+    @Nullable
     @Optional
+    @OutputFile
     public File getDestinationFile() {
         return destinationFile.getOrNull();
     }
@@ -142,39 +144,42 @@ public class JacocoTaskExtension {
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public List<String> getIncludes() {
         return includes;
     }
 
-    public void setIncludes(List<String> includes) {
+    public void setIncludes(@Nullable List<String> includes) {
         this.includes = includes;
     }
 
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public List<String> getExcludes() {
         return excludes;
     }
 
-    public void setExcludes(List<String> excludes) {
+    public void setExcludes(@Nullable List<String> excludes) {
         this.excludes = excludes;
     }
 
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public List<String> getExcludeClassLoaders() {
         return excludeClassLoaders;
     }
 
-    public void setExcludeClassLoaders(List<String> excludeClassLoaders) {
+    public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
         this.excludeClassLoaders = excludeClassLoaders;
     }
 
@@ -195,13 +200,14 @@ public class JacocoTaskExtension {
     /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getSessionId() {
         return sessionId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setSessionId(@Nullable String sessionId) {
         this.sessionId = sessionId;
     }
 
@@ -232,13 +238,14 @@ public class JacocoTaskExtension {
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(@Nullable String address) {
         this.address = address;
     }
 
@@ -246,7 +253,6 @@ public class JacocoTaskExtension {
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
     @Input
-    @Optional
     public int getPort() {
         return port;
     }
@@ -260,8 +266,9 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
-    @LocalState
+    @Nullable
     @Optional
+    @LocalState
     public File getClassDumpDir() {
         return classDumpDir;
     }
@@ -271,7 +278,7 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
-    public void setClassDumpDir(File classDumpDir) {
+    public void setClassDumpDir(@Nullable File classDumpDir) {
         this.classDumpDir = classDumpDir;
     }
 
