@@ -49,7 +49,7 @@ abstract class BaseBeanNode<T> extends BeanNode {
     private final T bean;
 
     protected BaseBeanNode(@Nullable String propertyName, T bean) {
-        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + propertyName + "'").getClass());
+        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass());
         this.bean = bean;
     }
 
@@ -60,7 +60,7 @@ abstract class BaseBeanNode<T> extends BeanNode {
 
     protected BeanNode createChildNode(String propertyName, @Nullable Object input) {
         String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
-        Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + qualifiedPropertyName + "'");
+        Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '%s'", qualifiedPropertyName);
         return BeanNode.create(qualifiedPropertyName, bean);
     }
 }
