@@ -418,7 +418,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             mustRunAfter(tasks.withType<JavaExecProjectGeneratorTask>())
 
             doFirst {
-                if (channel != null) {
+                channel?.let { channel ->
                     performanceReportTask.systemProperty(PropertyNames.channel, channel)
                 }
             }
