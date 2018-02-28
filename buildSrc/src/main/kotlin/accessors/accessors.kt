@@ -53,5 +53,6 @@ val SourceSet.groovy: SourceDirectorySet
 fun Project.idea(configure: IdeaModel.() -> Unit): Unit =
     extensions.configure("idea", configure)
 
+
 fun Project.eclipse(configure: EclipseModel.() -> Unit): Unit =
     extensions.configure("eclipse", configure)

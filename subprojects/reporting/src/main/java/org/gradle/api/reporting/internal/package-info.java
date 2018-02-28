@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-// To be used from a third party build via
-// apply from: 'https://raw.githubusercontent.com/gradle/gradle/master/gradle/detailedCacheDiagnosticsInit.gradle'
+@NonNullApi
+package org.gradle.api.reporting.internal;
 
-ext.commitId = 'master'
-
-apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/overlappingTaskOutputsStatsInit.gradle"
-rootProject {
-    apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/taskCacheBuildScanUserData.gradle"
-}
+import org.gradle.api.NonNullApi;

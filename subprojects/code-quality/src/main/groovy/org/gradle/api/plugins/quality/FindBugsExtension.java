@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.resources.TextResource;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -148,6 +149,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
+    @Nullable
     @Incubating
     public TextResource getIncludeFilterConfig() {
         return includeFilterConfig;
@@ -159,13 +161,14 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setIncludeFilterConfig(TextResource includeFilterConfig) {
+    public void setIncludeFilterConfig(@Nullable TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
 
     /**
      * The filename of a filter specifying which bugs are reported.
      */
+    @Nullable
     public File getIncludeFilter() {
         TextResource includeFilterConfig = getIncludeFilterConfig();
         if (includeFilterConfig == null) {
@@ -187,6 +190,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
+    @Nullable
     public TextResource getExcludeFilterConfig() {
         return excludeFilterConfig;
     }
@@ -197,13 +201,14 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setExcludeFilterConfig(TextResource excludeFilterConfig) {
+    public void setExcludeFilterConfig(@Nullable TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
 
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
+    @Nullable
     public File getExcludeFilter() {
         TextResource excludeFilterConfig = getExcludeFilterConfig();
         if (excludeFilterConfig == null) {
@@ -225,6 +230,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.4
      */
     @Incubating
+    @Nullable
     public TextResource getExcludeBugsFilterConfig() {
         return excludeBugsFilterConfig;
     }
@@ -235,13 +241,14 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.4
      */
     @Incubating
-    public void setExcludeBugsFilterConfig(TextResource excludeBugsFilterConfig) {
+    public void setExcludeBugsFilterConfig(@Nullable TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }
 
     /**
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
+    @Nullable
     public File getExcludeBugsFilter() {
         TextResource excludeBugsFilterConfig = getExcludeBugsFilterConfig();
         if (excludeBugsFilterConfig == null) {

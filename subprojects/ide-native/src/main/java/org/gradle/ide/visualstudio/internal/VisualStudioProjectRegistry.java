@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.util.VersionNumber;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
@@ -38,7 +39,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     }
 
     public VisualStudioProjectConfiguration addProjectConfiguration(VisualStudioTargetBinary nativeBinary) {
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName());
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName(), nativeBinary.getVisualStudioVersion(), nativeBinary.getSdkVersion());
         VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getVisualStudioConfigurationName());
         project.addConfiguration(nativeBinary, configuration);
         ideArtifactRegistry.registerIdeArtifact(configuration.getPublishArtifact());
@@ -49,10 +50,10 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return getInstantiator().newInstance(VisualStudioProjectConfiguration.class, project, configuration, nativeBinary);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(String projectPath, String vsProjectName, String componentName) {
+    private DefaultVisualStudioProject getOrCreateProject(String vsProjectName, String componentName, VersionNumber visualStudioVersion, VersionNumber sdkVersion) {
         DefaultVisualStudioProject vsProject = findByName(vsProjectName);
         if (vsProject == null) {
-            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, projectPath, componentName, fileResolver, getInstantiator());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, componentName, visualStudioVersion, sdkVersion, fileResolver, getInstantiator());
             add(vsProject);
             ideArtifactRegistry.registerIdeArtifact(vsProject.getPublishArtifact());
         }

@@ -154,7 +154,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public List<String> call() {
                     File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                    return Arrays.asList("-parse-as-library", "-g", "-F" + frameworkDir.getAbsolutePath());
+                    return Arrays.asList("-parse-as-library", "-F" + frameworkDir.getAbsolutePath());
                 }
             }));
 

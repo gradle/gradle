@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult;
+import org.gradle.nativeplatform.fixtures.AvailableToolChains;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
@@ -42,11 +43,13 @@ public class MSBuildExecutor {
     }
 
     private final List<String> args = new ArrayList<String>();
+    private final AvailableToolChains.InstalledToolChain toolChain;
     private TestFile workingDir;
     private String projectName;
 
-    public MSBuildExecutor(TestFile workingDir) {
+    public MSBuildExecutor(TestFile workingDir, AvailableToolChains.InstalledToolChain toolChain) {
         this.workingDir = workingDir;
+        this.toolChain = toolChain;
     }
 
     public MSBuildExecutor withWorkingDir(TestFile workingDir) {
@@ -121,6 +124,6 @@ public class MSBuildExecutor {
     }
 
     private TestFile findMSBuild() {
-        return new TestFile(VisualStudioLocatorTestFixture.getMSBuildLocator().getMSBuildInstall());
+        return new TestFile(new MSBuildVersionLocator(VisualStudioLocatorTestFixture.getVswhereLocator()).getMSBuildInstall(toolChain));
     }
 }

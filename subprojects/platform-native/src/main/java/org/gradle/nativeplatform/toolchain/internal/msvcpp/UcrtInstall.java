@@ -25,12 +25,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class Ucrt extends WindowsKitComponent {
+public class UcrtInstall extends WindowsKitInstall {
 
-    public Ucrt(File baseDir, VersionNumber version, String name) {
+    public UcrtInstall(File baseDir, VersionNumber version, String name) {
         super(baseDir, version, name);
     }
 
+    /**
+     * Returns the C runtime for the given platform.
+     */
     public SystemLibraries getCRuntime(final NativePlatformInternal platform) {
         if (platform.getArchitecture().isAmd64()) {
             return new UcrtSystemLibraries("x64");

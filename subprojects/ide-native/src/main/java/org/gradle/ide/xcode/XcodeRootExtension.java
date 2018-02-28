@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.ide.xcode;
 
-public interface ArchitectureDescriptor extends PlatformVisualCpp {
-    boolean isInstalled();
+import org.gradle.api.Incubating;
+
+/**
+ * The configuration for mapping a C++ or Swift project to XCode project and workspace.
+ *
+ * @since 4.7
+ */
+@Incubating
+public interface XcodeRootExtension extends XcodeExtension {
+    /**
+     * Returns the generated Xcode workspace for this Gradle build.
+     */
+    XcodeWorkspace getWorkspace();
 }

@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.List;
@@ -27,12 +28,12 @@ import java.util.Set;
  */
 public interface VisualStudioTargetBinary {
     /**
-     * Returns the project path for this binary
+     * Returns the Gradle project path for this binary
      */
     String getProjectPath();
 
     /**
-     * Returns the name of the component associated with this binary
+     * Returns the name of the Gradle component associated with this binary
      */
     String getComponentName();
 
@@ -45,6 +46,16 @@ public interface VisualStudioTargetBinary {
      * Returns the visual studio project configuration name associated with this binary
      */
     String getVisualStudioConfigurationName();
+
+    /**
+     * Returns the target Visual Studio version of this binary.
+     */
+    VersionNumber getVisualStudioVersion();
+
+    /**
+     * Returns the target SDK version of this binary.
+     */
+    VersionNumber getSdkVersion();
 
     /**
      * Returns the project suffix to use when naming Visual Studio projects
@@ -105,7 +116,6 @@ public interface VisualStudioTargetBinary {
      * Returns the include paths that should be used with this binary
      */
     Set<File> getIncludePaths();
-
 
     enum ProjectType {
         EXE("Exe"), LIB("Lib"), DLL("Dll"), NONE("");

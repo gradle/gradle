@@ -56,7 +56,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         0 * taskArtifactState._
 
         and:
-        state instanceof NoHistoryArtifactState
+        state instanceof NoOutputsArtifactState
         !state.isUpToDate(messages)
         !messages.empty
     }
