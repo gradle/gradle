@@ -24,11 +24,6 @@ public interface BuildOperationListener {
 
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
-//    /**
-//     * @deprecated use BuildOperationListener#progress(Object buildOperationId, OperationProgressEvent progressEvent)
-//     * */
-//    void progress(BuildOperationDescriptor descriptor, OperationProgressEvent progressEvent);
-
     void progress(Object buildOperationId, OperationProgressEvent progressEvent);
 
     void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
