@@ -73,11 +73,7 @@ fun <reified T : Any> TaskContainer.getByName(name: String) =
 @Suppress("extension_shadowed_by_member")
 inline
 fun <reified T : Any> TaskContainer.getByName(name: String, configure: T.() -> Unit) =
-    getByName(name).let {
-        it as? T
-            ?: throw IllegalStateException(
-            "Element '$name' of type '${it::class.java.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'.")
-    }.also(configure)
+    getByName<T>(name).also(configure)
 
 
 /**
