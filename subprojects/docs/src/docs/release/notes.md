@@ -36,7 +36,7 @@ Switch your build to use Gradle 4.6 quickly by updating your wrapper properties:
 
     gradle wrapper --gradle-version=4.6
 
-Standalone downloads are available at [gradle.org/install](https://gradle.org/install). 
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
 ## New and noteworthy
 
