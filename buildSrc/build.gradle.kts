@@ -126,6 +126,9 @@ tasks {
     }
     "compileKotlin"(KotlinCompile::class) {
         classpath += files(compileGroovy.destinationDir).builtBy(compileGroovy)
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+        }
     }
 }
 
