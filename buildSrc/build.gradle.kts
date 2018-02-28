@@ -72,6 +72,10 @@ gradlePlugin {
             id = "configure-task-properties-validation"
             implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
         }
+        "configureIntegrationTests" {
+            id = "configure-integration-tests"
+            implementationClass = "org.gradle.plugins.integrationtests.ConfigureIntegrationTestsPlugin"
+        }
     }
 }
 
