@@ -26,7 +26,7 @@ class JsoupPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         tasks.withType<Copy> {
-            extensions.create("jsoup", JsoupCopyExtension::class.java, this)
+            extensions.create<JsoupCopyExtension>("jsoup", this)
         }
     }
 }

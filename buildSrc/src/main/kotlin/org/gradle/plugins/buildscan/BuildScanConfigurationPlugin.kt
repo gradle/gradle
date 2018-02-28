@@ -15,24 +15,28 @@
  */
 package org.gradle.plugins.buildscan
 
-import com.gradle.scan.plugin.BuildScanExtension
+import org.gradle.BuildEnvironment.isCiServer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
-import org.gradle.api.reporting.ReportContainer
 import org.gradle.api.reporting.Reporting
-import org.gradle.kotlin.dsl.the
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+
+import com.gradle.scan.plugin.BuildScanExtension
+
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+
 import kotlin.concurrent.thread
 
+import java.util.concurrent.CountDownLatch
 
-class BuildScanConfigurationPlugin : Plugin<Project> {
-    private
-    val isCiServer = System.getenv().containsKey("CI")
+import org.gradle.kotlin.dsl.*
+
+
+open class BuildScanConfigurationPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         apply {
@@ -43,15 +47,15 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
         extractVcsData()
 
         if (isCiServer) {
-            extractAllReportsFromCI(project)
+            extractAllReportsFromCI()
         }
 
-        extractCheckstyleAndCodenarcData(project)
+        extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
     }
 
     private
-    fun Project.extractCheckstyleAndCodenarcData(project: Project) {
+    fun Project.extractCheckstyleAndCodenarcData() {
         gradle.taskGraph.afterTask {
             if (state.failure != null) {
 
@@ -59,12 +63,12 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
                     val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
                     val errors = checkstyle.getElementsByTag("file").map { file ->
                         file.getElementsByTag("error").map { error ->
-                            val filePath = project.rootProject.relativePath(file.attr("name"))
+                            val filePath = rootProject.relativePath(file.attr("name"))
                             "$filePath:${error.attr("line")}:${error.attr("column")} \u2192 ${error.attr("message")}"
                         }
                     }.flatten()
 
-                    errors.forEach { project.buildScan.value("Checkstyle Issue", it) }
+                    errors.forEach { buildScan.value("Checkstyle Issue", it) }
                 }
 
                 if (this is CodeNarc && reports.xml.destination.exists()) {
@@ -72,13 +76,13 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
                     val errors = codenarc.getElementsByTag("Package").map { codenarcPackage ->
                         codenarcPackage.getElementsByTag("File").map { file ->
                             file.getElementsByTag("Violation").map { violation ->
-                                val filePath = project.rootProject.relativePath(file.attr("name"))
+                                val filePath = rootProject.relativePath(file.attr("name"))
                                 "$filePath:${violation.attr("lineNumber")} \u2192 ${violation.getElementsByTag("Message").first().text()}"
                             }
                         }.flatten()
                     }.flatten()
 
-                    errors.forEach { project.buildScan.value("CodeNarc Issue", it) }
+                    errors.forEach { buildScan.value("CodeNarc Issue", it) }
                 }
             }
         }
@@ -87,10 +91,12 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
     private
     fun Project.extractCiOrLocalData() {
         if (isCiServer) {
-            buildScan.tag("CI")
-            buildScan.tag(System.getenv("TEAMCITY_BUILDCONF_NAME"))
-            buildScan.link("TeamCity Build", System.getenv("BUILD_URL"))
-            buildScan.value("Build ID", System.getenv("BUILD_ID"))
+            buildScan {
+                tag("CI")
+                tag(System.getenv("TEAMCITY_BUILDCONF_NAME"))
+                link("TeamCity Build", System.getenv("BUILD_URL"))
+                value("Build ID", System.getenv("BUILD_ID"))
+            }
             setCommitId(System.getenv("BUILD_VCS_NUMBER"))
         } else {
             buildScan.tag("LOCAL")
@@ -105,14 +111,14 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
                 .directory(rootDir)
                 .start()
             assert(process.waitFor() == 0)
-            return process.inputStream.bufferedReader().readText().trim()
+            return process.inputStream.bufferedReader().use { it.readText().trim() }
         }
 
-        fun Project.execAsync(f: Runnable) {
-            val latch = java.util.concurrent.CountDownLatch(1)
+        fun execAsync(action: () -> Unit) {
+            val latch = CountDownLatch(1)
             thread(start = true) {
                 try {
-                    f.run()
+                    action()
                 } catch (e: Exception) {
                     rootProject.logger.warn("Build scan user data async exec failed", e)
                 } finally {
@@ -121,81 +127,79 @@ class BuildScanConfigurationPlugin : Plugin<Project> {
             }
         }
 
-        execAsync(Runnable {
+        execAsync {
             val commitId = run("git", "rev-parse", "--verify", "HEAD")
             setCommitId(commitId)
             val status = run("git", "status", "--porcelain")
-            if (!status.isEmpty()) {
+            if (status.isNotEmpty()) {
                 buildScan {
                     tag("dirty")
                     value("Git Status", status)
                 }
             }
-        })
-
-        execAsync(Runnable {
-            val branchName = run("git", "rev-parse", "--abbrev-ref", "HEAD")
-            if (!branchName.isEmpty() && branchName != "HEAD") {
-                buildScan.tag(branchName)
-                buildScan.value("Git Branch Name", branchName)
-            }
-        })
-    }
-
-    private fun Project.extractBuildCacheData() {
-        if (gradle.startParameter.isBuildCacheEnabled) {
-            buildScan.tag("CACHED")
-
-            val tasksToInvestigate = System.getProperty("cache.investigate.tasks")?.split(",") ?: listOf(":baseServices:classpathManifest")
-
-            project.buildScan.buildFinished({
-                allprojects.flatMap { it.tasks }.forEach {
-                    if (it.state.executed && (it.path in tasksToInvestigate)) {
-                        val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
-                        Visitor(project.buildScan, hasher, it).visit(it::class.java.classLoader)
-                    }
-                }
-            })
         }
-    }
 
-    private fun Project.extractAllReportsFromCI(project: Project) {
-        val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
-        val basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
-
-        gradle.taskGraph.afterTask {
-            if (state.failure != null) {
-                if (this is Reporting<*>) {
-                    val reportContainer = this as ReportContainer<*>
-                    reportContainer
-                        .filter { it.name in capturedReportingTypes && it.isEnabled && it.destination.exists() }
-                        .forEach {
-                            val linkName = "${this::class.java.simpleName.split("_")[0]} Report ($path)" // Strip off '_Decorated' addition to class names
-                            // see: ciReporting.gradle
-                            val reportPath = if (it.destination.isDirectory) {
-                                "report-${project.name}-${it.destination.name}.zip"
-                            } else {
-                                "report-${project.name}-${it.destination.parentFile.name}-${it.destination.name}"
-                            }
-                            val reportLink = "$basePath/$reportPath"
-                            project.buildScan.link(linkName, reportLink)
-                        }
+        execAsync {
+            val branchName = run("git", "rev-parse", "--abbrev-ref", "HEAD")
+            if (branchName.isNotEmpty() && branchName != "HEAD") {
+                buildScan {
+                    tag(branchName)
+                    value("Git Branch Name", branchName)
                 }
             }
         }
     }
 
     private
-    fun Project.setCommitId(commitId: String) {
+    fun Project.extractBuildCacheData() {
+        if (gradle.startParameter.isBuildCacheEnabled) {
+            buildScan.tag("CACHED")
+
+            val tasksToInvestigate = System.getProperty("cache.investigate.tasks", ":baseServices:classpathManifest")
+                .split(",")
+
+            buildScan.buildFinished {
+                allprojects.flatMap { it.tasks }
+                    .filter { it.state.executed && it.path in tasksToInvestigate }
+                    .forEach { task ->
+                        val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
+                        Visitor(buildScan, hasher, task).visit(task::class.java.classLoader)
+                    }
+            }
+        }
+    }
+
+    private
+    fun Project.extractAllReportsFromCI() {
+        val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
+        val basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
+
+        gradle.taskGraph.afterTask {
+            if (state.failure != null && this is Reporting<*>) {
+                this.reports.filter { it.name in capturedReportingTypes && it.isEnabled && it.destination.exists() }
+                    .forEach { report ->
+                        val linkName = "${this::class.java.simpleName.split("_")[0]} Report ($path)" // Strip off '_Decorated' addition to class names
+                        // see: ciReporting.gradle
+                        val reportPath =
+                            if (report.destination.isDirectory) "report-${project.name}-${report.destination.name}.zip"
+                            else "report-${project.name}-${report.destination.parentFile.name}-${report.destination.name}"
+                        val reportLink = "$basePath/$reportPath"
+                        buildScan.link(linkName, reportLink)
+                    }
+            }
+        }
+    }
+
+    private
+    fun Project.setCommitId(commitId: String) =
         buildScan {
             value("Git Commit ID", commitId)
             link("Source", "https://github.com/gradle/gradle/commit/" + commitId)
         }
-    }
 }
 
 fun Project.buildScan(configure: BuildScanExtension.() -> Unit): Unit =
-    extensions.configure("buildScan", configure)
+    configure(configure)
 
 val Project.buildScan
     get() = the<BuildScanExtension>()

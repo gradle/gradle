@@ -1,10 +1,12 @@
-import org.gradle.api.internal.GradleInternal
 import org.gradle.build.ClasspathManifest
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
+import org.gradle.BuildEnvironment.isCiServer
+
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
@@ -19,7 +21,7 @@ base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.val
 
 java.sourceCompatibility = JavaVersion.VERSION_1_7
 
-val javaInstallationProbe = (gradle as GradleInternal).services.get(JavaInstallationProbe::class.java)
+val javaInstallationProbe = gradle.serviceOf<JavaInstallationProbe>()
 
 val compileTasks by extra { tasks.matching { it is JavaCompile || it is GroovyCompile } }
 val testTasks by extra { tasks.withType<Test>() }
@@ -53,7 +55,7 @@ val classpathManifest by tasks.creating(ClasspathManifest::class)
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), generatedResourcesDir)
 
-class CiEnvironmentProvider(private val isCiServer: Boolean, private val test: Test, private val rootProject: Project) : CommandLineArgumentProvider {
+class CiEnvironmentProvider(private val test: Test, private val rootProject: Project) : CommandLineArgumentProvider {
     override fun asArguments(): Iterable<String> {
         return if (isCiServer) {
             mapOf(
@@ -69,11 +71,9 @@ class CiEnvironmentProvider(private val isCiServer: Boolean, private val test: T
     }
 }
 
-val isCiServer: Boolean by rootProject.extra
-
 testTasks.all {
     maxParallelForks = rootProject.extra["maxParallelForks"] as Int
-    jvmArgumentProviders.add(CiEnvironmentProvider(isCiServer, this, rootProject))
+    jvmArgumentProviders.add(CiEnvironmentProvider(this, rootProject))
     executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
     environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
     if (javaInstallationForTest.javaVersion.isJava7) {
