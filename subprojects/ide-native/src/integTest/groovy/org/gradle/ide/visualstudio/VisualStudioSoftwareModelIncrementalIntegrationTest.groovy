@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.apache.commons.io.FileUtils.copyFile
@@ -70,7 +69,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         executedAndNotSkipped getComponentTasks("main")
 
         when:
-        copyFile(file("src/main/cpp/main.cpp"), file("src/main/cpp/foo.cpp"))
+        copyFile(file("src/main/cpp/main.cpp"), file("src/main/cpp/foo.cpp").assertDoesNotExist())
         run "visualStudio"
 
         then:
@@ -100,7 +99,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         executedAndNotSkipped getComponentTasks("main")
 
         when:
-        copyFile(file("src/main/headers/hello.h"), file("src/main/headers/foo.h"))
+        copyFile(file("src/main/headers/hello.h"), file("src/main/headers/foo.h").assertDoesNotExist())
         run "visualStudio"
 
         then:
@@ -285,9 +284,5 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
 
     private static String getFiltersTask(String exeName) {
         return ":${exeName}ExeVisualStudioFilters"
-    }
-
-    private static List<String> sourceFiles(List<SourceFile> files, String path) {
-        return files*.withPath(path).sort()
     }
 }

@@ -318,7 +318,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    def "visual studio tasks re-execute when new xml actions are added"() {
+    def "visual studio tasks re-execute when new project xml actions are added"() {
         app.writeSources(file("src/main"))
 
         when:
@@ -346,6 +346,42 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         buildFile << """
             visualStudio {
                 projects.all {
+                    projectFile.withXml { xml ->
+                        Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
+                        globals.appendNode("ExtraInfo", "Some extra info")
+                        globals.appendNode("ProjectName", project.name)
+                    }
+                }
+            }
+        """
+        run "visualStudio"
+
+        then:
+        skipped ":appVisualStudioSolution"
+        executedAndNotSkipped getComponentTasks("app")
+
+        when:
+        run "visualStudio"
+
+        then:
+        skipped ":appVisualStudioSolution"
+        skipped getComponentTasks("app")
+    }
+
+    def "visual studio tasks re-execute when new filter file xml actions are added"() {
+        app.writeSources(file("src/main"))
+
+        when:
+        run "visualStudio"
+
+        then:
+        executedAndNotSkipped ":appVisualStudioSolution"
+        executedAndNotSkipped getComponentTasks("app")
+
+        when:
+        buildFile << """
+            visualStudio {
+                projects.all {
                     filtersFile.withXml { }
                 }
             }
@@ -359,11 +395,68 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         when:
         buildFile << """
             visualStudio {
+                projects.all {
+                    filtersFile.withXml { xml ->
+                        xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
+                    }
+                }
+            }
+        """
+        run "visualStudio"
+
+        then:
+        skipped ":appVisualStudioSolution"
+        executedAndNotSkipped getComponentTasks("app")
+
+        when:
+        run "visualStudio"
+
+        then:
+        skipped ":appVisualStudioSolution"
+        skipped getComponentTasks("app")
+    }
+
+    def "visual studio tasks re-execute when new solution content actions are added"() {
+        app.writeSources(file("src/main"))
+
+        when:
+        run "visualStudio"
+
+        then:
+        executedAndNotSkipped ":appVisualStudioSolution"
+        executedAndNotSkipped getComponentTasks("app")
+
+        when:
+        buildFile << """
+            visualStudio {
                 solution {
                     solutionFile.withContent { }
                 }
             }
         """
+        run "visualStudio"
+
+        then:
+        executedAndNotSkipped ":appVisualStudioSolution"
+        skipped getComponentTasks("app")
+
+        when:
+        buildFile << '''
+            visualStudio {
+                solution {
+                    solutionFile.withContent { content ->
+                        String projectList = projects.collect({it.name}).join(',')
+        
+                        content.text = content.text.replace("EndGlobal", """
+                            GlobalSection(MyGlobalSection)
+                            Project-list: ${projectList}
+                            EndGlobalSection
+                            EndGlobal
+                        """)
+                    }
+                }
+            }
+        '''
         run "visualStudio"
 
         then:
