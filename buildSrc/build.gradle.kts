@@ -72,6 +72,10 @@ gradlePlugin {
             id = "configure-task-properties-validation"
             implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
         }
+        "buildscanConfiguration" {
+            id = "buildscan-configuration"
+            implementationClass = "org.gradle.plugins.buildscan.BuildScanConfigurationPlugin"
+        }
         "ciReporting" {
             id = "ci-reporting"
             implementationClass = "org.gradle.plugins.reporting.CiReportingPlugin"
@@ -106,6 +110,7 @@ dependencies {
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")
     compile("com.google.code.gson:gson:2.7")
+    compile("com.gradle:build-scan-plugin:1.12.1")
 
     constraints {
         compile("org.codehaus.groovy:groovy-all:2.4.12")
@@ -130,6 +135,9 @@ tasks {
     }
     "compileKotlin"(KotlinCompile::class) {
         classpath += files(compileGroovy.destinationDir).builtBy(compileGroovy)
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+        }
     }
 }
 
