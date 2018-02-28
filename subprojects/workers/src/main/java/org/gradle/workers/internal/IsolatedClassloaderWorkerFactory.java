@@ -40,8 +40,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
-import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.util.GUtil;
 import org.gradle.workers.IsolationMode;
 
@@ -56,13 +54,11 @@ import java.util.concurrent.Callable;
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     private final ClassLoaderFactory classLoaderFactory;
-    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
 
-    public IsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public IsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationExecutor buildOperationExecutor) {
         this.classLoaderFactory = classLoaderFactory;
-        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -71,27 +67,22 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return new Worker() {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
+                return execute(spec, buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationRef parentBuildOperation) {
-                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
-                try {
-                    return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-                        @Override
-                        public DefaultWorkResult call(BuildOperationContext context) {
-                            return executeInWorkerClassLoader(spec, forkOptions);
-                        }
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
+                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+                    @Override
+                    public DefaultWorkResult call(BuildOperationContext context) {
+                        return executeInWorkerClassLoader(spec, forkOptions);
+                    }
 
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
-                        }
-                    });
-                } finally {
-                    workerLease.leaseFinish();
-                }
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                    }
+                });
             }
         };
     }

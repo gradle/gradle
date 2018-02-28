@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
@@ -38,7 +37,7 @@ class WorkerDaemonClient implements Worker, Stoppable {
     }
 
     @Override
-    public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationRef parentBuildOperation) {
+    public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
         return execute(spec);
     }
 

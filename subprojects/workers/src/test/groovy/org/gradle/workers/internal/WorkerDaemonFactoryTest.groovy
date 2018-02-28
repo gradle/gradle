@@ -18,33 +18,25 @@ package org.gradle.workers.internal
 
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRef
-import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
 import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
 import spock.lang.Subject
-
-import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion
 
 class WorkerDaemonFactoryTest extends Specification {
 
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
     def memoryManager = Mock(MemoryManager)
-    def workerLeaseRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def workerOperation = Mock(WorkerLease)
     def buildOperation = Mock(BuildOperationRef)
-    def completion = Mock(WorkerLeaseCompletion)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationExecutor)
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
     def spec = Stub(ActionExecutionSpec)
 
     def setup() {
-        _ * workerLeaseRegistry.getCurrentWorkerLease() >> workerOperation
         _ * buildOperationExecutor.getCurrentOperation() >> buildOperation
     }
 
@@ -61,7 +53,6 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(options).execute(spec)
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
@@ -80,7 +71,6 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(options).execute(spec)
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
@@ -96,7 +86,6 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(options).execute(spec)
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
@@ -112,7 +101,7 @@ class WorkerDaemonFactoryTest extends Specification {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor)
+        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationExecutor)
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }
@@ -129,10 +118,8 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(options).execute(spec)
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> client
         1 * buildOperationExecutor.call(_)
-        1 * completion.leaseFinish()
     }
 
     def "build worker operation is finished even if worker fails"() {
@@ -140,14 +127,12 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(options).execute(spec)
 
         then:
-        1 * workerOperation.startChild() >> completion
         1 * clientsManager.reserveIdleClient(options) >> client
         1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)
-        1 * completion.leaseFinish()
     }
 
     def "stops clients"() {
