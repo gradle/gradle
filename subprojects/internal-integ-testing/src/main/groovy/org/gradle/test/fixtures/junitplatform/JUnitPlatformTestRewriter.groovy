@@ -19,8 +19,8 @@ package org.gradle.test.fixtures.junitplatform
 import groovy.io.FileType
 
 class JUnitPlatformTestRewriter {
-    static final String LATEST_JUPITER_VERSION = '5.1.0-RC1'
-    static final String LATEST_VINTAGE_VERSION = '5.1.0-RC1'
+    static final String LATEST_JUPITER_VERSION = '5.1.0'
+    static final String LATEST_VINTAGE_VERSION = '5.1.0'
     static Map replacements = ['org.junit.Test': 'org.junit.jupiter.api.Test',
                                'org.junit.Before;': 'org.junit.jupiter.api.BeforeEach;',
                                'org.junit.After;': 'org.junit.jupiter.api.AfterEach;',

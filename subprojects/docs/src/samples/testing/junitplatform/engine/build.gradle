@@ -6,10 +6,10 @@ repositories {
 
 // START SNIPPET vintage-dependencies
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.3'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
     testCompileOnly 'junit:junit:4.12'
-    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:4.12.3'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.1.0'
 }
 // END SNIPPET vintage-dependencies
 
