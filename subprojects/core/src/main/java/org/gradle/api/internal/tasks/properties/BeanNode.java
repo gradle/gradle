@@ -20,10 +20,8 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
 
@@ -84,23 +82,17 @@ class IterableBeanNode extends BaseBeanNode<Iterable<?>> {
     @Override
     public boolean unpackToQueue(Queue<BeanNode> queue) {
         int count = 0;
-        Set<String> seenNames = new HashSet<String>();
         for (Object input : getBean()) {
             String propertyName = determinePropertyName(input, count);
             count++;
-            Preconditions.checkState(seenNames.add(propertyName),
-                "Nested iterables can only contain beans with unique names. Duplicate name: '%s'.",
-                getQualifiedPropertyName(propertyName));
             queue.add(createChildNode(propertyName, input));
-
         }
         return true;
     }
 
-    private String determinePropertyName(@Nullable Object input, int count) {
-        return input instanceof Named
-            ? ((Named) input).getName()
-            : "$" + count;
+    private static String determinePropertyName(@Nullable Object input, int count) {
+        String prefix = input instanceof Named ? ((Named) input).getName() : "";
+        return prefix + "$" + count;
     }
 }
 

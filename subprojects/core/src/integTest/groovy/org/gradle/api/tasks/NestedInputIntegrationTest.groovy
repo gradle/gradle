@@ -654,7 +654,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cycles between nested beans are not allowed. Cycle detected between: 'nested' and 'nested.nested'.")
     }
 
-    def "duplicate names in nested iterable cause the build to fail"() {
+    def "duplicate names in nested iterable are allowed"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
         buildFile << """
@@ -662,9 +662,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "myTask"
-        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
-        failure.assertHasCause("Nested iterables can only contain beans with unique names. Duplicate name: 'nested.name'.")
+        succeeds "myTask"
     }
 
     def "input changes for task with named nested beans"() {
@@ -689,8 +687,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run taskPath, '-PnamedName=different', '--info'
         then:
         executedAndNotSkipped taskPath
-        output.contains("Input property 'nested.different.class' has been added for task ':myTask'")
-        output.contains("Input property 'nested.name1.class' has been removed for task ':myTask'")
+        output.contains("Input property 'nested.different\$0.class' has been added for task ':myTask'")
+        output.contains("Input property 'nested.name1\$0.class' has been removed for task ':myTask'")
     }
 
     def "input changes for task with nested map"() {
