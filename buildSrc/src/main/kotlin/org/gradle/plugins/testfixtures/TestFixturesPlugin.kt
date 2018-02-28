@@ -51,7 +51,7 @@ open class TestFixturesPlugin : Plugin<Project> {
 
         apply { plugin("java") }
 
-        extensions.create("testFixtures", TestFixturesExtension::class.java)
+        extensions.create<TestFixturesExtension>("testFixtures")
 
         if (file("src/testFixtures").isDirectory) {
             configureAsProducer()
