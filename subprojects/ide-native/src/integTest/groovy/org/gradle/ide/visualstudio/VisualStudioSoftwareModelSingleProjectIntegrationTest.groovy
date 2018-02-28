@@ -864,6 +864,72 @@ model {
         mainSolution.assertReferencesProject(libProject, ['win32Debug', 'x64Debug', 'win32Release', 'x64Release'])
     }
 
+    def "only create visual studio projects for buildable binaries"() {
+        when:
+        app.library.writeSources(file("src/both"))
+        app.library.writeSources(file("src/staticOnly"))
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+        buildFile << """
+            model {
+                components {
+                    both(NativeLibrarySpec) {
+                        binaries.all {
+                            if (buildType == buildTypes.debug) {
+                                buildable = false 
+                            }
+                        }
+                    }
+                    staticOnly(NativeLibrarySpec) {
+                        binaries.withType(SharedLibraryBinarySpec) {
+                            buildable = false
+                        }
+                    }
+                    none(NativeLibrarySpec) {
+                        binaries.all {
+                            buildable = false
+                        }
+                    }
+                }
+            }
+        """
+        and:
+        run "visualStudio"
+
+        then:
+        executedAndNotSkipped getLibraryTasks("both")
+        executedAndNotSkipped getStaticLibraryTasks("staticOnly")
+        notExecuted getSharedLibraryTasks("staticOnly")
+        notExecuted getLibraryTasks("none")
+
+        and:
+        final bothLibProjectFile = projectFile("bothLib.vcxproj")
+        bothLibProjectFile.assertHasComponentSources(app.library, "src/both")
+        bothLibProjectFile.projectConfigurations.keySet() == ['win32Release', 'x64Release'] as Set
+
+        and:
+        final bothDllProjectFile = projectFile("bothDll.vcxproj")
+        bothDllProjectFile.assertHasComponentSources(app.library, "src/both")
+        bothDllProjectFile.projectConfigurations.keySet() == ['win32Release', 'x64Release'] as Set
+
+        and:
+        final staticOnlyLibProjectFile = projectFile("staticOnlyLib.vcxproj")
+        staticOnlyLibProjectFile.assertHasComponentSources(app.library, "src/staticOnly")
+        staticOnlyLibProjectFile.projectConfigurations.keySet() == projectConfigurations
+
+        and:
+        !file("staticOnlyDll.vcxproj").exists()
+
+        and:
+        !file("noneDll.vcxproj").exists()
+        !file("noneLib.vcxproj").exists()
+
+        and:
+        file("app.sln").assertExists()
+        solutionFile("app.sln").assertHasProjects("bothDll", "bothLib", "staticOnlyLib")
+    }
+
     private String[] getLibraryTasks(String libraryName) {
         return getStaticLibraryTasks(libraryName) + getSharedLibraryTasks(libraryName)
     }
