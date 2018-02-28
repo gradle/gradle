@@ -210,7 +210,7 @@ Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java c
 - The compile classpath is much larger than it needs to be, slowing down compilation.
 - The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
 
-Now, if this new behavior is turned on, the Java and Java Library plugins both [honor the separation of compile and runtime scopes](userguide/javaLibraryPlugin.html#sec:java_library_separation).
+Now, if this new behavior is turned on, the Java and Java Library plugins both [honor the separation of compile and runtime scopes](userguide/java_library_plugin.html#sec:java_library_separation).
 Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well.
 This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
 
