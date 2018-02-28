@@ -23,6 +23,7 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -56,7 +57,11 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost,
-    gradle: Gradle) : Gradle by gradle {
+    gradle: Gradle,
+    private val scriptHandler: ScriptHandler) : Gradle by gradle {
+
+    val initscript =
+        scriptHandler
 
     /**
      * Configures the classpath of the init script.
@@ -366,6 +371,7 @@ abstract class KotlinInitScript(
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         processOperations.javaexec(configuration)
+
     /**
      * Applies zero or more plugins or scripts.
      * <p>
@@ -378,9 +384,11 @@ abstract class KotlinInitScript(
         host.applyObjectConfigurationAction(action)
 
     private
-    val fileOperations get() = host.operations
+    val fileOperations
+        get() = host.operations
 
     private
-    val processOperations get() = host.operations
+    val processOperations
+        get() = host.operations
 }
 

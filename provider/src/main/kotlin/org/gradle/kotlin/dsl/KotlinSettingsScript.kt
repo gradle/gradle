@@ -22,6 +22,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileLookup
@@ -62,7 +63,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
+abstract class KotlinSettingsScript(
+    settings: Settings,
+    private val scriptHandler: ScriptHandler) : Settings by settings {
 
     private
     val fileOperations by lazy { fileOperationsFor(settings) }
@@ -367,6 +370,9 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         fileOperations.javaexec(configuration)
+
+    override fun getBuildscript(): ScriptHandler =
+        scriptHandler
 
     /**
      * Configures the build script classpath for settings.

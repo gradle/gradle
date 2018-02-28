@@ -115,8 +115,8 @@ fun gradleInitScriptTarget(
         buildscriptBlockName = "initscript",
         eval = { scriptClass ->
             scriptClass
-                .getConstructor(KotlinScriptHost::class.java, Gradle::class.java)
-                .newInstance(scriptHost, gradle)
+                .getConstructor(KotlinScriptHost::class.java, Gradle::class.java, ScriptHandler::class.java)
+                .newInstance(scriptHost, gradle, scriptHandler)
         },
         evalBuildscriptBlock = { scriptClass ->
             scriptClass
@@ -153,8 +153,8 @@ data class KotlinScriptTarget<T : Any>(
     val buildscriptBlockName: String = "buildscript",
     val eval: (Class<*>) -> Unit = { scriptClass ->
         scriptClass
-            .getConstructor(type.java)
-            .newInstance(`object`)
+            .getConstructor(type.java, ScriptHandler::class.java)
+            .newInstance(`object`, scriptHandler)
     },
     val evalBuildscriptBlock: (Class<*>) -> Unit = { scriptClass ->
         scriptClass

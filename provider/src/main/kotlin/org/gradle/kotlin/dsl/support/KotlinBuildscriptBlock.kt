@@ -32,7 +32,7 @@ import org.gradle.kotlin.dsl.ScriptHandlerScope
  */
 abstract class KotlinBuildscriptBlock(
     project: Project,
-    private val scriptHandler: ScriptHandler) : KotlinBuildScript(project) {
+    private val scriptHandler: ScriptHandler) : KotlinBuildScript(project, scriptHandler) {
 
     /**
      * Configures the build script classpath for this project.
@@ -51,7 +51,7 @@ abstract class KotlinBuildscriptBlock(
  */
 abstract class KotlinSettingsBuildscriptBlock(
     settings: Settings,
-    private val scriptHandler: ScriptHandler) : KotlinSettingsScript(settings) {
+    private val scriptHandler: ScriptHandler) : KotlinSettingsScript(settings, scriptHandler) {
 
     /**
      * Configures the build script classpath for settings.
@@ -70,7 +70,7 @@ abstract class KotlinSettingsBuildscriptBlock(
 abstract class KotlinInitscriptBlock(
     host: KotlinScriptHost,
     gradle: Gradle,
-    private val scriptHandler: ScriptHandler) : KotlinInitScript(host, gradle) {
+    private val scriptHandler: ScriptHandler) : KotlinInitScript(host, gradle, scriptHandler) {
 
     /**
      * Configures the classpath of the init script.
