@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.buildoperation.StyledTextBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -27,7 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin
-public class StyledTextOutputEvent extends RenderableOutputEvent {
+public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails{
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, String text) {
@@ -72,8 +73,13 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         }
     }
 
+    @Override
+    public List<? extends SpanDetail> getSpanDetails() {
+        return spans;
+    }
+
     @UsedByScanPlugin
-    public static class Span implements Serializable {
+    public static class Span implements SpanDetail, Serializable {
         private final String text;
         private final StyledTextOutput.Style style;
 

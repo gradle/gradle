@@ -17,13 +17,14 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.buildoperation.LogEventBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 @UsedByScanPlugin
-public class LogEvent extends RenderableOutputEvent {
+public class LogEvent extends RenderableOutputEvent implements LogEventBuildOperationProgressDetails {
     private final String message;
     private final Throwable throwable;
 

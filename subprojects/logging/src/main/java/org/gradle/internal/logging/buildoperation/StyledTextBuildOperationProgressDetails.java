@@ -16,10 +16,17 @@
 
 package org.gradle.internal.logging.buildoperation;
 
-import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
 public interface StyledTextBuildOperationProgressDetails extends OutputBuildOperationProgressDetails{
-    List<StyledTextOutputEvent.Span> getSpans();
+    List<? extends SpanDetail> getSpanDetails();
+
+    @UsedByScanPlugin
+    interface SpanDetail {
+        StyledTextOutput.Style getStyle();
+        String getText();
+    }
 }

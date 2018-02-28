@@ -18,6 +18,7 @@ package org.gradle.internal.operations.logging;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.buildoperation.OutputBuildOperationProgressDetails;
 import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -42,8 +43,7 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
             forwardAsBuildOperationProgress(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
-        }
-        if (event instanceof ProgressStartEvent) {
+        } else if (event instanceof ProgressStartEvent) {
             ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
             forwardAsBuildOperationProgress(progressStartEvent, progressStartEvent.getBuildOperationId());
         }
@@ -51,12 +51,44 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
 
     private void forwardAsBuildOperationProgress(CategorisedOutputEvent renderableOutputEvent, Object buildOperationId) {
         if (buildOperationId != null) {
-            // TODO verify the assumption id is always of type `OperationIdentifier`
             buildOperationListenerBroadcaster.progress(
                 buildOperationId,
-                new OperationProgressEvent(renderableOutputEvent.getTimestamp(), OutputDetailsFactory.from(renderableOutputEvent))
+                new OperationProgressEvent(renderableOutputEvent.getTimestamp(), filter(renderableOutputEvent))
             );
         }
+    }
+
+    public static Object filter(CategorisedOutputEvent event) {
+        if (event instanceof ProgressStartEvent) {
+            final ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
+            if (progressStartEvent.getLoggingHeader() != null || expectedFromBuildScanPlugin(progressStartEvent)) {
+                return progressStartEvent;
+            }
+        } else if (event instanceof OutputBuildOperationProgressDetails) {
+            return event;
+        }
+        return null;
+    }
+
+    /**
+     * workaround to ensure Download / Upload console log can be captured.
+     *
+     * Problem to workaround:
+     *
+     * When Download operation is triggered we generate 2 progress events: 1. from the build operation executer including a referenced build operation but no logging header 2. from
+     * `AbstractProgressLoggingHandler` that includes a logging header but no referenced build operation
+     *
+     * By default only progress events with associated build operations are forwarded to the build operation listener.
+     *
+     * The build scan plugin by default only handles progress starte events _with_ a logging header.
+     *
+     * This workaround bypasses the 2nd limitations.
+     */
+
+    private static boolean expectedFromBuildScanPlugin(ProgressStartEvent progressStartEvent) {
+        return progressStartEvent.getDescription().startsWith("Download")
+            || progressStartEvent.getDescription().startsWith("Upload");
+
     }
 
     @Override

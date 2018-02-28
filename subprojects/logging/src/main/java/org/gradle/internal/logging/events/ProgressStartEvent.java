@@ -17,13 +17,14 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.buildoperation.ProgressStartBuildOperationProgressDetails;
 import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 @UsedByScanPlugin
-public class ProgressStartEvent extends CategorisedOutputEvent {
+public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails{
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;
     private final String description;
@@ -109,4 +110,5 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     public BuildOperationCategory getBuildOperationCategory() {
         return buildOperationCategory;
     }
+
 }
