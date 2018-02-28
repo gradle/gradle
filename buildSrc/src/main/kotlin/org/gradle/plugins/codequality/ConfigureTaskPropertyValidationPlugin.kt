@@ -74,7 +74,7 @@ fun Project.addValidateTask() =
     afterEvaluate {
         // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
         // whether the task already exists.
-        if (tasks.findByName(validateTaskName) != null) {
+        if (tasks.findByName(validateTaskName) == null) {
             val validateTask = tasks.create<ValidateTaskProperties>(validateTaskName) {
                 val main by java.sourceSets
                 dependsOn(main.output)

@@ -58,7 +58,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
     private
     fun Project.configureExtensionForAllProjects() = allprojects {
-        extensions.create(ideConfigurationBaseName, IdeConfigurationExtension::class.java, this)
+        extensions.create<IdeConfigurationExtension>(ideConfigurationBaseName, this)
     }
 
     private
