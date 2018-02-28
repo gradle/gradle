@@ -21,12 +21,20 @@ import kotlin.reflect.KClass
 
 /**
  * Returns the extension of the specified type.
+ *
+ * @param T the extension type.
  */
 inline
 fun <reified T : Any> ExtensionAware.the() =
     the(T::class)
 
 
+/**
+ * Returns the extension of the specified [extensionType].
+ *
+ * @param T the extension type.
+ * @param extensionType the reified extension type.
+ */
 fun <T : Any> ExtensionAware.the(extensionType: KClass<T>) =
     extensions.findByType(extensionType.java) ?: extensions.getByType(extensionType.java)
 
