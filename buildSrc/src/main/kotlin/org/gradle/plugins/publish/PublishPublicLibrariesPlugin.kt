@@ -27,7 +27,6 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.*
 import java.util.*
 
@@ -61,7 +60,7 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
     }
 
     private fun Project.configureUploadArchivesTask(generatePom: GeneratePom) {
-        val uploadArchives by tasks.getting(Upload::class) {
+        tasks.getByName<Upload>("uploadArchives") {
             // TODO Add magic property to upcoming configuration interface
             onlyIf { !project.hasProperty("noUpload") }
             configuration = generatePom.publishRuntime

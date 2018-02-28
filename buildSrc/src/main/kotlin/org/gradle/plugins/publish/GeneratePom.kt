@@ -26,6 +26,7 @@ open class GeneratePom : DefaultTask() {
 //    val publishCompile = project.configurations.create("publishCompile")
 
     @get:InputFiles
+    private
     val publishCompile by project.configurations.creating
 
     @get:InputFiles
@@ -34,7 +35,7 @@ open class GeneratePom : DefaultTask() {
     init {
         // Subprojects assign dependencies to publishCompile to indicate that they should be part of the published pom.
         // Therefore compile needs to contain those dependencies and extend publishCompile
-        val compile by project.configurations.getting {
+        project.configurations.getByName("compile")  {
             extendsFrom(publishCompile)
         }
     }
