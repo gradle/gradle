@@ -32,7 +32,7 @@ val classycleBaseName = "classycle"
 open class ClassyclePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val extension = extensions.create(classycleBaseName, ClassycleExtension::class.java, project)
+        val extension = extensions.create<ClassycleExtension>(classycleBaseName, project)
         configurations.create(classycleBaseName)
         dependencies.add(classycleBaseName, "classycle:classycle:1.4@jar")
         tasks {

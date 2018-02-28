@@ -14,6 +14,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 
@@ -22,9 +23,8 @@ open class GradleCompilePlugin : Plugin<Project> {
     override fun apply(project: Project) = project.run {
         if (rootProject == project) {
             val javaInstallationProbe = project.serviceOf<JavaInstallationProbe>()
-            extensions.create(
+            extensions.create<AvailableJavaInstallations>(
                 "availableJavaInstallations",
-                AvailableJavaInstallations::class.java,
                 project,
                 javaInstallationProbe
             )
