@@ -3,6 +3,8 @@ The Gradle team is pleased to announce Gradle 4.6.
 First and foremost, this release of Gradle includes built-in support for JUnit Platform and the JUnit Jupiter/Vintage Engine, also known as [JUnit 5 support](#junit-5-support).
 You can use the new filtering and engines functionality in JUnit 5 using the examples provided below and in the documentation.
 
+Thank you to the [JUnit team](https://github.com/orgs/junit-team/people) for helping to achieve JUnit Platform support, and a special thank you to [Andrew Oberstar](https://github.com/ajoberstar) for extraordinary contributions toward this effort.
+
 Also regarding testing, you can now improve your testing feedback loop when running JVM-based tests using the [new fail-fast option for `Test` tasks](#fail-fast-option-for-test-tasks), which stops the build immediately after the first test failure.
 
     // Example JUnit 5 and fail-fast test configuration
@@ -15,7 +17,7 @@ Also regarding testing, you can now improve your testing feedback loop when runn
         failFast = true
     }
 
-Next, you can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
+Moving on to dependency management improvements: you can now [declare dependency constraints for transitive dependencies](#dependency-constraints-for-transitive-dependencies) and avoid problems caused by oft-hidden upstream dependency changes. 
 
 This release also features enhanced Maven dependency compatibility: support for [importing BOMs](#bom-import), [optional dependencies](#support-for-optional-dependencies-in-pom-consumption), and [compile/runtime separation when consuming POMs](#compile/runtime-scope-separation-in-pom-consumption).
 For now you must enable these features by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` to your _settings.gradle_ file, as they break backward compatibility in some cases.
@@ -464,6 +466,7 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
+ - [Andrew Oberstar](https://github.com/ajoberstar) - Spike multiple JUnit 5 implementations (gradle/gradle#3886)
  - [Thomas Broyer](https://github.com/tbroyer) - Add annotationProcessor configuration for each source set (gradle/gradle#3786)
  - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
  - [Kevin Macksamie](https://github.com/k-mack) - Fix xref id to java-gradle-plugin section of user guide (gradle/gradle#4179)
