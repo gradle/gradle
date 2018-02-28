@@ -16,6 +16,7 @@
 package org.gradle.plugins.buildscan
 
 import com.gradle.scan.plugin.BuildScanExtension
+import org.gradle.BuildEnvironment.isCiServer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.quality.Checkstyle
@@ -31,8 +32,6 @@ import kotlin.concurrent.thread
 
 
 class BuildScanConfigurationPlugin : Plugin<Project> {
-    private
-    val isCiServer = System.getenv().containsKey("CI")
 
     override fun apply(project: Project): Unit = project.run {
         apply {
