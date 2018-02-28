@@ -162,7 +162,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         noExceptionThrown()
     }
 
-    def "nested iterable beans must have unique names"() {
+    def "nested iterable beans can have the same names"() {
         def task = project.tasks.create("myTask", TaskWithNestedObject)
         task.nested = [new NamedNestedBean('name', 'value1'), new NamedNestedBean('name', 'value2')]
 
@@ -170,8 +170,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
-        IllegalStateException e = thrown(IllegalStateException)
-        e.message == "Nested iterables can only contain beans with unique names. Duplicate name: 'nested.name'."
+        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$0.class'})
+        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$1.class'})
     }
 
     static class NamedNestedBean implements Named {
