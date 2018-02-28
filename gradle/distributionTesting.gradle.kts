@@ -38,7 +38,7 @@ tasks.withType<DistributionTest> {
         jvmArgs("-XX:MaxPermSize=768m")
     }
 
-    reports.junitXml.destination = File(the<JavaPluginConvention>().testResultsDir, name)
+    reports.junitXml.destination = the<JavaPluginConvention>().testResultsDir.resolve(name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
@@ -81,7 +81,7 @@ tasks.withType<DistributionTest> {
     }
 
     project.afterEvaluate {
-        reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+        reports.html.destination = the<ReportingExtension>().baseDir.resolve(this@withType.name)
     }
 
     lateinit var daemonListener: Any
