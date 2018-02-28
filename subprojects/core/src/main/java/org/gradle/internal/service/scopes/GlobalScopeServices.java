@@ -237,7 +237,6 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new InMemoryCacheDecoratorFactory(environment.isLongLivingProcess(), cacheFactory);
     }
 
-
     DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
         return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }

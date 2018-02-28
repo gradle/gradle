@@ -42,32 +42,32 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
     public void onOutput(OutputEvent event) {
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-            forwardAsBuildOperationProgress(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
+            maybeForwardAsBuildOperationProgress(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
         } else if (event instanceof ProgressStartEvent) {
             ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            forwardAsBuildOperationProgress(progressStartEvent, progressStartEvent.getBuildOperationId());
+            maybeForwardAsBuildOperationProgress(progressStartEvent, progressStartEvent.getBuildOperationId());
         }
     }
 
-    private void forwardAsBuildOperationProgress(CategorisedOutputEvent renderableOutputEvent, Object buildOperationId) {
-        if (buildOperationId != null) {
-            buildOperationListenerBroadcaster.progress(
-                buildOperationId,
-                new OperationProgressEvent(renderableOutputEvent.getTimestamp(), filter(renderableOutputEvent))
-            );
+    private void maybeForwardAsBuildOperationProgress(CategorisedOutputEvent renderableOutputEvent, Object buildOperationId) {
+        if (buildOperationId == null || !isForwardlableOutput(renderableOutputEvent)) {
+            return;
         }
+        buildOperationListenerBroadcaster.progress(
+            buildOperationId,
+            new OperationProgressEvent(renderableOutputEvent.getTimestamp(), renderableOutputEvent)
+        );
+
     }
 
-    public static Object filter(CategorisedOutputEvent event) {
+    // we filter
+    public static boolean isForwardlableOutput(CategorisedOutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             final ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            if (progressStartEvent.getLoggingHeader() != null || expectedFromBuildScanPlugin(progressStartEvent)) {
-                return progressStartEvent;
-            }
-        } else if (event instanceof OutputBuildOperationProgressDetails) {
-            return event;
+            return progressStartEvent.getLoggingHeader() != null || expectedFromBuildScanPlugin(progressStartEvent);
+        } else {
+            return event instanceof OutputBuildOperationProgressDetails;
         }
-        return null;
     }
 
     /**

@@ -69,13 +69,11 @@ import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.logging.LoggingBuildOperationNotificationBridge;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
@@ -167,16 +165,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             parallelismConfigurationManager,
             buildOperationIdFactory
         );
-    }
-
-    LoggingBuildOperationNotificationBridge createLoggingBuildOperationNotificationBridge(LoggingManagerInternal loggingManagerInternal, ListenerManager listenerManager) {
-        BuildOperationListener buildOperationListener = listenerManager.getBroadcaster(BuildOperationListener.class);
-        return new LoggingBuildOperationNotificationBridge(loggingManagerInternal, buildOperationListener);
-    }
-
-    @SuppressWarnings("unused")
-    void configure(ServiceRegistration serviceRegistration, LoggingBuildOperationNotificationBridge loggingBuildOperationNotificationBridge) {
-        // noop - method is here to init LoggingBuildOperationNotificationBridge
     }
 
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
