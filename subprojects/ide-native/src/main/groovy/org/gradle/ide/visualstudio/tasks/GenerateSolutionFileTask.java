@@ -38,8 +38,12 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
     private DefaultVisualStudioSolution solution;
 
     public GenerateSolutionFileTask() {
-        super(true);
         generator = new ConfigurationObjectGenerator();
+    }
+
+    @Override
+    protected boolean isIncremental() {
+        return true;
     }
 
     public void setVisualStudioSolution(VisualStudioSolution solution) {

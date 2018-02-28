@@ -46,8 +46,9 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
     private String gradleExe;
     private String gradleArgs;
 
-    public GenerateProjectFileTask() {
-        super(true);
+    @Override
+    protected boolean isIncremental() {
+        return true;
     }
 
     public void initGradleCommand() {

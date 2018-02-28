@@ -35,8 +35,9 @@ import java.io.File;
 public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
     private DefaultVisualStudioProject visualStudioProject;
 
-    public GenerateFiltersFileTask() {
-        super(true);
+    @Override
+    protected boolean isIncremental() {
+        return true;
     }
 
     public void setVisualStudioProject(VisualStudioProject vsProject) {
