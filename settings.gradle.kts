@@ -15,7 +15,7 @@
  */
 
 apply {
-    from("gradle/remoteHttpCacheSettings.gradle")
+    from("gradle/build-cache-configuration.settings.gradle.kts")
 }
 
 try {

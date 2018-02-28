@@ -59,12 +59,13 @@ public class ProjectBuilderImpl {
 
     public Project createChildProject(String name, Project parent, File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
+        projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
         DefaultProject project = CLASS_GENERATOR.newInstance(
             DefaultProject.class,
             name,
             parentProject,
-            (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
-            null,
+            projectDir,
+            new File(projectDir, "build.gradle"),
             new StringScriptSource("test build file", null),
             parentProject.getGradle(),
             parentProject.getGradle().getServiceRegistryFactory(),

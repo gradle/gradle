@@ -23,6 +23,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -104,7 +105,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
-    public T setArgs(Iterable<?> arguments) {
+    public T setArgs(@Nullable Iterable<?> arguments) {
         execAction.setArgs(arguments);
         return taskType.cast(this);
     }
@@ -112,7 +113,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     @Override
     public List<String> getArgs() {
         return execAction.getArgs();
@@ -163,7 +166,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     @Override
     public String getExecutable() {
         return execAction.getExecutable();
@@ -173,7 +178,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         execAction.setExecutable(executable);
     }
 

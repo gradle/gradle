@@ -44,6 +44,7 @@ import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.platform.base.ToolChain;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -182,6 +183,7 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.3
      */
     @SkipWhenEmpty
+    @Nullable
     @Optional
     @InputFile
     protected File getInputFileIfExists() {

@@ -24,5 +24,8 @@ public interface GccMetadata extends CompilerMetadata {
 
     ArchitectureInternal getDefaultArchitecture();
 
+    /**
+     * Returns the system libraries used by the compiler.
+     */
     SystemLibraries getSystemLibraries();
 }

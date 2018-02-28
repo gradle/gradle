@@ -68,6 +68,10 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
+        "configureTaskPropertyValidation" {
+            id = "configure-task-properties-validation"
+            implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
+        }
         "configureIntegrationTests" {
             id = "configure-integration-tests"
             implementationClass = "org.gradle.plugins.integrationtests.ConfigureIntegrationTestsPlugin"
@@ -126,6 +130,9 @@ tasks {
     }
     "compileKotlin"(KotlinCompile::class) {
         classpath += files(compileGroovy.destinationDir).builtBy(compileGroovy)
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+        }
     }
 }
 
@@ -149,7 +156,7 @@ tasks.withType<GroovyCompile> {
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/codeQuality.gradle") }
+    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
 }
 
 apply { from("../gradle/ciReporting.gradle") }
@@ -186,5 +193,3 @@ tasks {
     val build by getting
     build.dependsOn(checkSameDaemonArgs)
 }
-
-tasks["test"].onlyIf { false }

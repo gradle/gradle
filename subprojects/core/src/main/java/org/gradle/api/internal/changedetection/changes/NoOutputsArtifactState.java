@@ -37,9 +37,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory {
 
-    public static final TaskArtifactState INSTANCE = new NoHistoryArtifactState();
+    public static final TaskArtifactState WITHOUT_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs nor actions.");
+    public static final TaskArtifactState WITH_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs despite executing actions.");
 
     private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
         null,
@@ -83,12 +84,15 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         }
     };
 
-    private NoHistoryArtifactState() {
+    private String message;
+
+    private NoOutputsArtifactState(String message) {
+        this.message = message;
     }
 
     @Override
     public boolean isUpToDate(Collection<String> messages) {
-        messages.add("Task has not declared any outputs.");
+        messages.add(message);
         return false;
     }
 

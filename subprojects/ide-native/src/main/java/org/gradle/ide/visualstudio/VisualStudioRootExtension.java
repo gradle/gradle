@@ -20,19 +20,19 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * The configuration for mapping a set of native components to a Visual Studio project.
+ * The configuration for mapping a set of native components to a Visual Studio project and solution.
  *
  * @since 4.6
  */
 @Incubating
 public interface VisualStudioRootExtension extends VisualStudioExtension {
     /**
-     * Returns the {@link VisualStudioSolution} for this build.
+     * Returns the generated  {@link VisualStudioSolution} for this build.
      */
     VisualStudioSolution getSolution();
 
     /**
-     * Configures the {@link VisualStudioSolution} for this build.
+     * Configures the generated {@link VisualStudioSolution} for this build.
      */
-    void solution(Action<VisualStudioSolution> configAction);
+    void solution(Action<? super VisualStudioSolution> configAction);
 }
