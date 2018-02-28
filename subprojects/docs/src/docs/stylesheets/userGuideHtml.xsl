@@ -398,7 +398,7 @@
 
             <h2 id="new-projects">New projects with Gradle</h2>
 
-            <p>Getting started with Gradle is easy! First, follow our guide to <a href="https://gradle.org/install/">download and install Gradle</a>, then check out Gradle <a href="https://gradle.org/guides/#getting-started">getting started guides</a> to create your first build.</p>
+            <p>Getting started with Gradle is easy! First, follow our guide to <a href="installation.html">download and install Gradle</a>, then check out Gradle <a href="https://gradle.org/guides/#getting-started">getting started guides</a> to create your first build.</p>
 
             <p>If you're currently using Maven, see a visual <a href="https://gradle.org/maven-vs-gradle/">Gradle vs Maven comparison</a> and follow the guide for <a href="https://guides.gradle.org/migrating-from-maven/">migrating from Maven to Gradle</a>.</p>
 
