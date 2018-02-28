@@ -156,7 +156,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             tasks.withType<fixtures.ThePluginTask> {
                 from = "new value"
                 doLast {
-                    println(this@withType.configure { "*[" + it + "]*" })
+                    println(transform { "*[" + it + "]*" })
                 }
             }
         """)
