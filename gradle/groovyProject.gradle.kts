@@ -1,10 +1,11 @@
-import org.gradle.api.internal.GradleInternal
 import org.gradle.build.ClasspathManifest
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
+
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
@@ -19,7 +20,7 @@ base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.val
 
 java.sourceCompatibility = JavaVersion.VERSION_1_7
 
-val javaInstallationProbe = (gradle as GradleInternal).services.get(JavaInstallationProbe::class.java)
+val javaInstallationProbe = gradle.serviceOf<JavaInstallationProbe>()
 
 val compileTasks by extra { tasks.matching { it is JavaCompile || it is GroovyCompile } }
 val testTasks by extra { tasks.withType<Test>() }

@@ -1,15 +1,19 @@
 package org.gradle.plugins.compile
 
 import accessors.java
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
+
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
+
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 
@@ -17,8 +21,7 @@ import org.gradle.kotlin.dsl.withType
 open class GradleCompilePlugin : Plugin<Project> {
     override fun apply(project: Project) = project.run {
         if (rootProject == project) {
-            val projectInternal = project as ProjectInternal
-            val javaInstallationProbe = projectInternal.services.get(JavaInstallationProbe::class.java)
+            val javaInstallationProbe = project.serviceOf<JavaInstallationProbe>()
             extensions.create(
                 "availableJavaInstallations",
                 AvailableJavaInstallations::class.java,
