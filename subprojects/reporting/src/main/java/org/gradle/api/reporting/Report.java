@@ -18,6 +18,7 @@ package org.gradle.api.reporting;
 
 import org.gradle.api.Namer;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
 
 import java.io.File;
@@ -88,8 +89,11 @@ public interface Report extends Serializable, Configurable<Report> {
      * <p>
      * Subtypes may implement setters for the destination.
      *
+     * Subtypes need to add the correct output annotation, depending on whether the output of the report is a directory or a file.
+     *
      * @return The location on the filesystem of the report when it is generated
      */
+    @Internal
     File getDestination();
 
     /**
