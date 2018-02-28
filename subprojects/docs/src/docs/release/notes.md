@@ -339,9 +339,19 @@ Previous versions of Gradle would only generate Visual Studio solution files for
 
 ### Improvements in gradle-native plugins
 
-The `gradle-native` has been working on adding new features for building with native languages (like C++). As mentioned above, Gradle now generates a single Visual Studio solution for a multi-project build. Other unannounced features have continued to be developed, which we hope to detail in a future [blog post](https://blog.gradle.org/).
+The `gradle-native` has been working on adding new features for building with native languages (like C++). As mentioned above, Gradle now generates a single Visual Studio solution for a multi-project build. Other unannounced features have continued to be developed, which we hope to detail in a [future blog post](https://blog.gradle.org/).
 
 Highlights to the `gradle-native` plugins will continue to be mentioned in Gradle's release notes, but more information will be provided in the [gradle-native release notes](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-46).
+
+### Documentation updates
+
+Documentation in this release of Gradle has significantly improved in the following areas:
+ 
+ * Dependency management, especially regarding [managing dependency configurations](userguide/managing_dependency_configurations.html) and [understanding terminology](userguide/dependency_management_terminology.html)
+ * [Troubleshooting](userguide/troubleshooting.html)
+ * [Installation](userguide/installation.html)
+
+Please reach out to [@gradle on Twitter](https://twitter.com/gradle) or [through GitHub](https://github.com/gradle/gradle/issues) to provide feedback to help ensure improvements are useful for you.
 
 ### Honour cache-expiry settings in the presence of detached configurations
 
