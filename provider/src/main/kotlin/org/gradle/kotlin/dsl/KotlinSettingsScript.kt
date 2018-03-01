@@ -372,6 +372,9 @@ abstract class KotlinSettingsScript(
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         fileOperations.javaexec(configuration)
 
+    /**
+     * The [ScriptHandler] for this script.
+     */
     override fun getBuildscript(): ScriptHandler =
         host.scriptHandler
 

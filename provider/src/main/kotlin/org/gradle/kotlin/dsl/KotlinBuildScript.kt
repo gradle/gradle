@@ -40,6 +40,9 @@ abstract class KotlinBuildScript(
     private val host: KotlinScriptHost,
     project: Project) : Project by project {
 
+    /**
+     * The [ScriptHandler] for this script.
+     */
     override fun getBuildscript(): ScriptHandler =
         host.scriptHandler
 

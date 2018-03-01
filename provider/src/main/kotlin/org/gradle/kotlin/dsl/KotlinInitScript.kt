@@ -59,7 +59,11 @@ abstract class KotlinInitScript(
     private val host: KotlinScriptHost,
     gradle: Gradle) : Gradle by gradle {
 
-    val initscript get() = host.scriptHandler
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    val initscript
+        get() = host.scriptHandler
 
     /**
      * Configures the classpath of the init script.

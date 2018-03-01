@@ -143,7 +143,8 @@ data class KotlinScriptTarget<T : Any>(
     val buildscriptBlockName: String = "buildscript",
     val prepare: () -> Unit = {}) {
 
-    val scriptHandler get() = host.scriptHandler
+    val scriptHandler
+        get() = host.scriptHandler
 
     fun accessorsClassPathFor(classPath: ClassPath) =
         accessorsClassPath(classPath)
