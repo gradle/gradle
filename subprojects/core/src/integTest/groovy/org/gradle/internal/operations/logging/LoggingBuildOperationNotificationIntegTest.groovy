@@ -24,6 +24,8 @@ import org.junit.Rule
 
 import java.util.regex.Pattern
 
+import static org.gradle.util.TextUtil.getPlatformLineSeparator
+
 class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec {
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
@@ -90,7 +92,7 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         applySettingsScriptProgress[0].details.logLevel == 'QUIET'
         applySettingsScriptProgress[0].details.category == 'system.out'
         applySettingsScriptProgress[0].details.spanDetails[0].style == 'Normal'
-        applySettingsScriptProgress[0].details.spanDetails[0].text == 'from settings file\n'
+        applySettingsScriptProgress[0].details.spanDetails[0].text == "from settings file${getPlatformLineSeparator()}"
 
         def applyBuildScriptProgress = operations.only("Apply script build.gradle to root project 'root'").progress
         applyBuildScriptProgress.size() == 1
@@ -110,7 +112,7 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         jarProgress[0].details.category == 'system.out'
         jarProgress[0].details.spanDetails.size == 1
         jarProgress[0].details.spanDetails[0].style == 'Normal'
-        jarProgress[0].details.spanDetails[0].text == 'from jar task\n'
+        jarProgress[0].details.spanDetails[0].text == "from jar task${getPlatformLineSeparator()}"
 
         def downloadProgress = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar").progress
         downloadProgress.size() == 1
