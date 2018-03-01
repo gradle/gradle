@@ -41,6 +41,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -64,8 +65,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
-    settings: Settings,
-    private val scriptHandler: ScriptHandler) : Settings by settings {
+    private val host: KotlinScriptHost,
+    settings: Settings) : Settings by settings {
 
     private
     val fileOperations by lazy { fileOperationsFor(settings) }
@@ -372,7 +373,7 @@ abstract class KotlinSettingsScript(
         fileOperations.javaexec(configuration)
 
     override fun getBuildscript(): ScriptHandler =
-        scriptHandler
+        host.scriptHandler
 
     /**
      * Configures the build script classpath for settings.

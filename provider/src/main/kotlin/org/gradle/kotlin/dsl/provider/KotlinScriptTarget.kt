@@ -20,6 +20,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -47,8 +48,8 @@ fun kotlinScriptTargetFor(
     topLevelScript: Boolean): KotlinScriptTarget<out Any> =
 
     when (target) {
-        is Project  -> projectScriptTarget(target, scriptHandler, topLevelScript)
-        is Settings -> settingsScriptTarget(target, scriptHandler, topLevelScript)
+        is Project  -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
+        is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
         is Gradle   -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
         else        -> unsupportedTarget(target)
     }
@@ -62,7 +63,9 @@ fun unsupportedTarget(target: Any): Nothing =
 private
 fun settingsScriptTarget(
     settings: Settings,
+    scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
+    baseScope: ClassLoaderScope,
     topLevelScript: Boolean) =
 
     KotlinScriptTarget(
@@ -70,13 +73,16 @@ fun settingsScriptTarget(
         type = Settings::class,
         scriptHandler = scriptHandler,
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript })
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript },
+        host = lazy { KotlinScriptHost(settings, scriptSource, (settings.gradle as GradleInternal).services, baseScope, scriptHandler) })
 
 
 private
 fun projectScriptTarget(
     project: Project,
+    scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
+    baseScope: ClassLoaderScope,
     topLevelScript: Boolean): KotlinScriptTarget<Project> =
 
     KotlinScriptTarget(
@@ -87,6 +93,7 @@ fun projectScriptTarget(
         buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
+        host = lazy { KotlinScriptHost(project, scriptSource, (project as ProjectInternal).services, baseScope, scriptHandler) },
         prepare = {
             project.run {
                 afterEvaluate {
@@ -101,29 +108,16 @@ fun gradleInitScriptTarget(
     gradle: Gradle,
     scriptHandler: ScriptHandler,
     scriptSource: ScriptSource,
-    baseScope: ClassLoaderScope): KotlinScriptTarget<Gradle> {
+    baseScope: ClassLoaderScope): KotlinScriptTarget<Gradle> =
 
-    val scriptHost by lazy {
-        KotlinScriptHost(gradle, scriptSource, (gradle as GradleInternal).services, baseScope)
-    }
-    return KotlinScriptTarget(
+    KotlinScriptTarget(
         gradle,
         type = Gradle::class,
         scriptHandler = scriptHandler,
         scriptTemplate = KotlinInitScript::class,
         buildscriptBlockTemplate = KotlinInitscriptBlock::class,
         buildscriptBlockName = "initscript",
-        eval = { scriptClass ->
-            scriptClass
-                .getConstructor(KotlinScriptHost::class.java, Gradle::class.java, ScriptHandler::class.java)
-                .newInstance(scriptHost, gradle, scriptHandler)
-        },
-        evalBuildscriptBlock = { scriptClass ->
-            scriptClass
-                .getConstructor(KotlinScriptHost::class.java, Gradle::class.java, ScriptHandler::class.java)
-                .newInstance(scriptHost, gradle, scriptHandler)
-        })
-}
+        host = lazy { KotlinScriptHost(gradle, scriptSource, (gradle as GradleInternal).services, baseScope, scriptHandler) })
 
 
 private
@@ -147,19 +141,20 @@ data class KotlinScriptTarget<T : Any>(
     val scriptHandler: ScriptHandler,
     val scriptTemplate: KClass<*>,
     val buildscriptBlockTemplate: KClass<*>?,
+    val host: Lazy<KotlinScriptHost>,
     val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val prepare: () -> Unit = {},
     val buildscriptBlockName: String = "buildscript",
     val eval: (Class<*>) -> Unit = { scriptClass ->
         scriptClass
-            .getConstructor(type.java, ScriptHandler::class.java)
-            .newInstance(`object`, scriptHandler)
+            .getConstructor(KotlinScriptHost::class.java, type.java)
+            .newInstance(host.value, `object`)
     },
     val evalBuildscriptBlock: (Class<*>) -> Unit = { scriptClass ->
         scriptClass
-            .getConstructor(type.java, ScriptHandler::class.java)
-            .newInstance(`object`, scriptHandler)
+            .getConstructor(KotlinScriptHost::class.java, type.java)
+            .newInstance(host.value, `object`)
     }) {
 
     fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath(classPath)

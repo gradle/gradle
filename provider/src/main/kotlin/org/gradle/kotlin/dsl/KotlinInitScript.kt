@@ -57,11 +57,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost,
-    gradle: Gradle,
-    private val scriptHandler: ScriptHandler) : Gradle by gradle {
+    gradle: Gradle) : Gradle by gradle {
 
-    val initscript =
-        scriptHandler
+    val initscript get() = host.scriptHandler
 
     /**
      * Configures the classpath of the init script.

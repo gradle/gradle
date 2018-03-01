@@ -404,9 +404,10 @@ class BuildscriptBlockEvaluator(
     private
     fun setupEmbeddedKotlinForBuildscript() {
         embeddedKotlinProvider.run {
-            addRepositoryTo(scriptTarget.scriptHandler.repositories)
+            val scriptHandler = scriptTarget.scriptHandler
+            addRepositoryTo(scriptHandler.repositories)
             pinDependenciesOn(
-                scriptTarget.scriptHandler.configurations["classpath"],
+                scriptHandler.configurations["classpath"],
                 "stdlib-jdk8", "reflect")
         }
     }

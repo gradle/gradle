@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -33,7 +34,8 @@ class KotlinScriptHost(
     private val target: Any,
     private val scriptSource: ScriptSource,
     private val serviceRegistry: ServiceRegistry,
-    private val baseScope: ClassLoaderScope) {
+    private val baseScope: ClassLoaderScope,
+    val scriptHandler: ScriptHandler) {
 
     internal
     val operations by lazy {
