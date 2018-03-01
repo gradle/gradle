@@ -148,6 +148,36 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         outputContains("the chosen compiler did not support incremental annotation processing")
     }
 
+    def "all files are recompiled if a generated source file is deleted"() {
+        given:
+        java "@Helper class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("build/classes/java/main/AHelper.java").delete()
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses('A', "AHelper", "Unrelated")
+    }
+
+    def "all files are recompiled if a generated class is deleted"() {
+        given:
+        java "@Helper class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("build/classes/java/main/AHelper.class").delete()
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses('A', "AHelper", "Unrelated")
+    }
+
     def "processors must provide an originating element for each source element"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.SINGLE_ORIGIN))

@@ -32,8 +32,8 @@ class SingleOriginFiler extends IncrementalFiler {
         super(delegate, result, messager);
     }
 
-    protected void checkGeneratedType(String generatedType, Set<String> orignatingTypes, Messager messager) {
-        int size = orignatingTypes.size();
+    protected void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager) {
+        int size = originatingTypes.size();
         if (size != 1) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Generated type '" + generatedType + "' must have exactly one originating element, but had " + size + ".");
         }

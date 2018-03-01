@@ -75,7 +75,7 @@ public class ClassSetAnalysis {
             if (!visited.add(d)) {
                 continue;
             }
-            if (!isInnerClass(d)) {
+            if (!isNestedClass(d)) {
                 result.add(d);
             }
             DependentsSet currentDependents = data.getDependents(d);
@@ -85,7 +85,7 @@ public class ClassSetAnalysis {
         }
     }
 
-    private boolean isInnerClass(String d) {
+    private boolean isNestedClass(String d) {
         return d.contains("$");
     }
 

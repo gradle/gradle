@@ -66,7 +66,7 @@ abstract class IncrementalFiler implements Filer {
         result.addGeneratedType(generatedType, originatingTypes);
     }
 
-    protected abstract void checkGeneratedType(String generatedType, Set<String> orignatingTypes, Messager messager);
+    protected abstract void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager);
 
     private Set<String> getTopLevelTypeNames(Element[] originatingElements) {
         if (originatingElements == null || originatingElements.length == 0) {
