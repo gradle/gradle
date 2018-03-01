@@ -736,11 +736,20 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `script handler belong to the current script`() {
+    fun `script handler belongs to the current script`() {
 
-        val init = withFile("some.init.gradle.kts", """println("init: ${'$'}{initscript.sourceFile}")""")
-        val settings = withSettings("""println("settings: ${'$'}{buildscript.sourceFile}")""")
-        val other = withFile("other.gradle.kts", """println("other: ${'$'}{buildscript.sourceFile}")""")
+        val init = withFile("some.init.gradle.kts", """
+            println("init: ${'$'}{initscript.sourceFile}")
+        """)
+
+        val settings = withSettings("""
+            println("settings: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        val other = withFile("other.gradle.kts", """
+            println("other: ${'$'}{buildscript.sourceFile}")
+        """)
+
         val main = withBuildScript("""
             apply { from("other.gradle.kts") }
             println("main: ${'$'}{buildscript.sourceFile}")
