@@ -55,7 +55,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
-        output.contains "Value of input property 'action.class' has changed for task ':myTask'"
+        output.contains "Value of input property 'action' has changed for task ':myTask'"
     }
 
     def "implementations in nested lambda property in Kotlin build script is tracked"() {
@@ -83,7 +83,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
-        output.contains "Value of input property 'action.class' has changed for task ':myTask'"
+        output.contains "Value of input property 'action' has changed for task ':myTask'"
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation) {

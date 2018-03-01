@@ -61,8 +61,7 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
 
     @Override
     public void inputPropertyLoadedByUnknownClassLoader(String propertyName) {
-        String sanitizedPropertyName = DefaultTaskOutputCachingBuildCacheKeyBuilder.sanitizeImplementationPropertyName(propertyName);
-        LOGGER.lifecycle("The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", sanitizedPropertyName);
+        LOGGER.lifecycle("The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", propertyName);
         delegate.inputPropertyLoadedByUnknownClassLoader(propertyName);
     }
 
