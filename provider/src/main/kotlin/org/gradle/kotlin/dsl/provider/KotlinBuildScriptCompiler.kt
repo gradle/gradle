@@ -389,7 +389,7 @@ class BuildscriptBlockEvaluator(
     fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
         loadBuildscriptBlockClass(scriptBlockForBuildscript(buildscriptRange, scriptTemplate))
             .eval {
-                scriptTarget.evalBuildscriptBlock(scriptClass)
+                scriptTarget.eval(scriptClass)
             }
 
     private

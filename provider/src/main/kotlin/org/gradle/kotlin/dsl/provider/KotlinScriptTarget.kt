@@ -71,10 +71,9 @@ fun settingsScriptTarget(
     KotlinScriptTarget(
         settings,
         type = Settings::class,
-        scriptHandler = scriptHandler,
+        host = KotlinScriptHost(settings, scriptSource, serviceRegistryOf(settings), baseScope, scriptHandler),
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript },
-        host = lazy { KotlinScriptHost(settings, scriptSource, (settings.gradle as GradleInternal).services, baseScope, scriptHandler) })
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript })
 
 
 private
@@ -88,12 +87,11 @@ fun projectScriptTarget(
     KotlinScriptTarget(
         project,
         type = Project::class,
-        scriptHandler = scriptHandler,
+        host = KotlinScriptHost(project, scriptSource, serviceRegistryOf(project), baseScope, scriptHandler),
         scriptTemplate = KotlinBuildScript::class,
         buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
-        host = lazy { KotlinScriptHost(project, scriptSource, (project as ProjectInternal).services, baseScope, scriptHandler) },
         prepare = {
             project.run {
                 afterEvaluate {
@@ -113,11 +111,10 @@ fun gradleInitScriptTarget(
     KotlinScriptTarget(
         gradle,
         type = Gradle::class,
-        scriptHandler = scriptHandler,
+        host = KotlinScriptHost(gradle, scriptSource, serviceRegistryOf(gradle), baseScope, scriptHandler),
         scriptTemplate = KotlinInitScript::class,
         buildscriptBlockTemplate = KotlinInitscriptBlock::class,
-        buildscriptBlockName = "initscript",
-        host = lazy { KotlinScriptHost(gradle, scriptSource, (gradle as GradleInternal).services, baseScope, scriptHandler) })
+        buildscriptBlockName = "initscript")
 
 
 private
@@ -138,24 +135,37 @@ internal
 data class KotlinScriptTarget<T : Any>(
     val `object`: T,
     val type: KClass<T>,
-    val scriptHandler: ScriptHandler,
+    val host: KotlinScriptHost,
     val scriptTemplate: KClass<*>,
     val buildscriptBlockTemplate: KClass<*>?,
-    val host: Lazy<KotlinScriptHost>,
     val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
-    val prepare: () -> Unit = {},
     val buildscriptBlockName: String = "buildscript",
-    val eval: (Class<*>) -> Unit = { scriptClass ->
-        scriptClass
-            .getConstructor(KotlinScriptHost::class.java, type.java)
-            .newInstance(host.value, `object`)
-    },
-    val evalBuildscriptBlock: (Class<*>) -> Unit = { scriptClass ->
-        scriptClass
-            .getConstructor(KotlinScriptHost::class.java, type.java)
-            .newInstance(host.value, `object`)
-    }) {
+    val prepare: () -> Unit = {}) {
 
-    fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath(classPath)
+    val scriptHandler get() = host.scriptHandler
+
+    fun accessorsClassPathFor(classPath: ClassPath) =
+        accessorsClassPath(classPath)
+
+    fun eval(scriptClass: Class<*>) {
+        scriptClass
+            .getConstructor(KotlinScriptHost::class.java, type.java)
+            .newInstance(host, `object`)
+    }
 }
+
+
+private
+fun serviceRegistryOf(project: Project) =
+    (project as ProjectInternal).services
+
+
+private
+fun serviceRegistryOf(settings: Settings) =
+    serviceRegistryOf(settings.gradle)
+
+
+private
+fun serviceRegistryOf(gradle: Gradle) =
+    (gradle as GradleInternal).services
