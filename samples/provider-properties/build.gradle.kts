@@ -1,24 +1,28 @@
 apply<GreetingPlugin>()
 
+fun buildFile(path: String) = layout.buildDirectory.file(path)
+
 configure<GreetingPluginExtension> {
+
     message.set("Hi from Gradle")
+
     outputFiles.from(
-        project.layout.buildDirectory.file("a.txt"),
-        project.layout.buildDirectory.file("b.txt"))
+        buildFile("a.txt"),
+        buildFile("b.txt"))
 }
 
 open class GreetingPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
+    override fun apply(project: Project): Unit = project.run {
 
         // Add the 'greeting' extension object
-        val greeting = project.extensions.create(
-                "greeting",
-                GreetingPluginExtension::class.java,
-                project)
+        val greeting = extensions.create(
+            "greeting",
+            GreetingPluginExtension::class.java,
+            project)
 
         // Add a task that uses the configuration
-        project.tasks {
+        tasks {
             "hello"(Greeting::class) {
                 group = "Greeting"
                 message.set(greeting.message)
@@ -29,11 +33,14 @@ open class GreetingPlugin : Plugin<Project> {
 }
 
 open class GreetingPluginExtension(project: Project) {
+
     val message = project.objects.property<String>()
+
     val outputFiles: ConfigurableFileCollection = project.files()
 }
 
 open class Greeting : DefaultTask() {
+
     @get:Input
     val message = project.objects.property<String>()
 
