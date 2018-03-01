@@ -19,35 +19,59 @@ package org.gradle.internal.operations.logging
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
+import java.util.regex.Pattern
+
 class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def "captures output sources with context"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
-        file("build.gradle") << """apply plugin: 'java'
+        file('init.gradle') << """
+            logger.warn 'from init.gradle'
+        """
+        settingsFile << """
+            rootProject.name = 'root'
+            println 'from settings file'
+        """
 
-        jar.doLast {
-            println 'from jar task'
-        }
+        file("build.gradle") << """
+            apply plugin: 'java'
     
-        logger.lifecycle('output from build.gradle')
-    
-        gradle.taskGraph.whenReady{
-            logger.warn('warning from taskgraph')
-        }
+            jar.doLast {
+                println 'from jar task'
+            }
+        
+            logger.lifecycle('from build.gradle')
+        
+            gradle.taskGraph.whenReady{
+                logger.warn('warning from taskgraph')
+            }
         """
 
         when:
-        succeeds "build"
+        succeeds("build", '-I', 'init.gradle')
 
         then:
+
+        def applyInitScriptProgress = operations.only('Apply script init.gradle to build').progress
+        applyInitScriptProgress.size() == 1
+        applyInitScriptProgress[0].details.logLevel == 'WARN'
+        applyInitScriptProgress[0].details.category == 'org.gradle.api.Script'
+        applyInitScriptProgress[0].details.message == 'from init.gradle'
+
+        def applySettingsScriptProgress = operations.only(Pattern.compile('Apply script settings.gradle .*')).progress
+        applySettingsScriptProgress.size() == 1
+        applySettingsScriptProgress[0].details.logLevel == 'QUIET'
+        applySettingsScriptProgress[0].details.category == 'system.out'
+        applySettingsScriptProgress[0].details.spanDetails[0].style == 'Normal'
+        applySettingsScriptProgress[0].details.spanDetails[0].text == 'from settings file\n'
+
         def applyBuildScriptProgress = operations.only("Apply script build.gradle to root project 'root'").progress
         applyBuildScriptProgress.size() == 1
         applyBuildScriptProgress[0].details.logLevel == 'LIFECYCLE'
         applyBuildScriptProgress[0].details.category == 'org.gradle.api.Project'
-        applyBuildScriptProgress[0].details.message == 'output from build.gradle'
+        applyBuildScriptProgress[0].details.message == 'from build.gradle'
 
         def runTasksProgress = operations.only("Run tasks").progress
         runTasksProgress.size() == 1
@@ -62,7 +86,6 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         jarProgress[0].details.spanDetails.size == 1
         jarProgress[0].details.spanDetails[0].style == 'Normal'
         jarProgress[0].details.spanDetails[0].text == 'from jar task\n'
-
     }
 
     @spock.lang.Ignore
