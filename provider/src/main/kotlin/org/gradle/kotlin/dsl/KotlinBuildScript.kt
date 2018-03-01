@@ -18,9 +18,11 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
 
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -34,7 +36,14 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".*\\.gradle\\.kts")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class KotlinBuildScript(project: Project) : Project by project {
+abstract class KotlinBuildScript(
+    private val host: KotlinScriptHost<Project>) : Project by host.target {
+
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    override fun getBuildscript(): ScriptHandler =
+        host.scriptHandler
 
     /**
      * Configures the build script classpath for this project.

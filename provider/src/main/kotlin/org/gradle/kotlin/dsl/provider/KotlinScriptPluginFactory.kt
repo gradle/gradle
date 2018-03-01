@@ -60,7 +60,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
     private
     fun compile(
-        scriptTarget: KotlinScriptTarget<out Any>,
+        scriptTarget: KotlinScriptTarget<Any>,
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
@@ -76,7 +76,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
     private
     fun compilerFor(
-        scriptTarget: KotlinScriptTarget<out Any>,
+        scriptTarget: KotlinScriptTarget<Any>,
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope) =
 

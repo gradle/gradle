@@ -30,9 +30,7 @@ import org.gradle.kotlin.dsl.ScriptHandlerScope
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-abstract class KotlinBuildscriptBlock(
-    project: Project,
-    private val scriptHandler: ScriptHandler) : KotlinBuildScript(project) {
+abstract class KotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : KotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.
@@ -40,18 +38,15 @@ abstract class KotlinBuildscriptBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        scriptHandler.configureWith(block)
+        buildscript.configureWith(block)
     }
-
 }
 
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-abstract class KotlinSettingsBuildscriptBlock(
-    settings: Settings,
-    private val scriptHandler: ScriptHandler) : KotlinSettingsScript(settings) {
+abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : KotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for settings.
@@ -59,7 +54,7 @@ abstract class KotlinSettingsBuildscriptBlock(
      * @see [Settings.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        scriptHandler.configureWith(block)
+        buildscript.configureWith(block)
     }
 }
 
@@ -67,16 +62,13 @@ abstract class KotlinSettingsBuildscriptBlock(
 /**
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
-abstract class KotlinInitscriptBlock(
-    host: KotlinScriptHost,
-    gradle: Gradle,
-    private val scriptHandler: ScriptHandler) : KotlinInitScript(host, gradle) {
+abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : KotlinInitScript(host) {
 
     /**
      * Configures the classpath of the init script.
      */
     override fun initscript(block: ScriptHandlerScope.() -> Unit) {
-        scriptHandler.configureWith(block)
+        initscript.configureWith(block)
     }
 }
 

@@ -10,6 +10,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
@@ -732,6 +733,36 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assert(build().output.contains("*42*"))
+    }
+
+    @Test
+    fun `script handler belongs to the current script`() {
+
+        val init = withFile("some.init.gradle.kts", """
+            println("init: ${'$'}{initscript.sourceFile}")
+        """)
+
+        val settings = withSettings("""
+            println("settings: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        val other = withFile("other.gradle.kts", """
+            println("other: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        val main = withBuildScript("""
+            apply { from("other.gradle.kts") }
+            println("main: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        assertThat(
+            build("-I", init.absolutePath, "help").output,
+            containsMultiLineString("""
+                init: ${init.absolutePath}
+                settings: ${settings.absolutePath}
+                other: ${other.absolutePath}
+                main: ${main.absolutePath}
+            """))
     }
 
     private
