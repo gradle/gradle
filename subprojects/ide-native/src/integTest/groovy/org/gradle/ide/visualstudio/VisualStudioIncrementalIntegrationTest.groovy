@@ -343,16 +343,12 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         executedAndNotSkipped getComponentTasks("app")
 
         when:
-        buildFile << """
-            visualStudio {
-                projects.all {
+        buildFile.text = buildFile.text.replace "projectFile.withXml { }", """
                     projectFile.withXml { xml ->
                         Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
                         globals.appendNode("ExtraInfo", "Some extra info")
                         globals.appendNode("ProjectName", project.name)
                     }
-                }
-            }
         """
         run "visualStudio"
 
@@ -393,14 +389,10 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         executedAndNotSkipped getComponentTasks("app")
 
         when:
-        buildFile << """
-            visualStudio {
-                projects.all {
+        buildFile.text = buildFile.text.replace "filtersFile.withXml { }", """
                     filtersFile.withXml { xml ->
                         xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
                     }
-                }
-            }
         """
         run "visualStudio"
 
@@ -441,9 +433,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
 
         when:
-        buildFile << '''
-            visualStudio {
-                solution {
+        buildFile.text = buildFile.text.replace "solutionFile.withContent { }", '''
                     solutionFile.withContent { content ->
                         String projectList = projects.collect({it.name}).join(',')
         
@@ -454,10 +444,9 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
                             EndGlobal
                         """)
                     }
-                }
-            }
         '''
         run "visualStudio"
+        println buildFile.text
 
         then:
         executedAndNotSkipped ":appVisualStudioSolution"
