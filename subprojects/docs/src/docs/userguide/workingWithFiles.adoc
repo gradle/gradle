@@ -733,11 +733,13 @@ Gradle does of course allow you create as many archive tasks as you want, but it
 [[sec:archive_naming]]
 ==== Archive naming
 
-Gradle has several conventions around the naming of archives and where they are created based on the plugins your project uses. The main convention is provided by the <<sec:base_plugins,Base Plugin>>, which defaults to creating archives in the `$buildDir/distributions` directory and typically uses archive names of the form _[projectName]-[version].[type]_. The following example comes from a project named 'zipProject', hence the `myZip` task creates an archive named 'zipProject-1.0.zip':
+Gradle has several conventions around the naming of archives and where they are created based on the plugins your project uses. The main convention is provided by the <<sec:base_plugins,Base Plugin>>, which defaults to creating archives in the `$buildDir/distributions` directory and typically uses archive names of the form _[projectName]-[version].[type]_.
+
+The following example comes from a project named 'zipProject', hence the `myZip` task creates an archive named 'zipProject-1.0.zip':
 
 ++++
 <sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
-    <sourcefile file="build.gradle"/>
+    <sourcefile file="build.gradle" snippet="zip-task"/>
     <output args="-q myZip"/>
 </sample>
 ++++
@@ -748,11 +750,11 @@ If you want to change the name and location of a generated archive file, you can
 
 Alternatively, you can make use of the default archive name pattern provided by api:org.gradle.api.tasks.bundling.AbstractArchiveTask#getArchiveName[]: _[baseName]-[appendix]-[version]-[classifier].[extension]_. You can set each of these properties on the task separately if you wish. Note that the Base Plugin uses the convention of project name for _baseName_, project version for _version_ and the archive type for _extension_. It does not provide values for the other properties.
 
-This example configures just the `baseName` property, overriding the default of the project name:
+This example — from the same project as the one above — configures just the `baseName` property, overriding the default of the project name:
 
 ++++
-<sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName" title="Configuration of archive task - custom archive name">
-    <sourcefile file="build.gradle"/>
+<sample id="zipWithCustomName" dir="userguide/files/archiveNaming" title="Configuration of archive task - custom archive name">
+    <sourcefile file="build.gradle" snippet="zip-task-with-custom-base-name"/>
     <output args="-q myZip"/>
 </sample>
 ++++
@@ -760,9 +762,9 @@ This example configures just the `baseName` property, overriding the default of 
 You can also override the default `baseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
 
 ++++
-<sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments" title="Configuration of archive task - appendix &amp; classifier">
+<sample id="zipWithArchivesBaseName" dir="userguide/files/archivesChangedBaseName" title="Configuration of archive task - appendix &amp; classifier">
     <sourcefile file="build.gradle"/>
-    <output args="-q myZip"/>
+    <output args="-q echoNames"/>
 </sample>
 ++++
 

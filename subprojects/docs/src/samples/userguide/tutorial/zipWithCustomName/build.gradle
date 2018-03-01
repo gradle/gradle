@@ -1,9 +1,0 @@
-apply plugin: 'java'
-version = 1.0
-
-task myZip(type: Zip) {
-    from 'somedir'
-    baseName = 'customName'
-}
-
-println myZip.archiveName
