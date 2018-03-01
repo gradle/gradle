@@ -18,5 +18,5 @@ package org.gradle.api.internal.tasks.properties;
 
 public interface NestedPropertyContext<T extends PropertyNode<T>> {
     void addNested(T node);
-    boolean isIterable(T node);
+    boolean shouldUnpack(T node);
 }

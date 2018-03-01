@@ -55,7 +55,9 @@ val classpathManifest by tasks.creating(ClasspathManifest::class)
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), generatedResourcesDir)
 
-class CiEnvironmentProvider(private val test: Test, private val rootProject: Project) : CommandLineArgumentProvider {
+class CiEnvironmentProvider(private val test: Test, private val rootProject: Project) : CommandLineArgumentProvider, Named {
+    override fun getName() = "ciEnvironment"
+
     override fun asArguments(): Iterable<String> {
         return if (isCiServer) {
             mapOf(
