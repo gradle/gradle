@@ -98,7 +98,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
 
 
         @Override
-        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedPropertyContext<BeanNode> context) {
+        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
             visitorAction.call(propertyInfo, visitor)
         }
     }

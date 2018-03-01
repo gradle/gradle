@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import javax.annotation.Nullable;
 
-abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> implements PropertyNode<SELF> {
+public abstract class AbstractPropertyNode implements PropertyNode {
     private final String propertyName;
     private final Class<?> beanClass;
 

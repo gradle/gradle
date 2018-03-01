@@ -16,18 +16,15 @@
 
 package org.gradle.api.internal.tasks.properties.annotations
 
-import org.gradle.api.Action
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
-import org.gradle.api.internal.tasks.TaskInputPropertySpec
 import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec
-import org.gradle.api.internal.tasks.properties.NestedPropertyContext
+import org.gradle.api.internal.tasks.properties.BeanPropertyContext
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class NestedBeanAnnotationHandlerTest extends Specification {
 
@@ -36,18 +33,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def task = Stub(TaskInternal)
     def resolver = Mock(FileResolver)
     def specFactory = new DefaultPropertySpecFactory(task, resolver)
-    def context = Mock(NestedPropertyContext)
-
-    @Unroll
-    def "correct implementation for #type coerced to Action is tracked"() {
-        expect:
-        NestedBeanAnnotationHandler.getImplementationClass(implementation as Action) == implementation.getClass()
-
-        where:
-        type      | implementation
-        "Closure" | { it }
-        "Action"  |  new Action<String>() { @Override void execute(String s) {} }
-    }
+    def context = Mock(BeanPropertyContext)
 
     def "absent nested property is reported as error"() {
         ValidatingTaskPropertySpec taskInputPropertySpec = null
@@ -112,7 +98,6 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     }
 
     def "nested bean is added"() {
-        TaskInputPropertySpec taskInputPropertySpec = null
         def nestedBean = new Object()
         def nestedPropertyName = "someProperty"
 
@@ -122,13 +107,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         then:
         1 * propertyValue.value >> nestedBean
         1 * propertyValue.getPropertyName() >> nestedPropertyName
-        1 * context.shouldUnpack({ it.propertyName == nestedPropertyName }) >> false
-        1 * context.addNested({ it.propertyName == nestedPropertyName })
-        1 * propertyVisitor.visitInputProperty({ it.propertyName == "${nestedPropertyName}.class"}) >> { arguments ->
-            taskInputPropertySpec = arguments[0]
-        }
+        1 * context.addNested(nestedPropertyName, nestedBean)
         0 * _
-
-        taskInputPropertySpec.value == nestedBean.getClass()
     }
 }

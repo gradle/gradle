@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.internal.tasks.properties.bean
 
-public interface NestedPropertyContext<T extends PropertyNode<T>> {
-    void addNested(T node);
-    boolean shouldUnpack(T node);
+import org.gradle.api.Action
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class NestedBeanNodeTest extends Specification {
+    @Unroll
+    def "correct implementation for #type coerced to Action is tracked"() {
+        expect:
+        NestedBeanNode.getImplementationClass(implementation as Action) == implementation.getClass()
+
+        where:
+        type      | implementation
+        "Closure" | { it }
+        "Action"  |  new Action<String>() { @Override void execute(String s) {} }
+    }
 }
