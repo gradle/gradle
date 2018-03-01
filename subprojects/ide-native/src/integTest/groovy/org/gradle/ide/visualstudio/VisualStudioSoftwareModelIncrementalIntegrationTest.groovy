@@ -20,6 +20,8 @@ import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.apache.commons.io.FileUtils.copyFile
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
+import static org.junit.Assume.assumeFalse
 
 class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -119,6 +121,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when output file locations change"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
 
         when:
@@ -193,6 +196,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when a new variant is introduced"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
 
         when:
