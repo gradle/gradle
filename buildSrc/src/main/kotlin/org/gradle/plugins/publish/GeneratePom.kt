@@ -22,11 +22,7 @@ open class GeneratePom : DefaultTask() {
     @InputFile
     val pomFile = File(temporaryDir, "pom.xml")
 
-//    @InputFiles
-//    val publishCompile = project.configurations.create("publishCompile")
-
     @get:InputFiles
-    private
     val publishCompile by project.configurations.creating
 
     @get:InputFiles

@@ -72,7 +72,7 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
 
             repositories {
                 ivy {
-                    artifactPattern("$repoUrl/$groupId/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
+                    artifactPattern(createArtifactPattern(rootProject.extra.get("isSnapshot") as Boolean, group, base.archivesBaseName))
                     credentials {
                         username = artifactoryUserName
                         password = artifactoryUserPassword
@@ -81,18 +81,6 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
             }
         }
     }
-
-    private
-    val Project.repoUrl: String
-        get() {
-            // TODO Refactor versioning.gradle that isSnapshot is not stored as an extra property
-            val libsType = if ((rootProject.extra.get("isSnapshot") as Boolean)) "snapshots" else "releases"
-            return "https://gradle.artifactoryonline.com/gradle/libs-$libsType-local"
-        }
-
-    private
-    val Project.groupId: String
-        get() = group.toString().replace("\\.", "/")
 
     private
     fun Project.failEarlyIfCredentialsAreNotSet(upload: Upload) {
@@ -121,6 +109,18 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
     private
     val Project.main
         get() = java.sourceSets["main"]
+}
+
+const val GRADLE_REPO = "https://gradle.artifactoryonline.com/gradle"
+
+fun createArtifactPattern(isSnapshot: Boolean, group: String, artifactName: String): String {
+    assert(group.isNotEmpty())
+    assert(artifactName.isNotEmpty())
+
+    val libsType = if (isSnapshot) "snapshots" else "releases"
+    val repoUrl = "https://gradle.artifactoryonline.com/gradle/libs-$libsType-local"
+    val groupId = group.toString().replace(".", "/")
+    return "$repoUrl/$groupId/$artifactName/[revision]/[artifact]-[revision](-[classifier]).[ext]"
 }
 
 
