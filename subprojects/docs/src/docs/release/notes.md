@@ -96,7 +96,7 @@ Task type `org.gradle.nativeplatform.tasks.InstallExecutable`
 - `getToolChain()` was changed to return a `Property`.
 - `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
 
-Task types `org.gradle.nativeplatform.tasks.StripSymbols`, `org.gradle.nativeplatform.tasks.ExtractSymbols`, `org.gradle.language.swift.tasks.SwiftCompile`, and `org.gradle.nativeplatform.tasks.LinkMachOBundle` were changed in similar ways.
+Task types `org.gradle.language.assembler.tasks.Assemble`, `org.gradle.language.rc.tasks.WindowsResourceCompile`, `org.gradle.nativeplatform.tasks.StripSymbols`, `org.gradle.nativeplatform.tasks.ExtractSymbols`, `org.gradle.language.swift.tasks.SwiftCompile`, and `org.gradle.nativeplatform.tasks.LinkMachOBundle` were changed in similar ways.
 
 ### Removed incubating method `BuildIdentifier.isCurrentBuild()`
 
