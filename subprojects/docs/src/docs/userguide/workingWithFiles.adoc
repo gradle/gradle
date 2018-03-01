@@ -440,7 +440,11 @@ You can see a practical example of extracting an archive file <<sec:unpacking_ar
 [[sec:specifying_multiple_files]]
 ==== Understanding implicit conversion to file collections
 
-Many objects in Gradle have properties which accept a set of input files. For example, the api:org.gradle.api.tasks.compile.JavaCompile[] task has a `source` property, which defines the source files to compile. You can set the value of this property using any of the types supported by the <<sec:file_collections,files()>> method, as mentioned in the api docs. This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure. Here are some examples:
+Many objects in Gradle have properties which accept a set of input files. For example, the api:org.gradle.api.tasks.compile.JavaCompile[] task has a `source` property, which defines the source files to compile. You can set the value of this property using any of the types supported by the <<sec:file_collections,files()>> method, as mentioned in the api docs. This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure.
+
+*This is a feature of specific tasks*! That means implicit conversion will not happen for just any task that has a `FileCollection` or `FileTree` property. If you want to know whether implicit conversion happens in a particular situation, you will need to read the relevant documentation, such as the corresponding task's API docs. Alternatively, you can remove all doubt by explicitly using api:org.gradle.api.Project#files(java.lang.Object...)[] in your build.
+
+Here are some examples of the different types of arguments that the `source` property can take:
 
 ++++
 <sample id="inputFiles" dir="userguide/files/inputFiles" title="Specifying a set of files">
@@ -448,7 +452,6 @@ Many objects in Gradle have properties which accept a set of input files. For ex
 </sample>
 ++++
 
-*This is a feature of this specific task*! That means it will not happen for just any task that has a `FileCollection` or `FileTree` property. If you want to know whether implicit conversion happens in a particular situation, read the documentation. Alternatively, simply use api:org.gradle.api.Project#files(Object...)[] explicitly.
 
 One other thing to note is that properties like `source` have corresponding methods in core Gradle tasks. Those methods follow the convention of _appending_ to collections of values rather than replacing them. Again, this method accepts any of the types supported by the <<sec:file_collections,files()>> method, as shown here:
 
