@@ -1284,6 +1284,19 @@ class DefaultServiceRegistryTest extends Specification {
         thrown IllegalStateException
     }
 
+    def "cannot lookup services while closing" () {
+        given:
+        registry.add(Closeable, { registry.get(String) } as Closeable)
+
+        when:
+        registry.close()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains("closed")
+
+    }
+
     private Factory<Number> numberFactory
     private Factory<String> stringFactory
     private Factory<? super BigDecimal> superBigDecimalFactory

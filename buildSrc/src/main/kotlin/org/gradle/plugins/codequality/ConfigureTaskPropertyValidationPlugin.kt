@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
+import org.gradle.api.tasks.testing.Test
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 
 import accessors.*
@@ -74,7 +75,7 @@ fun Project.addValidateTask() =
         // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
         // whether the task already exists.
         if (tasks.findByName(validateTaskName) == null) {
-            tasks.create<ValidateTaskProperties>(validateTaskName) {
+            val validateTask = tasks.create<ValidateTaskProperties>(validateTaskName) {
                 val main by java.sourceSets
                 dependsOn(main.output)
                 classes = main.output.classesDirs
@@ -82,6 +83,14 @@ fun Project.addValidateTask() =
                 // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
                 outputFile.set(reporting.baseDirectory.file(reportFileName))
                 failOnWarning = true
+            }
+            tasks {
+                "codeQuality" {
+                    dependsOn(validateTask)
+                }
+                withType<Test> {
+                    shouldRunAfter(validateTask)
+                }
             }
         }
     }

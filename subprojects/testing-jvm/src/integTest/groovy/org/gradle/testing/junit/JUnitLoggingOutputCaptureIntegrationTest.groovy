@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
-@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, 'Vintage:5.1.0-M2') })
+@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
 class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
