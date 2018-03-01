@@ -281,3 +281,20 @@ task archiveDistAssets(type: Zip) {
     from 'distResources', webAssetPatterns
 }
 // END SNIPPET shared-copy-patterns
+
+// START SNIPPET change-default-exclusions
+task forcedCopy(type: Copy) {
+    into "${buildDir}/inPlaceApp"
+    from 'src/main/webapp'
+
+    doFirst {
+        ant.defaultexcludes remove: "**/.git"
+        ant.defaultexcludes remove: "**/.git/**"
+        ant.defaultexcludes remove: "**/*~"
+    }
+
+    doLast {
+        ant.defaultexcludes default: true
+    }
+}
+// END SNIPPET change-default-exclusions

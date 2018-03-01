@@ -401,7 +401,17 @@ You can see more examples of supported patterns in the API docs for api:org.grad
 
 [NOTE]
 ====
-By default, the `FileTree` instance `fileTree()` returns will apply some Ant-style default exclude patterns for convenience. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[Default Excludes].
+By default, `fileTree()` returns a `FileTree` instance that applies some Ant-style default exclude patterns for convenience. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[Default Excludes].
+
+If those default exclusions prove problematic, you can workaround the issue by using the {antManual}/Tasks/defaultexcludes.html[`defaultexcludes` Ant task], as demonstrated in this example: 
+
+++++
+<sample id="antDefaultExcludes" dir="userguide/files/copy" title="Changing Ant default exclusions for a copy task">
+    <sourcefile file="build.gradle" snippet="change-default-exclusions"/>
+</sample>
+++++
+
+In general, it's best to ensure that the default exclusions are reset whenever you change them as any changes are global. That's what the above example is doing with its `doLast` action.
 ====
 
 You can do many of the same things with file trees that you can with file collections:

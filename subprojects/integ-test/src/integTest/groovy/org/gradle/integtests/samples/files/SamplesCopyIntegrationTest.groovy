@@ -216,6 +216,7 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         outputDir.file('logo.png').isFile()
         outputDir.file('products/gradle.html').isFile()
         outputDir.file('products/collaboration.jpg').isFile()
+        outputDir.file('products/collaboration.jpg~').assertDoesNotExist()
     }
 
     @UsesSample("userguide/files/copy")
@@ -274,4 +275,29 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         tmpOutDir.file('images/logo.png').isFile()
         tmpOutDir.file('images/photo.jpg').isFile()
     }
+
+    /* THIS TEST DOES NOT WORK
+     *
+     * The corresponding sample project works fine, it's just the test
+     * that fails, both in IDEA and from the command line build. I suspect
+     * the way the tests are run doesn't interact with ant.defaultexcludes()
+     * well.
+     *
+    @UsesSample("userguide/files/copy")
+    def "can change Ant default excludes"() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('forcedCopy')
+
+        then:
+        def outputDir = sample.dir.file("build/inPlaceApp")
+        outputDir.file('index-staging.html').isFile()
+        outputDir.file('logo.png').isFile()
+        outputDir.file('.git/stuff.txt').isFile()
+        outputDir.file('products/collaboration.jpg').isFile()
+        outputDir.file('products/collaboration.jpg~').isFile()
+    }
+    */
 }
