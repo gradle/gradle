@@ -171,7 +171,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebugShared
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
         def compileRelease = project.tasks.compileReleaseSharedCpp
@@ -183,7 +183,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkReleaseShared
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkRelease.debuggable
 
         and:

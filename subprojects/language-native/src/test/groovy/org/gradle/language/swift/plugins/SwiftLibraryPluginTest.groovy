@@ -298,6 +298,6 @@ class SwiftLibraryPluginTest extends Specification {
         compileSwift.moduleFile.get().asFile == projectDir.file("output/modules/main/debug/TestLib.swiftmodule")
 
         def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
+        link.linkedFile.get().asFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
     }
 }

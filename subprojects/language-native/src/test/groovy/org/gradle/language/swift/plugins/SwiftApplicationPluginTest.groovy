@@ -148,13 +148,13 @@ class SwiftApplicationPluginTest extends Specification {
         compileSwift.moduleFile.get().asFile == projectDir.file("output/modules/main/debug/TestApp.swiftmodule")
 
         def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
 
         def install = project.tasks.installDebug
-        install.destinationDir == project.file("output/install/main/debug")
-        install.executable == link.outputFile
+        install.installDirectory.get().asFile == project.file("output/install/main/debug")
+        install.executableFile.get().asFile == link.linkedFile.get().asFile
 
-        link.setOutputFile(project.file("exe"))
-        install.executable == link.outputFile
+        link.linkedFile.set(project.file("exe"))
+        install.executableFile.get().asFile == link.linkedFile.get().asFile
     }
 }
