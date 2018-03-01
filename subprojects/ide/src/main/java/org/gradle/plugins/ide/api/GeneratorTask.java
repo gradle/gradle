@@ -61,7 +61,7 @@ public class GeneratorTask<T> extends ConventionTask {
     protected T domainObject;
 
     public GeneratorTask() {
-        if (!isIncremental()) {
+        if (!getIncremental()) {
             getOutputs().upToDateWhen(Specs.satisfyNone());
         }
     }
@@ -73,7 +73,7 @@ public class GeneratorTask<T> extends ConventionTask {
      */
     @Internal
     @Incubating
-    protected boolean isIncremental() {
+    protected boolean getIncremental() {
         return false;
     }
 

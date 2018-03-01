@@ -42,7 +42,7 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
     }
 
     @Override
-    protected boolean isIncremental() {
+    protected boolean getIncremental() {
         return true;
     }
 

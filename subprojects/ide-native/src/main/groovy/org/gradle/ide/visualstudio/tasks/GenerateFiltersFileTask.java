@@ -36,7 +36,7 @@ public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFilter
     private DefaultVisualStudioProject visualStudioProject;
 
     @Override
-    protected boolean isIncremental() {
+    protected boolean getIncremental() {
         return true;
     }
 
