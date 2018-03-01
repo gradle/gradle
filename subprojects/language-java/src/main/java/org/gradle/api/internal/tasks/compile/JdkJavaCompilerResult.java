@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.processing;
+package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.workers.internal.DefaultWorkResult;
 
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
-import javax.annotation.processing.Processor;
+public class JdkJavaCompilerResult extends DefaultWorkResult {
 
+    private AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
 
-/**
- * A single origin processor must provide at least one originating element
- * for each file it generates.
- */
-public class MultipleOriginProcessor extends IncrementalProcessor {
-
-    public MultipleOriginProcessor(Processor delegate, AnnotationProcessingResult result) {
-        super(delegate, result);
+    JdkJavaCompilerResult() {
+        super(true, null);
     }
 
-    @Override
-    IncrementalFiler wrapFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        return new MultipleOriginFiler(filer, result, messager);
+    public AnnotationProcessingResult getAnnotationProcessingResult() {
+        return annotationProcessingResult;
     }
 }

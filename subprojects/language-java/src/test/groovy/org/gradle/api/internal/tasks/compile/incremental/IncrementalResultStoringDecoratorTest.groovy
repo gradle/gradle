@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
@@ -29,27 +30,22 @@ class IncrementalResultStoringDecoratorTest extends Specification {
     def writer = Mock(JarClasspathSnapshotWriter)
     def infoUpdater = Mock(ClassSetAnalysisUpdater)
     def compileSpec = Stub(JavaCompileSpec)
+    def processorPathStore = Mock(AnnotationProcessorPathStore)
 
-    @Subject finalizer = new IncrementalResultStoringDecorator(compiler, writer, infoUpdater)
+    @Subject finalizer = new IncrementalResultStoringDecorator(compiler, writer, infoUpdater, processorPathStore)
 
     def "performs finalization"() {
+        given:
+        def result = Stub(WorkResult)
+
         when:
         finalizer.execute(compileSpec)
 
         then:
-        1 * compiler.execute(compileSpec) >> Mock(WorkResult)
-        1 * infoUpdater.updateAnalysis(compileSpec)
+        1 * compiler.execute(compileSpec) >> result
+        1 * infoUpdater.updateAnalysis(compileSpec, result)
         1 * writer.storeJarSnapshots(_)
-        0 * _
-    }
-
-    def "does not update if rebuild was not required"() {
-        when:
-        finalizer.execute(compileSpec)
-
-        then:
-        1 * compiler.execute(compileSpec) >> Mock(RecompilationNotNecessary)
-        1 * writer.storeJarSnapshots(_)
+        1 * processorPathStore.put(_)
         0 * _
     }
 }

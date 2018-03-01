@@ -26,8 +26,8 @@ class ClassSetAnalysisTest extends Specification {
 
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                               Map<String, IntSet> classToConstants = [:],
-                              Map<String, Set<String>> classesToChildren = [:]) {
-        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren))
+                              Map<String, Set<String>> classesToChildren = [:], String fullRebuildCause = null) {
+        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren, fullRebuildCause))
     }
 
     def "returns empty analysis"() {
@@ -179,6 +179,15 @@ class ClassSetAnalysisTest extends Specification {
         !a.isDependencyToAll("A")
         a.isDependencyToAll("C")
         !a.isDependencyToAll("Unknown")
+    }
+
+    def "all classes are dependencies to all if a full rebuild cause is given"() {
+        def a = analysis(
+            [:], [:], [:], "Some cause"
+        )
+
+        expect:
+        a.isDependencyToAll("DoesNotMatter")
     }
 
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> dependentClasses) {
