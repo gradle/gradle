@@ -23,18 +23,18 @@ java {
 dependencies {
     compile(project(":distributionsDependencies"))
 
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("fastutil"))
+    api(Libraries.guava.coordinates)
+    api(Libraries.jsr305.coordinates)
+    api(Libraries.fastutil.coordinates)
 
-    implementation(library("slf4j_api"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("jcip"))
+    implementation(Libraries.slf4jApi.coordinates)
+    implementation(Libraries.commonsLang.coordinates)
+    implementation(Libraries.commonsIo.coordinates)
+    implementation(Libraries.jcip.coordinates)
 
-    jmh(library("bouncycastle_provider")) {
+    jmh(Libraries.bouncycastleProvider.coordinates) {
         version {
-            prefer(libraryVersion("bouncycastle_provider"))
+            prefer(Libraries.bouncycastleProvider.version)
         }
     }
 }

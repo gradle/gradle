@@ -22,21 +22,21 @@ plugins {
 }
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
 
     compile project(":baseServices")
     compile project(":native")
-    compile libraries.slf4j_api.coordinates
-    compile libraries.guava.coordinates
-    compile libraries.commons_lang.coordinates
-    compile libraries.commons_io.coordinates
-    compile libraries.ant.coordinates
-    compile libraries.asm.coordinates
-    compile libraries.asm_tree.coordinates
-    compile libraries.junit.coordinates
-    compile testLibraries.jmock
-    compile testLibraries.spock
-    compile testLibraries.jsoup
+    compile Libraries.slf4jApi.coordinates
+    compile Libraries.guava.coordinates
+    compile Libraries.commonsLang.coordinates
+    compile Libraries.commonsIo.coordinates
+    compile Libraries.ant.coordinates
+    compile Libraries.asm.coordinates
+    compile Libraries.asmTree.coordinates
+    compile Libraries.junit.coordinates
+    compile TestLibraries.jmock
+    compile TestLibraries.spock
+    compile TestLibraries.jsoup
 
     constraints {
         compile("cglib:cglib-nodep:3.2.6") { because "required to work with Java 9"}

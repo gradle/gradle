@@ -30,12 +30,12 @@ dependencies {
     reports "jquery:jquery.min:1.11.0@js"
     reports "flot:flot:0.8.1:min@js"
 
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
     compile project(':baseServices')
-    compile libraries.slf4j_api.coordinates
+    compile Libraries.slf4jApi.coordinates
     compile project(':internalIntegTesting')
-    compile libraries.jatl.coordinates
-    compile libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
+    compile Libraries.jatl.coordinates
+    compile Libraries.jgit.coordinates, Libraries.commonsHttpclient.coordinates, Libraries.jsch.coordinates
 
     runtime 'com.h2database:h2:1.4.192'
 }

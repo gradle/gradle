@@ -1,3 +1,6 @@
+import org.gradle.api.artifacts.DirectDependenciesMetadata
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -17,7 +20,7 @@ subprojects {
     dependencies {
         components {
             // Gradle distribution - minify: remove unused transitive dependencies
-            withLibraryDependencies("maven3") {
+            withLibraryDependencies(Libraries.maven3) {
                 removeAll {
                     it.name != "maven-settings-builder" &&
                         it.name != "maven-model" &&
@@ -27,22 +30,22 @@ subprojects {
                         it.group != "org.sonatype.aether"
                 }
             }
-            withLibraryDependencies("awsS3_core") {
+            withLibraryDependencies(Libraries.awsS3Core) {
                 removeAll { it.name == "jackson-dataformat-cbor" }
             }
-            withLibraryDependencies("jgit") {
+            withLibraryDependencies(Libraries.jgit) {
                 removeAll { it.group == "com.googlecode.javaewah" }
             }
-            withLibraryDependencies("maven3_wagon_http_shared4") {
+            withLibraryDependencies(Libraries.maven3WagonHttpShared4) {
                 removeAll { it.group == "org.jsoup" }
             }
-            withLibraryDependencies("aether_connector") {
+            withLibraryDependencies(Libraries.aetherConnector) {
                 removeAll { it.group == "org.sonatype.sisu" }
             }
-            withLibraryDependencies("maven3_compat") {
+            withLibraryDependencies(Libraries.maven3Compat) {
                 removeAll { it.group == "org.sonatype.sisu" }
             }
-            withLibraryDependencies("maven3_plugin_api") {
+            withLibraryDependencies(Libraries.maven3PluginApi) {
                 removeAll { it.group == "org.sonatype.sisu" }
             }
 
@@ -80,8 +83,8 @@ subprojects {
     }
 }
 
-fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
-    withModule(library(module)) {
+fun ComponentMetadataHandler.withLibraryDependencies(library: Library, action: DirectDependenciesMetadata.() -> Any) {
+    withModule(library.coordinates) {
         allVariants {
             withDependencies {
                 action()

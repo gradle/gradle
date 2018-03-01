@@ -16,7 +16,7 @@ configurations {
 dependencies {
     smokeTestCompile project(':testKit')
     smokeTestCompile project(":internalIntegTesting")
-    smokeTestCompile testLibraries.spock
+    smokeTestCompile TestLibraries.spock
 
     smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
     smokeTestRuntimeOnly project(':codeQuality')

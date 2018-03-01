@@ -15,7 +15,7 @@
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile Libraries.groovy.coordinates
 
     compile project(":resources")
     compile project(":core")
@@ -23,10 +23,10 @@ dependencies {
     compile project(":reporting")
     compile project(':plugins')
     compile project(':ear')
-    compile libraries.guava.coordinates
-    compile libraries.slf4j_api.coordinates
+    compile Libraries.guava.coordinates
+    compile Libraries.slf4jApi.coordinates
 
-    testCompile testLibraries.jsoup
+    testCompile TestLibraries.jsoup
 
     integTestRuntime project(":toolingApiBuilders")
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 dependencies {
-    compile(library("commons_codec"))
-    compile(library("slf4j_api"))
-    compile(library("commons_io"))
+    compile(Libraries.commonsCodec.coordinates)
+    compile(Libraries.slf4jApi.coordinates)
+    compile(Libraries.commonsIo.coordinates)
     compile(project(":core"))
     testRuntime(project(":plugins"))
 }
