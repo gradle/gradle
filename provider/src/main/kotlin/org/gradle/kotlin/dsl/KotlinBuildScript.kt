@@ -37,8 +37,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinBuildScript(
-    private val host: KotlinScriptHost,
-    project: Project) : Project by project {
+    private val host: KotlinScriptHost<Project>) : Project by host.target {
 
     /**
      * The [ScriptHandler] for this script.

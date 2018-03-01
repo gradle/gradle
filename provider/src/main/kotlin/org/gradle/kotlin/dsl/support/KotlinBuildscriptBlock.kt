@@ -30,9 +30,7 @@ import org.gradle.kotlin.dsl.ScriptHandlerScope
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-abstract class KotlinBuildscriptBlock(
-    host: KotlinScriptHost,
-    project: Project) : KotlinBuildScript(host, project) {
+abstract class KotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : KotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.
@@ -48,9 +46,7 @@ abstract class KotlinBuildscriptBlock(
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-abstract class KotlinSettingsBuildscriptBlock(
-    host: KotlinScriptHost,
-    settings: Settings) : KotlinSettingsScript(host, settings) {
+abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : KotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for settings.
@@ -66,7 +62,7 @@ abstract class KotlinSettingsBuildscriptBlock(
 /**
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
-abstract class KotlinInitscriptBlock(host: KotlinScriptHost, gradle: Gradle) : KotlinInitScript(host, gradle) {
+abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : KotlinInitScript(host) {
 
     /**
      * Configures the classpath of the init script.

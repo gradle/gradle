@@ -45,7 +45,7 @@ fun kotlinScriptTargetFor(
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
     baseScope: ClassLoaderScope,
-    topLevelScript: Boolean): KotlinScriptTarget<out Any> =
+    topLevelScript: Boolean): KotlinScriptTarget<Any> =
 
     when (target) {
         is Project  -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
@@ -69,8 +69,6 @@ fun settingsScriptTarget(
     topLevelScript: Boolean) =
 
     KotlinScriptTarget(
-        settings,
-        type = Settings::class,
         host = KotlinScriptHost(settings, scriptSource, serviceRegistryOf(settings), baseScope, scriptHandler),
         scriptTemplate = KotlinSettingsScript::class,
         buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript })
@@ -85,18 +83,14 @@ fun projectScriptTarget(
     topLevelScript: Boolean): KotlinScriptTarget<Project> =
 
     KotlinScriptTarget(
-        project,
-        type = Project::class,
         host = KotlinScriptHost(project, scriptSource, serviceRegistryOf(project), baseScope, scriptHandler),
         scriptTemplate = KotlinBuildScript::class,
         buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
-        prepare = {
-            project.run {
-                afterEvaluate {
-                    plugins.apply(KotlinScriptBasePlugin::class.java)
-                }
+        onPrepare = {
+            afterEvaluate {
+                plugins.apply(KotlinScriptBasePlugin::class.java)
             }
         })
 
@@ -109,8 +103,6 @@ fun gradleInitScriptTarget(
     baseScope: ClassLoaderScope): KotlinScriptTarget<Gradle> =
 
     KotlinScriptTarget(
-        gradle,
-        type = Gradle::class,
         host = KotlinScriptHost(gradle, scriptSource, serviceRegistryOf(gradle), baseScope, scriptHandler),
         scriptTemplate = KotlinInitScript::class,
         buildscriptBlockTemplate = KotlinInitscriptBlock::class,
@@ -132,27 +124,31 @@ val emptyAccessorsClassPathProvider: AccessorsClassPathProvider = { AccessorsCla
 
 
 internal
-data class KotlinScriptTarget<T : Any>(
-    val `object`: T,
-    val type: KClass<T>,
-    val host: KotlinScriptHost,
+data class KotlinScriptTarget<out T : Any>(
+    val host: KotlinScriptHost<T>,
     val scriptTemplate: KClass<*>,
     val buildscriptBlockTemplate: KClass<*>?,
     val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val buildscriptBlockName: String = "buildscript",
-    val prepare: () -> Unit = {}) {
+    private val onPrepare: T.() -> Unit = {}) {
+
+    val `object`
+        get() = host.target
 
     val scriptHandler
         get() = host.scriptHandler
+
+    fun prepare() =
+        `object`.onPrepare()
 
     fun accessorsClassPathFor(classPath: ClassPath) =
         accessorsClassPath(classPath)
 
     fun eval(scriptClass: Class<*>) {
         scriptClass
-            .getConstructor(KotlinScriptHost::class.java, type.java)
-            .newInstance(host, `object`)
+            .getConstructor(KotlinScriptHost::class.java)
+            .newInstance(host)
     }
 }
 

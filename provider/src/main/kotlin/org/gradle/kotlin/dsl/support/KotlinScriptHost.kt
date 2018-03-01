@@ -30,8 +30,8 @@ import org.gradle.kotlin.dsl.fileOperationsFor
 import org.gradle.kotlin.dsl.invoke
 
 
-class KotlinScriptHost(
-    private val target: Any,
+class KotlinScriptHost<out T : Any>(
+    val target: T,
     private val scriptSource: ScriptSource,
     private val serviceRegistry: ServiceRegistry,
     private val baseScope: ClassLoaderScope,

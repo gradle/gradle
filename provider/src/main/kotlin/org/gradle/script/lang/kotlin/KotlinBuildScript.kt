@@ -35,5 +35,4 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinBuildScript(
-    host: KotlinScriptHost,
-    project: Project) : org.gradle.kotlin.dsl.KotlinBuildScript(host, project)
+    host: KotlinScriptHost<Project>) : org.gradle.kotlin.dsl.KotlinBuildScript(host)

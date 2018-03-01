@@ -75,7 +75,7 @@ class KotlinBuildScriptCompiler(
     private val kotlinCompiler: CachingKotlinCompiler,
     private val classloadingCache: KotlinScriptClassloadingCache,
     private val scriptSource: KotlinScriptSource,
-    private val scriptTarget: KotlinScriptTarget<out Any>,
+    private val scriptTarget: KotlinScriptTarget<Any>,
     private val scriptHandler: ScriptHandlerInternal,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val baseScope: ClassLoaderScope,
@@ -333,7 +333,7 @@ fun initScriptClassPathFor(
 private
 class BuildscriptBlockEvaluator(
     val scriptSource: KotlinScriptSource,
-    val scriptTarget: KotlinScriptTarget<out Any>,
+    val scriptTarget: KotlinScriptTarget<Any>,
     val classPath: ClassPath,
     val baseScope: ClassLoaderScope,
     val kotlinCompiler: CachingKotlinCompiler,
