@@ -33,7 +33,7 @@ class DefaultVisualStudioProjectTest extends Specification {
     def vsProject = project("projectName")
 
     def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(vsProjectName, component.projectPath, component.getName(), fileResolver, instantiator)
+        new DefaultVisualStudioProject(vsProjectName, component.getName(), null, null, fileResolver, instantiator)
     }
 
     def "names"() {
@@ -51,14 +51,14 @@ class DefaultVisualStudioProjectTest extends Specification {
 
     def "includes source, resource, and header files from target binary"() {
         when:
-        def sourcefile1 = Mock(File)
-        def sourcefile2 = Mock(File)
-        def sourcefile3 = Mock(File)
-        def resourcefile1 = Mock(File)
-        def resourcefile2 = Mock(File)
-        def headerfile1 = Mock(File)
-        def headerfile2 = Mock(File)
-        def headerfile3 = Mock(File)
+        def sourcefile1 = new File("s1")
+        def sourcefile2 = new File("s2")
+        def sourcefile3 = new File("s3")
+        def resourcefile1 = new File("r1")
+        def resourcefile2 = new File("r2")
+        def headerfile1 = new File("h1")
+        def headerfile2 = new File("h2")
+        def headerfile3 = new File("h3")
 
         vsProject.addConfiguration(targetBinary([sourcefile1, sourcefile2], [resourcefile1, resourcefile2], [headerfile1, headerfile2, headerfile3]), Mock(VisualStudioProjectConfiguration))
         vsProject.addSourceFile(sourcefile3)

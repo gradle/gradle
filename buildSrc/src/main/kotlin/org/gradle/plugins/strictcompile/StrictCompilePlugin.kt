@@ -37,7 +37,7 @@ open class StrictCompilePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        val strictCompile = extensions.create("strictCompile", StrictCompileExtension::class.java)
+        val strictCompile = extensions.create<StrictCompileExtension>("strictCompile")
 
         afterEvaluate {
             val compilerArgs =

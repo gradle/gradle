@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.artifacts.DirectDependencyMetadata;
+import org.gradle.api.artifacts.DependencyConstraintMetadata;
 
-public class DependencyConstraintMetadataImpl extends AbstractDependencyImpl<DirectDependencyMetadata> implements DirectDependencyMetadata {
+public class DependencyConstraintMetadataImpl extends AbstractDependencyImpl<DependencyConstraintMetadata> implements DependencyConstraintMetadata {
 
     public DependencyConstraintMetadataImpl(String group, String name, String version) {
         super(group, name, version);

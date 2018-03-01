@@ -20,13 +20,13 @@ import org.gradle.api.JavaVersion
 
 /**
  * NEWEST is JUnit 4 series, i.e. junit:junit:4.12
- * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter-api:5.0.x
- * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:4.12.3
+ * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter-api:5.1.0
+ * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.1.0
  */
 class JUnitCoverage {
     final static String NEWEST = '4.12'
-    final static String LATEST_JUPITER_VERSION = '5.1.0-RC1'
-    final static String LATEST_VINTAGE_VERSION = '5.1.0-RC1'
+    final static String LATEST_JUPITER_VERSION = '5.1.0'
+    final static String LATEST_VINTAGE_VERSION = '5.1.0'
     final static String JUPITER = 'Jupiter:' + LATEST_JUPITER_VERSION
     final static String VINTAGE = 'Vintage:' + LATEST_VINTAGE_VERSION
     final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]

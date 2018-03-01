@@ -21,11 +21,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationResultAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.internal.Stash;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.time.Time;
@@ -49,24 +52,42 @@ public class ClassSetAnalysisUpdater {
     private ClassDependenciesAnalyzer analyzer;
     private final FileHasher fileHasher;
 
-    public ClassSetAnalysisUpdater(Stash<ClassSetAnalysisData> stash, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer, FileHasher fileHasher) {
+    ClassSetAnalysisUpdater(Stash<ClassSetAnalysisData> stash, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer, FileHasher fileHasher) {
         this.stash = stash;
         this.fileOperations = fileOperations;
         this.analyzer = analyzer;
         this.fileHasher = fileHasher;
     }
 
-    public void updateAnalysis(JavaCompileSpec spec) {
-        Timer clock = Time.startTimer();
-        Set<File> baseDirs = Sets.newLinkedHashSet();
-        baseDirs.add(spec.getDestinationDir());
-        Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));
-        ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer, fileHasher);
-        for (File baseDir : baseDirs) {
-            fileOperations.fileTree(baseDir).visit(analyzer);
+    public void updateAnalysis(JavaCompileSpec spec, WorkResult result) {
+        if (result instanceof RecompilationNotNecessary) {
+            return;
         }
+        Timer clock = Time.startTimer();
+        CompilationResultAnalyzer analyzer = new CompilationResultAnalyzer(this.analyzer, fileHasher);
+        visitAnnotationProcessingResult(spec, result, analyzer);
+        visitClassFiles(spec, analyzer);
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
+    }
+
+    private void visitAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result, CompilationResultAnalyzer analyzer) {
+        if (!spec.getEffectiveAnnotationProcessors().isEmpty()) {
+            AnnotationProcessingResult annotationProcessingResult = null;
+            if (result instanceof JdkJavaCompilerResult) {
+                annotationProcessingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
+            }
+            analyzer.visitAnnotationProcessingResult(annotationProcessingResult);
+        }
+    }
+
+    private void visitClassFiles(JavaCompileSpec spec, CompilationResultAnalyzer analyzer) {
+        Set<File> baseDirs = Sets.newLinkedHashSet();
+        baseDirs.add(spec.getDestinationDir());
+        Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));
+        for (File baseDir : baseDirs) {
+            fileOperations.fileTree(baseDir).visit(analyzer);
+        }
     }
 }

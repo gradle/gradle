@@ -1,10 +1,12 @@
-import org.gradle.api.internal.GradleInternal
 import org.gradle.build.ClasspathManifest
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
+import org.gradle.BuildEnvironment.isCiServer
+
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
@@ -19,7 +21,7 @@ base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.val
 
 java.sourceCompatibility = JavaVersion.VERSION_1_7
 
-val javaInstallationProbe = (gradle as GradleInternal).services.get(JavaInstallationProbe::class.java)
+val javaInstallationProbe = gradle.serviceOf<JavaInstallationProbe>()
 
 val compileTasks by extra { tasks.matching { it is JavaCompile || it is GroovyCompile } }
 val testTasks by extra { tasks.withType<Test>() }
@@ -53,24 +55,25 @@ val classpathManifest by tasks.creating(ClasspathManifest::class)
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), generatedResourcesDir)
 
-val isCiServer: Boolean by rootProject.extra
+class CiEnvironmentProvider(private val test: Test, private val rootProject: Project) : CommandLineArgumentProvider {
+    override fun asArguments(): Iterable<String> {
+        return if (isCiServer) {
+            mapOf(
+                "org.gradle.test.maxParallelForks" to test.maxParallelForks,
+                "org.gradle.ci.agentCount" to 2,
+                "org.gradle.ci.agentNum" to rootProject.extra["agentNum"]
+            ).map {
+                "-D${it.key}=${it.value}"
+            }
+        } else {
+            listOf()
+        }
+    }
+}
 
 testTasks.all {
     maxParallelForks = rootProject.extra["maxParallelForks"] as Int
-    if (isCiServer) {
-        val ciProperties = mapOf(
-            "org.gradle.test.maxParallelForks" to maxParallelForks,
-            "org.gradle.ci.agentCount" to 2,
-            "org.gradle.ci.agentNum" to rootProject.extra["agentNum"])
-        systemProperties(ciProperties)
-
-        // Ignore Forking/agentNum properties in order to be able to pull tests
-        if (this is DistributionTest) {
-            ciProperties.keys.forEach { ignoreSystemProperty(it) }
-        } else {
-            inputs.property("systemProperties", Callable<Any> { systemProperties - ciProperties })
-        }
-    }
+    jvmArgumentProviders.add(CiEnvironmentProvider(this, rootProject))
     executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
     environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
     if (javaInstallationForTest.javaVersion.isJava7) {
@@ -105,7 +108,7 @@ apply {
     }
 
     if (file("src/performanceTest").isDirectory) {
-        from("$rootDir/gradle/performanceTest.gradle")
+        plugin("performance-test")
     }
 
     if (file("src/jmh").isDirectory) {

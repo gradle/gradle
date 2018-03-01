@@ -16,12 +16,12 @@
 
 package org.gradle.cache.internal
 
+import org.apache.commons.io.FileUtils
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
@@ -98,7 +98,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         jarFile == resolvedFile
 
         when:
-        GFileUtils.touch(jarFile)
+        FileUtils.touch(jarFile)
         resolvedFile = provider.get("api") { Assert.fail("Should not be called if file already exists") }
 
         then:

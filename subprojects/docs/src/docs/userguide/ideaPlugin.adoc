@@ -46,7 +46,11 @@ To use the IDEA plugin, include this in your build script:
         </sample>
 ++++
 
-The IDEA plugin adds a number of tasks to your project. The main tasks that you will use are the `idea` and `cleanIdea` tasks.
+The IDEA plugin adds a number of tasks to your project. The `idea` task generates an IDEA module file for the project. When the project is the root project, the `idea` task also generates an IDEA project and workspace. The IDEA project includes modules for each of the projects in the Gradle build.
+
+The IDEA plugin also adds an `openIdea` task when the project is the root project. This task generates the IDEA configuration files and opens the result in IDEA. This means you can simply run `./gradlew openIdea` from the root project to generate and open the IDEA project in one convenient step.
+
+The IDEA plugin also adds a `cleanIdea` task to the project. This task deletes the generated files, if present.
 
 [[sec:idea_tasks]]
 === Tasks
@@ -66,6 +70,11 @@ The IDEA plugin adds the tasks shown below to a project. Notice that the `clean`
 | `ideaProject`, `ideaModule`, `ideaWorkspace`
 | -
 | Generates all IDEA configuration files
+
+| `openIdea`
+| `idea`
+| -
+| Generates all IDEA configuration files and opens the project in IDEA
 
 | `cleanIdea`
 | `cleanIdeaProject`, `cleanIdeaModule`

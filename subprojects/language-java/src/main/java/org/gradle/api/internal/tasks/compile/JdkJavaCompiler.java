@@ -19,7 +19,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.SourcepathIgnoringProxy;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
@@ -46,15 +45,16 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 
-        JavaCompiler.CompilationTask task = createCompileTask(spec);
+        JdkJavaCompilerResult result = new JdkJavaCompilerResult();
+        JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {
             throw new CompilationFailedException();
         }
-        return WorkResults.didWork(true);
+        return result;
     }
 
-    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {
+    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, JdkJavaCompilerResult result) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
@@ -68,7 +68,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         if (annotationProcessors != null) {
-            task = new IncrementalAnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath());
+            task = new IncrementalAnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         }
         return task;
     }

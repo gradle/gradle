@@ -44,6 +44,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -222,8 +223,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public Map<String, Object> getConfigProperties() {
         return configProperties;
     }
@@ -231,7 +233,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
-    public void setConfigProperties(Map<String, Object> configProperties) {
+    public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
         this.configProperties = configProperties;
     }
 
@@ -244,9 +246,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @since 4.0
      */
     @Incubating
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Nullable
     @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputDirectory
     public File getConfigDir() {
         File configDirectory = configDir.getOrNull();
         if (configDirectory!=null && configDirectory.exists()) {

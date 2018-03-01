@@ -15,14 +15,17 @@
  */
 
 package org.gradle.ide.visualstudio.tasks.internal
+
 import org.gradle.api.Transformer
-import org.gradle.internal.xml.XmlTransformer
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
+import org.gradle.util.VersionNumber
 
 class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     private final Transformer<String, File> fileLocationResolver
     String gradleCommand = 'gradle'
+    VersionNumber visualStudioVersion
 
     VisualStudioProjectFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
         super(xmlTransformer)
@@ -34,8 +37,18 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     }
 
     def setProjectUuid(String uuid) {
-        Node globals = xml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
+        Node globals = xml.PropertyGroup.find({ it.'@Label' == 'Globals' }) as Node
         globals.appendNode("ProjectGUID", uuid)
+    }
+
+    def setVisualStudioVersion(VersionNumber version) {
+        visualStudioVersion = version
+        xml.attributes().ToolsVersion = version.major >= 12 ? "${version.major}.0" : "4.0"
+    }
+
+    def setSdkVersion(VersionNumber version) {
+        Node globals = xml.PropertyGroup.find({ it.'@Label' == 'Globals' }) as Node
+        globals.appendNode("WindowsTargetPlatformVersion", version.micro != 0 ? version : "${version.major}.${version.minor}")
     }
 
     def addSourceFile(File it) {
@@ -60,18 +73,23 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
 
         def vsOutputDir = ".vs\\${configuration.project.name}\\\$(Configuration)"
-        Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props'}) as Node
+        Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props' }) as Node
         defaultProps + {
             PropertyGroup(Label: "Configuration", Condition: configCondition) {
                 ConfigurationType(configuration.type)
                 UseDebugLibraries(configuration.targetBinary.debuggable)
                 OutDir(vsOutputDir)
                 IntDir(vsOutputDir)
+                if (visualStudioVersion.major > 14) {
+                    PlatformToolset("v141")
+                } else if (visualStudioVersion.major >= 11) {
+                    PlatformToolset("v${visualStudioVersion.major}0")
+                }
             }
         }
 
         final includePath = toPath(configuration.targetBinary.includePaths).join(";")
-        Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
+        Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros' }) as Node
         userMacros + {
             PropertyGroup(Label: "NMakeConfiguration", Condition: configCondition) {
                 NMakeBuildCommandLine("${gradleCommand} ${configuration.targetBinary.buildTaskPath}")
@@ -89,7 +107,7 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     }
 
     private List<String> toPath(Set<File> files) {
-        return files.collect({toPath(it)})
+        return files.collect({ toPath(it) })
     }
 
     private String toPath(File it) {

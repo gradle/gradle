@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.MultipleOriginProcessor;
@@ -42,14 +43,16 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
     private final JavaCompiler.CompilationTask delegate;
     private final Set<AnnotationProcessorDeclaration> processorDeclarations;
     private final List<File> annotationProcessorPath;
+    private final AnnotationProcessingResult result;
 
     private URLClassLoader processorClassloader;
     private boolean called;
 
-    IncrementalAnnotationProcessingCompileTask(JavaCompiler.CompilationTask delegate, Set<AnnotationProcessorDeclaration> processorDeclarations, List<File> annotationProcessorPath) {
+    IncrementalAnnotationProcessingCompileTask(JavaCompiler.CompilationTask delegate, Set<AnnotationProcessorDeclaration> processorDeclarations, List<File> annotationProcessorPath, AnnotationProcessingResult result) {
         this.delegate = delegate;
         this.processorDeclarations = processorDeclarations;
         this.annotationProcessorPath = annotationProcessorPath;
+        this.result = result;
     }
 
     @Override
@@ -95,9 +98,9 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
     private Processor decorateIfIncremental(Processor processor, IncrementalAnnotationProcessorType type) {
         switch (type) {
             case SINGLE_ORIGIN:
-                return new SingleOriginProcessor(processor);
+                return new SingleOriginProcessor(processor, result);
             case MULTIPLE_ORIGIN:
-                return new MultipleOriginProcessor(processor);
+                return new MultipleOriginProcessor(processor, result);
             default:
                 return processor;
         }

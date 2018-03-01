@@ -1,3 +1,4 @@
+import accessors.groovy
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.IntegrationTest
@@ -68,9 +69,7 @@ tasks {
 plugins.withType<IdeaPlugin> {
     configure<IdeaModel> {
         module {
-            integTest.withConvention(GroovySourceSet::class) {
-                testSourceDirs = testSourceDirs + groovy.srcDirs + integTest.resources.srcDirs
-            }
+            testSourceDirs = testSourceDirs + integTest.groovy.srcDirs + integTest.resources.srcDirs
             scopes["TEST"]!!["plus"]!!.apply {
                 add(integTestCompile)
                 add(integTestRuntime)

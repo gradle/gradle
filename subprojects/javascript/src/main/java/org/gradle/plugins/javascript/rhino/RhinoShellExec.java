@@ -107,9 +107,9 @@ public class RhinoShellExec extends JavaExec {
     /**
      * Script file.
      */
-    @InputFile
-    @Optional
     @Nullable
+    @Optional
+    @InputFile
     public File getScript() {
         return script == null ? null : getProject().file(script);
     }
@@ -119,14 +119,14 @@ public class RhinoShellExec extends JavaExec {
      *
      * @since 4.0
      */
-    public void setScript(File script) {
+    public void setScript(@Nullable File script) {
         this.script = script;
     }
 
     /**
      * Sets script file.
      */
-    public void setScript(Object script) {
+    public void setScript(@Nullable Object script) {
         this.script = script;
     }
 

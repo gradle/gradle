@@ -43,4 +43,6 @@ dependencies {
     }
 }
 
-apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
+ideConfiguration {
+    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
+}

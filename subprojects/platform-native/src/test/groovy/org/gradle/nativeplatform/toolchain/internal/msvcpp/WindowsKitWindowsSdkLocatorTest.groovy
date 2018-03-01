@@ -31,7 +31,7 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.AbstractWindow
 class WindowsKitWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final WindowsComponentLocator<WindowsKitWindowsSdk> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry)
+    final WindowsComponentLocator<WindowsKitSdkInstall> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry)
 
     def "uses highest Windows Kit version found"() {
         def dir1 = kitDir("sdk1", versions as String[])

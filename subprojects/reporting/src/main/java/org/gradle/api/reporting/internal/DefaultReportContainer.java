@@ -31,6 +31,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.SortedMap;
@@ -94,6 +95,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         return this;
     }
 
+    @Nullable
     public T getFirstEnabled() {
         SortedMap<String, T> map = enabled.getAsMap();
         if (map.isEmpty()) {

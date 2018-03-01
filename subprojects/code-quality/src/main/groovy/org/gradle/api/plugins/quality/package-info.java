@@ -17,4 +17,7 @@
 /**
  * Plugins which measure and enforce code quality.
  */
+@NonNullApi
 package org.gradle.api.plugins.quality;
+
+import org.gradle.api.NonNullApi;

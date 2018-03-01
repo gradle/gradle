@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -29,23 +30,21 @@ class IncrementalResultStoringDecorator implements Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> delegate;
     private final JarClasspathSnapshotWriter writer;
     private final ClassSetAnalysisUpdater updater;
+    private final AnnotationProcessorPathStore annotationProcessorPathStore;
 
-    public IncrementalResultStoringDecorator(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater) {
+    public IncrementalResultStoringDecorator(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
         this.delegate = delegate;
         this.writer = writer;
         this.updater = updater;
+        this.annotationProcessorPathStore = annotationProcessorPathStore;
     }
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
-
-        if (!(out instanceof RecompilationNotNecessary)) {
-            updater.updateAnalysis(spec);
-        }
-
+        updater.updateAnalysis(spec, out);
         writer.storeJarSnapshots(spec.getCompileClasspath());
-
+        annotationProcessorPathStore.put(spec.getAnnotationProcessorPath());
         return out;
     }
 }

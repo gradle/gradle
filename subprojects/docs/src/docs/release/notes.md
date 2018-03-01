@@ -36,6 +36,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Changes in the caching of missing versions
+
+Previously, Gradle would refresh the version list when dynamic version cache expires for repositories that did not contain a version at all.
+From now on, Gradle [will cache forever that a `group:name` was absent](https://github.com/gradle/gradle/issues/4436) from a repository.
+This has a positive performance on dependency resolution when multiple repositories are defined and dynamic versions are used.
+As before, using `--refresh-dependencies` will force a refresh, bypassing all caching.
+
 <!--
 ### Example breaking change
 -->

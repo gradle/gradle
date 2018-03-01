@@ -40,14 +40,14 @@ public class SystemPathVersionLocator implements VisualStudioVersionLocator {
 
     @Nonnull
     @Override
-    public List<VisualStudioMetadata> getVisualStudioInstalls() {
-        List<VisualStudioMetadata> installs = Lists.newArrayList();
+    public List<VisualStudioInstallCandidate> getVisualStudioInstalls() {
+        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
 
         File compilerInPath = os.findInPath(LEGACY_COMPILER_FILENAME);
         if (compilerInPath == null) {
             LOGGER.debug("No visual c++ compiler found in system path.");
         } else {
-            VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromCompiler(compilerInPath);
+            VisualStudioInstallCandidate install = versionDeterminer.getVisualStudioMetadataFromCompiler(compilerInPath);
             if (install != null) {
                 installs.add(install);
             }

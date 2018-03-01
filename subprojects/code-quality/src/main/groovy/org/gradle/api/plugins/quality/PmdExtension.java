@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.resources.TextResource;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -131,6 +132,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
+    @Nullable
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -145,7 +147,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setRuleSetConfig(TextResource ruleSetConfig) {
+    public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
 

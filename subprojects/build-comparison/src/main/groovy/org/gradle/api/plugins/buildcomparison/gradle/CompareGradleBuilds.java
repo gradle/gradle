@@ -27,6 +27,7 @@ import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonRe
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildComparison;
+import org.gradle.api.plugins.buildcomparison.gradle.internal.MovableFileStore;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer;
@@ -45,7 +46,10 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.FileStoreException;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathNormalisingKeyFileStore;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
@@ -266,7 +270,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         );
 
         File fileStoreTmpBase = getFileResolver().resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
-        FileStore<String> fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
+        MovableFileStore<String> fileStore = new Files(fileStoreTmpBase);
 
         Map<String, String> hostAttributes = new LinkedHashMap<String, String>(4);
         hostAttributes.put("Project", getProject().getRootDir().getAbsolutePath());
@@ -293,4 +297,30 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         }
     }
 
+    private static class Files implements MovableFileStore<String> {
+        private final File baseDir;
+        private final FileStore<String> delegate;
+
+        public Files(File baseDir) {
+            this.baseDir = baseDir;
+            this.delegate = new PathNormalisingKeyFileStore(baseDir);
+        }
+
+        @Override
+        public void moveFileStore(File destination) {
+            if (baseDir.isDirectory()) {
+                GFileUtils.moveDirectory(baseDir, destination);
+            }
+        }
+
+        @Override
+        public LocallyAvailableResource move(String key, File source) throws FileStoreException {
+            return delegate.move(key, source);
+        }
+
+        @Override
+        public LocallyAvailableResource add(String key, Action<File> addAction) throws FileStoreException {
+            return delegate.add(key, addAction);
+        }
+    }
 }

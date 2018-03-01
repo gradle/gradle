@@ -52,4 +52,6 @@ testFixtures {
     from(':toolingApi', 'main')
 }
 
-apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
+ideConfiguration {
+    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
+}

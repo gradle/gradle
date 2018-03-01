@@ -399,6 +399,7 @@ Log in debug mode (includes normal stacktrace).
 
 Lifecycle is the default log level.
 
+[[sec:command_line_customizing_log_format]]
 ==== Customizing log format
 You can control the use of rich output (colors and font variants) by specifying the "console" mode in the following ways:
 
@@ -421,7 +422,7 @@ Set to `verbose` to enable color and other rich output like the `rich`, but outp
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
 
 ----
-Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle 5.0.
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 5.0.
 ----
 
 You can control the verbosity of warnings on the console with the following options:

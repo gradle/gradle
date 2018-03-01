@@ -29,7 +29,6 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final ManagedExecutor executorService;
     private final IncludedBuildRegistry includedBuildRegistry;
-    private boolean taskExecutionStarted;
 
     DefaultIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuildRegistry includedBuildRegistry) {
         this.includedBuildRegistry = includedBuildRegistry;
@@ -46,18 +45,11 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
         executorService.submit(newBuildController);
-
-        // Required for build controllers created after initial start
-        if (taskExecutionStarted) {
-            newBuildController.startTaskExecution();
-        }
-
         return newBuildController;
     }
 
     @Override
     public void startTaskExecution() {
-        this.taskExecutionStarted = true;
         populateTaskGraphs();
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();

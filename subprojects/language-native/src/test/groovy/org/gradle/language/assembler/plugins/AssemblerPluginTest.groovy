@@ -16,13 +16,18 @@
 
 package org.gradle.language.assembler.plugins
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.model.ModelMap
-import org.gradle.nativeplatform.*
+import org.gradle.nativeplatform.NativeBinary
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.SharedLibraryBinarySpec
+import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.util.GFileUtils
 
 class AssemblerPluginTest extends PlatformBaseSpecification {
 
@@ -160,6 +165,6 @@ class AssemblerPluginTest extends PlatformBaseSpecification {
     }
 
     def touch(String filePath) {
-        GFileUtils.touch(project.file(filePath))
+        FileUtils.touch(project.file(filePath))
     }
 }

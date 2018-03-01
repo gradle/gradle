@@ -19,7 +19,10 @@ package org.gradle.api.plugins.quality.findbugs
 import groovy.xml.XmlUtil
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
 class FindBugsRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override

@@ -17,11 +17,17 @@
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
 import org.gradle.modules.PatchExternalModules
+import org.gradle.BuildEnvironment
 
 plugins {
     id 'java-base'
     id 'build-types'
     id 'gradle-compile'
+    id 'ci-reporting'
+    // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
+    // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
+    // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
+    id "com.gradle.build-scan"
 }
 
 defaultTasks 'assemble'
@@ -111,10 +117,10 @@ buildTypes {
 }
 
 ext {
-    gradle_kotlin_dsl_version = '0.15.6'
+    gradle_kotlin_dsl_version = '0.16.0'
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
-    isCiServer = System.getenv().containsKey("CI")
+    isCiServer = BuildEnvironment.isCiServer
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {
@@ -172,20 +178,16 @@ ext {
     ]
 }
 
-apply from: "gradle/buildScanUserData.gradle"
-apply from: "gradle/taskCacheBuildScanUserData.gradle"
+apply plugin: "buildscan-configuration"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
-apply from: "gradle/dependenciesMetadataRules.gradle"
+apply from: "gradle/dependenciesMetadataRules.gradle.kts"
 apply from: "gradle/minifiedDependencies.gradle"
 apply from: "gradle/testDependencies.gradle"
-apply from: "gradle/wrapper.gradle"
-apply from: "gradle/idea.gradle"
-apply from: "gradle/eclipse.gradle"
-apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/wrapper.gradle.kts"
+apply plugin: "ide-configuration"
+apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle.kts"
 apply from: "gradle/testSetup.gradle"
-apply from: "gradle/fix-GRADLE-2492.gradle"
-apply from: 'gradle/customM2Check.gradle'
 apply from: "gradle/publicApi.gradle"
 apply from: "gradle/updateReleasedVersions.gradle"
 apply from: "gradle/dependenciesCheck.gradle"
@@ -222,7 +224,8 @@ subprojects {
         apply from: "$rootDir/gradle/publish.gradle"
     }
 
-    apply from: "$rootDir/gradle/codeQuality.gradle"
+    apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
+    apply plugin: "configure-task-properties-validation"
 }
 
 configurations {
@@ -336,7 +339,7 @@ subprojects { prj ->
 }
 
 afterEvaluate {
-    rootProject.availableJavaInstallations.validateBuildCacheConfiguration(gradle.settings.buildCache)
+    if (gradle.startParameter.isBuildCacheEnabled()) {
+        rootProject.availableJavaInstallations.validateBuildCacheConfiguration(gradle.settings.buildCache)
+    }
 }
-
-apply from: "gradle/ciReporting.gradle"

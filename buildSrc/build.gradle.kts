@@ -60,6 +60,26 @@ gradlePlugin {
             id = "gradle-compile"
             implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
+        "performanceTest" {
+            id = "performance-test"
+            implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
+        }
+        "ideConfiguration" {
+            id = "ide-configuration"
+            implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
+        }
+        "configureTaskPropertyValidation" {
+            id = "configure-task-properties-validation"
+            implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
+        }
+        "buildscanConfiguration" {
+            id = "buildscan-configuration"
+            implementationClass = "org.gradle.plugins.buildscan.BuildScanConfigurationPlugin"
+        }
+        "ciReporting" {
+            id = "ci-reporting"
+            implementationClass = "org.gradle.plugins.reporting.CiReportingPlugin"
+        }
     }
 }
 
@@ -85,10 +105,12 @@ dependencies {
     testCompile("com.nhaarman:mockito-kotlin:1.5.0")
 
     compile("org.pegdown:pegdown:1.6.0")
-    compile("org.jsoup:jsoup:1.6.3")
+    compile("org.jsoup:jsoup:1.11.2")
     compile("me.champeau.gradle:japicmp-gradle-plugin:0.2.4")
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")
+    compile("com.google.code.gson:gson:2.7")
+    compile("com.gradle:build-scan-plugin:1.12.1")
 
     constraints {
         compile("org.codehaus.groovy:groovy-all:2.4.12")
@@ -113,6 +135,9 @@ tasks {
     }
     "compileKotlin"(KotlinCompile::class) {
         classpath += files(compileGroovy.destinationDir).builtBy(compileGroovy)
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+        }
     }
 }
 
@@ -136,11 +161,35 @@ tasks.withType<GroovyCompile> {
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/dependencies.gradle") }
-    apply { from("../gradle/codeQuality.gradle") }
+    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
 }
 
-apply { from("../gradle/ciReporting.gradle") }
+if (isCiServer) {
+    gradle.buildFinished {
+        tasks.all {
+            if (this is Reporting<*> && state.failure != null) {
+                prepareReportForCIPublishing(this.reports["html"].destination)
+            }
+        }
+    }
+}
+
+fun Project.prepareReportForCIPublishing(report: File) {
+    if (report.isDirectory) {
+        val destFile = File("${rootProject.buildDir}/report-$name-${report.name}.zip")
+        ant.withGroovyBuilder {
+            "zip"("destFile" to destFile) {
+                "fileset"("dir" to report)
+            }
+        }
+    } else {
+        copy {
+            from(report)
+            into(rootProject.buildDir)
+            rename { "report-$name-${report.parentFile.name}-${report.name}" }
+        }
+    }
+}
 
 fun readProperties(propertiesFile: File) = Properties().apply {
     propertiesFile.inputStream().use { fis ->

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.service
 
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.internal.Factory
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
     def "multiple threads can locate services"() {
@@ -107,28 +107,31 @@ class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
         }
     }
 
-    def "close blocks while other threads are locating services"() {
+    def "cannot look up services while closing"() {
+        given:
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object() {
-            String createString() {
-                DefaultServiceRegistryConcurrencyTest.this.instant.constructing
-                DefaultServiceRegistryConcurrencyTest.this.thread.block()
-                DefaultServiceRegistryConcurrencyTest.this.instant.constructed
-                "hi"
-            }
-        })
+        registry.add(Closeable, {
+            instant.closing
+            thread.blockUntil.lookupDone
+        } as Closeable)
 
         when:
-        start {
-            assert registry.get(String) == "hi"
-        }
         async {
-            thread.blockUntil.constructing
-            registry.close()
-            instant.stopped
+            start() {
+                registry.close()
+            }
+            start {
+                thread.blockUntil.closing
+                try {
+                    registry.get(Closeable)
+                } finally {
+                    instant.lookupDone
+                }
+            }
         }
 
         then:
-        instant.constructed < instant.stopped
+        def e = thrown(IllegalStateException)
+        e.message.contains("closed")
     }
 }
