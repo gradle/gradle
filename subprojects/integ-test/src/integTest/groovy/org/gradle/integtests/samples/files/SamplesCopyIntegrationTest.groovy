@@ -200,6 +200,25 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         sample.dir.file('build/toArchive/numbers-~16').isFile()
     }
 
+    @UsesSample("userguide/files/archivesWithJavaPlugin")
+    def "can nest child specifications"() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('nestedSpecs')
+
+        then:
+        def outputDir = sample.dir.file("build/explodedWar")
+        outputDir.file('index-staging.html').assertDoesNotExist()
+        outputDir.file('index.html.tmp').assertDoesNotExist()
+        outputDir.file('home.html').isFile()
+        outputDir.file('logo.png').isFile()
+        outputDir.file('products/collaboration.jpg').isFile()
+        outputDir.file('WEB-INF/classes/Hello.class').isFile()
+        outputDir.file('WEB-INF/lib/commons-io-2.6.jar').isFile()
+    }
+
     @UsesSample("userguide/files/copy")
     def "can use a standalone copyspec within a copy"() {
         given:

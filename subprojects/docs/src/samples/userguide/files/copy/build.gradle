@@ -114,18 +114,19 @@ task copyWithTruncate(type: Copy) {
 // START SNIPPET copy-task
 task copyTask(type: Copy) {
     from 'src/main/webapp'
-    into 'build/explodedWar'
+    into "${buildDir}/explodedWar"
 }
 // END SNIPPET copy-task
 
 // START SNIPPET copy-task-with-patterns
 task copyTaskWithPatterns(type: Copy) {
     from 'src/main/webapp'
-    into 'build/explodedWar'
+    into "${buildDir}/explodedWar"
     include '**/*.html'
     include '**/*.jsp'
-    exclude { details -> details.file.name.endsWith('.html') &&
-                         details.file.text.contains('staging') }
+    exclude { FileTreeElement details ->
+        details.file.name.endsWith('.html') && details.file.text.contains('staging')
+    }
 }
 // END SNIPPET copy-task-with-patterns
 
@@ -155,7 +156,7 @@ task copyMethod {
     doLast {
         copy {
             from 'src/main/webapp'
-            into 'build/explodedWar'
+            into "${buildDir}/explodedWar"
             include '**/*.html'
             include '**/*.jsp'
         }
@@ -180,26 +181,10 @@ task copyMethodWithExplicitDependencies{
 
 configurations { runtime }
 
-// START SNIPPET nested-specs
-task nestedSpecs(type: Copy) {
-    into 'build/explodedWar'
-    exclude '**/*staging*'
-    from('src/dist') {
-        include '**/*.html', '**/*.png', '**/*.jpg'
-    }
-//    from(sourceSets.main.output) {
-//        into 'WEB-INF/classes'
-//    }
-    into('WEB-INF/libs') {
-        from configurations.runtime
-    }
-}
-// END SNIPPET nested-specs
-
 // START SNIPPET rename-files
 task rename(type: Copy) {
     from 'src/main/webapp'
-    into 'build/explodedWar'
+    into "${buildDir}/explodedWar"
     // Use a closure to map the file name
     rename { String fileName ->
         fileName.replace('-staging-', '')
@@ -216,7 +201,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 task filter(type: Copy) {
     from 'src/main/webapp'
-    into 'build/explodedWar'
+    into "${buildDir}/explodedWar"
     // Substitute property tokens in files
     expand(copyright: '2009', version: '2.3.1')
     expand(project.properties)

@@ -652,7 +652,7 @@ This is not a straightforward copy as the `WEB-INF` directory and its subdirecto
 The solution is to use _child specifications_, which can be applied to both `from()` and `into()` declarations. The following task definition does the necessary work:
 
 ++++
-<sample id="nestedCopySpecs" dir="userguide/files/copy" title="Nested copy specs">
+<sample id="nestedCopySpecs" dir="userguide/files/archivesWithJavaPlugin" title="Nested copy specs">
     <sourcefile file="build.gradle" snippet="nested-specs"/>
 </sample>
 ++++
