@@ -80,7 +80,7 @@ public class ExtractSymbols extends DefaultTask {
     /**
      * The tool chain used for extracting symbols.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -90,7 +90,7 @@ public class ExtractSymbols extends DefaultTask {
     /**
      * The platform for the binary.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {

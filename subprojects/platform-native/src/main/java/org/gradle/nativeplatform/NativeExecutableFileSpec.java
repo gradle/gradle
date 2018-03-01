@@ -43,7 +43,7 @@ public class NativeExecutableFileSpec {
 
     /**
      * The Tool Chain that produces the native executable.
-     * @since 4.6
+     * @since 4.7
      */
     public NativeToolChain getToolChain() {
         return toolChain;
@@ -51,7 +51,7 @@ public class NativeExecutableFileSpec {
 
     /**
      * Sets the Tool Chain that produces the native executable.
-     * @since 4.6
+     * @since 4.7
      */
     public void setToolChain(NativeToolChain toolChain) {
         this.toolChain = toolChain;

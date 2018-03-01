@@ -113,7 +113,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * The tool chain used for compilation.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -123,7 +123,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * The platform being compiled for.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
@@ -147,7 +147,7 @@ public class SwiftCompile extends DefaultTask {
      *
      * <p>Macros do not have values in Swift; they are either present or absent.</p>
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Input
     public ListProperty<String> getMacros() {
@@ -157,7 +157,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * Should the compiler generate debuggable code?
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public boolean isDebuggable() {
@@ -167,7 +167,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * Should the compiler generate debuggable code?
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Input
     public Property<Boolean> getDebuggable() {
@@ -177,7 +177,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * Should the compiler generate debuggable code?
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public boolean isOptimized() {
@@ -187,7 +187,7 @@ public class SwiftCompile extends DefaultTask {
     /**
      * Should the compiler generate optimized code?
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Input
     public Property<Boolean> getOptimized() {

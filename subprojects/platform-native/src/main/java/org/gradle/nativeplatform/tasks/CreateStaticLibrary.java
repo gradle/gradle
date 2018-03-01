@@ -117,7 +117,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * The tool chain used for linking.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -127,7 +127,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * The platform being linked for.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
@@ -155,7 +155,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * <em>Additional</em> arguments passed to the archiver.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Input
     public ListProperty<String> getStaticLibArgs() {

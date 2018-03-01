@@ -81,7 +81,7 @@ public class StripSymbols extends DefaultTask {
     /**
      * The tool chain used for striping symbols.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -91,7 +91,7 @@ public class StripSymbols extends DefaultTask {
     /**
      * The platform for the binary.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {

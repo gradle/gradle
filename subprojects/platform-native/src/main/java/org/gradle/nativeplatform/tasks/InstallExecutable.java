@@ -89,7 +89,7 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The tool chain used for linking.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -99,7 +99,7 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The platform being linked for.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
@@ -119,7 +119,8 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The executable file to install.
      *
-     * @since 4.6
+     * @since 4.7
+     *
      */
     @Internal("Covered by inputFileIfExists")
     public RegularFileProperty getExecutableFile() {

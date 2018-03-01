@@ -129,7 +129,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * The tool chain used for compilation.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -139,7 +139,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * The platform being compiled for.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {

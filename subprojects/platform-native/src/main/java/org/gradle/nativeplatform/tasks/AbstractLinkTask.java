@@ -92,7 +92,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The tool chain used for linking.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public Property<NativeToolChain> getToolChain() {
@@ -102,7 +102,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The platform being linked for.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
@@ -112,7 +112,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Include the destination directory as an output, to pick up auxiliary files produced alongside the main output file
      *
-     * @since 4.6
+     * @since 4.7
      */
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
@@ -122,7 +122,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The file where the linked binary will be located.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @OutputFile
     public RegularFileProperty getLinkedFile() {
@@ -142,7 +142,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Create a debuggable binary?
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Internal
     public boolean isDebuggable() {
@@ -152,7 +152,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Create a debuggable binary?
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Input
     public Property<Boolean> getDebuggable() {
@@ -201,7 +201,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The linker used, including the type and the version.
      *
-     * @since 4.6
+     * @since 4.7
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
