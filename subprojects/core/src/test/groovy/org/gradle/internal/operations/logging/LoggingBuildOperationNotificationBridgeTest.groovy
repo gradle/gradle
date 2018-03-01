@@ -32,6 +32,7 @@ class LoggingBuildOperationNotificationBridgeTest extends Specification {
 
     LoggingManagerInternal loggingManagerInternal = Mock()
     BuildOperationListener buildOperationListener = Mock()
+
     @Shared
     OperationIdentifier operationId = Mock()
 
@@ -82,7 +83,6 @@ class LoggingBuildOperationNotificationBridgeTest extends Specification {
         then:
         0 * buildOperationListener.progress(_, _)
     }
-
 
     def "registers / unregisters itself as output listener"() {
         when:

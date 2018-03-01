@@ -18,15 +18,23 @@ package org.gradle.internal.operations.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
+import org.junit.Rule
 
 import java.util.regex.Pattern
 
 class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec {
 
+    @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    MavenHttpRepository mavenHttpRepository = new MavenHttpRepository(server, '/repo', mavenRepo)
+
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def "captures output sources with context"() {
         given:
+        mavenHttpRepository.module("org", "foo", '1.0').publish().allowAll()
+
         file('init.gradle') << """
             logger.warn 'from init.gradle'
         """
@@ -38,10 +46,27 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         file("build.gradle") << """
             apply plugin: 'java'
     
+            repositories {
+                maven { url "${mavenHttpRepository.uri}" }
+            }
+            
+            dependencies {
+                runtime 'org:foo:1.0'
+            }
+            
             jar.doLast {
                 println 'from jar task'
             }
         
+            task resolve {
+                doLast {
+                    // force resolve
+                    configurations.runtime.files
+                }
+            }
+            
+            build.dependsOn resolve
+                        
             logger.lifecycle('from build.gradle')
         
             gradle.taskGraph.whenReady{
@@ -86,6 +111,12 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         jarProgress[0].details.spanDetails.size == 1
         jarProgress[0].details.spanDetails[0].style == 'Normal'
         jarProgress[0].details.spanDetails[0].text == 'from jar task\n'
+
+        def downloadProgress = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar").progress
+        downloadProgress.size() == 1
+        downloadProgress[0].details.logLevel == 'LIFECYCLE'
+        downloadProgress[0].details.category == 'org.gradle.internal.progress.DefaultBuildOperationExecutor'
+        downloadProgress[0].details.description == "Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar"
     }
 
     @spock.lang.Ignore
