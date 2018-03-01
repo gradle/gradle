@@ -166,30 +166,6 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample("userguide/files/copy")
-    def "can archive a directory"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def archivesDir = sample.dir.file('build/toArchive')
-        archivesDir.createDir().file('my-report.pdf').touch()
-        archivesDir.createDir().file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/toArchive"
-        archivesDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('packageDistribution')
-
-        then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/dist/my-distribution.zip')
-        zipFile.isFile()
-        zipFile.unzipTo(tmpOutDir)
-        tmpOutDir.file('my-report.pdf').isFile()
-        tmpOutDir.file('numbers.csv').isFile()
-        tmpOutDir.file('metrics/scatterPlot.pdf').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
     def "can rename files as they are copied"() {
         given:
         executer.inDirectory(sample.dir)
@@ -224,45 +200,6 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         sample.dir.file('build/toArchive/numbers-~16').isFile()
     }
 
-    @UsesSample("userguide/files/archivesWithBasePlugin")
-    def "can create an archive with a convention-based name"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def archivesDir = sample.dir.file('build/toArchive')
-        archivesDir.createDir().file('my-report.pdf').touch()
-        archivesDir.createDir().file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/toArchive"
-        archivesDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('packageDistribution')
-
-        then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/distributions/archives-example-1.0.0.zip')
-        zipFile.isFile()
-        zipFile.unzipTo(tmpOutDir)
-        tmpOutDir.file('docs/my-report.pdf').isFile()
-        tmpOutDir.file('docs/metrics/scatterPlot.pdf').isFile()
-        tmpOutDir.file('numbers.csv').isFile()
-    }
-
-    @UsesSample("userguide/files/archives")
-    def "can unpack a ZIP file"() {
-        given:
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('unpackFiles')
-
-        then:
-        def outputDir = sample.dir.file("build/resources")
-        outputDir.file('libs/first.txt').isFile()
-        outputDir.file('libs/other.txt').isFile()
-        outputDir.file('docs.txt').isFile()
-    }
-
     @UsesSample("userguide/files/copy")
     def "can use a standalone copyspec within a copy"() {
         given:
@@ -272,11 +209,69 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('copyAssets')
 
         then:
-        def outputDir = sample.dir.file("build/explodedWar")
+        def outputDir = sample.dir.file("build/inPlaceApp")
         outputDir.file('web.xml').assertDoesNotExist()
         outputDir.file('index-staging.html').assertDoesNotExist()
         outputDir.file('index.html').isFile()
         outputDir.file('logo.png').isFile()
         outputDir.file('products/gradle.html').isFile()
+        outputDir.file('products/collaboration.jpg').isFile()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can use a standalone copyspec within an archiving task"() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('distApp')
+
+        then:
+        def tmpOutDir = sample.dir.file("tmp")
+        def zipFile = sample.dir.file('build/dists/my-app-dist.zip')
+        zipFile.isFile()
+        zipFile.unzipTo(tmpOutDir)
+        tmpOutDir.file('web.xml').assertDoesNotExist()
+        tmpOutDir.file('index-staging.html').assertDoesNotExist()
+        tmpOutDir.file('index.html').isFile()
+        tmpOutDir.file('logo.png').isFile()
+        tmpOutDir.file('products/gradle.html').isFile()
+        tmpOutDir.file('products/collaboration.jpg').isFile()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can share a configuration closure with copy patterns no. 1"() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copAppAssets')
+
+        then:
+        def outputDir = sample.dir.file("build/inPlaceApp")
+        outputDir.file('web.xml').assertDoesNotExist()
+        outputDir.file('index-staging.html').isFile()
+        outputDir.file('logo.png').isFile()
+        outputDir.file('products/gradle.html').assertDoesNotExist()
+        outputDir.file('products/collaboration.jpg').isFile()
+    }
+
+    @UsesSample("userguide/files/copy")
+    def "can share a configuration closure with copy patterns no. 2"() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('archiveDistAssets')
+
+        then:
+        def tmpOutDir = sample.dir.file("tmp")
+        def zipFile = sample.dir.file('build/dists/distribution-assets.zip')
+        zipFile.isFile()
+        zipFile.unzipTo(tmpOutDir)
+        tmpOutDir.file('home.html').isFile()
+        tmpOutDir.file('images/plot.eps').assertDoesNotExist()
+        tmpOutDir.file('images/logo.png').isFile()
+        tmpOutDir.file('images/photo.jpg').isFile()
     }
 }

@@ -1,3 +1,5 @@
+version = "1.1"
+
 // START SNIPPET copy-single-file-example
 task copyReport(type: Copy) {
     from file("${buildDir}/reports/my-report.pdf")
@@ -239,20 +241,43 @@ task test {
     dependsOn copyMethodWithExplicitDependencies
 }
 
+def appClasses = files("$buildDir/classes")
+
 // START SNIPPET standalone-copyspec
-def webAssetsSpec = copySpec {
+CopySpec webAssetsSpec = copySpec {
+    from 'src/main/webapp'
     include '**/*.html', '**/*.png', '**/*.jpg'
     rename '(.+)-staging(.+)', '$1$2'
 }
 
 task copyAssets(type: Copy) {
-    into "${buildDir}/explodedWar"
-    from "src/main/webapp"
+    into "${buildDir}/inPlaceApp"
     with webAssetsSpec
 }
 
-task archiveApp(type: Zip) {
-    from "otherResources"
+task distApp(type: Zip) {
+    archiveName = 'my-app-dist.zip'
+    destinationDir = file("${buildDir}/dists")
+
+    from appClasses
     with webAssetsSpec
 }
 // END SNIPPET standalone-copyspec
+
+// START SNIPPET shared-copy-patterns
+def webAssetPatterns = {
+    include '**/*.html', '**/*.png', '**/*.jpg'
+}
+
+task copyAppAssets(type: Copy) {
+    into "${buildDir}/inPlaceApp"
+    from 'src/main/webapp', webAssetPatterns
+}
+
+task archiveDistAssets(type: Zip) {
+    archiveName = 'distribution-assets.zip'
+    destinationDir = file("${buildDir}/dists")
+
+    from 'distResources', webAssetPatterns
+}
+// END SNIPPET shared-copy-patterns

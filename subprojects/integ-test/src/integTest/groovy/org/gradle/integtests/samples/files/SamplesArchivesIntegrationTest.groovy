@@ -21,231 +21,57 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
-class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
+class SamplesArchivesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("userguide/files/copy")
-    def "can copy a single file"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-
-        when:
-        succeeds('copyReport')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can copy a single file using task properties for the paths"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-
-        when:
-        succeeds('copyReport2')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can copy a single file using the file method"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-
-        when:
-        succeeds('copyReport3')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can specify multiple files in a from"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-
-        when:
-        succeeds('copyReportsForArchiving')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/manual.pdf').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can filter files to a specific type"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-        reportsDir.file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/reports"
-        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('copyPdfReportsForArchiving')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').assertDoesNotExist()
-        sample.dir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
-        sample.dir.file('build/toArchive/numbers.csv').assertDoesNotExist()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can filter files to a specific type including in subdirectories"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-        reportsDir.file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/reports"
-        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('copyAllPdfReportsForArchiving')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
-        sample.dir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
-        sample.dir.file('build/toArchive/numbers.csv').assertDoesNotExist()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can copy a directory"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-        reportsDir.file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/reports"
-        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('copyReportsDirForArchiving')
-
-        then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
-        sample.dir.file('build/toArchive/numbers.csv').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can copy a directory, including itself"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-        reportsDir.file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/reports"
-        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('copyReportsDirForArchiving2')
-
-        then:
-        sample.dir.file('build/toArchive/reports/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/reports/metrics/scatterPlot.pdf').isFile()
-        sample.dir.file('build/toArchive/reports/numbers.csv').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
     def "can archive a directory"() {
         given:
         executer.inDirectory(sample.dir)
-        def archivesDir = sample.dir.file('build/toArchive')
-        archivesDir.createDir().file('my-report.pdf').touch()
-        archivesDir.createDir().file('numbers.csv').touch()
+        def archivesDir = sample.dir.file("build/toArchive")
+        archivesDir.createDir().file("my-report.pdf").touch()
+        archivesDir.createDir().file("numbers.csv").touch()
 
         and: "A PDF report in a subdirectory of build/toArchive"
         archivesDir.createDir("metrics").file("scatterPlot.pdf").touch()
 
         when:
-        succeeds('packageDistribution')
+        succeeds("packageDistribution")
 
         then:
         def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/dist/my-distribution.zip')
+        def zipFile = sample.dir.file("build/dist/my-distribution.zip")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
-        tmpOutDir.file('my-report.pdf').isFile()
-        tmpOutDir.file('numbers.csv').isFile()
-        tmpOutDir.file('metrics/scatterPlot.pdf').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can rename files as they are copied"() {
-        given:
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('copyFromStaging')
-
-        then:
-        def outputDir = sample.dir.file("build/explodedWar")
-        outputDir.file('web.xml').isFile()
-        outputDir.file('index.html').isFile()
-        outputDir.file('products/gradle.html').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can truncate filenames as they are copied"() {
-        given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-        reportsDir.file('numbers-long.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/reports"
-        reportsDir.createDir("metrics").file("plot.pdf").touch()
-
-        when:
-        succeeds('copyWithTruncate')
-
-        then:
-        sample.dir.file('build/toArchive/my-repor~13').isFile()
-        sample.dir.file('build/toArchive/metrics/plot.pdf').isFile()
-        sample.dir.file('build/toArchive/numbers-~16').isFile()
+        tmpOutDir.file("my-report.pdf").isFile()
+        tmpOutDir.file("numbers.csv").isFile()
+        tmpOutDir.file("metrics/scatterPlot.pdf").isFile()
     }
 
     @UsesSample("userguide/files/archivesWithBasePlugin")
     def "can create an archive with a convention-based name"() {
         given:
         executer.inDirectory(sample.dir)
-        def archivesDir = sample.dir.file('build/toArchive')
-        archivesDir.createDir().file('my-report.pdf').touch()
-        archivesDir.createDir().file('numbers.csv').touch()
+        def archivesDir = sample.dir.file("build/toArchive")
+        archivesDir.createDir().file("my-report.pdf").touch()
+        archivesDir.createDir().file("numbers.csv").touch()
 
         and: "A PDF report in a subdirectory of build/toArchive"
         archivesDir.createDir("metrics").file("scatterPlot.pdf").touch()
 
         when:
-        succeeds('packageDistribution')
+        succeeds("packageDistribution")
 
         then:
         def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/distributions/archives-example-1.0.0.zip')
+        def zipFile = sample.dir.file("build/distributions/archives-example-1.0.0.zip")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
-        tmpOutDir.file('docs/my-report.pdf').isFile()
-        tmpOutDir.file('docs/metrics/scatterPlot.pdf').isFile()
-        tmpOutDir.file('numbers.csv').isFile()
+        tmpOutDir.file("docs/my-report.pdf").isFile()
+        tmpOutDir.file("docs/metrics/scatterPlot.pdf").isFile()
+        tmpOutDir.file("numbers.csv").isFile()
     }
 
     @UsesSample("userguide/files/archives")
@@ -254,87 +80,30 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('unpackFiles')
+        succeeds("unpackFiles")
 
         then:
         def outputDir = sample.dir.file("build/resources")
-        outputDir.file('libs/first.txt').isFile()
-        outputDir.file('libs/other.txt').isFile()
-        outputDir.file('docs.txt').isFile()
+        outputDir.file("libs/first.txt").isFile()
+        outputDir.file("libs/other.txt").isFile()
+        outputDir.file("docs.txt").isFile()
     }
 
-    @UsesSample("userguide/files/copy")
-    def "can use a standalone copyspec within a copy"() {
+    @UsesSample("userguide/files/archivesWithJavaPlugin")
+    def "can create an uber JAR"() {
         given:
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('copyAssets')
-
-        then:
-        def outputDir = sample.dir.file("build/inPlaceApp")
-        outputDir.file('web.xml').assertDoesNotExist()
-        outputDir.file('index-staging.html').assertDoesNotExist()
-        outputDir.file('index.html').isFile()
-        outputDir.file('logo.png').isFile()
-        outputDir.file('products/gradle.html').isFile()
-        outputDir.file('products/collaboration.jpg').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can use a standalone copyspec within an archiving task"() {
-        given:
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('distApp')
+        succeeds("uberJar")
 
         then:
         def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/dists/my-app-dist.zip')
+        def zipFile = sample.dir.file("build/libs/archives-example-uber-1.0.0.jar")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
-        tmpOutDir.file('web.xml').assertDoesNotExist()
-        tmpOutDir.file('index-staging.html').assertDoesNotExist()
-        tmpOutDir.file('index.html').isFile()
-        tmpOutDir.file('logo.png').isFile()
-        tmpOutDir.file('products/gradle.html').isFile()
-        tmpOutDir.file('products/collaboration.jpg').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can share a configuration closure with copy patterns no. 1"() {
-        given:
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('copAppAssets')
-
-        then:
-        def outputDir = sample.dir.file("build/inPlaceApp")
-        outputDir.file('web.xml').assertDoesNotExist()
-        outputDir.file('index-staging.html').isFile()
-        outputDir.file('logo.png').isFile()
-        outputDir.file('products/gradle.html').assertDoesNotExist()
-        outputDir.file('products/collaboration.jpg').isFile()
-    }
-
-    @UsesSample("userguide/files/copy")
-    def "can share a configuration closure with copy patterns no. 2"() {
-        given:
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('archiveDistAssets')
-
-        then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/dists/distribution-assets.zip')
-        zipFile.isFile()
-        zipFile.unzipTo(tmpOutDir)
-        tmpOutDir.file('home.html').isFile()
-        tmpOutDir.file('images/plot.eps').assertDoesNotExist()
-        tmpOutDir.file('images/logo.png').isFile()
-        tmpOutDir.file('images/photo.jpg').isFile()
+        tmpOutDir.file("META-INF/MANIFEST.MF").isFile()
+        tmpOutDir.file("Hello.class").isFile()
+        tmpOutDir.file("org/apache/commons/io/IOUtils.class").isFile()
     }
 }

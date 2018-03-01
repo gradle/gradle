@@ -1,18 +1,24 @@
-// START SNIPPET create-archive-with-base-plugin-example
+// START SNIPPET create-uber-jar-example
 plugins {
-    id 'base'
+    id 'java'
 }
 
 version = "1.0.0"
 
-task packageDistribution(type: Zip) {
-    from("${buildDir}/toArchive") {
-        exclude "**/*.pdf"
-    }
-
-    from("${buildDir}/toArchive") {
-        include "**/*.pdf"
-        into "docs"
-    }
+repositories {
+    mavenCentral()
 }
-// END SNIPPET create-archive-with-base-plugin-example
+
+dependencies {
+    implementation 'commons-io:commons-io:2.6'
+}
+
+task uberJar(type: Jar) {
+    appendix = "uber"
+
+    from sourceSets.main.output
+    from configurations.runtimeClasspath.files.
+                                         findAll { it.name.endsWith('jar') }.
+                                         collect { zipTree(it) }
+}
+// END SNIPPET create-uber-jar-example
