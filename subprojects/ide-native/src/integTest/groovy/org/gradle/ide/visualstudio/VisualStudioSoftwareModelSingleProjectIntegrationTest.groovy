@@ -30,6 +30,8 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
+import static org.junit.Assume.assumeFalse
 
 class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
@@ -37,6 +39,8 @@ class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisu
     def app = new CppHelloWorldApp()
 
     def setup() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
         settingsFile << """
             rootProject.name = 'app'
         """
