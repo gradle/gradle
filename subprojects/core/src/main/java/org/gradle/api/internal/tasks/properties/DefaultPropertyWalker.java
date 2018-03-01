@@ -19,7 +19,8 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.base.Preconditions;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.bean.BeanNode;
+import org.gradle.api.internal.tasks.properties.bean.RootRuntimeBeanNode;
+import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -37,20 +38,19 @@ public class DefaultPropertyWalker implements PropertyWalker {
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
         Queue<BeanNodeContext> queue = new ArrayDeque<BeanNodeContext>();
-        queue.add(new BeanNodeContext(BeanNode.create(null, bean, propertyMetadataStore), queue, null));
+        queue.add(new BeanNodeContext(new RootRuntimeBeanNode(bean), queue));
         while (!queue.isEmpty()) {
             BeanNodeContext context = queue.remove();
             context.visit(visitor, specFactory);
         }
     }
 
-    private class BeanNodeContext implements NodeContext<BeanNode> {
-        private final BeanNode currentNode;
+    private class BeanNodeContext implements NodeContext {
+        private final RuntimeBeanNode currentNode;
         private final Queue<BeanNodeContext> queue;
         private final ParentBeanNodeList parentNodes;
 
-        public BeanNodeContext(BeanNode currentNode, Queue<BeanNodeContext> queue, @Nullable ParentBeanNodeList parentNodes) {
-            super();
+        public BeanNodeContext(RuntimeBeanNode currentNode, Queue<BeanNodeContext> queue, @Nullable ParentBeanNodeList parentNodes) {
             this.currentNode = currentNode;
             this.queue = queue;
             this.parentNodes = parentNodes;
@@ -59,8 +59,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
         }
 
+        public BeanNodeContext(RuntimeBeanNode currentNode, Queue<BeanNodeContext> queue) {
+            this(currentNode, queue, null);
+        }
+
         @Override
-        public void addToQueue(BeanNode node) {
+        public void addSubProperties(RuntimeBeanNode node) {
             queue.add(new BeanNodeContext(node, queue, new ParentBeanNodeList(parentNodes, currentNode)));
         }
 
@@ -71,14 +75,14 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static class ParentBeanNodeList {
         private final ParentBeanNodeList parent;
-        private final BeanNode node;
+        private final RuntimeBeanNode node;
 
-        public ParentBeanNodeList(@Nullable ParentBeanNodeList parent, BeanNode node) {
+        public ParentBeanNodeList(@Nullable ParentBeanNodeList parent, RuntimeBeanNode node) {
             this.parent = parent;
             this.node = node;
         }
 
-        public void checkCycles(BeanNode childNode) {
+        public void checkCycles(RuntimeBeanNode childNode) {
             Preconditions.checkState(
                 node.getBean() != childNode.getBean(),
                 "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",

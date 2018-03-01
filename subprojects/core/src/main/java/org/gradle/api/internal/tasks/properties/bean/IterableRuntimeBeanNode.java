@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
 
-class IterableBeanNode extends BaseBeanNode<Iterable<?>> {
-    public IterableBeanNode(@Nullable String propertyName, Iterable<?> iterable) {
+class IterableRuntimeBeanNode extends BaseRuntimeBeanNode<Iterable<?>> {
+    public IterableRuntimeBeanNode(@Nullable String propertyName, Iterable<?> iterable) {
         super(propertyName, iterable);
     }
 
@@ -35,12 +35,12 @@ class IterableBeanNode extends BaseBeanNode<Iterable<?>> {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext<BeanNode> context, PropertyMetadataStore propertyMetadataStore) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore) {
         int count = 0;
         for (Object input : getBean()) {
             String propertyName = determinePropertyName(input, count);
             count++;
-            context.addToQueue(createChildNode(propertyName, input, propertyMetadataStore));
+            context.addSubProperties(createChildNode(propertyName, input, propertyMetadataStore));
         }
     }
 }

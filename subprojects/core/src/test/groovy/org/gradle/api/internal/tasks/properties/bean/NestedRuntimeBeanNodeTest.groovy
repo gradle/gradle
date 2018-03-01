@@ -20,11 +20,11 @@ import org.gradle.api.Action
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class NestedBeanNodeTest extends Specification {
+class NestedRuntimeBeanNodeTest extends Specification {
     @Unroll
     def "correct implementation for #type coerced to Action is tracked"() {
         expect:
-        NestedBeanNode.getImplementationClass(implementation as Action) == implementation.getClass()
+        NestedRuntimeBeanNode.getImplementationClass(implementation as Action) == implementation.getClass()
 
         where:
         type      | implementation

@@ -26,27 +26,27 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public abstract class BeanNode extends AbstractPropertyNode {
+public abstract class RuntimeBeanNode extends AbstractPropertyNode {
 
-    public static BeanNode create(@Nullable String propertyName, Object bean, PropertyMetadataStore metadataStore) {
+    public static RuntimeBeanNode create(@Nullable String propertyName, Object bean, PropertyMetadataStore metadataStore) {
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
         if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
             if (bean instanceof Map<?, ?>) {
-                return new MapBeanNode(propertyName, (Map<?, ?>) bean);
+                return new MapRuntimeBeanNode(propertyName, (Map<?, ?>) bean);
             }
             if (bean instanceof Iterable<?>) {
-                return new IterableBeanNode(propertyName, (Iterable<?>) bean);
+                return new IterableRuntimeBeanNode(propertyName, (Iterable<?>) bean);
             }
         }
-        return new NestedBeanNode(propertyName, bean);
+        return new NestedRuntimeBeanNode(propertyName, bean);
     }
 
-    protected BeanNode(@Nullable String propertyName, Class<?> beanClass) {
+    protected RuntimeBeanNode(@Nullable String propertyName, Class<?> beanClass) {
         super(propertyName, beanClass);
     }
 
     public abstract Object getBean();
 
-    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext<BeanNode> context, PropertyMetadataStore propertyMetadataStore);
+    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore);
 }
 

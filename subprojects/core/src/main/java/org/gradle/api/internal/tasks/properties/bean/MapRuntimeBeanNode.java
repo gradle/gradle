@@ -25,20 +25,20 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-class MapBeanNode extends BaseBeanNode<Map<?, ?>> {
-    public MapBeanNode(@Nullable String propertyName, Map<?, ?> map) {
+class MapRuntimeBeanNode extends BaseRuntimeBeanNode<Map<?, ?>> {
+    public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map) {
         super(propertyName, map);
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext<BeanNode> context, PropertyMetadataStore propertyMetadataStore) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore) {
         for (Map.Entry<?, ?> entry : getBean().entrySet()) {
-            BeanNode childNode = createChildNode(
+            RuntimeBeanNode childNode = createChildNode(
                 Preconditions.checkNotNull(entry.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
                 entry.getValue(),
                 propertyMetadataStore
             );
-            context.addToQueue(childNode);
+            context.addSubProperties(childNode);
         }
     }
 }

@@ -21,11 +21,11 @@ import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 
 import javax.annotation.Nullable;
 
-abstract class BaseBeanNode<T> extends BeanNode {
+abstract class BaseRuntimeBeanNode<T> extends RuntimeBeanNode {
 
     private final T bean;
 
-    protected BaseBeanNode(@Nullable String propertyName, T bean) {
+    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean) {
         super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass());
         this.bean = bean;
     }
@@ -35,9 +35,9 @@ abstract class BaseBeanNode<T> extends BeanNode {
         return bean;
     }
 
-    public BeanNode createChildNode(String propertyName, @Nullable Object input, PropertyMetadataStore metadataStore) {
+    public RuntimeBeanNode createChildNode(String propertyName, @Nullable Object input, PropertyMetadataStore metadataStore) {
         String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
         Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '%s'", qualifiedPropertyName);
-        return BeanNode.create(qualifiedPropertyName, bean, metadataStore);
+        return RuntimeBeanNode.create(qualifiedPropertyName, bean, metadataStore);
     }
 }

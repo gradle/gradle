@@ -74,12 +74,13 @@ public class PropertyValidationAccess {
     private abstract static class BeanTypeNode extends AbstractPropertyNode {
 
         public static BeanTypeNode create(@Nullable String parentPropertyName, TypeToken<?> beanType, PropertyMetadataStore metadataStore) {
-            TypeMetadata typeMetadata = metadataStore.getTypeMetadata(beanType.getRawType());
-            if (parentPropertyName!= null && !typeMetadata.hasAnnotatedProperties()) {
-                if (Map.class.isAssignableFrom(beanType.getRawType())) {
+            Class<?> rawType = beanType.getRawType();
+            TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
+            if (parentPropertyName != null && !typeMetadata.hasAnnotatedProperties()) {
+                if (Map.class.isAssignableFrom(rawType)) {
                     return new MapBeanTypeNode(parentPropertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType));
                 }
-                if (Iterable.class.isAssignableFrom(beanType.getRawType())) {
+                if (Iterable.class.isAssignableFrom(rawType)) {
                     return new IterableBeanTypeNode(parentPropertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType));
                 }
             }

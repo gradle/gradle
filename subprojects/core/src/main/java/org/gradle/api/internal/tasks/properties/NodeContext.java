@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public interface NodeContext<T extends PropertyNode> {
-    void addToQueue(T node);
+import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
+
+public interface NodeContext {
+    void addSubProperties(RuntimeBeanNode node);
 }
