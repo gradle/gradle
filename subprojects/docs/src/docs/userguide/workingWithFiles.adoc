@@ -725,59 +725,31 @@ You can also override the default `baseName` value for _all_ the archive tasks i
 </sample>
 ++++
 
-You can find all the possible archive task properties in the API documentation for api:org.gradle.api.tasks.bundling.AbstractArchiveTask[], but we have also summarized the main ones in <<archiveTasksNamingProperties>> below.
+You can find all the possible archive task properties in the API documentation for api:org.gradle.api.tasks.bundling.AbstractArchiveTask[], but we have also summarized the main ones here:
 
-[[archiveTasksNamingProperties]]
-.Archive tasks - naming properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`archiveName` — `String`, default: `__baseName__-__appendix__-__version__-__classifier__.__extension__`::
+The complete file name of the generated archive. If any of the properties in the default value are empty, their '-' separator is dropped. 
 
-| `archiveName`
-| `String`
-| `__baseName__-__appendix__-__version__-__classifier__.__extension__`
+`archivePath` — `File`, _read-only_, default: `__destinationDir__/__archiveName__`::
+The absolute file path of the generated archive.
 
-If any of these properties is empty the trailing `-` is not added to the name.
-| The base file name of the generated archive
+`destinationDir` — `File`, default: depends on archive type::
+The target directory in which to put the generated archive. By default, JARs and WARs go into `__project.buildDir__/libraries`. ZIPs and TARs go into `__project.buildDir__/distributions`.
 
-| `archivePath`
-| `File`
-| `__destinationDir__/__archiveName__`
-| (_read-only_) The absolute path of the generated archive.
+`baseName` — `String`, default: `__project.name__`::
+The base name portion of the archive file name, typically a project name or some other descriptive name for what it contains.
 
-| `destinationDir`
-| `File`
-| Depends on the archive type. JARs and WARs go into `__project.buildDir__/libraries`. ZIPs and TARs go into `__project.buildDir__/distributions`.
-| The directory to generate the archive into
+`appendix` — `String`, default: `null`::
+The appendix portion of the archive file name that comes immediately after the base name. It is typically used to distinguish between different forms of content, such as code and docs, or a minimal distribution versus a full or complete one.
 
-| `baseName`
-| `String`
-| `__project.name__`
-| The base name portion of the archive file name.
+`version` — `String`, default: `__project.version__`::
+The version portion of the archive file name. This is typically a number, but it doesn't have to be.
 
-| `appendix`
-| `String`
-| `null`
-| The appendix portion of the archive file name.
+`classifier` — `String`, default: `null`::
+The classifier portion of the archive file name. Often used to distinguish between archives that target different platforms.
 
-| `version`
-| `String`
-| `__project.version__`
-| The version portion of the archive file name.
-
-| `classifier`
-| `String`
-| `null`
-| The classifier portion of the archive file name,
-
-| `extension`
-| `String`
-| Depends on the archive type, and for TAR files, the compression type as well: `zip`, `jar`, `war`, `tar`, `tgz` or `tbz2`.
-| The extension of the archive file name.
-|===
+`extension` — `String`, default: depends on archive type and compression type::
+The filename extension for the archive. By default, this is set based on the archive task type and the compression type (if you're creating a TAR). Will be one of: `zip`, `jar`, `war`, `tar`, `tgz` or `tbz2`. You can of course set this to a custom extension if you wish.
 
 [[sec:sharing_content_between_multiple_archives]]
 ==== Sharing content between multiple archives
