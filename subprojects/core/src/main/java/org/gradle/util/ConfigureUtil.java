@@ -117,12 +117,7 @@ public class ConfigureUtil {
             return Actions.doNothing();
         }
 
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                configure(configureClosure, t);
-            }
-        };
+        return new WrappedConfigureAction<T>(configureClosure);
     }
 
     /**
@@ -158,5 +153,22 @@ public class ConfigureUtil {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
+    }
+
+    public static class WrappedConfigureAction<T> implements Action<T> {
+        private final Closure configureClosure;
+
+        WrappedConfigureAction(Closure configureClosure) {
+            this.configureClosure = configureClosure;
+        }
+
+        @Override
+        public void execute(T t) {
+            configure(configureClosure, t);
+        }
+
+        public Closure getConfigureClosure() {
+            return configureClosure;
+        }
     }
 }
