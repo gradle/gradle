@@ -480,6 +480,11 @@ public class AvailableToolChains {
         }
 
         @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return super.meets(requirement) || requirement == ToolChainRequirement.WINDOWS_GCC;
+        }
+
+        @Override
         public String getId() {
             return getDisplayName().replaceAll("\\W", "");
         }
