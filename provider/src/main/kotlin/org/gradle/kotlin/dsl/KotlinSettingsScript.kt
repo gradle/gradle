@@ -380,7 +380,7 @@ abstract class KotlinSettingsScript(
     /**
      * Configures the build script classpath for settings.
      *
-     * @see [Settings.buildscript]
+     * @see [Settings.getBuildscript]
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
