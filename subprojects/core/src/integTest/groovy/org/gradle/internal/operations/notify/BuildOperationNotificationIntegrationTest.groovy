@@ -252,11 +252,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     void started(Class<?> type, Map<String, ?> payload = null) {
-        has(true, type, payload)
+        has(true, type, (Map) payload)
     }
 
     void finished(Class<?> type, Map<String, ?> payload = null) {
-        has(false, type, payload)
+        has(false, type, (Map) payload)
     }
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
