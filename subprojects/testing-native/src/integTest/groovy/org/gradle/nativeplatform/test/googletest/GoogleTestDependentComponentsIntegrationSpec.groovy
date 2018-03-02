@@ -87,7 +87,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
                             cppCompiler.args '-pthread'
                             linker.args '-pthread'
                         
-                            if (toolChain instanceof Gcc) {
+                            if (toolChain instanceof Gcc || toolChain instanceof Clang) {
                                 // Use C++03 with the old ABIs, as this is what the googletest binaries were built with
                                 // Later, Gradle's dependency management will understand ABI
                                 cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
