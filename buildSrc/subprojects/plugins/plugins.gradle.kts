@@ -2,7 +2,7 @@ plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl")}
+apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
     compile(project(":build"))
@@ -64,6 +64,10 @@ gradlePlugin {
         "ciReporting" {
             id = "ci-reporting"
             implementationClass = "org.gradle.plugins.reporting.CiReportingPlugin"
+        }
+        "publishPublicLibraries" {
+            id = "publish-public-libraries"
+            implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
         }
     }
 }
