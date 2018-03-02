@@ -24,8 +24,7 @@ import javax.annotation.processing.Processor;
 
 
 /**
- * A single origin processor must provide at least one originating element
- * for each file it generates.
+ * A multiple origin processor can have zero to many originating elements for each generated file.
  */
 public class MultipleOriginProcessor extends IncrementalProcessor {
 

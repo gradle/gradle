@@ -29,7 +29,7 @@ package org.gradle.api.internal.tasks.compile.processing;
  * <p>
  * Processors that want to use {@link javax.annotation.processing.Filer#createResource(javax.tools.JavaFileManager.Location, CharSequence, CharSequence, javax.lang.model.element.Element...)}
  * or {@link javax.annotation.processing.Filer#getResource(javax.tools.JavaFileManager.Location, CharSequence, CharSequence)}
- * and processors that don't provide originating elements are unsupported.
+ * are unsupported.
  * </p>
  *
  * <p>
@@ -50,7 +50,7 @@ public enum IncrementalAnnotationProcessorType {
      */
     SINGLE_ORIGIN(true),
     /**
-     * A processor whose generated files can have more than one originating element.
+     * A processor whose generated files can have zero to many originating elements.
      */
     MULTIPLE_ORIGIN(false),
     /**

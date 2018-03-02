@@ -62,7 +62,7 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         then:
         outputs.recompiledClasses("Unrelated")
     }
-    
+
     def "classes depending on generated file are recompiled when source file changes"() {
         given:
         def a = java "@Helper class A {}"
