@@ -60,6 +60,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * sessionServices.get(ListenerManager) >> listenerManager
         _ * sessionServices.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * sessionServices.get(WorkerLeaseService) >> workerLeaseService
+        _ * sessionServices.get(GradleLauncherFactory) >> factory
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         _ * launcher.getGradle() >> gradle
         _ * gradle.services >> sessionServices

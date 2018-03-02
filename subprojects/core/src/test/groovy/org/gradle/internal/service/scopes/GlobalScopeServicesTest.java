@@ -80,7 +80,6 @@ public class GlobalScopeServicesTest {
         return registry(false);
     }
 
-
     @Test
     public void providesCommandLineArgsConverter() {
         assertThat(registry().get(CommandLineConverter.class), instanceOf(
