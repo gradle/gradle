@@ -20,6 +20,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.PersistentCache;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -30,9 +34,15 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Collections;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
@@ -42,13 +52,15 @@ public class BuildSourceBuilder {
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
+    private final CacheRepository cacheRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
+        this.cacheRepository = cacheRepository;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
@@ -93,12 +105,30 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(StartParameter startParameter) {
-        BuildController buildController = createBuildController(startParameter);
+        // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
+        // Otherwise, just to a regular build
+        final PersistentCache buildSrcCache = createCache(startParameter);
         try {
-            return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory).create();
+            BuildController buildController = createBuildController(startParameter);
+            try {
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory));
+            } finally {
+                buildController.stop();
+            }
         } finally {
-            buildController.stop();
+            // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
+            buildSrcCache.close();
         }
+    }
+
+    PersistentCache createCache(StartParameter startParameter) {
+        return cacheRepository
+            .cache(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
+            .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
+            .withDisplayName("buildSrc state cache")
+            .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+            .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+            .open();
     }
 
     private BuildController createBuildController(StartParameter startParameter) {

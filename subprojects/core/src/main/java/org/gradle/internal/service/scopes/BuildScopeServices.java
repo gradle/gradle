@@ -316,7 +316,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
@@ -327,6 +327,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                cacheRepository,
                 buildOperationExecutor,
                 cachedClasspathTransformer,
                 new BuildSrcBuildListenerFactory(
