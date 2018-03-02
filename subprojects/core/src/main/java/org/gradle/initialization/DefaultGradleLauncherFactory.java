@@ -54,10 +54,10 @@ import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Clock;
@@ -243,6 +243,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         private class NestedBuildController implements BuildController {
+
             private final BuildController delegate;
 
             NestedBuildController(BuildController delegate) {
@@ -265,12 +266,21 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 return executor.call(new CallableBuildOperation<GradleInternal>() {
                     @Override
                     public GradleInternal call(BuildOperationContext context) {
-                        return delegate.run();
+                        GradleInternal gradleInternal = delegate.run();
+                        context.setResult(new RunNestedBuildBuildOperationType.Result() {
+                        });
+                        return gradleInternal;
                     }
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Run nested build");
+                        return BuildOperationDescriptor.displayName("Run nested build")
+                            .details(new RunNestedBuildBuildOperationType.Details() {
+                                @Override
+                                public String getBuildPath() {
+                                    return getGradle().getIdentityPath().getPath();
+                                }
+                            });
                     }
                 });
             }
