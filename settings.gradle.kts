@@ -185,7 +185,6 @@ val groovyBuildScriptProjects = listOf(
     "composite-builds",
     "workers",
     "persistent-cache",
-    "build-cache",
     "core-api",
     "version-control")
 
