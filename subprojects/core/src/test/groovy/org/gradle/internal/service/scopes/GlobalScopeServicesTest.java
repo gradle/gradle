@@ -38,8 +38,6 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -82,10 +80,6 @@ public class GlobalScopeServicesTest {
         return registry(false);
     }
 
-    @Test
-    public void providesAGradleLauncherFactory() {
-        assertThat(registry().get(GradleLauncherFactory.class), instanceOf(DefaultGradleLauncherFactory.class));
-    }
 
     @Test
     public void providesCommandLineArgsConverter() {
