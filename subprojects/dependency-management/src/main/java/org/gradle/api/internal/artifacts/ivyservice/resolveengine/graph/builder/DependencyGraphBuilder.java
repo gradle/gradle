@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
@@ -126,7 +127,6 @@ public class DependencyGraphBuilder {
     private void traverseGraph(final ResolveState resolveState) {
         resolveState.onMoreSelected(resolveState.getRoot());
         final List<EdgeState> dependencies = Lists.newArrayList();
-        final List<EdgeState> dependenciesMissingLocalMetadata = Lists.newArrayList();
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
         final PendingDependenciesHandler pendingDependenciesHandler = new DefaultPendingDependenciesHandler();
@@ -141,10 +141,8 @@ public class DependencyGraphBuilder {
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
-                dependenciesMissingLocalMetadata.clear();
                 node.visitOutgoingDependencies(dependencies, pendingDependenciesHandler);
-
-                resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
+                resolveEdges(node, dependencies, resolveState, componentIdentifierCache);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
@@ -249,43 +247,15 @@ public class DependencyGraphBuilder {
 
     private void resolveEdges(final NodeState node,
                               final List<EdgeState> dependencies,
-                              final List<EdgeState> dependenciesMissingMetadataLocally,
                               final ResolveState resolveState,
                               final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
         if (dependencies.isEmpty()) {
             return;
         }
         performSelectionSerially(dependencies, resolveState);
-        computePreemptiveDownloadList(dependencies, dependenciesMissingMetadataLocally, componentIdentifierCache);
-        downloadMetadataConcurrently(node, dependenciesMissingMetadataLocally);
+        maybeDownloadMetadataInParallel(node, componentIdentifierCache, dependencies);
         attachToTargetRevisionsSerially(dependencies);
 
-    }
-
-    private void attachToTargetRevisionsSerially(List<EdgeState> dependencies) {
-        // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
-        // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
-        // edges could be added in different order. To avoid this, the addition of new edges is done serially.
-        for (EdgeState dependency : dependencies) {
-            if (dependency.getTargetComponent() != null) {
-                dependency.attachToTargetConfigurations();
-            }
-        }
-    }
-
-    private void downloadMetadataConcurrently(NodeState node, final List<EdgeState> dependencies) {
-        if (dependencies.isEmpty()) {
-            return;
-        }
-        LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", dependencies.size(), node);
-        buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
-            @Override
-            public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                for (final EdgeState dependency : dependencies) {
-                    buildOperationQueue.add(new DownloadMetadataOperation(dependency.getTargetComponent()));
-                }
-            }
-        });
     }
 
     private void performSelectionSerially(List<EdgeState> dependencies, ResolveState resolveState) {
@@ -298,24 +268,46 @@ public class DependencyGraphBuilder {
     }
 
     /**
-     * Prepares the resolution of edges, either serially or concurrently. It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and
-     * whether they have unresolved metadata. Determining this requires calls to `resolveModuleRevisionId`, which will *not* trigger metadata download.
-     *
-     * @param dependencies the dependencies to be resolved
-     * @param dependenciesToBeResolvedInParallel output, edges which will need parallel metadata download
+     * Prepares the resolution of edges, either serially or concurrently.
+     * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved metadata.
      */
-    private void computePreemptiveDownloadList(List<EdgeState> dependencies, List<EdgeState> dependenciesToBeResolvedInParallel, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
+    private void maybeDownloadMetadataInParallel(NodeState node, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache, List<EdgeState> dependencies) {
+        List<EdgeState> requiringDownload = null;
         for (EdgeState dependency : dependencies) {
             ComponentState targetComponent = dependency.getTargetComponent();
             if (targetComponent != null && !targetComponent.fastResolve() && performPreemptiveDownload(targetComponent)) {
                 if (!metaDataResolver.isFetchingMetadataCheap(toComponentId(targetComponent.getId(), componentIdentifierCache))) {
-                    dependenciesToBeResolvedInParallel.add(dependency);
+                    // Avoid initializing the list if there are no components requiring download (a common case)
+                    if (requiringDownload == null) {
+                        requiringDownload = Lists.newArrayList();
+                    }
+                    requiringDownload.add(dependency);
                 }
             }
         }
-        if (dependenciesToBeResolvedInParallel.size() == 1) {
-            // don't bother doing anything in parallel if there's a single edge
-            dependenciesToBeResolvedInParallel.clear();
+        // Only download in parallel if there is more than 1 component to download
+        if (requiringDownload != null && requiringDownload.size() > 1) {
+            final ImmutableList<EdgeState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
+            LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
+            buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
+                @Override
+                public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
+                    for (final EdgeState dependency : toDownloadInParallel) {
+                        buildOperationQueue.add(new DownloadMetadataOperation(dependency.getTargetComponent()));
+                    }
+                }
+            });
+        }
+    }
+
+    private void attachToTargetRevisionsSerially(List<EdgeState> dependencies) {
+        // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
+        // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
+        // edges could be added in different order. To avoid this, the addition of new edges is done serially.
+        for (EdgeState dependency : dependencies) {
+            if (dependency.getTargetComponent() != null) {
+                dependency.attachToTargetConfigurations();
+            }
         }
     }
 
