@@ -7,10 +7,7 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.Upload
+import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.withConvention
@@ -19,13 +16,13 @@ import org.gradle.kotlin.dsl.*
 import java.io.File
 
 open class GeneratePom : DefaultTask() {
-    @InputFile
+    @get:OutputFile
     val pomFile = File(temporaryDir, "pom.xml")
 
-    @get:InputFiles
+    @get:Classpath
     val publishCompile by project.configurations.creating
 
-    @get:InputFiles
+    @get:Classpath
     val publishRuntime by project.configurations.creating
 
     init {
