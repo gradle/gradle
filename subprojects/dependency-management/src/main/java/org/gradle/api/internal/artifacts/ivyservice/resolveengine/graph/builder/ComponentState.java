@@ -19,13 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -44,7 +43,7 @@ import java.util.Set;
 /**
  * Resolution state for a given component
  */
-public class ComponentState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
+public class ComponentState implements ComponentResolutionState, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
     private final List<NodeState> nodes = Lists.newLinkedList();
@@ -220,6 +219,15 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
         return selected == null ? "unknown" : selected.getMetadata().getName();
     }
 
+    @Override
+    public AttributeContainer getVariantAttributes() {
+        NodeState selected = getSelectedNode();
+        return selected == null ? ImmutableAttributes.EMPTY : desugarAttributes(selected);
+    }
+
+    /**
+     * Returns the _first_ selected node. There may be multiple.
+     */
     private NodeState getSelectedNode() {
         for (NodeState node : nodes) {
             if (node.isSelected()) {
@@ -227,12 +235,6 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
             }
         }
         return null;
-    }
-
-    @Override
-    public AttributeContainer getVariantAttributes() {
-        NodeState selected = getSelectedNode();
-        return selected == null ? ImmutableAttributes.EMPTY : desugarAttributes(selected);
     }
 
     /**
