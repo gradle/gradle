@@ -62,6 +62,24 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         then:
         outputs.recompiledClasses("Unrelated")
     }
+    
+    def "classes depending on generated file are recompiled when source file changes"() {
+        given:
+        def a = java "@Helper class A {}"
+        java """class Dependent {
+            private AHelper helper = new AHelper();
+        }"""
+
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "@Helper class A { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "AHelper", "Dependent")
+    }
 
     def "classes files of generated sources are deleted when annotated file is deleted"() {
         given:
@@ -97,7 +115,7 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         !file("build/classes/java/main/AHelper.java").exists()
     }
 
-    def "generated files are deleted when processor is removed"() {
+    def "generated files and classes are deleted when processor is removed"() {
         given:
         def a = java "@Helper class A {}"
 
@@ -113,6 +131,9 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
 
         then:
         !file("build/classes/java/main/AHelper.java").exists()
+
+        and:
+        outputs.deletedClasses("AHelper")
     }
 
     def "all files are recompiled when processor changes"() {
