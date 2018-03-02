@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations.notify
 
+import com.google.common.base.Predicate
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
@@ -28,8 +29,6 @@ import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-
-import java.util.function.Predicate
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -271,7 +270,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
         if (payloadTest != null) {
             def matchingOps = typedOps.findAll { matchingOp ->
-                started ? payloadTest.test(matchingOp.details) : payloadTest.test(matchingOp.result)
+                started ? payloadTest.apply(matchingOp.details) : payloadTest.apply(matchingOp.result)
             }
             assert matchingOps.size()
         }
