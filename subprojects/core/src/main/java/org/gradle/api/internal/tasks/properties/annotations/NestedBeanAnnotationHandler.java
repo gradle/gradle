@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -106,6 +108,17 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             }
             return invocationHandler.getClass();
         }
+
+        // Same as above, if we have wrapped a closure in a WrappedConfigureAction or a ClosureBackedAction, we want to
+        // track the closure itself, not the action class.
+        if (bean instanceof ConfigureUtil.WrappedConfigureAction) {
+            return ((ConfigureUtil.WrappedConfigureAction)bean).getConfigureClosure().getClass();
+        }
+
+        if (bean instanceof ClosureBackedAction) {
+            return ((ClosureBackedAction)bean).getClosure().getClass();
+        }
+
         return bean.getClass();
     }
 
