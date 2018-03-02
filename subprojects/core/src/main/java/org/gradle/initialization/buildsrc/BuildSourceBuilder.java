@@ -69,7 +69,7 @@ public class BuildSourceBuilder {
     public ClassLoaderScope buildAndCreateClassLoader(GradleInternal gradle, StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(gradle, startParameter);
         return classLoaderScope.createChild(startParameter.getCurrentDir().getAbsolutePath())
-            .export(cachedClasspathTransformer.transform(classpath))
+            .export(classpath)
             .lock();
     }
 
@@ -109,12 +109,11 @@ public class BuildSourceBuilder {
         try {
             BuildController buildController = createBuildController(startParameter);
             try {
-                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory));
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer));
             } finally {
                 buildController.stop();
             }
         } finally {
-            // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
             buildSrcCache.close();
         }
     }
