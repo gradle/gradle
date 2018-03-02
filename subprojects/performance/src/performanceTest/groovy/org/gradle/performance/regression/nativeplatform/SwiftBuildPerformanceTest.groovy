@@ -25,8 +25,8 @@ import spock.lang.Unroll
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.minimumVersion = '4.5'
-        runner.targetVersions = ["4.6-20180129223723+0000"]
+        runner.minimumVersion = '4.6'
+        runner.targetVersions = ["4.6"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
