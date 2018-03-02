@@ -50,6 +50,10 @@ subprojects {
             groovyOptions.encoding = "utf-8"
             configureCompileTask(this, options)
         }
+        "publishPublicLibraries" {
+            id = "publish-public-libraries"
+            implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
+        }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
         apply { plugin("kotlin") }
