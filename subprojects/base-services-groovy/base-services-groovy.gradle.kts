@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 plugins {
-    id 'java-library'
-    id 'classycle'
+    `java-library`
+    id("classycle")
 }
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+java.sourceCompatibility = sourceCompatibleVersion
 
 dependencies {
-    api libraries.groovy.coordinates
-    api project(":baseServices")
+    api(library("groovy"))
+    api(project(":baseServices"))
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
