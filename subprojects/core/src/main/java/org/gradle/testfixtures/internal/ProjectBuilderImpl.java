@@ -43,6 +43,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -89,7 +90,9 @@ public class ProjectBuilderImpl {
         NativeServices.initialize(userHomeDir);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildRequestMetaData, ClassPath.EMPTY);
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(getGlobalServices(), startParameter);
+        ServiceRegistry userHomeServices = getUserHomeServices(userHomeDir);
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));

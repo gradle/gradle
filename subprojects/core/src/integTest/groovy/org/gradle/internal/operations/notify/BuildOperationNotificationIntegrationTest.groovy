@@ -29,6 +29,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 
+import java.util.function.Predicate
+
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
     def "obtains notifications about init scripts"() {
@@ -167,7 +169,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         op(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
     }
 
-    def "does not emit for GradleBuild tasks"() {
+    def "emits for GradleBuild tasks"() {
         when:
         def initScript = file("init.gradle") << """
             if (parent == null) {
@@ -186,11 +188,15 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t", "-I", initScript.absolutePath
 
         then:
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
-
-        // Rough test for not getting notifications for the nested build
         executedTasks.find { it.endsWith(":o") }
-        recordedOps.findAll { it.detailsType == ConfigureProjectBuildOperationType.Details.name }.size() == 1
+
+        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+        started(ConfigureProjectBuildOperationType.Details) {
+            it.projectPath == ":" && it.buildPath != ":"
+        }
+        started(ExecuteTaskBuildOperationType.Details) {
+            it.taskPath == ":o"
+        }
     }
 
     def "listeners are deregistered after build"() {
@@ -241,6 +247,10 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         }
     }
 
+    void started(Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
+        has(true, type, payloadTest)
+    }
+
     void started(Class<?> type, Map<String, ?> payload = null) {
         has(true, type, payload)
     }
@@ -250,14 +260,18 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
+        has(started, type, payload ? { it == payload } : null)
+    }
+
+    void has(boolean started, Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
         def typedOps = recordedOps.findAll { op ->
             return started ? op.detailsType == type.name : op.resultType == type.name
         }
         assert typedOps.size() > 0
 
-        if (payload != null) {
+        if (payloadTest != null) {
             def matchingOps = typedOps.findAll { matchingOp ->
-                started ? matchingOp.details == payload : matchingOp.result == payload
+                started ? payloadTest.test(matchingOp.details) : payloadTest.test(matchingOp.result)
             }
             assert matchingOps.size()
         }

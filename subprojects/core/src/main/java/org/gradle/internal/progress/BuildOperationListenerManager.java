@@ -31,4 +31,6 @@ public interface BuildOperationListenerManager {
 
     void removeListener(BuildOperationListener listener);
 
+    BuildOperationListener getBroadcaster();
+
 }

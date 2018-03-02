@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -42,10 +43,12 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(contextServices, startParameter);
 
         try {
             ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(
                 userHomeServices,
+                crossBuildSessionScopeServices,
                 startParameter,
                 requestContext,
                 actionParameters.getInjectedPluginClasspath()
@@ -59,7 +62,7 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
                     sessionLifecycleListener.beforeComplete();
                 }
             } finally {
-                CompositeStoppable.stoppable(buildSessionScopeServices).stop();
+                CompositeStoppable.stoppable(buildSessionScopeServices, crossBuildSessionScopeServices).stop();
             }
         } finally {
             userHomeServiceRegistry.release(userHomeServices);

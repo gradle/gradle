@@ -58,12 +58,10 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
 import org.gradle.initialization.DefaultParallelismConfigurationManager;
 import org.gradle.initialization.FlatClassLoaderRegistry;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -83,7 +81,6 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
@@ -149,10 +146,6 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
             pluginServiceRegistry.registerGlobalServices(registration);
         }
-    }
-
-    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
-        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
     }
 
     BuildOperationListenerManager createBuildOperationService(ListenerManager listenerManager) {
