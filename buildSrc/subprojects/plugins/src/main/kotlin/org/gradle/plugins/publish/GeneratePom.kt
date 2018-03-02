@@ -3,10 +3,12 @@ package org.gradle.plugins.publish
 import accessors.base
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention
+import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getting
@@ -16,13 +18,13 @@ import org.gradle.kotlin.dsl.*
 import java.io.File
 
 open class GeneratePom : DefaultTask() {
-    @get:OutputFile
+    @OutputFile
     val pomFile = File(temporaryDir, "pom.xml")
 
-    @get:Classpath
+    @get:Internal
     val publishCompile by project.configurations.creating
 
-    @get:Classpath
+    @get:Internal
     val publishRuntime by project.configurations.creating
 
     init {
@@ -31,6 +33,8 @@ open class GeneratePom : DefaultTask() {
         project.configurations.getByName("compile")  {
             extendsFrom(publishCompile)
         }
+        // Never up to date; we don't understand the data structures.
+        outputs.upToDateWhen(Specs.satisfyNone<Task>())
     }
 
     @TaskAction
