@@ -105,8 +105,6 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(StartParameter startParameter) {
-        // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
-        // Otherwise, just to a regular build
         final PersistentCache buildSrcCache = createCache(startParameter);
         try {
             BuildController buildController = createBuildController(startParameter);
