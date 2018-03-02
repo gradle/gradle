@@ -47,7 +47,7 @@ public class CollectingMacroLookup implements MacroLookup {
             visible.put(file, includeDirectives);
         }
 
-        hash = Objects.hashCode(hash, includeDirectives.getMacros(), includeDirectives.getMacrosFunctions());
+        hash = Objects.hashCode(hash, includeDirectives.getMacros().values(), includeDirectives.getMacrosFunctions().values());
     }
 
     int getLookupCacheHash() {
