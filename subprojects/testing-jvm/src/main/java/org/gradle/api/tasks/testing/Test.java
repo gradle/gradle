@@ -36,6 +36,8 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -72,6 +74,8 @@ import org.gradle.util.SingleMessageLogger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -547,7 +551,25 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         DefaultJavaForkOptions javaForkOptions = new DefaultJavaForkOptions(getFileResolver());
         copyTo(javaForkOptions);
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks());
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+    }
+
+    private Set<String> getPreviousFailedTestClasses() {
+        TestResultSerializer serializer = new TestResultSerializer(getBinResultsDir());
+        if (serializer.isHasResults()) {
+            final Set<String> previousFailedTestClasses = new HashSet<String>();
+            serializer.read(new Action<TestClassResult>() {
+                @Override
+                public void execute(TestClassResult testClassResult) {
+                    if (testClassResult.getFailuresCount() > 0) {
+                        previousFailedTestClasses.add(testClassResult.getClassName());
+                    }
+                }
+            });
+            return previousFailedTestClasses;
+        } else {
+            return Collections.emptySet();
+        }
     }
 
     @TaskAction

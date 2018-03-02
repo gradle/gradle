@@ -28,6 +28,10 @@ For example, the output directory of the FindBugs html report is added as `repor
 When annotating an iterable with [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html), Gradle already treats each element as a separate nested input.
 In addition, if the element implements `Named`, the `name` is now used as property name.
 This allows for declaring nice names when adding `CommandLineArgumentProviders`, as for example done by [`JacocoAgent`](https://github.com/gradle/gradle/blob/1c6fa2d1fa794456d48a5268f6c2dfb85ff30cbf/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L139-L163).
+
+### Rerun failed tests first
+
+Now, in the subsequent test, Gradle will execute the previous failed test class first. With [`--fail-fast`](userguide/java_plugin.html#sec:test_execution) option introduced in `4.6`, this can provide a much faster feedback loop for development.
     
 ## Promoted features
 
