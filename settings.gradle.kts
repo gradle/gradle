@@ -117,7 +117,6 @@ rootProject.name = "gradle"
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = listOf(
     "distributions",
-    "base-services-groovy",
     "logging",
     "process-services",
     "jvm-services",
@@ -185,7 +184,6 @@ val groovyBuildScriptProjects = listOf(
     "composite-builds",
     "workers",
     "persistent-cache",
-    "build-cache",
     "core-api",
     "version-control")
 
