@@ -234,9 +234,15 @@ subprojects {
 
 configurations {
     coreRuntime {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
         visible = false
     }
     coreRuntimeExtensions {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
         visible = false
     }
     externalModules {

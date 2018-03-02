@@ -153,7 +153,6 @@ val groovyBuildScriptProjects = listOf(
     "performance",
     "build-scan-performance",
     "javascript",
-    "build-comparison",
     "reporting",
     "diagnostics",
     "publish",
