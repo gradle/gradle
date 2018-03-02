@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(library("commons_io"))
+    implementation(library("kryo"))
 
     jmh(library("ant")) {
         version {
