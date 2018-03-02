@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,12 +47,14 @@ public class IncrementalCompileFilesFactory {
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
     private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final IncrementalCompileSourceProcessorCache includeProcessorCache;
     private final boolean ignoreUnresolvedHeadersInDependencies;
 
-    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
+    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter, IncrementalCompileSourceProcessorCache includeProcessorCache) {
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.includeProcessorCache = includeProcessorCache;
         this.ignoreUnresolvedHeadersInDependencies = Boolean.getBoolean(IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME);
     }
 
@@ -65,8 +68,6 @@ public class IncrementalCompileFilesFactory {
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> existingHeaders = Sets.newHashSet();
         private final Map<File, IncludeDirectives> includeDirectivesMap = new HashMap<File, IncludeDirectives>();
-        private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
-        int traversalCount;
         private boolean hasUnresolvedHeaders;
 
         DefaultIncementalCompileSourceProcessor(CompilationState previousCompileState) {
@@ -98,8 +99,8 @@ public class IncrementalCompileFilesFactory {
             SourceFileState previousState = previous.getState(sourceFile);
             CollectingMacroLookup visibleMacros = new CollectingMacroLookup();
             FileVisitResult result = visitFile(sourceFile, fileSnapshot, visibleMacros, new HashSet<File>(), true);
-            ArrayList<IncludeFileState> includedFiles = new ArrayList<IncludeFileState>();
-            result.collectFilesInto(++traversalCount, includedFiles);
+            LinkedHashSet<IncludeFileState> includedFiles = new LinkedHashSet<IncludeFileState>();
+            result.collectFilesInto(includedFiles);
             SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableSet.copyOf(includedFiles));
             current.setState(sourceFile, newState);
             includeDirectivesMap.put(sourceFile, result.includeDirectives);
@@ -111,7 +112,7 @@ public class IncrementalCompileFilesFactory {
         }
 
         private FileVisitResult visitFile(File file, FileSnapshot fileSnapshot, CollectingMacroLookup visibleMacros, Set<File> visited, boolean isSourceFile) {
-            FileDetails fileDetails = visitedFiles.get(file);
+            FileDetails fileDetails = includeProcessorCache.get(file);
             if (fileDetails != null && fileDetails.results != null) {
                 // A file that we can safely reuse the result for
                 visibleMacros.append(fileDetails.results);
@@ -127,7 +128,7 @@ public class IncrementalCompileFilesFactory {
                 HashCode newHash = fileSnapshot.getContent().getContentMd5();
                 IncludeDirectives includeDirectives = sourceIncludesParser.parseIncludes(file);
                 fileDetails = new FileDetails(new IncludeFileState(newHash, file), includeDirectives);
-                visitedFiles.put(file, fileDetails);
+                includeProcessorCache.put(file, fileDetails);
             }
 
             CollectingMacroLookup includedFileDirectives = new CollectingMacroLookup();
@@ -186,7 +187,7 @@ public class IncrementalCompileFilesFactory {
     /**
      * Details of a file that are independent of where the file appears in the file include graph.
      */
-    private static class FileDetails {
+    public static class FileDetails {
         final IncludeFileState state;
         final IncludeDirectives directives;
         // Non-null when the result of visiting this file can be reused
@@ -209,7 +210,6 @@ public class IncrementalCompileFilesFactory {
         private final IncludeDirectives includeDirectives;
         private final List<FileVisitResult> included;
         private final CollectingMacroLookup includeFileDirectives;
-        int traversalCount;
 
         FileVisitResult(File file, IncludeFileResolutionResult result, IncludeFileState fileState, IncludeDirectives includeDirectives, List<FileVisitResult> included, CollectingMacroLookup dependentIncludeDirectives) {
             this.file = file;
@@ -235,18 +235,17 @@ public class IncrementalCompileFilesFactory {
             }
         }
 
-        void collectFilesInto(int traversal, List<IncludeFileState> files) {
-            if (traversalCount == traversal) {
+        void collectFilesInto(Set<IncludeFileState> files) {
+            if (fileState != null && files.contains(fileState)) {
                 // Already seen during this traversal, skip
                 return;
             }
 
             // Collect files
-            traversalCount = traversal;
             if (fileState != null) {
                 files.add(fileState);
                 for (FileVisitResult include : included) {
-                    include.collectFilesInto(traversal, files);
+                    include.collectFilesInto(files);
                 }
             }
         }

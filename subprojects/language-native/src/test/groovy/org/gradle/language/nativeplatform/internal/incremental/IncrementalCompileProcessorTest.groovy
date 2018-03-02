@@ -37,7 +37,8 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyResolver = Mock(SourceIncludesResolver)
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
+    def sourceProcessorCache = new IncrementalCompileSourceProcessorCache()
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter, sourceProcessorCache), new TestBuildOperationExecutor())
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -409,6 +410,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def getState() {
         def incrementalState = incrementalCompileProcessor.processSourceFiles(sourceFiles)
         stateCache.set(incrementalState.finalState)
+        sourceProcessorCache.clear()
         return incrementalState
     }
 
