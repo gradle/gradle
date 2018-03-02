@@ -187,7 +187,11 @@ apply from: "gradle/testDependencies.gradle"
 apply from: "gradle/wrapper.gradle.kts"
 apply plugin: "ide-configuration"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle.kts"
-apply from: "gradle/testSetup.gradle"
+
+// Calculate the set of released versions - do this at configuration time because we need this to create various tasks
+// At some point, make this a configuration rule
+ext.releasedVersions = new org.gradle.build.ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))
+
 apply from: "gradle/publicApi.gradle"
 apply from: "gradle/updateReleasedVersions.gradle"
 apply from: "gradle/dependenciesCheck.gradle"
