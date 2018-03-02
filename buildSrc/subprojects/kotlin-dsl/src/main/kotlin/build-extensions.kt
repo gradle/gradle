@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.*
@@ -51,3 +52,11 @@ fun Project.testLibrary(name: String): Any =
 @Suppress("unchecked_cast")
 fun Project.testLibraries(name: String): List<Any> =
     testLibraries[name]!! as List<Any>
+
+val Project.sourceCompatibleVersion: JavaVersion
+    get() {
+        val javaVersion: JavaVersion by rootProject.extra
+        return if (javaVersion.isJava9Compatible) JavaVersion.VERSION_1_6
+        else JavaVersion.VERSION_1_5
+    }
+
