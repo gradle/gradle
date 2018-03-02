@@ -52,6 +52,16 @@ configurations {
     userGuideTask
     jquery
     jqueryTipTip
+
+    cssElements {
+        // define an outgoing configuration, aimed at consumers looking
+        // for CSS resources
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'css-resources'))
+        }
+        canBeResolved = false
+        canBeConsumed = true
+    }
 }
 
 dependencies {
@@ -176,6 +186,12 @@ task css(type: Sync, dependsOn: configureCss) {
     from "src/docs/css"
     include "*.css"
     include "*.svg"
+}
+
+
+artifacts {
+    // declare that the generated css directory is an output of cssElements
+    cssElements file: css.destinationDir, builtBy: css
 }
 
 ext.cssFiles = fileTree(css.destinationDir) {

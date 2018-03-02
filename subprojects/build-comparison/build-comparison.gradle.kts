@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-configurations {
-    css {
-        // define a configuration that, when resolved, will look in
-        // the producer for a publication that exposes CSS resources
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE,(project.objects.named(Usage, "css-resources")))
-        }
-        canBeResolved = true
-        canBeConsumed = false
+val css by configurations.creating {
+    // define a configuration that, when resolved, will look in
+    // the producer for a publication that exposes CSS resources
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, (project.objects.named(Usage::class.java, "css-resources")))
     }
+    isCanBeResolved = true
+    isCanBeConsumed = false
 }
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
     compile(project(":resources"))
     compile(project(":core"))
@@ -35,10 +33,10 @@ dependencies {
     compile(project(":reporting"))
     compile(project(":plugins"))
     compile(project(":ear"))
-    compile(libraries.guava.coordinates)
-    compile(libraries.slf4j_api.coordinates)
+    compile(library("guava"))
+    compile(library("slf4j_api"))
 
-    testCompile(testLibraries.jsoup)
+    testCompile(testLibrary("jsoup"))
 
     integTestRuntime(project(":toolingApiBuilders"))
 
@@ -49,9 +47,9 @@ testFixtures {
     from(":core")
 }
 
-processResources {
-    into "org/gradle/api/plugins/buildcomparison/render/internal/html", {
-        from configurations.css
-        include "base.css"
+tasks.getByName<Copy>("processResources") {
+    from(css) {
+        into("org/gradle/api/plugins/buildcomparison/render/internal/html")
+        include("base.css")
     }
 }
