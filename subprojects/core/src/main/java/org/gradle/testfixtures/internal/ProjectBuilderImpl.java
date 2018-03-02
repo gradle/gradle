@@ -129,9 +129,6 @@ public class ProjectBuilderImpl {
                 .parent(NativeServices.getInstance())
                 .provider(new TestGlobalScopeServices())
                 .build();
-            // Registers a logger that will otherwise be registered when resolving dependencies with the ProjectBuilder
-            // Without this, ProjectBuilder will fail to resolve dependencies with a strange "Logging operation was not started" error
-            globalServices.get(GradleLauncherFactory.class);
             // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
             // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
