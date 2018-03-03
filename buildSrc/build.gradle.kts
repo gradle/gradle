@@ -79,14 +79,6 @@ allprojects {
         maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
         gradlePluginPortal()
     }
-    // Workaround caching problems with 'java-gradle-plugin'
-    // vvvvv
-    normalization {
-        runtimeClasspath {
-            ignore("plugin-under-test-metadata.properties")
-        }
-    }
-    // ^^^^^
 }
 
 dependencies {
