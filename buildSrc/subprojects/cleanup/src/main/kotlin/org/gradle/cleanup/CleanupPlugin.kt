@@ -31,13 +31,14 @@ class CleanupPlugin : Plugin<Project> {
 
         val killExistingProcessesStartedByGradle by tasks.creating(KillLeakingJavaProcesses::class)
 
-        if (BuildHost.isCiServer) {
+//        if (BuildHost.isCiServer) {
+        if (!BuildHost.isCiServer) {
             tasks {
                 getByName("clean") {
                     dependsOn(killExistingProcessesStartedByGradle)
                 }
                 subprojects {
-                    all {
+                    this.tasks.all {
                         mustRunAfter(killExistingProcessesStartedByGradle)
                     }
                 }
