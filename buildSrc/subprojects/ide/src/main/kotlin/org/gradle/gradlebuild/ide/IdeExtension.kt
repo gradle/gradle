@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ideconfiguration
+package org.gradle.gradlebuild.ide
 
 import org.gradle.api.Project
 
 import accessors.*
 
 
-open class IdeConfigurationExtension(private val project: Project) {
+open class IdeExtension(private val project: Project) {
 
     fun makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13(): Unit = project.run {
         idea {

@@ -28,7 +28,7 @@ import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
-import org.gradle.plugins.pegdown.PegDown
+import org.gradle.gradlebuild.docs.PegDown
 
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
@@ -36,7 +36,7 @@ import javax.xml.transform.stream.StreamSource
 
 plugins {
     id 'base'
-    id 'jsoup'
+    id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
 }

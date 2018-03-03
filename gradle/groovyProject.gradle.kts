@@ -12,7 +12,7 @@ import java.util.concurrent.Callable
 import java.util.jar.Attributes
 
 apply { plugin("groovy") }
-apply { plugin("gradle-compile") }
+apply { plugin("gradlebuild.gradle-compile") }
 
 val base = the<BasePluginConvention>()
 val java = the<JavaPluginConvention>()
@@ -99,7 +99,7 @@ jarTasks.all {
 }
 
 apply {
-    plugin("test-fixtures")
+    plugin("gradlebuild.test-fixtures")
 
     if (file("src/integTest").isDirectory) {
         from("$rootDir/gradle/integTest.gradle.kts")
@@ -110,7 +110,7 @@ apply {
     }
 
     if (file("src/performanceTest").isDirectory) {
-        plugin("performance-test")
+        plugin("gradlebuild.performance-test")
     }
 
     if (file("src/jmh").isDirectory) {

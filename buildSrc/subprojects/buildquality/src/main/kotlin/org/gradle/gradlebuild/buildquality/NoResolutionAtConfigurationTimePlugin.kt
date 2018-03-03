@@ -19,7 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 
-open class FailDependencyResolutionAtConfiguration : Plugin<Project> {
+open class NoResolutionAtConfigurationTimePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         var projectsEvaluated = false

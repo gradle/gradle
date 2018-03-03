@@ -1,7 +1,7 @@
 import org.gradle.build.GradleStartScriptGenerator
 
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 // Main entry point requires Java 5

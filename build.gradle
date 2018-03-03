@@ -21,9 +21,9 @@ import org.gradle.gradlebuild.BuildEnvironment
 
 plugins {
     id 'java-base'
-    id 'build-types'
-    id 'gradle-compile'
-    id 'ci-reporting'
+    id 'gradlebuild.build-types'
+    id 'gradlebuild.gradle-compile'
+    id 'gradlebuild.ci-reporting'
     // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
@@ -178,23 +178,23 @@ ext {
     ]
 }
 
-apply plugin: "buildscan-configuration"
+apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/dependenciesMetadataRules.gradle.kts"
-apply plugin: "minify"
+apply plugin: "gradlebuild.minify"
 apply from: "gradle/testDependencies.gradle"
-apply plugin: "configure-wrapper-tasks"
-apply plugin: "ide-configuration"
-apply plugin: "fail-dependency-resolution-during-configuration"
+apply plugin: "gradlebuild.wrapper"
+apply plugin: "gradlebuild.ide"
+apply plugin: "gradlebuild.no-resolution-at-configuration"
 
 // Calculate the set of released versions - do this at configuration time because we need this to create various tasks
 // At some point, make this a configuration rule
 ext.releasedVersions = new org.gradle.build.ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))
 
 apply from: "gradle/publicApi.gradle"
-apply plugin: "update-versions"
-apply plugin: "dependency-vulnerabilities"
+apply plugin: "gradlebuild.update-versions"
+apply plugin: "gradlebuild.dependency-vulnerabilities"
 
 allprojects {
     group = 'org.gradle'
@@ -225,11 +225,11 @@ subprojects {
     }
 
     if (project in publishedProjects) {
-        apply plugin: "publish-public-libraries"
+        apply plugin: "gradlebuild.publish-public-libraries"
     }
 
     apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
-    apply plugin: "configure-task-properties-validation"
+    apply plugin: "gradlebuild.task-properties-validation"
 }
 
 configurations {

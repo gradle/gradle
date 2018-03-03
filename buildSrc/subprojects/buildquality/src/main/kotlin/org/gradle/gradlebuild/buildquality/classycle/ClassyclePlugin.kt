@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.classycle
+package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -29,6 +29,7 @@ val classycleBaseName = "classycle"
 
 
 @Suppress("unused")
+// TODO move into buildquality
 open class ClassyclePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ideconfiguration
+package org.gradle.gradlebuild.ide
 
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
@@ -29,7 +29,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.gradle.plugins.pegdown.PegDown
+import org.gradle.gradlebuild.docs.PegDown
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -46,8 +46,8 @@ import org.gradle.kotlin.dsl.*
 private
 const val ideConfigurationBaseName = "ideConfiguration"
 
-
-open class IdeConfigurationPlugin : Plugin<Project> {
+//TODO move into ide
+open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         configureExtensionForAllProjects()
@@ -58,7 +58,7 @@ open class IdeConfigurationPlugin : Plugin<Project> {
 
     private
     fun Project.configureExtensionForAllProjects() = allprojects {
-        extensions.create<IdeConfigurationExtension>(ideConfigurationBaseName, this)
+        extensions.create<IdeExtension>(ideConfigurationBaseName, this)
     }
 
     private

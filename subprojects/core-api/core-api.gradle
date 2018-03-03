@@ -15,7 +15,7 @@
  */
 plugins {
     id 'java-library'
-    // id 'strict-compile'
+    // id 'gradlebuild.strict-compile'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5

@@ -52,7 +52,10 @@ subprojects {
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply { plugin("kotlin") }
+        apply {
+            plugin("kotlin")
+            plugin("java-library")
+        }
     }
     apply {
         plugin("idea")
