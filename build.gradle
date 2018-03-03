@@ -17,7 +17,7 @@
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
 import org.gradle.modules.PatchExternalModules
-import org.gradle.BuildEnvironment
+import org.gradle.gradlebuild.BuildEnvironment
 
 plugins {
     id 'java-base'
@@ -182,7 +182,7 @@ apply plugin: "buildscan-configuration"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/dependenciesMetadataRules.gradle.kts"
-apply from: "gradle/minifiedDependencies.gradle"
+apply plugin: "minify"
 apply from: "gradle/testDependencies.gradle"
 apply plugin: "configure-wrapper-tasks"
 apply plugin: "ide-configuration"
@@ -193,8 +193,8 @@ apply plugin: "fail-dependency-resolution-during-configuration"
 ext.releasedVersions = new org.gradle.build.ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))
 
 apply from: "gradle/publicApi.gradle"
-apply from: "gradle/updateReleasedVersions.gradle"
-apply from: "gradle/dependenciesCheck.gradle"
+apply plugin: "update-versions"
+apply plugin: "dependency-vulnerabilities"
 
 allprojects {
     group = 'org.gradle'

@@ -5,16 +5,17 @@ plugins {
 apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
-    compile(project(":build"))
-    compile(project(":testing"))
     compile(project(":binaryCompatibility"))
+    compile(project(":build"))
+    compile(project(":configuration"))
     compile(project(":kotlinDsl"))
+    compile(project(":testing"))
     compile("org.pegdown:pegdown:1.6.0")
     compile("org.jsoup:jsoup:1.11.2")
-    compile("com.gradle:build-scan-plugin:1.12.1")
     compile("com.google.guava:guava-jdk5:14.0.1")
     compile("org.ow2.asm:asm:6.0")
     compile("org.ow2.asm:asm-commons:6.0")
+    compile("com.google.code.gson:gson:2.7")
     testCompile("junit:junit:4.12")
     testCompile("com.nhaarman:mockito-kotlin:1.5.0")
 }
@@ -53,14 +54,6 @@ gradlePlugin {
             id = "ide-configuration"
             implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
         }
-        "configureTaskPropertyValidation" {
-            id = "configure-task-properties-validation"
-            implementationClass = "org.gradle.plugins.codequality.ConfigureTaskPropertyValidationPlugin"
-        }
-        "buildscanConfiguration" {
-            id = "buildscan-configuration"
-            implementationClass = "org.gradle.plugins.buildscan.BuildScanConfigurationPlugin"
-        }
         "ciReporting" {
             id = "ci-reporting"
             implementationClass = "org.gradle.plugins.reporting.CiReportingPlugin"
@@ -69,13 +62,9 @@ gradlePlugin {
             id = "publish-public-libraries"
             implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
         }
-        "failDependencyResolutionAtConfiguration" {
-            id = "fail-dependency-resolution-during-configuration"
-            implementationClass = "org.gradle.plugins.codequality.FailDependencyResolutionAtConfiguration"
-        }
-        "configureWrapperTasks" {
-            id = "configure-wrapper-tasks"
-            implementationClass = "org.gradle.plugins.wrapper.ConfigureWrapperTasksPlugin"
+       "resumeBuild" {
+            id = "resume-build"
+            implementationClass = "org.gradle.gradlebuild.tools.ResumeBuildPlugin"
         }
     }
 }
