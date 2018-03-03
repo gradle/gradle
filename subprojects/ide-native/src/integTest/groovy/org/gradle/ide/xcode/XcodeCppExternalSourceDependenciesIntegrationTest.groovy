@@ -76,6 +76,12 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file('src/main/headers'), checkoutDir(repo.name, commit.id.name, repo.id).file('src/main/public'))
+
+        when:
+        succeeds ':xcodeProject'
+
+        then:
+        result.assertTasksExecuted(":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeProject")
     }
 
     def "does not add source dependencies Xcode project of main component to Xcode workspace"() {
