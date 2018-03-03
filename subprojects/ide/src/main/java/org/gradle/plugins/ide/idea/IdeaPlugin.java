@@ -224,7 +224,7 @@ public class IdeaPlugin extends IdePlugin {
 
             addWorker(projectTask);
 
-            addWorkspaceOpenTask(ideaProject);
+            addWorkspace(ideaProject);
         }
     }
 
