@@ -69,5 +69,13 @@ gradlePlugin {
             id = "publish-public-libraries"
             implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
         }
+        "integrationTests" {
+            id = "integration-tests"
+            implementationClass = "org.gradle.plugins.integrationtests.IntegrationTestsPlugin"
+        }
+        "crossVersionTests" {
+            id = "cross-version-tests"
+            implementationClass = "org.gradle.plugins.integrationtests.CrossVersionTestsPlugin"
+        }
     }
 }
