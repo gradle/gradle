@@ -962,4 +962,100 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "implementation of nested closure in decorated bean is tracked"() {
+        taskWithNestedDecoratedBean()
+        buildFile << """
+            extensions.create("bean", NestedBean.class)
+            
+            bean {
+                withAction { it.text = "hello" }
+            }
+            
+            task myTask(type: TaskWithNestedDecoratedAction) {
+                bean = project.bean
+            }
+        """
+
+        buildFile.makeOlder()
+
+        when:
+        run 'myTask'
+
+        then:
+        executedAndNotSkipped(':myTask')
+        file('build/tmp/myTask/output.txt').text == "hello"
+
+        when:
+        buildFile.text = buildFile.text.replace('it.text = "hello"', 'it.text = "changed"')
+        run 'myTask', '--info'
+
+        then:
+        executedAndNotSkipped(':myTask')
+        file('build/tmp/myTask/output.txt').text == "changed"
+        output.contains "Value of input property 'bean.action.class' has changed for task ':myTask'"
+    }
+
+    private TestFile nestedDecoratedBeanWithAction() {
+        return file("buildSrc/src/main/java/NestedBean.java") << """
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.api.Action;
+            import java.io.File;
+            
+            public class NestedBean {
+                Action<File> action;
+                
+                public void withAction(Action<File> action) {
+                    this.action = action;
+                }
+                
+                @Nested
+                public Action<File> getAction() {
+                    return action;
+                }
+            }
+        """
+    }
+    private TestFile taskWithNestedDecoratedBean() {
+        nestedDecoratedBeanWithAction()
+        return file("buildSrc/src/main/java/TaskWithNestedDecoratedAction.java") << """
+            import org.gradle.api.Action;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.NonNullApi;
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.api.tasks.OutputFile;
+            import org.gradle.api.tasks.TaskAction;
+            
+            import java.io.File;
+            
+            @NonNullApi
+            public class TaskWithNestedDecoratedAction extends DefaultTask {
+                private File outputFile = new File(getTemporaryDir(), "output.txt");
+                private NestedBean bean;
+                
+                @OutputFile
+                public File getOutputFile() {
+                    return outputFile;
+                }
+            
+                public void setOutputFile(File outputFile) {
+                    this.outputFile = outputFile;
+                }
+            
+                @Nested
+                public NestedBean getBean() {
+                    return bean;
+                }
+                
+                public void setBean(NestedBean bean) {
+                    this.bean = bean;
+                }
+            
+                @TaskAction
+                public void doStuff() {
+                    bean.getAction().execute(outputFile);
+                }
+            }
+        """
+    }
+
 }

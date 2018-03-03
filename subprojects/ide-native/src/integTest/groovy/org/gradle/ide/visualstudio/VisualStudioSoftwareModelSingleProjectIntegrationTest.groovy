@@ -95,7 +95,7 @@ model {
         run "visualStudio"
 
         then:
-        executedAndNotSkipped getExecutableTasks("main")
+        skipped getExecutableTasks("main")
 
         and:
         filtersFile("mainExe.vcxproj.filters").file.text == filtersFileContent

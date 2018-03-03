@@ -19,6 +19,9 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -50,10 +53,20 @@ public interface VisualStudioProject extends Named, Buildable {
     /**
      * Configuration for the generated project file.
      */
+    @Internal
     XmlConfigFile getProjectFile();
 
     /**
      * Configuration for the generated filters file.
      */
+    @Internal
     XmlConfigFile getFiltersFile();
+
+    @Override
+    @Internal
+    TaskDependency getBuildDependencies();
+
+    @Override
+    @Input
+    String getName();
 }

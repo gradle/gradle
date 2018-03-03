@@ -225,7 +225,7 @@ subprojects {
     }
 
     if (project in publishedProjects) {
-        apply from: "$rootDir/gradle/publish.gradle"
+        apply plugin: "publish-public-libraries"
     }
 
     apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
@@ -234,9 +234,15 @@ subprojects {
 
 configurations {
     coreRuntime {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
         visible = false
     }
     coreRuntimeExtensions {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
         visible = false
     }
     externalModules {

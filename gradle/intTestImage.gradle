@@ -26,7 +26,11 @@ tasks.withType(DistributionTest) {
 }
 
 configurations {
-    partialDistribution
+    partialDistribution {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
+    }
 }
 
 if (useAllDistribution) {
@@ -44,7 +48,13 @@ if (useAllDistribution) {
         from(unpackedPath)
     }
 } else {
-    configurations { selfRuntime }
+    configurations {
+        selfRuntime {
+            attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+            canBeResolved = true
+            canBeConsumed = false
+        }
+    }
 
     afterEvaluate {
         if (project.tasks.findByName("jar")) {
