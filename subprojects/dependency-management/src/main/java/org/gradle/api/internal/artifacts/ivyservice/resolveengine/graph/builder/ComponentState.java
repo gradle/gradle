@@ -53,7 +53,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.empty();
     private volatile ComponentResolveMetadata metaData;
 
-    private ModuleState state = ModuleState.Selectable;
+    private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException failure;
     private SelectorState selectedBy;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
@@ -282,7 +282,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     boolean isSelected() {
-        return state == ModuleState.Selected;
+        return state == ComponentSelectionState.Selected;
     }
 
     boolean isSelectable() {
@@ -294,15 +294,55 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     void evict() {
-        state = ModuleState.Evicted;
+        state = ComponentSelectionState.Evicted;
     }
 
     void select() {
-        state = ModuleState.Selected;
+        state = ComponentSelectionState.Selected;
     }
 
     void makeSelectable() {
-        state = ModuleState.Selectable;
+        state = ComponentSelectionState.Selectable;
+    }
+
+    /**
+     * Describes the possible states of a component in the graph.
+     */
+    enum ComponentSelectionState {
+        /**
+         * A selectable component is either new to the graph, or has been visited before,
+         * but wasn't selected because another compatible version was used.
+         */
+        Selectable(true, true),
+
+        /**
+         * A selected component has been chosen, at some point, as the version to use.
+         * This is not for a lifetime: a component can later be evicted through conflict resolution,
+         * or another compatible component can be chosen instead if more constraints arise.
+         */
+        Selected(true, false),
+
+        /**
+         * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
+         * Either because it has been excluded, or because conflict resolution selected a different version.
+         */
+        Evicted(false, false);
+
+        private final boolean candidateForConflictResolution;
+        private final boolean canSelect;
+
+        ComponentSelectionState(boolean candidateForConflictResolution, boolean canSelect) {
+            this.candidateForConflictResolution = candidateForConflictResolution;
+            this.canSelect = canSelect;
+        }
+
+        boolean isCandidateForConflictResolution() {
+            return candidateForConflictResolution;
+        }
+
+        public boolean isSelectable() {
+            return canSelect;
+        }
     }
 
 }
