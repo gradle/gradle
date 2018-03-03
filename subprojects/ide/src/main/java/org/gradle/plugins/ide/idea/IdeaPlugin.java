@@ -134,7 +134,6 @@ public class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project);
         configureForWarPlugin(project);
         configureForScalaPlugin();
-        artifactRegistry.registerIdeArtifact(createImlArtifact(project));
         linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
@@ -144,10 +143,9 @@ public class IdeaPlugin extends IdePlugin {
         SingleMessageLogger.nagUserOfDiscontinuedMethod("performPostEvaluationActions");
     }
 
-    private static PublishArtifact createImlArtifact(Project project) {
+    private static PublishArtifact createImlArtifact(Project project, Task generatorTask) {
         IdeaModule module = project.getExtensions().getByType(IdeaModel.class).getModule();
-        Task byName = project.getTasks().getByName("ideaModule");
-        return new ImlArtifact(module, byName);
+        return new ImlArtifact(module, generatorTask);
     }
 
     private void configureIdeaWorkspace(final Project project) {
@@ -303,6 +301,7 @@ public class IdeaPlugin extends IdePlugin {
 
         });
 
+        artifactRegistry.registerIdeArtifact(createImlArtifact(project, task));
         addWorker(task);
     }
 
@@ -314,6 +313,7 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
     }
+
     private void configureForWarPlugin(final Project project) {
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
@@ -475,13 +475,13 @@ public class IdeaPlugin extends IdePlugin {
             getLifecycleTask().dependsOn(new Callable<List<TaskDependency>>() {
                 @Override
                 public List<TaskDependency> call() {
-                    return allImlArtifactsInComposite(project);
+                    return allImlArtifactsInComposite(project, ideaModel.getProject());
                 }
             });
         }
     }
 
-    private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project) {
+    private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject) {
         List<TaskDependency> dependencies = Lists.newArrayList();
         ServiceRegistry services = project.getServices();
         ProjectPathRegistry projectPathRegistry = services.get(ProjectPathRegistry.class);
@@ -489,12 +489,21 @@ public class IdeaPlugin extends IdePlugin {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(project.getIdentityPath());
         for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
             final ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
-            if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
-                // IDEA Module for project in current build: handled via `modules` model elements.
-                continue;
-            }
             LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
             if (imlArtifact != null) {
+                if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
+                    // IDEA Module for project in current build: don't include any module that has been excluded from project
+                    boolean found = false;
+                    for (IdeaModule ideaModule : ideaProject.getModules()) {
+                        if (imlArtifact.getFile().equals(ideaModule.getOutputFile())) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        continue;
+                    }
+                }
                 dependencies.add(imlArtifact.getBuildDependencies());
             }
         }
