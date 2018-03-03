@@ -55,20 +55,22 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
     val defaultExecuter = project.findProperty("defaultIntegTestExecuter") as? String ?: "embedded"
     (listOf("${prefix}Test" to defaultExecuter) + testType.modes.map { "${it}${prefix.capitalize()}Test" to it }).
-        forEach { createTestTask("${it.first}", it.second, sourceSet, prefix)
+        forEach { createTestTask("${it.first}", it.second, sourceSet, testType)
         }
     tasks["check"].dependsOn("${prefix}Test")
 }
 
 private
-fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, prefix: String): IntegrationTest {
+fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType): IntegrationTest {
+
     return tasks.create<IntegrationTest>(name) {
         addBaseConfigurationForIntegrationAndCrossVersionTestTasks(currentTestJavaVersion)
-        description = "Runs $prefix with $executer executer"
+        description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
+        libsRepository.required = testType.libRepoRequired
     }
 }
 
