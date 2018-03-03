@@ -17,15 +17,15 @@
 package org.gradle.plugins.ide.idea.model.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 class ModuleDependencyBuilder {
-    private final LocalComponentRegistry localComponentRegistry;
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public ModuleDependencyBuilder(LocalComponentRegistry localComponentRegistry) {
-        this.localComponentRegistry = localComponentRegistry;
+    public ModuleDependencyBuilder(IdeArtifactRegistry ideArtifactRegistry) {
+        this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
     public ModuleDependency create(ProjectComponentIdentifier id, String scope) {
@@ -33,7 +33,7 @@ class ModuleDependencyBuilder {
     }
 
     private String determineProjectName(ProjectComponentIdentifier id) {
-        ComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(id, "iml");
+        ComponentArtifactMetadata imlArtifact = ideArtifactRegistry.getIdeArtifactMetadata(id, "iml");
         return imlArtifact == null ? id.getProjectName() : imlArtifact.getName().getName();
     }
 }

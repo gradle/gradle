@@ -18,14 +18,14 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.ProjectPathRegistry
-import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import spock.lang.Specification
 
 class IdeaModelTest extends Specification {
@@ -66,7 +66,7 @@ class IdeaModelTest extends Specification {
         def gradleProject = Stub(ProjectInternal) {
             getServices() >> Stub(ServiceRegistry) {
                 get(ProjectPathRegistry) >> (ProjectPathRegistry) null
-                get(LocalComponentRegistry) >> (LocalComponentRegistry) null
+                get(IdeArtifactRegistry) >> (IdeArtifactRegistry) null
                 get(IncludedBuildTaskGraph) >> (IncludedBuildTaskGraph) null
                 get(BuildIdentity) >> (BuildIdentity) null
             }

@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -61,7 +60,6 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -485,27 +483,23 @@ public class IdeaPlugin extends IdePlugin {
         List<TaskDependency> dependencies = Lists.newArrayList();
         ServiceRegistry services = project.getServices();
         ProjectPathRegistry projectPathRegistry = services.get(ProjectPathRegistry.class);
-        LocalComponentRegistry localComponentRegistry = services.get(LocalComponentRegistry.class);
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(project.getIdentityPath());
-        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
-            final ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
-            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
-            if (imlArtifact != null) {
-                if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
-                    // IDEA Module for project in current build: don't include any module that has been excluded from project
-                    boolean found = false;
-                    for (IdeaModule ideaModule : ideaProject.getModules()) {
-                        if (imlArtifact.getFile().equals(ideaModule.getOutputFile())) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        continue;
+        for (LocalComponentArtifactMetadata imlArtifact : artifactRegistry.getIdeArtifactMetadata("iml")) {
+            ProjectComponentIdentifier otherProjectId = (ProjectComponentIdentifier) imlArtifact.getComponentId();
+            if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
+                // IDEA Module for project in current build: don't include any module that has been excluded from project
+                boolean found = false;
+                for (IdeaModule ideaModule : ideaProject.getModules()) {
+                    if (imlArtifact.getFile().equals(ideaModule.getOutputFile())) {
+                        found = true;
+                        break;
                     }
                 }
-                dependencies.add(imlArtifact.getBuildDependencies());
+                if (!found) {
+                    continue;
+                }
             }
+            dependencies.add(imlArtifact.getBuildDependencies());
         }
         return dependencies;
     }

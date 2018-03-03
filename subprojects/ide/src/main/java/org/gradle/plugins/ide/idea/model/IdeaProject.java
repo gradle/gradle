@@ -23,7 +23,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.initialization.ProjectPathRegistry;
@@ -31,7 +30,7 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.Path;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -116,7 +115,7 @@ public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectPathRegistry projectPathRegistry;
-    private final LocalComponentRegistry localComponentRegistry;
+    private final IdeArtifactRegistry artifactRegistry;
 
     private List<IdeaModule> modules;
     private String jdkName;
@@ -134,7 +133,7 @@ public class IdeaProject implements IdeWorkspace {
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectPathRegistry.class);
-        this.localComponentRegistry = services.get(LocalComponentRegistry.class);
+        this.artifactRegistry = services.get(IdeArtifactRegistry.class);
         this.outputFile = project.getLayout().fileProperty();
     }
 
@@ -350,16 +349,13 @@ public class IdeaProject implements IdeWorkspace {
 
     private void configureModulePaths(Project xmlProject) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(((ProjectInternal) project).getIdentityPath());
-        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
-            ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+        for (LocalComponentArtifactMetadata imlArtifact : artifactRegistry.getIdeArtifactMetadata("iml")) {
+            ProjectComponentIdentifier otherProjectId = (ProjectComponentIdentifier) imlArtifact.getComponentId();
             if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
                 // IDEA Module for project in current build: handled via `modules` model elements.
                 continue;
             }
-            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
-            if (imlArtifact != null) {
-                xmlProject.addModulePath(imlArtifact.getFile());
-            }
+            xmlProject.addModulePath(imlArtifact.getFile());
         }
     }
 }

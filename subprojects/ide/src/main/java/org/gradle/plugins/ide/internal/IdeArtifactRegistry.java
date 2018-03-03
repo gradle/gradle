@@ -17,15 +17,29 @@
 package org.gradle.plugins.ide.internal;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface IdeArtifactRegistry {
     void registerIdeArtifact(PublishArtifact ideArtifact);
 
+    /**
+     * Finds an IDE metadata artifact with the specified type. Does not execute tasks to build the artifact.
+     */
+    @Nullable
+    LocalComponentArtifactMetadata getIdeArtifactMetadata(ProjectComponentIdentifier project, String type);
+
+    /**
+     * Finds all known IDE metadata artifacts with the specified type, in all builds. Does not execute tasks to build the artifact.
+     */
     List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type);
 
+    /**
+     * Returns a {@link FileCollection} containing all metadata artifacts with the specified type, in all builds.
+     */
     FileCollection getIdeArtifacts(String type);
 }
