@@ -74,8 +74,6 @@ class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
             ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme",
             ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme",
             ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject",
-            // TODO - shouldn't be present (unless all of the other compile tasks are present as well)
-            ":util:compileDebugSwift",
             ":util:xcodeProjectWorkspaceSettings", ":util:xcodeProject", ":util:xcodeScheme",
             ":other:xcodeProjectWorkspaceSettings", ":other:xcodeProject", ":other:xcodeScheme",
             ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")

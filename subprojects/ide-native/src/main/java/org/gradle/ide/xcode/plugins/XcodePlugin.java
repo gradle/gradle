@@ -51,6 +51,7 @@ import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
 import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -72,6 +73,7 @@ import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -87,14 +89,16 @@ public class XcodePlugin extends IdePlugin {
     private final ObjectFactory objectFactory;
     private final BuildIdentifier thisBuild;
     private final IdeArtifactRegistry artifactRegistry;
+    private final ProjectPathRegistry projectPathRegistry;
     private DefaultXcodeProject xcodeProject;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild, IdeArtifactRegistry artifactRegistry) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild, IdeArtifactRegistry artifactRegistry, ProjectPathRegistry projectPathRegistry) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
         this.thisBuild = thisBuild.getCurrentBuild();
         this.artifactRegistry = artifactRegistry;
+        this.projectPathRegistry = projectPathRegistry;
     }
 
     @Override
@@ -130,7 +134,6 @@ public class XcodePlugin extends IdePlugin {
 
         includeBuildFilesInProject(project);
         configureXcodeCleanTask(project);
-        artifactRegistry.registerIdeArtifact(createXcodeProjectArtifact(project));
     }
 
     private void includeBuildFilesInProject(Project project) {
@@ -162,6 +165,8 @@ public class XcodePlugin extends IdePlugin {
         projectFileTask.dependsOn(project.getTasks().withType(GenerateSchemeFileTask.class));
         projectFileTask.setXcodeProject(xcodeProject);
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
+
+        artifactRegistry.registerIdeArtifact(createXcodeProjectArtifact(project, projectFileTask));
 
         return projectFileTask;
     }
@@ -362,10 +367,9 @@ public class XcodePlugin extends IdePlugin {
         return target;
     }
 
-    private static PublishArtifact createXcodeProjectArtifact(Project project) {
+    private static PublishArtifact createXcodeProjectArtifact(Project project, Task task) {
         DefaultXcodeProject xcodeProject = ((DefaultXcodeExtension) project.getExtensions().getByType(XcodeExtension.class)).getProject();
-        Task byName = project.getTasks().getByName("xcodeProject");
-        return new XcodeProjectArtifact(xcodeProject, byName);
+        return new XcodeProjectArtifact(xcodeProject, task);
     }
 
     private static class XcodeProjectArtifact extends DefaultPublishArtifact {
@@ -474,7 +478,11 @@ public class XcodePlugin extends IdePlugin {
             public boolean isSatisfiedBy(ComponentIdentifier id) {
                 if (id instanceof ProjectComponentIdentifier) {
                     ProjectComponentIdentifier identifier = (ProjectComponentIdentifier) id;
-                    return !identifier.getBuild().equals(thisBuild);
+                    for (Path path : projectPathRegistry.getAllImplicitProjectPaths()) {
+                        if (identifier.equals(projectPathRegistry.getProjectComponentIdentifier(path))) {
+                            return true;
+                        }
+                    }
                 }
                 return false;
             }
