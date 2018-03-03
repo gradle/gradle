@@ -4,7 +4,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
-import org.gradle.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -114,7 +114,7 @@ apply {
     }
 
     if (file("src/jmh").isDirectory) {
-        from("$rootDir/gradle/jmh.gradle")
+        plugin("jmh")
     }
 
     from("$rootDir/gradle/distributionTesting.gradle.kts")
