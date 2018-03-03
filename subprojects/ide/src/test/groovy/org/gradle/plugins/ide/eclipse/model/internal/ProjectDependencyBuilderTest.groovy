@@ -15,8 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -35,15 +34,15 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         dependency.path == "/project-name"
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(_, "eclipse.project") >> null
+        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
     }
 
     def "should create dependency using eclipse projectName"() {
         given:
-        def projectArtifact = Stub(LocalComponentArtifactMetadata) {
-            getName() >> new DefaultIvyArtifactName("foo", "eclipse.project", "project", null)
+        def projectMetadata = Stub(EclipseProjectMetadata) {
+            getName() >> "foo"
         }
-        artifactRegistry.getIdeArtifactMetadata(projectId, "eclipse.project") >> projectArtifact
+        artifactRegistry.getIdeArtifactMetadata(EclipseProjectMetadata, projectId) >> projectMetadata
 
         when:
         def dependency = builder.build(projectId)

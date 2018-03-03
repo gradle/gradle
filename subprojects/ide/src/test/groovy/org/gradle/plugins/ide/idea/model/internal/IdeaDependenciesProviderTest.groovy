@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
@@ -26,9 +25,16 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
-    private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
-    private final dependenciesProvider = new IdeaDependenciesProvider(Stub(IdeArtifactRegistry))
+    private final project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    private final childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final artifactRegistry = Stub(IdeArtifactRegistry)
+    private final dependenciesProvider = new IdeaDependenciesProvider(artifactRegistry)
+
+    def setup() {
+        _ * artifactRegistry.getIdeArtifactMetadata(_, _) >> { Class c, def m ->
+            return Stub(c)
+        }
+    }
 
     def "no dependencies test"() {
         applyPluginToProjects()
@@ -213,7 +219,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider(Stub(IdeArtifactRegistry))
+        def dependenciesProvider = new IdeaDependenciesProvider(artifactRegistry)
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
         def extraConfiguration = project.configurations.create('extraConfiguration')

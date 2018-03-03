@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
@@ -37,8 +37,8 @@ public class ProjectDependencyBuilder {
     }
 
     public String determineTargetProjectName(ProjectComponentIdentifier id) {
-        ComponentArtifactMetadata eclipseProjectArtifact = ideArtifactRegistry.getIdeArtifactMetadata(id, "eclipse.project");
-        return eclipseProjectArtifact == null ? id.getProjectName() : eclipseProjectArtifact.getName().getName();
+        EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeArtifactMetadata(EclipseProjectMetadata.class, id);
+        return eclipseProject == null ? id.getProjectName() : eclipseProject.getName();
     }
 
     private ProjectDependency buildProjectDependency(String path) {

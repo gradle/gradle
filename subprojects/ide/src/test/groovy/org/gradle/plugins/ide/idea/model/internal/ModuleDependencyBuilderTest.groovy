@@ -16,8 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import spock.lang.Specification
 
@@ -38,7 +37,7 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == "project-name"
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(_, "iml") >> null
+        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
     }
 
     def "builds dependency for nonIdea root project"() {
@@ -50,13 +49,13 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == "build-1"
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(_, "iml") >> null
+        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
     }
 
     def "builds dependency for project"() {
         given:
-        def imlArtifact = Stub(LocalComponentArtifactMetadata) {
-            getName() >> new DefaultIvyArtifactName("foo", "iml", "iml", null)
+        def moduleMetadata = Stub(IdeaModuleMetadata) {
+            getName() >> "foo"
         }
 
         when:
@@ -67,6 +66,6 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == 'foo'
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(projectId, "iml") >> imlArtifact
+        artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata, projectId) >> moduleMetadata
     }
 }
