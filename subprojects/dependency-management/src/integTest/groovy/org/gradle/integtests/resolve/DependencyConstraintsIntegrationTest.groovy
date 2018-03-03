@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.util.ToBeImplemented
 
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
@@ -394,6 +395,37 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     noArtifacts()
                     module("org:foo:1.1:runtime")
                 }.compositeSubstitute()
+            }
+        }
+    }
+
+    @ToBeImplemented
+    def "dependency constraint does not invalidate excludes defined on hard dependency"() {
+        given:
+        mavenRepo.module("org", "baz", "1.0").publish()
+        mavenRepo.module("org", "foo", '1.0').dependsOn("org", "baz", '1.0').publish()
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                    exclude group: 'org', module: 'baz'
+                }
+                
+                constraints {
+                    conf 'org:foo:1.0'
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:foo:1.0") {
+                    module("org:baz:1.0") // Should be excluded
+                }
             }
         }
     }
