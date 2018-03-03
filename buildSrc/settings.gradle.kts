@@ -27,9 +27,10 @@ rootProject.name = "buildSrc"
 
 include("binaryCompatibility")
 include("build")
-include("plugins")
-include("kotlinDsl")
 include("cleanup")
+include("integrationTesting")
+include("kotlinDsl")
+include("plugins")
 include("testing")
 
 fun buildFileNameFor(projectDirName: String) =

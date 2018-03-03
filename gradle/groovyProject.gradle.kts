@@ -101,6 +101,9 @@ jarTasks.all {
 apply {
     plugin("test-fixtures")
 
+    plugin("distribution-testing")
+    from("$rootDir/gradle/intTestImage.gradle")
+
     if (file("src/integTest").isDirectory) {
         from("$rootDir/gradle/integTest.gradle.kts")
     }
@@ -116,9 +119,6 @@ apply {
     if (file("src/jmh").isDirectory) {
         from("$rootDir/gradle/jmh.gradle")
     }
-
-    from("$rootDir/gradle/distributionTesting.gradle.kts")
-    from("$rootDir/gradle/intTestImage.gradle")
 }
 
 val compileAll by tasks.creating {

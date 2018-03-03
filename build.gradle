@@ -178,6 +178,7 @@ ext {
     ]
 }
 
+apply plugin: "cleanup"
 apply plugin: "buildscan-configuration"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
