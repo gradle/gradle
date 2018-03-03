@@ -72,7 +72,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         fixture.executable.writeToProject(testDirectory)
 
         when:
-        succeeds 'xcode'
+        succeeds ':xcode'
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
@@ -121,7 +121,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         fixture.executable.writeToProject(testDirectory)
 
         when:
-        succeeds 'xcode'
+        succeeds ':xcode'
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
@@ -170,7 +170,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         test.writeToProject(testDirectory)
 
         when:
-        succeeds 'xcode'
+        succeeds ':xcode'
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
@@ -221,7 +221,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         test.writeToProject(testDirectory)
 
         when:
-        succeeds 'xcode'
+        succeeds ':xcode'
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
@@ -278,7 +278,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         """
 
         when:
-        succeeds 'xcode'
+        succeeds ':xcode'
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
@@ -336,7 +336,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         """
 
         when:
-        succeeds 'xcode'
+        succeeds ':xcode'
 
         then:
         executedAndNotSkipped(":greeter:compileDebugSwift", ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
