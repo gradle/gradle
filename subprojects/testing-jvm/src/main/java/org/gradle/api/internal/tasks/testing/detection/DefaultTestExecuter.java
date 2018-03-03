@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
@@ -58,11 +59,12 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final int maxWorkerCount;
     private final Clock clock;
     private final DocumentationRegistry documentationRegistry;
+    private final DefaultTestFilter testFilter;
     private TestClassProcessor processor;
 
     public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
                                WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
-                               Clock clock, DocumentationRegistry documentationRegistry) {
+                               Clock clock, DocumentationRegistry documentationRegistry, DefaultTestFilter testFilter) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
@@ -71,6 +73,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
         this.documentationRegistry = documentationRegistry;
+        this.testFilter = testFilter;
     }
 
     @Override
@@ -100,9 +103,9 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(testExecutionSpec.getTestClassesDirs().getFiles());
             testFrameworkDetector.setTestClasspath(classpath);
-            detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor, testFilter);
         } else {
-            detector = new DefaultTestClassScanner(testClassFiles, null, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, null, processor, testFilter);
         }
 
         final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();

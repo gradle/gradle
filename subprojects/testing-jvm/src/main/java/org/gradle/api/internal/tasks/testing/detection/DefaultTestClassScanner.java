@@ -22,6 +22,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.filter.TestClassSelectionMatcher;
 
 import java.io.File;
 
@@ -33,12 +35,14 @@ public class DefaultTestClassScanner implements Runnable {
     private final FileTree candidateClassFiles;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
+    private final TestClassSelectionMatcher testClassSelectionMatcher;
 
     public DefaultTestClassScanner(FileTree candidateClassFiles, TestFrameworkDetector testFrameworkDetector,
-                                   TestClassProcessor testClassProcessor) {
+                                   TestClassProcessor testClassProcessor, DefaultTestFilter testFilter) {
         this.candidateClassFiles = candidateClassFiles;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
+        this.testClassSelectionMatcher = new TestClassSelectionMatcher(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns());
     }
 
     @Override
@@ -53,7 +57,7 @@ public class DefaultTestClassScanner implements Runnable {
     private void detectionScan() {
         testFrameworkDetector.startDetection(testClassProcessor);
         candidateClassFiles.visit(new ClassFileVisitor() {
-            public void visitClassFile(FileVisitDetails fileDetails) {
+            public void visitClassFile(FileVisitDetails fileDetails, String className) {
                 testFrameworkDetector.processTestClass(fileDetails.getFile());
             }
         });
@@ -61,8 +65,7 @@ public class DefaultTestClassScanner implements Runnable {
 
     private void filenameScan() {
         candidateClassFiles.visit(new ClassFileVisitor() {
-            public void visitClassFile(FileVisitDetails fileDetails) {
-                String className = fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
+            public void visitClassFile(FileVisitDetails fileDetails, String className) {
                 TestClassRunInfo testClass = new DefaultTestClassRunInfo(className);
                 testClassProcessor.processTestClass(testClass);
             }
@@ -75,10 +78,13 @@ public class DefaultTestClassScanner implements Runnable {
             final File file = fileDetails.getFile();
 
             if (file.getAbsolutePath().endsWith(".class")) {
-                visitClassFile(fileDetails);
+                String className = fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
+                if (testClassSelectionMatcher.maybeMatchClass(className)) {
+                    visitClassFile(fileDetails, className);
+                }
             }
         }
 
-        public abstract void visitClassFile(FileVisitDetails fileDetails);
+        public abstract void visitClassFile(FileVisitDetails fileDetails, String className);
     }
 }

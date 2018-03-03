@@ -20,7 +20,10 @@ package org.gradle.api.internal.tasks.testing.detection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.junit.Test
 import spock.lang.Specification
 
@@ -31,7 +34,7 @@ public class DefaultTestClassScannerTest extends Specification {
 
     @Test
     public void passesEachClassFileToTestClassDetector() {
-        DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor)
+        DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor, new DefaultTestFilter())
 
         when:
         scanner.run()
@@ -46,10 +49,14 @@ public class DefaultTestClassScannerTest extends Specification {
         1 * files.visit(_) >> { args ->
             FileVisitor visitor = args[0]
             assert visitor
-            visitor.visitFile({new File('class1.class')} as FileVisitDetails)
-            visitor.visitFile({new File('class2.class')} as FileVisitDetails)
+            visitor.visitFile(mockFileVisitDetails('class1'))
+            visitor.visitFile(mockFileVisitDetails('class2'))
         }
 
         0 * _._
+    }
+
+    FileVisitDetails mockFileVisitDetails(String className) {
+        return new DefaultFileVisitDetails(new File("${className}.class"), new RelativePath(false, "${className}.class"), null, null, null)
     }
 }
