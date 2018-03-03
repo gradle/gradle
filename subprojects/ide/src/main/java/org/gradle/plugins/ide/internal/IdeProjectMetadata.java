@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal;
+package org.gradle.plugins.ide.internal;
 
-import org.gradle.ide.visualstudio.VisualStudioSolution;
+import org.gradle.api.Task;
 
-import java.util.List;
+import java.io.File;
+import java.util.Set;
 
-public interface VisualStudioSolutionInternal extends VisualStudioSolution {
-    /**
-     * The list of project artifacts included in this solution.
-     */
-    List<VisualStudioProjectMetadata> getProjects();
+/**
+ * Details of an IDE project shared across Gradle project boundaries.
+ */
+public interface IdeProjectMetadata {
+    File getFile();
 
-    /**
-     * Adds tasks required to build this component.
-     */
-    void builtBy(Object... tasks);
+    Set<? extends Task> getGeneratorTasks();
 }

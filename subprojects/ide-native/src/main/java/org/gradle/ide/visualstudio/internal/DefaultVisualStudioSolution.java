@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.TextConfigFile;
 import org.gradle.ide.visualstudio.TextProvider;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.util.CollectionUtils;
@@ -38,7 +37,9 @@ import org.gradle.util.CollectionUtils;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
@@ -59,8 +60,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             }
         }));
         this.ideArtifactRegistry = ideArtifactRegistry;
-        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectInternal.ARTIFACT_TYPE));
-        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectConfiguration.ARTIFACT_TYPE));
+        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectMetadata.class));
     }
 
     @Override
@@ -85,34 +85,32 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
 
     @Override
     @Internal
-    public List<LocalComponentArtifactMetadata> getProjectArtifacts() {
-        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectInternal.ARTIFACT_TYPE);
-    }
-
-    @Override
-    @Internal
-    public List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts() {
-        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectConfiguration.ARTIFACT_TYPE);
+    public List<VisualStudioProjectMetadata> getProjects() {
+        return CollectionUtils.collect(ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectMetadata.class), new Transformer<VisualStudioProjectMetadata, IdeArtifactRegistry.Reference<VisualStudioProjectMetadata>>() {
+            @Override
+            public VisualStudioProjectMetadata transform(IdeArtifactRegistry.Reference<VisualStudioProjectMetadata> reference) {
+                return reference.get();
+            }
+        });
     }
 
     @Input
     public List<String> getProjectFilePaths() {
-        return CollectionUtils.collect(getProjectArtifacts(), new Transformer<String, LocalComponentArtifactMetadata>() {
+        return CollectionUtils.collect(getProjects(), new Transformer<String, VisualStudioProjectMetadata>() {
             @Override
-            public String transform(LocalComponentArtifactMetadata metadata) {
+            public String transform(VisualStudioProjectMetadata metadata) {
                 return metadata.getFile().getAbsolutePath();
             }
         });
     }
 
     @Input
-    public List<String> getConfigurationNames() {
-        return CollectionUtils.collect(getProjectConfigurationArtifacts(), new Transformer<String, LocalComponentArtifactMetadata>() {
-            @Override
-            public String transform(LocalComponentArtifactMetadata metadata) {
-                return metadata.getName().getName();
-            }
-        });
+    public Set<String> getConfigurationNames() {
+        Set<String> configurations = new LinkedHashSet<String>();
+        for (VisualStudioProjectMetadata projectMetadata : getProjects()) {
+            configurations.addAll(projectMetadata.getConfigurations());
+        }
+        return configurations;
     }
 
     @Nested

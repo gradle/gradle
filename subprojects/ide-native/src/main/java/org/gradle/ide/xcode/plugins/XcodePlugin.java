@@ -24,24 +24,22 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.xcode.XcodeExtension;
-import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.XcodeRootExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeRootExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeWorkspace;
+import org.gradle.ide.xcode.internal.XcodeProjectMetadata;
 import org.gradle.ide.xcode.internal.XcodePropertyAdapter;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
@@ -50,7 +48,6 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
@@ -87,16 +84,14 @@ import java.io.File;
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
-    private final BuildIdentifier thisBuild;
     private final IdeArtifactRegistry artifactRegistry;
     private final ProjectPathRegistry projectPathRegistry;
     private DefaultXcodeProject xcodeProject;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, BuildIdentity thisBuild, IdeArtifactRegistry artifactRegistry, ProjectPathRegistry projectPathRegistry) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, IdeArtifactRegistry artifactRegistry, ProjectPathRegistry projectPathRegistry) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
-        this.thisBuild = thisBuild.getCurrentBuild();
         this.artifactRegistry = artifactRegistry;
         this.projectPathRegistry = projectPathRegistry;
     }
@@ -124,7 +119,7 @@ public class XcodePlugin extends IdePlugin {
 
         xcodeProject.setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
-        GenerateXcodeProjectFileTask projectTask = createProjectTask(project);
+        GenerateXcodeProjectFileTask projectTask = createProjectTask((ProjectInternal) project);
         lifecycleTask.dependsOn(projectTask);
 
         project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcodeProject, project));
@@ -153,7 +148,7 @@ public class XcodePlugin extends IdePlugin {
         getCleanTask().dependsOn(cleanTask);
     }
 
-    private GenerateXcodeProjectFileTask createProjectTask(final Project project) {
+    private GenerateXcodeProjectFileTask createProjectTask(final ProjectInternal project) {
         File xcodeProjectPackageDir = xcodeProject.getLocationDir();
 
         GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
@@ -166,7 +161,7 @@ public class XcodePlugin extends IdePlugin {
         projectFileTask.setXcodeProject(xcodeProject);
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
 
-        artifactRegistry.registerIdeArtifact(createXcodeProjectArtifact(project, projectFileTask));
+        artifactRegistry.registerIdeArtifact(new XcodeProjectMetadata(xcodeProject, projectFileTask));
 
         return projectFileTask;
     }
@@ -181,7 +176,7 @@ public class XcodePlugin extends IdePlugin {
         GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
         workspaceFileTask.dependsOn(workspaceSettingsFileTask);
         workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
-        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeArtifacts("xcodeproj"));
+        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeArtifacts(XcodeProjectMetadata.class));
 
         return workspaceFileTask;
     }
@@ -365,31 +360,6 @@ public class XcodePlugin extends IdePlugin {
         target.getSources().setFrom(sources);
 
         return target;
-    }
-
-    private static PublishArtifact createXcodeProjectArtifact(Project project, Task task) {
-        DefaultXcodeProject xcodeProject = ((DefaultXcodeExtension) project.getExtensions().getByType(XcodeExtension.class)).getProject();
-        return new XcodeProjectArtifact(xcodeProject, task);
-    }
-
-    private static class XcodeProjectArtifact extends DefaultPublishArtifact {
-        private final DefaultXcodeProject xcodeProject;
-
-        XcodeProjectArtifact(XcodeProject xcodeProject, Object... tasks) {
-            super(null, "xcodeproj", "xcodeproj", null, null, null, tasks);
-            this.xcodeProject = (DefaultXcodeProject) xcodeProject;
-        }
-
-        @Override
-        public String getName() {
-            String fileName = xcodeProject.getLocationDir().getName();
-            return fileName.substring(0, fileName.length() - ".xcodeproj".length());
-        }
-
-        @Override
-        public File getFile() {
-            return xcodeProject.getLocationDir();
-        }
     }
 
     private static class XcodeBridge implements Action<String> {

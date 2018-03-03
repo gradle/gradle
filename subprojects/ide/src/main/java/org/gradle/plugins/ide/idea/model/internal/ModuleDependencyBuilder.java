@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.idea.model.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
@@ -33,7 +33,7 @@ class ModuleDependencyBuilder {
     }
 
     private String determineProjectName(ProjectComponentIdentifier id) {
-        ComponentArtifactMetadata imlArtifact = ideArtifactRegistry.getIdeArtifactMetadata(id, "iml");
-        return imlArtifact == null ? id.getProjectName() : imlArtifact.getName().getName();
+        IdeaModuleMetadata moduleMetadata = ideArtifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class, id);
+        return moduleMetadata == null ? id.getProjectName() : moduleMetadata.getName();
     }
 }

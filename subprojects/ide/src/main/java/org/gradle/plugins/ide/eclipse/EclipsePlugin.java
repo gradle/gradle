@@ -28,10 +28,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -46,6 +45,7 @@ import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
+import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -98,11 +98,9 @@ public class EclipsePlugin extends IdePlugin {
 
         EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class);
 
-        configureEclipseProject(project, model);
+        configureEclipseProject((ProjectInternal) project, model);
         configureEclipseJdt(project, model);
         configureEclipseClasspath(project, model);
-
-        registerEclipseArtifacts(project);
 
         applyEclipseWtpPluginOnWebProjects(project);
     }
@@ -113,19 +111,7 @@ public class EclipsePlugin extends IdePlugin {
         SingleMessageLogger.nagUserOfDiscontinuedMethod("performPostEvaluationActions");
     }
 
-    private void registerEclipseArtifacts(Project project) {
-        EclipseProject eclipseProject = project.getExtensions().getByType(EclipseModel.class).getProject();
-
-        artifactRegistry.registerIdeArtifact(createArtifact(eclipseProject, "project", project));
-        artifactRegistry.registerIdeArtifact(createArtifact(eclipseProject, "classpath", project));
-    }
-
-    private static PublishArtifact createArtifact(EclipseProject eclipseProject, String extension, Project project) {
-        Task byName = project.getTasks().getByName("eclipseProject");
-        return new EclipseArtifact(eclipseProject, project.getProjectDir(), extension, byName);
-    }
-
-    private void configureEclipseProject(final Project project, final EclipseModel model) {
+    private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
         maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, new Action<GenerateEclipseProject>() {
             @Override
             public void execute(GenerateEclipseProject task) {
@@ -192,8 +178,9 @@ public class EclipsePlugin extends IdePlugin {
                     }
 
                 });
-            }
 
+                artifactRegistry.registerIdeArtifact(new EclipseProjectMetadata(projectModel, project.getProjectDir(), task));
+            }
         });
     }
 
@@ -391,26 +378,4 @@ public class EclipsePlugin extends IdePlugin {
         action.execute(task);
         plugin.addWorker(task);
     }
-
-    private static class EclipseArtifact extends DefaultPublishArtifact {
-        private final EclipseProject eclipseProject;
-        private final File projectDir;
-
-        public EclipseArtifact(EclipseProject eclipseProject, File projectDir, String extension, Object... tasks) {
-            super(null, extension, "eclipse." + extension, null, null, null, tasks);
-            this.eclipseProject = eclipseProject;
-            this.projectDir = projectDir;
-        }
-
-        @Override
-        public String getName() {
-            return eclipseProject.getName();
-        }
-
-        @Override
-        public File getFile() {
-            return new File(projectDir, "." + getExtension());
-        }
-    }
-
 }
