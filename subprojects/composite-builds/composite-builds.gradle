@@ -4,13 +4,13 @@ dependencies {
     compile project(':launcher')
 
     integTestRuntime project(":toolingApiBuilders")
+    integTestRuntime project(":ide")
     integTestRuntime project(":pluginDevelopment")
     integTestRuntime project(":testKit")
 }
 
 testFixtures {
     from(':dependencyManagement')
-    from(':ide')
     from(':launcher')
 }
 
