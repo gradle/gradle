@@ -25,11 +25,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +148,7 @@ class NodeState implements DependencyGraphNode {
 
         // Check if this node is still included in the graph, by looking at incoming edges.
         boolean hasIncomingEdges = !incomingEdges.isEmpty();
-        List<EdgeState> transitiveIncoming = findTransitiveIncomingEdges(hasIncomingEdges);
+        List<EdgeState> transitiveIncoming = getTransitiveIncomingEdges();
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveIncoming.isEmpty() && !isRoot()) {
@@ -225,33 +227,26 @@ class NodeState implements DependencyGraphNode {
         return dependencyState;
     }
 
-    private List<EdgeState> findTransitiveIncomingEdges(boolean hasIncomingEdges) {
-        if (!hasIncomingEdges) {
-            return Collections.emptyList();
+    /**
+     * Returns the set of incoming edges that are transitive. Most edges are transitive, so the implementation is optimized for this case.
+     */
+    private List<EdgeState> getTransitiveIncomingEdges() {
+        if (isRoot()) {
+            return incomingEdges;
         }
-
-        int size = incomingEdges.size();
-        if (size == 1) {
-            return findSingleIncomingEdge();
-        }
-
-        List<EdgeState> transitiveIncoming = Lists.newArrayListWithCapacity(size);
-        for (EdgeState edge : incomingEdges) {
-            if (edge.isTransitive()) {
-                transitiveIncoming.add(edge);
+        for (EdgeState incomingEdge : incomingEdges) {
+            if (!incomingEdge.isTransitive()) {
+                // Have a non-transitive edge: return a filtered list
+                return CollectionUtils.filter(incomingEdges, new Spec<EdgeState>() {
+                    @Override
+                    public boolean isSatisfiedBy(EdgeState edge) {
+                        return edge.isTransitive();
+                    }
+                });
             }
         }
-        return transitiveIncoming;
-
-    }
-
-    private List<EdgeState> findSingleIncomingEdge() {
-        EdgeState edgeState = incomingEdges.iterator().next();
-        if (edgeState.isTransitive()) {
-            return Collections.singletonList(edgeState);
-        } else {
-            return Collections.emptyList();
-        }
+        // All edges are transitive, no need to construct a filtered list.
+        return incomingEdges;
     }
 
     private boolean isExcluded(ModuleExclusion selector, DependencyState dependencyState) {
