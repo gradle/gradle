@@ -88,7 +88,7 @@ public class VisualStudioPlugin extends IdePlugin {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry);
             final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
             getLifecycleTask().dependsOn(solution);
-            addWorkspaceOpenTask(solution);
+            addWorkspace(solution);
         } else {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry);
             getLifecycleTask().dependsOn(extension.getProjects());

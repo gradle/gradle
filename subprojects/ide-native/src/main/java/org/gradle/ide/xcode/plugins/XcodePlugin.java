@@ -112,7 +112,7 @@ public class XcodePlugin extends IdePlugin {
             xcodeProject = xcode.getProject();
             final GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project, xcode.getWorkspace());
             lifecycleTask.dependsOn(workspaceTask);
-            addWorkspaceOpenTask(xcode.getWorkspace());
+            addWorkspace(xcode.getWorkspace());
         } else {
             DefaultXcodeExtension xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
             xcodeProject = xcode.getProject();
