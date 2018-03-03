@@ -84,8 +84,6 @@ dependencies {
     subprojects.forEach {
         "runtime"(project(it.path))
     }
-
-    compile("com.google.code.gson:gson:2.7")
 }
 
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
