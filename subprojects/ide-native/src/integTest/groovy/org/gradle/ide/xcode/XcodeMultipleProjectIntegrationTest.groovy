@@ -81,13 +81,13 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
 """
 
         when:
-        succeeds("xcode")
+        succeeds(":xcode")
 
         then:
         result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
-            ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme", ":app:xcode",
-            ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme", ":greeter:xcode",
-            ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject", ":empty:xcode",
+            ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme",
+            ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme",
+            ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject",
             ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
 
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj', 'empty/empty.xcodeproj')
@@ -121,10 +121,11 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
                 apply plugin: 'xcode'
             }
         """
-        succeeds("xcode")
+        succeeds(":xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+            ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj')
 
@@ -134,11 +135,12 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
                 apply plugin: 'xcode'
             }
         """
-        succeeds("xcode")
+        succeeds(":xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
+        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
+            ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
     }
@@ -165,11 +167,12 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
                 apply plugin: 'xcode'
             }
         """
-        succeeds("xcode")
+        succeeds(":xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
+        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
+            ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
@@ -180,10 +183,11 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
                 apply plugin: 'xcode'
             }
         """
-        succeeds("xcode")
+        succeeds(":xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+            ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj')
     }

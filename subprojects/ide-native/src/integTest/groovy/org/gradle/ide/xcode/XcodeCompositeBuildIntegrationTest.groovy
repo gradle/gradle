@@ -39,9 +39,6 @@ class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
             apply plugin: 'swift-application' 
             project(':app') {
                 apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
             }
             project(':greeter') {
                 apply plugin: 'swift-library'
@@ -70,13 +67,13 @@ class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
         }
 
         when:
-        succeeds("xcode")
+        succeeds(":xcode")
 
         then:
         result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
-            ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme", ":app:xcode",
-            ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme", ":greeter:xcode",
-            ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject", ":empty:xcode",
+            ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme",
+            ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme",
+            ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject",
             // TODO - shouldn't be present (unless all of the other compile tasks are present as well)
             ":util:compileDebugSwift",
             ":util:xcodeProjectWorkspaceSettings", ":util:xcodeProject", ":util:xcodeScheme",
