@@ -27,11 +27,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -39,6 +36,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.Variable;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
@@ -56,10 +54,9 @@ public class EclipseDependenciesCreator {
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry) {
         this.classpath = classpath;
-        ServiceRegistry serviceRegistry = ((ProjectInternal) classpath.getProject()).getServices();
-        this.projectDependencyBuilder = new ProjectDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
+        this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {

@@ -16,9 +16,9 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import spock.lang.Specification
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
@@ -26,8 +26,8 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 class ModuleDependencyBuilderTest extends Specification {
 
     def projectId = newProjectId(":nested:project-name")
-    def localComponentRegistry = Mock(LocalComponentRegistry)
-    def builder = new ModuleDependencyBuilder(localComponentRegistry)
+    def artifactRegistry = Mock(IdeArtifactRegistry)
+    def builder = new ModuleDependencyBuilder(artifactRegistry)
 
     def "builds dependency for nonIdea project"() {
         when:
@@ -38,7 +38,7 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == "project-name"
 
         and:
-        localComponentRegistry.getAdditionalArtifacts(_) >> []
+        artifactRegistry.getIdeArtifactMetadata(_, "iml") >> null
     }
 
     def "builds dependency for nonIdea root project"() {
@@ -50,7 +50,7 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == "build-1"
 
         and:
-        localComponentRegistry.getAdditionalArtifacts(_) >> []
+        artifactRegistry.getIdeArtifactMetadata(_, "iml") >> null
     }
 
     def "builds dependency for project"() {
@@ -67,6 +67,6 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == 'foo'
 
         and:
-        localComponentRegistry.findAdditionalArtifact(projectId, "iml") >> imlArtifact
+        artifactRegistry.getIdeArtifactMetadata(projectId, "iml") >> imlArtifact
     }
 }

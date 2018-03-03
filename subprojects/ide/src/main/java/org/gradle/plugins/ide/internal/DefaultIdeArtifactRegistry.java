@@ -33,6 +33,7 @@ import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMet
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -59,6 +60,12 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     public void registerIdeArtifact(PublishArtifact ideArtifact) {
         ProjectComponentIdentifier projectId = newProjectId(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath().getPath());
         projectComponentProvider.registerAdditionalArtifact(projectId, new PublishArtifactLocalArtifactMetadata(projectId, ideArtifact));
+    }
+
+    @Nullable
+    @Override
+    public LocalComponentArtifactMetadata getIdeArtifactMetadata(ProjectComponentIdentifier project, String type) {
+        return localComponentRegistry.findAdditionalArtifact(project, type);
     }
 
     @Override
