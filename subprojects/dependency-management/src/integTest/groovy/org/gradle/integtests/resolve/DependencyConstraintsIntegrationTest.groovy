@@ -140,6 +140,42 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    void "dependency constraint does not preserve hard dependency for evicted dependency"() {
+        given:
+        mavenRepo.module("org", "baz", '1.0').publish()
+        mavenRepo.module("org", "baz", '1.1').publish()
+        mavenRepo.module("org", "foo", '1.0').dependsOn("org", "baz", '1.0').publish()
+        mavenRepo.module("org", "foo", '1.1').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn("org", "foo", '1.1').publish()
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0' // Would bring in 'baz:1.0' (but will be evicted)
+                conf 'org:bar:1.0' // Brings in 'foo:1.1'
+                
+                constraints {
+                    conf 'org:baz:1.1' // Should not bring in 'baz' when 'foo:1.0' is evicted
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0","org:foo:1.1").byConflictResolution()
+                module("org:bar:1.0") {
+                    module("org:foo:1.1")
+                }
+
+                // BUG: This module should not be included, but it is
+                module("org:baz:1.1")
+            }
+        }
+    }
+
     void "range resolution kicks in with dependency constraints"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
