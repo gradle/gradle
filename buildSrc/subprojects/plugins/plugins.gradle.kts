@@ -69,5 +69,13 @@ gradlePlugin {
             id = "publish-public-libraries"
             implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
         }
+        "failDependencyResolutionAtConfiguration" {
+            id = "fail-dependency-resolution-during-configuration"
+            implementationClass = "org.gradle.plugins.codequality.FailDependencyResolutionAtConfiguration"
+        }
+        "configureWrapperTasks" {
+            id = "configure-wrapper-tasks"
+            implementationClass = "org.gradle.plugins.wrapper.ConfigureWrapperTasksPlugin"
+        }
     }
 }
