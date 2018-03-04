@@ -5,7 +5,7 @@ plugins {
 }
 
 // Main entry point requires Java 5
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 configurations {
     startScriptGenerator
@@ -42,7 +42,7 @@ testFixtures {
 }
 
 integTestTasks.all {
-    maxParallelForks = Math.min(3, rootProject.maxParallelForks)
+    maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
 }
 
 task configureJar {

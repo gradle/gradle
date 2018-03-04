@@ -11,11 +11,16 @@ dependencies {
     implementation(project(":kotlinDsl"))
     implementation(project(":profiling"))
     implementation(project(":testing"))
+    implementation(project(":plugins"))
     implementation("org.owasp:dependency-check-gradle:3.1.0")
 }
 
 gradlePlugin {
     (plugins) {
+        "addVerifyProductionEnvironmentTask" {
+            id = "gradlebuild.add-verify-production-environment-task"
+            implementationClass = "org.gradle.gradlebuild.buildquality.AddVerifyProductionEnvironmentTaskPlugin"
+        }
         "ciReporting" {
             id = "gradlebuild.ci-reporting"
             implementationClass = "org.gradle.gradlebuild.buildquality.CiReportingPlugin"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-/*
-    This project contains some utilities for parsing command line arguments.
+import org.gradle.api.Project
+import org.gradle.plugins.compile.AvailableJavaInstallations
 
-    It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
-    It has no dependencies, and should never have any.
-*/
-plugins {
-    id 'java-library'
-    id 'gradlebuild.classycle'
-}
 
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
+// This file contains Kotlin extensions for the gradle/gradle build
 
-dependencies{
-    compile project(':distributionsDependencies')
-}
+fun Project.availableJavaInstallations(configure: AvailableJavaInstallations.() -> Unit): Unit =
+    extensions.configure("availableJavaInstallations", configure)

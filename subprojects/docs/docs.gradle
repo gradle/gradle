@@ -28,6 +28,8 @@ import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.docs.PegDown
 
 import javax.xml.transform.TransformerFactory
@@ -398,13 +400,13 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (javaVersion.isJava8Compatible()) {
+    if (BuildEnvironment.javaVersion.isJava8Compatible()) {
         options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
-    source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }
+    source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     publicApiIncludes.each {
         include it
     }
