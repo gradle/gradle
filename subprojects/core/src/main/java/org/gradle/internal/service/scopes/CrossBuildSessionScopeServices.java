@@ -67,16 +67,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
     private final BuildOperationExecutor stopShieldBuildOperationExecutor;
     private final BuildOperationTrace buildOperationTrace;
 
-    @Override
-    public void close() throws IOException {
-        new CompositeStoppable().add(
-            listenerManager,
-            buildOperationExecutor,
-            workerLeaseService,
-            buildOperationTrace
-        ).stop();
-    }
-
     // Parent is expected to be the global services
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
         ListenerManager globalListenerManager = parent.get(ListenerManager.class);
@@ -114,7 +104,17 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
         this.stopShieldBuildOperationExecutor = new DelegatingBuildOperationExecutor(buildOperationExecutor);
 
-        this.buildOperationTrace = new BuildOperationTrace(startParameter, listenerManager);
+        this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
+    }
+
+    @Override
+    public void close() throws IOException {
+        new CompositeStoppable().add(
+            listenerManager,
+            buildOperationExecutor,
+            workerLeaseService,
+            buildOperationTrace
+        ).stop();
     }
 
     GradleLauncherFactory createGradleLauncherFactory() {
