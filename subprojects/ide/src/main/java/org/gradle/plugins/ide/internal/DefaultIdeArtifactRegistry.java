@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -43,18 +41,14 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
-    private final ProjectLocalComponentProvider projectComponentProvider;
     private final ProjectPathRegistry projectPathRegistry;
-    private final LocalComponentRegistry localComponentRegistry;
     private final DomainObjectContext domainObjectContext;
     private final BuildIdentity buildIdentity;
     private final FileOperations fileOperations;
 
-    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectLocalComponentProvider projectComponentProvider, ProjectPathRegistry projectPathRegistry, LocalComponentRegistry localComponentRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
+    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectPathRegistry projectPathRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
         this.store = store;
-        this.projectComponentProvider = projectComponentProvider;
         this.projectPathRegistry = projectPathRegistry;
-        this.localComponentRegistry = localComponentRegistry;
         this.fileOperations = fileOperations;
         this.domainObjectContext = domainObjectContext;
         this.buildIdentity = buildIdentity;
