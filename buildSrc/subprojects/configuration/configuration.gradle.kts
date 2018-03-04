@@ -5,5 +5,5 @@ plugins {
 apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
-    compile(project(":kotlinDsl"))
+    implementation(project(":kotlinDsl"))
 }

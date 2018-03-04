@@ -37,7 +37,7 @@ private
 const val reportFileName = "task-properties/report.txt"
 
 
-open class ConfigureTaskPropertyValidationPlugin : Plugin<Project> {
+open class TaskPropertyValidationPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         plugins.withType<JavaBasePlugin> {

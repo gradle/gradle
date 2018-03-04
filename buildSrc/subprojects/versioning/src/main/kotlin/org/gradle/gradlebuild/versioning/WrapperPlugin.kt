@@ -24,7 +24,7 @@ import org.gradle.kotlin.dsl.*
 import java.net.URL
 
 
-class ConfigureWrapperTasksPlugin : Plugin<Project> {
+class WrapperPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         wrapperUpdateTask("nightly", "nightly")

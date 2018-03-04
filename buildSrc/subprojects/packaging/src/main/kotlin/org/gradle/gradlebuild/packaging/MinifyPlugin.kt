@@ -21,6 +21,13 @@ import org.gradle.api.attributes.Attribute
 
 import org.gradle.kotlin.dsl.*
 
+/**
+ * A map from artifact name to a set of class name prefixes that should be kept.
+ * Artifacts matched by this map will be minified to only contain the specified
+ * classes and the classes they depend on. The classes are not relocated, they all
+ * remain in their original namespace. This reduces the final Gradle distribution
+ * size and makes us more conscious of which parts of a library we really need.
+ */
 open class MinifyPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {

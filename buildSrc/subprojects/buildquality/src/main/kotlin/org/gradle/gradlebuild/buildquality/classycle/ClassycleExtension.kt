@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.classycle
+package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty

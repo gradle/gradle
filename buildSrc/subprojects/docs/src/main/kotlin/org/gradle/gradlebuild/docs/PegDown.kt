@@ -1,4 +1,4 @@
-package org.gradle.plugins.pegdown
+package org.gradle.gradlebuild.docs
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*

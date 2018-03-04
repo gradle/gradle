@@ -36,7 +36,7 @@ import java.util.concurrent.CountDownLatch
 import org.gradle.kotlin.dsl.*
 
 
-open class BuildScanConfigurationPlugin : Plugin<Project> {
+open class BuildScanPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         apply {

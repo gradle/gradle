@@ -1,4 +1,4 @@
-package org.gradle.plugins.reporting
+package org.gradle.gradlebuild.buildquality
 
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.gradlebuild.BuildEnvironment
@@ -9,7 +9,7 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
-import org.gradle.plugins.classycle.Classycle
+import org.gradle.gradlebuild.buildquality.classycle.Classycle
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.DistributionTest
 import java.io.File
