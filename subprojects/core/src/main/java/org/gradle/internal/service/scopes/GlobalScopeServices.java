@@ -89,6 +89,8 @@ import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -146,6 +148,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
             pluginServiceRegistry.registerGlobalServices(registration);
         }
+    }
+
+    ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
+        return new DefaultResourceLockCoordinationService();
     }
 
     BuildOperationListenerManager createBuildOperationService(ListenerManager listenerManager) {
