@@ -118,7 +118,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
             buildOperationExecutor,
             workerLeaseService,
             buildOperationTrace,
-            buildOperationNotificationBridge
+            buildOperationNotificationBridge.getStoppable()
         ).stop();
     }
 
