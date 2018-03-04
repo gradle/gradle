@@ -23,5 +23,7 @@ testFixtures {
     from(':maven')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

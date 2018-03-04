@@ -29,5 +29,7 @@ dependencies {
     integTestRuntime project(':toolingApiBuilders')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

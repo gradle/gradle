@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.ProjectGroups
+
 /*
  * Copyright 2012 the original author or authors.
  *

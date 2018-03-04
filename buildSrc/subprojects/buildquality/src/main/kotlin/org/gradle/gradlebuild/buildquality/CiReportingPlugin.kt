@@ -24,7 +24,7 @@ import java.io.File
  */
 open class CiReportingPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) = project.run {
+    override fun apply(project: Project): Unit = project.run {
         if (BuildEnvironment.isCiServer) {
             gradle.buildFinished {
                 prepareReportsForCiPublishing()

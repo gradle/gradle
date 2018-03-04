@@ -62,4 +62,6 @@ task startScripts(type: GradleStartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
