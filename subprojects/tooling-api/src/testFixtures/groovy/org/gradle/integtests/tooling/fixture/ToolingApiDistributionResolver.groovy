@@ -18,8 +18,11 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -97,6 +100,12 @@ class ToolingApiDistributionResolver {
         def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
+        topLevelRegistry.add(BuildIdentity, new BuildIdentity() {
+            @Override
+            BuildIdentifier getCurrentBuild() {
+                return new DefaultBuildIdentifier(":")
+            }
+        })
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         def workerLeaseService = buildSessionServices.get(WorkerLeaseService)
