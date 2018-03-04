@@ -106,5 +106,7 @@ integTestTasks.all {
     libsRepository.required = true
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

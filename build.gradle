@@ -230,6 +230,7 @@ subprojects {
 
     apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
     apply plugin: "gradlebuild.task-properties-validation"
+    apply plugin: "gradlebuild.test-files-cleanup"
 }
 
 configurations {
@@ -330,22 +331,6 @@ task installAll(type: Install) {
     group = 'build'
     with project(":distributions").allDistImage
     installDirPropertyName = 'gradle_installPath'
-}
-
-// Generate a report showing which tests in a subproject are leaving
-// files around.
-//
-// Once a subproject's report is "clean" we should add the following to that
-// subproject's buildscript:
-//
-// verifyTestFilesCleanup.errorWhenNotEmpty = true
-//
-subprojects { prj ->
-    task verifyTestFilesCleanup(type: EmptyDirectoryCheck) {
-        targetDir = prj.fileTree("${prj.buildDir}/tmp/test files")
-        report = prj.file("${prj.buildDir}/reports/remains.txt")
-        errorWhenNotEmpty = true
-    }
 }
 
 afterEvaluate {

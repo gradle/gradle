@@ -29,5 +29,7 @@ classycle {
                        'org/gradle/external/javadoc/**']
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

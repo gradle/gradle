@@ -42,4 +42,6 @@ testFixtures {
     from(':logging')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

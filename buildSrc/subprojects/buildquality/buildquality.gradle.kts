@@ -6,6 +6,7 @@ apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
     implementation(project(":binaryCompatibility"))
+    implementation(project(":cleanup"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":profiling"))
@@ -15,6 +16,14 @@ dependencies {
 
 gradlePlugin {
     (plugins) {
+        "ciReporting" {
+            id = "gradlebuild.ci-reporting"
+            implementationClass = "org.gradle.gradlebuild.buildquality.CiReportingPlugin"
+        }
+        "classycle" {
+            id = "gradlebuild.classycle"
+            implementationClass = "org.gradle.gradlebuild.buildquality.classycle.ClassyclePlugin"
+        }
         "dependencyVulnerabilities" {
             id = "gradlebuild.dependency-vulnerabilities"
             implementationClass = "org.gradle.gradlebuild.buildquality.DependencyVulnerabilitiesPlugin"
@@ -27,16 +36,10 @@ gradlePlugin {
             id = "gradlebuild.task-properties-validation"
             implementationClass = "org.gradle.gradlebuild.buildquality.TaskPropertyValidationPlugin"
         }
-        "classycle" {
-            id = "gradlebuild.classycle"
-            implementationClass = "org.gradle.gradlebuild.buildquality.classycle.ClassyclePlugin"
+        "testFilesCleanUp" {
+            id = "gradlebuild.test-files-cleanup"
+            implementationClass = "org.gradle.gradlebuild.buildquality.testfiles.TestFilesCleanUpPlugin"
         }
-        "ciReporting" {
-            id = "gradlebuild.ci-reporting"
-            implementationClass = "org.gradle.gradlebuild.buildquality.CiReportingPlugin"
-        }
-
-
     }
 }
 

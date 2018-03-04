@@ -14,4 +14,6 @@ testFixtures {
     from(':launcher')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
