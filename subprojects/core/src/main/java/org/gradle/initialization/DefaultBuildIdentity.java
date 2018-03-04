@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 
+import java.io.File;
+
 public class DefaultBuildIdentity implements BuildIdentity {
     private final BuildIdentifier buildIdentifier;
 
@@ -27,7 +29,10 @@ public class DefaultBuildIdentity implements BuildIdentity {
         if (isRootBuild) {
             this.buildIdentifier = new DefaultBuildIdentifier(":");
         } else {
-            this.buildIdentifier = new DefaultBuildIdentifier(buildDefinition.getBuildRootDir().getName());
+            // Infer a build id from the containing directory
+            // Should be part of the build definition
+            File dir = buildDefinition.getBuildRootDir() == null ? buildDefinition.getStartParameter().getCurrentDir() : buildDefinition.getBuildRootDir();
+            this.buildIdentifier = new DefaultBuildIdentifier(dir.getName());
         }
     }
 
