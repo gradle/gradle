@@ -17,12 +17,18 @@
 package org.gradle.initialization;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 
 public class DefaultBuildIdentity implements BuildIdentity {
     private final BuildIdentifier buildIdentifier;
 
-    public DefaultBuildIdentity(BuildIdentifier buildIdentifier) {
-        this.buildIdentifier = buildIdentifier;
+    public DefaultBuildIdentity(BuildDefinition buildDefinition, boolean isRootBuild) {
+        if (isRootBuild) {
+            this.buildIdentifier = new DefaultBuildIdentifier(":");
+        } else {
+            this.buildIdentifier = new DefaultBuildIdentifier(buildDefinition.getBuildRootDir().getName());
+        }
     }
 
     @Override

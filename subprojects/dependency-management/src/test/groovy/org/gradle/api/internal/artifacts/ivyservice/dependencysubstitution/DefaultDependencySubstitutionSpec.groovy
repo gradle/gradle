@@ -19,11 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
-import org.gradle.initialization.DefaultBuildIdentity
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
@@ -85,7 +83,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
     def "can specify target project"() {
         def project = Mock(ProjectInternal)
         def services = new DefaultServiceRegistry()
-        services.add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("TEST")))
+        services.add(BuildIdentity, Stub(BuildIdentity))
 
         when:
         details.useTarget(project)

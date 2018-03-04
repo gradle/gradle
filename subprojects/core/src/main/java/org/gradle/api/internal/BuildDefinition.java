@@ -28,7 +28,7 @@ public class BuildDefinition {
     private final StartParameter startParameter;
     private final PluginRequests injectedSettingsPlugins;
 
-    public BuildDefinition(File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
+    public BuildDefinition(@Nullable File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
