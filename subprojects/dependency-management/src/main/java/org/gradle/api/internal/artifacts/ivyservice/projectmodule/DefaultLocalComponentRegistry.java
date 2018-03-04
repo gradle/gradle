@@ -36,7 +36,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
         LocalComponentMetadata metaData = projects.get(projectIdentifier);
-        if (metaData !=null) {
+        if (metaData != null) {
             return metaData;
         }
         for (LocalComponentProvider provider : providers) {
