@@ -18,21 +18,23 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.KillLeakingJavaProcesses
 import java.io.File
+import java.util.concurrent.Callable
 
-open class DistributionTestingExtension(objects: ObjectFactory) {
+open class DistributionTestingExtension(objects: ObjectFactory, val cleanupCaches: CleanUpCaches, val cleanUpDaemons: CleanUpDaemons) {
     val toolingApiShadedJarTask: Property<Zip> = objects.property()
-    val intTestImageTask: Property<Sync> = objects.property()
     val distributionZipTasks: Property<Map<String, Zip>> = objects.property()
     val publishLocalArchivesTask: Property<Upload> = objects.property()
 }
 
+fun Project.directory(directory: () -> File): Provider<Directory> = directory(provider { directory() })
+fun Project.directory(directory: Provider<File>): Provider<Directory> = layout.buildDirectory.dir(directory.map { it.absolutePath })
+
 open class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+        rootProject.prepareRootProject()
 
-        fun dir(directory: () -> File): Provider<Directory> {
-            return layout.buildDirectory.dir(provider { directory().absolutePath })
-        }
+        val distributionTesting = rootProject.the<DistributionTestingExtension>()
 
         fun collectMirrorUrls(): Map<String, String> =
         // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
@@ -42,9 +44,9 @@ open class DistributionTestingPlugin : Plugin<Project> {
             } ?: emptyMap()
 
         tasks.withType<DistributionTest> {
-            dependsOn(":toolingApi:toolingApiShadedJar")
-            dependsOn(":cleanUpCaches")
-            finalizedBy(":cleanUpDaemons")
+            dependsOn(Callable { distributionTesting.toolingApiShadedJarTask.get() })
+            dependsOn(distributionTesting.cleanupCaches)
+            finalizedBy(distributionTesting.cleanUpDaemons)
             shouldRunAfter("test")
 
             jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
@@ -80,17 +82,16 @@ open class DistributionTestingPlugin : Plugin<Project> {
 
             gradleInstallationForTest.run {
                 val intTestImage: Sync by tasks
-                val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
-                gradleHomeDir.set(dir { intTestImage.destinationDir })
+                gradleHomeDir.set(directory { intTestImage.destinationDir })
                 gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
                 daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-                toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
+                toolingApiShadedJarDir.set(directory(distributionTesting.toolingApiShadedJarTask.map { it.destinationDir }))
             }
 
             libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
 
             binaryDistributions.run {
-                distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
+                distsDir.set(directory { rootProject.the<BasePluginConvention>().distsDir })
                 distZipVersion = project.version.toString()
             }
 
@@ -101,8 +102,7 @@ open class DistributionTestingPlugin : Plugin<Project> {
             lateinit var daemonListener: Any
 
             doFirst {
-                val cleanUpDaemons: CleanUpDaemons by rootProject.tasks
-                daemonListener = cleanUpDaemons.newDaemonListener()
+                daemonListener = distributionTesting.cleanUpDaemons.newDaemonListener()
                 gradle.addListener(daemonListener)
             }
 
@@ -110,34 +110,35 @@ open class DistributionTestingPlugin : Plugin<Project> {
                 gradle.removeListener(daemonListener)
             }
         }
+    }
 
-        project(":") {
+    fun Project.prepareRootProject() {
+        if (tasks.findByName("cleanUpCaches") != null) {
+            return
+        }
 
-            if (tasks.findByName("cleanUpCaches") != null) {
-                return@project
+        tasks {
+
+            val cleanUpCaches by creating(CleanUpCaches::class) {
+                dependsOn(":createBuildReceipt")
             }
 
-            tasks {
+            val cleanUpDaemons by creating(CleanUpDaemons::class)
 
-                "cleanUpCaches"(CleanUpCaches::class) {
-                    dependsOn(":createBuildReceipt")
+            val killExistingProcessesStartedByGradle by creating(KillLeakingJavaProcesses::class)
+
+            if (BuildEnvironment.isCiServer) {
+                "clean" {
+                    dependsOn(killExistingProcessesStartedByGradle)
                 }
-
-                "cleanUpDaemons"(CleanUpDaemons::class)
-
-                val killExistingProcessesStartedByGradle by creating(KillLeakingJavaProcesses::class)
-
-                if (BuildEnvironment.isCiServer) {
-                    "clean" {
-                        dependsOn(killExistingProcessesStartedByGradle)
-                    }
-                    subprojects {
-                        tasks.all {
-                            mustRunAfter(killExistingProcessesStartedByGradle)
-                        }
+                subprojects {
+                    tasks.all {
+                        mustRunAfter(killExistingProcessesStartedByGradle)
                     }
                 }
             }
+
+            rootProject.extensions.create<DistributionTestingExtension>("distributionTesting", objects, cleanUpCaches, cleanUpDaemons)
         }
     }
 }
