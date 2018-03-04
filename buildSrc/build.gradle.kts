@@ -52,7 +52,10 @@ subprojects {
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply { plugin("kotlin") }
+        apply {
+            plugin("kotlin")
+            plugin("java-library")
+        }
     }
     apply {
         plugin("idea")
@@ -84,8 +87,6 @@ dependencies {
     subprojects.forEach {
         "runtime"(project(it.path))
     }
-
-    compile("com.google.code.gson:gson:2.7")
 }
 
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }

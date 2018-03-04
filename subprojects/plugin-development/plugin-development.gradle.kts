@@ -16,8 +16,8 @@
 import org.gradle.cleanup.EmptyDirectoryCheck
 
 plugins {
-    id("strict-compile")
-    id("classycle")
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {

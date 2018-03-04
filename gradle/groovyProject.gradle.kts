@@ -4,7 +4,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
-import org.gradle.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -12,7 +12,7 @@ import java.util.concurrent.Callable
 import java.util.jar.Attributes
 
 apply { plugin("groovy") }
-apply { plugin("gradle-compile") }
+apply { plugin("gradlebuild.gradle-compile") }
 
 val base = the<BasePluginConvention>()
 val java = the<JavaPluginConvention>()
@@ -99,7 +99,7 @@ jarTasks.all {
 }
 
 apply {
-    plugin("test-fixtures")
+    plugin("gradlebuild.test-fixtures")
 
     if (file("src/integTest").isDirectory) {
         from("$rootDir/gradle/integTest.gradle.kts")
@@ -110,11 +110,11 @@ apply {
     }
 
     if (file("src/performanceTest").isDirectory) {
-        plugin("performance-test")
+        plugin("gradlebuild.performance-test")
     }
 
     if (file("src/jmh").isDirectory) {
-        from("$rootDir/gradle/jmh.gradle")
+        plugin("jmh")
     }
 
     from("$rootDir/gradle/distributionTesting.gradle.kts")

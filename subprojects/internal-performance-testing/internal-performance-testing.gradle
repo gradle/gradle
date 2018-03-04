@@ -15,7 +15,7 @@
  */
 plugins {
     id 'javascript-base'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 configurations {

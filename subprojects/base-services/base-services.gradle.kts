@@ -9,7 +9,7 @@ import java.util.concurrent.Callable
 
 plugins {
     `java-library`
-    id("classycle")
+    id("gradlebuild.classycle")
 }
 
 java {

@@ -3,7 +3,7 @@
  */
 plugins {
     id 'java-library'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
