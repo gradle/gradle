@@ -27,6 +27,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
@@ -66,6 +67,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationExecutor stopShieldBuildOperationExecutor;
     private final BuildOperationTrace buildOperationTrace;
+    private BuildOperationNotificationBridge buildOperationNotificationBridge;
 
     // Parent is expected to be the global services
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
@@ -102,6 +104,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
             parent.get(BuildOperationIdFactory.class)
         );
 
+        this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager);
+
         this.stopShieldBuildOperationExecutor = new DelegatingBuildOperationExecutor(buildOperationExecutor);
 
         this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
@@ -113,7 +117,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
             listenerManager,
             buildOperationExecutor,
             workerLeaseService,
-            buildOperationTrace
+            buildOperationTrace,
+            buildOperationNotificationBridge
         ).stop();
     }
 
@@ -131,6 +136,10 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     BuildOperationExecutor createBuildOperationExecutor() {
         return stopShieldBuildOperationExecutor;
+    }
+
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge() {
+        return buildOperationNotificationBridge;
     }
 
 }

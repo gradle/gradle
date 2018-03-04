@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
+public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
@@ -46,8 +46,14 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private BuildOperationNotificationListener2 listener;
     private boolean stopped;
+    private final Stoppable stoppable = new Stoppable() {
+        @Override
+        public void stop() {
+            BuildOperationNotificationBridge.this.stop();
+        }
+    };
 
-    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
         this.listenerManager = buildOperationListenerManager;
     }
 
@@ -104,7 +110,11 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         listener = notificationListener;
     }
 
-    @Override
+
+    public Stoppable getStoppable() {
+        return stoppable;
+    }
+
     public void stop() {
         if (!stopped) {
             listenerManager.removeListener(adapter);
