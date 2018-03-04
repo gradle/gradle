@@ -126,11 +126,6 @@ apply from: "gradle/testDependencies.gradle"
 apply plugin: "gradlebuild.wrapper"
 apply plugin: "gradlebuild.ide"
 apply plugin: "gradlebuild.no-resolution-at-configuration"
-
-// Calculate the set of released versions - do this at configuration time because we need this to create various tasks
-// At some point, make this a configuration rule
-ext.releasedVersions = new org.gradle.build.ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))
-
 apply from: "gradle/publicApi.gradle"
 apply plugin: "gradlebuild.update-versions"
 apply plugin: "gradlebuild.dependency-vulnerabilities"
