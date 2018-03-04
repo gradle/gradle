@@ -118,8 +118,8 @@ apply {
         plugin("jmh")
     }
 
-    from("$rootDir/gradle/distributionTesting.gradle.kts")
     from("$rootDir/gradle/intTestImage.gradle")
+    plugin("gradlebuild.distribution-testing")
 }
 
 val compileAll by tasks.creating {
