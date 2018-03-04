@@ -67,7 +67,7 @@ ext {
 
     allDistImage = copySpec {
         with binWithDistDocImage
-        groovyProjects.each { project ->
+        ProjectGroups.INSTANCE.getJavaProjects(project).each { project ->
             into("src/$project.projectDir.name") {
                 from project.sourceSets.main.allSource
             }

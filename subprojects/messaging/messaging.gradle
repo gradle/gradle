@@ -3,7 +3,7 @@ plugins {
     id 'gradlebuild.classycle'
 }
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     api project(':baseServices')

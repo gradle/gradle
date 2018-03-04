@@ -89,6 +89,7 @@ dependencies {
     }
 }
 
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
     apply { from("../gradle/codeQualityConfiguration.gradle.kts") }

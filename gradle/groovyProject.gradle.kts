@@ -5,6 +5,7 @@ import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.testing.DistributionTest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.agentNum
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -63,7 +64,7 @@ class CiEnvironmentProvider(private val test: Test, private val rootProject: Pro
             mapOf(
                 "org.gradle.test.maxParallelForks" to test.maxParallelForks,
                 "org.gradle.ci.agentCount" to 2,
-                "org.gradle.ci.agentNum" to rootProject.extra["agentNum"]
+                "org.gradle.ci.agentNum" to agentNum
             ).map {
                 "-D${it.key}=${it.value}"
             }
@@ -74,7 +75,7 @@ class CiEnvironmentProvider(private val test: Test, private val rootProject: Pro
 }
 
 testTasks.all {
-    maxParallelForks = rootProject.extra["maxParallelForks"] as Int
+    maxParallelForks = project.maxParallelForks
     jvmArgumentProviders.add(CiEnvironmentProvider(this, rootProject))
     executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
     environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath

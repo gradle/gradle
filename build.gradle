@@ -16,6 +16,7 @@
 
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
+import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.modules.PatchExternalModules
 import org.gradle.gradlebuild.BuildEnvironment
 
@@ -116,68 +117,6 @@ buildTypes {
     }
 }
 
-ext {
-    gradle_kotlin_dsl_version = '0.16.0'
-    jvm = org.gradle.internal.jvm.Jvm.current()
-    javaVersion = JavaVersion.current()
-    isCiServer = BuildEnvironment.isCiServer
-    isWindows = org.gradle.internal.os.OperatingSystem.current().windows
-
-    if (project.hasProperty("maxParallelForks")) {
-        project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
-    } else {
-        ext.maxParallelForks = 4
-    }
-
-    if (project.hasProperty("useAllDistribution")) {
-        project.useAllDistribution = true
-    } else {
-        ext.useAllDistribution = false
-    }
-
-    agentNum = 1
-    if (System.getenv().containsKey("USERNAME")) {
-        def agentNumEnv = System.getenv("USERNAME") - "tcagent"
-        if (agentNumEnv ==~ /\d+/) {
-            agentNum = agentNumEnv
-        }
-    }
-
-    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance", "buildScanPerformance"] }
-    groovyProjects = subprojects - subprojects.find { it.name == 'distributionsDependencies' }
-    publicGroovyProjects = groovyProjects - internalProjects
-    pluginProjects = [
-        'plugins', 'codeQuality', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'signing', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
-        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
-        'testingNative', 'testingJvm', 'testingJunitPlatform', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
-    ].collect { project(it) }
-    implementationPluginProjects = [
-        project('toolingApiBuilders')
-    ]
-    publishedProjects = [
-        project(':logging'),
-        project(':core'),
-        project(':modelCore'),
-        project(':toolingApi'),
-        project(':wrapper'),
-        project(':baseServices'),
-        project(':baseServicesGroovy'),
-        project(':workers'),
-        project(':dependencyManagement'),
-        project(':messaging'),
-        project(':processServices'),
-        project(':resources')
-    ]
-
-    projectsRequiringJava8 = [
-        project(':testingJunitPlatform')
-    ]
-}
-
 apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
@@ -187,11 +126,6 @@ apply from: "gradle/testDependencies.gradle"
 apply plugin: "gradlebuild.wrapper"
 apply plugin: "gradlebuild.ide"
 apply plugin: "gradlebuild.no-resolution-at-configuration"
-
-// Calculate the set of released versions - do this at configuration time because we need this to create various tasks
-// At some point, make this a configuration rule
-ext.releasedVersions = new org.gradle.build.ReleasedVersionsFromVersionControl(new File(rootDir, "released-versions.json"))
-
 apply from: "gradle/publicApi.gradle"
 apply plugin: "gradlebuild.update-versions"
 apply plugin: "gradlebuild.dependency-vulnerabilities"
@@ -216,7 +150,7 @@ allprojects {
 subprojects {
     version = rootProject.version
 
-    if (project in groovyProjects) {
+    if (project in ProjectGroups.INSTANCE.getJavaProjects(project)) {
         apply from: "$rootDir/gradle/groovyProject.gradle.kts"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
         apply from: "$rootDir/gradle/java9plus.gradle"
@@ -224,7 +158,7 @@ subprojects {
         check.dependsOn "codeQuality"
     }
 
-    if (project in publishedProjects) {
+    if (project in ProjectGroups.INSTANCE.getPublishedProjects(project)) {
         apply plugin: "gradlebuild.publish-public-libraries"
     }
 
@@ -280,15 +214,15 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
-    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${gradle_kotlin_dsl_version}"
+    externalModules "org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}"
+    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${BuildEnvironment.gradleKotlinDslVersion}"
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
     runtime patchedExternalModules
-    gradlePlugins pluginProjects
-    gradlePlugins implementationPluginProjects
+    gradlePlugins ProjectGroups.INSTANCE.getPluginProjects(project)
+    gradlePlugins ProjectGroups.INSTANCE.getImplementationPluginProjects(project)
     gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
@@ -308,14 +242,7 @@ task patchExternalModules(type: PatchExternalModules) {
     destination = patchedExternalModulesDir
 }
 
-task verifyIsProductionBuildEnvironment {
-    doLast {
-        rootProject.availableJavaInstallations.validateProductionEnvironment()
-
-        def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
-    }
-}
+apply plugin: "gradlebuild.add-verify-production-environment-task"
 
 evaluationDependsOn ":distributions"
 

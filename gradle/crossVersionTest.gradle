@@ -76,7 +76,7 @@ task quickFeedbackCrossVersionTests {
     description "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
 }
 
-releasedVersions.testedVersions.each { targetVersion ->
+Versioning_extensionsKt.getReleasedVersions(project).testedVersions.each { targetVersion ->
     tasks.create("gradle${targetVersion}CrossVersionTest", CrossVersionTest).configure {
         allVersionsCrossVersionTests.dependsOn it
         description "Runs the cross-version tests against Gradle ${targetVersion}"
@@ -85,7 +85,7 @@ releasedVersions.testedVersions.each { targetVersion ->
     }
 }
 
-releasedVersions.getTestedVersions(true).each { targetVersion ->
+Versioning_extensionsKt.getReleasedVersions(project).getTestedVersions(true).each { targetVersion ->
     tasks.getByName("gradle${targetVersion}CrossVersionTest").configure {
         quickFeedbackCrossVersionTests.dependsOn it
     }

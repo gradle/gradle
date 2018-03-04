@@ -23,6 +23,7 @@ import org.gradle.binarycompatibility.rules.*
 import org.gradle.binarycompatibility.transforms.*
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
+import org.gradle.gradlebuild.ProjectGroups
 
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
@@ -40,8 +41,8 @@ repositories {
 ext {
     apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
     acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
-    compatibilityBaselineVersion = releasedVersions.mostRecentRelease
-    foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
+    compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
+    foldersWithAPISources = ProjectGroups.INSTANCE.getPublicJavaProjects(project).sourceSets.main.allJava.srcDirs.flatten()
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -54,8 +55,7 @@ configurations {
     }
 }
 
-Set publicProjects = pluginProjects + implementationPluginProjects + publicGroovyProjects - [project(':smokeTest'), project(':soak')]
-def projects = publicProjects.collect { it.archivesBaseName - 'gradle-' }
+def projects = ProjectGroups.INSTANCE.getPublicProjects(project).collect { it.archivesBaseName - 'gradle-' }
 
 dependencies {
     baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
@@ -96,7 +96,7 @@ projects.each { projectName ->
 }
 
 task checkBinaryCompatibility(type: JapicmpTask) {
-    dependsOn publicProjects.jar
+    dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
@@ -104,9 +104,9 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
-    newClasspath = files(publicProjects.configurations.runtimeClasspath)
+    newClasspath = files(ProjectGroups.INSTANCE.getPublicProjects(project).configurations.runtimeClasspath)
     oldArchives = files(baselineConfigurations)
-    newArchives = files(publicProjects.jar)
+    newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 
     // binary breaking change checking setup
     onlyModified = true

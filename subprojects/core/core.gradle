@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.ProjectGroups
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -17,7 +19,7 @@ plugins {
     id 'java-library'
 }
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 configurations {
     reports
@@ -99,7 +101,7 @@ test {
 
 task pluginsManifest(type: WriteProperties) {
     property("plugins") {
-        project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
     outputFile = new File(project.generatedResourcesDir, "gradle-plugins.properties")
 }
@@ -108,7 +110,7 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
 task implementationPluginsManifest(type: WriteProperties) {
     property("plugins") {
-        project.implementationPluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getImplementationPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
     outputFile = new File(project.generatedResourcesDir, "gradle-implementation-plugins.properties")
 }

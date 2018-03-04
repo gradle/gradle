@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.BuildEnvironment
+
 plugins {
     id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
@@ -37,7 +39,7 @@ integTest {
 
 task integTestPrepare(type: org.gradle.testing.IntegrationTest) {
     systemProperties['org.gradle.integtest.executer'] = 'embedded'
-    if (isCiServer) {
+    if (BuildEnvironment.isCiServer) {
         systemProperties['org.gradle.integtest.multiversion'] = 'all'
     }
     include 'org/gradle/play/prepare/**'
