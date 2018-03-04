@@ -88,8 +88,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
         this.stopShieldWorkerLeaseService = new StopShieldingWorkerLeaseService(workerLeaseService);
 
-        this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(globalListenerManager);
         this.listenerManager = globalListenerManager.createChild();
+        this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(listenerManager);
 
         this.buildOperationExecutor = new DefaultBuildOperationExecutor(
             buildOperationListenerManager.getBroadcaster(),
