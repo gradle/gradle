@@ -18,9 +18,8 @@ package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-
-class BuildSrcIntegrationTest extends AbstractIntegrationSpec {
-    def "includes build identifier in error message on failure to resolve dependencies of buildSrc build"() {
+class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
+    def "includes build identifier in error message on failure to resolve dependencies of build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 
         given:
@@ -59,4 +58,47 @@ Required by:
         failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
     }
 
+    def "includes build identifier in task failure error message"() {
+        def buildSrc = file("buildSrc/build.gradle")
+        buildSrc << """
+            classes.doLast {
+                throw new RuntimeException("broken")
+            }
+        """
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':buildSrc:classes'.")
+        failure.assertHasCause("broken")
+    }
+
+    def "includes build identifier in dependency resolution results"() {
+        given:
+        file("buildSrc/settings.gradle") << """
+            include 'a'
+        """
+        file("buildSrc/build.gradle") << """
+            dependencies {
+                implementation project(':a')
+            }
+            project(':a') {
+                apply plugin: 'java'
+            }
+            classes.doLast {
+                def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
+                assert components.size() == 2
+                assert components[0].build.name == 'buildSrc'
+                assert components[0].projectPath == ':'
+                assert components[0].projectName == 'buildSrc'
+                assert components[1].build.name == 'buildSrc'
+                assert components[1].projectPath == ':a'
+                assert components[1].projectName == 'a'
+            }
+        """
+
+        expect:
+        succeeds()
+    }
 }
