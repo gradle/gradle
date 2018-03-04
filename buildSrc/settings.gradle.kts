@@ -39,6 +39,7 @@ include("uberPlugins")
 include("packaging")
 include("plugins")
 include("profiling")
+include("performance")
 include("testing")
 include("versioning")
 

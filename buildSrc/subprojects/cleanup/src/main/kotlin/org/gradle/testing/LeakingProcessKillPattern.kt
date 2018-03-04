@@ -16,10 +16,11 @@
 
 package org.gradle.testing
 
-import groovy.transform.CompileStatic
-import org.gradle.api.tasks.CacheableTask
+import java.util.regex.Pattern
 
-@CacheableTask
-@CompileStatic
-class CrossVersionTest extends IntegrationTest {
+object LeakingProcessKillPattern {
+
+    @JvmStatic
+    fun generate(rootProjectDir: String): String =
+        "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))).+)"
 }

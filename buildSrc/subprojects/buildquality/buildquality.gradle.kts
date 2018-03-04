@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":profiling"))
     implementation(project(":testing"))
     implementation(project(":plugins"))
+    implementation(project(":performance"))
     implementation("org.owasp:dependency-check-gradle:3.1.0")
 }
 
