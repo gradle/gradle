@@ -104,6 +104,8 @@ task publishLocalArchives(type: Upload) {
     }
 }
 
+rootProject.distributionTesting.publishLocalArchivesTask = publishLocalArchives
+
 integTestTasks.all {
     binaryDistributions.binZipRequired = true
     libsRepository.required = true

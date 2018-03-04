@@ -123,6 +123,12 @@ task srcZip(type: Zip) {
     }
 }
 
+rootProject.distributionTesting.distributionZipTasks = [
+    "bin": binZip,
+    "src": srcZip,
+    "all": allZip
+]
+
 task outputsZip(type: Zip) {
     archiveName "outputs.zip"
     from {

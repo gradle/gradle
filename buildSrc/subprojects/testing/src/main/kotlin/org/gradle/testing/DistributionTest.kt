@@ -49,9 +49,6 @@ open class DistributionTest : Test() {
     val libsRepository: LibsRepositoryEnvironmentProvider = LibsRepositoryEnvironmentProvider(project.layout)
 
     init {
-        dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
-        dependsOn(Callable { if (binaryDistributions.binZipRequired) ":distributions:binZip" else null })
-        dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishLocalArchives" else null })
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)

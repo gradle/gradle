@@ -46,6 +46,26 @@ open class DistributionTestingPlugin : Plugin<Project> {
         tasks.withType<DistributionTest> {
             dependsOn(Callable { distributionTesting.toolingApiShadedJarTask.get() })
             dependsOn(distributionTesting.cleanupCaches)
+            dependsOn(Callable {
+                if (binaryDistributions.distributionsRequired)
+                    listOf("all", "bin", "src").map {
+                        distributionTesting.distributionZipTasks.get()[it]
+                    }
+                else
+                    null
+            })
+            dependsOn(Callable {
+                if (binaryDistributions.binZipRequired)
+                    distributionTesting.distributionZipTasks.get()["bin"]
+                else
+                    null
+            })
+            dependsOn(Callable {
+                if (libsRepository.required)
+                    distributionTesting.publishLocalArchivesTask.get()
+                else
+                    null
+            })
             finalizedBy(distributionTesting.cleanUpDaemons)
             shouldRunAfter("test")
 
