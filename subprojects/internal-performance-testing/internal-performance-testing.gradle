@@ -1,3 +1,5 @@
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -40,9 +42,11 @@ dependencies {
     runtime 'com.h2database:h2:1.4.192'
 }
 
+def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+
 task reportResources(type: Copy) {
     from configurations.reports
-    into "$generatedResourcesDir/org/gradle/reporting"
+    into "${generatedResourcesDir}/org/gradle/reporting"
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources

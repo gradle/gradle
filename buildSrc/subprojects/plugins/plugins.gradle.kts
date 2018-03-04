@@ -22,18 +22,6 @@ dependencies {
 
 gradlePlugin {
     (plugins) {
-        "testFixtures" {
-            id = "gradlebuild.test-fixtures"
-            implementationClass = "org.gradle.plugins.testfixtures.TestFixturesPlugin"
-        }
-        "strictCompile" {
-            id = "gradlebuild.strict-compile"
-            implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
-        }
-        "jsoup" {
-            id = "gradlebuild.jsoup"
-            implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
-        }
         "buildTypes" {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
@@ -41,6 +29,10 @@ gradlePlugin {
         "gradleCompile" {
             id = "gradlebuild.gradle-compile"
             implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
+        }
+        "jsoup" {
+            id = "gradlebuild.jsoup"
+            implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
         }
         "performanceTest" {
             id = "gradlebuild.performance-test"
@@ -53,6 +45,18 @@ gradlePlugin {
        "resumeBuild" {
             id = "gradlebuild.resume-build"
             implementationClass = "org.gradle.gradlebuild.tools.ResumeBuildPlugin"
+        }
+        "strictCompile" {
+            id = "gradlebuild.strict-compile"
+            implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
+        }
+        "testFixtures" {
+            id = "gradlebuild.test-fixtures"
+            implementationClass = "org.gradle.plugins.testfixtures.TestFixturesPlugin"
+        }
+        "unitTestAndCompile" {
+            id = "gradlebuild.unittest-and-compile"
+            implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
         }
     }
 }

@@ -15,10 +15,19 @@
  */
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.GroovyCompile
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.testing.Test
 import org.gradle.plugins.compile.AvailableJavaInstallations
+import org.gradle.kotlin.dsl.*
 
 
 // This file contains Kotlin extensions for the gradle/gradle build
 
 fun Project.availableJavaInstallations(configure: AvailableJavaInstallations.() -> Unit): Unit =
     extensions.configure("availableJavaInstallations", configure)
+
+val Project.availableJavaInstallations
+    get() = extensions.getByName<AvailableJavaInstallations>("availableJavaInstallations")
+

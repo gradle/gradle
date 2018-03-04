@@ -29,6 +29,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import accessors.*
+import org.gradle.gradlebuild.unittestandcompile.gradlebuildJava
 import org.gradle.kotlin.dsl.*
 
 import java.io.File
@@ -51,8 +52,7 @@ open class ClasspathManifest : DefaultTask() {
     @get:OutputFile
     val manifestFile: File
         get() {
-            val generatedResourcesDir: File by project.extra
-            return File(generatedResourcesDir, "${project.base.archivesBaseName}-classpath.properties")
+            return File(project.gradlebuildJava.generatedResourcesDir, "${project.base.archivesBaseName}-classpath.properties")
         }
 
     @get:Input
