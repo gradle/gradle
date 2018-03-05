@@ -77,8 +77,8 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
     }
 
     private void configureCompileTaskCommon(AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
-        task.setToolChain(binary.getToolChain());
-        task.setTargetPlatform(binary.getTargetPlatform());
+        task.getToolChain().set(binary.getToolChain());
+        task.getTargetPlatform().set(binary.getTargetPlatform());
         task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
 
         task.includes(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSourceDirectories());
