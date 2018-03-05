@@ -67,10 +67,10 @@ task filterTextFiles {
         }
         // END SNIPPET filtering-file-collections
 
-        textFiles.collect { relativePath(it) }.sort().each { File f ->
-            println f.name
+        textFiles.collect { relativePath(it) }.sort().each { String path ->
+            println path
         }
 
-        assert textFiles.files*.name.sort()  == ['file1.txt', 'file2.txt', 'file3.txt']
+        assert textFiles.files*.name.sort()  == ['file1.txt', 'file2.txt', 'file5.txt']
     }
 }

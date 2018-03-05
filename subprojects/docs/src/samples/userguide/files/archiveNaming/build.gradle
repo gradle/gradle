@@ -18,8 +18,8 @@ task myZip(type: Zip) {
 
 // START SNIPPET zip-task-with-custom-base-name
 task myCustomZip(type: Zip) {
-    from 'somedir'
     baseName = 'customName'
+    from 'somedir'
 
     doLast {
         println archiveName

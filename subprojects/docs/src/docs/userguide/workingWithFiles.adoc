@@ -777,7 +777,7 @@ This example — from the same project as the one above — configures just the 
 ++++
 <sample id="zipWithCustomName" dir="userguide/files/archiveNaming" title="Configuration of archive task - custom archive name">
     <sourcefile file="build.gradle" snippet="zip-task-with-custom-base-name"/>
-    <output args="-q myZip"/>
+    <output args="-q myCustomZip"/>
 </sample>
 ++++
 
