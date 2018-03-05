@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
-
-public interface NodeContext {
-    void addSubProperties(RuntimeBeanNode node);
+public interface NodeContext<T extends PropertyNode> {
+    void addSubProperties(T node);
 }

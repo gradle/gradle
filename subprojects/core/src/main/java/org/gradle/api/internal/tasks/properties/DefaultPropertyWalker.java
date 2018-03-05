@@ -16,18 +16,23 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.bean.RootRuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
+import org.gradle.internal.util.BiFunction;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
 @NonNullApi
 public class DefaultPropertyWalker implements PropertyWalker {
+    private static final BiFunction<Boolean, RuntimeBeanNode, RuntimeBeanNode> RUNTIME_BEAN_EQUALS = new BiFunction<Boolean, RuntimeBeanNode, RuntimeBeanNode>() {
+        @Override
+        public Boolean apply(RuntimeBeanNode runtimeBeanNode, RuntimeBeanNode runtimeBeanNode2) {
+            return runtimeBeanNode.getBean() == runtimeBeanNode2.getBean();
+        }
+    };
 
     private final PropertyMetadataStore propertyMetadataStore;
 
@@ -45,51 +50,32 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-    private class BeanNodeContext implements NodeContext {
-        private final RuntimeBeanNode currentNode;
+    private class BeanNodeContext extends AbstractNodeContext<RuntimeBeanNode> {
         private final Queue<BeanNodeContext> queue;
-        private final ParentBeanNodeList parentNodes;
 
-        public BeanNodeContext(RuntimeBeanNode currentNode, Queue<BeanNodeContext> queue, @Nullable ParentBeanNodeList parentNodes) {
-            this.currentNode = currentNode;
+        public BeanNodeContext(RuntimeBeanNode currentNode, BeanNodeContext parent, Queue<BeanNodeContext> queue) {
+            super(currentNode, parent);
             this.queue = queue;
-            this.parentNodes = parentNodes;
-            if (parentNodes != null) {
-                parentNodes.checkCycles(currentNode);
-            }
+            checkCycles();
         }
 
         public BeanNodeContext(RuntimeBeanNode currentNode, Queue<BeanNodeContext> queue) {
-            this(currentNode, queue, null);
+            super(currentNode);
+            this.queue = queue;
         }
 
         @Override
         public void addSubProperties(RuntimeBeanNode node) {
-            queue.add(new BeanNodeContext(node, queue, new ParentBeanNodeList(parentNodes, currentNode)));
+            queue.add(new BeanNodeContext(node, this, queue));
         }
 
         public void visit(PropertyVisitor visitor, PropertySpecFactory specFactory) {
-            currentNode.visitNode(visitor, specFactory, this, propertyMetadataStore);
-        }
-    }
-
-    private static class ParentBeanNodeList {
-        private final ParentBeanNodeList parent;
-        private final RuntimeBeanNode node;
-
-        public ParentBeanNodeList(@Nullable ParentBeanNodeList parent, RuntimeBeanNode node) {
-            this.parent = parent;
-            this.node = node;
+            getCurrentNode().visitNode(visitor, specFactory, this, propertyMetadataStore);
         }
 
-        public void checkCycles(RuntimeBeanNode childNode) {
-            Preconditions.checkState(
-                node.getBean() != childNode.getBean(),
-                "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
-                node, childNode);
-            if (parent != null) {
-                parent.checkCycles(childNode);
-            }
+        @Override
+        protected BiFunction<Boolean, RuntimeBeanNode, RuntimeBeanNode> getNodeEquals() {
+            return RUNTIME_BEAN_EQUALS;
         }
     }
 }
