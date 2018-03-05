@@ -117,19 +117,6 @@ buildTypes {
     }
 }
 
-apply plugin: "gradlebuild.buildscan"
-apply from: "gradle/versioning.gradle"
-apply from: "gradle/dependencies.gradle"
-apply from: "gradle/dependenciesMetadataRules.gradle.kts"
-apply plugin: "gradlebuild.minify"
-apply from: "gradle/testDependencies.gradle"
-apply plugin: "gradlebuild.wrapper"
-apply plugin: "gradlebuild.ide"
-apply plugin: "gradlebuild.no-resolution-at-configuration"
-apply from: "gradle/publicApi.gradle"
-apply plugin: "gradlebuild.update-versions"
-apply plugin: "gradlebuild.dependency-vulnerabilities"
-
 allprojects {
     group = 'org.gradle'
 
@@ -147,15 +134,26 @@ allprojects {
     }
 }
 
+apply plugin: "gradlebuild.buildscan"
+apply from: "gradle/versioning.gradle"
+apply from: "gradle/dependencies.gradle"
+apply from: "gradle/dependenciesMetadataRules.gradle.kts"
+apply plugin: "gradlebuild.minify"
+apply from: "gradle/testDependencies.gradle"
+apply plugin: "gradlebuild.wrapper"
+apply plugin: "gradlebuild.ide"
+apply plugin: "gradlebuild.no-resolution-at-configuration"
+apply from: "gradle/publicApi.gradle"
+apply plugin: "gradlebuild.update-versions"
+apply plugin: "gradlebuild.dependency-vulnerabilities"
+apply plugin: "gradlebuild.add-verify-production-environment-task"
+
+
 subprojects {
     version = rootProject.version
 
     if (project in ProjectGroups.INSTANCE.getJavaProjects(project)) {
-        apply from: "$rootDir/gradle/groovyProject.gradle.kts"
-        apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
-        apply from: "$rootDir/gradle/java9plus.gradle"
-        check.dependsOn ":docs:checkstyleApi"
-        check.dependsOn "codeQuality"
+        apply plugin: "gradlebuild.java-projects"
     }
 
     if (project in ProjectGroups.INSTANCE.getPublishedProjects(project)) {
@@ -241,8 +239,6 @@ task patchExternalModules(type: PatchExternalModules) {
     modulesToPatch = configurations.externalModules
     destination = patchedExternalModulesDir
 }
-
-apply plugin: "gradlebuild.add-verify-production-environment-task"
 
 evaluationDependsOn ":distributions"
 

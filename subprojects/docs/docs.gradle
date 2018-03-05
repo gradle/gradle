@@ -36,6 +36,8 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+
 plugins {
     id 'base'
     id 'gradlebuild.jsoup'
@@ -227,6 +229,8 @@ task userguideStyleSheets(type: Copy) {
 }
 
 tasks.remove(asciidoctor)
+
+def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
 
 task userguideAsciidoc(type: CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir

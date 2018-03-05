@@ -1,3 +1,5 @@
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -45,6 +47,8 @@ dependencies {
 testFixtures {
     from(':core', 'main')
 }
+
+def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")
