@@ -61,6 +61,8 @@ task toolingApiShadedJar(type: Zip) {
     version baseVersion
 }
 
+rootProject.distributionTesting.toolingApiShadedJarTask = toolingApiShadedJar
+
 apply from: 'buildship.gradle'
 
 sourceJar {
@@ -101,6 +103,8 @@ task publishLocalArchives(type: Upload) {
         }
     }
 }
+
+rootProject.distributionTesting.publishLocalArchivesTask = publishLocalArchives
 
 integTestTasks.all {
     binaryDistributions.binZipRequired = true

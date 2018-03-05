@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":testing"))
+    implementation(project(":performance"))
     implementation("org.pegdown:pegdown:1.6.0")
     implementation("org.jsoup:jsoup:1.11.2")
     implementation("com.google.guava:guava-jdk5:14.0.1")

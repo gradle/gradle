@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testing;
+package org.gradle.testing
 
-/**
- * A test that verifies Gradle can be used with popular third party plugins.
- */
-public class SmokeTest extends DistributionTest {
-}
+import org.gradle.api.tasks.CacheableTask
+
+@CacheableTask
+open class CrossVersionTest : IntegrationTest()
