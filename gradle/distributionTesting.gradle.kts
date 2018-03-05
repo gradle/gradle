@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.cleanup.CleanUpCaches
@@ -37,7 +38,7 @@ tasks.withType<DistributionTest> {
         jvmArgs("-XX:MaxPermSize=768m")
     }
 
-    reports.junitXml.destination = File(the<JavaPluginConvention>().testResultsDir, name)
+    reports.junitXml.destination = project.the<JavaPluginConvention>().testResultsDir.resolve(name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
@@ -80,7 +81,7 @@ tasks.withType<DistributionTest> {
     }
 
     project.afterEvaluate {
-        reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+        reports.html.destination = the<ReportingExtension>().baseDir.resolve(this@withType.name)
     }
 
     lateinit var daemonListener: Any
@@ -112,8 +113,7 @@ project(":") {
 
         val killExistingProcessesStartedByGradle by creating(KillLeakingJavaProcesses::class)
 
-        val isCiServer: Boolean by rootProject.extra
-        if (isCiServer) {
+        if (BuildEnvironment.isCiServer) {
             "clean" {
                 dependsOn(killExistingProcessesStartedByGradle)
             }

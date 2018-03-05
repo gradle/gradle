@@ -19,40 +19,8 @@
   line-height: 25px;
 }
 
-img.logo {
-  margin-bottom: 1em;
-}
-
-section.major-detail {
-  margin: 0 10px 18px;
-  padding: 18px;
-  border: 1px dotted #999;
-  background-color: #FCFCFC;
-  border-radius: 5px;
-}
-
-section.major-detail > :first-child {
-  margin-top: 0px;
-}
-
-section.major-detail > :last-child {
-  margin-bottom: 0px;
-}
-
-section.minor-detail > :last-child {
-  margin-bottom: 0px;
-}
-
-h4 {
-  padding-left: 10px;
-}
-
-section.minor-detail {
-  padding: 0 10px;
-}
-
 ul.toc-sub {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 button.display-toggle {
@@ -60,33 +28,24 @@ button.display-toggle {
 }
 
 a.incubating-marker {
-    display: inline;
-    color: white;
-    font-style: italic;
-    font-size: 0.6em;
-    text-shadow: none;
-    margin-left: 0.6em;
-    border-radius: 6px;
-    background-color: rgb(160, 160, 160);
-    border: 1px solid rgb(150, 150, 150);
-    padding: 1px 5px;
-    box-shadow: none;
-    cursor: pointer;
-    vertical-align: 1px;
+  display: inline;
+  color: white;
+  font-style: italic;
+  font-size: 0.6em;
+  text-shadow: none;
+  margin-left: 0.6em;
+  border-radius: 6px;
+  background-color: rgb(160, 160, 160);
+  border: 1px solid rgb(150, 150, 150);
+  padding: 1px 5px;
+  box-shadow: none;
+  cursor: pointer;
+  vertical-align: 1px;
 }
 
 a.incubating-marker:hover {
-    text-decoration: none;
-    border: 1px solid rgb(150, 150, 150);
-}
-
-section.footer {
-  font-size: 75%;
-  margin-top: 3em;
-  padding-top: 1em;
-  width: 100%;
-  border-top: solid #d0d0d0 0.4em;
-  text-align: center;
+  text-decoration: none;
+  border: 1px solid rgb(150, 150, 150);
 }
 
 /* Same as code highlighting values in docs.css */

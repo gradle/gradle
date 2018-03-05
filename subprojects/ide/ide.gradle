@@ -39,4 +39,6 @@ testFixtures {
     from(':dependencyManagement')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

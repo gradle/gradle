@@ -54,7 +54,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
         Queue<NestedBeanContext> queue = new ArrayDeque<NestedBeanContext>();
-        queue.add(new NestedBeanContext(new BeanNode(null, bean), queue, null));
+        queue.add(new NestedBeanContext(BeanNode.create(null, bean), queue, null));
         while (!queue.isEmpty()) {
             NestedBeanContext context = queue.remove();
             BeanNode node = context.getCurrentNode();

@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
 import org.gradle.util.Resources
-import org.gradle.util.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -621,13 +620,13 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @ToBeImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         badCode()
         buildFile << """
             findbugs {
                 ignoreFailures true
+                showProgress true
             }
             tasks.withType(FindBugs) {
                 reports {
@@ -643,9 +642,8 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         succeeds('clean', 'check')
 
         then:
-        // TODO These should match
-        !!! nonSkippedTasks.contains(':findbugsMain')
-        !!! output.contains("Analyzing classes")
+        nonSkippedTasks.contains(':findbugsMain')
+        output.contains("Analyzing classes")
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {
@@ -670,7 +668,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         normaliseFileSeparators(resources.getResource('/findbugs-custom-stylesheet.xsl').absolutePath)
     }
 
-    private Matcher<String> containsClass(String className) {
+    private static Matcher<String> containsClass(String className) {
         containsLine(containsString(className))
     }
 

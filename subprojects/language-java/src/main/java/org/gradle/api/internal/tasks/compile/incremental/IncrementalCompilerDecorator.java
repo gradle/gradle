@@ -71,7 +71,7 @@ public class IncrementalCompilerDecorator {
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
         Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        IncrementalResultStoringDecorator compilationFinalizer = new IncrementalResultStoringDecorator(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
+        IncrementalResultStoringDecorator compilationFinalizer = new IncrementalResultStoringDecorator(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater, compileCaches.getAnnotationProcessorPathStore());
         return new IncrementalAnnotationProcessingCompiler(compilationFinalizer, annotationProcessorDetector);
     }
 
@@ -94,7 +94,7 @@ public class IncrementalCompilerDecorator {
             LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
+        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache(), compileCaches.getAnnotationProcessorPathStore());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 

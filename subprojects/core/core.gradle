@@ -1,3 +1,8 @@
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt
+
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.*
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -16,9 +21,8 @@
 plugins {
     id 'java-library'
 }
-apply from: "$rootDir/gradle/taskProperties.gradle"
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 configurations {
     reports
@@ -96,24 +100,28 @@ test {
     forkEvery = 200
 }
 
+def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 task pluginsManifest(type: WriteProperties) {
     property("plugins") {
-        project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
-    outputFile = new File(project.generatedResourcesDir, "gradle-plugins.properties")
+    outputFile = new File(generatedResourcesDir, "gradle-plugins.properties")
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
 task implementationPluginsManifest(type: WriteProperties) {
     property("plugins") {
-        project.implementationPluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getImplementationPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
-    outputFile = new File(project.generatedResourcesDir, "gradle-implementation-plugins.properties")
+    outputFile = new File(generatedResourcesDir, "gradle-implementation-plugins.properties")
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

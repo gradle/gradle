@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.reporting.SingleFileReport;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Input;
 
 /**
  * The single file XML report for FindBugs.
@@ -34,7 +34,7 @@ public interface FindBugsXmlReport extends SingleFileReport {
      *
      * @return Whether or not FindBugs should generate XML augmented with human-readable messages.
      */
-    @Internal
+    @Input
     boolean isWithMessages();
 
     /**

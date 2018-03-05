@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadataBuilder
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -588,7 +588,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         }
     }
 
-    VisualStudioMetadata legacyVsInstall(File installDir, String version, String cppVersion = version) {
+    VisualStudioInstallCandidate legacyVsInstall(File installDir, String version, String cppVersion = version) {
         return new VisualStudioMetadataBuilder()
             .installDir(installDir)
             .visualCppDir(new File(installDir, "VC"))
@@ -597,13 +597,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
             .build()
     }
 
-    VisualStudioMetadata vs2017Install(File installDir, String version) {
+    VisualStudioInstallCandidate vs2017Install(File installDir, String version) {
         return new VisualStudioMetadataBuilder()
             .installDir(installDir)
             .visualCppDir(new File(installDir, "VC/Tools/MSVC/1.2.3.4"))
             .visualCppVersion(VersionNumber.parse("1.2.3.4"))
             .version(VersionNumber.parse(version))
-            .compatibility(VisualStudioMetadata.Compatibility.VS2017_OR_LATER)
+            .compatibility(VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER)
             .build()
     }
 }

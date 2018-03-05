@@ -20,14 +20,18 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.initialization.ProjectPathRegistry;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.Path;
+import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -108,12 +112,11 @@ import static org.gradle.util.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaProject {
-
+public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectPathRegistry projectPathRegistry;
-    private final LocalComponentRegistry localComponentRegistry;
+    private final IdeArtifactRegistry artifactRegistry;
 
     private List<IdeaModule> modules;
     private String jdkName;
@@ -121,7 +124,7 @@ public class IdeaProject {
     private JavaVersion targetBytecodeVersion;
     private String vcs;
     private Set<String> wildcards = Sets.newLinkedHashSet();
-    private File outputFile;
+    private RegularFileProperty outputFile;
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;
 
@@ -131,7 +134,18 @@ public class IdeaProject {
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectPathRegistry.class);
-        this.localComponentRegistry = services.get(LocalComponentRegistry.class);
+        this.artifactRegistry = services.get(IdeArtifactRegistry.class);
+        this.outputFile = project.getLayout().fileProperty();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "IDEA project";
+    }
+
+    @Override
+    public Provider<RegularFile> getLocation() {
+        return outputFile;
     }
 
     /**
@@ -299,11 +313,11 @@ public class IdeaProject {
      * See the examples in the docs for {@link IdeaProject}.
      */
     public File getOutputFile() {
-        return outputFile;
+        return outputFile.get().getAsFile();
     }
 
     public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+        this.outputFile.set(outputFile);
     }
 
     /**
@@ -336,16 +350,13 @@ public class IdeaProject {
 
     private void configureModulePaths(Project xmlProject) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(((ProjectInternal) project).getIdentityPath());
-        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
-            ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
-            if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
+            BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
+            if (thisProjectId.getBuild().equals(otherBuildId)) {
                 // IDEA Module for project in current build: handled via `modules` model elements.
                 continue;
             }
-            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
-            if (imlArtifact != null) {
-                xmlProject.addModulePath(imlArtifact.getFile());
-            }
+            xmlProject.addModulePath(reference.get().getFile());
         }
     }
 }

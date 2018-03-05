@@ -15,8 +15,8 @@
  */
 plugins {
     // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-    // id 'strict-compile'
-    // id 'classycle'
+    // id 'gradlebuild.strict-compile'
+    // id 'gradlebuild.classycle'
 }
 
 // Test execution

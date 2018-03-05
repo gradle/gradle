@@ -54,6 +54,7 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -182,6 +183,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The filename of a filter specifying which bugs are reported.
      */
     @Internal
+    @Nullable
     public File getIncludeFilter() {
         TextResource config = getIncludeFilterConfig();
         return config == null ? null : config.asFile();
@@ -197,6 +199,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
+    @Nullable
     @Internal
     public File getExcludeFilter() {
         TextResource config = getExcludeFilterConfig();
@@ -213,6 +216,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
+    @Nullable
     @Internal
     public File getExcludeBugsFilter() {
         TextResource config = getExcludeBugsFilterConfig();
@@ -455,8 +459,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}. Higher levels increase precision and find more bugs at the expense of running time
      * and memory consumption.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getEffort() {
         return effort;
     }
@@ -465,7 +470,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}. Higher levels increase precision and find more bugs at the expense of running time
      * and memory consumption.
      */
-    public void setEffort(String effort) {
+    public void setEffort(@Nullable String effort) {
         this.effort = effort;
     }
 
@@ -473,8 +478,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The priority threshold for reporting bugs. If set to {@code low}, all bugs are reported. If set to {@code medium} (the default), medium and high priority bugs are reported. If set to {@code
      * high}, only high priority bugs are reported.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getReportLevel() {
         return reportLevel;
     }
@@ -483,15 +489,16 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The priority threshold for reporting bugs. If set to {@code low}, all bugs are reported. If set to {@code medium} (the default), medium and high priority bugs are reported. If set to {@code
      * high}, only high priority bugs are reported.
      */
-    public void setReportLevel(String reportLevel) {
+    public void setReportLevel(@Nullable String reportLevel) {
         this.reportLevel = reportLevel;
     }
 
     /**
      * The maximum heap size for the forked findbugs process (ex: '1g').
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -499,7 +506,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * The maximum heap size for the forked findbugs process (ex: '1g').
      */
-    public void setMaxHeapSize(String maxHeapSize) {
+    public void setMaxHeapSize(@Nullable String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
     }
 
@@ -507,8 +514,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The bug detectors which should be run. The bug detectors are specified by their class names, without any package qualification. By default, all detectors which are not disabled by default are
      * run.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public Collection<String> getVisitors() {
         return visitors;
     }
@@ -517,15 +525,16 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * The bug detectors which should be run. The bug detectors are specified by their class names, without any package qualification. By default, all detectors which are not disabled by default are
      * run.
      */
-    public void setVisitors(Collection<String> visitors) {
+    public void setVisitors(@Nullable Collection<String> visitors) {
         this.visitors = visitors;
     }
 
     /**
      * Similar to {@code visitors} except that it specifies bug detectors which should not be run. By default, no visitors are omitted.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public Collection<String> getOmitVisitors() {
         return omitVisitors;
     }
@@ -533,7 +542,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Similar to {@code visitors} except that it specifies bug detectors which should not be run. By default, no visitors are omitted.
      */
-    public void setOmitVisitors(Collection<String> omitVisitors) {
+    public void setOmitVisitors(@Nullable Collection<String> omitVisitors) {
         this.omitVisitors = omitVisitors;
     }
 
@@ -543,8 +552,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.2
      */
     @Incubating
-    @Nested
+    @Nullable
     @Optional
+    @Nested
     public TextResource getIncludeFilterConfig() {
         return includeFilterConfig;
     }
@@ -555,7 +565,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.2
      */
     @Incubating
-    public void setIncludeFilterConfig(TextResource includeFilterConfig) {
+    public void setIncludeFilterConfig(@Nullable TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
 
@@ -565,8 +575,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.2
      */
     @Incubating
-    @Nested
+    @Nullable
     @Optional
+    @Nested
     public TextResource getExcludeFilterConfig() {
         return excludeFilterConfig;
     }
@@ -577,7 +588,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.2
      */
     @Incubating
-    public void setExcludeFilterConfig(TextResource excludeFilterConfig) {
+    public void setExcludeFilterConfig(@Nullable TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
 
@@ -587,8 +598,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.4
      */
     @Incubating
-    @Nested
+    @Nullable
     @Optional
+    @Nested
     public TextResource getExcludeBugsFilterConfig() {
         return excludeBugsFilterConfig;
     }
@@ -599,7 +611,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 2.4
      */
     @Incubating
-    public void setExcludeBugsFilterConfig(TextResource excludeBugsFilterConfig) {
+    public void setExcludeBugsFilterConfig(@Nullable TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }
 
@@ -611,8 +623,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.6
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public Collection<String> getExtraArgs() {
         return extraArgs;
     }
@@ -625,7 +638,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.6
      */
-    public void setExtraArgs(Collection<String> extraArgs) {
+    public void setExtraArgs(@Nullable Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
     }
 
@@ -635,7 +648,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 4.2
      */
     @Input
-    @Optional
     public boolean getShowProgress() {
         return showProgress;
     }
@@ -656,9 +668,10 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 4.3
      */
-    @Input
-    @Optional
     @Incubating
+    @Nullable
+    @Optional
+    @Input
     public Collection<String> getJvmArgs() {
         return jvmArgs;
     }
@@ -671,7 +684,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * @since 4.3
      */
     @Incubating
-    public void setJvmArgs(Collection<String> jvmArgs) {
+    public void setJvmArgs(@Nullable Collection<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }
 }

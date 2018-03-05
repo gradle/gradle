@@ -50,6 +50,14 @@ class ProjectFile {
         return projectXml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
     }
 
+    public String getToolsVersion() {
+        return projectXml.@ToolsVersion
+    }
+
+    public String getWindowsTargetPlatformVersion() {
+        return globals.WindowsTargetPlatformVersion[0].text()
+    }
+
     public List<String> getSourceFiles() {
         def sources = itemGroup('Sources').ClCompile
         return normalise(sources*.'@Include')
@@ -106,8 +114,17 @@ class ProjectFile {
             TextUtil.normaliseFileSeparators(buildConfiguration.NMakeOutput[0].text())
         }
 
+        String getPlatformToolset() {
+            def nodes = configuration.PlatformToolset
+            return nodes.size() == 0 ? null : nodes[0].text()
+        }
+
         private Node getBuildConfiguration() {
             projectXml.PropertyGroup.find({ it.'@Label' == 'NMakeConfiguration' && it.'@Condition' == condition}) as Node
+        }
+
+        private Node getConfiguration() {
+            projectXml.PropertyGroup.find({ it.'@Label' == 'Configuration' && it.'@Condition' == condition}) as Node
         }
 
         private String getCondition() {

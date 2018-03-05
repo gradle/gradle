@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.api;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFile;
@@ -27,6 +28,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -59,7 +61,20 @@ public class GeneratorTask<T> extends ConventionTask {
     protected T domainObject;
 
     public GeneratorTask() {
-        getOutputs().upToDateWhen(Specs.satisfyNone());
+        if (!getIncremental()) {
+            getOutputs().upToDateWhen(Specs.satisfyNone());
+        }
+    }
+
+    /**
+     * Whether this generator task can be treated as an incremental task or not
+     *
+     * @since 4.7
+     */
+    @Internal
+    @Incubating
+    protected boolean getIncremental() {
+        return false;
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -101,7 +116,7 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     // Workaround for when the task is given an input file that doesn't exist
-    @Optional @InputFile
+    @Nullable  @Optional @InputFile
     protected File getInputFileIfExists() {
         File inputFile = getInputFile();
         if (inputFile != null && inputFile.exists()) {
@@ -116,7 +131,7 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param inputFile The input file. Use null to use the output file.
      */
-    public void setInputFile(File inputFile) {
+    public void setInputFile(@Nullable File inputFile) {
         this.inputFile = inputFile;
     }
 

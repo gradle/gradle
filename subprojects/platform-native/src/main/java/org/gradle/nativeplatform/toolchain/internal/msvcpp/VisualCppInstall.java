@@ -25,12 +25,12 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 public class VisualCppInstall implements Named {
-    private final Map<Architecture, ? extends PlatformVisualCpp> platforms;
+    private final Map<Architecture, ? extends VisualCpp> platforms;
     private final String name;
     private final VersionNumber version;
 
     public VisualCppInstall(String name, VersionNumber version,
-                            Map<Architecture, ? extends PlatformVisualCpp> platforms) {
+                            Map<Architecture, ? extends VisualCpp> platforms) {
         this.name = name;
         this.version = version;
         this.platforms = platforms;
@@ -46,7 +46,7 @@ public class VisualCppInstall implements Named {
     }
 
     @Nullable
-    public PlatformVisualCpp forPlatform(NativePlatformInternal targetPlatform) {
+    public VisualCpp forPlatform(NativePlatformInternal targetPlatform) {
         // TODO:ADAM - ARM only if the target OS is Windows 8 or later
         // TODO:MPUT - ARM also if the target OS is Windows RT or Windows Phone/Mobile/CE
         // TODO:ADAM - IA64 only if the target OS is Windows 2008 or earlier
@@ -60,7 +60,7 @@ public class VisualCppInstall implements Named {
         return targetPlatform.getArchitecture();
     }
 
-    private PlatformVisualCpp getDescriptor(NativePlatformInternal targetPlatform) {
+    private VisualCpp getDescriptor(NativePlatformInternal targetPlatform) {
         return platforms.get(getPlatformArchitecture(targetPlatform));
     }
 }

@@ -22,148 +22,117 @@ import java.util.Properties
 import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 plugins {
-    groovy
-    `java-gradle-plugin`
     `kotlin-dsl`
-    idea
-    eclipse
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
-}
+subprojects {
+    if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+        apply { plugin("groovy") }
+        dependencies {
+            compile(localGroovy())
+            testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
+            testCompile("cglib:cglib-nodep:3.2.5")
+            testCompile("org.objenesis:objenesis:2.4")
+            constraints {
+                compile("org.codehaus.groovy:groovy-all:2.4.12")
+            }
+        }
 
-gradlePlugin {
-    (plugins) {
-        "classycle" {
-            id = "classycle"
-            implementationClass = "org.gradle.plugins.classycle.ClassyclePlugin"
+        fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
+            options.isFork = true
+            options.encoding = "utf-8"
+            options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+            val vendor = System.getProperty("java.vendor")
+            task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
         }
-        "testFixtures" {
-            id = "test-fixtures"
-            implementationClass = "org.gradle.plugins.testfixtures.TestFixturesPlugin"
+
+        tasks.withType<GroovyCompile> {
+            groovyOptions.encoding = "utf-8"
+            configureCompileTask(this, options)
         }
-        "strictCompile" {
-            id = "strict-compile"
-            implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
+    }
+    if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
+        apply {
+            plugin("kotlin")
+            plugin("java-library")
         }
-        "jsoup" {
-            id = "jsoup"
-            implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
+
+        tasks.withType<KotlinCompile> {
+            kotlinOptions {
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+            }
         }
-        "buildTypes" {
-            id = "build-types"
-            implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
-        }
-        "gradleCompile" {
-            id = "gradle-compile"
-            implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
-        }
-        "performanceTest" {
-            id = "performance-test"
-            implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
-        }
-        "ideConfiguration" {
-            id = "ide-configuration"
-            implementationClass = "org.gradle.plugins.ideconfiguration.IdeConfigurationPlugin"
-        }
+    }
+    apply {
+        plugin("idea")
+        plugin("eclipse")
+    }
+
+    dependencies {
+        compile(gradleApi())
     }
 }
 
-repositories {
-    maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-    maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
-    gradlePluginPortal()
+allprojects {
+    repositories {
+        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+        maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
+        gradlePluginPortal()
+    }
+    // Workaround caching problems with 'java-gradle-plugin'
+    // vvvvv
+    normalization {
+        runtimeClasspath {
+            ignore("plugin-under-test-metadata.properties")
+        }
+    }
+    // ^^^^^
 }
 
 dependencies {
-    compile("org.ow2.asm:asm:6.0")
-    compile("org.ow2.asm:asm-commons:6.0")
-    compile(gradleApi())
-    compile("com.google.guava:guava-jdk5:14.0.1")
-    compile("commons-lang:commons-lang:2.6")
-    compile(localGroovy())
-    compile("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
-    testCompile("junit:junit:4.12")
-    testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
-    testCompile("cglib:cglib-nodep:3.2.5")
-    testCompile("org.objenesis:objenesis:2.4")
-    testCompile("org.hamcrest:hamcrest-core:1.3")
-    testCompile("com.nhaarman:mockito-kotlin:1.5.0")
-
-    compile("org.pegdown:pegdown:1.6.0")
-    compile("org.jsoup:jsoup:1.11.2")
-    compile("me.champeau.gradle:japicmp-gradle-plugin:0.2.4")
-    compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
-    compile("com.github.javaparser:javaparser-core:2.4.0")
-    compile("com.google.code.gson:gson:2.7")
-
-    constraints {
-        compile("org.codehaus.groovy:groovy-all:2.4.12")
+    subprojects.forEach {
+        "runtime"(project(it.path))
     }
+}
 
-    components {
-        withModule("net.sourceforge.nekohtml:nekohtml") {
-            allVariants {
-                // Xerces on the runtime classpath is breaking some of our doc tasks
-                withDependencies { removeAll { it.group == "xerces" } }
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
+val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
+if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
+    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
+}
+
+if (isCiServer) {
+    gradle.buildFinished {
+        tasks.all {
+            if (this is Reporting<*> && state.failure != null) {
+                prepareReportForCIPublishing(this.reports["html"].destination)
             }
         }
     }
 }
 
-// Allow Kotlin types to reference both Java and Groovy types
-// Remove compileGroovy -> compileJava dependency added by GroovyBasePlugin
-// Prevent cycles in the task graph as compileJava depends on compileKotlin
-tasks {
-    val compileGroovy by getting(GroovyCompile::class) {
-        dependsOn.remove("compileJava")
+fun Project.prepareReportForCIPublishing(report: File) {
+    if (report.isDirectory) {
+        val destFile = File("${rootProject.buildDir}/report-$name-${report.name}.zip")
+        ant.withGroovyBuilder {
+            "zip"("destFile" to destFile) {
+                "fileset"("dir" to report)
+            }
+        }
+    } else {
+        copy {
+            from(report)
+            into(rootProject.buildDir)
+            rename { "report-$name-${report.parentFile.name}-${report.name}" }
+        }
     }
-    "compileKotlin"(KotlinCompile::class) {
-        classpath += files(compileGroovy.destinationDir).builtBy(compileGroovy)
-    }
 }
-
-val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
-
-fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
-    options.isFork = true
-    options.encoding = "utf-8"
-    options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-    val vendor = System.getProperty("java.vendor")
-    task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
-}
-
-tasks.withType<JavaCompile> {
-    options.isIncremental = true
-    configureCompileTask(this, options)
-}
-tasks.withType<GroovyCompile> {
-    groovyOptions.encoding = "utf-8"
-    configureCompileTask(this, options)
-}
-
-if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/codeQuality.gradle") }
-}
-
-apply { from("../gradle/ciReporting.gradle") }
 
 fun readProperties(propertiesFile: File) = Properties().apply {
     propertiesFile.inputStream().use { fis ->
         load(fis)
     }
 }
-
-// Workaround caching problems with 'java-gradle-plugin'
-// vvvvv
-normalization {
-    runtimeClasspath {
-        ignore("plugin-under-test-metadata.properties")
-    }
-}
-// ^^^^^
 
 tasks {
     val checkSameDaemonArgs by creating {

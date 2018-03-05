@@ -16,23 +16,25 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
-import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
+import java.util.Set;
 
 /**
  * Decorates the filer to validate the correct behavior for {@link MultipleOriginProcessor}s.
  */
 class MultipleOriginFiler extends IncrementalFiler {
 
-    MultipleOriginFiler(Filer delegate, Messager messager) {
-        super(delegate, messager);
+    MultipleOriginFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
+        super(delegate, result, messager);
     }
 
-    protected void checkOriginatingElements(CharSequence name, Element[] originatingElements, Messager messager) {
-        if (originatingElements.length == 0) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Generated file '" + name + "' must have at least one originating element.");
+    protected void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager) {
+        if (originatingTypes.isEmpty()) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Generated type '" + generatedType + "' must have at least one originating element.");
         }
     }
 

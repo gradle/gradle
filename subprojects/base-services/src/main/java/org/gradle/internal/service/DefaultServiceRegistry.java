@@ -40,7 +40,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
@@ -72,7 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
-    private enum State {INIT, IN_USE, CLOSING, CLOSED};
+    private enum State {INIT, STARTED, CLOSED};
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
     private final static Service[] NO_DEPENDENTS = new Service[0];
     private final static Object[] NO_PARAMS = new Object[0];
@@ -83,10 +83,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
-    private State state = State.INIT;
-    private final Object stateLock = new Object();
-    private final AtomicInteger inProgress = new AtomicInteger(0);
-
+    private AtomicReference<State> state = new AtomicReference<State>(State.INIT);
 
     public DefaultServiceRegistry() {
         this(null, NO_PARENTS);
@@ -212,7 +209,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private void assertMutable() {
-        if (state != State.INIT) {
+        if (state.get() != State.INIT) {
             throw new IllegalStateException("Cannot add provide to service registry " + this + " as it is no longer mutable");
         }
     }
@@ -255,61 +252,27 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
      * Closes all services for this registry. For each service, if the service has a public void close() or stop() method, that method is called to close the service.
      */
     public void close() {
-        if (state == State.CLOSED || state == State.CLOSING) {
-            return;
-        }
-
-        synchronized (stateLock) {
-            if (state == State.CLOSED || state == State.CLOSING) {
-                return;
-            }
-            state = State.CLOSING;
-            waitForPendingRequests();
-            CompositeStoppable.stoppable(allServices).stop();
-            state = State.CLOSED;
-        }
-    }
-
-    private void waitForPendingRequests() {
-        while (inProgress.get() != 0) {
-            try {
-                stateLock.wait();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void newRequestInProgress() {
         noLongerMutable();
-        if (state == State.CLOSED) {
+        if (state.compareAndSet(State.STARTED, State.CLOSED)) {
+            CompositeStoppable.stoppable(allServices).stop();
+        }
+    }
+
+    private void serviceRequested() {
+        noLongerMutable();
+        if (state.get() == State.CLOSED) {
             throw new IllegalStateException(String.format("%s has been closed.", getDisplayName()));
         }
-        inProgress.incrementAndGet();
     }
 
     private void noLongerMutable() {
-        if (state == State.INIT) {
-            synchronized (stateLock) {
-                if (state == State.INIT) {
-                    state = State.IN_USE;
-                    ownServices.noLongerMutable();
-                }
-            }
-        }
-    }
-
-    private void requestFinished() {
-        boolean noMoreRequests = inProgress.decrementAndGet() == 0;
-        if (noMoreRequests && state == State.CLOSING) {
-            synchronized (stateLock) {
-                stateLock.notify();
-            }
+        if (state.compareAndSet(State.INIT, State.STARTED)) {
+            ownServices.noLongerMutable();
         }
     }
 
     public boolean isClosed() {
-        return state == State.CLOSED;
+        return state.get() == State.CLOSED;
     }
 
     public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
@@ -327,12 +290,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private Service getService(Type serviceType) {
-        try {
-            newRequestInProgress();
-            return find(serviceType, allServices);
-        } finally {
-            requestFinished();
-        }
+        serviceRequested();
+        return find(serviceType, allServices);
     }
 
     public <T> Factory<T> getFactory(Class<T> type) {
@@ -346,12 +305,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private Service getFactoryService(Class<?> serviceType) {
-        try {
-            newRequestInProgress();
-            return allServices.getFactory(serviceType);
-        } finally {
-            requestFinished();
-        }
+        serviceRequested();
+        return allServices.getFactory(serviceType);
     }
 
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
@@ -362,12 +317,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private <T> void collectServices(Class<T> serviceType, List<Service> results) {
-        try {
-            newRequestInProgress();
-            allServices.getAll(serviceType, results);
-        } finally {
-            requestFinished();
-        }
+        serviceRequested();
+        allServices.getAll(serviceType, results);
     }
 
     private static class InstanceUnpackingList<T> extends AbstractList<Service> {

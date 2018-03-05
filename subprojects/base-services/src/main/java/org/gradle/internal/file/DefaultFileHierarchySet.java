@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class DefaultFileHierarchySet {
@@ -44,7 +43,7 @@ public class DefaultFileHierarchySet {
     /**
      * Creates a set containing the given directories and all their descendants.
      */
-    public static FileHierarchySet of(Collection<File> rootDirs) {
+    public static FileHierarchySet of(Iterable<File> rootDirs) {
         FileHierarchySet set = EMPTY;
         for (File rootDir : rootDirs) {
             set = set.plus(rootDir);

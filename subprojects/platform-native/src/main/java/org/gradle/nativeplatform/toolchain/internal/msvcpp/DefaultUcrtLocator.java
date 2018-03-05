@@ -20,7 +20,7 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt> implements UcrtLocator {
+public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<UcrtInstall> implements UcrtLocator {
     private static final String DISPLAY_NAME = "Universal C Runtime";
     private static final String COMPONENT_NAME = "ucrt";
 
@@ -59,7 +59,7 @@ public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt>
     }
 
     @Override
-    Ucrt newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType) {
-        return new Ucrt(baseDir, version, getVersionedDisplayName(version, discoveryType));
+    UcrtInstall newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType) {
+        return new UcrtInstall(baseDir, version, getVersionedDisplayName(version, discoveryType));
     }
 }

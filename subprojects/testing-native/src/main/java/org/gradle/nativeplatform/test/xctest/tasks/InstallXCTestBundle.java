@@ -38,6 +38,7 @@ import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -148,8 +149,9 @@ public class InstallXCTestBundle extends DefaultTask {
     }
 
     @SkipWhenEmpty
-    @InputFile
+    @Nullable
     @Optional
+    @InputFile
     protected File getBundleBinary() {
         RegularFile bundle = getBundleBinaryFile().get();
         File bundleFile = bundle.getAsFile();
