@@ -17,10 +17,13 @@
 package org.gradle.internal.operations.notify;
 
 import com.google.common.collect.Lists;
+import org.gradle.BuildAdapter;
+import org.gradle.BuildListener;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
@@ -35,90 +38,94 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar {
+public class BuildOperationNotificationBridge implements Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
-    private final BuildOperationListenerManager listenerManager;
-
+    private final BuildOperationListenerManager buildOperationListenerManager;
     private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
-    private BuildOperationListener adapter = new Adapter(replayAndAttachListener);
 
-    private BuildOperationNotificationListener2 listener;
+    private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
+    private BuildOperationNotificationListener2 notificationListener;
+
     private boolean stopped;
-    private final Stoppable stoppable = new Stoppable() {
-        @Override
-        public void stop() {
-            BuildOperationNotificationBridge.this.stop();
-        }
-    };
 
-    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
-        this.listenerManager = buildOperationListenerManager;
-    }
+    private final ListenerManager listenerManager;
 
-    public void start(GradleInternal gradle) {
-        listenerManager.addListener(adapter);
-
-        // ensure we only store events for configuration phase to keep overhead small
-        // when build scan plugin is not applied
-        gradle.rootProject(new Action<Project>() {
-            @Override
-            public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                project.afterEvaluate(new Action<Project>() {
+    // Listen for the end of configuration of the root project of the root build,
+    // and discard buffered notifications if no listeners have yet appeared.
+    // This avoids buffering until the end of the build when no listener comes.
+    private final BuildListener buildListener = new BuildAdapter() {
+        public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
+            if (gradle.getParent() == null) {
+                gradle.rootProject(new Action<Project>() {
                     @Override
                     public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                        if (listener == null) {
-                            stop();
-                        }
+                        project.afterEvaluate(new Action<Project>() {
+                            @Override
+                            public void execute(@SuppressWarnings("NullableProblems") Project project) {
+                                if (notificationListener == null) {
+                                    stop();
+                                }
+                            }
+                        });
                     }
                 });
             }
-        });
+        }
+    };
+
+    private final BuildOperationNotificationListenerRegistrar registrar = new BuildOperationNotificationListenerRegistrar() {
+        @Override
+        public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
+            BuildOperationNotificationListener2 adapted = adapt(notificationListener);
+            assignSingleListener(adapted);
+
+            // Remove the old adapter and start again.
+            // We explicitly do not want to receive finish notifications
+            // for any operations currently in flight,
+            // and we want to throw away the recorded notifications.
+            buildOperationListenerManager.removeListener(buildOperationListener);
+            buildOperationListener = new Adapter(adapted);
+            buildOperationListenerManager.addListener(buildOperationListener);
+        }
+
+        @Override
+        public void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener notificationListener) {
+            register(adapt(notificationListener));
+        }
+
+        @Override
+        public void register(BuildOperationNotificationListener2 listener) {
+            assignSingleListener(listener);
+            replayAndAttachListener.attach(listener);
+        }
+    };
+
+    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
+        this.buildOperationListenerManager = buildOperationListenerManager;
+        this.listenerManager = listenerManager;
+        buildOperationListenerManager.addListener(buildOperationListener);
+        listenerManager.addListener(buildListener);
     }
 
-    @Override
-    public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-        BuildOperationNotificationListener2 adapted = adapt(notificationListener);
-        assignSingleListener(adapted);
-
-        // Remove the old adapter and start again.
-        // We explicitly do not want to receive finish notifications
-        // for any operations currently in flight,
-        // and we want to throw away the recorded notifications.
-
-        listenerManager.removeListener(adapter);
-        adapter = new Adapter(adapted);
-        listenerManager.addListener(adapter);
-    }
-
-    @Override
-    public void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener notificationListener) {
-        register(adapt(notificationListener));
-    }
-
-    @Override
-    public void register(BuildOperationNotificationListener2 listener) {
-        assignSingleListener(listener);
-        replayAndAttachListener.attach(listener);
+    public BuildOperationNotificationListenerRegistrar getRegistrar() {
+        return registrar;
     }
 
     private void assignSingleListener(BuildOperationNotificationListener2 notificationListener) {
-        if (listener != null) {
-            throw new IllegalStateException("listener is already registered (implementation class " + listener.getClass().getName() + ")");
+        if (this.notificationListener != null) {
+            throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
         }
-        listener = notificationListener;
+        this.notificationListener = notificationListener;
     }
 
-
-    public Stoppable getStoppable() {
-        return stoppable;
-    }
-
+    @Override
     public void stop() {
         if (!stopped) {
-            listenerManager.removeListener(adapter);
-            adapter = null;
+            buildOperationListenerManager.removeListener(buildOperationListener);
+            buildOperationListener = null;
+            listenerManager.removeListener(buildListener);
             stopped = true;
         }
     }

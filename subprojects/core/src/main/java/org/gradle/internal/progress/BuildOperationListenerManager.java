@@ -19,9 +19,10 @@ package org.gradle.internal.progress;
 /**
  * Manages listeners of build operations.
  *
- * Be aware that there are two instances of this within the services hierarchy.
- * One is global scoped (used by TAPI infrastructure).
- * The other is build session scoped (used by build operation notifications).
+ * Be aware that there are two instances of this within the services hierarchy:
+ *
+ * - Global scoped (used by TAPI infrastructure)
+ * - Cross build session
  *
  * @since 3.5
  */

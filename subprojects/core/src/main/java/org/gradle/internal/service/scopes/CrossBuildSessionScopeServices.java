@@ -28,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
+import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.BuildProgressLogger;
@@ -35,6 +36,7 @@ import org.gradle.internal.progress.DefaultBuildOperationExecutor;
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.progress.DelegatingBuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -59,72 +61,28 @@ import java.io.IOException;
  */
 public class CrossBuildSessionScopeServices implements Closeable {
 
-    private final DefaultGradleLauncherFactory gradleLauncherFactory;
-    private final WorkerLeaseService workerLeaseService;
-    private final WorkerLeaseService stopShieldWorkerLeaseService;
-    private final BuildOperationListenerManager buildOperationListenerManager;
-
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildOperationExecutor stopShieldBuildOperationExecutor;
     private final BuildOperationTrace buildOperationTrace;
     private final BuildOperationNotificationBridge buildOperationNotificationBridge;
 
+    private final Services services;
+    private DefaultBuildOperationListenerManager buildOperationListenerManager;
+
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
-        ProgressLoggerFactory progressLoggerFactory = parent.get(ProgressLoggerFactory.class);
-        ResourceLockCoordinationService resourceLockCoordinationService = parent.get(ResourceLockCoordinationService.class);
-        ParallelismConfigurationManager parallelismConfigurationManager = parent.get(ParallelismConfigurationManager.class);
+        this.services = new Services(parent);
+
         ListenerManager globalListenerManager = parent.get(ListenerManager.class);
         ListenerManager crossSessionListenerManager = globalListenerManager.createChild();
-
-        this.gradleLauncherFactory = new DefaultGradleLauncherFactory(
-            parent.get(GradleUserHomeScopeServiceRegistry.class),
-            parent.get(BuildProgressLogger.class),
-            this
-        );
-
-        this.workerLeaseService = new DefaultWorkerLeaseService(
-            resourceLockCoordinationService,
-            parallelismConfigurationManager
-        );
-
-        this.stopShieldWorkerLeaseService = new StopShieldingWorkerLeaseService(workerLeaseService);
-
         this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(crossSessionListenerManager);
-
-        this.buildOperationExecutor = new DefaultBuildOperationExecutor(
-            buildOperationListenerManager.getBroadcaster(),
-            parent.get(Clock.class),
-            progressLoggerFactory,
-            new DefaultBuildOperationQueueFactory(workerLeaseService),
-            parent.get(ExecutorFactory.class),
-            resourceLockCoordinationService,
-            parallelismConfigurationManager,
-            parent.get(BuildOperationIdFactory.class)
-        );
-
-        this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager);
-
-        this.stopShieldBuildOperationExecutor = new DelegatingBuildOperationExecutor(buildOperationExecutor);
-
         this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
-    }
-
-    @Override
-    public void close() throws IOException {
-        new CompositeStoppable().add(
-            buildOperationExecutor,
-            workerLeaseService,
-            buildOperationTrace,
-            buildOperationNotificationBridge.getStoppable()
-        ).stop();
+        this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, globalListenerManager);
     }
 
     GradleLauncherFactory createGradleLauncherFactory() {
-        return gradleLauncherFactory;
+        return services.get(GradleLauncherFactory.class);
     }
 
     WorkerLeaseService createWorkerLeaseService() {
-        return stopShieldWorkerLeaseService;
+        return new StopShieldingWorkerLeaseService(services.get(WorkerLeaseService.class));
     }
 
     BuildOperationListenerManager createBuildOperationListenerManager() {
@@ -132,11 +90,59 @@ public class CrossBuildSessionScopeServices implements Closeable {
     }
 
     BuildOperationExecutor createBuildOperationExecutor() {
-        return stopShieldBuildOperationExecutor;
+        return new DelegatingBuildOperationExecutor(services.get(BuildOperationExecutor.class));
     }
 
-    BuildOperationNotificationBridge createBuildOperationNotificationBridge() {
-        return buildOperationNotificationBridge;
+    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar() {
+        return buildOperationNotificationBridge.getRegistrar();
     }
 
+    @Override
+    public void close() throws IOException {
+        new CompositeStoppable().add(
+            buildOperationTrace,
+            buildOperationNotificationBridge,
+            services
+        ).stop();
+    }
+
+    private class Services extends DefaultServiceRegistry {
+
+        public Services(ServiceRegistry parent) {
+            super(parent);
+        }
+
+        GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry, BuildProgressLogger buildProgressLogger) {
+            return new DefaultGradleLauncherFactory(
+                userHomeDirServiceRegistry,
+                buildProgressLogger,
+                CrossBuildSessionScopeServices.this
+            );
+        }
+
+        WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
+            return new DefaultWorkerLeaseService(resourceLockCoordinationService, parallelismConfigurationManager);
+        }
+
+        BuildOperationExecutor createBuildOperationExecutor(
+            Clock clock,
+            ProgressLoggerFactory progressLoggerFactory,
+            WorkerLeaseService workerLeaseService,
+            ExecutorFactory executorFactory,
+            ResourceLockCoordinationService resourceLockCoordinationService,
+            ParallelismConfigurationManager parallelismConfigurationManager,
+            BuildOperationIdFactory buildOperationIdFactory
+        ) {
+            return new DefaultBuildOperationExecutor(
+                buildOperationListenerManager.getBroadcaster(),
+                clock,
+                progressLoggerFactory,
+                new DefaultBuildOperationQueueFactory(workerLeaseService),
+                executorFactory,
+                resourceLockCoordinationService,
+                parallelismConfigurationManager,
+                buildOperationIdFactory
+            );
+        }
+    }
 }
