@@ -17,13 +17,14 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.language.nativeplatform.internal.Include
 import spock.lang.Specification
 
 
 class DefaultSourceIncludesTest extends Specification {
     List<Include> includes = [ '"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2" ].collect { IncludeWithSimpleExpression.parse(it, false) }
-    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.of(), ImmutableList.of())
+    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableMultimap.of(), ImmutableMultimap.of())
 
     def "can filter includes" () {
         expect:
