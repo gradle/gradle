@@ -56,6 +56,12 @@ subprojects {
             plugin("kotlin")
             plugin("java-library")
         }
+
+        tasks.withType<KotlinCompile> {
+            kotlinOptions {
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+            }
+        }
     }
     apply {
         plugin("idea")
