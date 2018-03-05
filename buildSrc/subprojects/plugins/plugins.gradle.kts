@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":testing"))
+    implementation(project(":versioning"))
     implementation(project(":performance"))
     implementation("org.pegdown:pegdown:1.6.0")
     implementation("org.jsoup:jsoup:1.11.2")
@@ -58,6 +59,14 @@ gradlePlugin {
         "unitTestAndCompile" {
             id = "gradlebuild.unittest-and-compile"
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
+        }
+        "integrationTests" {
+            id = "gradlebuild.integration-tests"
+            implementationClass = "org.gradle.plugins.integrationtests.IntegrationTestsPlugin"
+        }
+        "crossVersionTests" {
+            id = "gradlebuild.cross-version-tests"
+            implementationClass = "org.gradle.plugins.integrationtests.CrossVersionTestsPlugin"
         }
     }
 }
