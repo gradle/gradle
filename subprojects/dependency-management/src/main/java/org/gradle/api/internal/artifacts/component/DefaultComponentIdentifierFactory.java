@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;

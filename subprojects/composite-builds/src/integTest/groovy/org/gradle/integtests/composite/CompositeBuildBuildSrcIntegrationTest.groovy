@@ -48,7 +48,6 @@ class CompositeBuildBuildSrcIntegrationTest extends AbstractIntegrationSpec {
         then:
         // TODO - Fix test fixtures to allow assertions on buildSrc tasks rather than relying on output scraping in tests
         outputContains(":buildSrc:assemble")
-        // TODO - Should be :someBuild:buildSrc:assemble
         outputContains(":child:buildSrc:assemble")
 
         outputContains("outer thing")

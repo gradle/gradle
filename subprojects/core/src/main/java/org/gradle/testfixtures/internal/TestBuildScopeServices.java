@@ -20,7 +20,9 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -41,6 +43,10 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     protected BuildDefinition createBuildDefinition(StartParameter startParameter) {
         return BuildDefinition.fromStartParameter(startParameter);
+    }
+
+    protected BuildIdentity createBuildIdentity(BuildDefinition buildDefinition) {
+        return new DefaultBuildIdentity(buildDefinition, true);
     }
 
     protected BuildCancellationToken createBuildCancellationToken() {

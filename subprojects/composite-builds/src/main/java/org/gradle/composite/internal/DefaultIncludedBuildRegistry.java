@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.specs.Spec;

@@ -20,7 +20,7 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Sets
 import org.gradle.api.Action
 import org.gradle.ide.visualstudio.TextProvider
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 import org.gradle.util.TextUtil
 
@@ -36,18 +36,15 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
         'default.sln'
     }
 
-    void setProjects(List<LocalComponentArtifactMetadata> projects) {
-        projects.each { LocalComponentArtifactMetadata project ->
-            this.projects[project.file] = project.name.name
-        }
-    }
-
-    void setProjectConfigurations(List<LocalComponentArtifactMetadata> projectConfigurations) {
-        projectConfigurations.each { LocalComponentArtifactMetadata projectConfiguration ->
-            if (!this.projectConfigurations.containsKey(projectConfiguration.file)) {
-                this.projectConfigurations[projectConfiguration.file] = Sets.newHashSet();
+    void setProjects(List<VisualStudioProjectMetadata> projects) {
+        projects.each { VisualStudioProjectMetadata project ->
+            this.projects[project.file] = project.name
+            project.configurations.each { String configuration ->
+                if (!this.projectConfigurations.containsKey(project.file)) {
+                    this.projectConfigurations[project.file] = Sets.newHashSet();
+                }
+                this.projectConfigurations[project.file].add(configuration)
             }
-            this.projectConfigurations[projectConfiguration.file].add(projectConfiguration.name.name)
         }
     }
 

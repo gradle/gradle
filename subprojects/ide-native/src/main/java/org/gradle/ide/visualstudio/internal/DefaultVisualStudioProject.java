@@ -19,8 +19,6 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -29,6 +27,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
 
@@ -190,8 +189,8 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     @Override
     @Internal
-    public PublishArtifact getPublishArtifact() {
-        return new VisualStudioProjectArtifact();
+    public IdeProjectMetadata getPublishArtifact() {
+        return new VisualStudioProjectMetadata(this);
     }
 
     @Nested
@@ -202,17 +201,6 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     @Nested
     public List<Action<? super XmlProvider>> getFiltersFileActions() {
         return filtersFile.getXmlActions();
-    }
-
-    private class VisualStudioProjectArtifact extends DefaultPublishArtifact {
-        public VisualStudioProjectArtifact() {
-            super(name, "vcxproj", ARTIFACT_TYPE, null, null, null, buildDependencies);
-        }
-
-        @Override
-        public File getFile() {
-            return projectFile.getLocation();
-        }
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {

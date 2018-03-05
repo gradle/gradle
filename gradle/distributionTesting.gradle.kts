@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.BuildEnvironment
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.cleanup.CleanUpCaches

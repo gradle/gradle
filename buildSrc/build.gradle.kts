@@ -52,7 +52,10 @@ subprojects {
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply { plugin("kotlin") }
+        apply {
+            plugin("kotlin")
+            plugin("java-library")
+        }
     }
     apply {
         plugin("idea")
@@ -84,10 +87,9 @@ dependencies {
     subprojects.forEach {
         "runtime"(project(it.path))
     }
-
-    compile("com.google.code.gson:gson:2.7")
 }
 
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
     apply { from("../gradle/codeQualityConfiguration.gradle.kts") }

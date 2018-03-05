@@ -54,8 +54,9 @@ class DefaultSettingsLoaderTest extends Specification {
         gradle.getServices() >> services
         gradle.getIdentityPath() >> Path.ROOT
         settingsFinder.find(startParameter) >> settingsLocation
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> { GradleInternal gradle, StartParameter sp ->
-            assert sp.currentDir == new File(settingsLocation.getSettingsDir(), DefaultSettings.DEFAULT_BUILD_SRC_DIR)
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _, _) >> { GradleInternal gradle, File rootDir, StartParameter sp ->
+            assert rootDir == settingsLocation.getSettingsDir()
+            assert sp == startParameter
             classLoaderScope
         }
         1 * settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter) >> settings
