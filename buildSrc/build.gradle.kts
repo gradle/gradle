@@ -26,6 +26,7 @@ plugins {
 }
 
 subprojects {
+    apply { plugin("java-library")}
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
         apply { plugin("groovy") }
         dependencies {
@@ -50,12 +51,21 @@ subprojects {
             groovyOptions.encoding = "utf-8"
             configureCompileTask(this, options)
         }
+
+        val compileGroovy: GroovyCompile by tasks
+
+        configurations {
+            "apiElements" {
+                outgoing.variants["classes"].artifact(mapOf(
+                    "file" to compileGroovy.destinationDir,
+                    "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+                    "builtBy" to compileGroovy
+                ))
+            }
+        }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply {
-            plugin("kotlin")
-            plugin("java-library")
-        }
+        apply { plugin("kotlin") }
 
         tasks.withType<KotlinCompile> {
             kotlinOptions {
