@@ -963,15 +963,15 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "implementation of nested closure in decorated bean is tracked"() {
-        taskWithNestedDecoratedBean()
+        taskWithNestedBeanWithAction()
         buildFile << """
-            extensions.create("bean", NestedBean.class)
+            extensions.create("bean", NestedBeanWithAction.class)
             
             bean {
                 withAction { it.text = "hello" }
             }
             
-            task myTask(type: TaskWithNestedDecoratedAction) {
+            task myTask(type: TaskWithNestedBeanWithAction) {
                 bean = project.bean
             }
         """
@@ -995,13 +995,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Value of input property 'bean.action.class' has changed for task ':myTask'"
     }
 
-    private TestFile nestedDecoratedBeanWithAction() {
-        return file("buildSrc/src/main/java/NestedBean.java") << """
+    private TestFile nestedBeanWithAction() {
+        return file("buildSrc/src/main/java/NestedBeanWithAction.java") << """
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.Action;
             import java.io.File;
             
-            public class NestedBean {
+            public class NestedBeanWithAction {
                 Action<File> action;
                 
                 public void withAction(Action<File> action) {
@@ -1015,9 +1015,9 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
-    private TestFile taskWithNestedDecoratedBean() {
-        nestedDecoratedBeanWithAction()
-        return file("buildSrc/src/main/java/TaskWithNestedDecoratedAction.java") << """
+    private TestFile taskWithNestedBeanWithAction() {
+        nestedBeanWithAction()
+        return file("buildSrc/src/main/java/TaskWithNestedBeanWithAction.java") << """
             import org.gradle.api.Action;
             import org.gradle.api.DefaultTask;
             import org.gradle.api.NonNullApi;
@@ -1028,9 +1028,9 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             import java.io.File;
             
             @NonNullApi
-            public class TaskWithNestedDecoratedAction extends DefaultTask {
+            public class TaskWithNestedBeanWithAction extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
-                private NestedBean bean;
+                private NestedBeanWithAction bean;
                 
                 @OutputFile
                 public File getOutputFile() {
@@ -1042,11 +1042,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 }
             
                 @Nested
-                public NestedBean getBean() {
+                public NestedBeanWithAction getBean() {
                     return bean;
                 }
                 
-                public void setBean(NestedBean bean) {
+                public void setBean(NestedBeanWithAction bean) {
                     this.bean = bean;
                 }
             
