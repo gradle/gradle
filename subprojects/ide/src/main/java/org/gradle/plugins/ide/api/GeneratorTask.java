@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.api;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFile;
@@ -60,7 +61,20 @@ public class GeneratorTask<T> extends ConventionTask {
     protected T domainObject;
 
     public GeneratorTask() {
-        getOutputs().upToDateWhen(Specs.satisfyNone());
+        if (!getIncremental()) {
+            getOutputs().upToDateWhen(Specs.satisfyNone());
+        }
+    }
+
+    /**
+     * Whether this generator task can be treated as an incremental task or not
+     *
+     * @since 4.7
+     */
+    @Internal
+    @Incubating
+    protected boolean getIncremental() {
+        return false;
     }
 
     @SuppressWarnings("UnusedDeclaration")

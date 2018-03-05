@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.Processor;
@@ -26,12 +28,12 @@ import javax.annotation.processing.Processor;
  */
 public class SingleOriginProcessor extends IncrementalProcessor {
 
-    public SingleOriginProcessor(Processor delegate) {
-        super(delegate);
+    public SingleOriginProcessor(Processor delegate, AnnotationProcessingResult result) {
+        super(delegate, result);
     }
 
     @Override
-    SingleOriginFiler wrapFiler(Filer filer, Messager messager) {
-        return new SingleOriginFiler(filer, messager);
+    IncrementalFiler wrapFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
+        return new SingleOriginFiler(filer, result, messager);
     }
 }

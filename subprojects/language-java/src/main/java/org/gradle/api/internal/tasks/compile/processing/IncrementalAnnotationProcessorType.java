@@ -33,11 +33,6 @@ package org.gradle.api.internal.tasks.compile.processing;
  * </p>
  *
  * <p>
- * All processor types are currently treated as non-incremental. This will improve over time as we add more
- * capabilities to the compiler.
- * </p>
- *
- * <p>
  * Processors can register themselves as incremental by providing a <code>META-INF/gradle/incremental.annotation.processors</code> file,
  * which has one line per processor, each line containing the fully qualified class name and one of the processor types listed
  * here, separated by a comma. E.g.:
@@ -53,7 +48,7 @@ public enum IncrementalAnnotationProcessorType {
     /**
      * A processor whose generated files have exactly one originating element.
      */
-    SINGLE_ORIGIN(false),
+    SINGLE_ORIGIN(true),
     /**
      * A processor whose generated files can have more than one originating element.
      */

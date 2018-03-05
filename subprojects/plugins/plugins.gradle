@@ -66,4 +66,6 @@ task wrapperJar(type: Copy) {
 }
 sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

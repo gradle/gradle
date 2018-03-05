@@ -35,6 +35,8 @@ public enum ToolChainRequirement {
     VISUALCPP_2017,
     // Any available Visual Studio >= 2017
     VISUALCPP_2017_OR_NEWER,
+    // Any windows GCC compatible implementation (mingw, cygwin)
+    WINDOWS_GCC,
     // Any available GCC implementation (including mingw, cygwin, but not clang)
     GCC,
     // Any available GCC compatible implementation (including mingw, cygwin, and clang)

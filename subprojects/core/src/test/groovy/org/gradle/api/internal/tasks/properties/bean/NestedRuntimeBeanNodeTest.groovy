@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.properties.bean
 
 import org.gradle.api.Action
+import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -30,5 +32,16 @@ class NestedRuntimeBeanNodeTest extends Specification {
         type      | implementation
         "Closure" | { it }
         "Action"  |  new Action<String>() { @Override void execute(String s) {} }
+    }
+
+    def "correct implementation for closure wrapped in Action is tracked"() {
+        given:
+        def closure = { it }
+
+        expect:
+        NestedRuntimeBeanNode.getImplementationClass(ConfigureUtil.configureUsing(closure)) == closure.getClass()
+
+        and:
+        NestedRuntimeBeanNode.getImplementationClass(ClosureBackedAction.of(closure)) == closure.getClass()
     }
 }
