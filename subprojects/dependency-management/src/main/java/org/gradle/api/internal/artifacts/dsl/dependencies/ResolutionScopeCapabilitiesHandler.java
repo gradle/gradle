@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
-import org.gradle.internal.component.external.model.CapabilityDescriptor;
+import org.gradle.api.component.CapabilityDescriptor;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 

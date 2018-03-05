@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.external.model.CapabilityDescriptor
+import org.gradle.api.component.CapabilityDescriptor
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata

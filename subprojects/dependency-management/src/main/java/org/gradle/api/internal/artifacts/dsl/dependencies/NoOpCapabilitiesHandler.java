@@ -20,7 +20,7 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.CapabilityHandler;
-import org.gradle.internal.component.external.model.CapabilityDescriptor;
+import org.gradle.api.component.CapabilityDescriptor;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import com.google.common.collect.ComparisonChain;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.external.model.CapabilityDescriptor;
+import org.gradle.api.component.CapabilityDescriptor;
 
 import java.util.Comparator;
 import java.util.Set;

@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.component.CapabilityDescriptor
+import org.gradle.api.component.ComponentWithCapabilities
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -636,6 +638,72 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 """
     }
 
+
+    def "writes file for component with capabilities"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponentWithCapabilities)
+        def publication = publication(component, id)
+
+        when:
+        component.getCapabilities() >> [
+                capability('foo', ['foo', 'bar'], null),
+                capability('test', ['test 1', 'test 2'], 'test 2'),
+                capability('zorg', ['zorg'], null, 'custom reason'),
+        ]
+        generator.generateTo(publication, [publication], writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "component": {
+    "group": "group",
+    "module": "module",
+    "version": "1.2",
+    "attributes": {},
+    "capabilities": [
+      {
+        "name": "foo",
+        "providedBy": [
+          "foo",
+          "bar"
+        ]
+      },
+      {
+        "name": "test",
+        "providedBy": [
+          "test 1",
+          "test 2"
+        ],
+        "prefer": "test 2"
+      },
+      {
+        "name": "zorg",
+        "providedBy": [
+          "zorg"
+        ],
+        "reason": "custom reason"
+      }
+    ]
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  }
+}
+"""
+    }
+
+    CapabilityDescriptor capability(String name, List<String> providedBy, String prefer, String reason = null) {
+        Stub(CapabilityDescriptor) {
+            getName() >> name
+            getProvidedBy() >> providedBy
+            getPrefer() >> prefer
+            getReason() >> reason
+        }
+    }
+
     def publication(SoftwareComponentInternal component, ModuleVersionIdentifier coords) {
         def publication = Stub(PublicationInternal)
         publication.component >> component
@@ -656,6 +724,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {
 
     }
+
+    interface TestComponentWithCapabilities extends TestComponent, ComponentWithCapabilities {}
 
     class SimplePublishedFile implements PublicationInternal.PublishedFile {
         SimplePublishedFile(String name, String uri) {
