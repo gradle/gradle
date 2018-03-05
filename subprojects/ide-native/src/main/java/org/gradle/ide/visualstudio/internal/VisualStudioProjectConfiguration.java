@@ -16,17 +16,11 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 
-import java.io.File;
-
 public class VisualStudioProjectConfiguration {
-    public final static String ARTIFACT_TYPE = "visualStudioProjectConfiguration";
-
     private final DefaultVisualStudioProject vsProject;
     private final String name;
     private final String configurationName;
@@ -70,24 +64,8 @@ public class VisualStudioProjectConfiguration {
         return vsProject;
     }
 
-    @Internal
-    public PublishArtifact getPublishArtifact() {
-        return new VisualStudioProjectConfigurationArtifact();
-    }
-
     @Input
     public String getBinaryOutputPath() {
         return binary.getOutputFile().getAbsolutePath();
-    }
-
-    private class VisualStudioProjectConfigurationArtifact extends DefaultPublishArtifact {
-        public VisualStudioProjectConfigurationArtifact() {
-            super(name, "vcxproj", ARTIFACT_TYPE, null, null, null, vsProject.getBuildDependencies());
-        }
-
-        @Override
-        public File getFile() {
-            return vsProject.getProjectFile().getLocation();
-        }
     }
 }

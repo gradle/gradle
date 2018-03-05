@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.composite
+package org.gradle.plugins.ide.idea
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
@@ -25,13 +26,21 @@ import spock.lang.Issue
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
-class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
+    BuildTestFile buildA
     BuildTestFile buildB
 
     def setup() {
-        buildA.buildFile << """
-            apply plugin: 'idea'
+        buildTestFixture.withBuildInSubDir()
+        buildA = singleProjectBuild("buildA") {
+            buildFile << """
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
 """
+        }
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -44,7 +53,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 }
 """
         }
-        includedBuilds << buildB
+        includeBuild(buildB)
     }
 
     def "builds IDEA metadata with substituted dependency"() {
@@ -137,7 +146,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 apply plugin: 'idea'
 """
         }
-        includedBuilds << buildC
+        includeBuild buildC
 
         when:
         idea()
@@ -208,7 +217,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         dependency "org.test:buildB:1.0"
         dependency "org.test:buildC:1.0"
 
-        def buildC = rootDir.file("hierarchy", "buildB");
+        def buildC = file("hierarchy", "buildB");
         buildC.file('settings.gradle') << """
             rootProject.name = 'buildC'
 """
@@ -219,7 +228,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
             group = 'org.test'
             version = '1.0'
 """
-        includedBuilds << buildC
+        includeBuild buildC
 
         when:
         idea()
@@ -238,7 +247,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 apply plugin: 'idea'
 """
         }
-        includedBuilds << buildC
+        includeBuild buildC
 
         when:
         idea()
@@ -286,7 +295,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 apply plugin: 'java'
 """
         }
-        includedBuilds << buildC
+        includeBuild buildC
 
         when:
         idea()
@@ -317,7 +326,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 """
         }
 
-        includedBuilds << buildC
+        includeBuild buildC
 
         when:
         idea()
@@ -343,16 +352,16 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 }
 """
         }
-        includedBuilds << buildC
+        includeBuild buildC
 
         def buildD = singleProjectBuild("b1") {
             buildFile << """
                 apply plugin: 'java'
                 apply plugin: 'idea'
-                group = 'org.buildD' 
+                group = 'org.buildD'
 """
         }
-        includedBuilds << buildD
+        includeBuild buildD
 
         when:
         idea()
@@ -384,10 +393,10 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
             include 'b1'
 """
         buildA.buildFile << """
-            subprojects { 
+            subprojects {
                 apply plugin: 'idea'
                 apply plugin: 'java'
-                
+
                 group = 'org.buildA'
             }
 """
@@ -397,12 +406,12 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 allprojects {
                     apply plugin: 'java'
                     apply plugin: 'idea'
-                    
+
                     group = 'org.buildC'
                 }
 """
         }
-        includedBuilds << buildC
+        includeBuild buildC
 
         when:
         idea()
@@ -438,15 +447,15 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
                 }
 """
         }
-        includedBuilds << buildC
+        includeBuild buildC
 
         def buildD = singleProjectBuild("b1") {
             buildFile << """
                 apply plugin: 'java'
-                group = 'org.buildD' 
+                group = 'org.buildD'
 """
         }
-        includedBuilds << buildD
+        includeBuild buildD
 
         when:
         idea()
@@ -471,8 +480,23 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         )
     }
 
-    def idea(BuildTestFile projectDir = buildA) {
-        execute(projectDir, ":idea")
+    def dependency(BuildTestFile sourceBuild = buildA, String notation) {
+        sourceBuild.buildFile << """
+            dependencies {
+                compile '${notation}'
+            }
+"""
+    }
+
+    def includeBuild(TestFile build) {
+        buildA.settingsFile << """
+includeBuild '${build.toURI()}'
+"""
+    }
+
+    def idea(TestFile build = buildA) {
+        executer.inDirectory(build)
+        succeeds(":idea")
     }
 
     def ipr(TestFile projectDir = buildA) {

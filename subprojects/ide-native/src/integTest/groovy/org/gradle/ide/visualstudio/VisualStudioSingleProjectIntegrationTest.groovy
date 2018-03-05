@@ -25,14 +25,29 @@ import org.gradle.util.TestPrecondition
 
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
-    private final Set<String> projectConfigurations = ['debug', 'release'] as Set
-
     def app = new CppHelloWorldApp()
 
     def setup() {
         buildFile << """
             apply plugin: 'visual-studio'
         """
+    }
+
+    def "create visual studio solution for project without C++ component"() {
+        when:
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+
+        and:
+        run "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution")
+
+        and:
+        final mainSolution = solutionFile("app.sln")
+        mainSolution.assertHasProjects()
     }
 
     def "create visual studio solution for single executable"() {
@@ -56,8 +71,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        executedAndNotSkipped ":visualStudio", ":appVisualStudioSolution"
-        executedAndNotSkipped getProjectTasks("app")
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", getProjectTasks("app"))
 
         and:
         final projectFile = projectFile("app.vcxproj")
@@ -97,8 +111,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        executedAndNotSkipped ":visualStudio", ":libVisualStudioSolution"
-        executedAndNotSkipped getProjectTasks("libDll")
+        result.assertTasksExecuted(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libDll"))
 
         and:
         final projectFile = projectFile("libDll.vcxproj")
@@ -139,8 +152,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        executedAndNotSkipped ":visualStudio", ":libVisualStudioSolution"
-        executedAndNotSkipped getProjectTasks("libLib")
+        result.assertTasksExecuted(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libLib"))
 
         and:
         final projectFile = projectFile("libLib.vcxproj")
@@ -181,9 +193,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        executedAndNotSkipped ":visualStudio", ":libVisualStudioSolution"
-        executedAndNotSkipped getProjectTasks("libLib")
-        executedAndNotSkipped getProjectTasks("libDll")
+        result.assertTasksExecuted(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libLib"), getProjectTasks("libDll"))
 
         and:
         final libProjectFile = projectFile("libLib.vcxproj")
@@ -294,6 +304,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", getProjectTasks("app"))
+
+        and:
         final projectFile = projectFile("app.vcxproj")
         projectFile.sourceFiles == ['build.gradle']
         projectFile.headerFiles == []

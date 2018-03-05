@@ -127,16 +127,20 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(BuildDefinition buildDefinition, GradleLauncher parent,
+    private DefaultGradleLauncher doNewInstance(BuildDefinition buildDefinition,
+                                                @Nullable GradleLauncher parent,
                                                 BuildCancellationToken cancellationToken,
-                                                BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
-                                                final BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
+                                                BuildRequestMetaData requestMetaData,
+                                                BuildEventConsumer buildEventConsumer,
+                                                final BuildTreeScopeServices buildTreeScopeServices,
+                                                List<?> servicesToStop) {
         BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
         serviceRegistry.add(BuildDefinition.class, buildDefinition);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
+        serviceRegistry.add(BuildIdentity.class, new DefaultBuildIdentity(buildDefinition, parent == null));
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 

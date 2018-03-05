@@ -40,6 +40,9 @@ import org.jsoup.parser.Parser
 import java.io.File
 
 import accessors.*
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
 import org.gradle.kotlin.dsl.*
 
 
@@ -245,7 +248,6 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
-        val projectsRequiringJava8 = property("projectsRequiringJava8") as List<Project>
         val ideaLanguageLevel =
             if (ideaModule.project in projectsRequiringJava8) "1.8"
             else "1.6"
@@ -380,7 +382,7 @@ open class IdePlugin : Plugin<Project> {
             "-Xmx512m"
         )
 
-        if (!(rootProject.property("javaVersion") as JavaVersion).isJava8Compatible) {
+        if (!BuildEnvironment.javaVersion.isJava8Compatible) {
             vmParameter.add("-XX:MaxPermSize=512m")
         }
         return vmParameter.joinToString(" ") {

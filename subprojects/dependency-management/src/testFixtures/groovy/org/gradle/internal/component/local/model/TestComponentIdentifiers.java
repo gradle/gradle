@@ -17,7 +17,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 
 public class TestComponentIdentifiers {
     public static ProjectComponentIdentifier newProjectId(String projectPath) {

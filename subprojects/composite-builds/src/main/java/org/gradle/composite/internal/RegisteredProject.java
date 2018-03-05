@@ -16,17 +16,12 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-
-import java.util.Collection;
 
 public class RegisteredProject {
     public final LocalComponentMetadata metaData;
-    public final Collection<LocalComponentArtifactMetadata> artifacts;
 
-    public RegisteredProject(LocalComponentMetadata metaData, Collection<LocalComponentArtifactMetadata> artifacts) {
+    public RegisteredProject(LocalComponentMetadata metaData) {
         this.metaData = metaData;
-        this.artifacts = artifacts;
     }
 }

@@ -342,7 +342,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-
     private boolean isConfigureOnDemand() {
         return gradle.getStartParameter().isConfigureOnDemand();
     }

@@ -1,3 +1,5 @@
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -18,7 +20,7 @@ plugins {
 }
 
 // Wrapper main entry point requires Java 5
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     compile project(":cli")
@@ -39,6 +41,8 @@ normalization {
         ignore wrapperBuildReceipt
     }
 }
+
+def generatedTestResourcesDir = getGradlebuildJava(project).generatedTestResourcesDir
 
 task wrapperBuildReceiptResource(type: Copy) {
     from {

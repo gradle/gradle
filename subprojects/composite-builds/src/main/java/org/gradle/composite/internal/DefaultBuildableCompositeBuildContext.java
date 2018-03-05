@@ -28,10 +28,8 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,11 +53,6 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
         RegisteredProject registeredProject = getRegisteredProject(project);
         return registeredProject != null ? registeredProject.metaData : null;
-    }
-
-    public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
-        RegisteredProject registeredProject = getRegisteredProject(project);
-        return registeredProject != null ? registeredProject.artifacts : null;
     }
 
     @Override

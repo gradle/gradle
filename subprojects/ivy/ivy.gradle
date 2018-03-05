@@ -36,5 +36,7 @@ testFixtures {
     from(':platformBase')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

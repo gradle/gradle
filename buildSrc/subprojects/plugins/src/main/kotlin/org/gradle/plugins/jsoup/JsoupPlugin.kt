@@ -24,6 +24,7 @@ import org.gradle.kotlin.dsl.*
 
 class JsoupPlugin : Plugin<Project> {
 
+    // TODO Is this used anywhere?
     override fun apply(project: Project): Unit = project.run {
         tasks.withType<Copy> {
             extensions.create<JsoupCopyExtension>("jsoup", this)

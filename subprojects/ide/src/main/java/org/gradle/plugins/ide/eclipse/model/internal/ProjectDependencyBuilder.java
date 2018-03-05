@@ -17,15 +17,15 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 public class ProjectDependencyBuilder {
-    private final LocalComponentRegistry localComponentRegistry;
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public ProjectDependencyBuilder(LocalComponentRegistry localComponentRegistry) {
-        this.localComponentRegistry = localComponentRegistry;
+    public ProjectDependencyBuilder(IdeArtifactRegistry ideArtifactRegistry) {
+        this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
     public ProjectDependency build(ProjectComponentIdentifier id) {
@@ -37,8 +37,8 @@ public class ProjectDependencyBuilder {
     }
 
     public String determineTargetProjectName(ProjectComponentIdentifier id) {
-        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(id, "eclipse.project");
-        return eclipseProjectArtifact == null ? id.getProjectName() : eclipseProjectArtifact.getName().getName();
+        EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeArtifactMetadata(EclipseProjectMetadata.class, id);
+        return eclipseProject == null ? id.getProjectName() : eclipseProject.getName();
     }
 
     private ProjectDependency buildProjectDependency(String path) {

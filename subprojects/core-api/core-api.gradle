@@ -18,7 +18,7 @@ plugins {
     // id 'gradlebuild.strict-compile'
 }
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     api project(":baseServices")
@@ -42,4 +42,6 @@ testFixtures {
     from(':logging')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
