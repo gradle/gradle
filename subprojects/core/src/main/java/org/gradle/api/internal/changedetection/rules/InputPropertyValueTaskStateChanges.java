@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
@@ -25,17 +25,14 @@ import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class InputPropertyValueTaskStateChanges extends SimpleTaskStateChanges {
     private final TaskInternal task;
-    private final Set<String> valueChanges;
-    private final Set<String> implementationChanges;
+    private final ImmutableMap<String, String> changed;
 
     public InputPropertyValueTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution.getInputProperties();
-        ImmutableSet.Builder<String> valueChangesBuilder = ImmutableSet.builder();
-        ImmutableSet.Builder<String> implementationChangesBuilder = ImmutableSet.builder();
+        ImmutableMap.Builder<String, String> changedBuilder = ImmutableMap.builder();
         ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : currentInputProperties.entrySet()) {
             String propertyName = entry.getKey();
@@ -43,26 +40,22 @@ class InputPropertyValueTaskStateChanges extends SimpleTaskStateChanges {
             ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
             if (previousSnapshot != null) {
                 if (!currentSnapshot.equals(previousSnapshot)) {
-                    if (currentSnapshot instanceof ImplementationSnapshot) {
-                        implementationChangesBuilder.add(propertyName);
-                    } else {
-                        valueChangesBuilder.add(propertyName);
-                    }
+                    changedBuilder.put(
+                        propertyName,
+                        currentSnapshot instanceof ImplementationSnapshot ? "Implementation" : "Value");
                 }
             }
         }
-        valueChanges = valueChangesBuilder.build();
-        implementationChanges = implementationChangesBuilder.build();
+        this.changed = changedBuilder.build();
         this.task = task;
     }
 
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
-        for (String propertyName : implementationChanges) {
-            changes.add(new DescriptiveChange("Implementation of input property '%s' has changed for %s", propertyName, task));
-        }
-        for (String propertyName : valueChanges) {
-            changes.add(new DescriptiveChange("Value of input property '%s' has changed for %s", propertyName, task));
+        for (Map.Entry<String, String> entry : changed.entrySet()) {
+            String propertyName = entry.getKey();
+            String changeType = entry.getValue();
+            changes.add(new DescriptiveChange("%s of input property '%s' has changed for %s", changeType, propertyName, task));
         }
     }
 }
