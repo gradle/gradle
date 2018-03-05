@@ -47,5 +47,7 @@ testFixtures {
     from(':modelCore')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

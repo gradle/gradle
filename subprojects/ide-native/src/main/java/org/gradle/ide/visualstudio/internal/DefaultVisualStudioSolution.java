@@ -17,23 +17,29 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.TextConfigFile;
 import org.gradle.ide.visualstudio.TextProvider;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
@@ -54,8 +60,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             }
         }));
         this.ideArtifactRegistry = ideArtifactRegistry;
-        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectInternal.ARTIFACT_TYPE));
-        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectConfiguration.ARTIFACT_TYPE));
+        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectMetadata.class));
     }
 
     @Override
@@ -73,18 +78,44 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
         return name;
     }
 
+    @Override
     public SolutionFile getSolutionFile() {
         return solutionFile;
     }
 
     @Override
-    public List<LocalComponentArtifactMetadata> getProjectArtifacts() {
-        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectInternal.ARTIFACT_TYPE);
+    @Internal
+    public List<VisualStudioProjectMetadata> getProjects() {
+        return CollectionUtils.collect(ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectMetadata.class), new Transformer<VisualStudioProjectMetadata, IdeArtifactRegistry.Reference<VisualStudioProjectMetadata>>() {
+            @Override
+            public VisualStudioProjectMetadata transform(IdeArtifactRegistry.Reference<VisualStudioProjectMetadata> reference) {
+                return reference.get();
+            }
+        });
     }
 
-    @Override
-    public List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts() {
-        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectConfiguration.ARTIFACT_TYPE);
+    @Input
+    public List<String> getProjectFilePaths() {
+        return CollectionUtils.collect(getProjects(), new Transformer<String, VisualStudioProjectMetadata>() {
+            @Override
+            public String transform(VisualStudioProjectMetadata metadata) {
+                return metadata.getFile().getAbsolutePath();
+            }
+        });
+    }
+
+    @Input
+    public Set<String> getConfigurationNames() {
+        Set<String> configurations = new LinkedHashSet<String>();
+        for (VisualStudioProjectMetadata projectMetadata : getProjects()) {
+            configurations.addAll(projectMetadata.getConfigurations());
+        }
+        return configurations;
+    }
+
+    @Nested
+    public List<Action<? super TextProvider>> getSolutionFileActions() {
+        return solutionFile.getTextActions();
     }
 
     @Override
@@ -108,6 +139,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             this.location = defaultLocation;
         }
 
+        @Internal
         public File getLocation() {
             return fileResolver.resolve(location);
         }
@@ -120,6 +152,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             actions.add(action);
         }
 
+        @Nested
         public List<Action<? super TextProvider>> getTextActions() {
             return actions;
         }

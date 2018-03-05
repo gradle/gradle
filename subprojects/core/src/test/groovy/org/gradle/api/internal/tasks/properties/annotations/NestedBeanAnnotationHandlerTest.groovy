@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties.annotations
 
 import org.gradle.api.Action
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
@@ -26,6 +27,7 @@ import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec
 import org.gradle.api.internal.tasks.properties.NestedPropertyContext
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -47,6 +49,17 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         type      | implementation
         "Closure" | { it }
         "Action"  |  new Action<String>() { @Override void execute(String s) {} }
+    }
+
+    def "correct implementation for closure wrapped in Action is tracked"() {
+        given:
+        def closure = { it }
+
+        expect:
+        NestedBeanAnnotationHandler.getImplementationClass(ConfigureUtil.configureUsing(closure)) == closure.getClass()
+
+        and:
+        NestedBeanAnnotationHandler.getImplementationClass(ClosureBackedAction.of(closure)) == closure.getClass()
     }
 
     def "absent nested property is reported as error"() {
@@ -122,7 +135,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         then:
         1 * propertyValue.value >> nestedBean
         1 * propertyValue.getPropertyName() >> nestedPropertyName
-        1 * context.isIterable({ it.propertyName == nestedPropertyName }) >> false
+        1 * context.shouldUnpack({ it.propertyName == nestedPropertyName }) >> false
         1 * context.addNested({ it.propertyName == nestedPropertyName })
         1 * propertyVisitor.visitInputProperty({ it.propertyName == nestedPropertyName }) >> { arguments ->
             taskInputPropertySpec = arguments[0]

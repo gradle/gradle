@@ -564,14 +564,24 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop         | value        | expected
-        TaskWithNestedBean                        | "bean"       | [null]       | Bean.class
-        TaskWithNestedIterable                    | "beans.\$0"  | [null]       | Bean.class
-        TaskWithNestedBeanWithPrivateClass        | "bean"       | [null, null] | Bean2.class
-        TaskWithOptionalNestedBean                | "bean"       | [null]       | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean"       | null         | null
-        TaskWithInput                             | "inputValue" | ["value"]    | "value"
-        TaskWithBooleanInput                      | "inputValue" | [true]       | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop                 | value                            | expected
+        TaskWithNestedBean                        | 'bean'               | [null]                           | Bean.class
+        TaskWithNestedObject                      | 'bean.key'           | [['key': new Bean()]]            | Bean.class
+        TaskWithNestedIterable                    | 'beans.$0'           | [new Bean()]                     | Bean.class
+        TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
+        TaskWithNestedBeanWithPrivateClass        | 'bean'               | [null, null]                     | Bean2.class
+        TaskWithOptionalNestedBean                | 'bean'               | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | 'bean'               | null                             | null
+        TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
+        TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
+    }
+
+    def "iterable nested properties are named by index"() {
+        given:
+        def task = expectTaskCreated(TaskWithNestedObject, [[new Bean(), new NamedBean('name', 'value'), new Bean()]] as Object[])
+
+        expect:
+        inputProperties(task).keySet() == ['bean.$0', 'bean.name$1', 'bean.name$1.value', 'bean.$2'] as Set
     }
 
     @Unroll
@@ -608,7 +618,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
         TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
         TaskWithNestedBean                        | [null]                         | ["bean"]                                        | ["bean.inputFile"]      | []
-        TaskWithNestedIterable                    | [null]                         | ["beans.\$0"]                                   | ["beans.\$0.inputFile"] | []
+        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0"]                                   | ["beans.\$0.inputFile"] | []
         TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean"]                                        | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
         TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean"]                                        | ["bean.inputFile"]      | []

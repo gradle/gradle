@@ -16,14 +16,11 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-
-import java.io.File;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 
 public class VisualStudioProjectConfiguration {
-    public final static String ARTIFACT_TYPE = "visualStudioProjectConfiguration";
-
     private final DefaultVisualStudioProject vsProject;
     private final String name;
     private final String configurationName;
@@ -37,42 +34,38 @@ public class VisualStudioProjectConfiguration {
         this.binary = binary;
     }
 
+    @Input
     public String getName() {
         return name;
     }
 
+    @Input
     public String getConfigurationName() {
         return configurationName;
     }
 
+    @Input
     public String getPlatformName() {
         return platformName;
     }
 
+    @Nested
     public VisualStudioTargetBinary getTargetBinary() {
         return binary;
     }
 
+    @Internal
     public final String getType() {
         return "Makefile";
     }
 
+    @Internal
     public DefaultVisualStudioProject getProject() {
         return vsProject;
     }
 
-    public PublishArtifact getPublishArtifact() {
-        return new VisualStudioProjectConfigurationArtifact();
-    }
-
-    private class VisualStudioProjectConfigurationArtifact extends DefaultPublishArtifact {
-        public VisualStudioProjectConfigurationArtifact() {
-            super(name, "vcxproj", ARTIFACT_TYPE, null, null, null, vsProject.getBuildDependencies());
-        }
-
-        @Override
-        public File getFile() {
-            return vsProject.getProjectFile().getLocation();
-        }
+    @Input
+    public String getBinaryOutputPath() {
+        return binary.getOutputFile().getAbsolutePath();
     }
 }

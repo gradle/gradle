@@ -26,8 +26,6 @@ import org.gradle.util.TestPrecondition
 
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
-    private final Set<String> projectConfigurations = ['debug', 'release'] as Set
-
     def app = new CppHelloWorldApp()
 
     def setup() {
@@ -39,6 +37,63 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
                 apply plugin: 'visual-studio'
             }
         """
+    }
+
+    def "create visual studio solution for build without any C++ components"() {
+        when:
+        settingsFile << """
+            rootProject.name = 'app'
+            include 'one', 'two', 'three'
+        """
+
+        and:
+        run ":visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution")
+
+        and:
+        final mainSolution = solutionFile("app.sln")
+        mainSolution.assertHasProjects()
+    }
+
+    def "includes a visual studio project for every project with a C++ component"() {
+        when:
+        settingsFile << """
+            rootProject.name = 'app'
+            include 'one', 'two', 'three'
+        """
+        buildFile << """
+            apply plugin: 'cpp-application'
+
+            project(':one') {
+                apply plugin: 'cpp-application'
+            }
+            project(':two') {
+                apply plugin: 'cpp-library'
+            }
+        """
+
+        and:
+        run ":visualStudio"
+
+        then:
+        result.assertTasksExecuted(":appVisualStudioSolution",
+            ":appVisualStudioFilters", ":appVisualStudioProject",
+            ":one:oneVisualStudioFilters", ":one:oneVisualStudioProject",
+            ":two:twoDllVisualStudioFilters", ":two:twoDllVisualStudioProject",
+            ":visualStudio")
+
+        and:
+        def appProject = projectFile("app.vcxproj")
+        def oneProject = projectFile("one/one.vcxproj")
+        def twoProject = projectFile("two/twoDll.vcxproj")
+
+        final mainSolution = solutionFile("app.sln")
+        mainSolution.assertHasProjects("app", "one", "twoDll")
+        mainSolution.assertReferencesProject(appProject, projectConfigurations)
+        mainSolution.assertReferencesProject(oneProject, projectConfigurations)
+        mainSolution.assertReferencesProject(twoProject, projectConfigurations)
     }
 
     def "create visual studio solution for executable that depends on a library in another project"() {
@@ -64,6 +119,12 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         run ":visualStudio"
 
         then:
+        result.assertTasksExecuted(":appVisualStudioSolution",
+            ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
+            ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
+            ":visualStudio")
+
+        and:
         final exeProject = projectFile("exe/exe.vcxproj")
         exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
@@ -122,6 +183,12 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         run ":visualStudio"
 
         then:
+        result.assertTasksExecuted(":appVisualStudioSolution",
+            ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
+            ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
+            ":visualStudio")
+
+        and:
         final exeProject = projectFile("exe/exe.vcxproj")
         exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
@@ -186,6 +253,13 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         succeeds ":visualStudio"
 
         then:
+        result.assertTasksExecuted(":appVisualStudioSolution",
+            ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
+            ":greet:greetLibVisualStudioFilters", ":greet:greetLibVisualStudioProject",
+            ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
+            ":visualStudio")
+
+        and:
         final exeProject = projectFile("exe/exe.vcxproj")
         final helloDllProject = projectFile("lib/libDll.vcxproj")
         final greetLibProject = projectFile("greet/greetLib.vcxproj")
@@ -240,6 +314,13 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         succeeds ":visualStudio"
 
         then:
+        result.assertTasksExecuted(":appVisualStudioSolution",
+            ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
+            ":greet:greetLibVisualStudioFilters", ":greet:greetLibVisualStudioProject",
+            ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
+            ":visualStudio")
+
+        and:
         final exeProject = projectFile("exe/exe.vcxproj")
         final helloDllProject = projectFile("lib/libDll.vcxproj")
         final greetLibProject = projectFile("greet/greetLib.vcxproj")

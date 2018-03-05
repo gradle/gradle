@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

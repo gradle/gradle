@@ -84,10 +84,6 @@ public abstract class IdePlugin implements Plugin<Project> {
         return cleanTask;
     }
 
-    public Task getCleanTask(Task worker) {
-        return project.getTasks().getByName(cleanName(worker.getName()));
-    }
-
     protected String cleanName(String taskName) {
         return String.format("clean%s", StringUtils.capitalize(taskName));
     }
@@ -108,7 +104,7 @@ public abstract class IdePlugin implements Plugin<Project> {
     protected void onApply(Project target) {
     }
 
-    protected Task addWorkspaceOpenTask(final IdeWorkspace workspace) {
+    protected void addWorkspace(final IdeWorkspace workspace) {
         lifecycleTask.doLast(new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -139,7 +135,6 @@ public abstract class IdePlugin implements Plugin<Project> {
                 }
             }
         });
-        return openTask;
     }
 
     protected abstract String getLifecycleTaskName();

@@ -42,7 +42,6 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName(), nativeBinary.getVisualStudioVersion(), nativeBinary.getSdkVersion());
         VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getVisualStudioConfigurationName());
         project.addConfiguration(nativeBinary, configuration);
-        ideArtifactRegistry.registerIdeArtifact(configuration.getPublishArtifact());
         return configuration;
     }
 
