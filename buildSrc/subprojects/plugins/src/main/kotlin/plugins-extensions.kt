@@ -19,6 +19,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
+import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompileExtension
 import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
 
@@ -28,6 +29,12 @@ import org.gradle.kotlin.dsl.*
 fun Project.availableJavaInstallations(configure: AvailableJavaInstallations.() -> Unit): Unit =
     extensions.configure("availableJavaInstallations", configure)
 
+fun Project.gradlebuildJava(configure: UnitTestAndCompileExtension.() -> Unit): Unit =
+    extensions.configure("gradlebuildJava", configure)
+
 val Project.availableJavaInstallations
     get() = extensions.getByName<AvailableJavaInstallations>("availableJavaInstallations")
+
+val Project.gradlebuildJava
+    get() = extensions.getByName<UnitTestAndCompileExtension>("gradlebuildJava")
 
