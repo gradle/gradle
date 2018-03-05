@@ -77,9 +77,9 @@ The Checkstyle plugin adds the following dependencies to tasks defined by the Ja
 [[sec:checkstyle_project_layout]]
 === Project layout
 
-By default, the Checkstyle plugin expects the following project layout, but this can be changed:
+By default, the Checkstyle plugin expects configuration files to be placed in the root project, but this can be changed. With default settings of the plugin, CheckStyle configuration files used for checking all subprojects are kept in a single place.
 
-.Checkstyle plugin - project layout
+.Checkstyle plugin - root project layout
 [cols="a,a", options="header"]
 |===
 | File
