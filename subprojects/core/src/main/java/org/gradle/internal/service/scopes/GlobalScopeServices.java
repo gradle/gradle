@@ -66,6 +66,7 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.buildevents.ProjectEvaluationLogger;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -81,10 +82,13 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.progress.BuildOperationListenerManager;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
@@ -189,6 +193,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
+    BuildProgressLogger createBuildProgressLogger(ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
+        BuildProgressLogger buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
+        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
+        listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
+        return buildProgressLogger;
+    }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         return new DefaultCacheFactory(fileLockManager, executorFactory);

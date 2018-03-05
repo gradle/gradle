@@ -119,10 +119,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory);
     }
 
-    ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild();
-    }
-
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);

@@ -32,7 +32,6 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.buildevents.ProjectEvaluationLogger;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.classpath.ClassPath;
@@ -49,7 +48,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
@@ -77,18 +75,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
-        ListenerManager listenerManager,
-        ProgressLoggerFactory progressLoggerFactory,
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
+        BuildProgressLogger buildProgressLogger,
         CrossBuildSessionScopeServices crossBuildSessionScopeServices
     ) {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
+        this.buildProgressLogger = buildProgressLogger;
         this.crossBuildSessionScopeServices = crossBuildSessionScopeServices;
-
-        // Register default loggers
-        buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
-        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
-        listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
     }
 
     private GradleLauncher createChildInstance(BuildDefinition buildDefinition, GradleLauncher parent, BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
