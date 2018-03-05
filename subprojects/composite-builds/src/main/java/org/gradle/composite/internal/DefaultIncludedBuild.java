@@ -59,6 +59,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
     private boolean resolvedDependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
+    private boolean discardLauncher;
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
@@ -109,7 +110,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
     @Override
     public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         // TODO: Synchronization
-        if (availableModules==null) {
+        if (availableModules == null) {
             Gradle gradle = getConfiguredBuild();
             availableModules = Sets.newLinkedHashSet();
             for (Project project : gradle.getRootProject().getAllprojects()) {
@@ -141,11 +142,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
 
     @Override
     public void finishBuild() {
-        // If the gradleLauncher is null, then we've already finished building.
-        if (gradleLauncher == null) {
+        if (gradleLauncher == null || discardLauncher) {
             return;
         }
-        getGradleLauncher().finishBuild();
+        gradleLauncher.finishBuild();
     }
 
     public synchronized void addTasks(Iterable<String> taskPaths) {
@@ -161,6 +161,8 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
 
     @Override
     public synchronized void execute(final Iterable<String> tasks, final Object listener) {
+        cleanupLauncherIfRequired();
+
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
@@ -177,9 +179,21 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
         }
     }
 
+    private void cleanupLauncherIfRequired() {
+        if (gradleLauncher != null && discardLauncher) {
+            // Have already used the launcher to run tasks, need to replace it
+            try {
+                gradleLauncher.stop();
+            } finally {
+                gradleLauncher = null;
+                discardLauncher = false;
+            }
+        }
+    }
+
     private void markAsNotReusable() {
-        gradleLauncher.stop();
-        gradleLauncher = null;
+        // Hang on to the launcher, as other builds in progress may still have references to this build, for example through dependency resolution, even though the tasks of this build have completed
+        discardLauncher = true;
     }
 
     @Override
@@ -189,8 +203,13 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
 
     @Override
     public void stop() {
-        if (gradleLauncher!=null) {
-            gradleLauncher.stop();
+        try {
+            if (gradleLauncher != null) {
+                gradleLauncher.stop();
+            }
+        } finally {
+            gradleLauncher = null;
+            discardLauncher = false;
         }
     }
 }

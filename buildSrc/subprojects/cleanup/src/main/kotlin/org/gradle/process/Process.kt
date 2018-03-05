@@ -20,6 +20,7 @@
 package org.gradle.process
 
 import org.gradle.api.Project
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testing.LeakingProcessKillPattern
 import java.io.ByteArrayOutputStream
@@ -29,7 +30,7 @@ fun Project.pkill(pid: String) {
     val killOutput = ByteArrayOutputStream()
     val result = exec {
         commandLine =
-            if (isWindows) {
+            if (BuildEnvironment.isWindows) {
                 listOf("taskkill.exe", "/F", "/T", "/PID", pid)
             } else {
                 listOf("kill", pid)
@@ -57,7 +58,7 @@ fun Project.forEachLeakingJavaProcess(action: ProcessInfo.() -> Unit) {
     val output = ByteArrayOutputStream()
     val error = ByteArrayOutputStream()
     val (result, pidPattern) =
-        if (isWindows) {
+        if (BuildEnvironment.isWindows) {
             exec {
                 commandLine("wmic", "process", "get", "processid,commandline")
                 standardOutput = output
@@ -109,7 +110,4 @@ fun forEachLineIn(s: String, action: (String) -> Unit) =
 
 fun Project.isMe(process: String) =
     process.contains(gradle.gradleHomeDir!!.path)
-
-
-val isWindows get() = OperatingSystem.current().isWindows
 

@@ -25,6 +25,7 @@ import org.gradle.plugins.testfixtures.TestFixturesExtension
 import org.gradle.plugins.testfixtures.TestFixturesPlugin
 import org.gradle.testing.CrossVersionTest
 import org.gradle.testing.IntegrationTest
+import releasedVersions
 
 class CrossVersionTestsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
@@ -60,7 +61,6 @@ class CrossVersionTestsPlugin : Plugin<Project> {
             description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
         }
 
-        val releasedVersions = property("releasedVersions") as ReleasedVersionsFromVersionControl
         val quickTestVersions = releasedVersions.getTestedVersions(true)
         releasedVersions.getTestedVersions(false).forEach { targetVersion ->
             tasks.create<CrossVersionTest>("gradle${targetVersion}CrossVersionTest") {

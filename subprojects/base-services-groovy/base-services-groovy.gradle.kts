@@ -15,7 +15,7 @@
  */
 plugins {
     `java-library`
-    id("classycle")
+    id("gradlebuild.classycle")
 }
 
 java.sourceCompatibility = sourceCompatibleVersion

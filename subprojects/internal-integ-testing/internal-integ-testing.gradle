@@ -1,3 +1,5 @@
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -46,11 +48,13 @@ testFixtures {
     from(':core', 'main')
 }
 
+def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")
-    versions = releasedVersions.allVersions
-    mostRecent = releasedVersions.mostRecentRelease
-    mostRecentSnapshot = releasedVersions.mostRecentSnapshot
+    versions = Versioning_extensionsKt.getReleasedVersions(project).allVersions
+    mostRecent = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
+    mostRecentSnapshot = Versioning_extensionsKt.getReleasedVersions(project).mostRecentSnapshot
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: prepareVersionsInfo

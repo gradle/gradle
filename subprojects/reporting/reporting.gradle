@@ -1,3 +1,5 @@
+import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+
 plugins {
     id 'javascript-base'
 }
@@ -27,6 +29,8 @@ dependencies {
 testFixtures {
     from(':core')
 }
+
+def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
 
 task reportResources(type: Copy) {
     from configurations.reports

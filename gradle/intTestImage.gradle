@@ -33,7 +33,7 @@ configurations {
     }
 }
 
-if (useAllDistribution) {
+if (Build_extensionsKt.getUseAllDistribution(project)) {
     task unpackAllDistribution(type: Sync) {
         dependsOn ':distributions:allZip'
         from { zipTree(tasks.getByPath(':distributions:allZip').archivePath) }

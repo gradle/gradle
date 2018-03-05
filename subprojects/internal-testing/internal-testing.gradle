@@ -18,7 +18,7 @@
     Provides generally useful test utilities, used for unit and integration testing.
 */
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {

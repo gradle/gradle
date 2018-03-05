@@ -1,6 +1,7 @@
 apply { plugin("org.gradle.kotlin.kotlin-dsl")}
 
 dependencies {
-    "compile"(project(":testing"))
-    "compile"(project(":kotlinDsl"))
+    implementation(project(":configuration"))
+    implementation(project(":testing"))
+    implementation(project(":kotlinDsl"))
 }
