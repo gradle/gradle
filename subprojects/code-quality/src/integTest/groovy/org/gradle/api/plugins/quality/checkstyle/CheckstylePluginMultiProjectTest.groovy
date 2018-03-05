@@ -21,6 +21,8 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
+    private static final EXPECTED_DEPRECATION_MESSAGE = "Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project has been deprecated and is scheduled to be removed in Gradle 5.0. Use the root project's 'config/checkstyle' directory instead.";
+
     def "configures checkstyle extension to read config from root project in a single project build"() {
         given:
         buildFile << javaProjectUsingCheckstyle()
@@ -32,34 +34,57 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(testDirectory).text.contains('Dummy.java')
     }
 
+    def "configures checkstyle extension to read config just from sub project in a multi-project build and renders deprecation warning"() {
+        given:
+        executer.expectDeprecationWarning()
+        settingsFile << "include 'child'"
+        file('child/build.gradle') << javaProjectUsingCheckstyle()
+        file('child/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('child/config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+
+        expect:
+        succeeds(':child:checkstyleMain')
+        checkStyleReportFile(file('child')).text.contains('Dummy.java')
+        outputContains(EXPECTED_DEPRECATION_MESSAGE)
+    }
+
     def "configures checkstyle extension to read config from root project in a flat multi-project build"() {
         given:
-        def rootProject = multiProjectBuild('rootCheckStyle', ['child']) {
-            settingsFile << """
-                include 'child:grand'
-            """
-        }
-        rootProject.file('child/grand/build.gradle') << javaProjectUsingCheckstyle()
-        rootProject.file('child/grand/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
-        rootProject.file('child/grand', 'config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
-        rootProject.file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+        settingsFile << "include 'child:grand'"
+        file('child/grand/build.gradle') << javaProjectUsingCheckstyle()
+        file('child/grand/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         expect:
         succeeds(':child:grand:checkstyleMain')
-        checkStyleReportFile(rootProject.file('child/grand')).text.contains('Dummy.java')
+        checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
     }
 
     def "configures checkstyle extension to read config from root project in a deeply nested multi-project build"() {
         given:
-        def rootProject = multiProjectBuild('rootCheckStyle', ['a:b:c'])
-        rootProject.file('a/b/c/build.gradle') << javaProjectUsingCheckstyle()
-        rootProject.file('a/b/c/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
-        rootProject.file('a/b/c', 'config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
-        rootProject.file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+        settingsFile << "include 'a:b:c'"
+        file('a/b/c/build.gradle') << javaProjectUsingCheckstyle()
+        file('a/b/c/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         expect:
         succeeds(':a:b:c:checkstyleMain')
-        checkStyleReportFile(rootProject.file('a/b/c')).text.contains('Dummy.java')
+        checkStyleReportFile(file('a/b/c')).text.contains('Dummy.java')
+    }
+
+    def "configures checkstyle extension to read config from sub project in a multi-project build even if root project config is available and renders deprecation warning"() {
+        given:
+        executer.expectDeprecationWarning()
+        settingsFile << "include 'child:grand'"
+        file('child/grand/build.gradle') << javaProjectUsingCheckstyle()
+        file('child/grand/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('child/grand/config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+        file('config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
+
+        expect:
+        succeeds(':child:grand:checkstyleMain')
+        checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
+        outputContains(EXPECTED_DEPRECATION_MESSAGE)
     }
 
     static String simpleCheckStyleConfig() {
