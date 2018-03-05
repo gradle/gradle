@@ -63,7 +63,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
     private final WorkerLeaseService workerLeaseService;
     private final WorkerLeaseService stopShieldWorkerLeaseService;
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final ListenerManager crossSessionListenerManager;
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationExecutor stopShieldBuildOperationExecutor;
@@ -74,6 +73,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
         ProgressLoggerFactory progressLoggerFactory = parent.get(ProgressLoggerFactory.class);
         ResourceLockCoordinationService resourceLockCoordinationService = parent.get(ResourceLockCoordinationService.class);
         ParallelismConfigurationManager parallelismConfigurationManager = parent.get(ParallelismConfigurationManager.class);
+        ListenerManager globalListenerManager = parent.get(ListenerManager.class);
+        ListenerManager crossSessionListenerManager = globalListenerManager.createChild();
 
         this.gradleLauncherFactory = new DefaultGradleLauncherFactory(
             parent.get(GradleUserHomeScopeServiceRegistry.class),
@@ -88,7 +89,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
         this.stopShieldWorkerLeaseService = new StopShieldingWorkerLeaseService(workerLeaseService);
 
-        this.crossSessionListenerManager = parent.get(ListenerManager.class).createChild();
         this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(crossSessionListenerManager);
 
         this.buildOperationExecutor = new DefaultBuildOperationExecutor(
@@ -106,7 +106,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
         this.stopShieldBuildOperationExecutor = new DelegatingBuildOperationExecutor(buildOperationExecutor);
 
-        this.buildOperationTrace = new BuildOperationTrace(startParameter, crossSessionListenerManager);
+        this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
     }
 
     @Override
@@ -137,11 +137,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     BuildOperationNotificationBridge createBuildOperationNotificationBridge() {
         return buildOperationNotificationBridge;
-    }
-
-    ListenerManager createListenerManager() {
-        // Create a child for each session mixed into
-        return crossSessionListenerManager.createChild();
     }
 
 }
