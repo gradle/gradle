@@ -282,7 +282,27 @@ You'll learn more about file collections and file trees in the next section.
 [[sec:locating_files]]
 === File paths in depth
 
-In order to perform some action on a file, you need to know where it is, and that's the information provided by file paths. Gradle builds on the standard Java `{javaApi}/java/io/File.html[File]` class, which represents the location of a single file, and provides new APIs for dealing with collections of paths. This section shows you how to use the Gradle APIs to specify file paths that tasks can use.
+In order to perform some action on a file, you need to know where it is, and that's the information provided by file paths. Gradle builds on the standard Java `{javaApi}/java/io/File.html[File]` class, which represents the location of a single file, and provides new APIs for dealing with collections of paths. This section shows you how to use the Gradle APIs to specify file paths for use in tasks and file operations.
+
+But first, an important note on using hard-coded file paths in your builds.
+
+
+[[sec:hard_coded_file_paths]]
+==== On hard-coded file paths
+
+Many examples in this chapter use hard-coded paths as string literals. This makes them easy to understand, but it's not good practice for real builds. The problem is that paths often change and the more places you need to change them, the more likely you are to miss one and break the build.
+
+Where possible, you should use tasks, task properties, and <<sec:extra_properties,project properties>> — in that order of preference — to configure file paths. For example, if you were to create a task that packages the compiled classes of a Java application, you should aim for something like this:
+
+++++
+<sample id="minimizingHardCodedPaths" dir="userguide/files/sampleJavaProject" title="How to minimize the number of hard-coded paths in your build">
+    <sourcefile file="build.gradle" snippet="link-task-properties"/>
+</sample>
+++++
+
+See how we're using the `compileJava` task as the source of the files to package and we've created a project property `archivesDirPath` to store the location where we put archives, on the basis we're likely to use it elsewhere in the build.
+
+Using a task directly as an argument like this relies on it having <<sec:task_inputs_outputs,defined outputs>>, so it won't always be possible. In addition, this example could be improved further by relying on the Java plugin's convention for `destinationDir` rather than overriding it, but it does demonstrate the use of project properties.
 
 [[sec:single_file_paths]]
 ==== Single file paths

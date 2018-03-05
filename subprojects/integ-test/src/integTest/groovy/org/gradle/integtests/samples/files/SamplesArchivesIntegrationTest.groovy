@@ -106,4 +106,20 @@ class SamplesArchivesIntegrationTest extends AbstractIntegrationSpec {
         tmpOutDir.file("Hello.class").isFile()
         tmpOutDir.file("org/apache/commons/io/IOUtils.class").isFile()
     }
+
+    @UsesSample("userguide/files/sampleJavaProject")
+    def "can link tasks via their properties"() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds("packageClasses")
+
+        then:
+        def tmpOutDir = sample.dir.file("tmp")
+        def zipFile = sample.dir.file("build/archives/my-java-project-classes-1.0.0.zip")
+        zipFile.isFile()
+        zipFile.unzipTo(tmpOutDir)
+        tmpOutDir.file("Hello.class").isFile()
+    }
 }
