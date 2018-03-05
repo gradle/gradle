@@ -61,8 +61,8 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "does not allow duplicate registration"() {
         when:
-        bridge().registerBuildScopeListener(listener)
-        bridge().registerBuildScopeListener(listener)
+        bridge().registrar.registerBuildScopeListener(listener)
+        bridge().registrar.registerBuildScopeListener(listener)
 
         then:
         thrown IllegalStateException
@@ -77,7 +77,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         broadcast.finished(d1, new OperationFinishEvent(0, 1, null, ""))
 
         and:
-        bridge.registerBuildScopeListenerAndReceiveStoredOperations(listener)
+        bridge.registrar.registerBuildScopeListenerAndReceiveStoredOperations(listener)
 
         then:
         1 * listener.started(_)
@@ -321,14 +321,14 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     void register(BuildOperationNotificationListener listener) {
-        bridge().registerBuildScopeListener(listener)
+        bridge().registrar.registerBuildScopeListener(listener)
     }
 
     void register(BuildOperationNotificationListener2 listener) {
-        bridge().register(listener)
+        bridge().registrar.register(listener)
     }
 
-    def bridge() {
+    BuildOperationNotificationBridge bridge() {
         if (bridge == null) {
             bridge = new BuildOperationNotificationBridge(buildOperationListenerManager, listenerManager)
         } else {
