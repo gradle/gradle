@@ -22,19 +22,3 @@ task uberJar(type: Jar) {
                                          collect { zipTree(it) }
 }
 // END SNIPPET create-uber-jar-example
-
-// START SNIPPET nested-specs
-task nestedSpecs(type: Copy) {
-    into "${buildDir}/explodedWar"
-    exclude '**/*staging*'
-    from('src/dist') {
-        include '**/*.html', '**/*.png', '**/*.jpg'
-    }
-    from(sourceSets.main.output) {
-        into 'WEB-INF/classes'
-    }
-    into('WEB-INF/lib') {
-        from configurations.runtimeClasspath
-    }
-}
-// END SNIPPET nested-specs

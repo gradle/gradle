@@ -125,7 +125,8 @@ task copyTaskWithPatterns(type: Copy) {
     include '**/*.html'
     include '**/*.jsp'
     exclude { FileTreeElement details ->
-        details.file.name.endsWith('.html') && details.file.text.contains('staging')
+        details.file.name.endsWith('.html') &&
+            details.file.text.contains('DRAFT')
     }
 }
 // END SNIPPET copy-task-with-patterns
@@ -185,9 +186,9 @@ configurations { runtime }
 task rename(type: Copy) {
     from 'src/main/webapp'
     into "${buildDir}/explodedWar"
-    // Use a closure to map the file name
+    // Use a closure to convert all file names to upper case
     rename { String fileName ->
-        fileName.replace('-staging-', '')
+        fileName.toUpperCase()
     }
     // Use a regular expression to map the file name
     rename '(.+)-staging-(.+)', '$1$2'

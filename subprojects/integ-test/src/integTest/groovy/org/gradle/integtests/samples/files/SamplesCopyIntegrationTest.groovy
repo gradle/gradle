@@ -200,7 +200,7 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         sample.dir.file('build/toArchive/numbers-~16').isFile()
     }
 
-    @UsesSample("userguide/files/archivesWithJavaPlugin")
+    @UsesSample("userguide/files/sampleJavaProject")
     def "can nest child specifications"() {
         given:
         executer.inDirectory(sample.dir)
