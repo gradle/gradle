@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -40,7 +40,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 
@@ -63,7 +62,7 @@ public class PropertyValidationAccess {
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));
         Queue<BeanTypeNode> queue = new ArrayDeque<BeanTypeNode>();
-        queue.add(new BeanTypeNode(null, TypeToken.of(topLevelBean)));
+        queue.add(BeanTypeNode.create(null, TypeToken.of(topLevelBean)));
         boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
 
         while (!queue.isEmpty()) {
@@ -93,7 +92,7 @@ public class PropertyValidationAccess {
             }
             if (metadata.isAnnotationPresent(Nested.class)) {
                 AbstractNestedPropertyContext.collectNestedProperties(
-                    new BeanTypeNode(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())),
+                    BeanTypeNode.create(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())),
                     context
                 );
             }
@@ -104,20 +103,80 @@ public class PropertyValidationAccess {
         return String.format("Task type '%s': property '%s' %s.", task.getName(), qualifiedPropertyName, validationMessage);
     }
 
-    private static class BeanTypeNode extends AbstractPropertyNode<BeanTypeNode> {
-        private final TypeToken<?> beanType;
+    private abstract static class BeanTypeNode extends AbstractPropertyNode<BeanTypeNode> {
 
-        public BeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
+        public static BeanTypeNode create(@Nullable String parentPropertyName, TypeToken<?> beanType) {
+            if (Map.class.isAssignableFrom(beanType.getRawType())) {
+                return new MapBeanTypeNode(parentPropertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType));
+            }
+            if (Iterable.class.isAssignableFrom(beanType.getRawType())) {
+                return new IterableBeanTypeNode(parentPropertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType));
+            }
+            return new SimpleBeanTypeNode(parentPropertyName, beanType);
+        }
+
+        protected BeanTypeNode(@Nullable String propertyName, Class<?> beanClass) {
+            super(propertyName, beanClass);
+        }
+    }
+
+    private static abstract class BaseBeanTypeNode<T> extends BeanTypeNode {
+        private final TypeToken<? extends T> beanType;
+
+        protected BaseBeanTypeNode(@Nullable String parentPropertyName, TypeToken<? extends T> beanType) {
             super(parentPropertyName, beanType.getRawType());
             this.beanType = beanType;
         }
 
+        protected TypeToken<?> extractNestedType(Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
+            ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
+            return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
+        }
+    }
+
+    private static class SimpleBeanTypeNode extends BaseBeanTypeNode<Object> {
+
+        public SimpleBeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
+            super(parentPropertyName, beanType);
+        }
+
         @Override
-        public Iterator<BeanTypeNode> getIterator() {
-            TypeToken<Iterable> typeToken = Cast.uncheckedCast(beanType);
-            ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
-            TypeToken<?> nestedType = TypeToken.of(type.getActualTypeArguments()[0]);
-            return Iterators.singletonIterator(new BeanTypeNode(getPropertyName() + "*", nestedType));
+        public boolean unpackToQueue(Queue<BeanTypeNode> queue) {
+            return false;
+        }
+    }
+
+    private static class IterableBeanTypeNode extends BaseBeanTypeNode<Iterable<?>> {
+
+        public IterableBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType) {
+            super(parentPropertyName, iterableType);
+        }
+
+        @Override
+        public boolean unpackToQueue(Queue<BeanTypeNode> queue) {
+            TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
+            queue.add(BeanTypeNode.create(determinePropertyName(nestedType), nestedType));
+            return true;
+        }
+
+        private String determinePropertyName(TypeToken<?> nestedType) {
+            return Named.class.isAssignableFrom(nestedType.getRawType())
+                ? getQualifiedPropertyName("<name>")
+                : getPropertyName() + "*";
+        }
+    }
+
+    private static class MapBeanTypeNode extends BaseBeanTypeNode<Map<?, ?>> {
+
+        public MapBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType) {
+            super(parentPropertyName, mapType);
+        }
+
+        @Override
+        public boolean unpackToQueue(Queue<BeanTypeNode> queue) {
+            TypeToken<?> nestedType = extractNestedType(Map.class, 1);
+            queue.add(BeanTypeNode.create(getQualifiedPropertyName("<key>"), nestedType));
+            return true;
         }
     }
 

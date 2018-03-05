@@ -16,35 +16,100 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
+import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
+import java.util.Map;
+import java.util.Queue;
 
-public class BeanNode extends AbstractPropertyNode<BeanNode> {
-    private final Object bean;
+public abstract class BeanNode extends AbstractPropertyNode<BeanNode> {
 
-    public BeanNode(@Nullable String propertyName, Object bean) {
-        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + propertyName + "'").getClass());
+    public static BeanNode create(@Nullable String propertyName, Object bean) {
+        if (bean instanceof Map<?, ?>) {
+            return new MapBeanNode(propertyName, (Map<?, ?>) bean);
+        }
+        if (bean instanceof Iterable<?>) {
+            return new IterableBeanNode(propertyName, (Iterable<?>) bean);
+        }
+        return new SimpleBeanNode(propertyName, bean);
+    }
+
+    protected BeanNode(@Nullable String propertyName, Class<?> beanClass) {
+        super(propertyName, beanClass);
+    }
+
+    public abstract Object getBean();
+}
+
+abstract class BaseBeanNode<T> extends BeanNode {
+
+    private final T bean;
+
+    protected BaseBeanNode(@Nullable String propertyName, T bean) {
+        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass());
         this.bean = bean;
     }
 
-    public Object getBean() {
+    @Override
+    public T getBean() {
         return bean;
     }
 
-    @Override
-    public Iterator<BeanNode> getIterator() {
-        return Iterators.transform(((Iterable<?>) bean).iterator(), new Function<Object, BeanNode>() {
-            private int count = 0;
+    protected BeanNode createChildNode(String propertyName, @Nullable Object input) {
+        String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
+        Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '%s'", qualifiedPropertyName);
+        return BeanNode.create(qualifiedPropertyName, bean);
+    }
+}
 
-            @Override
-            public BeanNode apply(@Nullable Object input) {
-                String childPropertyName = getQualifiedPropertyName("$" + count++);
-                return new BeanNode(childPropertyName, Preconditions.checkNotNull(input, "Null is not allowed as nested property '" + childPropertyName + "'"));
-            }
-        });
+class SimpleBeanNode extends BaseBeanNode<Object> {
+    public SimpleBeanNode(@Nullable String propertyName, Object bean) {
+        super(propertyName, bean);
+    }
+
+    @Override
+    public boolean unpackToQueue(Queue<BeanNode> queue) {
+        return false;
+    }
+}
+
+class IterableBeanNode extends BaseBeanNode<Iterable<?>> {
+    public IterableBeanNode(@Nullable String propertyName, Iterable<?> iterable) {
+        super(propertyName, iterable);
+    }
+
+    @Override
+    public boolean unpackToQueue(Queue<BeanNode> queue) {
+        int count = 0;
+        for (Object input : getBean()) {
+            String propertyName = determinePropertyName(input, count);
+            count++;
+            queue.add(createChildNode(propertyName, input));
+        }
+        return true;
+    }
+
+    private static String determinePropertyName(@Nullable Object input, int count) {
+        String prefix = input instanceof Named ? ((Named) input).getName() : "";
+        return prefix + "$" + count;
+    }
+}
+
+class MapBeanNode extends BaseBeanNode<Map<?, ?>> {
+    public MapBeanNode(@Nullable String propertyName, Map<?, ?> map) {
+        super(propertyName, map);
+    }
+
+    @Override
+    public boolean unpackToQueue(Queue<BeanNode> queue) {
+        for (Map.Entry<?, ?> entry : getBean().entrySet()) {
+            BeanNode childNode = createChildNode(
+                Preconditions.checkNotNull(entry.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
+                entry.getValue()
+            );
+            queue.add(childNode);
+        }
+        return true;
     }
 }

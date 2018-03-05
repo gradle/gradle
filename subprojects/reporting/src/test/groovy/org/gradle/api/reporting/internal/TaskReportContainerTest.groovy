@@ -47,10 +47,10 @@ class TaskReportContainerTest extends Specification {
 
             c.delegate = new Object() {
                 Report file(String name) {
-                    add(TaskGeneratedReport, name, Report.OutputType.FILE, task)
+                    add(TaskGeneratedSingleFileReport, name, task)
                 }
                 Report dir(String name) {
-                    add(TaskGeneratedReport, name, Report.OutputType.DIRECTORY, task)
+                    add(TaskGeneratedSingleDirectoryReport, name, task, null)
                 }
             }
 
@@ -73,7 +73,11 @@ class TaskReportContainerTest extends Specification {
     }
 
     List<String> getInputPropertyValue() {
-        TaskPropertyTestUtils.getProperties(task)["reports.enabledReportNames"] as List<String>
+        TaskPropertyTestUtils.getProperties(task).keySet().findAll {
+            (it.startsWith('reports.enabledReports.') && it.endsWith('.class'))
+        }.collect {
+            it.substring('reports.enabledReports.'.length(), it.length() - '.class'.length())
+        }.unique().sort()
     }
 
     @Unroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")

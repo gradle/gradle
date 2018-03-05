@@ -23,25 +23,13 @@ import org.gradle.binarycompatibility.rules.*
 import org.gradle.binarycompatibility.transforms.*
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
-
-repositories {
-    ['distributions', 'distributions-snapshots'].each { distUrl ->
-        ivy {
-            name 'Gradle distributions'
-            url 'https://services.gradle.org'
-            layout 'pattern', {
-                ivy '[module]-ivy.xml'
-                artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
-            }
-        }
-    }
-}
+import org.gradle.gradlebuild.ProjectGroups
 
 ext {
     apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
     acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
-    compatibilityBaselineVersion = releasedVersions.mostRecentRelease
-    foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
+    compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
+    foldersWithAPISources = ProjectGroups.INSTANCE.getPublicJavaProjects(project).sourceSets.main.allJava.srcDirs.flatten()
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -54,8 +42,43 @@ configurations {
     }
 }
 
-Set publicProjects = pluginProjects + implementationPluginProjects + publicGroovyProjects - [project(':smokeTest'), project(':soak')]
-def projects = publicProjects.collect { it.archivesBaseName - 'gradle-' }
+/**
+ * This method temporarily creates new repositories that are only used during the resolution
+ * of the configuration passed as parameter. The reason we do this is that defining a repository
+ * for the lifetime of the project introduced overhead when resolving other, unrelated configurations.
+ * In particular, the layout of the repositories we create here implies a lot of misses when resolving
+ * traditional dependencies.
+ * @param conf the configuration to add repositories for
+ */
+void createResolutionTimeOnlyRepositories(Configuration conf) {
+    def repos = []
+    conf.incoming.beforeResolve {
+        // Before resolving the configuration, we create our repositories
+        repositories {
+            ['distributions', 'distributions-snapshots'].each { distUrl ->
+                repos << ivy {
+                    name 'Gradle distributions'
+                    url 'https://services.gradle.org'
+                    layout 'pattern', {
+                        ivy '[module]-ivy.xml'
+                        artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+                    }
+                }
+            }
+        }
+    }
+    conf.incoming.afterResolve {
+        // and once resolution is done, we remove them. It's ugly, but it's faster than
+        // leaving them around and getting misses when resolving other configurations
+        repos.each {
+            repositories.remove(it)
+        }
+    }
+}
+
+createResolutionTimeOnlyRepositories(configurations.baselineClasspath)
+
+def projects = ProjectGroups.INSTANCE.getPublicProjects(project).collect { it.archivesBaseName - 'gradle-' }
 
 dependencies {
     baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
@@ -89,14 +112,16 @@ dependencies {
 def baselineConfigurations = []
 projects.each { projectName ->
     def appendixName = projectName.split('-')*.capitalize().join('')
-    baselineConfigurations << configurations.create("japicmp-baseline-${appendixName}") {
+    def conf = configurations.create("japicmp-baseline-${appendixName}") {
         extendsFrom configurations.baseline
         attributes.attribute(ARTIFACT_TYPE, projectName)
     }
+    baselineConfigurations << conf
+    createResolutionTimeOnlyRepositories(conf)
 }
 
 task checkBinaryCompatibility(type: JapicmpTask) {
-    dependsOn publicProjects.jar
+    dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
@@ -104,9 +129,9 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
-    newClasspath = files(publicProjects.configurations.runtimeClasspath)
+    newClasspath = files(ProjectGroups.INSTANCE.getPublicProjects(project).configurations.runtimeClasspath)
     oldArchives = files(baselineConfigurations)
-    newArchives = files(publicProjects.jar)
+    newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 
     // binary breaking change checking setup
     onlyModified = true

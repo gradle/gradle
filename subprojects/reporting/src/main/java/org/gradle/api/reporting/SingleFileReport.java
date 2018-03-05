@@ -16,6 +16,8 @@
 
 package org.gradle.api.reporting;
 
+import org.gradle.api.tasks.OutputFile;
+
 import java.io.File;
 
 /**
@@ -23,6 +25,7 @@ import java.io.File;
  */
 public interface SingleFileReport extends ConfigurableReport {
     @Override
+    @OutputFile
     File getDestination();
 
     /**

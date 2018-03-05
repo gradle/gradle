@@ -18,6 +18,8 @@ package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 
 import javax.annotation.Nullable;
 
@@ -33,6 +35,8 @@ public interface CustomizableHtmlReport extends SingleFileReport {
      * @return the stylesheet to use to generate the HTML report
      */
     @Nullable
+    @Optional
+    @Nested
     TextResource getStylesheet();
 
     /**

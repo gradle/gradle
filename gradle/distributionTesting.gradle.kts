@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.BuildEnvironment
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.cleanup.CleanUpCaches
@@ -38,7 +38,7 @@ tasks.withType<DistributionTest> {
         jvmArgs("-XX:MaxPermSize=768m")
     }
 
-    reports.junitXml.destination = the<JavaPluginConvention>().testResultsDir.resolve(name)
+    reports.junitXml.destination = project.the<JavaPluginConvention>().testResultsDir.resolve(name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     val integTestVersionsSysProp = "org.gradle.integtest.versions"

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.collect.Iterators;
-
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -34,9 +32,7 @@ public abstract class AbstractNestedPropertyContext<T extends PropertyNode<T>> i
 
         while (!queue.isEmpty()) {
             T nestedNode = queue.remove();
-            if (context.isIterable(nestedNode)) {
-                Iterators.addAll(queue, nestedNode.getIterator());
-            } else {
+            if (!(context.shouldUnpack(nestedNode) && nestedNode.unpackToQueue(queue))) {
                 context.addNested(nestedNode);
             }
         }
@@ -49,7 +45,8 @@ public abstract class AbstractNestedPropertyContext<T extends PropertyNode<T>> i
     }
 
     @Override
-    public boolean isIterable(T node) {
-        return !node.isRoot() && Iterable.class.isAssignableFrom(node.getBeanClass()) && !metadataStore.getTypeMetadata(node.getBeanClass()).isAnnotated();
+    public boolean shouldUnpack(T node) {
+        return !node.isRoot()
+            && !metadataStore.getTypeMetadata(node.getBeanClass()).isAnnotated();
     }
 }
