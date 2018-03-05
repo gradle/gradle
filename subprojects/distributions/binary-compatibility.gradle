@@ -25,19 +25,6 @@ import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
 import org.gradle.gradlebuild.ProjectGroups
 
-repositories {
-    ['distributions', 'distributions-snapshots'].each { distUrl ->
-        ivy {
-            name 'Gradle distributions'
-            url 'https://services.gradle.org'
-            layout 'pattern', {
-                ivy '[module]-ivy.xml'
-                artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
-            }
-        }
-    }
-}
-
 ext {
     apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
     acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
@@ -54,6 +41,42 @@ configurations {
         attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
 }
+
+/**
+ * This method temporarily creates new repositories that are only used during the resolution
+ * of the configuration passed as parameter. The reason we do this is that defining a repository
+ * for the lifetime of the project introduced overhead when resolving other, unrelated configurations.
+ * In particular, the layout of the repositories we create here implies a lot of misses when resolving
+ * traditional dependencies.
+ * @param conf the configuration to add repositories for
+ */
+void createResolutionTimeOnlyRepositories(Configuration conf) {
+    def repos = []
+    conf.incoming.beforeResolve {
+        // Before resolving the configuration, we create our repositories
+        repositories {
+            ['distributions', 'distributions-snapshots'].each { distUrl ->
+                repos << ivy {
+                    name 'Gradle distributions'
+                    url 'https://services.gradle.org'
+                    layout 'pattern', {
+                        ivy '[module]-ivy.xml'
+                        artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+                    }
+                }
+            }
+        }
+    }
+    conf.incoming.afterResolve {
+        // and once resolution is done, we remove them. It's ugly, but it's faster than
+        // leaving them around and getting misses when resolving other configurations
+        repos.each {
+            repositories.remove(it)
+        }
+    }
+}
+
+createResolutionTimeOnlyRepositories(configurations.baselineClasspath)
 
 def projects = ProjectGroups.INSTANCE.getPublicProjects(project).collect { it.archivesBaseName - 'gradle-' }
 
@@ -89,10 +112,12 @@ dependencies {
 def baselineConfigurations = []
 projects.each { projectName ->
     def appendixName = projectName.split('-')*.capitalize().join('')
-    baselineConfigurations << configurations.create("japicmp-baseline-${appendixName}") {
+    def conf = configurations.create("japicmp-baseline-${appendixName}") {
         extendsFrom configurations.baseline
         attributes.attribute(ARTIFACT_TYPE, projectName)
     }
+    baselineConfigurations << conf
+    createResolutionTimeOnlyRepositories(conf)
 }
 
 task checkBinaryCompatibility(type: JapicmpTask) {
