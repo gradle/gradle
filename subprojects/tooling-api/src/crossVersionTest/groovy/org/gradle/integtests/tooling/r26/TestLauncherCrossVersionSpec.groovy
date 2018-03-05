@@ -65,8 +65,12 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         events.tests.findAll { it.descriptor.displayName == "Test class example.MyTest" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
-        events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest" }.size() == 2
-        events.tests.size() == 12
+        if (supportsTestClassFiltering()) {
+            events.tests.size() == 10
+        } else {
+            events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest" }.size() == 2
+            events.tests.size() == 12
+        }
     }
 
     def "can run specific test class passed via test descriptor"() {
@@ -82,8 +86,13 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestExecuted(className: "example2.MyOtherTest", methodName: null) // TODO clarify if this is by design
-        events.tests.size() == 12
+        if (supportsTestClassFiltering()) {
+            events.tests.size() == 10
+            assertTestNotExecuted(className: "example2.MyOtherTest")
+        } else {
+            events.tests.size() == 12
+            assertTestExecuted(className: "example2.MyOtherTest")
+        }
 
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
@@ -100,7 +109,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        events.tests.size() == 10
+        events.tests.size() == (supportsTestClassFiltering() ? 8 : 10)
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
@@ -117,7 +126,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        events.tests.size() == 6
+        events.tests.size() == (supportsTestClassFiltering() ? 5 : 6)
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
@@ -161,7 +170,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
                 assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
                 assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
                 assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-                assert events.tests.size() == 6
+                assert events.tests.size() == (supportsTestClassFiltering() ? 5 : 6)
                 events.clear()
 
                 // Change the tests sources and wait for the tests to run again
@@ -178,7 +187,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-        events.tests.size() in [8, 16] // also accept it as a valid result when the build gets executed twice.
+        events.tests.size() in (supportsTestClassFiltering() ? [7, 14] : [8, 16]) // also accept it as a valid result when the build gets executed twice.
     }
 
     public <T> T withCancellation(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.CancellationToken"]) Closure<T> cl) {
@@ -228,7 +237,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskExecuted(":secondTest")
         assertTestExecuted(className: "more.MoreTest", methodName: "bar", task: ":secondTest")
         assertTaskExecuted(":test")
-        events.tests.size() == 10
+        events.tests.size() == (supportsTestClassFiltering() ? 5 : 10)
     }
 
     def "fails with meaningful error when test task no longer exists"() {
@@ -294,7 +303,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        events.tests.size() == 12
+        events.tests.size() == (supportsTestClassFiltering() ? 10 : 12)
 
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
@@ -319,7 +328,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
-        events.tests.size() == 16
+        events.tests.size() == (supportsTestClassFiltering() ? 14 : 16)
 
         assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
         assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")

@@ -30,6 +30,7 @@ import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 abstract class TestLauncherSpec extends ToolingApiSpecification {
@@ -43,6 +44,10 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
 
     def setup() {
         testCode()
+    }
+
+    boolean supportsTestClassFiltering() {
+        return getTargetVersion() >= GradleVersion.version('4.7')
     }
 
     void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
