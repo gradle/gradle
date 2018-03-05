@@ -20,18 +20,20 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
 
 class SwiftPackageManagerCppBuildExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
-    def "produces manifest for single project C++ library"() {
+    def "produces manifest for single project C++ library that defines only the production targets"() {
         given:
         buildFile << """
             plugins { 
                 id 'swiftpm-export' 
                 id 'cpp-library'
+                id 'cpp-unit-test'
             }
 """
         def lib = new CppLib()
         lib.sources.writeToProject(testDirectory)
         lib.privateHeaders.writeToSourceDir(testDirectory.file("src/main/cpp"))
         lib.publicHeaders.writeToProject(testDirectory)
+        file("src/test/cpp/test.cpp") << "// test"
 
         when:
         run("generateSwiftPmManifest")
