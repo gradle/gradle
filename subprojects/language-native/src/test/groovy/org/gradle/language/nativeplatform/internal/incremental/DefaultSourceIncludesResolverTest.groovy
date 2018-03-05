@@ -15,9 +15,13 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.Multimap
 import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.Macro
+import org.gradle.language.nativeplatform.internal.MacroFunction
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
 import org.gradle.test.fixtures.file.TestFile
@@ -32,14 +36,14 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def sourceDirectory = testDirectory.createDir("sources")
     def systemIncludeDir = testDirectory.createDir("headers")
     def included
-    def macros = []
-    def macroFunctions = []
+    def macros = new MacroCollection()
+    def macroFunctions = new MacroFunctionCollection()
     def includePaths = [ systemIncludeDir ]
 
     def setup() {
         included = Mock(IncludeDirectives)
-        included.getMacros() >> macros
-        included.getMacrosFunctions() >> macroFunctions
+        included.getMacros() >> { macros.values }
+        included.getMacrosFunctions() >> { macroFunctions.values }
     }
 
     protected TestFile getSourceFile() {
@@ -475,15 +479,31 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def macro(String name, String value) {
         def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#define ${name} $value"))
-        return directives.macros.first()
+        return directives.macros.entries().first().value
     }
 
     def macroFunction(String name, String value) {
         def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#define ${name}${name.contains('(') ? "" : "()"} $value"))
-        return directives.macrosFunctions.first()
+        return directives.macrosFunctions.entries().first().value
     }
 
     def unresolveableMacro(String name) {
         new UnresolveableMacro(name)
+    }
+
+    private static class MacroCollection {
+        final Multimap<String, Macro> values = ArrayListMultimap.create()
+
+        void leftShift(Macro item) {
+            values.put(item.name, item)
+        }
+    }
+
+    private static class MacroFunctionCollection {
+        final Multimap<String, MacroFunction> values = ArrayListMultimap.create()
+
+        void leftShift(MacroFunction item) {
+            values.put(item.name, item)
+        }
     }
 }

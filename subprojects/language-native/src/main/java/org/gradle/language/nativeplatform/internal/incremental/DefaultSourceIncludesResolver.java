@@ -212,9 +212,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
-            for (Macro macro : includeDirectives.getMacros()) {
-                if (expression.getValue().equals(macro.getName())) {
-                    found = true;
+            Collection<Macro> macros = includeDirectives.getMacros().get(expression.getValue());
+            if (!macros.isEmpty()) {
+                found = true;
+                for (Macro macro : macros) {
                     resolveExpression(visibleMacros, macro, visitor, tokenLookup);
                 }
             }
@@ -227,9 +228,9 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private void resolveMacroFunction(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
-            for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
-                // Currently only handle functions with no parameters
-                if (expression.getValue().equals(macro.getName())) {
+            Collection<MacroFunction> macroFunctions = includeDirectives.getMacrosFunctions().get(expression.getValue());
+            if (!macroFunctions.isEmpty()) {
+                for (MacroFunction macro : macroFunctions) {
                     List<Expression> arguments = expression.getArguments();
                     if (arguments.isEmpty() && macro.getParameterCount() == 1) {
                         // Provide an implicit empty argument

@@ -16,8 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
@@ -62,8 +64,8 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     protected IncludeDirectives parseSource(Reader sourceReader) throws IOException {
         Set<Include> includes = Sets.newLinkedHashSet();
-        List<Macro> macros = Lists.newArrayList();
-        List<MacroFunction> macroFunctions = Lists.newArrayList();
+        Multimap<String, Macro> macros = ArrayListMultimap.create();
+        Multimap<String, MacroFunction> macroFunctions = ArrayListMultimap.create();
         BufferedReader reader = new BufferedReader(sourceReader);
         PreprocessingReader lineReader = new PreprocessingReader(reader);
         Buffer buffer = new Buffer();
@@ -85,7 +87,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 parseIncludeOrImportDirectiveBody(buffer, true, includes);
             }
         }
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableMultimap.copyOf(macros), ImmutableMultimap.copyOf(macroFunctions));
     }
 
     /**
@@ -117,7 +119,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parses a #define directive body. Consumes all input.
      */
-    private void parseDefineDirectiveBody(Buffer buffer, Collection<Macro> macros, Collection<MacroFunction> macroFunctions) {
+    private void parseDefineDirectiveBody(Buffer buffer, Multimap<String, Macro> macros, Multimap<String, MacroFunction> macroFunctions) {
         if (!buffer.consumeWhitespace()) {
             // No separating whitespace between the #define and the name
             return;
@@ -139,25 +141,25 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parse an "object-like" macro directive body. Consumes all input.
      */
-    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, Collection<Macro> macros) {
+    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, Multimap<String, Macro> macros) {
         Expression expression = parseDirectiveBodyExpression(buffer);
         expression = expression.asMacroExpansion();
         if (!expression.getArguments().isEmpty()) {
             // Body is an expression with one or more arguments
-            macros.add(new MacroWithComplexExpression(macroName, expression.getType(), expression.getValue(), expression.getArguments()));
+            macros.put(macroName, new MacroWithComplexExpression(macroName, expression.getType(), expression.getValue(), expression.getArguments()));
         } else if (expression.getType() != IncludeType.OTHER) {
             // Body is a simple expression, including a macro function call with no arguments
-            macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
+            macros.put(macroName, new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
         } else {
             // Discard the body when the expression is not resolvable
-            macros.add(new UnresolveableMacro(macroName));
+            macros.put(macroName, new UnresolveableMacro(macroName));
         }
     }
 
     /**
      * Parse a "function-like" macro directive body. Consumes all input.
      */
-    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Collection<MacroFunction> macroFunctions) {
+    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Multimap<String, MacroFunction> macroFunctions) {
         buffer.consumeWhitespace();
         List<String> paramNames = new ArrayList<String>();
         consumeParameterList(buffer, paramNames);
@@ -168,7 +170,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         Expression expression = parseDirectiveBodyExpression(buffer);
         if (expression.getType() == IncludeType.QUOTED || expression.getType() == IncludeType.SYSTEM) {
             // Returns a fixed value expression
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
+            macroFunctions.put(macroName, new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
             return;
         }
         if (expression.getType() == IncludeType.IDENTIFIER) {
@@ -176,12 +178,12 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 String name = paramNames.get(i);
                 if (name.equals(expression.getValue())) {
                     // Returns a parameter
-                    macroFunctions.add(new ReturnParameterMacroFunction(macroName, paramNames.size(), i));
+                    macroFunctions.put(macroName, new ReturnParameterMacroFunction(macroName, paramNames.size(), i));
                     return;
                 }
             }
             // References some fixed value expression, return it after macro expanding
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), IncludeType.MACRO, expression.getValue(), Collections.<Expression>emptyList()));
+            macroFunctions.put(macroName, new ReturnFixedValueMacroFunction(macroName, paramNames.size(), IncludeType.MACRO, expression.getValue(), Collections.<Expression>emptyList()));
             return;
         }
 
@@ -191,7 +193,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 // When this function has no parameters, we don't need to substitute parameters, so return the expression after macro expanding it
                 // Also handle calling a zero args function, as we also don't need to substitute parameters
                 expression = expression.asMacroExpansion();
-                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+                macroFunctions.put(macroName, new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
                 return;
             }
             List<Integer> argsMap = new ArrayList<Integer>(expression.getArguments().size());
@@ -199,7 +201,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
             if (!usesArgs) {
                 // Don't need to do parameter substitution, return the value of the expression after macro expanding it
                 expression = expression.asMacroExpansion();
-                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+                macroFunctions.put(macroName, new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
             } else {
                 //Need to do parameter substitution, return the value of the expression after parameter substitutions and macro expanding the result
                 int[] argsMapArray = new int[argsMap.size()];
@@ -207,13 +209,13 @@ public class RegexBackedCSourceParser implements CSourceParser {
                     argsMapArray[i] = argsMap.get(i);
                 }
                 expression = expression.asMacroExpansion();
-                macroFunctions.add(new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMapArray, expression.getType(), expression.getValue(), expression.getArguments()));
+                macroFunctions.put(macroName, new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMapArray, expression.getType(), expression.getValue(), expression.getArguments()));
             }
             return;
         }
 
         // Not resolvable. Discard the body when the expression is not resolvable
-        macroFunctions.add(new UnresolveableMacroFunction(macroName, paramNames.size()));
+        macroFunctions.put(macroName, new UnresolveableMacroFunction(macroName, paramNames.size()));
     }
 
     private boolean mapArgs(List<String> paramNames, Expression expression, List<Integer> argsMap) {

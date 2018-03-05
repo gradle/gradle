@@ -16,6 +16,8 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.specs.Spec;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -28,10 +30,10 @@ import java.util.List;
 
 public class DefaultIncludeDirectives implements IncludeDirectives {
     private final ImmutableList<Include> allIncludes;
-    private final ImmutableList<Macro> macros;
-    private final ImmutableList<MacroFunction> macroFunctions;
+    private final ImmutableMultimap<String, Macro> macros;
+    private final ImmutableMultimap<String, MacroFunction> macroFunctions;
 
-    public DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros, ImmutableList<MacroFunction> macroFunctions) {
+    public DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableMultimap<String, Macro> macros, ImmutableMultimap<String, MacroFunction> macroFunctions) {
         this.allIncludes = allIncludes;
         this.macros = macros;
         this.macroFunctions = macroFunctions;
@@ -83,12 +85,12 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
     }
 
     @Override
-    public List<Macro> getMacros() {
+    public Multimap<String, Macro> getMacros() {
         return macros;
     }
 
     @Override
-    public List<MacroFunction> getMacrosFunctions() {
+    public Multimap<String, MacroFunction> getMacrosFunctions() {
         return macroFunctions;
     }
 
