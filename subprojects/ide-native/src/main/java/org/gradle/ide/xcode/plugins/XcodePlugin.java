@@ -247,37 +247,41 @@ public class XcodePlugin extends IdePlugin {
             public void execute(Project project) {
                 // TODO: Assumes there's a single 'main' Swift component
                 ProductionSwiftComponent component = project.getComponents().withType(ProductionSwiftComponent.class).getByName("main");
-                FileCollection sources = component.getSwiftSource();
-                xcodeProject.getGroups().getSources().from(sources);
 
-                // TODO - should use the _install_ task for an executable
-                String targetName = component.getModule().get();
-                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
-                component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
-                    @Override
-                    public void execute(SwiftBinary swiftBinary) {
-                        if (swiftBinary instanceof SwiftExecutable && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
-                            target.setDebug(((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
-                        } else if (swiftBinary instanceof SwiftExecutable && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
-                            target.setRelease(((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
-                        } else if (swiftBinary instanceof SwiftSharedLibrary && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
-                            target.setDebug(((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
-                        } else if (swiftBinary instanceof SwiftSharedLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
-                            target.setRelease(((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
-                        } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
-                            target.setDebug(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
-                        } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
-                            target.setRelease(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                // Don't configure anything if this component does not have a buildable development binary
+                if (component.getDevelopmentBinary().isPresent()) {
+                    FileCollection sources = component.getSwiftSource();
+                    xcodeProject.getGroups().getSources().from(sources);
+
+                    // TODO - should use the _install_ task for an executable
+                    String targetName = component.getModule().get();
+                    final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
+                    component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
+                        @Override
+                        public void execute(SwiftBinary swiftBinary) {
+                            if (swiftBinary instanceof SwiftExecutable && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
+                                target.setDebug(((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
+                            } else if (swiftBinary instanceof SwiftExecutable && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
+                                target.setRelease(((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
+                            } else if (swiftBinary instanceof SwiftSharedLibrary && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
+                                target.setDebug(((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            } else if (swiftBinary instanceof SwiftSharedLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
+                                target.setRelease(((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
+                                target.setDebug(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                            } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
+                                target.setRelease(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                            }
+                            target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
                         }
-                        target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
-                    }
-                });
+                    });
 
-                target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
-                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
-                xcodeProject.addTarget(target);
+                    target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
+                    target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
+                    xcodeProject.addTarget(target);
 
-                createSchemeTask(project.getTasks(), targetName, xcodeProject);
+                    createSchemeTask(project.getTasks(), targetName, xcodeProject);
+                }
             }
         });
     }
@@ -304,39 +308,43 @@ public class XcodePlugin extends IdePlugin {
             public void execute(Project project) {
                 // TODO: Assumes there's a single 'main' C++ component
                 ProductionCppComponent component = project.getComponents().withType(ProductionCppComponent.class).getByName("main");
-                FileCollection sources = component.getCppSource();
-                xcodeProject.getGroups().getSources().from(sources);
 
-                FileCollection headers = component.getHeaderFiles();
-                xcodeProject.getGroups().getHeaders().from(headers);
+                // Don't configure anything if this component does not have a buildable development binary
+                if (component.getDevelopmentBinary().isPresent()) {
+                    FileCollection sources = component.getCppSource();
+                    xcodeProject.getGroups().getSources().from(sources);
 
-                // TODO - should use the _install_ task for an executable
-                String targetName = StringUtils.capitalize(component.getBaseName().get());
-                final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project), getBridgeTaskPath(project), sources);
-                component.getBinaries().whenElementFinalized(new Action<CppBinary>() {
-                    @Override
-                    public void execute(CppBinary cppBinary) {
-                        if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
-                            target.setDebug(((CppExecutable) cppBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
-                        } else if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
-                            target.setRelease(((CppExecutable) cppBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
-                        } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
-                            target.setDebug(((CppSharedLibrary) cppBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
-                        } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
-                            target.setRelease(((CppSharedLibrary) cppBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
-                        } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
-                            target.setDebug(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
-                        } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
-                            target.setRelease(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                    FileCollection headers = component.getHeaderFiles();
+                    xcodeProject.getGroups().getHeaders().from(headers);
+
+                    // TODO - should use the _install_ task for an executable
+                    String targetName = StringUtils.capitalize(component.getBaseName().get());
+                    final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project), getBridgeTaskPath(project), sources);
+                    component.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                        @Override
+                        public void execute(CppBinary cppBinary) {
+                            if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
+                                target.setDebug(((CppExecutable) cppBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
+                            } else if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
+                                target.setRelease(((CppExecutable) cppBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
+                            } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
+                                target.setDebug(((CppSharedLibrary) cppBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
+                                target.setRelease(((CppSharedLibrary) cppBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
+                                target.setDebug(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                            } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
+                                target.setRelease(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                            }
                         }
-                    }
-                });
+                    });
 
-                target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
-                target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
-                xcodeProject.addTarget(target);
+                    target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
+                    target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
+                    xcodeProject.addTarget(target);
 
-                createSchemeTask(project.getTasks(), targetName, xcodeProject);
+                    createSchemeTask(project.getTasks(), targetName, xcodeProject);
+                }
             }
         });
     }

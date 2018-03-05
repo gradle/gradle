@@ -50,6 +50,32 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertHasProjects()
     }
 
+    def "create empty solution when no buildable binaries exist"() {
+        when:
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                operatingSystems = [objects.named(OperatingSystemFamily, 'foo')]
+            }
+        """
+
+        and:
+        run "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution")
+        notExecuted getProjectTasks("app")
+
+        and:
+        final mainSolution = solutionFile("app.sln")
+        mainSolution.assertHasProjects()
+    }
+
     def "create visual studio solution for single executable"() {
         when:
         app.writeSources(file("src/main"))

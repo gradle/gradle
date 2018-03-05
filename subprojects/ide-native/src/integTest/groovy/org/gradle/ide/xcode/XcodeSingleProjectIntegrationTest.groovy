@@ -34,6 +34,26 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         project.assertNoTargets()
     }
 
+    def "create empty xcode project when no buildable binaries exist"() {
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                operatingSystems = [objects.named(OperatingSystemFamily, 'foo')]
+            }
+        """
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(['build.gradle'])
+        project.assertNoTargets()
+    }
+
     def "cleanXcode remove all XCode generated project files"() {
         requireSwiftToolChain()
 
