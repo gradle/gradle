@@ -90,7 +90,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     private static void visitImplementation(BeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         // The root bean (Task) implementation is currently tracked separately
-        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
+        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getPropertyName(), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
         implementation.optional(false);
         visitor.visitInputProperty(implementation);
     }

@@ -19,22 +19,22 @@ package org.gradle.internal.operations.logging
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.progress.BuildOperationCategory
-import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class LoggingBuildOperationNotificationBridgeTest extends Specification {
 
-    LoggingManagerInternal loggingManagerInternal = Mock()
-    BuildOperationListener buildOperationListener = Mock()
+    def loggingManagerInternal = Mock(LoggingManagerInternal)
+    def buildOperationListener = Mock(BuildOperationListener)
 
     @Shared
-    OperationIdentifier operationId = Mock()
+    def operationId = Mock(OperationIdentifier)
 
     LoggingBuildOperationNotificationBridge bridge = new LoggingBuildOperationNotificationBridge(loggingManagerInternal, buildOperationListener)
 

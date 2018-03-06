@@ -26,11 +26,12 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationProgressEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTestResult;
@@ -66,7 +67,7 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     }
 
     @Override
-    public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
+    public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
     }
 
     @Override

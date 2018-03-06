@@ -23,7 +23,7 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.progress.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;

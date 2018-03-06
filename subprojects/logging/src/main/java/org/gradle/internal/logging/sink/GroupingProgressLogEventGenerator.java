@@ -19,7 +19,7 @@ package org.gradle.internal.logging.sink;
 import com.google.common.base.Objects;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -29,7 +29,7 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
-import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GUtil;
 
@@ -172,7 +172,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private long lastUpdateTime;
         private final String description;
         private final String shortDescription;
-        private final Object buildOpIdentifier;
+        private final OperationIdentifier buildOpIdentifier;
         private final BuildOperationCategory buildOperationCategory;
 
         private String status = "";
@@ -180,7 +180,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        private OperationGroup(String category, @Nullable String loggingHeader, String description, @Nullable String shortDescription, long startTime, Object buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        private OperationGroup(String category, @Nullable String loggingHeader, String description, @Nullable String shortDescription, long startTime, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.lastUpdateTime = startTime;

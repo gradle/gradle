@@ -190,11 +190,14 @@ task css(type: Sync, dependsOn: configureCss) {
     include "*.svg"
 }
 
-
 artifacts {
     // declare that the generated css directory is an output of cssElements
     cssElements file: css.destinationDir, builtBy: css
 }
+
+// TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
+// Don't publish the CSS artifacts when calling uploadArchives
+configurations.archives.artifacts.removeAll(configurations.cssElements.artifacts)
 
 ext.cssFiles = fileTree(css.destinationDir) {
     builtBy css
@@ -498,4 +501,17 @@ task docs {
 
 task docsZip(type: Zip) {
     from project.outputs.docs
+}
+
+// Temporary hack in order to get new wrapper published with fix (this will be removed almost immediately
+// once the wrapper is updated to the fixed version)
+uploadArchives {
+    def cssArtifacts = []
+    doFirst {
+        cssArtifacts.addAll(configurations.cssElements.artifacts)
+        configurations.cssElements.artifacts.clear()
+    }
+    doLast {
+        configurations.cssElements.artifacts.addAll(cssArtifacts)
+    }
 }

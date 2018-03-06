@@ -21,9 +21,15 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationQueueFactory
+import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.resources.ResourceDeadlockException
 import org.gradle.internal.resources.ResourceLockCoordinationService
@@ -31,7 +37,7 @@ import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.internal.progress.BuildOperationDescriptor.displayName
+import static org.gradle.internal.operations.BuildOperationDescriptor.displayName
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
@@ -246,7 +252,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         GradleThread.setManaged()
 
         and:
-        BuildOperationState parent
+        BuildOperationRef parent
         def id1
         def id2
 
@@ -319,7 +325,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "cannot start child operation when parent has completed"() {
-        BuildOperationState parent = null
+        BuildOperationRef parent = null
 
         given:
         operationExecutor.run(runnableBuildOperation("parent") {

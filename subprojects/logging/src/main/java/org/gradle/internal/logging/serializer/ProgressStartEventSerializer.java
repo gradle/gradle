@@ -16,9 +16,9 @@
 
 package org.gradle.internal.logging.serializer;
 
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -123,12 +123,12 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         String status = decoder.readString();
         int totalProgress = decoder.readInt();
 
-        Object buildOperationId = null;
+        OperationIdentifier buildOperationId = null;
         if ((flags & BUILD_OPERATION_ID) != 0) {
             buildOperationId = new OperationIdentifier(decoder.readSmallLong());
         }
 
-        Object parentBuildOperationId = null;
+        OperationIdentifier parentBuildOperationId = null;
         if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
             parentBuildOperationId = new OperationIdentifier(decoder.readSmallLong());
 

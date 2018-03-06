@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.gradle.CapabilitySpec
 import org.gradle.test.fixtures.gradle.FileSpec
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
@@ -40,6 +41,7 @@ class ModuleVersionSpec {
     private final Map<String, String> componentLevelAttributes = [:]
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
+    private Map<String, CapabilitySpec> capabilities = [:].withDefault { new CapabilitySpec(it) }
 
     static class ArtifactExpectation {
         final InteractionExpectation type
@@ -104,6 +106,12 @@ class ModuleVersionSpec {
 
     void expectGetVariantArtifacts(String variant) {
         expectGetArtifact << new ArtifactExpectation(InteractionExpectation.GET, new VariantArtifacts(variant))
+    }
+
+    void capability(String name, Closure<?> config) {
+        config.resolveStrategy = Closure.DELEGATE_FIRST
+        config.delegate = capabilities[name]
+        config()
     }
 
     void attribute(String key, String value) {
@@ -312,6 +320,11 @@ class ModuleVersionSpec {
                 } else {
                     module.dependencyConstraint(it)
                 }
+            }
+        }
+        if (capabilities) {
+            capabilities.values().each {
+                module.addCapability(it)
             }
         }
         if (withModule) {

@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.invocation.BuildController
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -28,7 +29,8 @@ class BuildSrcUpdateFactoryTest extends Specification {
     def launcher = Stub(BuildController)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)
     def listenerFactory = Mock(BuildSrcBuildListenerFactory)
-    def factory = new BuildSrcUpdateFactory(launcher, listenerFactory)
+    def cachedClasspathTransformer = Mock(CachedClasspathTransformer)
+    def factory = new BuildSrcUpdateFactory(launcher, listenerFactory, cachedClasspathTransformer)
 
     def "creates classpath"() {
         listener.getRuntimeClasspath() >> [new File("dummy")]
@@ -37,7 +39,11 @@ class BuildSrcUpdateFactoryTest extends Specification {
         def classpath = factory.create()
 
         then:
-        classpath.asFiles == [new File("dummy")]
         1 * listenerFactory.create() >> listener
+        1 * cachedClasspathTransformer.transform(_) >> { arguments ->
+            arguments[0]
+        }
+
+        classpath.asFiles == [new File("dummy")]
     }
 }

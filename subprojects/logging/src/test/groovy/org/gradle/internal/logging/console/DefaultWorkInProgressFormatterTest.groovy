@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification

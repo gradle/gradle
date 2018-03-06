@@ -25,7 +25,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;

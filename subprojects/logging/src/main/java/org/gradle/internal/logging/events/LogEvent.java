@@ -19,6 +19,7 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.buildoperation.LogEventBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -32,7 +33,7 @@ public class LogEvent extends RenderableOutputEvent implements LogEventBuildOper
         this(timestamp, category, logLevel, message, throwable, null);
     }
 
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable Object operationIdentifier) {
+    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier operationIdentifier) {
         super(timestamp, category, logLevel, operationIdentifier);
         this.message = message;
         this.throwable = throwable;

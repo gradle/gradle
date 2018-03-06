@@ -35,7 +35,7 @@ import spock.lang.Specification
 abstract class AbstractConflictResolverTest extends Specification {
 
     List<ComponentResolutionState> participants = []
-    ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails(participants)
+    ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails([], participants)
 
     ModuleConflictResolver resolver
     TestComponent root = new TestComponent(DefaultModuleVersionIdentifier.newId('', 'root', ''))

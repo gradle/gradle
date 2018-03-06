@@ -29,11 +29,12 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationProgressEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nonnull;
@@ -380,7 +381,7 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         @Override
-        public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
             new Entry(new SerializedOperationProgress(buildOperationId, progressEvent), false).add();
         }
 

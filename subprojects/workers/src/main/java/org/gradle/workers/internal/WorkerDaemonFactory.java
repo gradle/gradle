@@ -21,8 +21,8 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -52,7 +52,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     @Override
     public Worker getWorker(final DaemonForkOptions forkOptions) {
         return new Worker() {
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationRef parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
                     WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
@@ -75,7 +75,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
-            private DefaultWorkResult executeInClient(final WorkerDaemonClient client, final ActionExecutionSpec spec, final BuildOperationState parentBuildOperation) {
+            private DefaultWorkResult executeInClient(final WorkerDaemonClient client, final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
                 return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                     @Override
                     public DefaultWorkResult call(BuildOperationContext context) {

@@ -71,6 +71,21 @@ subprojects {
     dependencies {
         compile(gradleApi())
     }
+
+    afterEvaluate {
+        if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
+            tasks.create<ValidateTaskProperties>("validateTaskProperties") {
+                outputFile.set(the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
+
+                val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+                classes = mainSourceSet.output.classesDirs
+                classpath = mainSourceSet.compileClasspath
+                dependsOn(mainSourceSet.output)
+
+                project.tasks["check"].dependsOn(this)
+            }
+        }
+    }
 }
 
 allprojects {
@@ -79,14 +94,6 @@ allprojects {
         maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
         gradlePluginPortal()
     }
-    // Workaround caching problems with 'java-gradle-plugin'
-    // vvvvv
-    normalization {
-        runtimeClasspath {
-            ignore("plugin-under-test-metadata.properties")
-        }
-    }
-    // ^^^^^
 }
 
 dependencies {

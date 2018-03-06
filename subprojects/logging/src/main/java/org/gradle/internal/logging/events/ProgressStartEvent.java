@@ -18,7 +18,8 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.buildoperation.ProgressStartBuildOperationProgressDetails;
-import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -32,8 +33,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     private final String loggingHeader;
     private final String status;
     private final int totalProgress;
-    private final Object buildOperationId;
-    private final Object parentBuildOperationId;
+    private final OperationIdentifier buildOperationId;
+    private final OperationIdentifier parentBuildOperationId;
     private BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(OperationIdentifier progressOperationId,
@@ -45,8 +46,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
                               @Nullable String loggingHeader,
                               String status,
                               int totalProgress,
-                              @Nullable Object buildOperationId,
-                              @Nullable Object parentBuildOperationId,
+                              @Nullable OperationIdentifier buildOperationId,
+                              @Nullable OperationIdentifier parentBuildOperationId,
                               BuildOperationCategory buildOperationCategory) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
@@ -98,7 +99,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     }
 
     @Nullable
-    public Object getBuildOperationId() {
+    public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
     }
 

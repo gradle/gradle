@@ -20,6 +20,9 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
@@ -30,7 +33,7 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
@@ -38,21 +41,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
-    public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
+    private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
     public static final String BUILD_SRC = "buildSrc";
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
+    private final FileLockManager fileLockManager;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
+        this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
@@ -62,11 +69,11 @@ public class BuildSourceBuilder {
         File buildSrcDir = new File(rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR);
         ClassPath classpath = createBuildSourceClasspath(gradle, buildSrcDir, containingBuildParameters);
         return classLoaderScope.createChild(buildSrcDir.getAbsolutePath())
-            .export(cachedClasspathTransformer.transform(classpath))
+            .export(classpath)
             .lock();
     }
 
-    ClassPath createBuildSourceClasspath(final GradleInternal gradle, File buildSrcDir, final StartParameter containingBuildParameters) {
+    private ClassPath createBuildSourceClasspath(final GradleInternal gradle, File buildSrcDir, final StartParameter containingBuildParameters) {
         if (!buildSrcDir.isDirectory()) {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return ClassPath.EMPTY;
@@ -106,11 +113,19 @@ public class BuildSourceBuilder {
     private ClassPath buildBuildSrc(BuildDefinition buildDefinition) {
         BuildController buildController = createBuildController(buildDefinition);
         try {
-            return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory).create();
+            File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
+            FileLock lock = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock");
+            try {
+                return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer).create();
+            } finally {
+                lock.close();
+            }
         } finally {
             buildController.stop();
         }
     }
+
+    private static final LockOptions LOCK_OPTIONS = mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
 
     private BuildController createBuildController(BuildDefinition buildDefinition) {
         GradleLauncher gradleLauncher = buildGradleLauncher(buildDefinition);

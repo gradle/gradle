@@ -24,12 +24,13 @@ import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationListenerManager;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationProgressEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,7 +189,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
 
         @Override
-        public void progress(Object buildOperationId, OperationProgressEvent progressEvent) {
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
             Object details = progressEvent.getDetails();
             if (details == null) {
                 return;

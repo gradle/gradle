@@ -23,8 +23,9 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationProgressEvent;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
 
 public class LoggingBuildOperationNotificationBridge implements Stoppable, OutputEventListener {
 
@@ -48,7 +49,7 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
         }
     }
 
-    private void maybeForwardAsBuildOperationProgress(CategorisedOutputEvent renderableOutputEvent, Object buildOperationId) {
+    private void maybeForwardAsBuildOperationProgress(CategorisedOutputEvent renderableOutputEvent, OperationIdentifier buildOperationId) {
         if (buildOperationId == null || !isForwardlableOutput(renderableOutputEvent)) {
             return;
         }

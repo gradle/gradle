@@ -25,13 +25,15 @@ class GradleFileModuleAdapter {
     private final String version
     private final List<VariantMetadataSpec> variants
     private final Map<String, String> attributes
+    private final List<CapabilitySpec> capabilities
 
-    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:]) {
+    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadataSpec> variants, Map<String, String> attributes, List<CapabilitySpec> capabilities) {
         this.group = group
         this.module = module
         this.version = version
         this.variants = variants
         this.attributes = attributes
+        this.capabilities = capabilities
     }
 
     void publishTo(TestFile moduleDir) {
@@ -41,7 +43,7 @@ class GradleFileModuleAdapter {
         jsonBuilder {
             formatVersion '0.3'
             builtBy {
-                gradle { }
+                gradle {}
             }
             component {
                 group this.group
@@ -52,6 +54,13 @@ class GradleFileModuleAdapter {
                         "$key" value
                     }
                 }
+                capabilities(this.capabilities.collect { c ->
+                    { ->
+                        name c.name
+                        providedBy c.providedBy
+                        if (c.prefer) { prefer c.prefer }
+                    }
+                })
             }
             variants(this.variants.collect { v ->
                 { ->
