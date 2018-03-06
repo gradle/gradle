@@ -62,9 +62,41 @@ From now on, Gradle [will cache forever that a `group:name` was absent](https://
 This has a positive performance on dependency resolution when multiple repositories are defined and dynamic versions are used.
 As before, using `--refresh-dependencies` will force a refresh, bypassing all caching.
 
-<!--
-### Example breaking change
--->
+### Changes to native compilation, linking and installation tasks
+
+To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices, many tasks related to compiling and linking native libraries and applications have been converted to use the Provider API.
+
+Tasks extending `org.gradle.nativeplatform.tasks.AbstractLinkTask`, which include `org.gradle.nativeplatform.tasks.LinkExecutable` and `org.gradle.nativeplatform.tasks.LinkSharedLibrary`.
+
+- `getDestinationDir()` was replaced by `getDestinationDirectory()`.
+- `getBinaryFile()`, `getOutputFile()` was replaced by `getLinkedFile()`.
+- `setOutputFile(File)` was removed. Use `Property.set()` instead.
+- `setOutputFile(Provider)` was removed. Use `Property.set()` instead.
+- `getTargetPlatform()` was changed to return a `Property`.
+- `setTargetPlatform(NativePlatform)` was removed. Use `Property.set()` instead.
+- `getToolChain()` was changed to return a `Property`.
+- `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
+
+Task type `org.gradle.nativeplatform.tasks.CreateStaticLibrary`
+
+- `getOutputFile()` was changed to return a `Property`.
+- `setOutputFile(File)` was removed. Use `Property.set()` instead.
+- `setOutputFile(Provider)` was removed. Use `Property.set()` instead.
+- `getTargetPlatform()` was changed to return a `Property`.
+- `setTargetPlatform(NativePlatform)` was removed. Use `Property.set()` instead.
+- `getToolChain()` was changed to return a `Property`.
+- `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
+- `getStaticLibArgs()` was changed to return a `ListProperty`.
+- `setStaticLibArgs(List)` was removed. Use `ListProperty.set()` instead.
+
+Task type `org.gradle.nativeplatform.tasks.InstallExecutable`
+
+- `getPlatform()` replaced by `getTargetPlatform()`.
+- `setTargetPlatform(NativePlatform)` was removed. Use `Property.set()` instead.
+- `getToolChain()` was changed to return a `Property`.
+- `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
+
+Task types `org.gradle.language.assembler.tasks.Assemble`, `org.gradle.language.rc.tasks.WindowsResourceCompile`, `org.gradle.nativeplatform.tasks.StripSymbols`, `org.gradle.nativeplatform.tasks.ExtractSymbols`, `org.gradle.language.swift.tasks.SwiftCompile`, and `org.gradle.nativeplatform.tasks.LinkMachOBundle` were changed in similar ways.
 
 ### Removed incubating method `BuildIdentifier.isCurrentBuild()`
 

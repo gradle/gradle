@@ -58,8 +58,8 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
     private void configureAssembleTask(Assemble task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         task.setDescription("Assembles the " + sourceSet + " of " + binary);
 
-        task.setToolChain(binary.getToolChain());
-        task.setTargetPlatform(binary.getTargetPlatform());
+        task.getToolChain().set(binary.getToolChain());
+        task.getTargetPlatform().set(binary.getTargetPlatform());
 
         task.source(sourceSet.getSource());
 

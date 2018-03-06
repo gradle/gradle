@@ -88,13 +88,13 @@ class SwiftApplicationPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkExecutable
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
         linkDebug.debuggable
 
         def installDebug = project.tasks.installDebug
         installDebug instanceof InstallExecutable
         installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
-        installDebug.runScript.name == OperatingSystem.current().getScriptName("TestApp")
+        installDebug.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("TestApp")
 
         def compileRelease = project.tasks.compileReleaseSwift
         compileRelease instanceof SwiftCompile
@@ -106,13 +106,13 @@ class SwiftApplicationPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
         linkRelease.debuggable
 
         def installRelease = project.tasks.installRelease
         installRelease instanceof InstallExecutable
         installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
-        installRelease.runScript.name == OperatingSystem.current().getScriptName("TestApp")
+        installRelease.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("TestApp")
     }
 
     def "output file names are calculated from module name defined on extension"() {
@@ -127,11 +127,11 @@ class SwiftApplicationPluginTest extends Specification {
         compileSwift.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/App.swiftmodule")
 
         def link = project.tasks.linkDebug
-        link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))
 
         def install = project.tasks.installDebug
         install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
-        install.runScript.name == OperatingSystem.current().getScriptName("App")
+        install.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("App")
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -148,13 +148,13 @@ class SwiftApplicationPluginTest extends Specification {
         compileSwift.moduleFile.get().asFile == projectDir.file("output/modules/main/debug/TestApp.swiftmodule")
 
         def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
 
         def install = project.tasks.installDebug
-        install.destinationDir == project.file("output/install/main/debug")
-        install.executable == link.outputFile
+        install.installDirectory.get().asFile == project.file("output/install/main/debug")
+        install.executableFile.get().asFile == link.linkedFile.get().asFile
 
-        link.setOutputFile(project.file("exe"))
-        install.executable == link.outputFile
+        link.linkedFile.set(project.file("exe"))
+        install.executableFile.get().asFile == link.linkedFile.get().asFile
     }
 }

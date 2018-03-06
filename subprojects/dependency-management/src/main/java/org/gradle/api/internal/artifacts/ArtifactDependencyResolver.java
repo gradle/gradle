@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -33,5 +34,6 @@ public interface ArtifactDependencyResolver {
                  DependencyGraphVisitor graphVisitor,
                  DependencyArtifactsVisitor artifactsVisitor,
                  AttributesSchemaInternal consumerSchema,
-                 ArtifactTypeRegistry artifactTypeRegistry);
+                 ArtifactTypeRegistry artifactTypeRegistry,
+                 CapabilitiesHandler capabilitiesHandler);
 }

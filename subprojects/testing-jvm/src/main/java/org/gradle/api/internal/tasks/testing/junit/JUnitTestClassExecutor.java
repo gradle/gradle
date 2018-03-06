@@ -65,7 +65,7 @@ public class JUnitTestClassExecutor implements Action<String> {
 
     private void runTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
-        if (isInnerClassInsideEnclosedRunner(testClass)) {
+        if (isNestedClassInsideEnclosedRunner(testClass)) {
             return;
         }
         List<Filter> filters = new ArrayList<Filter>();
@@ -107,7 +107,7 @@ public class JUnitTestClassExecutor implements Action<String> {
     }
 
     // https://github.com/gradle/gradle/issues/2319
-    private boolean isInnerClassInsideEnclosedRunner(Class<?> testClass) {
+    public static boolean isNestedClassInsideEnclosedRunner(Class<?> testClass) {
         if (testClass.getEnclosingClass() == null) {
             return false;
         }

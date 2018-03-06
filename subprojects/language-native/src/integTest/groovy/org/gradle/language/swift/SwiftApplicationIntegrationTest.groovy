@@ -380,7 +380,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
             application.binaries.configureEach {
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
                 compileTask.get().moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
-                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                linkTask.get().linkedFile = layout.buildDirectory.file("exe/some-app.exe")
                 installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
             }
          """

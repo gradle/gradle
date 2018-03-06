@@ -33,7 +33,6 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.ClassPath;
@@ -45,6 +44,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Time;
@@ -89,7 +89,9 @@ public class ProjectBuilderImpl {
         NativeServices.initialize(userHomeDir);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildRequestMetaData, ClassPath.EMPTY);
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(getGlobalServices(), startParameter);
+        ServiceRegistry userHomeServices = getUserHomeServices(userHomeDir);
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
@@ -126,9 +128,6 @@ public class ProjectBuilderImpl {
                 .parent(NativeServices.getInstance())
                 .provider(new TestGlobalScopeServices())
                 .build();
-            // Registers a logger that will otherwise be registered when resolving dependencies with the ProjectBuilder
-            // Without this, ProjectBuilder will fail to resolve dependencies with a strange "Logging operation was not started" error
-            globalServices.get(GradleLauncherFactory.class);
             // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
             // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected

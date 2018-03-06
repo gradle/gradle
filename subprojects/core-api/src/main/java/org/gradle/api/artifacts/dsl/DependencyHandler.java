@@ -448,4 +448,25 @@ public interface DependencyHandler {
      */
     @Incubating
     void registerTransform(Action<? super VariantTransform> registrationAction);
+
+
+    /**
+     * Configures the capabilities definitions for this handler.
+     *
+     * @param configureAction the configuration action
+     *
+     * @since 4.7
+     */
+    @Incubating
+    void capabilities(Action<? super CapabilitiesHandler> configureAction);
+
+    /**
+     * Returns the capabilities definitions for this handler.
+     *
+     * @return the capabilities
+     *
+     * @since 4.7
+     */
+    @Incubating
+    CapabilitiesHandler getCapabilities();
 }

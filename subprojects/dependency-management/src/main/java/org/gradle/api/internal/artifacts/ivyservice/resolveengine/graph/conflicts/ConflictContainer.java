@@ -57,15 +57,15 @@ class ConflictContainer<K, T> {
             return null;
         }
         elements.put(target, candidates);
+        Collection<K> replacementSource = targetToSource.get(target);
         if (replacedBy != null) {
             targetToSource.put(replacedBy, target);
-            if (elements.containsKey(replacedBy)) {
+            if (replacementSource.isEmpty() && elements.containsKey(replacedBy)) {
                 //1) we've seen the replacement, register new conflict and return
                 return registerConflict(target, replacedBy);
             }
         }
 
-        Collection<K> replacementSource = targetToSource.get(target);
         if (!replacementSource.isEmpty()) {
             //2) new module is a replacement to a module we've seen already, register conflict and return
             return registerConflict(replacementSource, target);

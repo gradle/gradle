@@ -25,13 +25,15 @@ class JavaProjectsPlugin : Plugin<Project> {
         apply {
             plugin("gradlebuild.unittest-and-compile")
             plugin("gradlebuild.test-fixtures")
+            from("$rootDir/gradle/distributionTesting.gradle.kts")
+            from("$rootDir/gradle/intTestImage.gradle")
 
             if (file("src/integTest").isDirectory) {
-                from("$rootDir/gradle/integTest.gradle.kts")
+                plugin("gradlebuild.integration-tests")
             }
 
             if (file("src/crossVersionTest").isDirectory) {
-                from("$rootDir/gradle/crossVersionTest.gradle")
+                plugin("gradlebuild.cross-version-tests")
             }
 
             if (file("src/performanceTest").isDirectory) {
@@ -41,12 +43,7 @@ class JavaProjectsPlugin : Plugin<Project> {
             if (file("src/jmh").isDirectory) {
                 plugin("jmh")
             }
-
-            from("$rootDir/gradle/distributionTesting.gradle.kts")
-            from("$rootDir/gradle/intTestImage.gradle")
-
             from("$rootDir/gradle/testWithUnknownOS.gradle")
-            from("$rootDir/gradle/java9plus.gradle")
         }
         tasks.getByName("check") {
             dependsOn(":docs:checkstyleApi")
