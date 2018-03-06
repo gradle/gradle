@@ -5,10 +5,14 @@ import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
+import org.gradle.api.invocation.Gradle
 
+import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+
 import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
+
+import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
@@ -20,23 +24,18 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-// TODO: test for precompiled Gradle (init) scripts
-// TODO: test for FileProvider API behaviour
-// TODO: test for ScriptApi behaviour
+// TODO: test for FileProvider API behaviour of each script template
+// TODO: test for ScriptApi behaviour of each script template
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     @Test
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {
 
-        withKotlinDslPlugin()
-
-        withFile("src/main/kotlin/my-project-script.gradle.kts", """
+        givenPrecompiledKotlinScript("my-project-script.gradle.kts", """
 
             task("my-task")
 
         """)
-
-        compileKotlin()
 
         val project = mock<Project>()
 
@@ -51,15 +50,11 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     @Test
     fun `Settings scripts from regular source-sets are compiled via the PrecompiledSettingsScript template`() {
 
-        withKotlinDslPlugin()
-
-        withFile("src/main/kotlin/my-settings-script.settings.gradle.kts", """
+        givenPrecompiledKotlinScript("my-settings-script.settings.gradle.kts", """
 
             include("my-project")
 
         """)
-
-        compileKotlin()
 
         val settings = mock<Settings>()
 
@@ -69,6 +64,32 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                 "My_settings_script_settings_gradle"))
 
         verify(settings).include("my-project")
+    }
+
+    @Test
+    fun `Gradle scripts from regular source-sets are compiled via the PrecompiledInitScript template`() {
+
+        givenPrecompiledKotlinScript("my-gradle-script.init.gradle.kts", """
+
+            useLogger("my-logger")
+
+        """)
+
+        val gradle = mock<Gradle>()
+
+        assertInstanceOf<PrecompiledInitScript>(
+            instantiatePrecompiledScriptOf(
+                gradle,
+                "My_gradle_script_init_gradle"))
+
+        verify(gradle).useLogger("my-logger")
+    }
+
+    private
+    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
+        withKotlinDslPlugin()
+        withFile("src/main/kotlin/$fileName", code)
+        compileKotlin()
     }
 
     private inline

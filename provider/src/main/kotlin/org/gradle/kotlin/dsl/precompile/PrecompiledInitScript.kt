@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.precompile
 
-import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
 
 import org.gradle.kotlin.dsl.GradleDsl
 
@@ -25,12 +25,11 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Script template definition for precompiled Kotlin script with a [Settings] target.
+ * Script template definition for precompiled Kotlin script with a [Gradle] target.
  */
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,
-    scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
+    scriptFilePattern = "^.+\\.init\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class PrecompiledSettingsScript(settings: Settings) : Settings by settings
-
+abstract class PrecompiledInitScript(gradle: Gradle) : Gradle by gradle

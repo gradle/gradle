@@ -20,6 +20,8 @@ import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+
+import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
@@ -86,6 +88,8 @@ open class KotlinDslPlugin : Plugin<Project> {
         listOf(
             // treat *.settings.gradle.kts files as Settings scripts
             PrecompiledSettingsScript::class.qualifiedName!!,
+            // treat *.init.gradle.kts files as Gradle scripts
+            PrecompiledInitScript::class.qualifiedName!!,
             // treat *.gradle.kts files as Project scripts
             PrecompiledProjectScript::class.qualifiedName!!
         ).joinToString(separator = ",")
