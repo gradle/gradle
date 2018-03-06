@@ -77,6 +77,7 @@ import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.configuration.BuildConfigurer;
@@ -317,6 +318,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry,
+                                                                FileLockManager fileLockManager,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
@@ -327,6 +329,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                fileLockManager,
                 buildOperationExecutor,
                 cachedClasspathTransformer,
                 new BuildSrcBuildListenerFactory(
