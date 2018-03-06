@@ -26,7 +26,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.6'
-        runner.targetVersions = ["4.6"]
+        runner.targetVersions = ["4.6-20180214084508+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
