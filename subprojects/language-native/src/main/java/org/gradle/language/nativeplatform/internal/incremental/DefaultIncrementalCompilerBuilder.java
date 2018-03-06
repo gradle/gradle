@@ -42,19 +42,21 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final TaskFileVarFactory fileVarFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final IncrementalCompileSourceProcessorCache includeProcessorCache;
 
-    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, IncrementalCompileSourceProcessorCache includeProcessorCache) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.sourceParser = sourceParser;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileVarFactory = fileVarFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.includeProcessorCache = includeProcessorCache;
     }
 
     @Override
     public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Provider<Boolean> importAware) {
-        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware);
+        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware, includeProcessorCache);
     }
 
     private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareTaskProperty {
@@ -63,6 +65,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private final CSourceParser sourceParser;
         private final DirectoryFileTreeFactory directoryFileTreeFactory;
         private final BuildOperationExecutor buildOperationExecutor;
+        private final IncrementalCompileSourceProcessorCache includeProcessorCache;
         private final TaskOutputsInternal taskOutputs;
         private final FileCollection includeDirs;
         private final String taskPath;
@@ -72,7 +75,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
 
-        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
+        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware, IncrementalCompileSourceProcessorCache includeProcessorCache) {
             this.taskOutputs = task.getOutputs();
             this.taskPath = task.getPath();
             this.includeDirs = includeDirs;
@@ -83,6 +86,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             this.directoryFileTreeFactory = directoryFileTreeFactory;
             this.buildOperationExecutor = buildOperationExecutor;
             this.importAware = importAware;
+            this.includeProcessorCache = includeProcessorCache;
             headerFilesCollection = fileVarFactory.newCalculatedInputFileCollection(task, this, sourceFiles, includeDirs);
         }
 
@@ -100,7 +104,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             compileStateCache = compilationStateCacheFactory.create(taskPath);
             DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importAware.get());
             DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);
-            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
+            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter, includeProcessorCache);
             IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory, buildOperationExecutor);
 
             incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());
