@@ -30,6 +30,7 @@ import java.util.Map;
 public class CollectingMacroLookup implements MacroLookup {
     private final List<MacroSource> uncollected = new ArrayList<MacroSource>();
     private Map<File, IncludeDirectives> visible;
+    private final Object lock = new Object();
     private int hash;
 
     /**
@@ -40,14 +41,17 @@ public class CollectingMacroLookup implements MacroLookup {
             // Ignore
             return;
         }
+
         if (visible == null) {
             visible = new LinkedHashMap<File, IncludeDirectives>();
             visible.put(file, includeDirectives);
+
+            hash = Objects.hashCode(hash, includeDirectives.getMacros().values(), includeDirectives.getMacrosFunctions().values());
         } else if (!visible.containsKey(file)) {
             visible.put(file, includeDirectives);
-        }
 
-        hash = Objects.hashCode(hash, includeDirectives.getMacros().values(), includeDirectives.getMacrosFunctions().values());
+            hash = Objects.hashCode(hash, includeDirectives.getMacros().values(), includeDirectives.getMacrosFunctions().values());
+        }
     }
 
     int getLookupCacheHash() {
@@ -81,9 +85,11 @@ public class CollectingMacroLookup implements MacroLookup {
     }
 
     private void collectAll() {
-        while (!uncollected.isEmpty()) {
-            MacroSource source = uncollected.remove(0);
-            source.collectInto(this);
+        synchronized (lock) {
+            while (!uncollected.isEmpty()) {
+                MacroSource source = uncollected.remove(0);
+                source.collectInto(this);
+            }
         }
     }
 
