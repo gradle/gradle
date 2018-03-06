@@ -16,9 +16,12 @@
 
 package org.gradle.internal.logging.buildoperation;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin
-public interface ProgressStartBuildOperationProgressDetails extends OutputBuildOperationProgressDetails {
+public interface ProgressStartBuildOperationProgressDetails {
     String getDescription();
+    String getCategory();
+    LogLevel getLogLevel();
 }

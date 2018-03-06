@@ -18,7 +18,6 @@ package org.gradle.internal.operations.logging;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.buildoperation.OutputBuildOperationProgressDetails;
 import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -60,13 +59,12 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
 
     }
 
-    // we filter
     public static boolean isForwardlableOutput(CategorisedOutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             final ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
             return progressStartEvent.getLoggingHeader() != null || expectedFromBuildScanPlugin(progressStartEvent);
         } else {
-            return event instanceof OutputBuildOperationProgressDetails;
+            return event instanceof RenderableOutputEvent;
         }
     }
 

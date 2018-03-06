@@ -24,7 +24,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import javax.annotation.Nullable;
 
 @UsedByScanPlugin
-public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails{
+public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;
     private final String description;

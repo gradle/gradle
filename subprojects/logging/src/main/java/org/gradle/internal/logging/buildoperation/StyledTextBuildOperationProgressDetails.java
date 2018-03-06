@@ -16,13 +16,16 @@
 
 package org.gradle.internal.logging.buildoperation;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
-public interface StyledTextBuildOperationProgressDetails extends OutputBuildOperationProgressDetails{
+public interface StyledTextBuildOperationProgressDetails {
     List<? extends SpanDetail> getSpanDetails();
+    String getCategory();
+    LogLevel getLogLevel();
 
     @UsedByScanPlugin
     interface SpanDetail {
