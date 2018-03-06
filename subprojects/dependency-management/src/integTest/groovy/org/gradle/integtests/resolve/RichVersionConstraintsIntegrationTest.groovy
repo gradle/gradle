@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -772,8 +773,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
      *  `version { strictly 'x'}`  during conflict resolution.
      *
      * When 2 different constraints choose the same version, only one of these constraints is considered when conflict resolution
-     * applies with a 3rd constraint. 
+     * applies with a 3rd constraint.
      */
+    @Issue("gradle/gradle#4608")
     @ToBeImplemented
     def "conflict resolution should consider all constraints for each candidate"() {
         repository {

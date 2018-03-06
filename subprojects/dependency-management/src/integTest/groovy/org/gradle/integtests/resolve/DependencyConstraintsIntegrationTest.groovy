@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
+
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
  * declared in the build script (instead of published)
@@ -143,6 +145,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
     /**
      * Test demonstrates a bug in resolution of constraints, when real dependency is evicted via conflict resolution.
      */
+    @Issue("gradle/gradle#4610")
     @ToBeImplemented
     void "dependency constraint should not preserve hard dependency for evicted dependency"() {
         given:
@@ -428,6 +431,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("gradle/gradle#4609")
     @ToBeImplemented
     def "dependency constraint does not invalidate excludes defined on hard dependency"() {
         given:
