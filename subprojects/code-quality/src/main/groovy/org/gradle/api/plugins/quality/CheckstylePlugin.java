@@ -54,12 +54,17 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
 
-        if (usesSubprojectCheckstyleConfiguration()) {
-            DeprecationLogger.nagUserOfDeprecated("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead");
-            extension.setConfigDir(project.file(CONFIG_DIR_NAME));
-        } else {
-            extension.setConfigDir(project.getRootProject().file(CONFIG_DIR_NAME));
-        }
+        extension.setConfigDir(project.provider(new Callable<File>() {
+            @Override
+            public File call() {
+                if (usesSubprojectCheckstyleConfiguration()) {
+                    DeprecationLogger.nagUserOfDeprecated("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead");
+                    return project.file(CONFIG_DIR_NAME);
+                } else {
+                    return project.getRootProject().file(CONFIG_DIR_NAME);
+                }
+            }
+        }));
 
         extension.setConfig(project.getResources().getText().fromFile(new Callable<File>() {
             @Override

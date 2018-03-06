@@ -17,6 +17,8 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 
 import java.io.File;
@@ -37,10 +39,11 @@ public class CheckstyleExtension extends CodeQualityExtension {
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private File configDir;
+    private Property<File> configDir;
 
     public CheckstyleExtension(Project project) {
         this.project = project;
+        configDir = project.getObjects().property(File.class);
     }
 
     /**
@@ -101,7 +104,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
      */
     @Incubating
     public File getConfigDir() {
-        return configDir;
+        return configDir.get();
     }
 
     /**
@@ -113,7 +116,18 @@ public class CheckstyleExtension extends CodeQualityExtension {
      */
     @Incubating
     public void setConfigDir(File configDir) {
-        this.configDir = configDir;
+        this.configDir.set(configDir);
+    }
+
+    /**
+     * Set the provider for calculating the configuration directory.
+     *
+     * @param configDir Configuration directory provider
+     * @since 4.7
+     */
+    @Incubating
+    public void setConfigDir(Provider<File> configDir) {
+        this.configDir.set(configDir);
     }
 
     /**
