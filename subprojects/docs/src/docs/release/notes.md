@@ -34,7 +34,7 @@ We hope you will build happiness with Gradle 4.6, and we look forward to your fe
 
 Switch your build to use Gradle 4.6 quickly by updating your wrapper properties:
 
-    gradle wrapper --gradle-version=4.6
+    ./gradlew wrapper --gradle-version=4.6
 
 Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
