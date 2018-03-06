@@ -1,6 +1,6 @@
 plugins {
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 // Compiler daemon
@@ -29,5 +29,7 @@ classycle {
                        'org/gradle/external/javadoc/**']
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

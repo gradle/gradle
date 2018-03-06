@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
@@ -37,6 +38,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
 
@@ -146,6 +148,13 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 if (spec.isOptimized()) {
                     genericArgs.add("-O");
                 }
+
+                genericArgs.addAll(CollectionUtils.collect(spec.getMacros().keySet(), new Transformer<String, String>() {
+                    @Override
+                    public String transform(String macro) {
+                        return "-D" + macro;
+                    }
+                }));
 
                 genericArgs.add("-swift-version");
                 genericArgs.add(String.valueOf(spec.getSourceCompatibility().getVersion()));

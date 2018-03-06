@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -36,5 +36,7 @@ testFixtures {
     from(':platformBase')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

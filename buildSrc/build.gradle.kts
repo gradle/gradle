@@ -52,7 +52,16 @@ subprojects {
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply { plugin("kotlin") }
+        apply {
+            plugin("kotlin")
+            plugin("java-library")
+        }
+
+        tasks.withType<KotlinCompile> {
+            kotlinOptions {
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+            }
+        }
     }
     apply {
         plugin("idea")
@@ -70,14 +79,6 @@ allprojects {
         maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
         gradlePluginPortal()
     }
-    // Workaround caching problems with 'java-gradle-plugin'
-    // vvvvv
-    normalization {
-        runtimeClasspath {
-            ignore("plugin-under-test-metadata.properties")
-        }
-    }
-    // ^^^^^
 }
 
 dependencies {
@@ -86,6 +87,7 @@ dependencies {
     }
 }
 
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
     apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
@@ -93,17 +95,19 @@ if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "tr
 
 if (isCiServer) {
     gradle.buildFinished {
-        tasks.all {
-            if (this is Reporting<*> && state.failure != null) {
-                prepareReportForCIPublishing(this.reports["html"].destination)
+        allprojects.forEach { project ->
+            project.tasks.all {
+                if (this is Reporting<*> && state.failure != null) {
+                    prepareReportForCIPublishing(project.name, this.reports["html"].destination)
+                }
             }
         }
     }
 }
 
-fun Project.prepareReportForCIPublishing(report: File) {
+fun Project.prepareReportForCIPublishing(projectName: String, report: File) {
     if (report.isDirectory) {
-        val destFile = File("${rootProject.buildDir}/report-$name-${report.name}.zip")
+        val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
         ant.withGroovyBuilder {
             "zip"("destFile" to destFile) {
                 "fileset"("dir" to report)
@@ -113,7 +117,7 @@ fun Project.prepareReportForCIPublishing(report: File) {
         copy {
             from(report)
             into(rootProject.buildDir)
-            rename { "report-$name-${report.parentFile.name}-${report.name}" }
+            rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
         }
     }
 }

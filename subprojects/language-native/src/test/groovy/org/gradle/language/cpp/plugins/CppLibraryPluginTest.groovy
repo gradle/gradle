@@ -135,7 +135,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
@@ -148,7 +148,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkRelease.debuggable
     }
 
@@ -171,7 +171,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebugShared
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
         def compileRelease = project.tasks.compileReleaseSharedCpp
@@ -183,7 +183,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkReleaseShared
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkRelease.debuggable
 
         and:
@@ -272,7 +272,7 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         def link = project.tasks.linkDebug
-        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        link.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -288,7 +288,7 @@ class CppLibraryPluginTest extends Specification {
         compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
 
         def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        link.linkedFile.get().asFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 
     def "adds header zip task when maven-publish plugin is applied"() {

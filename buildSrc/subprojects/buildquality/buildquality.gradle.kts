@@ -5,27 +5,46 @@ plugins {
 apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
-    compile(project(":configuration"))
-    compile(project(":kotlinDsl"))
-    compile("org.owasp:dependency-check-gradle:3.1.0")
+    implementation(project(":binaryCompatibility"))
+    implementation(project(":cleanup"))
+    implementation(project(":configuration"))
+    implementation(project(":kotlinDsl"))
+    implementation(project(":profiling"))
+    implementation(project(":testing"))
+    implementation(project(":plugins"))
+    implementation("org.owasp:dependency-check-gradle:3.1.0")
 }
 
 gradlePlugin {
     (plugins) {
+        "addVerifyProductionEnvironmentTask" {
+            id = "gradlebuild.add-verify-production-environment-task"
+            implementationClass = "org.gradle.gradlebuild.buildquality.AddVerifyProductionEnvironmentTaskPlugin"
+        }
+        "ciReporting" {
+            id = "gradlebuild.ci-reporting"
+            implementationClass = "org.gradle.gradlebuild.buildquality.CiReportingPlugin"
+        }
+        "classycle" {
+            id = "gradlebuild.classycle"
+            implementationClass = "org.gradle.gradlebuild.buildquality.classycle.ClassyclePlugin"
+        }
         "dependencyVulnerabilities" {
-            id = "dependency-vulnerabilities"
+            id = "gradlebuild.dependency-vulnerabilities"
             implementationClass = "org.gradle.gradlebuild.buildquality.DependencyVulnerabilitiesPlugin"
         }
-        "failDependencyResolutionAtConfiguration" {
-            id = "fail-dependency-resolution-during-configuration"
-            implementationClass = "org.gradle.gradlebuild.buildquality.FailDependencyResolutionAtConfiguration"
+        "noResolutionAtConfigurationTime" {
+            id = "gradlebuild.no-resolution-at-configuration"
+            implementationClass = "org.gradle.gradlebuild.buildquality.NoResolutionAtConfigurationTimePlugin"
         }
-        "configureTaskPropertyValidation" {
-            id = "configure-task-properties-validation"
-            implementationClass = "org.gradle.gradlebuild.buildquality.ConfigureTaskPropertyValidationPlugin"
+        "taskPropertyValidation" {
+            id = "gradlebuild.task-properties-validation"
+            implementationClass = "org.gradle.gradlebuild.buildquality.TaskPropertyValidationPlugin"
         }
-
-
+        "testFilesCleanUp" {
+            id = "gradlebuild.test-files-cleanup"
+            implementationClass = "org.gradle.gradlebuild.buildquality.testfiles.TestFilesCleanUpPlugin"
+        }
     }
 }
 

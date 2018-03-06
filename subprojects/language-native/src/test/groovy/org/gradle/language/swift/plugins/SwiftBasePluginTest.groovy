@@ -99,7 +99,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def link = project.tasks[linkTask]
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("test_app"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("test_app"))
 
         def install = project.tasks[installTask]
         install instanceof InstallExecutable
@@ -131,7 +131,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def link = project.tasks[taskName]
         link instanceof LinkSharedLibrary
-        link.binaryFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        link.linkedFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("test_lib"))
 
         where:
         name        | taskName        | libDir

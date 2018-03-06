@@ -17,10 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,7 +34,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
         LocalComponentMetadata metaData = projects.get(projectIdentifier);
-        if (metaData !=null) {
+        if (metaData != null) {
             return metaData;
         }
         for (LocalComponentProvider provider : providers) {
@@ -44,31 +42,6 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
             if (componentMetaData != null) {
                 projects.putIfAbsent(projectIdentifier, componentMetaData);
                 return componentMetaData;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Iterable<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
-        for (LocalComponentProvider provider : providers) {
-            Iterable<LocalComponentArtifactMetadata> artifacts = provider.getAdditionalArtifacts(project);
-            if (artifacts != null) {
-                return artifacts;
-            }
-        }
-        return Collections.emptyList();
-    }
-
-    /**
-     * Finds an IDE metadata artifact with the specified type. Does not execute tasks to build the artifact.
-     *
-     * IDE metadata artifacts are registered by IDE plugins via {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider#registerAdditionalArtifact(org.gradle.api.artifacts.component.ProjectComponentIdentifier, org.gradle.internal.component.local.model.LocalComponentArtifactMetadata)}
-     */
-    public LocalComponentArtifactMetadata findAdditionalArtifact(ProjectComponentIdentifier project, String type) {
-        for (LocalComponentArtifactMetadata artifactMetaData : getAdditionalArtifacts(project)) {
-            if (artifactMetaData.getName().getType().equals(type)) {
-                return artifactMetaData;
             }
         }
         return null;

@@ -9,7 +9,7 @@ import java.util.concurrent.Callable
 
 plugins {
     `java-library`
-    id("classycle")
+    id("gradlebuild.classycle")
 }
 
 java {
@@ -45,17 +45,17 @@ jmh {
     }
 }
 
-val generatedTestResourcesDir: File by extra
-
 val buildReceiptPackage: String by rootProject.extra
+
+
 
 val buildReceiptResource by tasks.creating(Copy::class) {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
-    destinationDir = file("$generatedTestResourcesDir/$buildReceiptPackage")
+    destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
 }
 
 java.sourceSets {
     "main" {
-        output.dir(mapOf("builtBy" to buildReceiptResource), generatedTestResourcesDir)
+        output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)
     }
 }

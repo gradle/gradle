@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
+import org.gradle.api.internal.artifacts.dsl.dependencies.NoOpCapabilitiesHandler
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
@@ -40,7 +41,7 @@ import spock.lang.Specification
 class DefaultLocalComponentMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
-    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal))
+    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), NoOpCapabilitiesHandler.INSTANCE)
 
     def "can lookup configuration after it has been added"() {
         when:

@@ -21,9 +21,11 @@ import org.gradle.internal.event.ListenerManager;
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
     private final ListenerManager listenerManager;
+    private final BuildOperationListener broadcaster;
 
     public DefaultBuildOperationListenerManager(ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
+        this.broadcaster = listenerManager.getBroadcaster(BuildOperationListener.class);
     }
 
     @Override
@@ -34,5 +36,10 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     @Override
     public void removeListener(BuildOperationListener listener) {
         listenerManager.removeListener(listener);
+    }
+
+    @Override
+    public BuildOperationListener getBroadcaster() {
+        return broadcaster;
     }
 }

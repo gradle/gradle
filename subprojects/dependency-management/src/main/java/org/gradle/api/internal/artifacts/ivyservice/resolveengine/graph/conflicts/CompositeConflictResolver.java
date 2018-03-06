@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -77,8 +78,8 @@ class CompositeConflictResolver implements ModuleConflictResolver {
         }
 
         @Override
-        public boolean isRestart() {
-            return delegate.isRestart();
+        public Collection<ModuleIdentifier> getParticipants() {
+            return delegate.getParticipants();
         }
 
         @Nullable

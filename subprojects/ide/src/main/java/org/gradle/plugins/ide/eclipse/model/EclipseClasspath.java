@@ -20,10 +20,12 @@ import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -313,9 +315,8 @@ public class EclipseClasspath {
      * Calculates, resolves and returns dependency entries of this classpath.
      */
     public List<ClasspathEntry> resolveDependencies() {
-        ClasspathFactory classpathFactory = new ClasspathFactory(this);
-        List<ClasspathEntry> entries = classpathFactory.createEntries();
-        return entries;
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ((ProjectInternal) project).getServices().get(IdeArtifactRegistry.class));
+        return classpathFactory.createEntries();
     }
 
     public void mergeXmlClasspath(Classpath xmlClasspath) {

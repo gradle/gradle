@@ -208,7 +208,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     public File getOutputFile() {
         if (isExecutable()) {
             InstallExecutable installTask = getInstallTask();
-            return new File(installTask.getInstallDirectory().get().getAsFile(), "lib/" + installTask.getSourceFile().get().getAsFile().getName());
+            return new File(installTask.getInstallDirectory().get().getAsFile(), "lib/" + installTask.getExecutableFile().get().getAsFile().getName());
         } else {
             return binary.getPrimaryOutput();
         }

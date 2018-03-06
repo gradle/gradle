@@ -27,14 +27,13 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Path;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
@@ -53,8 +52,8 @@ public class IdeaDependenciesProvider {
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
 
-    public IdeaDependenciesProvider(ServiceRegistry serviceRegistry) {
-        moduleDependencyBuilder = new ModuleDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
+    public IdeaDependenciesProvider(IdeArtifactRegistry artifactRegistry) {
+        moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
         optimizer = new IdeaDependenciesOptimizer();
     }
 

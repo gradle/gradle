@@ -19,7 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInstantiationException;

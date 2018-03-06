@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 // Wrapper main entry point requires Java 5
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     compile project(":cli")
@@ -39,6 +39,8 @@ normalization {
         ignore wrapperBuildReceipt
     }
 }
+
+def generatedTestResourcesDir = gradlebuildJava.generatedTestResourcesDir
 
 task wrapperBuildReceiptResource(type: Copy) {
     from {

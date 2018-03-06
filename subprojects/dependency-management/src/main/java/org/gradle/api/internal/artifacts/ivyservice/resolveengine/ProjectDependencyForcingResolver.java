@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
 import org.gradle.internal.Cast;
@@ -36,6 +37,7 @@ class ProjectDependencyForcingResolver implements ModuleConflictResolver {
     public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
         // the collection will only be initialized if more than one project candidate is found
         Collection<T> projectCandidates = null;
+        Collection<ModuleIdentifier> participants = null;
         T foundProjectCandidate = null;
         // fine one or more project dependencies among conflicting modules
         for (T candidate : details.getCandidates()) {
@@ -48,7 +50,9 @@ class ProjectDependencyForcingResolver implements ModuleConflictResolver {
                     // found more than one
                     if (projectCandidates == null) {
                         projectCandidates = new ArrayList<T>();
+                        participants = new ArrayList<ModuleIdentifier>();
                         projectCandidates.add(foundProjectCandidate);
+                        participants.add(foundProjectCandidate.getId().getModule());
                     }
                     projectCandidates.add(candidate);
                 }
@@ -57,7 +61,9 @@ class ProjectDependencyForcingResolver implements ModuleConflictResolver {
         // if more than one conflicting project dependencies
         // let the delegate resolver select among them
         if (projectCandidates != null) {
-            ConflictResolverDetails<T> projectDetails = new DefaultConflictResolverDetails<T>(Cast.<List<T>>uncheckedCast(projectCandidates));
+
+
+            ConflictResolverDetails<T> projectDetails = new DefaultConflictResolverDetails<T>(participants, Cast.<List<T>>uncheckedCast(projectCandidates));
             delegate.select(projectDetails);
             details.select(projectDetails.getSelected());
             return;

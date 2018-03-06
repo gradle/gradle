@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.ProjectGroups
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -65,7 +67,7 @@ ext {
 
     allDistImage = copySpec {
         with binWithDistDocImage
-        groovyProjects.each { project ->
+        ProjectGroups.INSTANCE.getJavaProjects(project).each { project ->
             into("src/$project.projectDir.name") {
                 from project.sourceSets.main.allSource
             }

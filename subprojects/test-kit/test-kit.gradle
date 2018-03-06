@@ -1,5 +1,5 @@
 plugins {
-    id 'strict-compile'
+    id 'gradlebuild.strict-compile'
 }
 
 dependencies {
@@ -21,4 +21,6 @@ task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

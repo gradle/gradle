@@ -46,7 +46,7 @@ open class GradleCompilePlugin : Plugin<Project> {
 
     private
     fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
-        options.isFork = true
+        options.isFork =  true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
         val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
