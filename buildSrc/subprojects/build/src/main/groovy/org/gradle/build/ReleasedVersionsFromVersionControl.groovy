@@ -80,7 +80,8 @@ class ReleasedVersionsFromVersionControl implements ReleasedVersions {
 
         versions.sort().collect {
             // reformat according to our versioning scheme, since toString() would typically convert 1.0 to 1.0.0
-            "$it.major.${it.minor}${it.micro>0?'.'+it.micro:''}${it.qualifier? '-' + it.qualifier:''}"
+            // The call of toString is required to avoid GString cast exceptions when used from Kotlin/Java.
+            "$it.major.${it.minor}${it.micro>0?'.'+it.micro:''}${it.qualifier? '-' + it.qualifier:''}".toString()
         }
     }
 }

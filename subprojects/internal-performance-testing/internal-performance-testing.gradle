@@ -15,7 +15,7 @@
  */
 plugins {
     id 'javascript-base'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 configurations {
@@ -40,9 +40,11 @@ dependencies {
     runtime 'com.h2database:h2:1.4.192'
 }
 
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
+
 task reportResources(type: Copy) {
     from configurations.reports
-    into "$generatedResourcesDir/org/gradle/reporting"
+    into "${generatedResourcesDir}/org/gradle/reporting"
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources

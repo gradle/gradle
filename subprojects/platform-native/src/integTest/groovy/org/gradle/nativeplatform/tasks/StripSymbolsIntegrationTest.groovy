@@ -43,7 +43,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
                     def linkDebug = linkTask.get()
                     strip.toolChain = linkDebug.toolChain
                     strip.targetPlatform = linkDebug.targetPlatform
-                    strip.binaryFile.set linkDebug.binaryFile
+                    strip.binaryFile.set linkDebug.linkedFile
                 }
                 outputFile.set file("build/stripped")
             }

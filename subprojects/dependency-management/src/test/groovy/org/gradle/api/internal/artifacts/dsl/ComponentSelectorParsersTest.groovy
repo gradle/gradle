@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
-import org.gradle.initialization.DefaultBuildIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
@@ -104,8 +103,12 @@ public class ComponentSelectorParsersTest extends Specification {
 
     def "understands project input"() {
         when:
+        def buildId = Stub(BuildIdentifier)
+        buildId.name >> "build"
+        def buildIdentity = Stub(BuildIdentity)
+        buildIdentity.currentBuild >> buildId
         def services = new DefaultServiceRegistry()
-        services.add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("TEST")))
+        services.add(BuildIdentity, buildIdentity)
         def project = Mock(ProjectInternal) {
             getPath() >> ":bar"
             getServices() >> services
@@ -116,6 +119,7 @@ public class ComponentSelectorParsersTest extends Specification {
         v.size() == 1
         v[0] instanceof ProjectComponentSelector
         v[0].projectPath == ":bar"
+        v[0].buildName == "build"
     }
 
     def "fails for unknown types"() {

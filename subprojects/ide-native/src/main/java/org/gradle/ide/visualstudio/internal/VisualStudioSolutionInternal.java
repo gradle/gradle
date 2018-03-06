@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.ide.visualstudio.VisualStudioSolution;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 
 import java.util.List;
 
@@ -25,12 +24,7 @@ public interface VisualStudioSolutionInternal extends VisualStudioSolution {
     /**
      * The list of project artifacts included in this solution.
      */
-    List<LocalComponentArtifactMetadata> getProjectArtifacts();
-
-    /**
-     * The list of project configuration artifacts included in this solution.
-     */
-    List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts();
+    List<VisualStudioProjectMetadata> getProjects();
 
     /**
      * Adds tasks required to build this component.

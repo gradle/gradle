@@ -65,7 +65,7 @@ class BuildOperationsFixture {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().findAll {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
-        }
+        }.toList()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")

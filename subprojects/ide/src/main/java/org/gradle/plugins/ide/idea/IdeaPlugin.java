@@ -24,16 +24,13 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -43,11 +40,10 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectPathRegistry;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
@@ -61,7 +57,6 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -104,12 +99,14 @@ public class IdeaPlugin extends IdePlugin {
     private List<Project> allJavaProjects;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
+    private final ProjectPathRegistry projectPathRegistry;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
+    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectPathRegistry projectPathRegistry) {
         this.instantiator = instantiator;
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
+        this.projectPathRegistry = projectPathRegistry;
     }
 
     public IdeaModel getModel() {
@@ -130,11 +127,10 @@ public class IdeaPlugin extends IdePlugin {
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
-        configureIdeaModule(project);
+        configureIdeaModule((ProjectInternal) project);
         configureForJavaPlugin(project);
         configureForWarPlugin(project);
         configureForScalaPlugin();
-        artifactRegistry.registerIdeArtifact(createImlArtifact(project));
         linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
@@ -142,12 +138,6 @@ public class IdeaPlugin extends IdePlugin {
     @Deprecated
     public void performPostEvaluationActions() {
         SingleMessageLogger.nagUserOfDiscontinuedMethod("performPostEvaluationActions");
-    }
-
-    private static PublishArtifact createImlArtifact(Project project) {
-        IdeaModule module = project.getExtensions().getByType(IdeaModel.class).getModule();
-        Task byName = project.getTasks().getByName("ideaModule");
-        return new ImlArtifact(module, byName);
     }
 
     private void configureIdeaWorkspace(final Project project) {
@@ -224,7 +214,7 @@ public class IdeaPlugin extends IdePlugin {
 
             addWorker(projectTask);
 
-            addWorkspaceOpenTask(ideaProject);
+            addWorkspace(ideaProject);
         }
     }
 
@@ -250,7 +240,7 @@ public class IdeaPlugin extends IdePlugin {
         return allJavaProjects;
     }
 
-    private void configureIdeaModule(final Project project) {
+    private void configureIdeaModule(final ProjectInternal project) {
         final GenerateIdeaModule task = project.getTasks().create("ideaModule", GenerateIdeaModule.class);
         task.setDescription("Generates IDEA module files (IML)");
         IdeaModuleIml iml = new IdeaModuleIml(task.getXmlTransformer(), project.getProjectDir());
@@ -303,6 +293,8 @@ public class IdeaPlugin extends IdePlugin {
 
         });
 
+        artifactRegistry.registerIdeArtifact(new IdeaModuleMetadata(module, task));
+
         addWorker(task);
     }
 
@@ -314,6 +306,7 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
     }
+
     private void configureForWarPlugin(final Project project) {
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
@@ -475,51 +468,32 @@ public class IdeaPlugin extends IdePlugin {
             getLifecycleTask().dependsOn(new Callable<List<TaskDependency>>() {
                 @Override
                 public List<TaskDependency> call() {
-                    return allImlArtifactsInComposite(project);
+                    return allImlArtifactsInComposite(project, ideaModel.getProject());
                 }
             });
         }
     }
 
-    private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project) {
+    private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject) {
         List<TaskDependency> dependencies = Lists.newArrayList();
-        ServiceRegistry services = project.getServices();
-        ProjectPathRegistry projectPathRegistry = services.get(ProjectPathRegistry.class);
-        LocalComponentRegistry localComponentRegistry = services.get(LocalComponentRegistry.class);
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(project.getIdentityPath());
-        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
-            final ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
-            if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
-                // IDEA Module for project in current build: handled via `modules` model elements.
-                continue;
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
+            BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
+            if (thisProjectId.getBuild().equals(otherBuildId)) {
+                // IDEA Module for project in current build: don't include any module that has been excluded from project
+                boolean found = false;
+                for (IdeaModule ideaModule : ideaProject.getModules()) {
+                    if (reference.get().getFile().equals(ideaModule.getOutputFile())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    continue;
+                }
             }
-            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
-            if (imlArtifact != null) {
-                dependencies.add(imlArtifact.getBuildDependencies());
-            }
+            dependencies.add(reference.getBuildDependencies());
         }
         return dependencies;
     }
-
-    private static class ImlArtifact extends DefaultPublishArtifact {
-        private final IdeaModule module;
-        private final File projectDir;
-
-        ImlArtifact(IdeaModule module, Object... tasks) {
-            super(null, "iml", "iml", null, null, null, tasks);
-            this.module = module;
-            this.projectDir = module.getProject().getProjectDir();
-        }
-
-        @Override
-        public String getName() {
-            return module.getName();
-        }
-
-        @Override
-        public File getFile() {
-            return new File(projectDir, getName() + ".iml");
-        }
-    }
-
 }

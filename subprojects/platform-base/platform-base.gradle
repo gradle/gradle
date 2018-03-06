@@ -1,5 +1,5 @@
 plugins {
-    id 'strict-compile'
+    id 'gradlebuild.strict-compile'
 }
 
 sourceCompatibility = 1.6

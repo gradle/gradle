@@ -320,9 +320,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public void execute(LinkSharedLibrary linkTask) {
                     linkTask.setDescription("Links " + binary.getDisplayName());
-                    linkTask.setToolChain(binary.getToolChain());
-                    linkTask.setTargetPlatform(binary.getTargetPlatform());
-                    linkTask.setOutputFile(binary.getSharedLibraryFile());
+                    linkTask.getToolChain().set(binary.getToolChain());
+                    linkTask.getTargetPlatform().set(binary.getTargetPlatform());
+                    linkTask.getLinkedFile().set(binary.getSharedLibraryFile());
                     linkTask.setInstallName(binary.getSharedLibraryFile().getName());
                     linkTask.getLinkerArgs().set(binary.getLinker().getArgs());
                     linkTask.getImportLibrary().set(binary.getSharedLibraryLinkFile());
@@ -344,10 +344,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public void execute(CreateStaticLibrary task) {
                     task.setDescription("Creates " + binary.getDisplayName());
-                    task.setToolChain(binary.getToolChain());
-                    task.setTargetPlatform(binary.getTargetPlatform());
-                    task.setOutputFile(binary.getStaticLibraryFile());
-                    task.setStaticLibArgs(binary.getStaticLibArchiver().getArgs());
+                    task.getToolChain().set(binary.getToolChain());
+                    task.getTargetPlatform().set(binary.getTargetPlatform());
+                    task.getOutputFile().set(binary.getStaticLibraryFile());
+                    task.getStaticLibArgs().set(binary.getStaticLibArchiver().getArgs());
                 }
             });
         }

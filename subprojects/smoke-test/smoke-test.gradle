@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.testing.SmokeTest
 
 sourceSets {
@@ -18,7 +19,7 @@ dependencies {
     smokeTestCompile project(":internalIntegTesting")
     smokeTestCompile testLibraries.spock
 
-    smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
+    smokeTestRuntimeOnly "org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}"
     smokeTestRuntimeOnly project(':codeQuality')
     smokeTestRuntimeOnly project(':ide')
     smokeTestRuntimeOnly project(':ivy')

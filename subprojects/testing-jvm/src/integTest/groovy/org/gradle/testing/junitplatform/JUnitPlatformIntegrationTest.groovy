@@ -19,6 +19,7 @@ package org.gradle.testing.junitplatform
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -250,5 +251,35 @@ test {
         result.assertTestClassesExecuted('org.gradle.NestedTest$Inner')
         result.testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
             .assertTestPassed('innerTest')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4476')
+    def 'can handle test engine failure'() {
+        given:
+        createSimpleJupiterTest()
+        file('src/test/java/UninstantiatableExtension.java') << '''
+import org.junit.jupiter.api.extension.*;
+public class UninstantiatableExtension implements BeforeEachCallback {
+  private UninstantiatableExtension(){}
+
+  @Override
+  public void beforeEach(final ExtensionContext context) throws Exception {
+  }
+}
+'''
+        file('src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension') << 'UninstantiatableExtension'
+        buildFile << '''
+            test {
+                systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
+            }
+        '''
+
+        when:
+        fails('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass('UnknownClass')
+            .assertTestFailed('initializationError', containsString('UninstantiatableExtension'))
     }
 }

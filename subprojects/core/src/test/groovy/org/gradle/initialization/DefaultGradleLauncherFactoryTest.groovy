@@ -21,12 +21,15 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.BuildTreeScopeServices
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.time.Time
+import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
@@ -38,12 +41,14 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     def startParameter = new StartParameter()
     final def globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
     final def userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
-    final def sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, new DefaultBuildRequestMetaData(Time.currentTimeMillis()), ClassPath.EMPTY)
+    final def crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalServices, startParameter)
+    final def sessionServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, new DefaultBuildRequestMetaData(Time.currentTimeMillis()), ClassPath.EMPTY)
     final def buildTreeServices = new BuildTreeScopeServices(sessionServices)
     final def listenerManager = globalServices.get(ListenerManager)
     final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final def factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry)
+    final def buildProgressLogger = globalServices.get(BuildProgressLogger)
+    final def factory = new DefaultGradleLauncherFactory(userHomeScopeServiceRegistry, buildProgressLogger, crossBuildSessionScopeServices)
 
     def cleanup() {
         buildTreeServices.close()
@@ -83,7 +88,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameter(startParameter))
+        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameterForBuild(startParameter, tmpDir.file("nested"), Stub(PluginRequests)))
         launcher.gradle.parent == parent.gradle
 
         def request = launcher.gradle.services.get(BuildRequestMetaData)

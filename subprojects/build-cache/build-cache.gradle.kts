@@ -15,8 +15,8 @@
  */
 plugins {
     `java-library`
-    id("strict-compile")
-    id("classycle")
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 
 }
 

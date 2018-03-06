@@ -28,6 +28,8 @@ testFixtures {
     from(':core')
 }
 
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
+
 task reportResources(type: Copy) {
     from configurations.reports
     into "$generatedResourcesDir/org/gradle/reporting"

@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
@@ -61,7 +60,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
                                           List<SubscribableBuildActionRunnerRegistration> registrations,
-                                          GradleLauncherFactory gradleLauncherFactory,
                                           BuildOperationListenerManager buildOperationListenerManager,
                                           TaskInputsListener inputsListener,
                                           StyledTextOutputFactory styledTextOutputFactory,
@@ -85,8 +83,9 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                         new ValidatingBuildActionRunner(
                                                             new ChainingBuildActionRunner(buildActionRunners))),
                                                     buildOperationListenerManager,
-                                                    registrations),
-                                                gradleLauncherFactory)),
+                                                    registrations)
+                                            )
+                                        ),
                                         fileSystemChangeWaiterFactory,
                                         inputsListener,
                                         styledTextOutputFactory,

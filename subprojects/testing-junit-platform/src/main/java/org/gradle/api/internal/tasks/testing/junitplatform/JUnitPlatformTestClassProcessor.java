@@ -72,11 +72,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         super.stop();
     }
 
-    @Override
-    public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
-    }
-
     private class CollectAllTestClassesExecutor implements Action<String> {
         private final List<Class<?>> testClasses = new ArrayList<>();
 

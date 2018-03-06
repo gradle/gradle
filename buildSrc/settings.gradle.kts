@@ -25,13 +25,22 @@ fun String.toKebabCase() =
 
 rootProject.name = "buildSrc"
 
+// Please preserve alphabetical order
 include("binaryCompatibility")
 include("build")
+include("buildquality")
 include("cleanup")
+include("configuration")
+include("docs")
+include("ide")
 include("integrationTesting")
 include("kotlinDsl")
+include("uberPlugins")
+include("packaging")
 include("plugins")
+include("profiling")
 include("testing")
+include("versioning")
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName.gradle.kts"
