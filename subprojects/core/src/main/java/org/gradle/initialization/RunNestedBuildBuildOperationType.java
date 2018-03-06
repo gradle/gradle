@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress;
+package org.gradle.initialization;
 
-/**
- * Manages listeners of build operations.
- *
- * Be aware that there are two instances of this within the services hierarchy:
- *
- * - Global scoped (used by TAPI infrastructure)
- * - Cross build session
- *
- * @since 3.5
- */
-public interface BuildOperationListenerManager {
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-    void addListener(BuildOperationListener listener);
+@UsedByScanPlugin
+public final class RunNestedBuildBuildOperationType implements BuildOperationType<RunNestedBuildBuildOperationType.Details, RunNestedBuildBuildOperationType.Result> {
 
-    void removeListener(BuildOperationListener listener);
+    public interface Details {
+        String getBuildPath();
+    }
 
-    BuildOperationListener getBroadcaster();
+    public interface Result {
+    }
 
 }

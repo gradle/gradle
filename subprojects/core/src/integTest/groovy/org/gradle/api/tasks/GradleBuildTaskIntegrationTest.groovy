@@ -16,11 +16,16 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
+
+    def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
+
     def "handles properties which are not String when calling GradleBuild"() {
         given:
         buildFile << """
@@ -84,7 +89,8 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         outputContains(":other:buildSrc:assemble")
     }
 
-    @Rule BlockingHttpServer barrier = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer barrier = new BlockingHttpServer()
 
     def "can run multiple GradleBuild tasks concurrently"() {
         barrier.start()
@@ -141,5 +147,9 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
 
         then:
         noExceptionThrown()
+
+        and:
+        def runNestedBuildOps = buildOperations.all(RunNestedBuildBuildOperationType)
+        runNestedBuildOps.size() == 3
     }
 }
