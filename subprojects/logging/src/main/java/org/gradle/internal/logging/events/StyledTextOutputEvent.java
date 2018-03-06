@@ -73,13 +73,8 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
         }
     }
 
-    @Override
-    public List<? extends SpanDetail> getSpanDetails() {
-        return spans;
-    }
-
     @UsedByScanPlugin
-    public static class Span implements SpanDetail, Serializable {
+    public static class Span implements StyledTextBuildOperationProgressDetails.Span, Serializable {
         private final String text;
         private final StyledTextOutput.Style style;
 
@@ -95,6 +90,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
 
         public StyledTextOutput.Style getStyle() {
             return style;
+        }
+
+        @Override
+        public String getStyleName() {
+            return getStyle().name();
         }
 
         public String getText() {

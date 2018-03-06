@@ -17,19 +17,21 @@
 package org.gradle.internal.logging.buildoperation;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
 public interface StyledTextBuildOperationProgressDetails {
-    List<? extends SpanDetail> getSpanDetails();
+    List<? extends Span> getSpans();
     String getCategory();
     LogLevel getLogLevel();
 
     @UsedByScanPlugin
-    interface SpanDetail {
-        StyledTextOutput.Style getStyle();
+    interface Span {
+        /**
+         * a string representation of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
+         * */
+        String getStyleName();
         String getText();
     }
 }
