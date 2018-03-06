@@ -44,12 +44,12 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         importLibrary.set(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                RegularFile binaryFile = getBinaryFile().getOrNull();
+                RegularFile binaryFile = getLinkedFile().getOrNull();
                 if (binaryFile == null) {
                     return null;
                 }
-                NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
-                NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+                NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain().getOrNull();
+                NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform().getOrNull();
                 if (toolChain == null || targetPlatform == null) {
                     return null;
                 }

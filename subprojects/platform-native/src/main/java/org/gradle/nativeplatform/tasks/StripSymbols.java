@@ -19,6 +19,8 @@ package org.gradle.nativeplatform.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -36,6 +38,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 /**
  * Strips the debug symbols from a binary
@@ -44,14 +47,18 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
  */
 @Incubating
 public class StripSymbols extends DefaultTask {
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
-    private RegularFileProperty binaryFile;
-    private RegularFileProperty outputFile;
+    private final RegularFileProperty binaryFile;
+    private final RegularFileProperty outputFile;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
 
     public StripSymbols() {
+        ObjectFactory objectFactory = getProject().getObjects();
+
         this.binaryFile = newInputFile();
         this.outputFile = newOutputFile();
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
@@ -71,23 +78,27 @@ public class StripSymbols extends DefaultTask {
         return outputFile;
     }
 
+    /**
+     * The tool chain used for striping symbols.
+     *
+     * @since 4.7
+     */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
-    }
-
+    /**
+     * The platform for the binary.
+     *
+     * @since 4.7
+     */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
     }
 
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
-    }
+    // TODO: Need to track version/implementation of symbol strip tool.
 
     @TaskAction
     public void stripSymbols() {
@@ -98,9 +109,16 @@ public class StripSymbols extends DefaultTask {
         spec.setOutputFile(outputFile.get().getAsFile());
         spec.setOperationLogger(operationLogger);
 
-        Compiler<StripperSpec> symbolStripper = Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
+        Compiler<StripperSpec> symbolStripper = createCompiler();
         symbolStripper = BuildOperationLoggingCompilerDecorator.wrap(symbolStripper);
         WorkResult result = symbolStripper.execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private Compiler<StripperSpec> createCompiler() {
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        return toolProvider.newCompiler(StripperSpec.class);
     }
 }

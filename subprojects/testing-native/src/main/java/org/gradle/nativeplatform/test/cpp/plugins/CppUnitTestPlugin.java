@@ -172,7 +172,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                     return executable.getInstallDirectory().get().getAsFile().exists();
                                 }
                             });
-                            testTask.setExecutable(installTask.getRunScript());
+                            testTask.setExecutable(installTask.getRunScriptFile().get().getAsFile());
                             testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
                             // TODO: Honor changes to build directory
                             testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + executable.getNames().getDirName()).get().getAsFile());

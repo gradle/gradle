@@ -85,13 +85,13 @@ class   CppApplicationPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkExecutable
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
         linkDebug.debuggable
 
         def installDebug = project.tasks.installDebug
         installDebug instanceof InstallExecutable
         installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
-        installDebug.runScript.name == OperatingSystem.current().getScriptName("testApp")
+        installDebug.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("testApp")
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
         compileReleaseCpp instanceof CppCompile
@@ -103,13 +103,13 @@ class   CppApplicationPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
         linkRelease.debuggable
 
         def installRelease = project.tasks.installRelease
         installRelease instanceof InstallExecutable
         installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
-        installRelease.runScript.name == OperatingSystem.current().getScriptName("testApp")
+        installRelease.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("testApp")
     }
 
     def "output locations are calculated using base name defined on extension"() {
@@ -120,11 +120,11 @@ class   CppApplicationPluginTest extends Specification {
 
         then:
         def link = project.tasks.linkDebug
-        link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("test_app"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("test_app"))
 
         def install = project.tasks.installDebug
         install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
-        install.runScript.name == OperatingSystem.current().getScriptName("test_app")
+        install.runScriptFile.get().getAsFile().name == OperatingSystem.current().getScriptName("test_app")
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -140,14 +140,14 @@ class   CppApplicationPluginTest extends Specification {
         compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
 
         def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
 
         def install = project.tasks.installDebug
-        install.destinationDir == project.file("output/install/main/debug")
-        install.executable == link.outputFile
+        install.installDirectory.get().asFile == project.file("output/install/main/debug")
+        install.executableFile.get().asFile == link.linkedFile.get().asFile
 
-        link.setOutputFile(project.file("exe"))
-        install.executable == link.outputFile
+        link.linkedFile.set(project.file("exe"))
+        install.executableFile.get().asFile == project.file("exe")
     }
 
     def "adds publications when maven-publish plugin is applied"() {

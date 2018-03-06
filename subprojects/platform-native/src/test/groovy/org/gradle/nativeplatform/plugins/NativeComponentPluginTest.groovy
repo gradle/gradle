@@ -61,8 +61,8 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         with(project.tasks.linkTestExecutable) {
             it instanceof LinkExecutable
             it == testExecutable.tasks.link
-            it.toolChain == testExecutable.toolChain
-            it.targetPlatform == testExecutable.targetPlatform
+            it.toolChain.get() == testExecutable.toolChain
+            it.targetPlatform.get() == testExecutable.targetPlatform
             it.linkerArgs.get() == testExecutable.linker.args
         }
 
@@ -91,8 +91,8 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         with(project.tasks.linkTestSharedLibrary) {
             it instanceof LinkSharedLibrary
             it == sharedLibraryBinary.tasks.link
-            it.toolChain == sharedLibraryBinary.toolChain
-            it.targetPlatform == sharedLibraryBinary.targetPlatform
+            it.toolChain.get() == sharedLibraryBinary.toolChain
+            it.targetPlatform.get() == sharedLibraryBinary.targetPlatform
             it.linkerArgs.get() == sharedLibraryBinary.linker.args
         }
 
@@ -105,9 +105,9 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         with(project.tasks.createTestStaticLibrary) {
             it instanceof CreateStaticLibrary
             it == staticLibraryBinary.tasks.createStaticLib
-            it.toolChain == staticLibraryBinary.toolChain
-            it.targetPlatform == staticLibraryBinary.targetPlatform
-            it.staticLibArgs == staticLibraryBinary.staticLibArchiver.args
+            it.toolChain.get() == staticLibraryBinary.toolChain
+            it.targetPlatform.get() == staticLibraryBinary.targetPlatform
+            it.staticLibArgs.get() == staticLibraryBinary.staticLibArchiver.args
         }
 
         and:
