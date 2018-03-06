@@ -280,6 +280,6 @@ public class UninstantiatableExtension implements BeforeEachCallback {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass('UnknownClass')
-            .assertTestFailed('initializationError', containsString('Provider UninstantiatableExtension could not be instantiated'))
+            .assertTestFailed('initializationError', containsString('UninstantiatableExtension'))
     }
 }
