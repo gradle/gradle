@@ -37,10 +37,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Emits build operations representing test execution.
- *
- * A single instance is used per build, so may be adapting concurrent test executions. However, this implementation is not thread safe, but is relying on serialisation guarantees provided by
- * ListenerManager.
+ * A single instance is used per build, so may be adapting concurrent test executions.
+ * However, this implementation is not thread safe,
+ * but is relying on serialisation guarantees provided by ListenerManager.
  */
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
