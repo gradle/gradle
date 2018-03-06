@@ -44,16 +44,18 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         apply { plugin("groovy") }
         apply { plugin(GradleCompilePlugin::class.java) }
 
+        val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
+
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         java.sourceCompatibility = JavaVersion.VERSION_1_7
         addDependencies()
-        addGeneratedResources()
+        addGeneratedResources(extension)
         configureJarTasks()
         addCompileAllTask()
         configureTests()
     }
 
-    private fun Project.addGeneratedResources() {
+    private fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest by tasks.creating(ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
@@ -142,10 +144,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 }
 
-val Project.gradlebuildJava
-    get() = GradlebuildJavaExtension(project)
-
-open class GradlebuildJavaExtension(project: Project) {
+open class UnitTestAndCompileExtension(project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
 }
