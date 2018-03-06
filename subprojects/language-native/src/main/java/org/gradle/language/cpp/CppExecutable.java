@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.ComponentWithOutputs;
-import org.gradle.language.PublishableComponent;
+import org.gradle.api.component.PublishableComponent;
 import org.gradle.language.nativeplatform.ComponentWithExecutable;
 import org.gradle.language.nativeplatform.ComponentWithInstallation;
 import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
