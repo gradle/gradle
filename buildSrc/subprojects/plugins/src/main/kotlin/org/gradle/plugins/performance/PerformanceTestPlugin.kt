@@ -382,10 +382,10 @@ class PerformanceTestPlugin : Plugin<Project> {
                         exclude()
                     }
                 }
-                from(performanceTest.debugArtifactsDirectory)
-                destinationDir = buildDir
-                archiveName = "test-results-${junitXmlDir.name}.zip"
             }
+            from(performanceTest.debugArtifactsDirectory)
+            destinationDir = buildDir
+            archiveName = "test-results-${junitXmlDir.name}.zip"
         }
     }
 
