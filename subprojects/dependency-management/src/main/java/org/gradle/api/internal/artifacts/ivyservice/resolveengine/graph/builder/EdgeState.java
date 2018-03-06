@@ -112,6 +112,7 @@ class EdgeState implements DependencyGraphEdge {
 
     public void attachToTargetConfigurations() {
         if (!targetModuleRevision.isSelected()) {
+            applyCapabilitiesFromModule();
             return;
         }
         calculateTargetConfigurations();
@@ -175,10 +176,26 @@ class EdgeState implements DependencyGraphEdge {
      */
     private void discoverAndApplyCapabilities(final ConfigurationMetadata targetConfiguration) {
         ImmutableList<? extends CapabilityDescriptor> capabilities = targetConfiguration.getCapabilities();
+        applyCapabilities(capabilities);
+    }
+
+    private void applyCapabilities(List<? extends CapabilityDescriptor> capabilities) {
         CapabilitiesHandlerInternal capabilitiesHandler = resolveState.getCapabilitiesHandler();
         for (final CapabilityDescriptor capability : capabilities) {
             final String prefer = capability.getPrefer();
             addCapabilityToResolutionState(capabilitiesHandler, capability, prefer);
+        }
+    }
+
+    private void applyCapabilitiesFromModule() {
+        // It is possible for a component which is _not_ selected to provide capabilities. They must be taken into
+        // consideration during selection, because it might declare a preference. This is in particular important
+        // if the evicted module is not selected because another module providing the same capability declared a
+        // preference on itself: in this case, we still want the evicted module to declare its preference so that
+        // we can fail.
+        ComponentResolveMetadata metadata = targetModuleRevision.getMetadata();
+        if (metadata != null) {
+            applyCapabilities(metadata.getCapabilities());
         }
     }
 

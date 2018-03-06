@@ -51,7 +51,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
-    def gradleMetadata
+    MutableMavenModuleResolveMetadata gradleMetadata
     def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(mavenComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
@@ -116,6 +116,25 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         1 * dependenciesRule.execute(_)
         1 * constraintsRule.execute(_)
         0 * _
+    }
+
+    def "can update the capabilities of a component"() {
+        when:
+        adapterOnGradleMetadata.withCapabilities {
+            it.capability('foo') {
+                it.providedBy('foo')
+                it.providedBy('bar')
+                it.prefer('bar')
+                it.because('test case')
+            }
+        }
+
+        then:
+        gradleMetadata.capabilities.size() == 1
+        gradleMetadata.capabilities[0].name == 'foo'
+        gradleMetadata.capabilities[0].providedBy == ['foo', 'bar']
+        gradleMetadata.capabilities[0].prefer == 'bar'
+        gradleMetadata.capabilities[0].reason == 'test case'
     }
 
     def "treats ivy configurations as variants"() {

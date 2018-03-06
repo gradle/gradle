@@ -207,6 +207,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
+    public List<? extends CapabilityDescriptor> getCapabilities() {
+        return capabilitiesHandler.listCapabilities();
+    }
+
+    @Override
     public ComponentIdentifier getComponentId() {
         return componentIdentifier;
     }

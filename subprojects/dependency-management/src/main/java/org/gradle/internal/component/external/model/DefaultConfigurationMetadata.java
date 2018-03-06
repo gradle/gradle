@@ -48,6 +48,8 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     private final VariantMetadataRules componentMetadataRules;
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
+    private final ImmutableList<? extends CapabilityDescriptor> capabilities;
+
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
@@ -59,8 +61,9 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                            VariantMetadataRules componentMetadataRules,
-                                           ImmutableList<ExcludeMetadata> excludes) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, ImmutableAttributes.EMPTY, null);
+                                           ImmutableList<ExcludeMetadata> excludes,
+                                           ImmutableList<? extends CapabilityDescriptor> capabilities) {
+        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, ImmutableAttributes.EMPTY, null, capabilities);
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
@@ -68,7 +71,8 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
                                          VariantMetadataRules componentMetadataRules,
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes attributes,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies) {
+                                         ImmutableList<ModuleDependencyMetadata> configDependencies,
+                                         ImmutableList<? extends CapabilityDescriptor> capabilities) {
         this.componentId = componentId;
         this.name = name;
         this.transitive = transitive;
@@ -79,6 +83,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
         this.excludes = excludes;
         this.attributes = attributes;
         this.configDependencies = configDependencies;
+        this.capabilities = capabilities;
     }
 
     @Override
@@ -163,11 +168,11 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     }
 
     protected DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, attributes, configDependencies);
+        return new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, attributes, configDependencies, capabilities);
     }
 
     @Override
     public ImmutableList<? extends CapabilityDescriptor> getCapabilities() {
-        return ImmutableList.of();
+        return capabilities;
     }
 }

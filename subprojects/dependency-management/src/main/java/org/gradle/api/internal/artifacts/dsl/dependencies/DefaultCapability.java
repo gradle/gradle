@@ -23,6 +23,7 @@ import org.gradle.api.component.CapabilityDescriptor;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.Collection;
 import java.util.Set;
 
 class DefaultCapability implements CapabilityHandler, CapabilityInternal {
@@ -36,6 +37,15 @@ class DefaultCapability implements CapabilityHandler, CapabilityInternal {
     DefaultCapability(NotationParser<Object, ModuleIdentifier> notationParser, String id) {
         this.id = id;
         this.notationParser = notationParser;
+    }
+
+    @Override
+    public CapabilityHandler setProvidedBy(Collection<String> moduleIdentifiers) {
+        providedBy.clear();
+        for (String moduleIdentifier : moduleIdentifiers) {
+            providedBy(moduleIdentifier);
+        }
+        return this;
     }
 
     @Override

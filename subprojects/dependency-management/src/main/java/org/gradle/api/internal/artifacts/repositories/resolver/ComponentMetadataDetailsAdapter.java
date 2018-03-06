@@ -15,22 +15,33 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
+import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
+import org.gradle.api.artifacts.dsl.CapabilityHandler;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.CapabilityDescriptor;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails {
     private final MutableModuleComponentResolveMetadata metadata;
@@ -92,6 +103,14 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
     @Override
+    public void withCapabilities(Action<? super CapabilitiesHandler> action) {
+        CapabilitiesAdapter adapter = instantiator.newInstance(CapabilitiesAdapter.class, metadata.getCapabilities());
+        action.execute(adapter);
+        ImmutableList<? extends CapabilityDescriptor> updatedDescriptors = adapter.getCapabilityDescriptors();
+        metadata.setCapabilities(updatedDescriptors);
+    }
+
+    @Override
     public ComponentMetadataDetails attributes(Action<? super AttributeContainer> action) {
         AttributeContainer attributes = metadata.getAttributesFactory().mutable((AttributeContainerInternal) metadata.getAttributes());
         action.execute(attributes);
@@ -123,4 +142,75 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
         }
     }
 
+    /**
+     * This class is public because created using the instantiator, so that we can use the methods without "it." in Groovy.
+     */
+    public static class CapabilitiesAdapter implements CapabilitiesHandler {
+        private final Map<String, MutableCapabilityAdapter> capabilities = Maps.newLinkedHashMap();
+
+        public CapabilitiesAdapter(ImmutableList<? extends CapabilityDescriptor> descriptors) {
+            for (CapabilityDescriptor descriptor : descriptors) {
+                MutableCapabilityAdapter adapter = new MutableCapabilityAdapter(descriptor.getName(), Lists.newArrayList(descriptor.getProvidedBy()), descriptor.getPrefer(), descriptor.getReason());
+                capabilities.put(descriptor.getName(), adapter);
+            }
+        }
+
+        @Override
+        public void capability(String identifier, Action<? super CapabilityHandler> configureAction) {
+            MutableCapabilityAdapter handler = capabilities.get(identifier);
+            if (handler == null) {
+                handler = new MutableCapabilityAdapter(identifier, new ArrayList<String>(), null, null);
+                capabilities.put(identifier, handler);
+            }
+            configureAction.execute(handler);
+        }
+
+        public ImmutableList<? extends CapabilityDescriptor> getCapabilityDescriptors() {
+            ImmutableList.Builder<DefaultImmutableCapability> builder = new ImmutableList.Builder<DefaultImmutableCapability>();
+            for (MutableCapabilityAdapter handler : capabilities.values()) {
+                builder.add(new DefaultImmutableCapability(handler.name, ImmutableList.copyOf(handler.providedBy), handler.prefer, handler.reason));
+            }
+            return builder.build();
+        }
+    }
+
+    private static class MutableCapabilityAdapter implements CapabilityHandler {
+
+        private final String name;
+        private List<String> providedBy;
+        private String prefer;
+        private String reason;
+
+        private MutableCapabilityAdapter(String name, List<String> providedBy, @Nullable String prefer, @Nullable String reason) {
+            this.name = name;
+            this.providedBy = providedBy;
+            this.prefer = prefer;
+            this.reason = reason;
+        }
+
+        @Override
+        public CapabilityHandler setProvidedBy(Collection<String> moduleIdentifiers) {
+            providedBy.clear();
+            providedBy.addAll(moduleIdentifiers);
+            return this;
+        }
+
+        @Override
+        public CapabilityHandler providedBy(String moduleIdentifier) {
+            providedBy.add(moduleIdentifier);
+            return this;
+        }
+
+        @Override
+        public CapabilityHandler prefer(String moduleIdentifer) {
+            this.prefer = moduleIdentifer;
+            return this;
+        }
+
+        @Override
+        public CapabilityHandler because(String reason) {
+            this.reason = reason;
+            return this;
+        }
+    }
 }

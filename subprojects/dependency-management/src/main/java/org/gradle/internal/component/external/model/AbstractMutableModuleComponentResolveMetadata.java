@@ -86,6 +86,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+        this.capabilities = metadata.getCapabilities();
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
