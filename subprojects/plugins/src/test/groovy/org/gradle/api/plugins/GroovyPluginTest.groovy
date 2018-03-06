@@ -84,7 +84,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof GroovyCompile
-        task.description == 'Compiles main Groovy source.'
+        task.description == 'Compiles the main Groovy source.'
         dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME).matches(task)
 
         when:
@@ -92,7 +92,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof GroovyCompile
-        task.description == 'Compiles test Groovy source.'
+        task.description == 'Compiles the test Groovy source.'
         dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME).matches(task)
     }
 

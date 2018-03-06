@@ -63,7 +63,7 @@ class ScalaPluginTest {
         def task = project.tasks['compileScala']
         SourceSet mainSourceSet = project.sourceSets.main
         assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles main Scala source.'))
+        assertThat(task.description, equalTo('Compiles the main Scala source.'))
         assertThat(task.classpath.files as List, equalTo([
             mainSourceSet.java.outputDir
         ]))
@@ -73,7 +73,7 @@ class ScalaPluginTest {
         task = project.tasks['compileTestScala']
         def testSourceSet = project.sourceSets.test
         assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles test Scala source.'))
+        assertThat(task.description, equalTo('Compiles the test Scala source.'))
         assertThat(task.classpath.files as List, equalTo([
             mainSourceSet.java.outputDir,
             mainSourceSet.scala.outputDir,

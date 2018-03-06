@@ -232,7 +232,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
         final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "Report", JacocoReport.class);
         reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-        reportTask.setDescription(String.format("Generates code coverage report for %s task.", task.getName()));
+        reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
         reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
         reportTask.getReports().all(new Action<ConfigurableReport>() {

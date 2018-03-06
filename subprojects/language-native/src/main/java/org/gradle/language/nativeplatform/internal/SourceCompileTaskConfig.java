@@ -39,7 +39,7 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
     protected void configureCompileTask(AbstractNativeCompileTask abstractTask, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         AbstractNativeSourceCompileTask task = (AbstractNativeSourceCompileTask) abstractTask;
 
-        task.setDescription("Compiles " + sourceSet + " of " + binary);
+        task.setDescription("Compiles the " + sourceSet + " of " + binary);
 
         task.source(sourceSet.getSource());
 

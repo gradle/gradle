@@ -310,7 +310,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public void configureForSourceSet(final SourceSet sourceSet, final AbstractCompile compile) {
         SingleMessageLogger.nagUserOfDiscontinuedMethod("configureForSourceSet(SourceSet, AbstractCompile)");
         ConventionMapping conventionMapping;
-        compile.setDescription("Compiles " + sourceSet.getJava() + ".");
+        compile.setDescription("Compiles the " + sourceSet.getJava() + ".");
         conventionMapping = compile.getConventionMapping();
         compile.setSource(sourceSet.getJava());
         conventionMapping.map("classpath", new Callable<Object>() {

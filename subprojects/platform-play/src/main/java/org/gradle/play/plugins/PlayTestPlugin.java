@@ -58,7 +58,7 @@ public class PlayTestPlugin extends RuleSource {
             final File testClassesDir = new File(buildDir, binary.getProjectScopedName() + "/testClasses");
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setDescription("Compiles the scala and java test sources for " + binary.getDisplayName() + ".");
+                    scalaCompile.setDescription("Compiles the scala and java test sources for the " + binary.getDisplayName() + ".");
 
                     scalaCompile.setClasspath(testCompileClasspath);
 

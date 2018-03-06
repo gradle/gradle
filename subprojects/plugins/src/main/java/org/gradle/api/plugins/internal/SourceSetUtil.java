@@ -35,7 +35,7 @@ public class SourceSetUtil {
     private SourceSetUtil() {}
 
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
-        compile.setDescription("Compiles " + sourceDirectorySet.getDisplayName() + ".");
+        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
         compile.getConventionMapping().map("classpath", new Callable<Object>() {
             public Object call() throws Exception {

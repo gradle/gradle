@@ -192,7 +192,7 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
 
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, FindBugs task) {
-        task.setDescription("Runs FindBugs analysis for " + sourceSet.getName() + " classes");
+        task.setDescription("Run FindBugs analysis for " + sourceSet.getName() + " classes");
         task.setSource(sourceSet.getAllJava());
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("classes", new Callable<FileCollection>() {

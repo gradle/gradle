@@ -143,7 +143,7 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, CodeNarc task) {
-        task.setDescription("Runs CodeNarc analysis for " + sourceSet.getName() + " classes");
+        task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         DynamicObject dynamicObject = new DslObject(sourceSet).getAsDynamicObject();
         task.setSource(dynamicObject.getProperty("allGroovy"));
     }

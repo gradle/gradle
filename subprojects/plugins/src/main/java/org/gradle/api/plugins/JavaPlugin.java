@@ -88,7 +88,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_CLASSES_TASK_NAME = "testClasses";
 
     /**
-     * The name of the task which compiles test Java sources.
+     * The name of the task which compiles the test Java sources.
      */
     public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
 

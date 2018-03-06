@@ -112,7 +112,7 @@ public class PlayRoutesPlugin extends RuleSource {
                     File generatedSourceDir = binary.getNamingScheme().getOutputDirectory(task.getProject().getBuildDir(), "src");
                     File routesCompileOutputDirectory = new File(generatedSourceDir, routesScalaSources.getName());
 
-                    routesCompile.setDescription("Generates routes for '" + routesSourceSet.getName() + "' source set.");
+                    routesCompile.setDescription("Generates routes for the '" + routesSourceSet.getName() + "' source set.");
                     routesCompile.setPlatform(binary.getTargetPlatform());
                     routesCompile.setAdditionalImports(new ArrayList<String>());
                     routesCompile.setSource(routesSourceSet.getSource());

@@ -285,8 +285,6 @@ You can add a description to your task. This description is displayed when execu
         </sample>
 ++++
 
-It is recommended to start a description of a task with a verb in third person.
-
 
 [[sec:replacing_tasks]]
 === Replacing tasks
