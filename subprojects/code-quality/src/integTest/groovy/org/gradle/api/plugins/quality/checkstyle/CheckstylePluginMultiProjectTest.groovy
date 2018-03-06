@@ -87,6 +87,23 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         outputContains(EXPECTED_DEPRECATION_MESSAGE)
     }
 
+    def "explicitly configures checkstyle extension to point to config directory and does not render deprecation message"() {
+        given:
+        settingsFile << "include 'child'"
+        file('child/build.gradle') << javaProjectUsingCheckstyle()
+        file('child/build.gradle') << """
+            checkstyle {
+                configDir = file('config/checkstyle')
+            }
+        """
+        file('child/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('child/config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+
+        expect:
+        succeeds(':child:checkstyleMain')
+        checkStyleReportFile(file('child')).text.contains('Dummy.java')
+    }
+
     static String simpleCheckStyleConfig() {
         """
 <!DOCTYPE module PUBLIC
