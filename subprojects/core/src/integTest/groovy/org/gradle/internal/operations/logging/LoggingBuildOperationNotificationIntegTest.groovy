@@ -91,8 +91,8 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         applySettingsScriptProgress.size() == 1
         applySettingsScriptProgress[0].details.logLevel == 'QUIET'
         applySettingsScriptProgress[0].details.category == 'system.out'
-        applySettingsScriptProgress[0].details.spanDetails[0].style == 'Normal'
-        applySettingsScriptProgress[0].details.spanDetails[0].text == "from settings file${getPlatformLineSeparator()}"
+        applySettingsScriptProgress[0].details.spans[0].styleName == 'Normal'
+        applySettingsScriptProgress[0].details.spans[0].text == "from settings file${getPlatformLineSeparator()}"
 
         def applyBuildScriptProgress = operations.only("Apply script build.gradle to root project 'root'").progress
         applyBuildScriptProgress.size() == 1
@@ -110,9 +110,9 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         jarProgress.size() == 1
         jarProgress[0].details.logLevel == 'QUIET'
         jarProgress[0].details.category == 'system.out'
-        jarProgress[0].details.spanDetails.size == 1
-        jarProgress[0].details.spanDetails[0].style == 'Normal'
-        jarProgress[0].details.spanDetails[0].text == "from jar task${getPlatformLineSeparator()}"
+        jarProgress[0].details.spans.size == 1
+        jarProgress[0].details.spans[0].styleName == 'Normal'
+        jarProgress[0].details.spans[0].text == "from jar task${getPlatformLineSeparator()}"
 
         def downloadProgress = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar").progress
         downloadProgress.size() == 1
@@ -121,30 +121,85 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         downloadProgress[0].details.description == "Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar"
     }
 
-    @spock.lang.Ignore
-    def "captures output from nested builds"() {
+    def "captures output from buildSrc"() {
         given:
-        file('nested/settings.gradle') << "rootProject.name = 'nested'"
-        file('nested/build.gradle') << "task foo{doLast {println 'foo'}}"
+        configureNestedBuild('buildSrc')
+        file('buildSrc/build.gradle') << "build.dependsOn 'foo'"
+        file("build.gradle") << ""
 
-        settingsFile << "rootProject.name = 'root'"
-        file("build.gradle") << """
-        task run(type:GradleBuild) {
-            dir = 'nested'
-            tasks = ['foo']
+        when:
+        succeeds "help"
+
+        then:
+        operations.all(Pattern.compile('.*')).each {
+            println it.displayName
         }
-        """
+
+        assertNestedTaskOutputTracked()
+    }
+
+    def "captures output from composite builds"() {
+        given:
+        configureNestedBuild()
+        settingsFile << "includeBuild 'nested'"
+
+        file("build.gradle") << """
+            task run {
+                dependsOn gradle.includedBuilds*.task(':foo')
+            }"""
 
         when:
         succeeds "run"
 
         then:
-        // should be exec :nested:foo build op that contains the foo output progress
-        def runFooProgress = operations.only("Run tasks (:nested)").progress
-        runFooProgress.size() == 1
-        runFooProgress[0].details.logLevel == 'LIFECYCLE'
-        runFooProgress[0].details.category == 'org.gradle.api.Project'
-        runFooProgress[0].details.message == 'output from build.gradle'
+        assertNestedTaskOutputTracked()
+    }
+
+    def "captures output from GradleBuild task builds"() {
+        given:
+        configureNestedBuild()
+        settingsFile << "rootProject.name = 'root'"
+
+        file("build.gradle") << """
+            task run(type:GradleBuild) {
+                dir = 'nested'
+                tasks = ['foo']
+            }
+            """
+
+        when:
+        succeeds "run"
+
+        then:
+        assertNestedTaskOutputTracked()
+    }
+
+
+    private void assertNestedTaskOutputTracked() {
+        def nestedTaskProgress = operations.only("Execute doLast {} action for :foo").progress
+        assert nestedTaskProgress.size() == 2
+
+        assert nestedTaskProgress[0].details.logLevel == 'QUIET'
+        assert nestedTaskProgress[0].details.category == 'system.out'
+        assert nestedTaskProgress[0].details.spans.size == 1
+        assert nestedTaskProgress[0].details.spans[0].styleName == 'Normal'
+        assert nestedTaskProgress[0].details.spans[0].text == "foo println${getPlatformLineSeparator()}"
+
+        assert nestedTaskProgress[1].details.logLevel == 'LIFECYCLE'
+        assert nestedTaskProgress[1].details.category == 'org.gradle.api.Task'
+        assert nestedTaskProgress[1].details.message == 'foo from logger'
+    }
+
+    private void configureNestedBuild(String project = 'nested') {
+        file("${project}/settings.gradle") << "rootProject.name = '$project'"
+        file("${project}/build.gradle") << """
+            task foo {
+                doLast {
+                    println 'foo println'
+                    logger.lifecycle 'foo from logger'
+                }
+            } 
+        """
     }
 
 }
