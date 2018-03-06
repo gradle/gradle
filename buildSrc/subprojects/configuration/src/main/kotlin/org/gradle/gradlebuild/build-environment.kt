@@ -6,7 +6,7 @@ import org.gradle.internal.os.OperatingSystem
 
 object BuildEnvironment {
     val isCiServer = "CI" in System.getenv()
-    val gradleKotlinDslVersion = "0.17.5"
+    val gradleKotlinDslVersion = "0.18.0-SNAPSHOT"
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
