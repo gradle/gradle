@@ -21,6 +21,8 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
@@ -73,11 +75,19 @@ open class KotlinDslPlugin : Plugin<Project> {
         tasks {
             "compileKotlin"(KotlinCompile::class) {
                 kotlinOptions {
-                    freeCompilerArgs += listOf(
-                        // recognize *.gradle.kts files as Gradle Kotlin scripts
-                        "-script-templates", PrecompiledProjectScript::class.qualifiedName!!)
+                    freeCompilerArgs += listOf("-script-templates", scriptTemplates)
                 }
             }
         }
+    }
+
+    private
+    val scriptTemplates by lazy {
+        listOf(
+            // treat *.settings.gradle.kts files as Settings scripts
+            PrecompiledSettingsScript::class.qualifiedName!!,
+            // treat *.gradle.kts files as Project scripts
+            PrecompiledProjectScript::class.qualifiedName!!
+        ).joinToString(separator = ",")
     }
 }

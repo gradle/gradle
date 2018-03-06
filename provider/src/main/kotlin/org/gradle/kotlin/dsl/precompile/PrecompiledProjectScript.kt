@@ -16,13 +16,12 @@
 
 package org.gradle.kotlin.dsl.precompile
 
-import org.gradle.kotlin.dsl.*
-
 import org.gradle.api.Project
 
-import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.kotlin.dsl.GradleDsl
+import org.gradle.kotlin.dsl.ScriptHandlerScope
 
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
@@ -34,7 +33,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
  */
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,
-    scriptFilePattern = ".*\\.gradle\\.kts")
+    scriptFilePattern = "^.*\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class PrecompiledProjectScript(project: Project) : Project by project {
