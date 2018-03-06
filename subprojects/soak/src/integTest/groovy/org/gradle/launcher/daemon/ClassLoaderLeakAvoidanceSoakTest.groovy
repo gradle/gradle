@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization.loadercache
+package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.soak.categories.SoakTest
+import org.junit.experimental.categories.Category
 
-class ClassLoaderLeakAvoidanceIntegrationTest extends AbstractIntegrationSpec {
+@Category(SoakTest)
+class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireDaemon().requireIsolatedDaemons()
@@ -31,7 +34,7 @@ class ClassLoaderLeakAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
             
             class MyTask extends DefaultTask {
-                static final byte[] MEMORY_HOG = new byte[70 * 1024 * 1024]
+                static final byte[] MEMORY_HOG = new byte[10 * 1024 * 1024]
                 
                 @Input 
                 String someProperty
@@ -47,11 +50,10 @@ class ClassLoaderLeakAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < 35; i++) {
             myTask.text = myTask.text.replace("runAction$i", "runAction${i + 1}")
             executer.withBuildJvmOpts("-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError")
             assert succeeds("myTask")
-            sleep(1000)
         }
     }
 }
