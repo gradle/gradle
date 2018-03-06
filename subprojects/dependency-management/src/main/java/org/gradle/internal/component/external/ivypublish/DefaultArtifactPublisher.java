@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 public class DefaultArtifactPublisher implements ArtifactPublisher {
@@ -60,14 +59,12 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
         if (descriptor != null) {
             // Convert once, in order to write the Ivy descriptor with _all_ configurations
             DefaultIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, allConfigurations, false);
-            removeDirectoryArtifacts(publishMetaData);
             ivyModuleDescriptorWriter.write(publishMetaData, descriptor);
         }
 
         // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
         DefaultIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish, true);
         if (descriptor != null) {
-            validatePublishMetaData(publishMetaData);
             IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, descriptor);
         }
@@ -79,39 +76,21 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
         }
     }
 
-    private void removeDirectoryArtifacts(IvyModulePublishMetadata publishMetaData) {
-        Iterator<IvyModuleArtifactPublishMetadata> itr = publishMetaData.getArtifacts().iterator();
-        while (itr.hasNext()) {
-            IvyModuleArtifactPublishMetadata metadata = itr.next();
-            if (metadata.getFile().isDirectory()) {
-                itr.remove();
-            }
-        }
-    }
-
-    private void validatePublishMetaData(IvyModulePublishMetadata publishMetaData) {
-        for (IvyModuleArtifactPublishMetadata metadata : publishMetaData.getArtifacts()) {
-            if (metadata.getFile().isDirectory()) {
-                throw new IllegalArgumentException("Cannot publish a directory (" + metadata.getFile() + ")");
-            }
-        }
-    }
-
-    private DefaultIvyModulePublishMetadata toPublishMetaData(Module module, Set<? extends ConfigurationInternal> configurations, boolean artifactsMustExist) {
+    private DefaultIvyModulePublishMetadata toPublishMetaData(Module module, Set<? extends ConfigurationInternal> configurations, boolean validateArtifacts) {
         ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getGroup(), module.getName(), module.getVersion());
         DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(id, module.getStatus());
-        addConfigurations(publishMetaData, configurations, artifactsMustExist);
+        addConfigurations(publishMetaData, configurations, validateArtifacts);
         return publishMetaData;
     }
 
-    private void addConfigurations(DefaultIvyModulePublishMetadata metaData, Collection<? extends ConfigurationInternal> configurations, boolean artifactsMustExist) {
+    private void addConfigurations(DefaultIvyModulePublishMetadata metaData, Collection<? extends ConfigurationInternal> configurations, boolean validateArtifacts) {
         for (ConfigurationInternal configuration : configurations) {
             BuildableLocalConfigurationMetadata configurationMetadata = addConfiguration(metaData, configuration);
             dependenciesConverter.addDependenciesAndExcludes(configurationMetadata, configuration);
 
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
             for (PublishArtifact publishArtifact : outgoingVariant.getArtifacts()) {
-                if (!artifactsMustExist || checkArtifactFileExists(publishArtifact)) {
+                if (!validateArtifacts || isValidToPublish(publishArtifact)) {
                     metaData.addArtifact(configuration.getName(), publishArtifact);
                 }
             }
@@ -123,8 +102,12 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
         return metaData.addConfiguration(configuration.getName(), Configurations.getNames(configuration.getExtendsFrom()), configuration.isVisible(), configuration.isTransitive());
     }
 
-    private boolean checkArtifactFileExists(PublishArtifact artifact) {
+    private boolean isValidToPublish(PublishArtifact artifact) {
         File artifactFile = artifact.getFile();
+        if (artifactFile.isDirectory()) {
+            throw new IllegalArgumentException("Cannot publish a directory (" + artifactFile + ")");
+        }
+
         if (artifactFile.exists()) {
             return true;
         }
