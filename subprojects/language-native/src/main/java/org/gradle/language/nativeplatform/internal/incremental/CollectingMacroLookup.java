@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
@@ -29,6 +30,7 @@ import java.util.Map;
 public class CollectingMacroLookup implements MacroLookup {
     private final List<MacroSource> uncollected = new ArrayList<MacroSource>();
     private Map<File, IncludeDirectives> visible;
+    private int hash;
 
     /**
      * Appends a single file.
@@ -44,6 +46,13 @@ public class CollectingMacroLookup implements MacroLookup {
         } else if (!visible.containsKey(file)) {
             visible.put(file, includeDirectives);
         }
+
+        hash = Objects.hashCode(hash, includeDirectives.getMacros(), includeDirectives.getMacrosFunctions());
+    }
+
+    int getLookupCacheHash() {
+        collectAll();
+        return hash;
     }
 
     /**
