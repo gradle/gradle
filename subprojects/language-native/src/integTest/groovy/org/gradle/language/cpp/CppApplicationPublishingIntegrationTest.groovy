@@ -95,8 +95,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 2
-        mainMetadata.variant("debug-runtime").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("release-runtime").availableAt.coords == "some.group:test_release:1.2"
+        mainMetadata.variant("debugRuntime").availableAt.coords == "some.group:test_debug:1.2"
+        mainMetadata.variant("releaseRuntime").availableAt.coords == "some.group:test_release:1.2"
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
@@ -107,7 +107,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("debug-runtime")
+        def debugRuntime = debugMetadata.variant("debugRuntime")
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == executableName('test')
@@ -122,7 +122,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("release-runtime")
+        def releaseRuntime = releaseMetadata.variant("releaseRuntime")
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
         releaseRuntime.files[0].name == executableName('test')
@@ -183,7 +183,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
-        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
+        def appDebugRuntime = appDebugMetadata.variant("debugRuntime")
         appDebugRuntime.dependencies.size() == 1
         appDebugRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
@@ -193,7 +193,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
         def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
-        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
+        def appReleaseRuntime = appReleaseMetadata.variant("releaseRuntime")
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
@@ -277,7 +277,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2", "some.group:logger:1.2")
 
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
-        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
+        def appDebugRuntime = appDebugMetadata.variant("debugRuntime")
         appDebugRuntime.dependencies.size() == 2
         appDebugRuntime.dependencies.collect { it.coords } == [ 'some.group:logger:1.2', 'some.group:greeter:1.2' ]
 
@@ -287,7 +287,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
         def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
-        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
+        def appReleaseRuntime = appReleaseMetadata.variant("releaseRuntime")
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
@@ -356,7 +356,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appDebugModule.assertPublished()
 
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
-        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
+        def appDebugRuntime = appDebugMetadata.variant("debugRuntime")
         appDebugRuntime.dependencies.size() == 1
         appDebugRuntime.dependencies[0].coords == 'some.group:appGreeter:1.2'
 
@@ -364,7 +364,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         appReleaseModule.assertPublished()
 
         def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
-        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
+        def appReleaseRuntime = appReleaseMetadata.variant("releaseRuntime")
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].coords == 'some.group:appGreeter:1.2'
 
@@ -422,12 +422,12 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 6
-        mainMetadata.variant("debugWindows-runtime").availableAt.coords == "some.group:test_debug_windows:1.2"
-        mainMetadata.variant("releaseWindows-runtime").availableAt.coords == "some.group:test_release_windows:1.2"
-        mainMetadata.variant("debugLinux-runtime").availableAt.coords == "some.group:test_debug_linux:1.2"
-        mainMetadata.variant("releaseLinux-runtime").availableAt.coords == "some.group:test_release_linux:1.2"
-        mainMetadata.variant("debugMacos-runtime").availableAt.coords == "some.group:test_debug_macos:1.2"
-        mainMetadata.variant("releaseMacos-runtime").availableAt.coords == "some.group:test_release_macos:1.2"
+        mainMetadata.variant("debugWindowsRuntime").availableAt.coords == "some.group:test_debug_windows:1.2"
+        mainMetadata.variant("releaseWindowsRuntime").availableAt.coords == "some.group:test_release_windows:1.2"
+        mainMetadata.variant("debugLinuxRuntime").availableAt.coords == "some.group:test_debug_linux:1.2"
+        mainMetadata.variant("releaseLinuxRuntime").availableAt.coords == "some.group:test_release_linux:1.2"
+        mainMetadata.variant("debugMacosRuntime").availableAt.coords == "some.group:test_debug_macos:1.2"
+        mainMetadata.variant("releaseMacosRuntime").availableAt.coords == "some.group:test_release_macos:1.2"
 
         def debug = repo.module('some.group', "test_debug_$currentOsFamilyName", '1.2')
         debug.assertPublished()
