@@ -30,6 +30,7 @@ import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -68,24 +69,14 @@ public class JUnitTestClassExecutor implements Action<String> {
         if (isInnerClassInsideEnclosedRunner(testClass)) {
             return;
         }
-        List<Filter> filters = new ArrayList<Filter>();
-        if (options.hasCategoryConfiguration()) {
-            verifyJUnitCategorySupport();
-            filters.add(new CategoryFilter(options.getIncludeCategories(), options.getExcludeCategories(), applicationClassLoader));
-        }
-
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
 
-        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests(), options.getIncludedTestsCommandLine());
+        List<Filter> filters = new ArrayList<Filter>();
 
-            // For test suites (including suite-like custom Runners), if the test suite class
-            // matches the filter, run the entire suite instead of filtering away its contents.
-            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
-                filters.add(new MethodNameFilter(matcher));
-            }
-        }
+        addCategoryFilter(filters, runner);
+
+        addIncludeFilter(testClassName, runner, filters);
 
         if (runner instanceof Filterable) {
             Filterable filterable = (Filterable) runner;
@@ -104,6 +95,31 @@ public class JUnitTestClassExecutor implements Action<String> {
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);
+    }
+
+    private void addIncludeFilter(String testClassName, Runner runner, List<Filter> filters) {
+        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests(), options.getIncludedTestsCommandLine());
+
+            // For test suites (including suite-like custom Runners), if the test suite class
+            // matches the filter, run the entire suite instead of filtering away its contents.
+            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
+                filters.add(new MethodNameFilter(matcher));
+            }
+        }
+    }
+
+    private void addCategoryFilter(List<Filter> filters, final Runner runner) {
+        if (!options.hasCategoryConfiguration()) {
+            return;
+        }
+        verifyJUnitCategorySupport();
+        if (runner instanceof Parameterized) {
+            // https://github.com/gradle/gradle/issues/1153
+            filters.add(new ParameterizedRunnerCategoryFilter(options.getIncludeCategories(), options.getExcludeCategories(), applicationClassLoader));
+        } else {
+            filters.add(new CategoryFilter(options.getIncludeCategories(), options.getExcludeCategories(), applicationClassLoader));
+        }
     }
 
     // https://github.com/gradle/gradle/issues/2319
