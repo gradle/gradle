@@ -39,21 +39,22 @@ class DefaultCapability implements CapabilityHandler, CapabilityInternal {
     }
 
     @Override
-    public void providedBy(String moduleIdentifier) {
+    public CapabilityHandler providedBy(String moduleIdentifier) {
         providedBy.add(notationParser.parseNotation(moduleIdentifier));
+        return this;
     }
 
     @Override
-    public Preference prefer(String moduleIdentifier) {
+    public CapabilityHandler prefer(String moduleIdentifier) {
         prefer = notationParser.parseNotation(moduleIdentifier);
         providedBy.add(prefer); // implicit assumption made explicit
-        return new Preference() {
-            @Override
-            public Preference because(String reason) {
-                DefaultCapability.this.reason = reason;
-                return this;
-            }
-        };
+        return this;
+    }
+
+    @Override
+    public CapabilityHandler because(String reason) {
+        this.reason = reason;
+        return this;
     }
 
     @Override
