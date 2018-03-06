@@ -24,13 +24,13 @@ import java.util.Map;
 
 class SerializedOperationProgress implements SerializedOperation {
 
-    final Object id;
+    final long id;
     final long time;
     final Object details;
     final String detailsClassName;
 
-    SerializedOperationProgress(Object id, OperationProgressEvent progressEvent) {
-        this.id = ((OperationIdentifier) id).getId();
+    SerializedOperationProgress(OperationIdentifier id, OperationProgressEvent progressEvent) {
+        this.id = id.getId();
         this.time = progressEvent.getTime();
         this.details = transform(progressEvent.getDetails());
         this.detailsClassName = details == null ? null : progressEvent.getDetails().getClass().getName();
@@ -41,7 +41,7 @@ class SerializedOperationProgress implements SerializedOperation {
     }
 
     SerializedOperationProgress(Map<String, ?> map) {
-        this.id = map.get("id");
+        this.id = (Long) map.get("id");
         this.time = (Long) map.get("time");
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");

@@ -104,7 +104,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     }
 
     @Nullable
-    public Object getParentBuildOperationId() {
+    public OperationIdentifier getParentBuildOperationId() {
         return parentBuildOperationId;
     }
 

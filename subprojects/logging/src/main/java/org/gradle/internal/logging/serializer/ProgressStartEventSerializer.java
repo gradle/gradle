@@ -54,11 +54,11 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         if (loggingHeader != null) {
             flags |= LOGGING_HEADER;
         }
-        Object buildOperationId = event.getBuildOperationId();
+        OperationIdentifier buildOperationId = event.getBuildOperationId();
         if (buildOperationId != null) {
             flags |= BUILD_OPERATION_ID;
         }
-        Object parentBuildOperationId = event.getParentBuildOperationId();
+        OperationIdentifier parentBuildOperationId = event.getParentBuildOperationId();
         if (parentBuildOperationId != null) {
             flags |= PARENT_BUILD_OPERATION_ID;
         }
@@ -89,10 +89,10 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         encoder.writeString(event.getStatus());
         encoder.writeInt(event.getTotalProgress());
         if (buildOperationId != null) {
-            encoder.writeSmallLong(((OperationIdentifier) buildOperationId).getId());
+            encoder.writeSmallLong(buildOperationId.getId());
         }
         if (parentBuildOperationId != null) {
-            encoder.writeSmallLong(((OperationIdentifier) parentBuildOperationId).getId());
+            encoder.writeSmallLong(parentBuildOperationId.getId());
         }
     }
 
