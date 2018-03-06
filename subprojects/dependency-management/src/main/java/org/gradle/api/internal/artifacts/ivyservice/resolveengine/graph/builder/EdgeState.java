@@ -201,7 +201,7 @@ class EdgeState implements DependencyGraphEdge {
             }
 
             private void trySetPreference(CapabilityHandler handler, CapabilityInternal affected, ModuleIdentifier oldPreferred) {
-                CapabilityHandler.Preference preference = handler.prefer(prefer);
+                CapabilityHandler preference = handler.prefer(prefer);
                 if (capability.getReason() != null) {
                     preference.because(capability.getReason());
                 }

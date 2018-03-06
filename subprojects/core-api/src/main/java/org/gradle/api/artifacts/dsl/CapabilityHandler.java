@@ -29,9 +29,10 @@ import org.gradle.internal.HasInternalProtocol;
 public interface CapabilityHandler {
     /**
      * Declares that this capability is provided by a module.
+     *
      * @param moduleIdentifier the module notation (group:name)
      */
-    void providedBy(String moduleIdentifier);
+    CapabilityHandler providedBy(String moduleIdentifier);
 
     /**
      * Declares that from all modules which provide the capability, the consumer prefers
@@ -39,24 +40,16 @@ public interface CapabilityHandler {
      * supplying the same capability are found in a dependency graph.
      *
      * @param moduleIdentifer the module identifier of the preferred module for this capability
-     *
      * @return the preference
      */
-    Preference prefer(String moduleIdentifer);
+    CapabilityHandler prefer(String moduleIdentifer);
 
     /**
-     * Wraps information about the preferred choice whenever multiple modules provide the
-     * same capability.
+     * Declares a custom reason why this component sets a preference.
+     * @param reason the reason why this component declares a preference
      *
-     * @since 4.7
+     * @return this preference
      */
-    @Incubating
-    interface Preference {
-        /**
-         * Declares a custom reason why this component is preferred.
-         * @param reason the reason why this component is preferred
-         * @return this preference
-         */
-        Preference because(String reason);
-    }
+    CapabilityHandler because(String reason);
+
 }
