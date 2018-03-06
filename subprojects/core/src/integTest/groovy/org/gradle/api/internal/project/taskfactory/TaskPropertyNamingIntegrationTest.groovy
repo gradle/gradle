@@ -142,10 +142,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "test", "printMetadata"
         output.contains "Input property 'input'"
-        output.contains "Input property 'bean.class'"
+        output.contains "Input property 'bean'"
 
         output.contains "Input property 'bean.input'"
-        output.contains "Input property 'bean.nestedBean.class'"
+        output.contains "Input property 'bean.nestedBean'"
         output.contains "Input file property 'bean.inputDir'"
         output.contains "Input file property 'bean.nestedBean.inputFile'"
         output.contains "Output file property 'bean.outputDir'"
@@ -179,9 +179,9 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'test', 'printMetadata'
-        output.contains "Input property 'beans.\$0.class'"
+        output.contains "Input property 'beans.\$0'"
         output.contains "Input property 'beans.\$0.input'"
-        output.contains "Input property 'beans.\$1.class'"
+        output.contains "Input property 'beans.\$1'"
         output.contains "Input property 'beans.\$1.secondInput'"
     }
 
@@ -211,7 +211,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "destroy", "printMetadata"
 
         then:
-        output.contains "Input property 'bean.class'"
+        output.contains "Input property 'bean'"
         output =~ /Destroys: '.*destroyed'/
     }
 
@@ -241,7 +241,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "taskWithLocalState", "printMetadata"
 
         then:
-        output.contains "Input property 'bean.class'"
+        output.contains "Input property 'bean'"
         output =~ /Local state: '.*localState'/
     }
 
@@ -341,7 +341,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input property 'input'"
         output.contains "Input property 'bean.input'"
 
-        output.contains "Input property 'bean.class'"
+        output.contains "Input property 'bean'"
         output.contains "Input file property 'bean.inputDir'"
     }
 

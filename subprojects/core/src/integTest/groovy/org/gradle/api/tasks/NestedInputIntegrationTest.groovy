@@ -687,8 +687,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run taskPath, '-PnamedName=different', '--info'
         then:
         executedAndNotSkipped taskPath
-        output.contains("Input property 'nested.different\$0.class' has been added for task ':myTask'")
-        output.contains("Input property 'nested.name1\$0.class' has been removed for task ':myTask'")
+        output.contains("Input property 'nested.different\$0' has been added for task ':myTask'")
+        output.contains("Input property 'nested.name1\$0' has been removed for task ':myTask'")
     }
 
     def "input changes for task with nested map"() {
@@ -713,8 +713,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run taskPath, '-Pkey=different', '--info'
         then:
         executedAndNotSkipped taskPath
-        output.contains("Input property 'nested.different.class' has been added for task ':myTask'")
-        output.contains("Input property 'nested.key1.class' has been removed for task ':myTask'")
+        output.contains("Input property 'nested.different' has been added for task ':myTask'")
+        output.contains("Input property 'nested.key1' has been removed for task ':myTask'")
     }
 
 
@@ -757,7 +757,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
-        output.contains "Value of input property 'action.class' has changed for task ':myTask'"
+        output.contains "Implementation of input property 'action' has changed for task ':myTask'"
 
         where:
         originalImplementation                  | changedImplementation
@@ -826,7 +826,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
-        output.contains "Value of input property 'action.class' has changed for task ':myTask'"
+        output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
     private TestFile setupTaskClassWithNestedAction() {
@@ -895,7 +895,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run "customTask", "--info"
         then:
         executedAndNotSkipped ":customTask"
-        output.contains "Value of input property 'bean.class' has changed for task ':customTask'"
+        output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
     }
 
     private static String taskWithNestedBeanFromCustomClassLoader() {
@@ -992,7 +992,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
-        output.contains "Value of input property 'bean.action.class' has changed for task ':myTask'"
+        output.contains "Implementation of input property 'bean.action' has changed for task ':myTask'"
     }
 
     private TestFile nestedBeanWithAction() {
