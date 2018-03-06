@@ -45,7 +45,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
-    public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
+    private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
     public static final String BUILD_SRC = "buildSrc";
 
@@ -73,7 +73,7 @@ public class BuildSourceBuilder {
             .lock();
     }
 
-    ClassPath createBuildSourceClasspath(final GradleInternal gradle, File buildSrcDir, final StartParameter containingBuildParameters) {
+    private ClassPath createBuildSourceClasspath(final GradleInternal gradle, File buildSrcDir, final StartParameter containingBuildParameters) {
         if (!buildSrcDir.isDirectory()) {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return ClassPath.EMPTY;
