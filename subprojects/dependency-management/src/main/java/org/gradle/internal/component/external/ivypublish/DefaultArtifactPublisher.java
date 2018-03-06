@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 
 public class DefaultArtifactPublisher implements ArtifactPublisher {
@@ -59,13 +60,14 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
         if (descriptor != null) {
             // Convert once, in order to write the Ivy descriptor with _all_ configurations
             DefaultIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, allConfigurations, false);
-            validatePublishMetaData(publishMetaData);
+            removeDirectoryArtifacts(publishMetaData);
             ivyModuleDescriptorWriter.write(publishMetaData, descriptor);
         }
 
         // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
         DefaultIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish, true);
         if (descriptor != null) {
+            validatePublishMetaData(publishMetaData);
             IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, descriptor);
         }
@@ -74,6 +76,16 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
             ModuleVersionPublisher publisher = repository.createPublisher();
             LOGGER.info("Publishing to {}", publisher);
             publisher.publish(publishMetaData);
+        }
+    }
+
+    private void removeDirectoryArtifacts(IvyModulePublishMetadata publishMetaData) {
+        Iterator<IvyModuleArtifactPublishMetadata> itr = publishMetaData.getArtifacts().iterator();
+        while (itr.hasNext()) {
+            IvyModuleArtifactPublishMetadata metadata = itr.next();
+            if (metadata.getFile().isDirectory()) {
+                itr.remove();
+            }
         }
     }
 
