@@ -49,15 +49,13 @@ import java.io.IOException;
 /**
  * Services to be shared across build sessions.
  *
- * Each invocation of a GradleBuild task is a new build session,
- * because it might use a different Gradle user home a session needs a Gradle user home.
+ * Generally, one regular Gradle invocation is conceptually a session.
+ * However, the GradleBuild task is currently implemented in such a way that it uses a discrete session.
+ * Having the GradleBuild task reuse the outer session is complicated because it may use a different Gradle user home.
+ * See https://github.com/gradle/gradle/issues/4559.
  *
- * This mixin gets applied to each build session, sharing its state across them.
- *
- * If we remove the GradleBuild task, or even just the ability for it to use a different Gradle user home …
- * https://github.com/gradle/gradle/issues/4559 …
- * Then we can remove these “tricks”, move the services provided by this to session scope,
- * and use a new build tree scope for each GradleBuild invocation instead of session, and reuse the session across them.
+ * This set of services is effectively a mixin, that gets applied to each build session scope services.
+ * It, importantly, is not the parent of build session scope services.
  */
 public class CrossBuildSessionScopeServices implements Closeable {
 
