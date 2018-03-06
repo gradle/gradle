@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process
+package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction

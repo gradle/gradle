@@ -1,4 +1,4 @@
-package org.gradle.plugins.integrationtests
+package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.JavaVersion.*
 

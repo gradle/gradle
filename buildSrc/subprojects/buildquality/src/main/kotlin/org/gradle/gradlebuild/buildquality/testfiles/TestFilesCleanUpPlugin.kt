@@ -2,7 +2,7 @@ package org.gradle.gradlebuild.buildquality.testfiles
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.cleanup.EmptyDirectoryCheck
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
 import org.gradle.kotlin.dsl.*
 
 /**

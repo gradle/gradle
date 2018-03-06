@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.gradlebuild.integrationtesting
+package org.gradle.gradlebuild.test.integrationtests
 
 import accessors.java
 import org.gradle.api.Plugin
@@ -24,7 +24,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.cleanup.CleanUpDaemons
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.kotlin.dsl.*
 import org.gradle.testing.DistributionTest
 import java.io.File

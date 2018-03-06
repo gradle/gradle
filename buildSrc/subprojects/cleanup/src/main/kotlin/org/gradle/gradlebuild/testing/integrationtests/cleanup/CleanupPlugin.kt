@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cleanup
+package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import BuildHost
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
-import org.gradle.process.KillLeakingJavaProcesses
 
 class CleanupPlugin : Plugin<Project> {
 

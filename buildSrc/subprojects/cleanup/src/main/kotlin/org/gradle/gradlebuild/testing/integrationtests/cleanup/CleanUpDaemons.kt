@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.cleanup
+package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
-
-import org.gradle.process.ProcessInfo
-import org.gradle.process.forEachLeakingJavaProcess
-import org.gradle.process.pkill
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentHashMap.newKeySet

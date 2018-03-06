@@ -1,4 +1,4 @@
-package org.gradle.plugins.integrationtests
+package org.gradle.gradlebuild.test.integrationtests
 
 import accessors.eclipse
 import accessors.groovy
@@ -8,10 +8,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.compile.AvailableJavaInstallations
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.testing.IntegrationTest
+import org.gradle.gradlebuild.java.AvailableJavaInstallations
 
 enum class TestType(val prefix: String, val modes: List<String>, val libRepoRequired: Boolean) {
     INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel"),  false),
