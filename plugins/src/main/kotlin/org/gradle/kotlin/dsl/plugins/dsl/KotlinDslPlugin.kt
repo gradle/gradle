@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.gradleKotlinDsl
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -42,6 +44,7 @@ open class KotlinDslPlugin : Plugin<Project> {
             applyEmbeddedKotlinPlugin()
             addGradleKotlinDslDependencyTo("compileOnly", "testRuntimeOnly")
             configureCompilerPlugins()
+            configureCompilerTasks()
         }
     }
 
@@ -62,6 +65,19 @@ open class KotlinDslPlugin : Plugin<Project> {
         plugins.apply(SamWithReceiverGradleSubplugin::class.java)
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(org.gradle.api.HasImplicitReceiver::class.qualifiedName!!)
+        }
+    }
+
+    private
+    fun Project.configureCompilerTasks() {
+        tasks {
+            "compileKotlin"(KotlinCompile::class) {
+                kotlinOptions {
+                    freeCompilerArgs += listOf(
+                        // recognize *.gradle.kts files as Gradle Kotlin scripts
+                        "-script-templates", PrecompiledProjectScript::class.qualifiedName!!)
+                }
+            }
         }
     }
 }
