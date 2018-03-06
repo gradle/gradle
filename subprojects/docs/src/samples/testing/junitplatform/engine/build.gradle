@@ -13,9 +13,11 @@ dependencies {
 }
 // END SNIPPET vintage-dependencies
 
+// START SNIPPET filter-engine
 test {
     useJUnitPlatform {
         // includeEngines 'included-engine'
         // excludeEngines 'excluded-engine'
     }
 }
+// END SNIPPET filter-engine
