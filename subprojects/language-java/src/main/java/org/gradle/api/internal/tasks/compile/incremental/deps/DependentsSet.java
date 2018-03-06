@@ -16,11 +16,121 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.ImmutableSet;
+
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Set;
 
-public interface DependentsSet {
-    Set<String> getDependentClasses();
-    boolean isDependencyToAll();
-    @Nullable String getDescription();
+public abstract class DependentsSet {
+
+    public static DependentsSet dependents(String... dependentClasses) {
+        if (dependentClasses.length == 0) {
+            return empty();
+        } else {
+            return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses));
+        }
+    }
+
+    public static DependentsSet dependents(Set<String> dependentClasses) {
+        if (dependentClasses.isEmpty()) {
+            return empty();
+        } else {
+            return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses));
+        }
+    }
+
+    public static DependentsSet dependencyToAll() {
+        return DependencyToAll.INSTANCE;
+    }
+
+    public static DependentsSet dependencyToAll(String reason) {
+        return new DependencyToAll(reason);
+    }
+
+    public static DependentsSet empty() {
+        return EmptyDependentsSet.INSTANCE;
+    }
+
+    public abstract Set<String> getDependentClasses();
+
+    public abstract boolean isDependencyToAll();
+
+    public abstract @Nullable String getDescription();
+
+    private DependentsSet() {
+    }
+
+    private static class EmptyDependentsSet extends DependentsSet {
+        private static final EmptyDependentsSet INSTANCE = new EmptyDependentsSet();
+
+        @Override
+        public Set<String> getDependentClasses() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public boolean isDependencyToAll() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        public String getDescription() {
+            return null;
+        }
+    }
+
+    private static class DefaultDependentsSet extends DependentsSet {
+
+        private final Set<String> dependentClasses;
+
+        private DefaultDependentsSet(Set<String> dependentClasses) {
+            this.dependentClasses = dependentClasses;
+        }
+
+        @Override
+        public Set<String> getDependentClasses() {
+            return dependentClasses;
+        }
+
+        @Override
+        public boolean isDependencyToAll() {
+            return false;
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
+        }
+    }
+
+    private static class DependencyToAll extends DependentsSet {
+        private static final DependencyToAll INSTANCE = new DependencyToAll();
+
+        private final String reason;
+
+        private DependencyToAll(String reason) {
+            this.reason = reason;
+        }
+
+        private DependencyToAll() {
+            this(null);
+        }
+
+        @Override
+        public Set<String> getDependentClasses() {
+            throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
+        }
+
+        @Override
+        public boolean isDependencyToAll() {
+            return true;
+        }
+
+        @Override
+        public String getDescription() {
+            return reason;
+        }
+    }
 }
