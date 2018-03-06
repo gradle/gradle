@@ -28,7 +28,8 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec {
 
-    @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    @Rule
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
     MavenHttpRepository mavenHttpRepository = new MavenHttpRepository(server, '/repo', mavenRepo)
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
@@ -131,10 +132,6 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         succeeds "help"
 
         then:
-        operations.all(Pattern.compile('.*')).each {
-            println it.displayName
-        }
-
         assertNestedTaskOutputTracked()
     }
 
@@ -158,7 +155,6 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
     def "captures output from GradleBuild task builds"() {
         given:
         configureNestedBuild()
-        settingsFile << "rootProject.name = 'root'"
 
         file("build.gradle") << """
             task run(type:GradleBuild) {
@@ -174,6 +170,41 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         assertNestedTaskOutputTracked()
     }
 
+    def "filters non supported output events"() {
+        settingsFile << """
+            rootProject.name = 'root'
+        """
+
+        // add some more progress events
+        file('src/test/java/SomeTest.java') << """
+            public class SomeTest{
+                @org.junit.Test
+                public void test1(){}
+                
+                @org.junit.Test
+                public void test2(){}
+
+            }
+        """
+        file("build.gradle") << """
+            apply plugin: 'java'
+            
+            repositories {
+                jcenter()
+            }
+            dependencies {
+                testCompile 'junit:junit:4.10'
+            }
+            
+        """
+        when:
+        succeeds 'build' // ensure all deps are downloaded
+        succeeds 'build'
+
+        then:
+        def progressEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
+        assert progressEvents.size() == 3 // "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+    }
 
     private void assertNestedTaskOutputTracked() {
         def nestedTaskProgress = operations.only("Execute doLast {} action for :foo").progress
