@@ -1,6 +1,19 @@
+plugins {
+    `java-gradle-plugin`
+}
+
 apply { plugin("org.gradle.kotlin.kotlin-dsl")}
 
 dependencies {
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
+    compile(project(":configuration"))
+    compile(project(":kotlinDsl"))
+}
+
+gradlePlugin {
+    (plugins) {
+        "cleanup" {
+            id = "cleanup"
+            implementationClass = "org.gradle.cleanup.CleanupPlugin"
+        }
+    }
 }

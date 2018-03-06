@@ -134,6 +134,7 @@ allprojects {
     }
 }
 
+apply plugin: "cleanup"
 apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
