@@ -18,6 +18,9 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
+
 /**
  * A single capability handler. A capability is provided by one or more modules.
  * A component <i>may</i> express a preference, but this is not required.
@@ -27,6 +30,13 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface CapabilityHandler {
+    /**
+     * Overwrites the list of providers for this capability
+     * @param moduleIdentifiers the list of module identifiers
+     * @return this handler
+     */
+    CapabilityHandler setProvidedBy(Collection<String> moduleIdentifiers);
+
     /**
      * Declares that this capability is provided by a module.
      *
@@ -39,17 +49,19 @@ public interface CapabilityHandler {
      * to use the specified module. This is used to disambiguate whenever multiple modules
      * supplying the same capability are found in a dependency graph.
      *
-     * @param moduleIdentifer the module identifier of the preferred module for this capability
+     * @param moduleIdentifer the module identifier of the preferred module for this capability. If null, removes the preference.
+     *
      * @return the preference
      */
-    CapabilityHandler prefer(String moduleIdentifer);
+    CapabilityHandler prefer(@Nullable String moduleIdentifer);
 
     /**
      * Declares a custom reason why this component sets a preference.
-     * @param reason the reason why this component declares a preference
+     *
+     * @param reason the reason why this component declares a preference. If null, removes the reason.
      *
      * @return this preference
      */
-    CapabilityHandler because(String reason);
+    CapabilityHandler because(@Nullable String reason);
 
 }

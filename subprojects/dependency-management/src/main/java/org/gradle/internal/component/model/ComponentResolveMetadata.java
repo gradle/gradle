@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.component.CapabilityDescriptor;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
@@ -93,4 +94,5 @@ public interface ComponentResolveMetadata extends HasAttributes {
 
     List<String> getStatusScheme();
 
+    List<? extends CapabilityDescriptor> getCapabilities();
 }

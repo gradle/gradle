@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 
 import java.util.List;
@@ -73,5 +74,14 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * @since 4.5
      */
     void allVariants(Action<? super VariantMetadata> action);
+
+    /**
+     * Add a rule for adjusting the capabilities of a component
+     *
+     * @param action the action to be executed on the capabilities handler
+     *
+     * @since 4.7
+     */
+    void withCapabilities(Action<? super CapabilitiesHandler> action);
 
 }
