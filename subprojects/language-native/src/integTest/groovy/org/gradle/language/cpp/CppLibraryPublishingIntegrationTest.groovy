@@ -193,7 +193,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debugRuntime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -208,7 +208,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("releaseRuntime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -327,7 +327,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debugRuntime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -342,7 +342,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("releaseRuntime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -423,7 +423,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debugRuntime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -436,7 +436,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("releaseRuntime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"

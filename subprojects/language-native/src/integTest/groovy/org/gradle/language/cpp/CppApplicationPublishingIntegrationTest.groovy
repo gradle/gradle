@@ -432,13 +432,13 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         def debug = repo.module('some.group', "test_debug_$currentOsFamilyName", '1.2')
         debug.assertPublished()
         debug.assertArtifactsPublished(executableName("test_debug_${currentOsFamilyName}-1.2"), "test_debug_${currentOsFamilyName}-1.2.pom", "test_debug_${currentOsFamilyName}-1.2.module")
-        debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/$os/test").file)
+        debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/${currentOsFamilyName}/test").file)
 
         debug.parsedPom.scopes.isEmpty()
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("debug${currentOsFamilyName.capitalize()}-runtime")
+        def debugRuntime = debugMetadata.variant("debug${currentOsFamilyName.capitalize()}Runtime")
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == executableName('test')
@@ -453,7 +453,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("release${currentOsFamilyName.capitalize()}-runtime")
+        def releaseRuntime = releaseMetadata.variant("release${currentOsFamilyName.capitalize()}Runtime")
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
         releaseRuntime.files[0].name == executableName('test')
