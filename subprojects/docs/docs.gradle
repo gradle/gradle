@@ -502,8 +502,3 @@ task docs {
 task docsZip(type: Zip) {
     from project.outputs.docs
 }
-
-
-// Temporary hack to get a fixed dist published so we can update the wrapper
-// (should be removed immediately once we update the wrapper to the fixed version)
-uploadArchives.enabled = false
