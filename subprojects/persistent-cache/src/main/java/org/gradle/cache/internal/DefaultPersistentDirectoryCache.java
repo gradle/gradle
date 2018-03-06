@@ -115,13 +115,13 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         @Override
         public boolean requiresCleanup() {
             // Dead simple check that it's been more than 7 days since we last checked for cleanup
-            if (cleanupAction!=null) {
+            if (cleanupAction != null) {
                 if (!gcFile.exists()) {
                     GFileUtils.touch(gcFile);
                 } else {
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
                     long timeInDays = TimeUnit.MILLISECONDS.toDays(duration);
-                    LOGGER.info("{} has not been cleaned up in {} days", DefaultPersistentDirectoryCache.this, timeInDays);
+                    LOGGER.debug("{} has last been cleaned up {} days ago", DefaultPersistentDirectoryCache.this, timeInDays);
                     return timeInDays >= CLEANUP_INTERVAL;
                 }
             }
@@ -130,12 +130,12 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
         @Override
         public void cleanup() {
-            if (cleanupAction!=null) {
+            if (cleanupAction != null) {
                 Timer timer = Time.startTimer();
                 cleanupAction.clean(DefaultPersistentDirectoryCache.this);
                 LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryCache.this, timer.getElapsed());
             }
-            gcFile.setLastModified(System.currentTimeMillis());
+            GFileUtils.touch(gcFile);
         }
     }
 }

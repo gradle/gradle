@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
@@ -53,8 +52,9 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         Timer clock = Time.startTimer();
-        JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getCompileClasspath());
-        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
+        CurrentCompilation currentCompilation = new CurrentCompilation(inputs, spec, jarClasspathSnapshotProvider);
+
+        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(currentCompilation, previousCompilation);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
             LOG.info("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());

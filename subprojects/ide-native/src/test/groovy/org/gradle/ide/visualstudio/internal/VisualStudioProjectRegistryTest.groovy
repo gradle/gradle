@@ -42,20 +42,17 @@ class VisualStudioProjectRegistryTest extends Specification {
 
     def "adds ide artifact when project and projectConfiguration are added"() {
         def executableBinary = targetBinary("vsConfig")
+        def metadata = null
+
         when:
         registry.addProjectConfiguration(executableBinary)
 
         then:
-        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { args ->
-            assert args[0].name == "mainExe"
-            assert args[0].type == VisualStudioProjectInternal.ARTIFACT_TYPE
+        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { VisualStudioProjectMetadata m ->
+            metadata = m
         }
-
-        and:
-        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { args ->
-            assert args[0].name == "vsConfig|Win32"
-            assert args[0].type == VisualStudioProjectConfiguration.ARTIFACT_TYPE
-        }
+        metadata.name == "mainExe"
+        metadata.configurations == ["vsConfig|Win32"]
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {

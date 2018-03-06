@@ -20,8 +20,8 @@ import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
-import org.gradle.internal.operations.trace.BuildOperationTrace
 import spock.lang.Issue
+
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
@@ -66,9 +66,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             task gradleBuild(type: GradleBuild) {
                 dir = "../i3"
                 tasks = ["customTask"]
-
-                // Trace fixture doesn't work well with GradleBuild, turn it off 
-                startParameter.systemPropertiesArgs["$BuildOperationTrace.SYSPROP"] = "false"
             }
             
             customTask.dependsOn gradleBuild
@@ -99,7 +96,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         and:
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)
-        finalizeOps.size() == 2
+        finalizeOps.size() == 3
         def pathToCacheDirMap = finalizeOps.collectEntries {
             [
                 it.details.buildPath,
@@ -109,7 +106,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         pathToCacheDirMap == [
             ":": mainCache.cacheDir,
-            ":buildSrc": buildSrcCache.cacheDir
+            ":buildSrc": buildSrcCache.cacheDir,
+            ":i2:i3": i3Cache.cacheDir
         ]
     }
 
@@ -118,8 +116,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         def localCache = new TestBuildCache(file("local-cache"))
 
         buildTestFixture.withBuildInSubDir()
-            multiProjectBuild('included', ['first', 'second']) {
-                buildFile << """
+        multiProjectBuild('included', ['first', 'second']) {
+            buildFile << """
                     gradle.startParameter.setTaskNames(['build'])
                     allprojects {
                         apply plugin: 'java-library'
@@ -132,7 +130,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                         }
                     }
                 """
-            }
+        }
 
         settingsFile << localCache.localCacheConfiguration() << """
             includeBuild "included"

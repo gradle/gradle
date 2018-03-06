@@ -21,16 +21,18 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class SwiftPackageManagerSwiftBuildExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
-    def "produces manifest for single project Swift library"() {
+    def "produces manifest for single project Swift library that defines only the production targets"() {
         given:
         buildFile << """
             plugins { 
                 id 'swiftpm-export' 
                 id 'swift-library'
+                id 'xctest'
             }
 """
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
+        file("src/test/swift/test.swift") << "// test"
 
         when:
         run("generateSwiftPmManifest")

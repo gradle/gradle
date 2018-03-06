@@ -349,7 +349,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
             application.binaries.get { !it.optimized }.configure {
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
-                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                linkTask.get().linkedFile = layout.buildDirectory.file("exe/some-app.exe")
                 installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
             }
          """
@@ -391,6 +391,44 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         def installation = installation("app/build/install/main/debug")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("hello")
+    }
+
+    def "can directly depend on generated sources on includePath"() {
+        settingsFile << "rootProject.name = 'app'"
+
+        given:
+        file("src/main/cpp/main.cpp") << """
+            #include "foo.h"
+            
+            int main(int argc, char** argv) {
+                return EXIT_VALUE;
+            }
+        """
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            task generateHeader {
+                ext.headerDirectory = newOutputDirectory()
+                headerDirectory.set(project.layout.buildDirectory.dir("headers"))
+                doLast {
+                    def fooH = headerDirectory.file("foo.h").get().asFile
+                    fooH.parentFile.mkdirs()
+                    fooH << '''
+                        #define EXIT_VALUE 0
+                    '''
+                }
+            }
+            
+            application.binaries.whenElementFinalized { binary ->
+                def dependency = project.dependencies.create(files(generateHeader.headerDirectory))
+                binary.getIncludePathConfiguration().dependencies.add(dependency)
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
     }
 
     def "can compile and link against a library with explicit operating system family defined"() {
@@ -729,7 +767,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-library'
                 library.binaries.get { !it.optimized }.configure {
                     def link = linkTask.get()
-                    link.binaryFile = layout.buildDirectory.file("shared/lib1_debug.dll")
+                    link.linkedFile = layout.buildDirectory.file("shared/lib1_debug.dll")
                     if (link.importLibrary.present) {
                         link.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
                     }

@@ -15,5 +15,9 @@
  */
 package org.gradle.api.plugins.quality.findbugs
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
 class FindBugsIntegrationTest extends AbstractFindBugsPluginIntegrationTest {
 }

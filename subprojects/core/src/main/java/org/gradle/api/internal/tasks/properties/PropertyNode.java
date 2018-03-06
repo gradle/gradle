@@ -17,13 +17,17 @@
 package org.gradle.api.internal.tasks.properties;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
+import java.util.Queue;
 
 public interface PropertyNode<SELF extends PropertyNode<SELF>> {
     String getQualifiedPropertyName(String childPropertyName);
     @Nullable
     String getPropertyName();
     boolean isRoot();
-    Iterator<SELF> getIterator();
     Class<?> getBeanClass();
+
+    /**
+     * @return whether the node could be unpacked.
+     */
+    boolean unpackToQueue(Queue<SELF> queue);
 }

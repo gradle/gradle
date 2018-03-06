@@ -44,6 +44,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
+    private boolean alwaysUseAttributeMatching;
 
     private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
         this.configuration = configuration;
@@ -56,20 +57,22 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this(configuration, componentId, dependencyDescriptor, null);
     }
 
+    public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
+        this.alwaysUseAttributeMatching = true;
+        return this;
+    }
+
     /**
-     * Choose a set of target configurations based on: a) the consumer attributes, b) the fromConfiguration and c) the target component.
+     * Choose a set of target configurations based on: a) the consumer attributes (with associated schema) and b) the target component.
      *
-     * Use attribute matching to choose a single variant when:
-     *   - The target component has variants AND
-     *   - Either: we have consumer attributes OR the target component is from an external repository (not a Gradle project).
-     *
-     * Otherwise, revert to legacy selection of target configurations.
+     * Use attribute matching to choose a single variant when the target component has variants,
+     * otherwise revert to legacy selection of target configurations.
      */
     @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         // This is a slight different condition than that used for a dependency declared in a Gradle project,
         // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
-        if (hasVariants(targetComponent) && (hasAttributes(consumerAttributes) || isExternal(targetComponent))) {
+        if (alwaysUseAttributeMatching || hasVariants(targetComponent)) {
             return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
         return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponent);
@@ -78,15 +81,6 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private boolean hasVariants(ComponentResolveMetadata targetComponent) {
         return !targetComponent.getVariantsForGraphTraversal().isEmpty();
     }
-
-    private boolean hasAttributes(ImmutableAttributes attributes) {
-        return !attributes.isEmpty();
-    }
-
-    private boolean isExternal(ComponentResolveMetadata targetComponent) {
-        return targetComponent instanceof ModuleComponentResolveMetadata;
-    }
-
     @Override
     public List<IvyArtifactName> getArtifacts() {
         return dependencyDescriptor.getConfigurationArtifacts(configuration);

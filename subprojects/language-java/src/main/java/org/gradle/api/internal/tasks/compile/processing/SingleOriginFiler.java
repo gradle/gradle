@@ -16,23 +16,26 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
-import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
+import java.util.Set;
 
 /**
  * Decorates the filer to validate the correct behavior for {@link SingleOriginProcessor}s.
  */
 class SingleOriginFiler extends IncrementalFiler {
 
-    SingleOriginFiler(Filer delegate, Messager messager) {
-        super(delegate, messager);
+    SingleOriginFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
+        super(delegate, result, messager);
     }
 
-    protected void checkOriginatingElements(CharSequence name, Element[] originatingElements, Messager messager) {
-        if (originatingElements.length != 1) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Generated file '" + name + "' must have exactly one originating element, but had " + originatingElements.length + ".");
+    protected void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager) {
+        int size = originatingTypes.size();
+        if (size != 1) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Generated type '" + generatedType + "' must have exactly one originating element, but had " + size + ".");
         }
     }
 

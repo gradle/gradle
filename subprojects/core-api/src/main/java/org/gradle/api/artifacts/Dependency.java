@@ -84,5 +84,5 @@ public interface Dependency {
      * @since 4.6
      */
     @Incubating
-    void because(String reason);
+    void because(@Nullable String reason);
 }

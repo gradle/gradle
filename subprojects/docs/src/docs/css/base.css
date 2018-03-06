@@ -678,6 +678,20 @@ h3.releaseinfo {
     .site-header__navigation-submenu-section:hover .site-header__navigation-submenu {
         display: block;
     }
+
+    /*
+      Pushes the section headings to just below the top nav bar when a user
+      navigates directly to section anchors. It doesn't work if you try
+      to apply the padding and margin to the `h` elements directly. Don't
+      know why.
+     */
+    .chapter a[name] {
+        padding-top: 60px;
+        margin-top: -60px;
+        text-decoration: none;
+        border: none;
+        display: inline-block;
+    }
 }
 
 /* Docs Navigation */
@@ -835,20 +849,6 @@ h3.releaseinfo {
     .book .home .toc a.active,
     .chapter .toc a.active {
         color: #1BA8C4;
-    }
-
-    /*
-      Pushes the section headings to just below the top nav bar when a user
-      navigates directly to section anchors. It doesn't work if you try
-      to apply the padding and margin to the `h` elements directly. Don't
-      know why.
-     */
-    .chapter a[name] {
-        padding-top: 60px;
-        margin-top: -60px;
-        text-decoration: none;
-        border: none;
-        display: inline-block;
     }
 
     .docs-navigation {

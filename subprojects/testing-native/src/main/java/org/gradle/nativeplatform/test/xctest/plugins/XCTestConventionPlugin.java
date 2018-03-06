@@ -154,7 +154,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public List<String> call() {
                     File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                    return Arrays.asList("-parse-as-library", "-g", "-F" + frameworkDir.getAbsolutePath());
+                    return Arrays.asList("-parse-as-library", "-F" + frameworkDir.getAbsolutePath());
                 }
             }));
 
@@ -169,7 +169,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             }));
 
             InstallXCTestBundle install = tasks.create(names.getTaskName("install"), InstallXCTestBundle.class);
-            install.getBundleBinaryFile().set(link.getBinaryFile());
+            install.getBundleBinaryFile().set(link.getLinkedFile());
             install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
             binary.getInstallDirectory().set(install.getInstallDirectory());
 
@@ -182,12 +182,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
                 }
             }));
-            link.setOutputFile(exeLocation);
-            link.setTargetPlatform(currentPlatform);
-            link.setToolChain(toolChain);
-            link.setDebuggable(binary.isDebuggable());
+            link.getLinkedFile().set(exeLocation);
+            link.getTargetPlatform().set(currentPlatform);
+            link.getToolChain().set(toolChain);
+            link.getDebuggable().set(binary.isDebuggable());
 
-            binary.getExecutableFile().set(link.getBinaryFile());
+            binary.getExecutableFile().set(link.getLinkedFile());
 
             DefaultSwiftXCTestBundle bundle = (DefaultSwiftXCTestBundle) binary;
             bundle.getLinkTask().set(link);

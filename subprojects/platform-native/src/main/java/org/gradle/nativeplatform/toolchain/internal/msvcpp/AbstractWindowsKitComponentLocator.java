@@ -46,7 +46,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitComponent> implements WindowsComponentLocator<T> {
+public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitInstall> implements WindowsComponentLocator<T> {
     static final String[] PLATFORMS = new String[]{"x86", "x64"};
 
     private static final String USER_PROVIDED = "User-provided";

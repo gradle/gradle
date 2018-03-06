@@ -18,6 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import java.io.File;
 
+/**
+ * Tools for compiling and linking native languages.
+ */
 public interface NativeLanguageTools extends ExecutableTools {
     File getCompilerExecutable();
 

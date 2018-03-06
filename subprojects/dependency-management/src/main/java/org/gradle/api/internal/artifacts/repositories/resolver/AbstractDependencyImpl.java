@@ -18,13 +18,12 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyMetadata;
-import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.internal.Cast;
 
-public abstract class AbstractDependencyImpl<T extends DirectDependencyMetadata> implements DependencyMetadata<T> {
+public abstract class AbstractDependencyImpl<T extends DependencyMetadata> implements DependencyMetadata<T> {
     private final String group;
     private final String name;
     private MutableVersionConstraint versionConstraint;

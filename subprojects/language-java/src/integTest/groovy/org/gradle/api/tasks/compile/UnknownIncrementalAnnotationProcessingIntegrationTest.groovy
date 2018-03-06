@@ -51,4 +51,25 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         output.contains("The following annotation processors don't support incremental compilation:")
         output.contains("Processor (type: UNKNOWN)")
     }
+
+    def "generated files are deleted when processor is removed"() {
+        given:
+        def a = java "@Thing class A {}"
+
+        when:
+        outputs.snapshot { run "compileJava" }
+
+        then:
+        file("build/classes/java/main/AThing.java").exists()
+
+        when:
+        buildFile << "compileJava.options.annotationProcessorPath = files()"
+        run "compileJava", "--info"
+
+        then:
+        !file("build/classes/java/main/AThing.java").exists()
+
+        and:
+        output.contains("Annotation processor path changed")
+    }
 }

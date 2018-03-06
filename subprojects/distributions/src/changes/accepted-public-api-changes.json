@@ -1,5 +1,123 @@
 {
     "acceptedApiChanges": [
-        
+        {
+            "type": "org.gradle.ide.visualstudio.plugins.VisualStudioPlugin",
+            "member": "Class org.gradle.ide.visualstudio.plugins.VisualStudioPlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getCleanTask(org.gradle.api.Task)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.ide.xcode.plugins.XcodePlugin",
+            "member": "Class org.gradle.ide.xcode.plugins.XcodePlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getCleanTask(org.gradle.api.Task)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getCleanTask(org.gradle.api.Task)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getCleanTask(org.gradle.api.Task)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.IdeaPlugin",
+            "member": "Class org.gradle.plugins.ide.idea.IdeaPlugin",
+            "acceptation": "removed internal methods from superclass",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.getCleanTask(org.gradle.api.Task)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifactMetadata(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.getIdeArtifacts(java.lang.String)",
+                "org.gradle.plugins.ide.internal.IdePlugin.postProcess(java.lang.String,org.gradle.api.Action)",
+                "org.gradle.plugins.ide.internal.IdePlugin.registerIdeArtifact(org.gradle.api.artifacts.PublishArtifact)"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Class org.gradle.plugins.ide.idea.model.IdeaProject",
+            "acceptation": "Added common IDE abstractions",
+            "changes": [
+                "org.gradle.plugins.ide.IdeWorkspace"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkSharedLibrary",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkSharedLibrary",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(java.io.File)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(org.gradle.api.provider.Provider)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkMachOBundle",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkMachOBundle",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(java.io.File)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(org.gradle.api.provider.Provider)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkExecutable",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkExecutable",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(java.io.File)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(org.gradle.api.provider.Provider)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        }
     ]
 }

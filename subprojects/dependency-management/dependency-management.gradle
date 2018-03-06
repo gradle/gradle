@@ -49,7 +49,9 @@ testFixtures {
     from(':versionControl')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 
 classpathManifest {
     additionalProjects = [project(':runtimeApiInfo')]

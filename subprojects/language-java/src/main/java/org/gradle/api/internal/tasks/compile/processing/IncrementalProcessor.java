@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -36,9 +38,11 @@ import java.util.Set;
  */
 abstract class IncrementalProcessor implements Processor {
     private Processor delegate;
+    private final AnnotationProcessingResult result;
 
-    IncrementalProcessor(Processor delegate) {
+    IncrementalProcessor(Processor delegate, AnnotationProcessingResult result) {
         this.delegate = delegate;
+        this.result = result;
     }
 
     @Override
@@ -60,12 +64,12 @@ abstract class IncrementalProcessor implements Processor {
     public final void init(ProcessingEnvironment processingEnv) {
         Filer filer = processingEnv.getFiler();
         Messager messager = processingEnv.getMessager();
-        IncrementalFiler incrementalFiler = wrapFiler(filer, messager);
+        IncrementalFiler incrementalFiler = wrapFiler(filer, result, messager);
         IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         delegate.init(incrementalProcessingEnvironment);
     }
 
-    abstract IncrementalFiler wrapFiler(Filer filer, Messager messager);
+    abstract IncrementalFiler wrapFiler(Filer filer, AnnotationProcessingResult result, Messager messager);
 
     @Override
     public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

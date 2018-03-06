@@ -65,7 +65,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         listener.beforeActions(task);
-        if (!task.getTaskActions().isEmpty()) {
+        if (task.hasTaskActions()) {
             outputsGenerationListener.beforeTaskOutputChanged();
         }
         state.setExecuting(true);

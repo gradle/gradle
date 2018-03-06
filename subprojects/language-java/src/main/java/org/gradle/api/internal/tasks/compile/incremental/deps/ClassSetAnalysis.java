@@ -51,27 +51,23 @@ public class ClassSetAnalysis {
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
         DependentsSet deps = data.getDependents(className);
-        if (deps != null && deps.isDependencyToAll()) {
+        if (deps.isDependencyToAll()) {
             return deps;
-        }
-        if (deps == null && constants.isEmpty()) {
-            return DefaultDependentsSet.EMPTY;
         }
         if (!constants.isEmpty()) {
             return DependencyToAll.INSTANCE;
         }
-        Set<String> result = new HashSet<String>();
-        if (deps != null && !deps.isDependencyToAll()) {
-            recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        if (deps.getDependentClasses().isEmpty()) {
+            return DefaultDependentsSet.EMPTY;
         }
+        Set<String> result = new HashSet<String>();
+        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
         result.remove(className);
         return new DefaultDependentsSet(result);
-
     }
 
     public boolean isDependencyToAll(String className) {
-        DependentsSet deps = data.getDependents(className);
-        return deps != null && deps.isDependencyToAll();
+        return data.getDependents(className).isDependencyToAll();
     }
 
     private void recurseDependents(Set<String> visited, Set<String> result, Set<String> dependentClasses) {
@@ -79,14 +75,18 @@ public class ClassSetAnalysis {
             if (!visited.add(d)) {
                 continue;
             }
-            if (!d.contains("$")) { //filter out the inner classes
+            if (!isNestedClass(d)) {
                 result.add(d);
             }
             DependentsSet currentDependents = data.getDependents(d);
-            if (currentDependents != null && !currentDependents.isDependencyToAll()) {
+            if (!currentDependents.isDependencyToAll()) {
                 recurseDependents(visited, result, currentDependents.getDependentClasses());
             }
         }
+    }
+
+    private boolean isNestedClass(String d) {
+        return d.contains("$");
     }
 
     public ClassSetAnalysisData getData() {

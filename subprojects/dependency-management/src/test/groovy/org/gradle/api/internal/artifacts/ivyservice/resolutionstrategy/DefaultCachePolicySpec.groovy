@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.Actions
@@ -31,6 +32,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
+import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
 public class DefaultCachePolicySpec extends Specification {
@@ -50,6 +52,23 @@ public class DefaultCachePolicySpec extends Specification {
         hasModuleTimeout(FOREVER)
         hasMissingArtifactTimeout(DAY)
         hasMissingModuleTimeout(FOREVER)
+    }
+
+    def 'never expires missing module for dynamic versions'() {
+        when:
+        def moduleIdentifier = new DefaultModuleIdentifier('org', 'foo')
+        def versions = emptySet()
+
+        then:
+        !cachePolicy.mustRefreshVersionList(moduleIdentifier, versions, WEEK)
+    }
+
+    def 'never expires missing module for non changing module'() {
+        when:
+        def module = moduleComponent('org', 'foo', '1.0')
+
+        then:
+        !cachePolicy.mustRefreshMissingModule(module, WEEK)
     }
 
     def "uses changing module timeout for changing modules"() {

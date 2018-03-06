@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 
 class DefaultWindowsSdkLocatorTest extends Specification {
-    final SearchResult<WindowsSdk> legacySdkLookup = Stub(SearchResult)
+    final SearchResult<WindowsSdkInstall> legacySdkLookup = Stub(SearchResult)
     final WindowsSdkLocator legacyWindowsSdkLocator = Stub(WindowsSdkLocator) {
         locateComponent(_) >> legacySdkLookup
     }
@@ -34,7 +34,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
     WindowsSdkLocator locator = new DefaultWindowsSdkLocator(legacyWindowsSdkLocator, windowsKitSdkLocator)
 
     def "prefers a windows kit sdk over a legacy sdk"() {
-        def sdk = Mock(WindowsKitWindowsSdk)
+        def sdk = Mock(WindowsKitSdkInstall)
 
         given:
         legacySdkLookup.available >> true
@@ -50,7 +50,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
     }
 
     def "finds a legacy sdk when a windows kit sdk cannot be found"() {
-        def sdk = Mock(LegacyWindowsSdk)
+        def sdk = Mock(LegacyWindowsSdkInstall)
 
         given:
         legacySdkLookup.available >> true

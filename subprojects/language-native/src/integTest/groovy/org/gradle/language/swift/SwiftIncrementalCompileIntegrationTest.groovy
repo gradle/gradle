@@ -151,6 +151,29 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
+    def 'changing macros rebuilds everything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        buildFile << """
+            tasks.withType(SwiftCompile) {
+                macros.add('NEWMACRO')
+            }
+        """
+
+        expect:
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
+    }
+
     def 'changes to an unused dependency rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])

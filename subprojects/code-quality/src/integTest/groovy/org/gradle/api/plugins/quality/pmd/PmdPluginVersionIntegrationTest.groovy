@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -200,7 +199,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @ToBeImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         badCode()
@@ -222,9 +220,8 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         succeeds('clean', 'check')
 
         then:
-        // TODO These should match
-        !!! nonSkippedTasks.contains(':pmdMain')
-        !!! output.contains("PMD rule violations were found")
+        nonSkippedTasks.contains(':pmdMain')
+        output.contains("PMD rule violations were found")
     }
 
     private static Matcher<String> containsClass(String className) {
@@ -261,7 +258,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("customRuleSet.xml") << customRuleSetText()
     }
 
-    private customRuleSetText() {
+    private static customRuleSetText() {
         String pathToRuleset = "rulesets/java/braces.xml"
         if (versionNumber < VersionNumber.version(5)) {
             pathToRuleset = "rulesets/braces.xml"

@@ -30,11 +30,11 @@ import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
+import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.*
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
@@ -315,7 +315,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
-        GFileUtils.touch(task.outputFile.getParentFile())
+        touch(task.outputFile.getParentFile())
 
         when:
         execute(task)
@@ -328,7 +328,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
-        GFileUtils.touch(task.outputFiles.get(0).getParentFile())
+        touch(task.outputFiles.get(0).getParentFile())
 
         when:
         execute(task)
@@ -365,7 +365,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, new File(testDir, "subdir/output"))
-        GFileUtils.touch(task.outputDir.getParentFile())
+        touch(task.outputDir.getParentFile())
 
         when:
         execute(task)
@@ -378,7 +378,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
-        GFileUtils.touch(task.outputDirs.get(0).getParentFile())
+        touch(task.outputDirs.get(0).getParentFile())
 
         when:
         execute(task)
@@ -403,7 +403,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenInputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
-        GFileUtils.touch(task.inputDir)
+        touch(task.inputDir)
 
         when:
         execute(task)
@@ -564,14 +564,24 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop              | value        | expected
-        TaskWithNestedBean                        | "bean.class"      | [null]       | Bean.class
-        TaskWithNestedIterable                    | "beans.\$0.class" | [null]       | Bean.class
-        TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] | Bean2.class
-        TaskWithOptionalNestedBean                | "bean.class"      | [null]       | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null         | null
-        TaskWithInput                             | "inputValue"      | ["value"]    | "value"
-        TaskWithBooleanInput                      | "inputValue"      | [true]       | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop               | value                            | expected
+        TaskWithNestedBean                        | 'bean.class'         | [null]                           | Bean.class
+        TaskWithNestedObject                      | 'bean.key.class'     | [['key': new Bean()]]            | Bean.class
+        TaskWithNestedIterable                    | 'beans.$0.class'     | [new Bean()]                     | Bean.class
+        TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
+        TaskWithNestedBeanWithPrivateClass        | 'bean.class'         | [null, null]                     | Bean2.class
+        TaskWithOptionalNestedBean                | 'bean.class'         | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | 'bean.class'         | null                             | null
+        TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
+        TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
+    }
+
+    def "iterable nested properties are named by index"() {
+        given:
+        def task = expectTaskCreated(TaskWithNestedObject, [[new Bean(), new NamedBean('name', 'value'), new Bean()]] as Object[])
+
+        expect:
+        inputProperties(task).keySet() == ['bean.$0.class', 'bean.name$1.class', 'bean.name$1.value', 'bean.$2.class'] as Set
     }
 
     @Unroll
@@ -608,7 +618,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
         TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
         TaskWithNestedBean                        | [null]                         | ["bean.class"]                                  | ["bean.inputFile"]      | []
-        TaskWithNestedIterable                    | [null]                         | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
+        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
         TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
         TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []

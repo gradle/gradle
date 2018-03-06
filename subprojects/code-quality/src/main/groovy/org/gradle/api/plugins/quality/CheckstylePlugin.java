@@ -55,7 +55,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension.setConfigDir(project.file("config/checkstyle"));
         extension.setConfig(project.getResources().getText().fromFile(new Callable<File>() {
             @Override
-            public File call() throws Exception {
+            public File call() {
                 return new File(extension.getConfigDir(), "checkstyle.xml");
             }
         }));
@@ -121,7 +121,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
         task.setConfigDir(project.provider(new Callable<File>() {
             @Override
-            public File call() throws Exception {
+            public File call() {
                 return extension.getConfigDir();
             }
         }));

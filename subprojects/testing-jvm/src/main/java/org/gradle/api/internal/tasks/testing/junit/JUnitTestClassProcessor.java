@@ -32,9 +32,4 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<JUn
         JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
         return new JUnitTestClassExecutor(Thread.currentThread().getContextClassLoader(), spec, junitEventAdapter, threadSafeTestClassListener);
     }
-
-    @Override
-    public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
-    }
 }

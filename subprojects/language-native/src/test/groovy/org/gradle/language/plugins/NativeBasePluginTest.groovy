@@ -205,10 +205,10 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkSharedLibrary
-        linkTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
 
         and:
-        runtimeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        runtimeFileProp.get().asFile == linkTask.linkedFile.get().asFile
         linkTaskProp.get() == linkTask
     }
 
@@ -240,16 +240,16 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkSharedLibrary
-        linkTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
 
         def stripTask = project.tasks['stripSymbolsWindowsDebug']
         stripTask instanceof StripSymbols
-        stripTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        stripTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         stripTask.outputFile.get().asFile == projectDir.file("build/lib/windows/debug/stripped/test_lib.dll")
 
         def extractTask = project.tasks['extractSymbolsWindowsDebug']
         extractTask instanceof ExtractSymbols
-        extractTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        extractTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         extractTask.symbolFile.get().asFile == projectDir.file("build/lib/windows/debug/stripped/test_lib.dll.pdb")
 
         and:
@@ -287,16 +287,17 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkExecutable
-        linkTask.binaryFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
 
         def installTask = project.tasks['installWindowsDebug']
         installTask instanceof InstallExecutable
-        installTask.sourceFile.get().asFile == linkTask.binaryFile.get().asFile
+        installTask.executableFile.get().asFile == linkTask.linkedFile.get().asFile
         installTask.installDirectory.get().asFile == projectDir.file("build/install/windows/debug")
 
         and:
-        exeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        exeFileProp.get().asFile == linkTask.linkedFile.get().asFile
         debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
+
         linkTaskProp.get() == linkTask
 
         and:
@@ -338,26 +339,27 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkExecutable
-        linkTask.binaryFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
 
         def stripTask = project.tasks['stripSymbolsWindowsDebug']
         stripTask instanceof StripSymbols
-        stripTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        stripTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         stripTask.outputFile.get().asFile == projectDir.file("build/exe/windows/debug/stripped/test_app.exe")
 
         def extractTask = project.tasks['extractSymbolsWindowsDebug']
         extractTask instanceof ExtractSymbols
-        extractTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        extractTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         extractTask.symbolFile.get().asFile == projectDir.file("build/exe/windows/debug/stripped/test_app.exe.pdb")
 
         def installTask = project.tasks['installWindowsDebug']
         installTask instanceof InstallExecutable
-        installTask.sourceFile.get().asFile == stripTask.outputFile.get().asFile
+        installTask.executableFile.get().asFile == stripTask.outputFile.get().asFile
         installTask.installDirectory.get().asFile == projectDir.file("build/install/windows/debug")
 
         and:
         exeFileProp.get().asFile == stripTask.outputFile.get().asFile
         debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
+
         linkTaskProp.get() == linkTask
 
         and:

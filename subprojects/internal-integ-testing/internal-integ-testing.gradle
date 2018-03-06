@@ -46,11 +46,13 @@ testFixtures {
     from(':core', 'main')
 }
 
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
+
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")
-    versions = releasedVersions.allVersions
-    mostRecent = releasedVersions.mostRecentRelease
-    mostRecentSnapshot = releasedVersions.mostRecentSnapshot
+    versions = Versioning_extensionsKt.getReleasedVersions(project).allVersions
+    mostRecent = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
+    mostRecentSnapshot = Versioning_extensionsKt.getReleasedVersions(project).mostRecentSnapshot
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: prepareVersionsInfo
@@ -72,4 +74,6 @@ class PrepareVersionsInfo extends DefaultTask {
     }
 }
 
-apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
+ideConfiguration {
+    makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()
+}

@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.cleanup.CleanUpCaches
 import org.gradle.cleanup.CleanUpDaemons
 import org.gradle.process.KillLeakingJavaProcesses
 import org.gradle.testing.DistributionTest
+import java.io.File
+
+fun dir(directory: () -> File): Provider<Directory> {
+    return layout.buildDirectory.dir(provider { directory().absolutePath })
+}
 
 tasks.withType<DistributionTest> {
-
-    val distributionTest = this
-
     dependsOn(":toolingApi:toolingApiShadedJar")
     dependsOn(":cleanUpCaches")
     finalizedBy(":cleanUpDaemons")
@@ -33,7 +38,7 @@ tasks.withType<DistributionTest> {
         jvmArgs("-XX:MaxPermSize=768m")
     }
 
-    reports.junitXml.destination = File(the<JavaPluginConvention>().testResultsDir, name)
+    reports.junitXml.destination = project.the<JavaPluginConvention>().testResultsDir.resolve(name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
@@ -59,39 +64,25 @@ tasks.withType<DistributionTest> {
         systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
     }
 
-    dependsOn(
-        task("configure${distributionTest.name.capitalize()}") {
-            doLast {
-                distributionTest.apply {
+    gradleInstallationForTest.run {
+        val intTestImage: Sync by tasks
+        val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
+        gradleHomeDir.set(dir { intTestImage.destinationDir })
+        gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
+        daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
+        toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
+    }
 
-                    reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+    libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
 
-                    val intTestImage: Sync by tasks
-                    gradleHomeDir = intTestImage.destinationDir
+    binaryDistributions.run {
+        distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
+        distZipVersion = project.version.toString()
+    }
 
-                    gradleUserHomeDir = rootProject.file("intTestHomeDir")
-
-                    val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
-                    toolingApiShadedJarDir = toolingApiShadedJar.destinationDir
-
-                    if (requiresLibsRepo) {
-                        libsRepo = rootProject.file("build/repo")
-                    }
-
-                    if (requiresDists) {
-                        distsDir = rootProject.the<BasePluginConvention>().distsDir
-                        systemProperties["integTest.distZipVersion"] = version
-                    }
-
-                    if (requiresBinZip) {
-                        val binZip: Zip by project(":distributions").tasks
-                        this.binZip = binZip.archivePath
-                    }
-
-                    daemonRegistry = file("${rootProject.buildDir}/daemon")
-                }
-            }
-        })
+    project.afterEvaluate {
+        reports.html.destination = the<ReportingExtension>().baseDir.resolve(this@withType.name)
+    }
 
     lateinit var daemonListener: Any
 
@@ -122,8 +113,7 @@ project(":") {
 
         val killExistingProcessesStartedByGradle by creating(KillLeakingJavaProcesses::class)
 
-        val isCiServer: Boolean by rootProject.extra
-        if (isCiServer) {
+        if (BuildEnvironment.isCiServer) {
             "clean" {
                 dependsOn(killExistingProcessesStartedByGradle)
             }

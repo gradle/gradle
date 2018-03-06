@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
@@ -32,6 +33,7 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -134,7 +136,7 @@ public class JacocoPluginExtension {
         });
     }
 
-    private static class JacocoAgent implements CommandLineArgumentProvider {
+    private static class JacocoAgent implements CommandLineArgumentProvider, Named {
 
         private final JacocoTaskExtension jacoco;
 
@@ -142,8 +144,9 @@ public class JacocoPluginExtension {
             this.jacoco = jacoco;
         }
 
-        @Nested
+        @Nullable
         @Optional
+        @Nested
         public JacocoTaskExtension getJacoco() {
             return jacoco.isEnabled() ? jacoco : null;
         }
@@ -153,6 +156,10 @@ public class JacocoPluginExtension {
             return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
         }
 
+        @Override
+        public String getName() {
+            return "jacocoAgent";
+        }
     }
 
     /**

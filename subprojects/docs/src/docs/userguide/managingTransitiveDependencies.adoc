@@ -30,6 +30,12 @@ Dependency constraints allow you to define the version or the version range of b
 
 In the example, all versions are omitted from the dependency declaration. Instead, the versions are defined in the constraints block. The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project. Otherwise, the constraint has no effect.
 
+[NOTE]
+====
+Dependency constraints are not yet published, but that will be added in a future release.
+This means that their use currently only targets builds that do not publish artifacts to maven or ivy repositories.
+====
+
 Dependency constraints themselves can also be added transitively. If a modules's metadata is defined in a `.pom` file that contains dependency entries with `<optional>true</optional>`, Gradle will create a dependency constraint for each of these so-called _optional dependencies_. This leads to a similar resolution behavior as provided by Maven: if the corresponding module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that module (e.g., if the optional dependency defines a higher version, that one is chosen).
 
 [NOTE]

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
 import java.io.File;
 import java.util.Collections;
@@ -37,6 +38,7 @@ public class ClassDependentsAccumulator {
     private final Map<String, IntSet> classesToConstants = new HashMap<String, IntSet>();
     private final Set<String> seenClasses = Sets.newHashSet();
     private final Multimap<String, String> parentToChildren = HashMultimap.create();
+    private String fullRebuildCause;
 
     public ClassDependentsAccumulator() {
     }
@@ -100,7 +102,26 @@ public class ClassDependentsAccumulator {
         return classesToConstants;
     }
 
+    public void addGeneratedTypeMappings(AnnotationProcessingResult annotationProcessingResult) {
+        for (Map.Entry<String, Set<String>> entry : annotationProcessingResult.getGeneratedTypesByOrigin().entrySet()) {
+            Set<String> dependents = rememberClass(entry.getKey());
+            dependents.addAll(entry.getValue());
+        }
+    }
+
+    public void fullRebuildNeeded(String fullRebuildCause) {
+        this.fullRebuildCause = fullRebuildCause;
+    }
+
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), parentToChildren);
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), fullRebuildCause);
+    }
+
+    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
+        ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
+        for (K key : multimap.keySet()) {
+            builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
+        }
+        return builder.build();
     }
 }

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -29,7 +27,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
@@ -37,7 +34,6 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final LocalComponentMetadataBuilder metaDataBuilder;
-    private final ListMultimap<String, LocalComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
 
@@ -70,26 +66,6 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
         metaDataBuilder.addConfigurations(metaData, project.getConfigurations().withType(ConfigurationInternal.class));
         return metaData;
-    }
-
-    @Override
-    public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
-        if (!isLocalProject(project)) {
-            return;
-        }
-        registeredArtifacts.put(project.getProjectPath(), artifact);
-    }
-
-    @Override
-    public Iterable<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
-        if (!isLocalProject(projectIdentifier)) {
-            return null;
-        }
-        String projectPath = projectIdentifier.getProjectPath();
-        if (registeredArtifacts.containsKey(projectPath)) {
-            return registeredArtifacts.get(projectPath);
-        }
-        return null;
     }
 
 }

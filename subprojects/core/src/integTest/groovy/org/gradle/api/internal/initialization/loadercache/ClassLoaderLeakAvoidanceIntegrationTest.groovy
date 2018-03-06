@@ -51,6 +51,7 @@ class ClassLoaderLeakAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             myTask.text = myTask.text.replace("runAction$i", "runAction${i + 1}")
             executer.withBuildJvmOpts("-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError")
             assert succeeds("myTask")
+            sleep(1000)
         }
     }
 }

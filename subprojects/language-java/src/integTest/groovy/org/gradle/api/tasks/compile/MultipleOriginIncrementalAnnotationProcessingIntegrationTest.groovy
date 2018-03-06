@@ -64,7 +64,7 @@ class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstr
         fails "compileJava"
 
         and:
-        errorOutput.contains("Generated file 'AThing' must have at least one originating element.")
+        errorOutput.contains("Generated type 'AThing' must have at least one originating element.")
     }
 
     def "processors can't access resources"() {

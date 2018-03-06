@@ -1,3 +1,7 @@
+/*
+ * This is an init script for internal usage at Gradle Inc.
+ */
+
 initscript {
     repositories {
         maven { url "https://plugins.gradle.org/m2" }
@@ -6,11 +10,19 @@ initscript {
         classpath "com.gradle:build-scan-plugin:1.12.1"
     }
 }
+
 if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")) {
     rootProject {
-        apply plugin: com.gradle.scan.plugin.BuildScanPlugin
-        buildScan {
-            server = "https://e.grdev.net"
+        pluginManager.withPlugin("com.gradle.build-scan") {
+            if (gradle.startParameter.taskNames in [["verifyTestFilesCleanup"], ["killExistingProcessesStartedByGradle"]]) {
+                buildScan.publishOnFailure()
+            } else {
+                buildScan.publishAlways()
+            }
+
+            buildScan {
+                server = "https://e.grdev.net"
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.fixtures
 
 class IdeaFixtures {
     static parseFile(File file) {
+        assert file.file
         new XmlSlurper().parse(file)
     }
 
