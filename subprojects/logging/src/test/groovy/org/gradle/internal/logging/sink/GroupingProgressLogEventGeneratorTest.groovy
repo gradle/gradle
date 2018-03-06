@@ -19,7 +19,7 @@ package org.gradle.internal.logging.sink
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
@@ -27,7 +27,7 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.logging.format.LogHeaderFormatter
 import org.gradle.internal.logging.text.StyledTextOutput
-import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.time.MockClock
 import spock.lang.Subject
 

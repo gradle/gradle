@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.progress.BuildOperationState
+import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -34,7 +34,7 @@ class WorkerDaemonFactoryTest extends Specification {
     def workerLeaseRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def workerOperation = Mock(WorkerLease)
-    def buildOperation = Mock(BuildOperationState)
+    def buildOperation = Mock(BuildOperationRef)
     def completion = Mock(WorkerLeaseCompletion)
 
     @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor)

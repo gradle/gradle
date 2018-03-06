@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.operations.BuildOperationIdFactory
-import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.time.Clock
 import spock.lang.Specification
 

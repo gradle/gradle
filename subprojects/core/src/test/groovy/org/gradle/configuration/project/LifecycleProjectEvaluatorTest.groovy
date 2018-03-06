@@ -22,7 +22,7 @@ import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
-import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification

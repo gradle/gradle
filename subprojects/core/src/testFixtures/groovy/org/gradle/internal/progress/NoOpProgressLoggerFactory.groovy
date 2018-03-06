@@ -18,6 +18,7 @@ package org.gradle.internal.progress
 
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationDescriptor
 
 class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
     ProgressLogger newOperation(String loggerCategory) {

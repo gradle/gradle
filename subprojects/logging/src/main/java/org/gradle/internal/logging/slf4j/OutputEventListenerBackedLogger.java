@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.time.Clock;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
@@ -128,7 +128,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        Object buildOperationId = BuildOperationIdentifierRegistry.getCurrentOperationIdentifier();
+        Object buildOperationId = CurrentBuildOperationRef.instance().getId();
         LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, buildOperationId);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {
@@ -140,11 +140,11 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg) {
-        log(logLevel, throwable, format, new Object[] {arg});
+        log(logLevel, throwable, format, new Object[]{arg});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg1, Object arg2) {
-        log(logLevel, throwable, format, new Object[] {arg1, arg2});
+        log(logLevel, throwable, format, new Object[]{arg1, arg2});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {
