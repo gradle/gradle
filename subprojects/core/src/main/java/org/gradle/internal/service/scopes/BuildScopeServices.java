@@ -317,7 +317,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
+                                                                FileLockManager fileLockManager,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
