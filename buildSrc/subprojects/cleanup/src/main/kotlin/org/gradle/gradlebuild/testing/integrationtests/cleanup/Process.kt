@@ -17,11 +17,10 @@
 // To make it easier to access these functions from Groovy
 @file:JvmName("Process")
 
-package org.gradle.process
+package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.Project
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.testing.LeakingProcessKillPattern
 import java.io.ByteArrayOutputStream
 

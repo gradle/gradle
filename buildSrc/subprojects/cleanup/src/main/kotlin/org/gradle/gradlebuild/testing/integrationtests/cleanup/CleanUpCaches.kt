@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cleanup
+package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.specs.Spec

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cleanup
+package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.Project
 import org.gradle.api.internal.AbstractTask
@@ -92,7 +92,7 @@ class EmptyDirectoryCheckTest extends Specification {
 
     private def buildFile(boolean withErrors) {
         buildFile << """
-            import org.gradle.cleanup.EmptyDirectoryCheck
+            import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
 
             task leftovers(type: EmptyDirectoryCheck) {
                 targetDir = fileTree('clean_me')

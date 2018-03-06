@@ -14,7 +14,7 @@ gradlePlugin {
     (plugins) {
         "cleanup" {
             id = "cleanup"
-            implementationClass = "org.gradle.cleanup.CleanupPlugin"
+            implementationClass = "org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupPlugin"
         }
     }
 }

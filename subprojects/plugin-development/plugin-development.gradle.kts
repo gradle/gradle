@@ -1,5 +1,3 @@
-import org.gradle.cleanup.EmptyDirectoryCheck
-
 /*
  * Copyright 2014 the original author or authors.
  *
