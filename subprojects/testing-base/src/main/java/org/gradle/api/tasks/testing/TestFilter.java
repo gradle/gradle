@@ -31,7 +31,7 @@ import java.util.Set;
  *          //specific test method
  *          includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
  *
- *          //specific test method, use wildcard for packages
+ *          //specific test method, use wildcard
  *          includeTestsMatching "*SomeTest.someSpecificFeature"
  *
  *          //specific test class
@@ -51,6 +51,12 @@ import java.util.Set;
  *
  *          //specific test class and test method
  *          includeTest "org.gradle.SomeTest", "someTestMethod"
+ *
+ *          //special case without any wildcards, this can match 'SomeTest' class under any package
+ *          includeTestsMatching "SomeTest"
+ *
+ *          //special case without any wildcards, this can match 'someSpecificFeature' method of 'SomeTest' class under any package
+ *          includeTestsMatching "SomeTest.someTestMethod"
  *       }
  *   }
  *

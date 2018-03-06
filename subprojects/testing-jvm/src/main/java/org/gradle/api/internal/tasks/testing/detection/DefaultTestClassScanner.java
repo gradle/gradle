@@ -79,7 +79,7 @@ public class DefaultTestClassScanner implements Runnable {
 
             if (file.getAbsolutePath().endsWith(".class")) {
                 String className = fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
-                if (testClassSelectionMatcher.maybeMatchClass(className)) {
+                if (testClassSelectionMatcher.mayBeIncluded(className)) {
                     visitClassFile(fileDetails, className);
                 }
             }

@@ -24,8 +24,8 @@ class TestClassSelectionMatcherTest extends Specification {
     @Unroll
     def 'can exclude as many classes as possible'() {
         expect:
-        new TestClassSelectionMatcher(input, []).maybeMatchClass(fullQualifiedName) == maybeMatch
-        new TestClassSelectionMatcher([], input).maybeMatchClass(fullQualifiedName) == maybeMatch
+        new TestClassSelectionMatcher(input, []).mayBeIncluded(fullQualifiedName) == maybeMatch
+        new TestClassSelectionMatcher([], input).mayBeIncluded(fullQualifiedName) == maybeMatch
 
         where:
         input                             | fullQualifiedName    | maybeMatch
@@ -52,6 +52,15 @@ class TestClassSelectionMatcherTest extends Specification {
         ['*FooTest']                      | 'FooTest'            | true
         ['*FooTest']                      | 'org.gradle.BarTest' | true // org.gradle.BarTest.testFooTest
 
+        ['or*']                           | 'org.gradle.FooTest' | true
+        ['org*']                          | 'org.gradle.FooTest' | true
+        ['org.*']                         | 'org.gradle.FooTest' | true
+        ['org.g*']                        | 'org.gradle.FooTest' | true
+        ['org*']                          | 'FooTest'            | false
+        ['org.*']                         | 'com.gradle.FooTest' | false
+        ['org*']                          | 'com.gradle.FooTest' | false
+        ['org.*']                         | 'com.gradle.FooTest' | false
+        ['org.g*']                        | 'com.gradle.FooTest' | false
         ['FooTest*']                      | 'FooTest'            | true
         ['FooTest*']                      | 'org.gradle.FooTest' | false
         ['FooTest*']                      | 'BarTest'            | false
@@ -63,5 +72,18 @@ class TestClassSelectionMatcherTest extends Specification {
         ['org.foo.FooTest*']              | 'org.gradle.FooTest' | false
         ['org.foo.*FooTest*']             | 'org.gradle.FooTest' | false
         ['org.foo.*FooTest*']             | 'org.foo.BarTest'    | true // org.foo.BarTest.testFooTest
+    }
+
+    @Unroll
+    def 'can use multiple patterns'() {
+        expect:
+        new TestClassSelectionMatcher(pattern1, pattern2).mayBeIncluded(fullQualifiedName) == maybeMatch
+
+        where:
+        pattern1                | pattern2                | fullQualifiedName    | maybeMatch
+        ['FooTest*']            | ['BarTest*']            | 'FooTest'            | true
+        ['FooTest*']            | ['BarTest*']            | 'FooBarTest'         | false
+        []                      | []                      | 'anything'           | true
+        ['org.gradle.FooTest*'] | ['org.gradle.BarTest*'] | 'org.gradle.FooTest' | true
     }
 }

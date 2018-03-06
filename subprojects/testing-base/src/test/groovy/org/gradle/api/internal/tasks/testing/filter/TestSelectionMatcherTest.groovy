@@ -61,7 +61,7 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest.test"]         | "FooTest"                 | "test"                | true
         ["FooTest.test"]         | "Footest"                 | "test"                | false
         ["FooTest.test"]         | "FooTest"                 | "TEST"                | false
-        ["FooTest.test"]         | "com.foo.FooTest"         | "test"                | false
+        ["FooTest.test"]         | "com.foo.FooTest"         | "test"                | true
         ["FooTest.test"]         | "Foo.test"                | ""                    | false
 
         ["FooTest.*slow*"]       | "FooTest"                 | "slowUiTest"          | true
@@ -69,7 +69,7 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | true
         ["FooTest.*slow*"]       | "FooTest"                 | "a slow test"         | true
         ["FooTest.*slow*"]       | "FooTest"                 | "aslow"               | true
-        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | false
+        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | true
         ["FooTest.*slow*"]       | "FooTest"                 | "verySlowTest"        | false
 
         ["com.FooTest***slow*"]  | "com.FooTest"             | "slowMethod"          | true
@@ -102,7 +102,7 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest", "*BarTest"]             | "FooTest"                 | "xxxx"                | true
         ["FooTest", "*BarTest"]             | "BarTest"                 | "xxxx"                | true
         ["FooTest", "*BarTest"]             | "com.foo.BarTest"         | "xxxx"                | true
-        ["FooTest", "*BarTest"]             | "com.foo.FooTest"         | "xxxx"                | false
+        ["FooTest", "*BarTest"]             | "com.foo.FooTest"         | "xxxx"                | true
     }
 
     def "regexp chars are handled"() {

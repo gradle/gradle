@@ -62,7 +62,17 @@ public class TestSelectionMatcher {
             && matchesPattern(commandLineIncludePatterns, className, methodName);
     }
 
-    private boolean matchesPattern(List<Pattern> includePatterns, String className, String methodName) {
+    private boolean matchesPattern(List<Pattern> includePatterns, String fullQualifiedName, String methodName) {
+        String simpleName = StringUtils.substringAfterLast(fullQualifiedName, ".");
+        if ("".equals(simpleName)) {
+            return matchesPatternFQNameOrSimpleName(includePatterns, fullQualifiedName, methodName);
+        } else {
+            return matchesPatternFQNameOrSimpleName(includePatterns, fullQualifiedName, methodName)
+                || matchesPatternFQNameOrSimpleName(includePatterns, simpleName, methodName);
+        }
+    }
+
+    private boolean matchesPatternFQNameOrSimpleName(List<Pattern> includePatterns, String className, String methodName) {
         if (includePatterns.isEmpty()) {
             return true;
         }

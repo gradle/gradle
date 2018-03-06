@@ -647,6 +647,7 @@ For more details and examples please see the api:org.gradle.api.tasks.testing.Te
 Some examples of using the command line option:
 
 * `gradle test --tests org.gradle.SomeTest.someSpecificFeature`
+* `gradle test --tests SomeTest.someSpecificFeature`
 * `gradle test --tests \*SomeTest.someSpecificFeature`
 * `gradle test --tests \*SomeSpecificTest`
 * `gradle test --tests \*SomeSpecificTestSuite`
@@ -654,7 +655,9 @@ Some examples of using the command line option:
 * `gradle test --tests \*IntegTest`
 * `gradle test --tests \\*IntegTest\*ui\*`
 * `gradle test --tests "com.example.MyTestSuite"`
+* `gradle test --tests "MyTestSuite"`
 * `gradle test --tests "com.example.ParameterizedTest"`
+* `gradle test --tests "ParameterizedTest"`
 * `gradle test --tests "\*ParameterizedTest.foo*"`
 * `gradle test --tests "\*ParameterizedTest.*[2]"`
 * `gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui`
@@ -664,6 +667,12 @@ This is something you can combine with <<continuous_build, continuous build>> us
 ----
 gradle test --continuous --tests "com.mypackage.foo.*"
 ----
+
+[NOTE]
+====
+Since `--tests` supports method name matching, Gradle has to load all possible classes, which may lead to very bad performance, especially with api:org.gradle.api.tasks.testing.Test#getForkEvery()[`forkEvery`].
+To help Gradle exclude as many classes as possible, please don't use a pattern starting with a wildcard (*).
+====
 
 [[sec:single_test_execution_via_system_properties]]
 ==== Single test execution via System Properties
