@@ -36,16 +36,12 @@ public final class BuildOperationRecord {
         .compound(Ordering.natural().onResultOf(new Function<BuildOperationRecord, Comparable>() {
             @Override
             public Comparable apply(BuildOperationRecord input) {
-                if (input.id instanceof Comparable) {
-                    return (Comparable) input.id;
-                } else {
-                    return input.id.hashCode();
-                }
+                return input.id;
             }
         }));
 
-    public final Object id;
-    public final Object parentId;
+    public final Long id;
+    public final Long parentId;
     public final String displayName;
     public final long startTime;
     public final long endTime;
@@ -59,8 +55,8 @@ public final class BuildOperationRecord {
     public final List<BuildOperationRecord> children;
 
     BuildOperationRecord(
-        Object id,
-        Object parentId,
+        Long id,
+        Long parentId,
         String displayName,
         long startTime,
         long endTime,
@@ -133,6 +129,15 @@ public final class BuildOperationRecord {
         }
 
         return map;
+    }
+
+    public boolean hasDetailsOfType(Class<?> clazz) throws ClassNotFoundException {
+        Class<?> detailsType = getDetailsType();
+        if (detailsType == null) {
+            return false;
+        } else {
+            return clazz.isAssignableFrom(detailsType);
+        }
     }
 
     public Class<?> getDetailsType() throws ClassNotFoundException {

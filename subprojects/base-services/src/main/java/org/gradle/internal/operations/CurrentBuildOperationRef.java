@@ -38,6 +38,12 @@ public class CurrentBuildOperationRef {
         return operationState == null ? null : operationState.getId();
     }
 
+    @Nullable
+    public OperationIdentifier getParentId() {
+        BuildOperationRef operationState = get();
+        return operationState == null ? null : operationState.getParentId();
+    }
+
     public void set(@Nullable BuildOperationRef state) {
         if (state == null) {
             ref.remove();

@@ -19,10 +19,12 @@ package org.gradle.internal.operations.logging;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.CategorisedOutputEvent;
+import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
@@ -30,11 +32,11 @@ import org.gradle.internal.operations.OperationProgressEvent;
 public class LoggingBuildOperationNotificationBridge implements Stoppable, OutputEventListener {
 
     private final LoggingManagerInternal loggingManagerInternal;
-    private final BuildOperationListener buildOperationListenerBroadcaster;
+    private final BuildOperationListener buildOperationListener;
 
     public LoggingBuildOperationNotificationBridge(LoggingManagerInternal loggingManagerInternal, BuildOperationListener buildOperationListener) {
         this.loggingManagerInternal = loggingManagerInternal;
-        this.buildOperationListenerBroadcaster = buildOperationListener;
+        this.buildOperationListener = buildOperationListener;
         loggingManagerInternal.addOutputEventListener(this);
     }
 
@@ -42,52 +44,30 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
     public void onOutput(OutputEvent event) {
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-            maybeForwardAsBuildOperationProgress(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
+            if (renderableOutputEvent.getBuildOperationId() == null) {
+                return;
+            }
+            if (renderableOutputEvent instanceof StyledTextOutputEvent || renderableOutputEvent instanceof LogEvent) {
+                emit(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
+            }
         } else if (event instanceof ProgressStartEvent) {
             ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            maybeForwardAsBuildOperationProgress(progressStartEvent, progressStartEvent.getBuildOperationId());
+            if (progressStartEvent.getBuildOperationId() == null) {
+                return;
+            }
+            if (progressStartEvent.getLoggingHeader() == null) {
+                // If the event has no logging header, it doesn't manifest as console output.
+                return;
+            }
+            emit(progressStartEvent, progressStartEvent.getBuildOperationId());
         }
     }
 
-    private void maybeForwardAsBuildOperationProgress(CategorisedOutputEvent renderableOutputEvent, OperationIdentifier buildOperationId) {
-        if (buildOperationId == null || !isForwardlableOutput(renderableOutputEvent)) {
-            return;
-        }
-        buildOperationListenerBroadcaster.progress(
+    private void emit(CategorisedOutputEvent event, OperationIdentifier buildOperationId) {
+        buildOperationListener.progress(
             buildOperationId,
-            new OperationProgressEvent(renderableOutputEvent.getTimestamp(), renderableOutputEvent)
+            new OperationProgressEvent(event.getTimestamp(), event)
         );
-
-    }
-
-    public static boolean isForwardlableOutput(CategorisedOutputEvent event) {
-        if (event instanceof ProgressStartEvent) {
-            final ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            return progressStartEvent.getLoggingHeader() != null || expectedFromBuildScanPlugin(progressStartEvent);
-        } else {
-            return event instanceof RenderableOutputEvent;
-        }
-    }
-
-    /**
-     * workaround to ensure Download / Upload console log can be captured.
-     *
-     * Problem to workaround:
-     *
-     * When Download operation is triggered we generate 2 progress events: 1. from the build operation executer including a referenced build operation but no logging header 2. from
-     * `AbstractProgressLoggingHandler` that includes a logging header but no referenced build operation
-     *
-     * By default only progress events with associated build operations are forwarded to the build operation listener.
-     *
-     * The build scan plugin by default only handles progress starte events _with_ a logging header.
-     *
-     * This workaround bypasses the 2nd limitations.
-     */
-
-    private static boolean expectedFromBuildScanPlugin(ProgressStartEvent progressStartEvent) {
-        return progressStartEvent.getDescription().startsWith("Download")
-            || progressStartEvent.getDescription().startsWith("Upload");
-
     }
 
     @Override

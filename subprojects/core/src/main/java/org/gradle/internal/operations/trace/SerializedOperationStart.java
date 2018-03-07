@@ -19,7 +19,6 @@ package org.gradle.internal.operations.trace;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationStartEvent;
 

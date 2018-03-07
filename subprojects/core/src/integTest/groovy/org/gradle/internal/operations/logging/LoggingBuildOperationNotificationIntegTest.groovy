@@ -18,7 +18,8 @@ package org.gradle.internal.operations.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.DefaultBuildOperationExecutor
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -37,6 +38,7 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
 
     def "captures output sources with context"() {
         given:
+        executer.requireOwnGradleUserHomeDir()
         mavenHttpRepository.module("org", "foo", '1.0').publish().allowAll()
 
         file('init.gradle') << """
@@ -108,7 +110,11 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         runTasksProgress[0].details.category == 'org.gradle.api.Project'
         runTasksProgress[0].details.message == 'warning from taskgraph'
 
-        def jarProgress = operations.only("Execute doLast {} action for :jar").progress
+        def jarTaskDoLastOperation = operations.only("Execute doLast {} action for :jar")
+        operations.parentsOf(jarTaskDoLastOperation).find {
+            it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":jar"
+        }
+        def jarProgress = jarTaskDoLastOperation.progress
         jarProgress.size() == 1
         jarProgress[0].details.logLevel == 'QUIET'
         jarProgress[0].details.category == 'system.out'
@@ -116,10 +122,14 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         jarProgress[0].details.spans[0].styleName == 'Normal'
         jarProgress[0].details.spans[0].text == "from jar task${getPlatformLineSeparator()}"
 
-        def downloadProgress = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar").progress
+        def downloadEvent = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar")
+        operations.parentsOf(downloadEvent).find {
+            it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
+        }
+        def downloadProgress = downloadEvent.progress
         downloadProgress.size() == 1
         downloadProgress[0].details.logLevel == 'LIFECYCLE'
-        downloadProgress[0].details.category == DefaultBuildOperationExecutor.name
+        downloadProgress[0].details.category == ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource.name
         downloadProgress[0].details.description == "Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar"
     }
 
@@ -204,7 +214,7 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
 
         then:
         def progressEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
-        assert progressEvents.size() == 3 // "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+        assert progressEvents.size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
     private void assertNestedTaskOutputTracked() {
