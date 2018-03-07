@@ -27,7 +27,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Script template definition for precompiled Kotlin script with a [Settings] target.
+ * Script template definition for precompiled Kotlin script targeting [Settings] instances.
+ *
+ * @see PrecompiledProjectScript
  */
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,

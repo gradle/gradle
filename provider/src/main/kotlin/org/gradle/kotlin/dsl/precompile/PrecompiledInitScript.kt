@@ -27,7 +27,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Script template definition for precompiled Kotlin script with a [Gradle] target.
+ * Script template definition for precompiled Kotlin script targeting [Gradle] instances.
+ *
+ * @see PrecompiledProjectScript
  */
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,
