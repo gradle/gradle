@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.buildoperation;
+package org.gradle.internal.logging.events.operations;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.List;
+@UsedByScanPlugin
+public interface ProgressStartBuildOperationProgressDetails {
+    String getDescription();
 
-public interface StyledTextBuildOperationProgressDetails {
-    List<? extends Span> getSpans();
     String getCategory();
-    LogLevel getLogLevel();
 
-    @UsedByScanPlugin
-    interface Span {
-        /**
-         * a string representation of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
-         * */
-        String getStyleName();
-        String getText();
-    }
+    LogLevel getLogLevel();
 }

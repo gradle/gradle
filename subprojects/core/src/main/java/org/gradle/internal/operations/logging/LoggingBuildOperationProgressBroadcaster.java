@@ -29,14 +29,42 @@ import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
-public class LoggingBuildOperationNotificationBridge implements Stoppable, OutputEventListener {
+/**
+ * Emits build operation progress for events that represent logging.
+ *
+ * Uses the existing {@link OutputEventListener} to observe events that <i>may</i> cause console output,
+ * and emits build operation progress events for those that do cause console output.
+ *
+ * Currently, the only audience of these events is the build scan plugin.
+ * It is concerned with recreating the <i>plain</i> console for an invocation,
+ * and associating logging output with tasks, projects, and other logical entities.
+ * It does not attempt to emulate the rich console.
+ *
+ * This solution has some quirks due to how the console output subsystem in Gradle has evolved.
+ *
+ * An “output event” effectively represents something of interest happening that
+ * some observer may wish to know about in order to visualise what is happening, e.g. a console renderer.
+ * We are integrating at this level, but imposing different semantics.
+ * We only broadcast the subset of events that influence the “plain console”, because this is all we need right now.
+ * The build scan infrastructure has some knowledge of how different versions of Gradle respond to these events
+ * with regard to console rendering and effectively emulate.
+ *
+ * Ideally, we would emit a more concrete model.
+ * This would be something like more clearly separating logging output from “user code” from Gradle's “UI” output,
+ * and separately observing it from rendering instructions.
+ * This may come later.
+ *
+ * @since 4.7
+ */
+public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
     private final LoggingManagerInternal loggingManagerInternal;
     private final BuildOperationListener buildOperationListener;
 
-    public LoggingBuildOperationNotificationBridge(LoggingManagerInternal loggingManagerInternal, BuildOperationListener buildOperationListener) {
+    public LoggingBuildOperationProgressBroadcaster(LoggingManagerInternal loggingManagerInternal, BuildOperationListener buildOperationListener) {
         this.loggingManagerInternal = loggingManagerInternal;
         this.buildOperationListener = buildOperationListener;
+        
         loggingManagerInternal.addOutputEventListener(this);
     }
 
@@ -56,8 +84,7 @@ public class LoggingBuildOperationNotificationBridge implements Stoppable, Outpu
                 return;
             }
             if (progressStartEvent.getLoggingHeader() == null) {
-                // If the event has no logging header, it doesn't manifest as console output.
-                return;
+                return; // If the event has no logging header, it doesn't manifest as console output.
             }
             emit(progressStartEvent, progressStartEvent.getBuildOperationId());
         }

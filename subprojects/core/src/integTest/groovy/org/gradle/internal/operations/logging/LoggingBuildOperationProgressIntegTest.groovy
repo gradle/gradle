@@ -28,7 +28,7 @@ import java.util.regex.Pattern
 
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
-class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec {
+class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)

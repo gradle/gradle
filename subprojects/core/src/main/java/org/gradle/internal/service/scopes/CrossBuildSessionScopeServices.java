@@ -31,7 +31,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.logging.LoggingBuildOperationNotificationBridge;
+import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
@@ -63,7 +63,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     private final BuildOperationTrace buildOperationTrace;
     private final BuildOperationNotificationBridge buildOperationNotificationBridge;
-    private final LoggingBuildOperationNotificationBridge loggingBuildOperationProgressBridge;
+    private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final DefaultBuildOperationListenerManager buildOperationListenerManager;
 
     private final Services services;
@@ -76,7 +76,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(crossSessionListenerManager);
         this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
         this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, globalListenerManager);
-        this.loggingBuildOperationProgressBridge = new LoggingBuildOperationNotificationBridge(parent.get(LoggingManagerInternal.class), buildOperationListenerManager.getBroadcaster());
+        this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(LoggingManagerInternal.class), buildOperationListenerManager.getBroadcaster());
     }
 
     GradleLauncherFactory createGradleLauncherFactory() {
@@ -104,7 +104,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         new CompositeStoppable().add(
             buildOperationTrace,
             buildOperationNotificationBridge,
-            loggingBuildOperationProgressBridge,
+            loggingBuildOperationProgressBroadcaster,
             services
         ).stop();
     }

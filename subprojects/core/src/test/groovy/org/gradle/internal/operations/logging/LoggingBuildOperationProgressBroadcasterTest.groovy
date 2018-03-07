@@ -28,7 +28,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class LoggingBuildOperationNotificationBridgeTest extends Specification {
+class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
     def loggingManagerInternal = Mock(LoggingManagerInternal)
     def buildOperationListener = Mock(BuildOperationListener)
@@ -36,7 +36,7 @@ class LoggingBuildOperationNotificationBridgeTest extends Specification {
     @Shared
     def operationId = Mock(OperationIdentifier)
 
-    LoggingBuildOperationNotificationBridge bridge = new LoggingBuildOperationNotificationBridge(loggingManagerInternal, buildOperationListener)
+    LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(loggingManagerInternal, buildOperationListener)
 
     @Unroll
     def "forwards #eventType with operationId"() {
@@ -86,7 +86,7 @@ class LoggingBuildOperationNotificationBridgeTest extends Specification {
 
     def "registers / unregisters itself as output listener"() {
         when:
-        def loggingBuildOperationNotificationBridge = new LoggingBuildOperationNotificationBridge(loggingManagerInternal, buildOperationListener)
+        def loggingBuildOperationNotificationBridge = new LoggingBuildOperationProgressBroadcaster(loggingManagerInternal, buildOperationListener)
 
         then:
         loggingManagerInternal.addOutputEventListener(loggingBuildOperationNotificationBridge)
