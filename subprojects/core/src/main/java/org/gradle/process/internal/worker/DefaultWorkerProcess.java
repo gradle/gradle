@@ -66,7 +66,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public void stopNow() {
-        connection.stopNow();
+        if (connection != null) {
+            connection.stopNow();
+        }
 
         // cleanup() will abort the process as desired
         cleanup();
