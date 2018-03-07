@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -13,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-sourceCompatibility = 1.6
 
 dependencies {
     compile libraries.groovy.coordinates
@@ -47,6 +47,11 @@ dependencies {
     testCompile testLibraries.jsoup
 
     integTestRuntime project(":maven")
+}
+
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

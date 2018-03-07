@@ -1,9 +1,9 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(":core")
@@ -13,6 +13,10 @@ dependencies {
     testRuntime project(":languageJava")
 
     testFixturesCompile project(":internalIntegTesting")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

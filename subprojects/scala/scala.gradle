@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -14,9 +16,6 @@
  * limitations under the License.
  */
 
-// Compiler daemon
-sourceCompatibility = 1.6
-
 dependencies {
     compile libraries.groovy.coordinates
 
@@ -29,6 +28,11 @@ dependencies {
 
     integTestRuntime project(":ide")
     integTestRuntime project(':maven')
+}
+
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

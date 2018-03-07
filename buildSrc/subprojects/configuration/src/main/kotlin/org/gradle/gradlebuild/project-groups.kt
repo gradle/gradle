@@ -17,6 +17,8 @@ object ProjectGroups {
         ":smokeTest",
         ":soak")
 
+    // TODO Why is smoke test not on that list
+    private
     val Project.internalProjects
         get() = rootProject.subprojects.filter { it.name.startsWith("internal") ||
             it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance") }.toSet()
@@ -29,8 +31,8 @@ object ProjectGroups {
 
 
     val Project.pluginProjects
-        get() = setOf("plugins", "codeQuality", "antlr", "wrapper", "osgi", "maven",
-            "ide", "announce", "scala", "signing", "ear", "javascript", "buildComparison",
+        get() = setOf("announce", "antlr", "plugins", "codeQuality", "wrapper", "osgi", "maven",
+            "ide", "scala", "signing", "ear", "javascript", "buildComparison",
             "diagnostics", "reporting", "publish", "ivy", "jacoco", "buildInit", "platformBase",
             "platformJvm", "languageJvm", "languageJava", "languageGroovy", "languageScala",
             "platformNative", "platformPlay", "idePlay", "languageNative", "ideNative", "testingBase",

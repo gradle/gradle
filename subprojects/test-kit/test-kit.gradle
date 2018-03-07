@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.strict-compile'
 }
@@ -9,6 +11,10 @@ dependencies {
     runtime project(':native')
     integTestRuntime project(':toolingApiBuilders')
     integTestRuntime project(':pluginDevelopment')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

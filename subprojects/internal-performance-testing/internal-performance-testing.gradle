@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -38,6 +40,10 @@ dependencies {
     compile libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 
     runtime 'com.h2database:h2:1.4.192'
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 def generatedResourcesDir = gradlebuildJava.generatedResourcesDir

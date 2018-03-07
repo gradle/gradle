@@ -1,9 +1,15 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.classycle'
 }
 
 dependencies {
     testFixturesCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 testFixtures {

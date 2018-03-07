@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -23,6 +25,10 @@ dependencies {
 
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

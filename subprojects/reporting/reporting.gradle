@@ -1,8 +1,8 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'javascript-base'
 }
-
-sourceCompatibility = 1.6
 
 configurations {
     reports
@@ -22,6 +22,10 @@ dependencies {
     integTestRuntime project(':jacoco')
 
     reports "jquery:jquery.min:1.11.0@js"
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

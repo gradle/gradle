@@ -1,14 +1,18 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     compile project(':core')
     compile libraries.jcip.coordinates
 
     integTestCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

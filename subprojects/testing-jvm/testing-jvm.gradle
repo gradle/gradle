@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -19,9 +21,6 @@ plugins {
     // id 'gradlebuild.classycle'
 }
 
-// Test execution
-sourceCompatibility = 1.6
-
 dependencies {
     compile project(':core')
     compile project(':platformJvm')
@@ -37,6 +36,10 @@ dependencies {
     }
 
     integTestRuntime project(':testingJunitPlatform')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 test {

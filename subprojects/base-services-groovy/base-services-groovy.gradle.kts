@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -18,12 +20,15 @@ plugins {
     id("gradlebuild.classycle")
 }
 
-java.sourceCompatibility = sourceCompatibleVersion
-
 dependencies {
     api(library("groovy"))
     api(project(":baseServices"))
 }
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
+
 
 testFixtures {
     from(":core")

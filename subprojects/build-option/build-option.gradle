@@ -1,12 +1,16 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'java-library'
     id 'gradlebuild.classycle'
 }
 
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
-
 dependencies {
     api project(':cli')
     api libraries.jsr305.coordinates
     implementation 'commons-lang:commons-lang:2.6'
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
