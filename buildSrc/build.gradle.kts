@@ -26,7 +26,7 @@ plugins {
 }
 
 subprojects {
-    apply { plugin("java-library")}
+    apply { plugin("java-library") }
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
         apply { plugin("groovy") }
         dependencies {
