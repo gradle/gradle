@@ -50,22 +50,9 @@ class DistributionTestingPlugin : Plugin<Project> {
     }
 
     private fun Project.addSetUpAndTearDownActions(distributionTest: DistributionTest) {
-        lateinit var daemonListener: Any
-
-        // TODO Why don't we register with the test listener of the test task
-        // We would not need to do late configuration and need to add a global listener
-        // We now add multiple global listeners stepping on each other
-        distributionTest.doFirst {
-            // TODO Refactor to not reach into tasks of another project
-            val cleanUpDaemons: CleanUpDaemons by rootProject.tasks
-            daemonListener = cleanUpDaemons.newDaemonListener()
-            gradle.addListener(daemonListener)
-        }
-
-        // TODO Remove once we go to task specific listeners.
-        distributionTest.doLast {
-            gradle.removeListener(daemonListener)
-        }
+        val cleanUpDaemons: CleanUpDaemons by rootProject.tasks
+        val daemonListener = cleanUpDaemons.newDaemonListener()
+        distributionTest.addTestListener(daemonListener)
     }
 
     private fun Project.setDedicatedTestOutputDirectoryPerTask(distributionTest: DistributionTest) {
