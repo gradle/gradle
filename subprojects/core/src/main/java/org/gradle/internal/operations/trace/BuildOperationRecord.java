@@ -36,16 +36,12 @@ public final class BuildOperationRecord {
         .compound(Ordering.natural().onResultOf(new Function<BuildOperationRecord, Comparable>() {
             @Override
             public Comparable apply(BuildOperationRecord input) {
-                if (input.id instanceof Comparable) {
-                    return (Comparable) input.id;
-                } else {
-                    return input.id.hashCode();
-                }
+                return input.id;
             }
         }));
 
-    public final Object id;
-    public final Object parentId;
+    public final Long id;
+    public final Long parentId;
     public final String displayName;
     public final long startTime;
     public final long endTime;
@@ -59,8 +55,8 @@ public final class BuildOperationRecord {
     public final List<BuildOperationRecord> children;
 
     BuildOperationRecord(
-        Object id,
-        Object parentId,
+        Long id,
+        Long parentId,
         String displayName,
         long startTime,
         long endTime,
@@ -114,6 +110,15 @@ public final class BuildOperationRecord {
             map.put("failure", failure);
         }
 
+        if (!progress.isEmpty()) {
+            map.put("progress", Lists.transform(progress, new Function<Progress, Map<String, ?>>() {
+                @Override
+                public Map<String, ?> apply(Progress input) {
+                    return input.toSerializable();
+                }
+            }));
+        }
+
         if (!children.isEmpty()) {
             map.put("children", Lists.transform(children, new Function<BuildOperationRecord, Map<String, ?>>() {
                 @Override
@@ -124,6 +129,15 @@ public final class BuildOperationRecord {
         }
 
         return map;
+    }
+
+    public boolean hasDetailsOfType(Class<?> clazz) throws ClassNotFoundException {
+        Class<?> detailsType = getDetailsType();
+        if (detailsType == null) {
+            return false;
+        } else {
+            return clazz.isAssignableFrom(detailsType);
+        }
     }
 
     public Class<?> getDetailsType() throws ClassNotFoundException {
@@ -152,6 +166,18 @@ public final class BuildOperationRecord {
             this.time = time;
             this.details = details == null ? null : new StrictMap<String, Object>(details);
             this.detailsClassName = detailsClassName;
+        }
+
+        Map<String, ?> toSerializable() {
+            Map<String, Object> map = new LinkedHashMap<String, Object>();
+            map.put("time", time);
+
+            if (details != null) {
+                map.put("details", details);
+                map.put("detailsClassName", detailsClassName);
+            }
+
+            return map;
         }
     }
 }

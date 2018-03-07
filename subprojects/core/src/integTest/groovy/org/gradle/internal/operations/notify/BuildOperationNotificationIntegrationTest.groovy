@@ -29,6 +29,7 @@ import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -147,8 +148,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
 
         // evaluate hierarchies
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == null // Run build build operation is not typed -> no id.
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == null // Run build build operation is not typed -> no id.
+        op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
+        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
         op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
@@ -157,8 +158,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
         op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
 
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == null // Run build build operation is not typed -> no id
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == null // Run build build operation is not typed -> no id
+        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
+        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 

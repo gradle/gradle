@@ -43,7 +43,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeSmallLong(((OperationIdentifier) event.getBuildOperationId()).getId());
+            encoder.writeSmallLong(event.getBuildOperationId().getId());
         }
     }
 
@@ -54,7 +54,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         LogLevel logLevel = logLevelSerializer.read(decoder);
         String message = decoder.readString();
         Throwable throwable = throwableSerializer.read(decoder);
-        Object buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         return new LogEvent(timestamp, category, logLevel, message, throwable, buildOperationId);
     }
 }

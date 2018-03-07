@@ -37,8 +37,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Emits build operations representing test execution.
- *
  * A single instance is used per build, so may be adapting concurrent test executions.
  * However, this implementation is not thread safe,
  * but is relying on serialisation guarantees provided by ListenerManager.
@@ -75,7 +73,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
-        listener.progress(runningOp.descriptor, new OperationProgressEvent(currentTime, new OutputProgress(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
