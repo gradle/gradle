@@ -20,6 +20,7 @@ import org.gradle.api.initialization.Settings
 
 import org.gradle.kotlin.dsl.GradleDsl
 import org.gradle.kotlin.dsl.SettingsScriptApi
+import org.gradle.kotlin.dsl.fileOperationsFor
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -33,5 +34,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class PrecompiledSettingsScript(settings: Settings) : SettingsScriptApi(settings)
+abstract class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target) {
+
+    override val fileOperations by lazy { fileOperationsFor(settings) }
+
+}
 
