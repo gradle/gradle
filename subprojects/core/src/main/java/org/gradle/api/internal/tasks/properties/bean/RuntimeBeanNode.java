@@ -16,37 +16,52 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Queue;
 
-public abstract class RuntimeBeanNode extends AbstractPropertyNode<RuntimeBeanNode> {
+public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<RuntimeBeanNode<?>> {
 
-    public static RuntimeBeanNode create(@Nullable String propertyName, RuntimeBeanNode parentNode, Object bean, PropertyMetadataStore metadataStore) {
-        TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
-        if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
-            if (bean instanceof Map<?, ?>) {
-                return new MapRuntimeBeanNode(propertyName, (Map<?, ?>) bean, parentNode, typeMetadata);
-            }
-            if (bean instanceof Iterable<?>) {
-                return new IterableRuntimeBeanNode(propertyName, (Iterable<?>) bean, parentNode, typeMetadata);
-            }
+    private static final Equivalence<RuntimeBeanNode<?>> SAME_BEANS = Equivalence.identity().onResultOf(new Function<RuntimeBeanNode<?>, Object>() {
+        @Override
+        public Object apply(RuntimeBeanNode<?> input) {
+            return input.getBean();
         }
-        return new NestedRuntimeBeanNode(propertyName, bean, parentNode, typeMetadata);
+    });
+
+    private final T bean;
+
+    protected RuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, T bean, TypeMetadata typeMetadata) {
+        super(parentNode, propertyName, typeMetadata);
+        this.bean = Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName);
+        checkCycles();
     }
 
-    protected RuntimeBeanNode(@Nullable String propertyName, @Nullable RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
-        super(propertyName, parentNode, typeMetadata);
+    public T getBean() {
+        return bean;
     }
 
-    public abstract Object getBean();
+    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory);
 
-    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore);
+    public RuntimeBeanNode<?> createChildNode(String propertyName, @Nullable Object input, RuntimeBeanNodeFactory nodeFactory) {
+        String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
+        Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '%s'", qualifiedPropertyName);
+        return nodeFactory.create(this, qualifiedPropertyName, bean);
+    }
+
+    private void checkCycles() {
+        RuntimeBeanNode<?> nodeCreatingCycle = findNodeCreatingCycle(this, SAME_BEANS);
+        Preconditions.checkState(
+            nodeCreatingCycle == null,
+            "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
+            nodeCreatingCycle, this);
+    }
 }
 

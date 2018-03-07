@@ -24,29 +24,27 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.util.ConfigureUtil;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.Queue;
 
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
-    public NestedRuntimeBeanNode(@Nullable String propertyName, Object bean, RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
-        super(propertyName, bean, parentNode, typeMetadata);
+    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, TypeMetadata typeMetadata) {
+        super(parentNode, propertyName, bean, typeMetadata);
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore) {
-        visitImplementation(this, visitor, specFactory);
-        visitProperties(visitor, specFactory, queue, propertyMetadataStore);
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
+        visitImplementation(visitor, specFactory);
+        visitProperties(visitor, specFactory, queue, nodeFactory);
     }
 
-    private static void visitImplementation(NestedRuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getPropertyName(), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
+    private void visitImplementation(PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(getPropertyName(), new ImplementationPropertyValue(getImplementationClass(getBean())));
         implementation.optional(false);
         visitor.visitInputProperty(implementation);
     }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties.bean;
 
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
@@ -25,11 +24,11 @@ import java.util.Queue;
 
 public class RootRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     public RootRuntimeBeanNode(Object bean, TypeMetadata typeMetadata) {
-        super(null, bean, null, typeMetadata);
+        super(null, null, bean, typeMetadata);
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore) {
-        visitProperties(visitor, specFactory, queue, propertyMetadataStore);
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
+        visitProperties(visitor, specFactory, queue, nodeFactory);
     }
 }

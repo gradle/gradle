@@ -25,7 +25,7 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
     private final SELF parentNode;
     private final TypeMetadata typeMetadata;
 
-    public AbstractPropertyNode(@Nullable String propertyName, @Nullable SELF parentNode, TypeMetadata typeMetadata) {
+    public AbstractPropertyNode(@Nullable SELF parentNode, @Nullable String propertyName, TypeMetadata typeMetadata) {
         this.propertyName = propertyName;
         this.parentNode = parentNode;
         this.typeMetadata = typeMetadata;
@@ -34,11 +34,6 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
     @Override
     public String getQualifiedPropertyName(String childPropertyName) {
         return propertyName == null ? childPropertyName : propertyName + "." + childPropertyName;
-    }
-
-    @Override
-    public boolean isRoot() {
-        return propertyName == null;
     }
 
     @Nullable
@@ -65,6 +60,6 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
     @Override
     public String toString() {
         //noinspection ConstantConditions
-        return isRoot() ? "<root>" : getPropertyName();
+        return propertyName == null ? "<root>" : getPropertyName();
     }
 }

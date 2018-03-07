@@ -22,5 +22,4 @@ public interface PropertyNode {
     String getQualifiedPropertyName(String childPropertyName);
     @Nullable
     String getPropertyName();
-    boolean isRoot();
 }

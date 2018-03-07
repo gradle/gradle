@@ -18,27 +18,27 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.bean.RootRuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
+import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
 @NonNullApi
 public class DefaultPropertyWalker implements PropertyWalker {
-    private final PropertyMetadataStore propertyMetadataStore;
+    private final RuntimeBeanNodeFactory nodeFactory;
 
     public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
-        this.propertyMetadataStore = propertyMetadataStore;
+        this.nodeFactory = new RuntimeBeanNodeFactory(propertyMetadataStore);
     }
 
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
-        Queue<RuntimeBeanNode> queue = new ArrayDeque<RuntimeBeanNode>();
-        queue.add(new RootRuntimeBeanNode(bean, propertyMetadataStore.getTypeMetadata(bean.getClass())));
+        Queue<RuntimeBeanNode<?>> queue = new ArrayDeque<RuntimeBeanNode<?>>();
+        queue.add(nodeFactory.createRoot(bean));
         while (!queue.isEmpty()) {
-            RuntimeBeanNode node = queue.remove();
-            node.visitNode(visitor, specFactory, queue, propertyMetadataStore);
+            RuntimeBeanNode<?> node = queue.remove();
+            node.visitNode(visitor, specFactory, queue, nodeFactory);
         }
     }
 }

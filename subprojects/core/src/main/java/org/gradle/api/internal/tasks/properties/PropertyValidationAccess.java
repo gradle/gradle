@@ -99,7 +99,7 @@ public class PropertyValidationAccess {
         }
 
         protected BeanTypeNode(@Nullable String propertyName, @Nullable BeanTypeNode parentNode, TypeMetadata typeMetadata) {
-            super(propertyName, parentNode, typeMetadata);
+            super(parentNode, propertyName, typeMetadata);
         }
 
         public abstract void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode> queue, PropertyMetadataStore metadataStore);

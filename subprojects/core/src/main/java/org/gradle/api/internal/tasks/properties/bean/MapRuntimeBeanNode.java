@@ -18,27 +18,24 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Queue;
 
-class MapRuntimeBeanNode extends BaseRuntimeBeanNode<Map<?, ?>> {
-    public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map, RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
-        super(propertyName, map, parentNode, typeMetadata);
+class MapRuntimeBeanNode extends RuntimeBeanNode<Map<?, ?>> {
+    public MapRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Map<?, ?> map, TypeMetadata typeMetadata) {
+        super(parentNode, propertyName, map, typeMetadata);
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
         for (Map.Entry<?, ?> entry : getBean().entrySet()) {
-            RuntimeBeanNode childNode = createChildNode(
+            RuntimeBeanNode<?> childNode = createChildNode(
                 Preconditions.checkNotNull(entry.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
                 entry.getValue(),
-                propertyMetadataStore
-            );
+                nodeFactory);
             queue.add(childNode);
         }
     }
