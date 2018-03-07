@@ -36,8 +36,6 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
-import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
-
 plugins {
     id 'base'
     id 'gradlebuild.jsoup'
@@ -192,11 +190,14 @@ task css(type: Sync, dependsOn: configureCss) {
     include "*.svg"
 }
 
-
 artifacts {
     // declare that the generated css directory is an output of cssElements
     cssElements file: css.destinationDir, builtBy: css
 }
+
+// TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
+// Don't publish the CSS artifacts when calling uploadArchives
+configurations.archives.artifacts.removeAll(configurations.cssElements.artifacts)
 
 ext.cssFiles = fileTree(css.destinationDir) {
     builtBy css
@@ -230,7 +231,7 @@ task userguideStyleSheets(type: Copy) {
 
 tasks.remove(asciidoctor)
 
-def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 task userguideAsciidoc(type: CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir

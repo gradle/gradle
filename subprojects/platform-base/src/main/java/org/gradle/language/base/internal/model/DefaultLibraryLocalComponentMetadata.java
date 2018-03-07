@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.NoOpCapabilitiesHandler;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -98,7 +99,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     }
 
     private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
-        super(id, componentIdentifier, Project.DEFAULT_STATUS, EmptySchema.INSTANCE);
+        super(id, componentIdentifier, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, NoOpCapabilitiesHandler.INSTANCE);
     }
 
     private void addDependencies(Iterable<DependencySpec> dependencies, String projectPath, String usageConfigurationName) {

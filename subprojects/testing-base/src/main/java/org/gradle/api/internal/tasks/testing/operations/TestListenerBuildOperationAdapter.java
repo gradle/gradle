@@ -23,14 +23,14 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationProgressEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.time.Clock;
 
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
         Details details = new Details(testDescriptor, testStartEvent.getStartTime());
         InProgressExecuteTestBuildOperation parentOperation = runningTests.get(testDescriptor.getParent());
-        Object parentId = parentOperation == null ? BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() : parentOperation.descriptor.getId();
+        OperationIdentifier parentId = parentOperation == null ? CurrentBuildOperationRef.instance().getId() : parentOperation.descriptor.getId();
         return BuildOperationDescriptor.displayName(testDescriptor.getName())
             .details(details)
             .build(newOperationIdentifier(), parentId);

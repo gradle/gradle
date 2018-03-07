@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -31,11 +32,14 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.ComponentModuleMetadataContainer;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultCapabilitiesHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -209,8 +213,18 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory);
         }
 
-        DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry) {
+        DependencyHandler createDependencyHandler(Instantiator instantiator,
+                                                  ConfigurationContainerInternal configurationContainer,
+                                                  DependencyFactory dependencyFactory,
+                                                  ProjectFinder projectFinder,
+                                                  DependencyConstraintHandler dependencyConstraintHandler,
+                                                  ComponentMetadataHandler componentMetadataHandler,
+                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler,
+                                                  CapabilitiesHandler capabilitiesHandler,
+                                                  ArtifactResolutionQueryFactory resolutionQueryFactory,
+                                                  AttributesSchema attributesSchema,
+                                                  VariantTransformRegistry artifactTransformRegistrations,
+                                                  ArtifactTypeRegistry artifactTypeRegistry) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -218,10 +232,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 dependencyConstraintHandler,
                 componentMetadataHandler,
                 componentModuleMetadataHandler,
+                capabilitiesHandler,
                 resolutionQueryFactory,
                 attributesSchema,
                 artifactTransformRegistrations,
                 artifactTypeRegistry);
+        }
+
+        CapabilitiesHandlerInternal createCapabilitiesHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory factory) {
+            return instantiator.newInstance(DefaultCapabilitiesHandler.class, factory);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
@@ -232,8 +251,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory);
         }
 
-        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
+        ComponentModuleMetadataContainer createComponentModuleMetadataContainer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new ComponentModuleMetadataContainer(moduleIdentifierFactory);
+        }
+
+        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ComponentModuleMetadataContainer container) {
+            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, container);
         }
 
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
@@ -259,7 +282,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildIdentity buildIdentity) {
+                                                       BuildIdentity buildIdentity,
+                                                       CapabilitiesHandler capabilitiesHandler) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -280,7 +304,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             artifactTypeRegistry,
                             componentSelectorConverter,
                             attributeContainerSerializer,
-                            buildIdentity),
+                            buildIdentity,
+                            capabilitiesHandler),
                         componentIdentifierFactory,
                         moduleIdentifierFactory,
                         buildIdentity));

@@ -58,16 +58,15 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
 import org.gradle.initialization.DefaultParallelismConfigurationManager;
 import org.gradle.initialization.FlatClassLoaderRegistry;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.buildevents.ProjectEvaluationLogger;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -86,12 +85,17 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.progress.BuildOperationListenerManager;
-import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -151,8 +155,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         }
     }
 
-    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
-        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
+    ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
+        return new DefaultResourceLockCoordinationService();
+    }
+
+    CurrentBuildOperationRef createCurrentBuildOperationRef() {
+        return CurrentBuildOperationRef.instance();
     }
 
     BuildOperationListenerManager createBuildOperationService(ListenerManager listenerManager) {
@@ -190,6 +198,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
+    BuildProgressLogger createBuildProgressLogger(ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
+        BuildProgressLogger buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
+        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
+        listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
+        return buildProgressLogger;
+    }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         return new DefaultCacheFactory(fileLockManager, executorFactory);

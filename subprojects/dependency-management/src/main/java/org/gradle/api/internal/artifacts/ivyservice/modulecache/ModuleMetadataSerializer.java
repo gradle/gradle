@@ -37,7 +37,9 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
+import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
@@ -115,6 +117,7 @@ public class ModuleMetadataSerializer {
             writeSharedInfo(metadata);
             writeNullableString(metadata.getPackaging());
             writeBoolean(metadata.isRelocated());
+            writeCapabilities(metadata.getCapabilities());
             writeVariants(metadata);
         }
 
@@ -151,6 +154,20 @@ public class ModuleMetadataSerializer {
             for (ExcludeMetadata exclude : excludes) {
                 writeString(exclude.getModuleId().getGroup());
                 writeString(exclude.getModuleId().getName());
+            }
+        }
+
+        private void writeCapabilities(ImmutableList<? extends CapabilityDescriptor> capabilities) throws IOException {
+            encoder.writeSmallInt(capabilities.size());
+            for (CapabilityDescriptor capability : capabilities) {
+                encoder.writeString(capability.getName());
+                encoder.writeNullableString(capability.getPrefer());
+                encoder.writeNullableString(capability.getReason());
+                List<String> providedBy = capability.getProvidedBy();
+                encoder.writeSmallInt(providedBy.size());
+                for (String s : providedBy) {
+                    encoder.writeString(s);
+                }
             }
         }
 
@@ -400,6 +417,7 @@ public class ModuleMetadataSerializer {
             metadata.setPackaging(readNullableString());
             metadata.setRelocated(readBoolean());
             metadata.setAttributes(attributes);
+            metadata.setCapabilities(readCapabilities());
             readVariants(metadata);
             return metadata;
         }
@@ -414,6 +432,23 @@ public class ModuleMetadataSerializer {
                 readVariantConstraints(variant);
                 readVariantFiles(variant);
             }
+        }
+
+        private ImmutableList<CapabilityDescriptor> readCapabilities() throws IOException {
+            int count = decoder.readSmallInt();
+            ImmutableList.Builder<CapabilityDescriptor> capabilities = new ImmutableList.Builder<CapabilityDescriptor>();
+            for (int i=0; i<count; i++) {
+                String name = decoder.readString();
+                String prefer = decoder.readNullableString();
+                String reason = decoder.readNullableString();
+                int providedCount = decoder.readSmallInt();
+                ImmutableList.Builder<String> providedBy = new ImmutableList.Builder<String>();
+                for (int j=0; j<providedCount; j++) {
+                    providedBy.add(decoder.readString());
+                }
+                capabilities.add(new DefaultImmutableCapability(name, providedBy.build(), prefer, reason));
+            }
+            return capabilities.build();
         }
 
         private ImmutableAttributes readAttributes() throws IOException {

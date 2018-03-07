@@ -67,6 +67,57 @@
             "changes": [
                 "org.gradle.plugins.ide.IdeWorkspace"
             ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkSharedLibrary",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkSharedLibrary",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(java.io.File)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(org.gradle.api.provider.Provider)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkMachOBundle",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkMachOBundle",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(java.io.File)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(org.gradle.api.provider.Provider)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkExecutable",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkExecutable",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(java.io.File)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setOutputFile(org.gradle.api.provider.Provider)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.nativeplatform.tasks.AbstractLinkTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
+            "acceptation": "Made idiomatic for the Provider API",
+            "changes": [
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
+            ]
         }
     ]
 }

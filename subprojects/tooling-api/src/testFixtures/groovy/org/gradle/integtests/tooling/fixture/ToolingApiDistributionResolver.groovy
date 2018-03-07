@@ -34,6 +34,7 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.BuildTreeScopeServices
@@ -82,22 +83,23 @@ class ToolingApiDistributionResolver {
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
         !useExternalToolingApiDistribution &&
-        toolingApiVersion == buildContext.version.version &&
-                GradleContextualExecuter.embedded
+            toolingApiVersion == buildContext.version.version &&
+            GradleContextualExecuter.embedded
     }
 
     private DependencyResolutionServices createResolutionServices() {
         ServiceRegistry globalRegistry = ServiceRegistryBuilder.builder()
-                .parent(LoggingServiceRegistry.newEmbeddableLogging())
-                .parent(NativeServicesTestFixture.getInstance())
-                .provider(new GlobalScopeServices(false))
-                .build()
+            .parent(LoggingServiceRegistry.newEmbeddableLogging())
+            .parent(NativeServicesTestFixture.getInstance())
+            .provider(new GlobalScopeServices(false))
+            .build()
         def startParameter = new StartParameterInternal()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
         def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.currentTimeMillis())
-        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
+        def crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalRegistry, startParameter)
+        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
         topLevelRegistry.add(BuildIdentity, new BuildIdentity() {

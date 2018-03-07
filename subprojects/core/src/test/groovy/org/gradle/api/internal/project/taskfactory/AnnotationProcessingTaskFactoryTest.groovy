@@ -564,14 +564,14 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop               | value                            | expected
-        TaskWithNestedBean                        | 'bean.class'         | [null]                           | Bean.class
-        TaskWithNestedObject                      | 'bean.key.class'     | [['key': new Bean()]]            | Bean.class
-        TaskWithNestedIterable                    | 'beans.$0.class'     | [new Bean()]                     | Bean.class
+        type                                      | prop                 | value                            | expected
+        TaskWithNestedBean                        | 'bean'               | [null]                           | Bean.class
+        TaskWithNestedObject                      | 'bean.key'           | [['key': new Bean()]]            | Bean.class
+        TaskWithNestedIterable                    | 'beans.$0'           | [new Bean()]                     | Bean.class
         TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
-        TaskWithNestedBeanWithPrivateClass        | 'bean.class'         | [null, null]                     | Bean2.class
-        TaskWithOptionalNestedBean                | 'bean.class'         | [null]                           | null
-        TaskWithOptionalNestedBeanWithPrivateType | 'bean.class'         | null                             | null
+        TaskWithNestedBeanWithPrivateClass        | 'bean'               | [null, null]                     | Bean2.class
+        TaskWithOptionalNestedBean                | 'bean'               | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | 'bean'               | null                             | null
         TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
         TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
     }
@@ -581,7 +581,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithNestedObject, [[new Bean(), new NamedBean('name', 'value'), new Bean()]] as Object[])
 
         expect:
-        inputProperties(task).keySet() == ['bean.$0.class', 'bean.name$1.class', 'bean.name$1.value', 'bean.$2.class'] as Set
+        inputProperties(task).keySet() == ['bean.$0', 'bean.name$1', 'bean.name$1.value', 'bean.$2'] as Set
     }
 
     @Unroll
@@ -617,14 +617,14 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputFiles               | null                           | []                                              | []                      | []
         TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
         TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
-        TaskWithNestedBean                        | [null]                         | ["bean.class"]                                  | ["bean.inputFile"]      | []
-        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
-        TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
+        TaskWithNestedBean                        | [null]                         | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0"]                                   | ["beans.\$0.inputFile"] | []
+        TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean"]                                        | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
-        TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean"]                                        | ["bean.inputFile"]      | []
         TaskWithOptionalNestedBeanWithPrivateType | null                           | []                                              | []                      | []
-        TaskWithMultipleProperties                | [new File("some")]             | ["bean.class"]                                  | ["bean.inputFile"]      | ["outputFile"]
-        TaskWithBridgeMethod                      | null                           | ["nestedProperty.class"]                        | []                      | ["nestedProperty.someOutputFile"]
+        TaskWithMultipleProperties                | [new File("some")]             | ["bean"]                                        | ["bean.inputFile"]      | ["outputFile"]
+        TaskWithBridgeMethod                      | null                           | ["nestedProperty"]                              | []                      | ["nestedProperty.someOutputFile"]
         TaskWithJavaBeanCornerCaseProperties      | ["c", "C", "d", "U", "a", "b"] | ["cCompiler", "CFlags", "dns", "URL", "a", "b"] | []                      | []
 
         allTaskProperties = inputs + inputFiles + outputFiles

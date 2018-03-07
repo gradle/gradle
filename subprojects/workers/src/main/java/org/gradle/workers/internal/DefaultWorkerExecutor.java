@@ -30,7 +30,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
@@ -95,7 +95,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     private void submit(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
-        final BuildOperationState currentBuildOperation = buildOperationExecutor.getCurrentOperation();
+        final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
@@ -158,7 +158,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Override
     public void await() throws WorkerExecutionException {
-        BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
+        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
             asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {

@@ -104,7 +104,7 @@ project(':tool') {
         run("tool:dependencies")
     }
 
-    void "resolves to the latest version by default"() {
+    void "resolves module version conflicts to the latest version by default"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -152,10 +152,59 @@ project(':tool') {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     configuration = "runtimeElements"
-                    edge("org:foo:1.3.3", "org:foo:1.4.4")
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution()
                 }
                 project(":impl", "test:impl:") {
                     configuration = "runtimeElements"
+                    module("org:foo:1.4.4").byConflictResolution()
+                }
+            }
+        }
+    }
+
+    void "resolves transitive module version conflicts to the latest version by default"() {
+        def foo133 = mavenRepo.module("org", "foo", '1.3.3').publish()
+        def foo144 = mavenRepo.module("org", "foo", '1.4.4').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn(foo133).publish()
+        mavenRepo.module("org", "baz", "1.0").dependsOn(foo144).publish()
+
+        settingsFile << """
+rootProject.name = 'test'
+"""
+
+        buildFile << """
+apply plugin: 'java'
+group = 'org'
+version = '1.0'
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile (group: 'org', name: 'bar', version:'1.0')
+    compile (group: 'org', name: 'baz', version:'1.0')
+}
+
+task resolve {
+    doLast {
+        println configurations.compile.files
+    }
+}
+"""
+
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        run(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", "org:test:1.0") {
+                module("org:bar:1.0") {
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution()
+                }
+                module("org:baz:1.0") {
                     module("org:foo:1.4.4").byConflictResolution()
                 }
             }

@@ -349,7 +349,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
             application.binaries.get { !it.optimized }.configure {
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
-                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                linkTask.get().linkedFile = layout.buildDirectory.file("exe/some-app.exe")
                 installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
             }
          """
@@ -767,7 +767,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-library'
                 library.binaries.get { !it.optimized }.configure {
                     def link = linkTask.get()
-                    link.binaryFile = layout.buildDirectory.file("shared/lib1_debug.dll")
+                    link.linkedFile = layout.buildDirectory.file("shared/lib1_debug.dll")
                     if (link.importLibrary.present) {
                         link.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
                     }

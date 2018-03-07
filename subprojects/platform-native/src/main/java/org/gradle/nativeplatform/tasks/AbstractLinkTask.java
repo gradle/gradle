@@ -17,12 +17,16 @@ package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -35,7 +39,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
+import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -43,97 +49,84 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Base task for linking a native binary from object files and libraries.
  */
 @Incubating
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
-    private boolean debuggable;
-    private final RegularFileProperty outputFile;
+    private final RegularFileProperty linkedFile;
+    private final DirectoryProperty destinationDirectory;
     private final ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
+    private final Property<Boolean> debuggable;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
 
     public AbstractLinkTask() {
-        libs = getProject().files();
-        source = getProject().files();
-        outputFile = newOutputFile();
-        linkerArgs = getProject().getObjects().listProperty(String.class);
-        getInputs().property("outputType", new Callable<String>() {
+        ObjectFactory objectFactory = getProject().getObjects();
+        this.libs = getProject().files();
+        this.source = getProject().files();
+        this.linkedFile = newOutputFile();
+        this.destinationDirectory = newOutputDirectory();
+        destinationDirectory.set(linkedFile.map(new Transformer<Directory, RegularFile>() {
             @Override
-            public String call() throws Exception {
-                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+            public Directory transform(RegularFile regularFile) {
+                // TODO: Get rid of destinationDirectory entirely and replace it with a
+                // collection of link outputs
+                DirectoryProperty dirProp = getProject().getLayout().directoryProperty();
+                dirProp.set(regularFile.getAsFile().getParentFile());
+                return dirProp.get();
             }
-        });
+        }));
+        this.linkerArgs = getProject().getObjects().listProperty(String.class);
+        this.debuggable = objectFactory.property(Boolean.class);
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
      * The tool chain used for linking.
+     *
+     * @since 4.7
      */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
-    }
-
     /**
-     * The platform that the linked binary will run on.
+     * The platform being linked for.
+     *
+     * @since 4.7
      */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
-    }
-
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**
      * Include the destination directory as an output, to pick up auxiliary files produced alongside the main output file
+     *
+     * @since 4.7
      */
     @OutputDirectory
-    public File getDestinationDir() {
-        return getOutputFile().getParentFile();
+    public DirectoryProperty getDestinationDirectory() {
+        return destinationDirectory;
     }
 
     /**
      * The file where the linked binary will be located.
      *
-     * @since 4.1
+     * @since 4.7
      */
     @OutputFile
-    public RegularFileProperty getBinaryFile() {
-        return outputFile;
-    }
-
-    @Internal
-    public File getOutputFile() {
-        return outputFile.getAsFile().getOrNull();
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile.set(outputFile);
-    }
-
-    /**
-     * Sets the output file generated by the linking process via a {@link Provider}.
-     *
-     * @param outputFile the output file provider to use
-     * @see #setOutputFile(File)
-     * @since 4.1
-     */
-    public void setOutputFile(Provider<? extends RegularFile> outputFile) {
-        this.outputFile.set(outputFile);
+    public RegularFileProperty getLinkedFile() {
+        return linkedFile;
     }
 
     /**
@@ -149,20 +142,21 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Create a debuggable binary?
      *
-     * @since 4.3
+     * @since 4.7
      */
-    @Input
+    @Internal
     public boolean isDebuggable() {
-        return debuggable;
+        return debuggable.get();
     }
 
     /**
      * Create a debuggable binary?
      *
-     * @since 4.3
+     * @since 4.7
      */
-    public void setDebuggable(boolean debuggable) {
-        this.debuggable = debuggable;
+    @Input
+    public Property<Boolean> getDebuggable() {
+        return debuggable;
     }
 
     /**
@@ -204,6 +198,16 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         this.libs.from(libs);
     }
 
+    /**
+     * The linker used, including the type and the version.
+     *
+     * @since 4.7
+     */
+    @Nested
+    protected CompilerVersion getCompilerVersion() {
+        return ((VersionAwareCompiler)createCompiler()).getVersion();
+    }
+
     @Inject
     public BuildOperationLoggerFactory getOperationLoggerFactory() {
         throw new UnsupportedOperationException();
@@ -212,7 +216,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     @TaskAction
     public void link() {
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
+        cleaner.setDestinationDir(getDestinationDirectory().get().getAsFile());
         cleaner.execute();
 
         if (getSource().isEmpty()) {
@@ -221,22 +225,31 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         }
 
         LinkerSpec spec = createLinkerSpec();
-        spec.setTargetPlatform(getTargetPlatform());
+        spec.setTargetPlatform(getTargetPlatform().get());
         spec.setTempDir(getTemporaryDir());
-        spec.setOutputFile(getOutputFile());
+        spec.setOutputFile(getLinkedFile().get().getAsFile());
 
         spec.objectFiles(getSource());
         spec.libraries(getLibs());
         spec.args(getLinkerArgs().get());
-        spec.setDebuggable(isDebuggable());
+        spec.setDebuggable(getDebuggable().get());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);
 
-        Compiler<LinkerSpec> compiler = Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
+        Compiler<LinkerSpec> compiler = createCompiler();
         compiler = BuildOperationLoggingCompilerDecorator.wrap(compiler);
         WorkResult result = compiler.execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Compiler<LinkerSpec> createCompiler() {
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        Class<LinkerSpec> linkerSpecType = (Class<LinkerSpec>) createLinkerSpec().getClass();
+        return toolProvider.newCompiler(linkerSpecType);
     }
 
     protected abstract LinkerSpec createLinkerSpec();

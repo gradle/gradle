@@ -18,7 +18,7 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;

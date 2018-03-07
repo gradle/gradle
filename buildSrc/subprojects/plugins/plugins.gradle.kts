@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":testing"))
+    implementation(project(":versioning"))
     implementation("org.pegdown:pegdown:1.6.0")
     implementation("org.jsoup:jsoup:1.11.2")
     implementation("com.google.guava:guava-jdk5:14.0.1")
@@ -25,10 +26,6 @@ gradlePlugin {
         "buildTypes" {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
-        }
-        "gradleCompile" {
-            id = "gradlebuild.gradle-compile"
-            implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
         }
         "jsoup" {
             id = "gradlebuild.jsoup"
@@ -49,10 +46,6 @@ gradlePlugin {
         "strictCompile" {
             id = "gradlebuild.strict-compile"
             implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
-        }
-        "testFixtures" {
-            id = "gradlebuild.test-fixtures"
-            implementationClass = "org.gradle.plugins.testfixtures.TestFixturesPlugin"
         }
         "unitTestAndCompile" {
             id = "gradlebuild.unittest-and-compile"

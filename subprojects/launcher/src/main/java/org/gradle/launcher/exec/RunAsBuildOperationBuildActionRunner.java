@@ -22,7 +22,7 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.

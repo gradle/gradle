@@ -45,7 +45,7 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     private static void visitImplementation(NestedRuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
+        DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getPropertyName(), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
         implementation.optional(false);
         visitor.visitInputProperty(implementation);
     }

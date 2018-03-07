@@ -19,6 +19,7 @@ package org.gradle.testing.junitplatform
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -250,5 +251,73 @@ test {
         result.assertTestClassesExecuted('org.gradle.NestedTest$Inner')
         result.testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
             .assertTestPassed('innerTest')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4476')
+    def 'can handle test engine failure'() {
+        given:
+        createSimpleJupiterTest()
+        file('src/test/java/UninstantiatableExtension.java') << '''
+import org.junit.jupiter.api.extension.*;
+public class UninstantiatableExtension implements BeforeEachCallback {
+  private UninstantiatableExtension(){}
+
+  @Override
+  public void beforeEach(final ExtensionContext context) throws Exception {
+  }
+}
+'''
+        file('src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension') << 'UninstantiatableExtension'
+        buildFile << '''
+            test {
+                systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
+            }
+        '''
+
+        when:
+        fails('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass('UnknownClass')
+            .assertTestFailed('initializationError', containsString('UninstantiatableExtension'))
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4427')
+    def 'can run tests in static nested class'() {
+        given:
+        file('src/test/java/org/gradle/StaticInnerTest.java') << '''
+package org.gradle;
+import org.junit.jupiter.api.*;
+public class StaticInnerTest {
+    public static class Nested {
+        @Test
+        public void inside() {
+        }
+        
+        public static class Nested2 {
+            @Test
+            public void inside() {
+            }
+        }
+    }
+
+    @Test
+    public void outside() {
+    }
+}
+'''
+        when:
+        succeeds('test')
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.StaticInnerTest', 'org.gradle.StaticInnerTest$Nested', 'org.gradle.StaticInnerTest$Nested$Nested2')
+        result.testClass('org.gradle.StaticInnerTest').assertTestCount(1, 0, 0)
+            .assertTestPassed('outside')
+        result.testClass('org.gradle.StaticInnerTest$Nested').assertTestCount(1, 0, 0)
+            .assertTestPassed('inside')
+        result.testClass('org.gradle.StaticInnerTest$Nested$Nested2').assertTestCount(1, 0, 0)
+            .assertTestPassed('inside')
     }
 }

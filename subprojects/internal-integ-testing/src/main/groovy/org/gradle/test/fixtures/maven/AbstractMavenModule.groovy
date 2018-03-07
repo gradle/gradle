@@ -445,7 +445,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.artifacts?:defaultArtifacts
                 )
             },
-            attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
+            attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release'],
+            capabilities
         )
 
         adapter.publishTo(moduleDir)

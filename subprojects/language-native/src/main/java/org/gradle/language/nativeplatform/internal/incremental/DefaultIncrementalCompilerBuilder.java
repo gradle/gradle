@@ -24,14 +24,12 @@ import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
-import org.gradle.nativeplatform.toolchain.Clang;
-import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import java.io.File;
 import java.util.List;
@@ -55,8 +53,8 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
     }
 
     @Override
-    public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs) {
-        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor);
+    public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Provider<Boolean> importAware) {
+        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware);
     }
 
     private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareTaskProperty {
@@ -70,11 +68,11 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private final String taskPath;
         private final FileCollection sourceFiles;
         private final FileCollection headerFilesCollection;
+        private final Provider<Boolean> importAware;
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
-        private NativeToolChainInternal toolChain;
 
-        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor) {
+        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
             this.taskOutputs = task.getOutputs();
             this.taskPath = task.getPath();
             this.includeDirs = includeDirs;
@@ -84,6 +82,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             this.sourceParser = sourceParser;
             this.directoryFileTreeFactory = directoryFileTreeFactory;
             this.buildOperationExecutor = buildOperationExecutor;
+            this.importAware = importAware;
             headerFilesCollection = fileVarFactory.newCalculatedInputFileCollection(task, this, sourceFiles, includeDirs);
         }
 
@@ -96,15 +95,10 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         }
 
         @Override
-        public void setToolChain(NativeToolChainInternal toolChain) {
-            this.toolChain = toolChain;
-        }
-
-        @Override
         public Set<File> getFiles() {
             List<File> includeRoots = ImmutableList.copyOf(includeDirs);
             compileStateCache = compilationStateCacheFactory.create(taskPath);
-            DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, toolChain instanceof Clang || toolChain instanceof Gcc);
+            DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importAware.get());
             DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);
             IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
             IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory, buildOperationExecutor);
@@ -122,7 +116,6 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         public void cleanupValue() {
             compileStateCache = null;
             incrementalCompilation = null;
-            toolChain = null;
         }
 
         @Override

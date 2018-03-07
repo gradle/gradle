@@ -1,0 +1,25 @@
+{
+    "formatVersion": "0.3",
+    "component": {
+        "group": "org.gradle.test",
+        "module": "publishTest",
+        "version": "1.9",
+        "capabilities": [
+            {
+                "name": "slf4j binding",
+                "providedBy": [
+                    "foo",
+                    "bar"
+                ],
+                "prefer": "foo"
+            },
+            {
+                "name": "groovy",
+                "providedBy": [
+                    "org.codehaus.groovy:groovy",
+                    "org.codehaus.groovy:groovy-all"
+                ]
+            }
+        ]
+    }
+}

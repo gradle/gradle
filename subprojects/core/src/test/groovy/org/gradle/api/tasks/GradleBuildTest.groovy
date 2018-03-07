@@ -20,7 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.progress.BuildOperationState
+import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -35,7 +35,7 @@ class GradleBuildTest extends Specification {
     def gradle = Mock(GradleInternal)
     def services = Mock(ServiceRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def buildOperation = Mock(BuildOperationState)
+    def buildOperation = Mock(BuildOperationRef)
     GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory])
 
     def setup() {

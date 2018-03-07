@@ -1,7 +1,4 @@
 import org.gradle.gradlebuild.ProjectGroups
-import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt
-
-import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.*
 
 /*
  * Copyright 2010 the original author or authors.
@@ -100,7 +97,7 @@ test {
     forkEvery = 200
 }
 
-def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

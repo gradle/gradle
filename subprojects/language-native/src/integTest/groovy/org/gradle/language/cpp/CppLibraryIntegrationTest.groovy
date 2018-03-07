@@ -308,7 +308,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
             library.binaries.get { !it.optimized }.configure { 
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
                 def link = linkTask.get()
-                link.binaryFile = layout.buildDirectory.file("shared/main.bin")
+                link.linkedFile = layout.buildDirectory.file("shared/main.bin")
                 if (link.importLibrary.present) {
                     link.importLibrary = layout.buildDirectory.file("import/main.lib")
                 }
