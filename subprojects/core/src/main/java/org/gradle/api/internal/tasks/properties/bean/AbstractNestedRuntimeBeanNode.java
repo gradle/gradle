@@ -64,7 +64,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends BaseRuntimeBeanNode<
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
                 @Override
                 public void addNested(String propertyName, Object bean) {
-                    queue.add(createChildNode(propertyName, bean, propertyMetadataStore));
+                    queue.add(RuntimeBeanNode.create(propertyName, AbstractNestedRuntimeBeanNode.this, bean, propertyMetadataStore));
                 }
             });
         }

@@ -100,6 +100,17 @@ class BuildOperationsFixture {
         only(Pattern.compile(Pattern.quote(displayName)))
     }
 
+    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
+        def parents = []
+        def parentId = child.parentId
+        while (parentId != null) {
+            def parent = operations.records.get(parentId)
+            parents.add(0, parent)
+            parentId = parent.parentId
+        }
+        parents
+    }
+
     BuildOperationRecord only(Pattern displayName) {
         def records = all(displayName)
         assert records.size() == 1

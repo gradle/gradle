@@ -350,11 +350,11 @@ class ConsoleFunctionalTest extends Specification {
     ProgressStartEvent startEvent(Long id, Long parentId = null, category = 'CATEGORY', description = 'DESCRIPTION', int totalProgress = 0, shortDescription = 'SHORT_DESCRIPTION', loggingHeader = 'LOGGING_HEADER', status = 'STATUS') {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, null, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, false, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, 0, null, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, 0, false, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
     ProgressEvent progressEvent(Long id, String status = 'STATUS', boolean failing=false) {

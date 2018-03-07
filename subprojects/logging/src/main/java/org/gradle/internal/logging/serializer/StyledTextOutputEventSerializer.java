@@ -43,7 +43,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeSmallLong(((OperationIdentifier) event.getBuildOperationId()).getId());
+            encoder.writeSmallLong(event.getBuildOperationId().getId());
         }
         spanSerializer.write(encoder, event.getSpans());
     }
@@ -53,7 +53,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
-        Object buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
         return new StyledTextOutputEvent(timestamp, category, logLevel, buildOperationId, spans);
     }

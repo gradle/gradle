@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.operations;
+
+package org.gradle.internal.logging.events.operations;
+
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * A listener that is notified as build operations are executed via a {@link org.gradle.internal.operations.BuildOperationExecutor}.
+ * Build operation observer's view of {@link org.gradle.internal.logging.events.LogEvent}.
  *
- * @since 3.5
+ * See LoggingBuildOperationProgressBroadcaster.
+ *
+ * @since 4.7
  */
-public interface BuildOperationListener {
+@UsedByScanPlugin
+public interface LogEventBuildOperationProgressDetails {
 
-    void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
+    String getMessage();
 
-    void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent);
+    Throwable getThrowable();
 
-    void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
+    String getCategory();
+
+    LogLevel getLogLevel();
 
 }

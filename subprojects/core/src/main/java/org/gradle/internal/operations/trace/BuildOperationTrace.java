@@ -17,6 +17,7 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
@@ -31,6 +32,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.util.GFileUtils;
@@ -178,7 +180,9 @@ public class BuildOperationTrace implements Stoppable {
 
                         stringBuilder.setLength(0);
 
-                        for (int i = 0; i < stack.size() - 1; ++i) {
+                        int indents = stack.size() - 1;
+
+                        for (int i = 0; i < indents; ++i) {
                             stringBuilder.append("  ");
                         }
 
@@ -206,6 +210,18 @@ public class BuildOperationTrace implements Stoppable {
                         stringBuilder.append(record.id);
                         stringBuilder.append(")");
 
+                        if (!record.progress.isEmpty()) {
+                            for (BuildOperationRecord.Progress progress : record.progress) {
+                                stringBuilder.append(StandardSystemProperty.LINE_SEPARATOR.value());
+                                for (int i = 0; i < indents; ++i) {
+                                    stringBuilder.append("  ");
+                                }
+                                stringBuilder.append("- ")
+                                    .append(progress.details).append(" [")
+                                    .append(progress.time - record.startTime)
+                                    .append("]");
+                            }
+                        }
 
                         return stringBuilder.toString();
                     }
@@ -243,7 +259,7 @@ public class BuildOperationTrace implements Stoppable {
                     } else if (map.containsKey("time")) {
                         SerializedOperationProgress serialized = new SerializedOperationProgress(map);
                         PendingOperation pending = pendings.get(serialized.id);
-                        assert pending != null;
+                        assert pending != null : "did not find owner of progress event with ID " + serialized.id;
                         pending.progress.add(serialized);
                     } else {
                         SerializedOperationFinish finish = new SerializedOperationFinish(map);
@@ -365,8 +381,8 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         @Override
-        public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-            new Entry(new SerializedOperationProgress(buildOperation, progressEvent), false).add();
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
+            new Entry(new SerializedOperationProgress(buildOperationId, progressEvent), false).add();
         }
 
         @Override

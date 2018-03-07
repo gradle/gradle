@@ -28,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.slf4j.Logger;
@@ -153,6 +154,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
             Object id = buildOperation.getId();
             Object parentId = buildOperation.getParentId();
+
             if (parentId != null) {
                 if (active.containsKey(parentId)) {
                     parents.put(id, parentId);
@@ -187,18 +189,27 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
 
         @Override
-        public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-            Object id = buildOperation.getId();
-            if (!active.containsKey(id)) {
-                return;
-            }
-
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
             Object details = progressEvent.getDetails();
             if (details == null) {
                 return;
             }
 
-            notificationListener.progress(new Progress(buildOperation.getId(), progressEvent.getTime(), details));
+            // Find the nearest parent up that we care about and use that as the parent.
+            Object owner = findOwner(buildOperationId);
+            if (owner == null) {
+                return;
+            }
+
+            notificationListener.progress(new Progress(owner, progressEvent.getTime(), details));
+        }
+
+        private Object findOwner(Object id) {
+            if (active.containsKey(id)) {
+                return id;
+            } else {
+                return parents.get(id);
+            }
         }
 
         @Override
@@ -217,7 +228,6 @@ public class BuildOperationNotificationBridge implements Stoppable {
                 maybeThrow(e);
             }
         }
-
 
     }
 

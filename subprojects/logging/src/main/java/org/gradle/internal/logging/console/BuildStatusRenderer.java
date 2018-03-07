@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -26,6 +25,7 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.time.Clock;
 
 public class BuildStatusRenderer implements OutputEventListener {
@@ -63,10 +63,10 @@ public class BuildStatusRenderer implements OutputEventListener {
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            if (startEvent.getBuildOperationId() != null && startEvent.getParentBuildOperationId() == null) {
-                buildStarted(startEvent);
-            } else if (BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
+            if (BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
                 phaseStarted(startEvent);
+            } else if (buildStartTimestamp == 0 && startEvent.getBuildOperationId() != null && startEvent.getParentBuildOperationId() == null) {
+                buildStartTimestamp = startEvent.getTimestamp();
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
@@ -96,10 +96,6 @@ public class BuildStatusRenderer implements OutputEventListener {
             buildStatusLabel.setText(progressBar.formatProgress(consoleMetaData.getCols(), timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
-    }
-
-    private void buildStarted(ProgressStartEvent startEvent) {
-        buildStartTimestamp = clock.getCurrentTime();
     }
 
     private void phaseStarted(ProgressStartEvent progressStartEvent) {
