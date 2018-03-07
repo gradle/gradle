@@ -49,6 +49,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         return init(
             loggerCategory.getName(),
             null,
+            true,
             buildOperationDescriptor.getId(),
             buildOperationDescriptor.getParentId(),
             buildOperationDescriptor.getOperationType()
@@ -70,18 +71,20 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         return init(
             loggerCategory,
             parentOperation,
+            false,
             currentBuildOperationRef.getId(),
             currentBuildOperationRef.getParentId(),
-            BuildOperationCategory.UNCATEGORIZED
+            null
         );
     }
 
     private ProgressLogger init(
         String loggerCategory,
         @Nullable ProgressLogger parentOperation,
+        boolean buildOperationStart,
         @Nullable OperationIdentifier buildOperationId,
         @Nullable OperationIdentifier parentBuildOperationId,
-        BuildOperationCategory buildOperationCategory
+        @Nullable BuildOperationCategory buildOperationCategory
     ) {
         if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
             throw new IllegalArgumentException("Unexpected parent logger.");
@@ -92,6 +95,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             loggerCategory,
             progressListener,
             clock,
+            buildOperationStart,
             buildOperationId,
             parentBuildOperationId,
             buildOperationCategory
@@ -105,6 +109,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private final String category;
         private final ProgressListener listener;
         private final Clock clock;
+        private final boolean buildOperationStart;
         @Nullable
         private final OperationIdentifier buildOperationId;
         @Nullable
@@ -122,15 +127,17 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             String category,
             ProgressListener listener,
             Clock clock,
+            boolean buildOperationStart,
             @Nullable OperationIdentifier buildOperationId,
             @Nullable OperationIdentifier parentBuildOperationId,
-            BuildOperationCategory buildOperationCategory
+            @Nullable BuildOperationCategory buildOperationCategory
         ) {
             this.parent = parent;
             this.progressOperationId = progressOperationId;
             this.category = category;
             this.listener = listener;
             this.clock = clock;
+            this.buildOperationStart = buildOperationStart;
             this.buildOperationId = buildOperationId;
             this.parentBuildOperationId = parentBuildOperationId;
             this.buildOperationCategory = buildOperationCategory;
@@ -214,6 +221,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 loggingHeader,
                 ensureNotNull(status),
                 totalProgress,
+                buildOperationStart,
                 buildOperationId,
                 parentBuildOperationId,
                 buildOperationCategory

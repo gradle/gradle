@@ -33,22 +33,28 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     private final String loggingHeader;
     private final String status;
     private final int totalProgress;
+
+    private final boolean buildOperationStart;
+
     private final OperationIdentifier buildOperationId;
     private final OperationIdentifier parentBuildOperationId;
-    private BuildOperationCategory buildOperationCategory;
+    private final BuildOperationCategory buildOperationCategory;
 
-    public ProgressStartEvent(OperationIdentifier progressOperationId,
-                              @Nullable OperationIdentifier parentProgressOperationId,
-                              long timestamp,
-                              String category,
-                              String description,
-                              @Nullable String shortDescription,
-                              @Nullable String loggingHeader,
-                              String status,
-                              int totalProgress,
-                              @Nullable OperationIdentifier buildOperationId,
-                              @Nullable OperationIdentifier parentBuildOperationId,
-                              BuildOperationCategory buildOperationCategory) {
+    public ProgressStartEvent(
+        OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier parentProgressOperationId,
+        long timestamp,
+        String category,
+        String description,
+        @Nullable String shortDescription,
+        @Nullable String loggingHeader,
+        String status,
+        int totalProgress,
+        boolean buildOperationStart,
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable OperationIdentifier parentBuildOperationId,
+        BuildOperationCategory buildOperationCategory
+    ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
@@ -57,6 +63,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         this.loggingHeader = loggingHeader;
         this.status = status;
         this.totalProgress = totalProgress;
+        this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
         this.parentBuildOperationId = parentBuildOperationId;
         this.buildOperationCategory = buildOperationCategory;
@@ -98,6 +105,14 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return progressOperationId;
     }
 
+    /**
+     * Whether this progress start represent the start of a build operation,
+     * as opposed to a progress operation within a build operation.
+     */
+    public boolean isBuildOperationStart() {
+        return buildOperationStart;
+    }
+
     @Nullable
     public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
@@ -108,6 +123,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return parentBuildOperationId;
     }
 
+    @Nullable
     public BuildOperationCategory getBuildOperationCategory() {
         return buildOperationCategory;
     }

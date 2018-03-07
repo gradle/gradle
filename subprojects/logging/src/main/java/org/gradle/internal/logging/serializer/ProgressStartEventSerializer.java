@@ -16,9 +16,9 @@
 
 package org.gradle.internal.logging.serializer;
 
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -88,6 +88,9 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
         encoder.writeString(event.getStatus());
         encoder.writeInt(event.getTotalProgress());
+
+        encoder.writeBoolean(event.isBuildOperationStart());
+
         if (buildOperationId != null) {
             encoder.writeSmallLong(buildOperationId.getId());
         }
@@ -123,6 +126,8 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         String status = decoder.readString();
         int totalProgress = decoder.readInt();
 
+        boolean buildOperationStart = decoder.readBoolean();
+
         OperationIdentifier buildOperationId = null;
         if ((flags & BUILD_OPERATION_ID) != 0) {
             buildOperationId = new OperationIdentifier(decoder.readSmallLong());
@@ -143,6 +148,20 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             buildOperationCategory = BuildOperationCategory.UNCATEGORIZED;
         }
 
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, buildOperationId, parentBuildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(
+            progressOperationId,
+            parentProgressOperationId,
+            timestamp,
+            category,
+            description,
+            shortDescription,
+            loggingHeader,
+            status,
+            totalProgress,
+            buildOperationStart,
+            buildOperationId,
+            parentBuildOperationId,
+            buildOperationCategory
+        );
     }
 }

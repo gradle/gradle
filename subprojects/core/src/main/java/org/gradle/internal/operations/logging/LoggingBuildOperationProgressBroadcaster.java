@@ -64,7 +64,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     public LoggingBuildOperationProgressBroadcaster(LoggingManagerInternal loggingManagerInternal, BuildOperationListener buildOperationListener) {
         this.loggingManagerInternal = loggingManagerInternal;
         this.buildOperationListener = buildOperationListener;
-        
+
         loggingManagerInternal.addOutputEventListener(this);
     }
 
