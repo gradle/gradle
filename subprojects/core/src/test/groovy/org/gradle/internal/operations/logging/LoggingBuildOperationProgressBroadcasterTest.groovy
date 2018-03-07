@@ -63,23 +63,10 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         ProgressStartEvent    | progressStartEvent(operationId)                                    | progressStartEvent(null)
     }
 
-    def "filters non supported output events"() {
-        when:
-        bridge.onOutput(progressStartEvent(operationId, "Upload stuff"))
-
-        then:
-        1 * buildOperationListener.progress(_, _)
-
-
-        when:
-        bridge.onOutput(progressStartEvent(operationId, "Download stuff"))
-
-        then:
-        1 * buildOperationListener.progress(_, _)
-
-
+    def "does not forward progress start events with no logging header"() {
         when:
         bridge.onOutput(progressStartEvent(operationId, null))
+
         then:
         0 * buildOperationListener.progress(_, _)
     }
@@ -100,6 +87,6 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
     }
 
     private ProgressStartEvent progressStartEvent(OperationIdentifier operationId, String header = 'header') {
-        new ProgressStartEvent(null, null, 0, 'c', 'd', 'sd', header, 's', 0, operationId, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(null, null, 0, 'c', 'd', 'sd', header, 's', 0, false, operationId, null, BuildOperationCategory.UNCATEGORIZED)
     }
 }
