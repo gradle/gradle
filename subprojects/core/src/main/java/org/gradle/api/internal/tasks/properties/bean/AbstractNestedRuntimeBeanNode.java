@@ -47,11 +47,11 @@ import java.util.List;
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
 public abstract class AbstractNestedRuntimeBeanNode extends BaseRuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable String propertyName, Object bean) {
-        super(propertyName, bean);
+    protected AbstractNestedRuntimeBeanNode(@Nullable String propertyName, Object bean, RuntimeBeanNode parentNode) {
+        super(propertyName, bean, parentNode);
     }
 
-    public static void visitProperties(RuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, final NodeContext propertyContext, final PropertyMetadataStore propertyMetadataStore) {
+    public static void visitProperties(final RuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, final NodeContext propertyContext, final PropertyMetadataStore propertyMetadataStore) {
         TypeMetadata typeMetadata = propertyMetadataStore.getTypeMetadata(node.getBeanClass());
         for (final PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
@@ -64,7 +64,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends BaseRuntimeBeanNode<
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
                 @Override
                 public void addNested(String propertyName, Object bean) {
-                    propertyContext.addSubProperties(RuntimeBeanNode.create(propertyName, bean, propertyMetadataStore));
+                    propertyContext.addSubProperties(RuntimeBeanNode.create(propertyName, bean, propertyMetadataStore, node));
                 }
             });
         }

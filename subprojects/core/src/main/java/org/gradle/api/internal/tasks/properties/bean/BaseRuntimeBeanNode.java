@@ -25,8 +25,8 @@ abstract class BaseRuntimeBeanNode<T> extends RuntimeBeanNode {
 
     private final T bean;
 
-    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean) {
-        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass());
+    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean, RuntimeBeanNode parentNode) {
+        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass(), parentNode);
         this.bean = bean;
     }
 
@@ -38,6 +38,6 @@ abstract class BaseRuntimeBeanNode<T> extends RuntimeBeanNode {
     public RuntimeBeanNode createChildNode(String propertyName, @Nullable Object input, PropertyMetadataStore metadataStore) {
         String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
         Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '%s'", qualifiedPropertyName);
-        return RuntimeBeanNode.create(qualifiedPropertyName, bean, metadataStore);
+        return RuntimeBeanNode.create(qualifiedPropertyName, bean, metadataStore, this);
     }
 }

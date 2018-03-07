@@ -25,8 +25,8 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import javax.annotation.Nullable;
 
 class IterableRuntimeBeanNode extends BaseRuntimeBeanNode<Iterable<?>> {
-    public IterableRuntimeBeanNode(@Nullable String propertyName, Iterable<?> iterable) {
-        super(propertyName, iterable);
+    public IterableRuntimeBeanNode(@Nullable String propertyName, Iterable<?> iterable, RuntimeBeanNode parentNode) {
+        super(propertyName, iterable, parentNode);
     }
 
     private static String determinePropertyName(@Nullable Object input, int count) {

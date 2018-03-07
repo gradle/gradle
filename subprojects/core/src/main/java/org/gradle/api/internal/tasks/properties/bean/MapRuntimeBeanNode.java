@@ -26,8 +26,8 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 class MapRuntimeBeanNode extends BaseRuntimeBeanNode<Map<?, ?>> {
-    public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map) {
-        super(propertyName, map);
+    public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map, RuntimeBeanNode parentNode) {
+        super(propertyName, map, parentNode);
     }
 
     @Override

@@ -26,23 +26,23 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public abstract class RuntimeBeanNode extends AbstractPropertyNode {
+public abstract class RuntimeBeanNode extends AbstractPropertyNode<RuntimeBeanNode> {
 
-    public static RuntimeBeanNode create(@Nullable String propertyName, Object bean, PropertyMetadataStore metadataStore) {
+    public static RuntimeBeanNode create(@Nullable String propertyName, Object bean, PropertyMetadataStore metadataStore, RuntimeBeanNode parentNode) {
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
         if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
             if (bean instanceof Map<?, ?>) {
-                return new MapRuntimeBeanNode(propertyName, (Map<?, ?>) bean);
+                return new MapRuntimeBeanNode(propertyName, (Map<?, ?>) bean, parentNode);
             }
             if (bean instanceof Iterable<?>) {
-                return new IterableRuntimeBeanNode(propertyName, (Iterable<?>) bean);
+                return new IterableRuntimeBeanNode(propertyName, (Iterable<?>) bean, parentNode);
             }
         }
-        return new NestedRuntimeBeanNode(propertyName, bean);
+        return new NestedRuntimeBeanNode(propertyName, bean, parentNode);
     }
 
-    protected RuntimeBeanNode(@Nullable String propertyName, Class<?> beanClass) {
-        super(propertyName, beanClass);
+    protected RuntimeBeanNode(@Nullable String propertyName, Class<?> beanClass, RuntimeBeanNode parentNode) {
+        super(propertyName, beanClass, parentNode);
     }
 
     public abstract Object getBean();

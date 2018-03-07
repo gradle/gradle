@@ -64,7 +64,7 @@ public class PropertyValidationAccess {
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));
         Queue<BeanTypeNodeContext> queue = new ArrayDeque<BeanTypeNodeContext>();
-        queue.add(new BeanTypeNodeContext(BeanTypeNode.create(null, TypeToken.of(topLevelBean), metadataStore), queue));
+        queue.add(new BeanTypeNodeContext(BeanTypeNode.create(null, TypeToken.of(topLevelBean), metadataStore, null), queue));
         boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
 
         while (!queue.isEmpty()) {
@@ -109,22 +109,22 @@ public class PropertyValidationAccess {
 
     private abstract static class BeanTypeNode extends AbstractPropertyNode {
 
-        public static BeanTypeNode create(@Nullable String parentPropertyName, TypeToken<?> beanType, PropertyMetadataStore metadataStore) {
+        public static BeanTypeNode create(@Nullable String parentPropertyName, TypeToken<?> beanType, PropertyMetadataStore metadataStore, BeanTypeNode parentNode) {
             Class<?> rawType = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (parentPropertyName != null && !typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentPropertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType));
+                    return new MapBeanTypeNode(parentPropertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), parentNode);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentPropertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType));
+                    return new IterableBeanTypeNode(parentPropertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType), parentNode);
                 }
             }
-            return new NestedBeanTypeNode(parentPropertyName, beanType);
+            return new NestedBeanTypeNode(parentPropertyName, beanType, parentNode);
         }
 
-        protected BeanTypeNode(@Nullable String propertyName, Class<?> beanClass) {
-            super(propertyName, beanClass);
+        protected BeanTypeNode(@Nullable String propertyName, Class<?> beanClass, BeanTypeNode parentNode) {
+            super(propertyName, beanClass, parentNode);
         }
 
         public abstract void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, BeanTypeNodeContext context, PropertyMetadataStore metadataStore);
@@ -135,8 +135,8 @@ public class PropertyValidationAccess {
     private static abstract class BaseBeanTypeNode<T> extends BeanTypeNode {
         private final TypeToken<? extends T> beanType;
 
-        protected BaseBeanTypeNode(@Nullable String parentPropertyName, TypeToken<? extends T> beanType) {
-            super(parentPropertyName, beanType.getRawType());
+        protected BaseBeanTypeNode(@Nullable String parentPropertyName, TypeToken<? extends T> beanType, BeanTypeNode parentNode) {
+            super(parentPropertyName, beanType.getRawType(), parentNode);
             this.beanType = beanType;
         }
 
@@ -153,8 +153,8 @@ public class PropertyValidationAccess {
 
     private static class NestedBeanTypeNode extends BaseBeanTypeNode<Object> {
 
-        public NestedBeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
-            super(parentPropertyName, beanType);
+        public NestedBeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType, BeanTypeNode parentNode) {
+            super(parentPropertyName, beanType, parentNode);
         }
 
         @Override
@@ -182,7 +182,7 @@ public class PropertyValidationAccess {
                     }
                 }
                 if (metadata.isAnnotationPresent(Nested.class)) {
-                    context.addSubProperties(BeanTypeNode.create(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType()), metadataStore));
+                    context.addSubProperties(BeanTypeNode.create(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType()), metadataStore, node));
                 }
             }
         }
@@ -194,8 +194,8 @@ public class PropertyValidationAccess {
 
     private static class IterableBeanTypeNode extends BaseBeanTypeNode<Iterable<?>> {
 
-        public IterableBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType) {
-            super(parentPropertyName, iterableType);
+        public IterableBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType, BeanTypeNode parentNode) {
+            super(parentPropertyName, iterableType, parentNode);
         }
 
         private String determinePropertyName(TypeToken<?> nestedType) {
@@ -207,20 +207,20 @@ public class PropertyValidationAccess {
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, BeanTypeNodeContext context, PropertyMetadataStore metadataStore) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
-            context.addSubProperties(BeanTypeNode.create(determinePropertyName(nestedType), nestedType, metadataStore));
+            context.addSubProperties(BeanTypeNode.create(determinePropertyName(nestedType), nestedType, metadataStore, this));
         }
     }
 
     private static class MapBeanTypeNode extends BaseBeanTypeNode<Map<?, ?>> {
 
-        public MapBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType) {
-            super(parentPropertyName, mapType);
+        public MapBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType, BeanTypeNode parentNode) {
+            super(parentPropertyName, mapType, parentNode);
         }
 
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, BeanTypeNodeContext context, PropertyMetadataStore metadataStore) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
-            context.addSubProperties(BeanTypeNode.create(getQualifiedPropertyName("<key>"), nestedType, metadataStore));
+            context.addSubProperties(BeanTypeNode.create(getQualifiedPropertyName("<key>"), nestedType, metadataStore, this));
         }
     }
 

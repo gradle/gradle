@@ -34,8 +34,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
-    public NestedRuntimeBeanNode(@Nullable String propertyName, Object bean) {
-        super(propertyName, bean);
+    public NestedRuntimeBeanNode(@Nullable String propertyName, Object bean, RuntimeBeanNode parentNode) {
+        super(propertyName, bean, parentNode);
     }
 
     @Override

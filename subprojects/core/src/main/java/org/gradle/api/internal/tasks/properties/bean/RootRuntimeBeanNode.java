@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 public class RootRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     public RootRuntimeBeanNode(Object bean) {
-        super(null, bean);
+        super(null, bean, null);
     }
 
     @Override
