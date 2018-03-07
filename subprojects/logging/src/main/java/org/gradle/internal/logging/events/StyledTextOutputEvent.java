@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin
-public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails{
+public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails {
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
