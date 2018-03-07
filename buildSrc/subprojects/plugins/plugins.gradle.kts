@@ -27,10 +27,6 @@ gradlePlugin {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
-        "gradleCompile" {
-            id = "gradlebuild.gradle-compile"
-            implementationClass = "org.gradle.plugins.compile.GradleCompilePlugin"
-        }
         "jsoup" {
             id = "gradlebuild.jsoup"
             implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
@@ -51,21 +47,9 @@ gradlePlugin {
             id = "gradlebuild.strict-compile"
             implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
         }
-        "testFixtures" {
-            id = "gradlebuild.test-fixtures"
-            implementationClass = "org.gradle.plugins.testfixtures.TestFixturesPlugin"
-        }
         "unitTestAndCompile" {
             id = "gradlebuild.unittest-and-compile"
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
-        }
-        "integrationTests" {
-            id = "gradlebuild.integration-tests"
-            implementationClass = "org.gradle.plugins.integrationtests.IntegrationTestsPlugin"
-        }
-        "crossVersionTests" {
-            id = "gradlebuild.cross-version-tests"
-            implementationClass = "org.gradle.plugins.integrationtests.CrossVersionTestsPlugin"
         }
     }
 }

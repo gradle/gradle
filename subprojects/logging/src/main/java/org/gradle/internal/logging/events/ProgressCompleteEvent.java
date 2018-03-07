@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.operations.OperationIdentifier;
 
 public class ProgressCompleteEvent extends OutputEvent {
     private final long timestamp;

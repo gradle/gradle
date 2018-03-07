@@ -25,15 +25,17 @@ import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
+import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.compile.GradleCompilePlugin
 import org.gradle.process.CommandLineArgumentProvider
 import testLibraries
 import testLibrary
@@ -42,23 +44,59 @@ import java.util.jar.Attributes
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply { plugin("groovy") }
-        apply { plugin(GradleCompilePlugin::class.java) }
+
+        val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         java.sourceCompatibility = JavaVersion.VERSION_1_7
         addDependencies()
-        addGeneratedResources()
+        addGeneratedResources(extension)
+        configureCompile()
         configureJarTasks()
-        addCompileAllTask()
         configureTests()
     }
 
-    private fun Project.addGeneratedResources() {
+    private
+    fun Project.configureCompile() {
+        afterEvaluate {
+            val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
+
+            tasks.withType<JavaCompile> {
+                options.isIncremental = true
+                configureCompileTask(this, options, availableJavaInstallations)
+            }
+            tasks.withType<GroovyCompile> {
+                groovyOptions.encoding = "utf-8"
+                configureCompileTask(this, options, availableJavaInstallations)
+            }
+        }
+        addCompileAllTask()
+    }
+
+    private
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
+        options.isFork = true
+        options.encoding = "utf-8"
+        options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+        val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
+        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(targetJdkVersion)
+        if (!jdkForCompilation.current) {
+            options.forkOptions.javaHome = jdkForCompilation.javaHome
+        }
+        compileTask.inputs.property("javaInstallation", when (compileTask) {
+            is JavaCompile -> jdkForCompilation
+            else -> availableJavaInstallations.currentJavaInstallation
+        }.displayName)
+    }
+
+    private
+    fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest by tasks.creating(ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
 
-    private fun Project.addDependencies() {
+    private
+    fun Project.addDependencies() {
         dependencies {
             val testCompile by configurations
             testCompile(library("junit"))
@@ -142,10 +180,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 }
 
-val Project.gradlebuildJava
-    get() = GradlebuildJavaExtension(project)
-
-open class GradlebuildJavaExtension(project: Project) {
+open class UnitTestAndCompileExtension(project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
 }

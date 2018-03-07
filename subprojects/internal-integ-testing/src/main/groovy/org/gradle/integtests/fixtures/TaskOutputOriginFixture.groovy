@@ -22,12 +22,13 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.BuildOperationListenerManager
-import org.gradle.internal.progress.OperationFinishEvent
-import org.gradle.internal.progress.OperationProgressEvent
-import org.gradle.internal.progress.OperationStartEvent
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
@@ -69,10 +70,10 @@ class TaskOutputOriginFixture extends UserInitScriptExecuterFixture {
                             }
                             gradle.ext.origins[buildOperation.details.task.identityPath] = entry
                             
-                            println "Finished task: " + buildOperation.details.task.identityPath
+                            //  println "Finished task: " + buildOperation.details.task.identityPath
                         }
                     }
-                    void progress($BuildOperationDescriptor.name buildOperation, ${OperationProgressEvent.name} progressEvent){
+                    void progress(${OperationIdentifier.name} buildOperationId, ${OperationProgressEvent.name} progressEvent){
                     }
                 })
                 

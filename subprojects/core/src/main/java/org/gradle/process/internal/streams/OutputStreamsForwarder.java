@@ -17,7 +17,7 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
+import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 import org.gradle.process.internal.StreamsHandler;
 
 import java.io.OutputStream;
@@ -60,7 +60,7 @@ public class OutputStreamsForwarder implements StreamsHandler {
     }
 
     private Runnable wrapInBuildOperation(Runnable runnable) {
-        return new BuildOperationIdentifierPreservingRunnable(runnable);
+        return new CurrentBuildOperationPreservingRunnable(runnable);
     }
 
     public void stop() {

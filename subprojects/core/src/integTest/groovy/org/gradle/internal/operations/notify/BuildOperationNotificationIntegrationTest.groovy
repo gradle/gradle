@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations.notify
 
+import com.google.common.base.Predicate
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
@@ -28,6 +29,7 @@ import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -146,8 +148,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
 
         // evaluate hierarchies
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == null // Run build build operation is not typed -> no id.
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == null // Run build build operation is not typed -> no id.
+        op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
+        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
         op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
@@ -156,8 +158,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
         op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
 
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == null // Run build build operation is not typed -> no id
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == null // Run build build operation is not typed -> no id
+        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
+        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
@@ -167,7 +169,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         op(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
     }
 
-    def "does not emit for GradleBuild tasks"() {
+    def "emits for GradleBuild tasks"() {
         when:
         def initScript = file("init.gradle") << """
             if (parent == null) {
@@ -186,11 +188,15 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t", "-I", initScript.absolutePath
 
         then:
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
-
-        // Rough test for not getting notifications for the nested build
         executedTasks.find { it.endsWith(":o") }
-        recordedOps.findAll { it.detailsType == ConfigureProjectBuildOperationType.Details.name }.size() == 1
+
+        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+        started(ConfigureProjectBuildOperationType.Details) {
+            it.projectPath == ":" && it.buildPath != ":"
+        }
+        started(ExecuteTaskBuildOperationType.Details) {
+            it.taskPath == ":o"
+        }
     }
 
     def "listeners are deregistered after build"() {
@@ -241,23 +247,31 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         }
     }
 
+    void started(Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
+        has(true, type, payloadTest)
+    }
+
     void started(Class<?> type, Map<String, ?> payload = null) {
-        has(true, type, payload)
+        has(true, type, (Map) payload)
     }
 
     void finished(Class<?> type, Map<String, ?> payload = null) {
-        has(false, type, payload)
+        has(false, type, (Map) payload)
     }
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
+        has(started, type, payload ? { it == payload } : { true })
+    }
+
+    void has(boolean started, Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
         def typedOps = recordedOps.findAll { op ->
             return started ? op.detailsType == type.name : op.resultType == type.name
         }
         assert typedOps.size() > 0
 
-        if (payload != null) {
+        if (payloadTest != null) {
             def matchingOps = typedOps.findAll { matchingOp ->
-                started ? matchingOp.details == payload : matchingOp.result == payload
+                started ? payloadTest.apply(matchingOp.details) : payloadTest.apply(matchingOp.result)
             }
             assert matchingOps.size()
         }

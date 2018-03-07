@@ -15,7 +15,7 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.cleanup.EmptyDirectoryCheck
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.modules.PatchExternalModules
 import org.gradle.gradlebuild.BuildEnvironment
@@ -23,7 +23,6 @@ import org.gradle.gradlebuild.BuildEnvironment
 plugins {
     id 'java-base'
     id 'gradlebuild.build-types'
-    id 'gradlebuild.gradle-compile'
     id 'gradlebuild.ci-reporting'
     // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
@@ -134,6 +133,8 @@ allprojects {
     }
 }
 
+apply plugin: "cleanup"
+apply plugin: "gradlebuild.available-java-installations"
 apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"

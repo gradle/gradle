@@ -65,7 +65,7 @@ class BuildOperationsFixture {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().findAll {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
-        }
+        }.toList()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
@@ -98,6 +98,17 @@ class BuildOperationsFixture {
 
     BuildOperationRecord only(String displayName) {
         only(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
+        def parents = []
+        def parentId = child.parentId
+        while (parentId != null) {
+            def parent = operations.records.get(parentId)
+            parents.add(0, parent)
+            parentId = parent.parentId
+        }
+        parents
     }
 
     BuildOperationRecord only(Pattern displayName) {

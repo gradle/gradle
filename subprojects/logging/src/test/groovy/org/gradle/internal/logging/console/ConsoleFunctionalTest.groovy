@@ -18,14 +18,14 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
-import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -350,11 +350,11 @@ class ConsoleFunctionalTest extends Specification {
     ProgressStartEvent startEvent(Long id, Long parentId = null, category = 'CATEGORY', description = 'DESCRIPTION', int totalProgress = 0, shortDescription = 'SHORT_DESCRIPTION', loggingHeader = 'LOGGING_HEADER', status = 'STATUS') {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, null, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, false, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, 0, null, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, 0, false, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
     ProgressEvent progressEvent(Long id, String status = 'STATUS', boolean failing=false) {

@@ -18,7 +18,6 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -26,6 +25,7 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
@@ -108,7 +108,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     enum State {None, HeaderStarted, HeaderCompleted, Completed}
 
     private class Operation {
-        private final Object buildOperationIdentifier;
+        private final OperationIdentifier buildOperationIdentifier;
         private final String category;
         private final String loggingHeader;
         private final long startTime;
@@ -117,7 +117,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private State state = State.None;
         private long completeTime;
 
-        private Operation(String category, String loggingHeader, long startTime, Object buildOperationIdentifier) {
+        private Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;

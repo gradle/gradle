@@ -18,7 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.progress.BuildOperationState
+import org.gradle.internal.operations.BuildOperationRef
 import spock.lang.Specification
 
 import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
@@ -26,7 +26,7 @@ import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion
 
 class WorkerDaemonClientTest extends Specification {
     BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    BuildOperationState buildOperation = Mock(BuildOperationState)
+    BuildOperationRef buildOperation = Mock(BuildOperationRef)
     WorkerLease workerOperation = Mock(WorkerLease)
     WorkerLeaseCompletion completion = Mock(WorkerLeaseCompletion)
 

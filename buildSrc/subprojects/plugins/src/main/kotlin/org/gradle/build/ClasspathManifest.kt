@@ -29,7 +29,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import accessors.*
-import org.gradle.gradlebuild.unittestandcompile.gradlebuildJava
+import gradlebuildJava
 import org.gradle.kotlin.dsl.*
 
 import java.io.File

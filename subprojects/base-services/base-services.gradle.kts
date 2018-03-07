@@ -6,7 +6,6 @@
  */
 
 import java.util.concurrent.Callable
-import org.gradle.gradlebuild.unittestandcompile.gradlebuildJava
 
 plugins {
     `java-library`

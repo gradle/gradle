@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 
@@ -22,25 +23,23 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class DefaultConflictResolverDetails<T extends ComponentResolutionState> implements ConflictResolverDetails<T> {
-    private final Collection<? extends T> participants;
+    private final Collection<ModuleIdentifier> participants;
+    private final Collection<? extends T> candidates;
     private T selected;
     private Throwable failure;
-    private boolean restart;
 
-    public DefaultConflictResolverDetails(Collection<? extends T> participants) {
+    public DefaultConflictResolverDetails(Collection<ModuleIdentifier> participants, Collection<? extends T> candidates) {
         this.participants = participants;
+        this.candidates = candidates;
     }
 
     @Override
     public Collection<? extends T> getCandidates() {
-        return participants;
+        return candidates;
     }
 
     @Override
     public void select(T candidate) {
-        if (restart) {
-            throw new IllegalStateException("Cannot select a candidate if another candidate has been queued for restart");
-        }
         selected = candidate;
     }
 
@@ -54,9 +53,10 @@ public class DefaultConflictResolverDetails<T extends ComponentResolutionState> 
         return selected;
     }
 
+
     @Override
-    public boolean isRestart() {
-        return restart;
+    public Collection<ModuleIdentifier> getParticipants() {
+        return participants;
     }
 
     @Nullable

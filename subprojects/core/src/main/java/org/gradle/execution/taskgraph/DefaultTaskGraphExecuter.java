@@ -45,9 +45,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationCategory;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -237,9 +237,9 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class EventFiringTaskWorker implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
-        private final BuildOperationState parentOperation;
+        private final BuildOperationRef parentOperation;
 
-        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationState parentOperation) {
+        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationRef parentOperation) {
             this.taskExecuter = taskExecuter;
             this.parentOperation = parentOperation;
         }

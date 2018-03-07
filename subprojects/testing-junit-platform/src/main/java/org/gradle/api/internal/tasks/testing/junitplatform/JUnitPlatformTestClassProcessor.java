@@ -38,11 +38,13 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
@@ -72,20 +74,16 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         super.stop();
     }
 
-    @Override
-    public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
-    }
-
     private class CollectAllTestClassesExecutor implements Action<String> {
         private final List<Class<?>> testClasses = new ArrayList<>();
 
         @Override
         public void execute(String testClassName) {
             Class<?> klass = loadClass(testClassName);
-            if (isTopClass(klass)) {
-                testClasses.add(klass);
+            if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
+                return;
             }
+            testClasses.add(klass);
         }
 
         private void processAllTestClasses() {
@@ -93,11 +91,10 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, executionListener));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
         }
-
     }
 
-    private boolean isTopClass(Class<?> klass) {
-        return klass.getEnclosingClass() == null;
+    private boolean isInnerClass(Class<?> klass) {
+        return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
     }
 
     private Class<?> loadClass(String className) {

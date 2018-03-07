@@ -32,7 +32,6 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.buildevents.ProjectEvaluationLogger;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.classpath.ClassPath;
@@ -47,9 +46,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
@@ -57,6 +54,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Clock;
@@ -72,16 +70,17 @@ import java.util.List;
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final BuildProgressLogger buildProgressLogger;
+    private final CrossBuildSessionScopeServices crossBuildSessionScopeServices;
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
-        ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
+        GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
+        BuildProgressLogger buildProgressLogger,
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices
+    ) {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
-
-        // Register default loggers
-        buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
-        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
-        listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
+        this.buildProgressLogger = buildProgressLogger;
+        this.crossBuildSessionScopeServices = crossBuildSessionScopeServices;
     }
 
     private GradleLauncher createChildInstance(BuildDefinition buildDefinition, GradleLauncher parent, BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
@@ -124,9 +123,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 deploymentRegistry.buildFinished(result);
             }
         });
-
-        // Start collecting operations for this build invocation
-        parentRegistry.get(BuildOperationNotificationBridge.class).start(launcher.getGradle());
 
         return launcher;
     }
@@ -223,11 +219,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             StartParameter startParameter = buildDefinition.getStartParameter();
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
+            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             GradleLauncher childInstance = createChildInstance(buildDefinition, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override
                 public void stop() {
+
                     userHomeDirServiceRegistry.release(userHomeServices);
                 }
             }));
@@ -239,6 +236,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         private class NestedBuildController implements BuildController {
+
             private final BuildController delegate;
 
             NestedBuildController(BuildController delegate) {
@@ -261,12 +259,21 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 return executor.call(new CallableBuildOperation<GradleInternal>() {
                     @Override
                     public GradleInternal call(BuildOperationContext context) {
-                        return delegate.run();
+                        GradleInternal gradleInternal = delegate.run();
+                        context.setResult(new RunNestedBuildBuildOperationType.Result() {
+                        });
+                        return gradleInternal;
                     }
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Run nested build").parent(parent.getGradle().getBuildOperation());
+                        return BuildOperationDescriptor.displayName("Run nested build")
+                            .details(new RunNestedBuildBuildOperationType.Details() {
+                                @Override
+                                public String getBuildPath() {
+                                    return getGradle().getIdentityPath().getPath();
+                                }
+                            });
                     }
                 });
             }

@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.internal.operations.logging.BuildOperationLogger;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.List;
