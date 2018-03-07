@@ -61,26 +61,26 @@ open class BuildScanPlugin : Plugin<Project> {
 
                 if (this is Checkstyle && reports.xml.destination.exists()) {
                     val checkstyle = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
-                    val errors = checkstyle.getElementsByTag("file").map { file ->
+                    val errors = checkstyle.getElementsByTag("file").flatMap { file ->
                         file.getElementsByTag("error").map { error ->
                             val filePath = rootProject.relativePath(file.attr("name"))
                             "$filePath:${error.attr("line")}:${error.attr("column")} \u2192 ${error.attr("message")}"
                         }
-                    }.flatten()
+                    }
 
                     errors.forEach { buildScan.value("Checkstyle Issue", it) }
                 }
 
                 if (this is CodeNarc && reports.xml.destination.exists()) {
                     val codenarc = Jsoup.parse(reports.xml.destination.readText(), "", Parser.xmlParser())
-                    val errors = codenarc.getElementsByTag("Package").map { codenarcPackage ->
-                        codenarcPackage.getElementsByTag("File").map { file ->
+                    val errors = codenarc.getElementsByTag("Package").flatMap { codenarcPackage ->
+                        codenarcPackage.getElementsByTag("File").flatMap { file ->
                             file.getElementsByTag("Violation").map { violation ->
                                 val filePath = rootProject.relativePath(file.attr("name"))
                                 "$filePath:${violation.attr("lineNumber")} \u2192 ${violation.getElementsByTag("Message").first().text()}"
                             }
-                        }.flatten()
-                    }.flatten()
+                        }
+                    }
 
                     errors.forEach { buildScan.value("CodeNarc Issue", it) }
                 }
