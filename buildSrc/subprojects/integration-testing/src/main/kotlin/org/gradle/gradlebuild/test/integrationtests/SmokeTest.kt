@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.gradlebuild.test.integrationtests
 
 /**
  * A test that verifies Gradle can be used with popular third party plugins.

@@ -40,7 +40,6 @@ include("packaging")
 include("plugins")
 include("profiling")
 include("performance")
-include("testing")
 include("versioning")
 
 fun buildFileNameFor(projectDirName: String) =

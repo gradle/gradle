@@ -9,7 +9,6 @@ dependencies {
     implementation(project(":build"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
-    implementation(project(":testing"))
     implementation(project(":versioning"))
     implementation(project(":performance"))
     implementation("org.pegdown:pegdown:1.6.0")

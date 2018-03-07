@@ -18,7 +18,6 @@ package org.gradle.gradlebuild.test.integrationtests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
-import org.gradle.testing.IntegrationTest
 
 class IntegrationTestsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {

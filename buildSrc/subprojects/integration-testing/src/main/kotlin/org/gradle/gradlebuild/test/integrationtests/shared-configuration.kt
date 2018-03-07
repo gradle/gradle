@@ -10,7 +10,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.testing.IntegrationTest
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 
 enum class TestType(val prefix: String, val modes: List<String>, val libRepoRequired: Boolean) {

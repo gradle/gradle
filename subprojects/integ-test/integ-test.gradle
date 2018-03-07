@@ -1,5 +1,4 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.testing.IntegrationTest
 
 plugins {
     id 'gradlebuild.classycle'

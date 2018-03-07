@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.testing.DistributionTest
+import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 
 task intTestImage(type: Sync) {
     group = "Verification"

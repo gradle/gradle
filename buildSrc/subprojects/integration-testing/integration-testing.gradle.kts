@@ -5,11 +5,11 @@ plugins {
 apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
-    compile(project(":cleanup"))
-    compile(project(":configuration"))
-    compile(project(":kotlinDsl"))
-    compile(project(":testing"))
-    compile(project(":versioning"))
+    implementation(project(":cleanup"))
+    implementation(project(":configuration"))
+    implementation(project(":kotlinDsl"))
+    implementation(project(":versioning"))
+    implementation(project(":build"))
     testCompile("junit:junit:4.12")
 }
 

@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":profiling"))
-    implementation(project(":testing"))
+    implementation(project(":integrationTesting"))
     implementation(project(":plugins"))
     implementation(project(":performance"))
     implementation("org.owasp:dependency-check-gradle:3.1.0")

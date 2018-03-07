@@ -1,6 +1,6 @@
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.testing.SmokeTest
+import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 
 sourceSets {
     smokeTest {
