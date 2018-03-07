@@ -319,7 +319,9 @@ open class IdePlugin : Plugin<Project> {
         copyrightManager.attr("default", "ASL2")
         copyrightManager.createOrEmptyOutChildElement("copyright").let {
             options.forEach { name, value ->
-                it.appendElement("option").attr(name, value)
+                it.appendElement("option").
+                    attr("name", name).
+                    attr("value", value)
             }
         }
     }
