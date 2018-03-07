@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.time.Clock;
 
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         buffer.append(endOfLine);
         spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
         buffer.setLength(0);
-        Object buildOperationId = BuildOperationIdentifierRegistry.getCurrentOperationIdentifier();
+        Object buildOperationId = CurrentBuildOperationRef.instance().getId();
         listener.onOutput(new StyledTextOutputEvent(clock.getCurrentTime(), category, logLevel, buildOperationId, spans));
         spans = new ArrayList<StyledTextOutputEvent.Span>();
     }

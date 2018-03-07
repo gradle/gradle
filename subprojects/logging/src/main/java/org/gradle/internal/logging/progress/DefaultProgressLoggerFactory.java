@@ -16,12 +16,12 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.progress.BuildOperationCategory;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GUtil;
 

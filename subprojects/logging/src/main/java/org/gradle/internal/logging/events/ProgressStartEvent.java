@@ -17,7 +17,8 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;

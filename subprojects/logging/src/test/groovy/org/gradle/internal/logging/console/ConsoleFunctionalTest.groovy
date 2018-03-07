@@ -18,14 +18,14 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
-import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.ConcurrentTestUtil

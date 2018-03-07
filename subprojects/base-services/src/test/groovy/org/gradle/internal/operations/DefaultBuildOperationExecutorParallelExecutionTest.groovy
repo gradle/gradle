@@ -24,11 +24,6 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.logging.events.OperationIdentifier
-import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.BuildOperationState
-import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
@@ -299,8 +294,8 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "unmanaged thread operation is started and stopped when created by run"() {
         given:
         setupBuildOperationExecutor(2)
-        BuildOperationState operationState
-        BuildOperationState unmanaged
+        BuildOperationRef operationState
+        BuildOperationRef unmanaged
         operationListener.started(_, _) >> { args ->
             BuildOperationDescriptor descriptor = args[0]
             if (descriptor.id.id < 0) {
@@ -331,8 +326,8 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "unmanaged thread operation is started and stopped when created by call"() {
         given:
         setupBuildOperationExecutor(2)
-        BuildOperationState operationState
-        BuildOperationState unmanaged
+        BuildOperationRef operationState
+        BuildOperationRef unmanaged
         operationListener.started(_, _) >> { args ->
             BuildOperationDescriptor descriptor = args[0]
             if (descriptor.id.id < 0) {
@@ -369,7 +364,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "a single unmanaged thread operation is started and stopped when created by runAll"() {
         given:
         setupBuildOperationExecutor(2)
-        BuildOperationState operationState
+        BuildOperationRef operationState
         OperationIdentifier parentOperationId
 
         when:

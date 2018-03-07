@@ -18,9 +18,9 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.OperationFinishEvent;
 
 import java.util.Collections;
 import java.util.Map;
