@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -27,6 +29,11 @@ dependencies {
     integTestRuntime project(':pluginDevelopment')
     integTestRuntime project(':testKit')
     integTestRuntime project(':toolingApiBuilders')
+}
+
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFilesCleanup {

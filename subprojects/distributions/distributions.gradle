@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2012 the original author or authors.
@@ -39,6 +40,11 @@ configurations {
 dependencies {
     compile project(':distributionsDependencies')
 }
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
 
 evaluationDependsOn ":docs"
 

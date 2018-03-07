@@ -1,8 +1,6 @@
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.packaging.ShadedJar
-
-// GradleConnector entry point requires Java 5
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 configurations {
     testPublishRuntime
@@ -26,6 +24,10 @@ dependencies {
     crossVersionTestRuntime project(':buildComparison')
     crossVersionTestRuntime project(":ivy")
     crossVersionTestRuntime project(":maven")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

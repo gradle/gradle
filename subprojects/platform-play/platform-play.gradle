@@ -1,12 +1,10 @@
 import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
-
-// Compiler daemon
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(":core")
@@ -20,6 +18,11 @@ dependencies {
     integTestRuntime project(":idePlay")
     testFixturesCompile project(":internalIntegTesting")
     testFixturesCompile libraries.commons_httpclient.coordinates
+}
+
+gradlebuildJava {
+    // Code needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

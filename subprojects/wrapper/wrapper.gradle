@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -17,13 +19,14 @@ plugins {
     id 'gradlebuild.classycle'
 }
 
-// Wrapper main entry point requires Java 5
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
-
 dependencies {
     compile project(":cli")
 
     testCompile libraries.ant.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

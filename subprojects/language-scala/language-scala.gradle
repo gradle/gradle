@@ -1,9 +1,8 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.strict-compile'
 }
-
-// Compiler daemon
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(":core")
@@ -13,6 +12,11 @@ dependencies {
 
     // keep in sync with ScalaLanguagePlugin code
     compileOnly 'com.typesafe.zinc:zinc:0.3.15'
+}
+
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

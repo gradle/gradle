@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'java-library'
     id 'gradlebuild.strict-compile'
@@ -21,6 +23,10 @@ testFixtures {
     from(':dependencyManagement')
     from(':ivy')
     from(':maven')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFilesCleanup {

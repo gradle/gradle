@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 dependencies {
     compile project(':core')
     compile project(':dependencyManagement')
@@ -7,6 +9,10 @@ dependencies {
     integTestRuntime project(":ide")
     integTestRuntime project(":pluginDevelopment")
     integTestRuntime project(":testKit")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

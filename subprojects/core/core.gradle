@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2010 the original author or authors.
@@ -18,8 +19,6 @@ import org.gradle.gradlebuild.ProjectGroups
 plugins {
     id 'java-library'
 }
-
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 configurations {
     reports
@@ -82,6 +81,10 @@ dependencies {
 
     integTestRuntimeOnly project(":plugins")
     integTestRuntimeOnly project(':maven')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

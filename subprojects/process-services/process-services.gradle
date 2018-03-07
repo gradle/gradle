@@ -1,11 +1,11 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /**
  * Process execution abstractions.
  */
 plugins {
     id 'java-library'
 }
-
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     api project(':baseServices')
@@ -14,6 +14,11 @@ dependencies {
     implementation project(':native')
     implementation libraries.guava.coordinates
     implementation libraries.slf4j_api.coordinates
+}
+
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

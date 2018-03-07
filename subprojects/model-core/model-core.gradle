@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -23,8 +25,6 @@ plugins {
     id 'gradlebuild.classycle'
 }
 
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
-
 dependencies {
     api project(':baseServices')
     api libraries.groovy.coordinates
@@ -42,6 +42,10 @@ dependencies {
 
     testFixturesImplementation project(':internalTesting')
     testFixturesImplementation project(':core')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

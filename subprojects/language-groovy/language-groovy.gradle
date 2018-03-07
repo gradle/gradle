@@ -1,9 +1,8 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.classycle'
 }
-
-// Compiler daemon
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(":core")
@@ -12,6 +11,11 @@ dependencies {
 
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
+}
+
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {
