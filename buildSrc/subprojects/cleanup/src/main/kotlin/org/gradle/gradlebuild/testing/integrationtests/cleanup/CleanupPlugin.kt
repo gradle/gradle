@@ -15,9 +15,9 @@
  */
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
-import BuildHost
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.*
 
 class CleanupPlugin : Plugin<Project> {
@@ -30,7 +30,7 @@ class CleanupPlugin : Plugin<Project> {
 
         val killExistingProcessesStartedByGradle by tasks.creating(KillLeakingJavaProcesses::class)
 
-        if (BuildHost.isCiServer) {
+        if (BuildEnvironment.isCiServer) {
             tasks {
                 getByName("clean") {
                     dependsOn(killExistingProcessesStartedByGradle)
