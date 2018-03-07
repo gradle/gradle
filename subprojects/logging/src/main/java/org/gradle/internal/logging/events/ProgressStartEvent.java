@@ -53,7 +53,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         boolean buildOperationStart,
         @Nullable OperationIdentifier buildOperationId,
         @Nullable OperationIdentifier parentBuildOperationId,
-        BuildOperationCategory buildOperationCategory
+        @Nullable BuildOperationCategory buildOperationCategory
     ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
@@ -66,7 +66,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
         this.parentBuildOperationId = parentBuildOperationId;
-        this.buildOperationCategory = buildOperationCategory;
+        this.buildOperationCategory = buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
     }
 
     @Nullable
@@ -123,7 +123,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return parentBuildOperationId;
     }
 
-    @Nullable
     public BuildOperationCategory getBuildOperationCategory() {
         return buildOperationCategory;
     }
