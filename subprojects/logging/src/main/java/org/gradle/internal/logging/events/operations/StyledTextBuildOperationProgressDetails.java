@@ -22,10 +22,13 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.List;
 
 /**
- * A progress event of styled text output.
+ * Build operation observer's view of {@link org.gradle.internal.logging.events.StyledTextOutputEvent}.
+ *
+ * See LoggingBuildOperationProgressBroadcaster.
  *
  * @since 4.7
  */
+@UsedByScanPlugin
 public interface StyledTextBuildOperationProgressDetails {
 
     List<? extends Span> getSpans();
@@ -34,13 +37,14 @@ public interface StyledTextBuildOperationProgressDetails {
 
     LogLevel getLogLevel();
 
-    @UsedByScanPlugin
     interface Span {
+
         /**
-         * a string representation of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
+         * Always a value name of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
          */
         String getStyleName();
 
         String getText();
+
     }
 }

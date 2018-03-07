@@ -19,8 +19,16 @@ package org.gradle.internal.logging.events.operations;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Build operation observer's view of {@link org.gradle.internal.logging.events.LogEvent}.
+ *
+ * See LoggingBuildOperationProgressBroadcaster.
+ *
+ * @since 4.7
+ */
 @UsedByScanPlugin
 public interface LogEventBuildOperationProgressDetails {
+
     String getMessage();
 
     Throwable getThrowable();
@@ -28,4 +36,5 @@ public interface LogEventBuildOperationProgressDetails {
     String getCategory();
 
     LogLevel getLogLevel();
+
 }

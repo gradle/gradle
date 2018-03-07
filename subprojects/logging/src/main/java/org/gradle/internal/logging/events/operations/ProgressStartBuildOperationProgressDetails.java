@@ -19,11 +19,27 @@ package org.gradle.internal.logging.events.operations;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Build operation observer's view of {@link org.gradle.internal.logging.events.ProgressStartEvent}.
+ *
+ * See LoggingBuildOperationProgressBroadcaster.
+ *
+ * @since 4.7
+ */
 @UsedByScanPlugin
 public interface ProgressStartBuildOperationProgressDetails {
+
     String getDescription();
 
     String getCategory();
 
     LogLevel getLogLevel();
+
+    /**
+     * While this may be null on the underlying implementation,
+     * objects with a null value for this will not be forwarded as build operation progress.
+     * Therefore, when observing as build operation progress this is never null.
+     */
+    String getLoggingHeader();
+
 }
