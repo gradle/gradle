@@ -50,13 +50,13 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
-import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -113,7 +113,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                     // Test configuration extends main configuration
                     testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                    project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getTestBinary().get()).getImportPathConfiguration().getName(), project);
+                    project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
                 }
 
                 testSuite.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
