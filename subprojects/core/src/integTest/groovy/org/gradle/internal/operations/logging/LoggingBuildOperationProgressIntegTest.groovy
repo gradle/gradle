@@ -19,6 +19,7 @@ package org.gradle.internal.operations.logging
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -214,7 +215,15 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
         def progressEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
-        assert progressEvents.size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+
+        progressEvents.each {
+            println it.detailsClassName
+            println it.details.toString()
+        }
+
+        assert progressEvents
+            .findAll { it.details.category != LoggingIncubatingFeatureHandler.name }
+            .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
     private void assertNestedTaskOutputTracked() {
