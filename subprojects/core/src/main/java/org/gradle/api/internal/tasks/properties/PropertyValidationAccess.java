@@ -151,8 +151,9 @@ public class PropertyValidationAccess {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
                     }
                     continue;
-                } else if (PROPERTY_VALIDATORS.containsKey(propertyType)) {
-                    PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
+                }
+                PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
+                if (validator != null) {
                     String validationMessage = validator.validate(cacheable, metadata);
                     if (validationMessage != null) {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
