@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -764,6 +766,63 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         // TODO CC: This is the generic error message for a failing dependency,
         // but we can probably do better, even though it's not specific to rejectAll
         failure.assertHasCause("""Could not find org:foo:.""")
+    }
+
+    /**
+     * Test demonstrates incorrect behaviour where we are incorrectly upgrading a constraint with
+     *  `version { strictly 'x'}`  during conflict resolution.
+     *
+     * When 2 different constraints choose the same version, only one of these constraints is considered when conflict resolution
+     * applies with a 3rd constraint.
+     */
+    @Issue("gradle/gradle#4608")
+    @ToBeImplemented
+    def "conflict resolution should consider all constraints for each candidate"() {
+        repository {
+            'org:foo:2' {
+                dependsOn("org:bar:2")
+            }
+            'org:bar:1'()
+            'org:bar:2'()
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:bar') {
+                        version {
+                            strictly '1'
+                        }
+                    }
+                }
+                conf 'org:bar:1' // When this is selected, the previous constraint is forgotten when resolving conflict
+                conf 'org:foo:2' // Brings in org:bar:2, which is chosen over org:bar:1 in conflict resolution
+            }
+"""
+        when:
+        repositoryInteractions {
+            'org:bar:1' {
+                expectGetMetadata()
+            }
+            'org:bar:2' {
+                expectResolve()
+            }
+            'org:foo:2' {
+                expectResolve()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:foo:2') {
+                    module('org:bar:2')
+                }
+                edge("org:bar:1", "org:bar:2") // Violates the 'strictly' constraint
+                edge("org:bar:1", "org:bar:2")
+            }
+        }
     }
 
 }
