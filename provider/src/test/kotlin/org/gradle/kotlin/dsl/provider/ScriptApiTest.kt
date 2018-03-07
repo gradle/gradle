@@ -7,6 +7,10 @@ import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
 
+import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
+import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -25,7 +29,9 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 
 import org.hamcrest.CoreMatchers.equalTo
+
 import org.junit.Assert.assertThat
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -46,6 +52,20 @@ class ScriptApiTest {
     @Test
     fun `init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
+
+    @Test
+    fun `precompiled project script template implements script api`() =
+        assertScriptApiOf<PrecompiledProjectScript>()
+
+    @Ignore("TODO")
+    @Test
+    fun `precompiled settings script template implements script api`() =
+        assertScriptApiOf<PrecompiledSettingsScript>()
+
+    @Ignore("TODO")
+    @Test
+    fun `precompiled init script template implements script api`() =
+        assertScriptApiOf<PrecompiledInitScript>()
 }
 
 
