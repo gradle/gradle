@@ -35,7 +35,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
          """
 
         and:
-        succeeds "assemble"
+        succeeds "assemble", "assembleRelease"
 
         expect:
         succeeds "assemble"
@@ -44,6 +44,14 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
+
+        and:
+        succeeds "assembleRelease"
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), ":assembleRelease")
+        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), ":assembleRelease")
+
+        executable("build/exe/main/release/app").assertExists()
+        installation("build/install/main/release").exec().out == app.expectedOutput
     }
 
     def "skips compile and link tasks for library when source doesn't change"() {
@@ -59,7 +67,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
          """
 
         and:
-        succeeds "assemble"
+        succeeds "assemble", "assembleRelease"
 
         expect:
         succeeds "assemble"
@@ -67,5 +75,11 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
+
+        succeeds "assembleRelease"
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), ":assembleRelease")
+        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), ":assembleRelease")
+
+        sharedLibrary("build/lib/main/release/hello").assertExists()
     }
 }
