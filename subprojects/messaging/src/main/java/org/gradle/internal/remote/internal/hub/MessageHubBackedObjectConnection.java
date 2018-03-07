@@ -52,11 +52,14 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     //    private ClassLoader methodParamClassLoader;
     private List<SerializerRegistry> paramSerializers = new ArrayList<SerializerRegistry>();
     private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
+    private volatile boolean stoppedNow;
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
         Action<Throwable> errorHandler = new Action<Throwable>() {
             public void execute(Throwable throwable) {
-                LOGGER.error("Unexpected exception thrown.", throwable);
+                if (!stoppedNow) {
+                    LOGGER.error("Unexpected exception thrown.", throwable);
+                }
             }
         };
         this.hub = new MessageHub(completion.toString(), executorFactory, errorHandler);
@@ -123,6 +126,11 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     public void stop() {
         // TODO:ADAM - need to cleanup completion too, if not used
         CompositeStoppable.stoppable(hub, connection).stop();
+    }
+
+    @Override
+    public void stopNow() {
+        stoppedNow = true;
     }
 
     private static class DispatchWrapper<T> implements BoundedDispatch<MethodInvocation>, StreamFailureHandler {

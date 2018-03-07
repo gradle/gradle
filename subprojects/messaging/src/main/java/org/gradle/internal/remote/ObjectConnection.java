@@ -40,4 +40,9 @@ public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilde
      * have been handled, and all outgoing messages have been forwarded to the peer.
      */
     void stop();
+
+    /**
+     * Indicate that the execution containing this {@code ObjectConnection} has been prematurely stopped.
+     */
+    void stopNow();
 }

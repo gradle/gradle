@@ -95,7 +95,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @Ignore
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)
