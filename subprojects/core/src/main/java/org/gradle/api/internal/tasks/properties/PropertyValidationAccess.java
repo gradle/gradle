@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -33,7 +35,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.internal.Cast;
-import org.gradle.internal.util.BiFunction;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -76,12 +77,12 @@ public class PropertyValidationAccess {
 
     private static class BeanTypeNodeContext extends AbstractNodeContext<BeanTypeNode> {
 
-        private static final BiFunction<Boolean, BeanTypeNode, BeanTypeNode> BEAN_TYPE_EQUALS = new BiFunction<Boolean, BeanTypeNode, BeanTypeNode>() {
+        private static final Equivalence<BeanTypeNode> EQUAL_TYPES = Equivalence.equals().onResultOf(new Function<BeanTypeNode, TypeToken<?>>() {
             @Override
-            public Boolean apply(BeanTypeNode beanTypeNode, BeanTypeNode beanTypeNode2) {
-                return beanTypeNode.getBeanType().equals(beanTypeNode2.getBeanType());
+            public TypeToken<?> apply(BeanTypeNode input) {
+                return input.getBeanType();
             }
-        };
+        });
 
         private final Queue<BeanTypeNodeContext> queue;
 
@@ -101,8 +102,8 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        protected BiFunction<Boolean, BeanTypeNode, BeanTypeNode> getNodeEquals() {
-            return BEAN_TYPE_EQUALS;
+        protected Equivalence<BeanTypeNode> getNodeEquivalence() {
+            return EQUAL_TYPES;
         }
     }
 

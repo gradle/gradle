@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
-import org.gradle.internal.util.BiFunction;
 
 import javax.annotation.Nullable;
 
@@ -43,18 +43,18 @@ public abstract class AbstractNodeContext<T extends PropertyNode> implements Nod
     }
 
     public boolean currentNodeCreatesCycle() {
-        return parentNodes != null && parentNodes.findNodeCreatingCycle(currentNode, getNodeEquals()) != null;
+        return parentNodes != null && parentNodes.findNodeCreatingCycle(currentNode, getNodeEquivalence()) != null;
     }
 
     public void checkCycles() {
-        T nodeCreatingCycle = parentNodes != null ? parentNodes.findNodeCreatingCycle(currentNode, getNodeEquals()) : null;
+        T nodeCreatingCycle = parentNodes != null ? parentNodes.findNodeCreatingCycle(currentNode, getNodeEquivalence()) : null;
         Preconditions.checkState(
             nodeCreatingCycle == null,
             "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
             nodeCreatingCycle, currentNode);
     }
 
-    protected abstract BiFunction<Boolean, T, T> getNodeEquals();
+    protected abstract Equivalence<? super T> getNodeEquivalence();
 
     private static class ParentBeanNodeList<T extends PropertyNode> {
         private final ParentBeanNodeList<T> parent;
@@ -66,14 +66,14 @@ public abstract class AbstractNodeContext<T extends PropertyNode> implements Nod
         }
 
         @Nullable
-        public T findNodeCreatingCycle(T childNode, BiFunction<Boolean, T, T> nodeEquals) {
-            if (nodeEquals.apply(node, childNode)) {
+        public T findNodeCreatingCycle(T childNode, Equivalence<? super T> nodeEquivalence) {
+            if (nodeEquivalence.equivalent(node, childNode)) {
                 return node;
             }
             if (parent == null) {
                 return null;
             }
-            return parent.findNodeCreatingCycle(childNode, nodeEquals);
+            return parent.findNodeCreatingCycle(childNode, nodeEquivalence);
         }
     }
 }

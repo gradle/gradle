@@ -16,23 +16,24 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.bean.RootRuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
-import org.gradle.internal.util.BiFunction;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
 @NonNullApi
 public class DefaultPropertyWalker implements PropertyWalker {
-    private static final BiFunction<Boolean, RuntimeBeanNode, RuntimeBeanNode> RUNTIME_BEAN_EQUALS = new BiFunction<Boolean, RuntimeBeanNode, RuntimeBeanNode>() {
+    private static final Equivalence<RuntimeBeanNode> SAME_BEANS = Equivalence.identity().onResultOf(new Function<RuntimeBeanNode, Object>() {
         @Override
-        public Boolean apply(RuntimeBeanNode runtimeBeanNode, RuntimeBeanNode runtimeBeanNode2) {
-            return runtimeBeanNode.getBean() == runtimeBeanNode2.getBean();
+        public Object apply(RuntimeBeanNode input) {
+            return input.getBean();
         }
-    };
+    });
 
     private final PropertyMetadataStore propertyMetadataStore;
 
@@ -74,8 +75,8 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
 
         @Override
-        protected BiFunction<Boolean, RuntimeBeanNode, RuntimeBeanNode> getNodeEquals() {
-            return RUNTIME_BEAN_EQUALS;
+        protected Equivalence<RuntimeBeanNode> getNodeEquivalence() {
+            return SAME_BEANS;
         }
     }
 }
