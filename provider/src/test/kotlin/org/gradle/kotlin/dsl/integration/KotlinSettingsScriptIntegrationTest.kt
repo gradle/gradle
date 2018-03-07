@@ -2,6 +2,9 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Test
 
 
@@ -29,6 +32,8 @@ class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
             println("*" + answer + "*")
         """)
 
-        assert(build().output.contains("*42*"))
+        assertThat(
+            build().output,
+            containsString("*42*"))
     }
 }
