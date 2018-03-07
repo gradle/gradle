@@ -65,7 +65,21 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>) : Settings by host.target {
+    private val host: KotlinScriptHost<Settings>) : SettingsScriptApi(host.target) {
+
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    override fun getBuildscript(): ScriptHandler =
+        host.scriptHandler
+}
+
+
+/**
+ * Standard implementation of the API exposed to all types of [Settings] scripts,
+ * precompiled and otherwise.
+ */
+abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
 
     private
     val fileOperations by lazy { fileOperationsFor(settings) }
@@ -370,12 +384,6 @@ abstract class KotlinSettingsScript(
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         fileOperations.javaexec(configuration)
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
 
     /**
      * Configures the build script classpath for settings.

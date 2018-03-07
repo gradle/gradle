@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.precompile
 import org.gradle.api.initialization.Settings
 
 import org.gradle.kotlin.dsl.GradleDsl
+import org.gradle.kotlin.dsl.SettingsScriptApi
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -32,5 +33,5 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class PrecompiledSettingsScript(settings: Settings) : Settings by settings
+abstract class PrecompiledSettingsScript(settings: Settings) : SettingsScriptApi(settings)
 
