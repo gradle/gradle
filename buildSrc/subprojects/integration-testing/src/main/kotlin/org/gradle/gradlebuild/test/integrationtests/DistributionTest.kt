@@ -140,7 +140,7 @@ class BinaryDistributionsEnvironmentProvider(private val internalDistributions: 
                 "integTest.distZipVersion" to internalDistributions.distZipVersion
             ).asSystemPropertyJvmArguments()
         else
-            listOf()
+            emptyList()
 
     @Internal
     override fun getName(): String = "binaryDistributions"

@@ -69,7 +69,7 @@ class UserguideIntegrationTestEnvironmentProvider(private val samplesInternal: U
                 "integTest.userGuideOutputDir" to samplesInternal.userGuideSamplesOutput.asFile.get().absolutePath
             ).asSystemPropertyJvmArguments()
         else
-            listOf()
+            emptyList()
 
     override fun getName(): String = "userguide"
 }
