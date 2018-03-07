@@ -22,18 +22,16 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.internal.service.ServiceRegistry;
 
 import java.util.Set;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
-    private final ServiceRegistry serviceRegistry;
-    private BuildIdentifier currentBuild;
+    private final BuildIdentifier currentBuild;
 
-    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, BuildIdentity buildIdentity) {
         this.includedBuildTaskGraph = includedBuildTaskGraph;
-        this.serviceRegistry = serviceRegistry;
+        this.currentBuild = buildIdentity.getCurrentBuild();
     }
 
     @Override
@@ -41,19 +39,12 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            build(getCurrentBuild(), componentArtifactIdentifier);
+            build(currentBuild, componentArtifactIdentifier);
         }
     }
 
     private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
         return artifact.getComponentId().getBuild();
-    }
-
-    private BuildIdentifier getCurrentBuild() {
-        if (currentBuild == null) {
-            currentBuild = serviceRegistry.get(BuildIdentity.class).getCurrentBuild();
-        }
-        return currentBuild;
     }
 
     public void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
