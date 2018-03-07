@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.precompile
 import org.gradle.api.invocation.Gradle
 
 import org.gradle.kotlin.dsl.GradleDsl
+import org.gradle.kotlin.dsl.InitScriptApi
+import org.gradle.kotlin.dsl.fileOperationsFor
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -32,4 +34,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^.+\\.init\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class PrecompiledInitScript(gradle: Gradle) : Gradle by gradle
+abstract class PrecompiledInitScript(target: Gradle) : InitScriptApi(target) {
+
+    override val operations by lazy { fileOperationsFor(gradle, null) }
+
+}

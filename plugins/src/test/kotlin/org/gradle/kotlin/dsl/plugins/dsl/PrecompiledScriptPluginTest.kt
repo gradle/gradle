@@ -24,8 +24,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-// TODO: test for FileProvider API behaviour of each script template
-// TODO: test for ScriptApi behaviour of each script template
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     @Test
