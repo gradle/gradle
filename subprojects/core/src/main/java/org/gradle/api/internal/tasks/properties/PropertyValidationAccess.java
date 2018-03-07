@@ -64,7 +64,7 @@ public class PropertyValidationAccess {
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));
         Queue<BeanTypeNode> queue = new ArrayDeque<BeanTypeNode>();
-        queue.add(BeanTypeNode.create(null, TypeToken.of(topLevelBean), metadataStore, null));
+        queue.add(BeanTypeNode.create(null, null, TypeToken.of(topLevelBean), metadataStore));
         boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
 
         while (!queue.isEmpty()) {
@@ -84,22 +84,22 @@ public class PropertyValidationAccess {
         });
 
 
-        public static BeanTypeNode create(@Nullable String parentPropertyName, TypeToken<?> beanType, PropertyMetadataStore metadataStore, @Nullable BeanTypeNode parentNode) {
+        public static BeanTypeNode create(@Nullable BeanTypeNode parentNode, @Nullable String propertyName, TypeToken<?> beanType, PropertyMetadataStore metadataStore) {
             Class<?> rawType = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
-            if (parentPropertyName != null && !typeMetadata.hasAnnotatedProperties()) {
+            if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentPropertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), parentNode);
+                    return new MapBeanTypeNode(propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), parentNode, typeMetadata);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentPropertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType), parentNode);
+                    return new IterableBeanTypeNode(propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType), parentNode, typeMetadata);
                 }
             }
-            return new NestedBeanTypeNode(parentPropertyName, beanType, parentNode);
+            return new NestedBeanTypeNode(propertyName, beanType, parentNode, typeMetadata);
         }
 
-        protected BeanTypeNode(@Nullable String propertyName, Class<?> beanClass, @Nullable BeanTypeNode parentNode) {
-            super(propertyName, beanClass, parentNode);
+        protected BeanTypeNode(@Nullable String propertyName, @Nullable BeanTypeNode parentNode, TypeMetadata typeMetadata) {
+            super(propertyName, parentNode, typeMetadata);
         }
 
         public abstract void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode> queue, PropertyMetadataStore metadataStore);
@@ -114,8 +114,8 @@ public class PropertyValidationAccess {
     private static abstract class BaseBeanTypeNode<T> extends BeanTypeNode {
         private final TypeToken<? extends T> beanType;
 
-        protected BaseBeanTypeNode(@Nullable String parentPropertyName, TypeToken<? extends T> beanType, @Nullable BeanTypeNode parentNode) {
-            super(parentPropertyName, beanType.getRawType(), parentNode);
+        protected BaseBeanTypeNode(@Nullable String parentPropertyName, TypeToken<? extends T> beanType, @Nullable BeanTypeNode parentNode, TypeMetadata typeMetadata) {
+            super(parentPropertyName, parentNode, typeMetadata);
             this.beanType = beanType;
         }
 
@@ -132,36 +132,32 @@ public class PropertyValidationAccess {
 
     private static class NestedBeanTypeNode extends BaseBeanTypeNode<Object> {
 
-        public NestedBeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType, @Nullable BeanTypeNode parentNode) {
-            super(parentPropertyName, beanType, parentNode);
+        public NestedBeanTypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType, @Nullable BeanTypeNode parentNode, TypeMetadata typeMetadata) {
+            super(parentPropertyName, beanType, parentNode, typeMetadata);
         }
 
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode> queue, PropertyMetadataStore metadataStore) {
-            validateBeanProperties(topLevelBean, cacheable, problems, this, queue, metadataStore);
-        }
-
-        private static void validateBeanProperties(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, BeanTypeNode node, Queue<BeanTypeNode> context, PropertyMetadataStore metadataStore) {
-            for (PropertyMetadata metadata : metadataStore.getTypeMetadata(node.getBeanClass()).getPropertiesMetadata()) {
-                String qualifiedPropertyName = node.getQualifiedPropertyName(metadata.getFieldName());
+            for (PropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
+                String qualifiedPropertyName = getQualifiedPropertyName(metadata.getFieldName());
                 for (String validationMessage : metadata.getValidationMessages()) {
-                    problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, validationMessage), Boolean.FALSE);
+                    problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                 }
                 Class<? extends Annotation> propertyType = metadata.getPropertyType();
                 if (propertyType == null) {
                     if (!Modifier.isPrivate(metadata.getMethod().getModifiers())) {
-                        problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
+                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
                     }
                     continue;
                 } else if (PROPERTY_VALIDATORS.containsKey(propertyType)) {
                     PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
                     String validationMessage = validator.validate(cacheable, metadata);
                     if (validationMessage != null) {
-                        problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, validationMessage), Boolean.FALSE);
+                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                     }
                 }
                 if (metadata.isAnnotationPresent(Nested.class)) {
-                    context.add(BeanTypeNode.create(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType()), metadataStore, node));
+                    queue.add(BeanTypeNode.create(this, qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType()), metadataStore));
                 }
             }
         }
@@ -173,8 +169,8 @@ public class PropertyValidationAccess {
 
     private static class IterableBeanTypeNode extends BaseBeanTypeNode<Iterable<?>> {
 
-        public IterableBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType, @Nullable BeanTypeNode parentNode) {
-            super(parentPropertyName, iterableType, parentNode);
+        public IterableBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType, @Nullable BeanTypeNode parentNode, TypeMetadata typeMetadata) {
+            super(parentPropertyName, iterableType, parentNode, typeMetadata);
         }
 
         private String determinePropertyName(TypeToken<?> nestedType) {
@@ -186,20 +182,20 @@ public class PropertyValidationAccess {
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode> queue, PropertyMetadataStore metadataStore) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
-            queue.add(BeanTypeNode.create(determinePropertyName(nestedType), nestedType, metadataStore, this));
+            queue.add(BeanTypeNode.create(this, determinePropertyName(nestedType), nestedType, metadataStore));
         }
     }
 
     private static class MapBeanTypeNode extends BaseBeanTypeNode<Map<?, ?>> {
 
-        public MapBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType, @Nullable BeanTypeNode parentNode) {
-            super(parentPropertyName, mapType, parentNode);
+        public MapBeanTypeNode(@Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType, @Nullable BeanTypeNode parentNode, TypeMetadata typeMetadata) {
+            super(parentPropertyName, mapType, parentNode, typeMetadata);
         }
 
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode> queue, PropertyMetadataStore metadataStore) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
-            queue.add(BeanTypeNode.create(getQualifiedPropertyName("<key>"), nestedType, metadataStore, this));
+            queue.add(BeanTypeNode.create(this, getQualifiedPropertyName("<key>"), nestedType, metadataStore));
         }
     }
 

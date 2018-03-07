@@ -28,21 +28,21 @@ import java.util.Queue;
 
 public abstract class RuntimeBeanNode extends AbstractPropertyNode<RuntimeBeanNode> {
 
-    public static RuntimeBeanNode create(@Nullable String propertyName, Object bean, PropertyMetadataStore metadataStore, RuntimeBeanNode parentNode) {
+    public static RuntimeBeanNode create(@Nullable String propertyName, RuntimeBeanNode parentNode, Object bean, PropertyMetadataStore metadataStore) {
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
         if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
             if (bean instanceof Map<?, ?>) {
-                return new MapRuntimeBeanNode(propertyName, (Map<?, ?>) bean, parentNode);
+                return new MapRuntimeBeanNode(propertyName, (Map<?, ?>) bean, parentNode, typeMetadata);
             }
             if (bean instanceof Iterable<?>) {
-                return new IterableRuntimeBeanNode(propertyName, (Iterable<?>) bean, parentNode);
+                return new IterableRuntimeBeanNode(propertyName, (Iterable<?>) bean, parentNode, typeMetadata);
             }
         }
-        return new NestedRuntimeBeanNode(propertyName, bean, parentNode);
+        return new NestedRuntimeBeanNode(propertyName, bean, parentNode, typeMetadata);
     }
 
-    protected RuntimeBeanNode(@Nullable String propertyName, Class<?> beanClass, @Nullable RuntimeBeanNode parentNode) {
-        super(propertyName, beanClass, parentNode);
+    protected RuntimeBeanNode(@Nullable String propertyName, @Nullable RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
+        super(propertyName, parentNode, typeMetadata);
     }
 
     public abstract Object getBean();

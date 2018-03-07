@@ -35,7 +35,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
         Queue<RuntimeBeanNode> queue = new ArrayDeque<RuntimeBeanNode>();
-        queue.add(new RootRuntimeBeanNode(bean));
+        queue.add(new RootRuntimeBeanNode(bean, propertyMetadataStore.getTypeMetadata(bean.getClass())));
         while (!queue.isEmpty()) {
             RuntimeBeanNode node = queue.remove();
             node.visitNode(visitor, specFactory, queue, propertyMetadataStore);

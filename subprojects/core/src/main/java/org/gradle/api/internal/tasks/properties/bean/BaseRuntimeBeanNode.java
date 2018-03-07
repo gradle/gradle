@@ -20,6 +20,7 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
 import javax.annotation.Nullable;
 
@@ -33,9 +34,9 @@ abstract class BaseRuntimeBeanNode<T> extends RuntimeBeanNode {
 
     private final T bean;
 
-    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean, @Nullable RuntimeBeanNode parentNode) {
-        super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass(), parentNode);
-        this.bean = bean;
+    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean, @Nullable RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
+        super(propertyName, parentNode, typeMetadata);
+        this.bean = Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName);
         checkCycles();
     }
 
@@ -55,6 +56,6 @@ abstract class BaseRuntimeBeanNode<T> extends RuntimeBeanNode {
     public RuntimeBeanNode createChildNode(String propertyName, @Nullable Object input, PropertyMetadataStore metadataStore) {
         String qualifiedPropertyName = getQualifiedPropertyName(propertyName);
         Object bean = Preconditions.checkNotNull(input, "Null is not allowed as nested property '%s'", qualifiedPropertyName);
-        return RuntimeBeanNode.create(qualifiedPropertyName, bean, metadataStore, this);
+        return RuntimeBeanNode.create(qualifiedPropertyName, this, bean, metadataStore);
     }
 }

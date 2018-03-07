@@ -20,14 +20,15 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Queue;
 
 class MapRuntimeBeanNode extends BaseRuntimeBeanNode<Map<?, ?>> {
-    public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map, RuntimeBeanNode parentNode) {
-        super(propertyName, map, parentNode);
+    public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map, RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
+        super(propertyName, map, parentNode, typeMetadata);
     }
 
     @Override

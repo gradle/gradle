@@ -47,24 +47,24 @@ import java.util.Queue;
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
 public abstract class AbstractNestedRuntimeBeanNode extends BaseRuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable String propertyName, Object bean, @Nullable RuntimeBeanNode parentNode) {
-        super(propertyName, bean, parentNode);
+    protected AbstractNestedRuntimeBeanNode(@Nullable String propertyName, Object bean, @Nullable RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
+        super(propertyName, bean, parentNode, typeMetadata);
     }
 
-    public static void visitProperties(final RuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode> queue, final PropertyMetadataStore propertyMetadataStore) {
-        TypeMetadata typeMetadata = propertyMetadataStore.getTypeMetadata(node.getBeanClass());
+    public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode> queue, final PropertyMetadataStore propertyMetadataStore) {
+        TypeMetadata typeMetadata = getTypeMetadata();
         for (final PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             if (propertyValueVisitor == null) {
                 continue;
             }
-            String propertyName = node.getQualifiedPropertyName(propertyMetadata.getFieldName());
-            Object bean = node.getBean();
+            String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
+            Object bean = getBean();
             PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod());
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
                 @Override
                 public void addNested(String propertyName, Object bean) {
-                    queue.add(RuntimeBeanNode.create(propertyName, bean, propertyMetadataStore, node));
+                    queue.add(createChildNode(propertyName, bean, propertyMetadataStore));
                 }
             });
         }

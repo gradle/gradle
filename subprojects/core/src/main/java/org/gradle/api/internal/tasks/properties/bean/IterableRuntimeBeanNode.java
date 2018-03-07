@@ -20,13 +20,14 @@ import org.gradle.api.Named;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Queue;
 
 class IterableRuntimeBeanNode extends BaseRuntimeBeanNode<Iterable<?>> {
-    public IterableRuntimeBeanNode(@Nullable String propertyName, Iterable<?> iterable, RuntimeBeanNode parentNode) {
-        super(propertyName, iterable, parentNode);
+    public IterableRuntimeBeanNode(@Nullable String propertyName, Iterable<?> iterable, RuntimeBeanNode parentNode, TypeMetadata typeMetadata) {
+        super(propertyName, iterable, parentNode, typeMetadata);
     }
 
     private static String determinePropertyName(@Nullable Object input, int count) {

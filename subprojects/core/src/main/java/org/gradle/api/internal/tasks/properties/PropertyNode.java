@@ -23,5 +23,4 @@ public interface PropertyNode {
     @Nullable
     String getPropertyName();
     boolean isRoot();
-    Class<?> getBeanClass();
 }

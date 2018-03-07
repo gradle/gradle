@@ -22,13 +22,13 @@ import javax.annotation.Nullable;
 
 public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> implements PropertyNode {
     private final String propertyName;
-    private final Class<?> beanClass;
     private final SELF parentNode;
+    private final TypeMetadata typeMetadata;
 
-    public AbstractPropertyNode(@Nullable String propertyName, Class<?> beanClass, @Nullable SELF parentNode) {
+    public AbstractPropertyNode(@Nullable String propertyName, @Nullable SELF parentNode, TypeMetadata typeMetadata) {
         this.propertyName = propertyName;
-        this.beanClass = beanClass;
         this.parentNode = parentNode;
+        this.typeMetadata = typeMetadata;
     }
 
     @Override
@@ -47,9 +47,8 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
         return propertyName;
     }
 
-    @Override
-    public Class<?> getBeanClass() {
-        return beanClass;
+    public TypeMetadata getTypeMetadata() {
+        return typeMetadata;
     }
 
     @Nullable
