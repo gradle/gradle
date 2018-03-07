@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.NodeContext;
 import org.gradle.api.internal.tasks.properties.PropertyMetadata;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -43,15 +42,16 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Queue;
 
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
 public abstract class AbstractNestedRuntimeBeanNode extends BaseRuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable String propertyName, Object bean, RuntimeBeanNode parentNode) {
+    protected AbstractNestedRuntimeBeanNode(@Nullable String propertyName, Object bean, @Nullable RuntimeBeanNode parentNode) {
         super(propertyName, bean, parentNode);
     }
 
-    public static void visitProperties(final RuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, final NodeContext propertyContext, final PropertyMetadataStore propertyMetadataStore) {
+    public static void visitProperties(final RuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode> queue, final PropertyMetadataStore propertyMetadataStore) {
         TypeMetadata typeMetadata = propertyMetadataStore.getTypeMetadata(node.getBeanClass());
         for (final PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
@@ -64,7 +64,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends BaseRuntimeBeanNode<
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
                 @Override
                 public void addNested(String propertyName, Object bean) {
-                    propertyContext.addSubProperties(RuntimeBeanNode.create(propertyName, bean, propertyMetadataStore, node));
+                    queue.add(RuntimeBeanNode.create(propertyName, bean, propertyMetadataStore, node));
                 }
             });
         }

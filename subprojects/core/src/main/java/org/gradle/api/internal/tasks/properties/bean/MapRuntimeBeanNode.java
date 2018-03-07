@@ -18,12 +18,12 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.NodeContext;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Queue;
 
 class MapRuntimeBeanNode extends BaseRuntimeBeanNode<Map<?, ?>> {
     public MapRuntimeBeanNode(@Nullable String propertyName, Map<?, ?> map, RuntimeBeanNode parentNode) {
@@ -31,14 +31,14 @@ class MapRuntimeBeanNode extends BaseRuntimeBeanNode<Map<?, ?>> {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore) {
         for (Map.Entry<?, ?> entry : getBean().entrySet()) {
             RuntimeBeanNode childNode = createChildNode(
                 Preconditions.checkNotNull(entry.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
                 entry.getValue(),
                 propertyMetadataStore
             );
-            context.addSubProperties(childNode);
+            queue.add(childNode);
         }
     }
 }

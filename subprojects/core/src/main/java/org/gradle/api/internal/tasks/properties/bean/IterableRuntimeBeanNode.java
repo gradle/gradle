@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import org.gradle.api.Named;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.NodeContext;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
+import java.util.Queue;
 
 class IterableRuntimeBeanNode extends BaseRuntimeBeanNode<Iterable<?>> {
     public IterableRuntimeBeanNode(@Nullable String propertyName, Iterable<?> iterable, RuntimeBeanNode parentNode) {
@@ -35,12 +35,12 @@ class IterableRuntimeBeanNode extends BaseRuntimeBeanNode<Iterable<?>> {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore) {
         int count = 0;
         for (Object input : getBean()) {
             String propertyName = determinePropertyName(input, count);
             count++;
-            context.addSubProperties(createChildNode(propertyName, input, propertyMetadataStore));
+            queue.add(createChildNode(propertyName, input, propertyMetadataStore));
         }
     }
 }

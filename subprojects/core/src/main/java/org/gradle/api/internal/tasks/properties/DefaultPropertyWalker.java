@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.bean.RootRuntimeBeanNode;
@@ -28,13 +26,6 @@ import java.util.Queue;
 
 @NonNullApi
 public class DefaultPropertyWalker implements PropertyWalker {
-    private static final Equivalence<RuntimeBeanNode> SAME_BEANS = Equivalence.identity().onResultOf(new Function<RuntimeBeanNode, Object>() {
-        @Override
-        public Object apply(RuntimeBeanNode input) {
-            return input.getBean();
-        }
-    });
-
     private final PropertyMetadataStore propertyMetadataStore;
 
     public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
@@ -43,40 +34,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
-        Queue<BeanNodeContext> queue = new ArrayDeque<BeanNodeContext>();
-        queue.add(new BeanNodeContext(new RootRuntimeBeanNode(bean), queue));
+        Queue<RuntimeBeanNode> queue = new ArrayDeque<RuntimeBeanNode>();
+        queue.add(new RootRuntimeBeanNode(bean));
         while (!queue.isEmpty()) {
-            BeanNodeContext context = queue.remove();
-            context.visit(visitor, specFactory);
-        }
-    }
-
-    private class BeanNodeContext extends AbstractNodeContext<RuntimeBeanNode> {
-        private final Queue<BeanNodeContext> queue;
-
-        public BeanNodeContext(RuntimeBeanNode currentNode, BeanNodeContext parent, Queue<BeanNodeContext> queue) {
-            super(currentNode, parent);
-            this.queue = queue;
-            checkCycles();
-        }
-
-        public BeanNodeContext(RuntimeBeanNode currentNode, Queue<BeanNodeContext> queue) {
-            super(currentNode);
-            this.queue = queue;
-        }
-
-        @Override
-        public void addSubProperties(RuntimeBeanNode node) {
-            queue.add(new BeanNodeContext(node, this, queue));
-        }
-
-        public void visit(PropertyVisitor visitor, PropertySpecFactory specFactory) {
-            getCurrentNode().visitNode(visitor, specFactory, this, propertyMetadataStore);
-        }
-
-        @Override
-        protected Equivalence<RuntimeBeanNode> getNodeEquivalence() {
-            return SAME_BEANS;
+            RuntimeBeanNode node = queue.remove();
+            node.visitNode(visitor, specFactory, queue, propertyMetadataStore);
         }
     }
 }

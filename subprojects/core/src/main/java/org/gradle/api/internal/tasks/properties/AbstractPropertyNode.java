@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Equivalence;
+
 import javax.annotation.Nullable;
 
 public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> implements PropertyNode {
@@ -23,7 +25,7 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
     private final Class<?> beanClass;
     private final SELF parentNode;
 
-    public AbstractPropertyNode(@Nullable String propertyName, Class<?> beanClass, SELF parentNode) {
+    public AbstractPropertyNode(@Nullable String propertyName, Class<?> beanClass, @Nullable SELF parentNode) {
         this.propertyName = propertyName;
         this.beanClass = beanClass;
         this.parentNode = parentNode;
@@ -48,6 +50,17 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
     @Override
     public Class<?> getBeanClass() {
         return beanClass;
+    }
+
+    @Nullable
+    protected SELF findNodeCreatingCycle(SELF childNode, Equivalence<? super SELF> nodeEquivalence) {
+        if (parentNode == null) {
+            return null;
+        }
+        if (nodeEquivalence.equivalent(parentNode, childNode)) {
+            return parentNode;
+        }
+        return parentNode.findNodeCreatingCycle(childNode, nodeEquivalence);
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
-import org.gradle.api.internal.tasks.properties.NodeContext;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.util.ConfigureUtil;
@@ -32,6 +31,7 @@ import org.gradle.util.ConfigureUtil;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.util.Queue;
 
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     public NestedRuntimeBeanNode(@Nullable String propertyName, Object bean, RuntimeBeanNode parentNode) {
@@ -39,9 +39,9 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore) {
+    public void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore) {
         visitImplementation(this, visitor, specFactory);
-        visitProperties(this, visitor, specFactory, context, propertyMetadataStore);
+        visitProperties(this, visitor, specFactory, queue, propertyMetadataStore);
     }
 
     private static void visitImplementation(NestedRuntimeBeanNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {

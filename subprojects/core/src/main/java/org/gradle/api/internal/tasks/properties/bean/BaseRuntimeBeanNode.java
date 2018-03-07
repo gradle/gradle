@@ -16,23 +16,40 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 
 import javax.annotation.Nullable;
 
 abstract class BaseRuntimeBeanNode<T> extends RuntimeBeanNode {
+    private static final Equivalence<RuntimeBeanNode> SAME_BEANS = Equivalence.identity().onResultOf(new Function<RuntimeBeanNode, Object>() {
+        @Override
+        public Object apply(RuntimeBeanNode input) {
+            return input.getBean();
+        }
+    });
 
     private final T bean;
 
-    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean, RuntimeBeanNode parentNode) {
+    protected BaseRuntimeBeanNode(@Nullable String propertyName, T bean, @Nullable RuntimeBeanNode parentNode) {
         super(propertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName).getClass(), parentNode);
         this.bean = bean;
+        checkCycles();
     }
 
     @Override
     public T getBean() {
         return bean;
+    }
+
+    private void checkCycles() {
+        RuntimeBeanNode nodeCreatingCycle = findNodeCreatingCycle(this, SAME_BEANS);
+        Preconditions.checkState(
+            nodeCreatingCycle == null,
+            "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
+            nodeCreatingCycle, this);
     }
 
     public RuntimeBeanNode createChildNode(String propertyName, @Nullable Object input, PropertyMetadataStore metadataStore) {

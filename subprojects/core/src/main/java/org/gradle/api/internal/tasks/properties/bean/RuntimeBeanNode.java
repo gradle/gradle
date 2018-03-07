@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
-import org.gradle.api.internal.tasks.properties.NodeContext;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Queue;
 
 public abstract class RuntimeBeanNode extends AbstractPropertyNode<RuntimeBeanNode> {
 
@@ -41,12 +41,12 @@ public abstract class RuntimeBeanNode extends AbstractPropertyNode<RuntimeBeanNo
         return new NestedRuntimeBeanNode(propertyName, bean, parentNode);
     }
 
-    protected RuntimeBeanNode(@Nullable String propertyName, Class<?> beanClass, RuntimeBeanNode parentNode) {
+    protected RuntimeBeanNode(@Nullable String propertyName, Class<?> beanClass, @Nullable RuntimeBeanNode parentNode) {
         super(propertyName, beanClass, parentNode);
     }
 
     public abstract Object getBean();
 
-    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, NodeContext context, PropertyMetadataStore propertyMetadataStore);
+    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode> queue, PropertyMetadataStore propertyMetadataStore);
 }
 
