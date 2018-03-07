@@ -16,6 +16,7 @@
 package org.gradle.api.internal.java;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 
@@ -23,8 +24,8 @@ import javax.inject.Inject;
 
 public class JavaLibraryPlatform extends JavaLibrary {
     @Inject
-    public JavaLibraryPlatform(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory) {
-        super(objectFactory, configurations, attributesFactory, null);
+    public JavaLibraryPlatform(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, CapabilitiesHandlerInternal capabilitiesHandler) {
+        super(objectFactory, configurations, attributesFactory, null, capabilitiesHandler);
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
@@ -315,8 +316,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addJar(runtimeConfiguration, jarArtifact);
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
-        project.getComponents().add(objectFactory.newInstance(JavaLibrary.class, project.getConfigurations(), jarArtifact));
-        project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
+        // Currently, we publish capabilities as they are declared unconditionally. In the future,
+        // We might want to default to those, but allow overriding
+        CapabilitiesHandler capabilities = project.getDependencies().getCapabilities();
+        project.getComponents().add(objectFactory.newInstance(JavaLibrary.class, project.getConfigurations(), jarArtifact, capabilities));
+        project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations(), capabilities));
     }
 
     private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {

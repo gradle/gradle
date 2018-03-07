@@ -18,6 +18,7 @@ package org.gradle.test.fixtures
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import org.gradle.api.component.CapabilityDescriptor
 import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -55,6 +56,25 @@ class GradleModuleMetadata {
             return null
         }
         return new ModuleReference(comp.group, comp.module, comp.version, comp.url)
+    }
+
+    List<CapabilityDescriptor> getCapabilities() {
+        def comp = values.component
+        if (comp == null || !comp.capabilities) {
+            return []
+        }
+        comp.capabilities.collect { c ->
+            [getName: { c.name }, getPrefer: {c.prefer}, getProvidedBy: {c.providedBy as List}, getReason: {c.reason}] as CapabilityDescriptor
+        }
+    }
+
+    void capabilities(@DelegatesTo(value = CapabilitiesView, strategy = Closure.DELEGATE_FIRST) Closure<?> capabilitiesExpectations) {
+        def capabilities = getCapabilities()
+        def view = new CapabilitiesView(capabilities.collectEntries { [it.name, it ]})
+        capabilitiesExpectations.delegate = view
+        capabilitiesExpectations.resolveStrategy = Closure.DELEGATE_FIRST
+        capabilitiesExpectations()
+        view.finishValidation()
     }
 
     Map<String, String> getAttributes() {
@@ -373,4 +393,31 @@ class GradleModuleMetadata {
             "name($name) URL($url) size($size) sha1($sha1) md5($md5)"
         }
     }
+
+    static class CapabilitiesView {
+        final Map<String, CapabilityDescriptor> capabilities
+        final Set<String> checkedCapabitilities = []
+
+        CapabilitiesView(Map<String, CapabilityDescriptor> capabilities) {
+            this.capabilities = capabilities
+        }
+
+        void expectCapability(String name, List<String> providedBy, String prefer = null, String reason = null) {
+            def actual = capabilities[name]
+            checkedCapabitilities << name
+            if (actual) {
+                assert actual.providedBy as Set == providedBy as Set
+                assert actual.prefer == prefer
+                assert actual.reason == reason
+            }
+        }
+
+        void finishValidation() {
+            Set<String> actualCapabilities = capabilities.keySet()
+            if (!actualCapabilities.equals(checkedCapabitilities)) {
+                throw new AssertionError("Expected capabilities ${checkedCapabitilities} but found ${actualCapabilities}")
+            }
+        }
+    }
+
 }

@@ -32,6 +32,8 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.CapabilityDescriptor;
+import org.gradle.api.component.ComponentWithCapabilities;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -163,6 +165,7 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.name("version");
             jsonWriter.value(coordinates.getVersion());
             writeAttributes(attributes, jsonWriter);
+            writeCapabilities(component, jsonWriter);
             jsonWriter.endObject();
         } else {
             ComponentData componentData = componentCoordinates.get(owner);
@@ -178,8 +181,50 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.name("version");
             jsonWriter.value(ownerCoordinates.getVersion());
             writeAttributes(componentData.attributes, jsonWriter);
+            writeCapabilities(component, jsonWriter);
             jsonWriter.endObject();
         }
+    }
+
+    private void writeCapabilities(SoftwareComponent component, JsonWriter jsonWriter) throws IOException {
+        if (component instanceof ComponentWithCapabilities) {
+            List<CapabilityDescriptor> capabilities = ((ComponentWithCapabilities) component).getCapabilities();
+            if (!capabilities.isEmpty()) {
+                jsonWriter.name("capabilities");
+                jsonWriter.beginArray();
+                for (CapabilityDescriptor capability : capabilities) {
+                    writeCapability(jsonWriter, capability);
+                }
+                jsonWriter.endArray();
+            }
+        }
+    }
+
+    private void writeCapability(JsonWriter jsonWriter, CapabilityDescriptor capability) throws IOException {
+        jsonWriter.beginObject();
+        jsonWriter.name("name");
+        jsonWriter.value(capability.getName());
+        writeCapabilityProviders(jsonWriter, capability);
+        String prefer = capability.getPrefer();
+        if (prefer != null) {
+            jsonWriter.name("prefer");
+            jsonWriter.value(prefer);
+        }
+        String reason = capability.getReason();
+        if (reason != null) {
+            jsonWriter.name("reason");
+            jsonWriter.value(reason);
+        }
+        jsonWriter.endObject();
+    }
+
+    private void writeCapabilityProviders(JsonWriter jsonWriter, CapabilityDescriptor capability) throws IOException {
+        jsonWriter.name("providedBy");
+        jsonWriter.beginArray();
+        for (String provider : capability.getProvidedBy()) {
+            jsonWriter.value(provider);
+        }
+        jsonWriter.endArray();
     }
 
     private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter) throws IOException {

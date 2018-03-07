@@ -26,6 +26,9 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.CapabilityDescriptor;
+import org.gradle.api.component.ComponentWithCapabilities;
+import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -37,6 +40,7 @@ import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.DeprecationLogger;
 
@@ -44,6 +48,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME;
@@ -52,7 +57,7 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
-public class JavaLibrary implements SoftwareComponentInternal {
+public class JavaLibrary implements SoftwareComponentInternal, ComponentWithCapabilities {
 
     // This must ONLY be used in the deprecated constructor, for backwards compatibility
     private final static ObjectFactory DEPRECATED_OBJECT_FACTORY = new DefaultObjectFactory(DirectInstantiator.INSTANCE, NamedObjectInstantiator.INSTANCE);
@@ -63,9 +68,10 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final CapabilitiesHandlerInternal capabilitiesHandler;
 
     @Inject
-    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
+    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact, CapabilitiesHandlerInternal capabilitiesHandler) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
@@ -74,6 +80,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         if (artifact != null) {
             this.artifacts.add(artifact);
         }
+        this.capabilitiesHandler = capabilitiesHandler;
     }
 
     /**
@@ -90,6 +97,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
         this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
         this.configurations = null;
+        this.capabilitiesHandler = null;
     }
 
     @VisibleForTesting
@@ -103,6 +111,14 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
     public Set<UsageContext> getUsages() {
         return ImmutableSet.of(runtimeUsage, compileUsage);
+    }
+
+    @Override
+    public List<CapabilityDescriptor> getCapabilities() {
+        if (capabilitiesHandler != null) {
+            return Cast.uncheckedCast(capabilitiesHandler.listCapabilities());
+        }
+        return Collections.emptyList();
     }
 
     private abstract class AbstractUsageContext implements UsageContext {

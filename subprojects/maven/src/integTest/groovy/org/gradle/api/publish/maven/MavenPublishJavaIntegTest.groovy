@@ -612,6 +612,57 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     }
 
+    @Unroll
+    def "can publish #thing component with capabilities"() {
+        given:
+        createBuildScripts("""
+            dependencies {
+                capabilities {
+                    capability('org:cap') {
+                        providedBy 'org:foo'
+                    }
+                    capability('org:cap2') {
+                        providedBy 'org:foo'
+                        providedBy 'org:bar'
+                        prefer 'org:foo'
+                    }
+                    capability('org:cap3') {
+                        providedBy 'org:foo'
+                        providedBy 'org:bar'
+                        providedBy 'org:baz'
+                        prefer 'org:bar' because 'sets a preference'
+                    }
+                }
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.$thing
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = javaLibrary.mavenModule
+
+        mavenModule.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.capabilities {
+            expectCapability('org:cap', ['org:foo'])
+            expectCapability('org:cap2', ['org:foo', 'org:bar'], 'org:foo')
+            expectCapability('org:cap3', ['org:foo', 'org:bar', 'org:baz'], 'org:bar', 'sets a preference')
+        }
+
+        where:
+        thing << ['java', 'javaLibraryPlatform']
+
+    }
+
     def createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 

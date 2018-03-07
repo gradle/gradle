@@ -13,13 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.external.model;
+package org.gradle.api.component;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * Represents a software component capability.
+ *
+ * @since 4.7
+ */
+@HasInternalProtocol
+@Incubating
 public interface CapabilityDescriptor {
     String getName();
     List<String> getProvidedBy();
+
+    @Nullable
     String getPrefer();
+
+    @Nullable
     String getReason();
 }

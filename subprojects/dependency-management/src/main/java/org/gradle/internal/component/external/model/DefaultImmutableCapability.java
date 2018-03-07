@@ -17,6 +17,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.component.CapabilityDescriptor;
 
 import java.util.List;
 

@@ -20,10 +20,11 @@ class IvyGradleModuleMetadataPublishIntegrationTest extends AbstractIvyPublishIn
     def setup() {
         buildFile << """
 // TODO - use public APIs when available
-class TestComponent implements org.gradle.api.internal.component.SoftwareComponentInternal, ComponentWithVariants {
+class TestComponent implements org.gradle.api.internal.component.SoftwareComponentInternal, ComponentWithVariants, ComponentWithCapabilities {
     String name
     Set usages = []
     Set variants = []
+    List<CapabilityDescriptor> capabilities = []
 }
 
 class TestUsage implements org.gradle.api.internal.component.UsageContext {
@@ -38,6 +39,17 @@ class TestUsage implements org.gradle.api.internal.component.UsageContext {
 class TestVariant implements org.gradle.api.internal.component.SoftwareComponentInternal {
     String name
     Set usages = []
+}
+
+class TestCapability implements CapabilityDescriptor {
+    String name
+    List<String> providedBy
+    String prefer
+    String reason
+}
+
+TestCapability capability(String name, List<String> providedBy, String prefer, String reason = null) {
+    new TestCapability(name: name, providedBy: providedBy, prefer: prefer, reason: reason)
 }
 
     allprojects {
@@ -412,5 +424,52 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
             }
             noMoreDependencies()
         }
+    }
+
+    def "publishes component with capabilities"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.capabilities << capability('cap', ['m1', 'm2'], 'm1', 'test capability')
+            comp.capabilities << capability('cap 2', ['m3', 'm4'], null)
+
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: configurations.implementation.attributes))
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        def parsedModuleMetadata = module.parsedModuleMetadata
+        parsedModuleMetadata.variants.size() == 1
+        def variant = parsedModuleMetadata.variants[0]
+        variant.dependencies.empty
+        parsedModuleMetadata.capabilities {
+            expectCapability('cap', ['m1', 'm2'], 'm1', 'test capability')
+            expectCapability('cap 2', ['m3', 'm4'])
+        }
+
     }
 }
