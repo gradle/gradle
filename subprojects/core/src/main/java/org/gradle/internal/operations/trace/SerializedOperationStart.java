@@ -19,6 +19,7 @@ package org.gradle.internal.operations.trace;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationStartEvent;
 
@@ -71,8 +72,9 @@ class SerializedOperationStart implements SerializedOperation {
     }
 
     SerializedOperationStart(Map<String, ?> map) {
-        this.id = (Long) map.get("id");
-        this.parentId = (Long) map.get("parentId");
+        this.id = ((Integer) map.get("id")).longValue();
+        Integer parentId = (Integer) map.get("parentId");
+        this.parentId = parentId == null ? null : parentId.longValue();
         this.displayName = (String) map.get("displayName");
         this.startTime = (Long) map.get("startTime");
         this.details = map.get("details");

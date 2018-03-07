@@ -41,7 +41,7 @@ class SerializedOperationProgress implements SerializedOperation {
     }
 
     SerializedOperationProgress(Map<String, ?> map) {
-        this.id = (Long) map.get("id");
+        this.id = ((Integer) map.get("id")).longValue();
         this.time = (Long) map.get("time");
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");

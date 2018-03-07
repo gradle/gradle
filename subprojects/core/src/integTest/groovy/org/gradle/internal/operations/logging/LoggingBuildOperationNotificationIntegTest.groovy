@@ -18,6 +18,7 @@ package org.gradle.internal.operations.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -118,7 +119,7 @@ class LoggingBuildOperationNotificationIntegTest extends AbstractIntegrationSpec
         def downloadProgress = operations.only("Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar").progress
         downloadProgress.size() == 1
         downloadProgress[0].details.logLevel == 'LIFECYCLE'
-        downloadProgress[0].details.category == 'org.gradle.internal.progress.DefaultBuildOperationExecutor'
+        downloadProgress[0].details.category == DefaultBuildOperationExecutor.name
         downloadProgress[0].details.description == "Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar"
     }
 
