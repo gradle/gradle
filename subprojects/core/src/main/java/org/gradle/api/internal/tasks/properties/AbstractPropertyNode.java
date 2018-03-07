@@ -20,7 +20,7 @@ import com.google.common.base.Equivalence;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> implements PropertyNode {
+public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> {
     private final String propertyName;
     private final SELF parentNode;
     private final TypeMetadata typeMetadata;
@@ -31,13 +31,11 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
         this.typeMetadata = typeMetadata;
     }
 
-    @Override
     public String getQualifiedPropertyName(String childPropertyName) {
         return propertyName == null ? childPropertyName : propertyName + "." + childPropertyName;
     }
 
     @Nullable
-    @Override
     public String getPropertyName() {
         return propertyName;
     }
