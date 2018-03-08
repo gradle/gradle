@@ -20,7 +20,15 @@ import org.gradle.api.Named
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
@@ -33,7 +41,8 @@ import java.util.concurrent.Callable
 open class IntegrationTest : DistributionTest() {
 
     @Internal
-    val userguideSamples: UserguideSamples = UserguideSamples(project.layout)
+    val userguideSamples =
+        UserguideSamples(project.layout)
 
     init {
         jvmArgumentProviders.add(UserguideIntegrationTestEnvironmentProvider(userguideSamples))
@@ -44,7 +53,7 @@ open class IntegrationTest : DistributionTest() {
 class UserguideSamples(layout: ProjectLayout) {
 
     @Input
-    var required: Boolean = false
+    var required = false
 
     @InputFile
     @PathSensitive(PathSensitivity.NAME_ONLY)
@@ -58,9 +67,12 @@ class UserguideSamples(layout: ProjectLayout) {
 
 class UserguideIntegrationTestEnvironmentProvider(private val samplesInternal: UserguideSamples) : CommandLineArgumentProvider, Named {
 
-    @Nested
-    @Optional
-    fun getSamples(): UserguideSamples? = if (samplesInternal.required) samplesInternal else null
+    @get:Nested
+    @get:Optional
+    val samples
+        get() =
+            if (samplesInternal.required) samplesInternal
+            else null
 
     override fun asArguments(): Iterable<String> =
         if (samplesInternal.required)
@@ -71,6 +83,6 @@ class UserguideIntegrationTestEnvironmentProvider(private val samplesInternal: U
         else
             emptyList()
 
-    override fun getName(): String = "userguide"
+    override fun getName() = "userguide"
 }
 

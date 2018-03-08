@@ -20,7 +20,13 @@ import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.testing.Test
 import org.gradle.build.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
@@ -32,21 +38,20 @@ import java.util.concurrent.Callable
  */
 open class DistributionTest : Test() {
 
-    @get: Input
-    val operatingSystem: String by lazy {
-        val current = OperatingSystem.current()
+    @get:Input
+    val operatingSystem by lazy {
         // the version currently differs between our dev infrastructure, so we only track the name and the architecture
-        current.getName() + " " + System.getProperty("os.arch")
+        "${OperatingSystem.current().name} ${System.getProperty("os.arch")}"
     }
 
     @Internal
-    val gradleInstallationForTest: GradleInstallationForTestEnvironmentProvider = GradleInstallationForTestEnvironmentProvider(project)
+    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
 
     @Internal
-    val binaryDistributions: BinaryDistributions = BinaryDistributions(project.layout)
+    val binaryDistributions = BinaryDistributions(project.layout)
 
     @Internal
-    val libsRepository: LibsRepositoryEnvironmentProvider = LibsRepositoryEnvironmentProvider(project.layout)
+    val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)
 
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
@@ -58,7 +63,7 @@ open class DistributionTest : Test() {
     }
 }
 
-fun <K, V> Map<K, V>.asSystemPropertyJvmArguments(): Iterable<String> = this.map { (key, value) -> "-D$key=$value" }
+internal fun <K, V> Map<K, V>.asSystemPropertyJvmArguments(): Iterable<String> = map { (key, value) -> "-D$key=$value" }
 
 class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgumentProvider, Named {
 
@@ -66,12 +71,12 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
     val dir: DirectoryProperty = layout.directoryProperty()
 
     @Input
-    var required: Boolean = false
+    var required = false
 
     override fun asArguments(): Iterable<String> =
         if (required) mapOf("integTest.libsRepo" to dir.asFile.get().absolutePath).asSystemPropertyJvmArguments() else emptyList()
 
-    override fun getName(): String = "libsRepository"
+    override fun getName() = "libsRepository"
 }
 
 class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
@@ -100,19 +105,19 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
             "integTest.gradleHomeDir" to gradleHomeDir.asFile.get().absolutePath,
             "integTest.gradleUserHomeDir" to gradleUserHomeDir.asFile.get().absolutePath,
             "org.gradle.integtest.daemon.registry" to daemonRegistry.asFile.get().absolutePath,
-            "integTest.toolingApiShadedJarDir" to toolingApiShadedJarDir.getAsFile().get().absolutePath
+            "integTest.toolingApiShadedJarDir" to toolingApiShadedJarDir.asFile.get().absolutePath
         ).asSystemPropertyJvmArguments()
 
-    override fun getName(): String = "gradleInstallationForTest"
+    override fun getName() = "gradleInstallationForTest"
 }
 
 class BinaryDistributions(layout: ProjectLayout) {
 
     @Input
-    var binZipRequired: Boolean = false
+    var binZipRequired = false
 
     @Input
-    var distributionsRequired: Boolean = false
+    var distributionsRequired = false
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -124,12 +129,12 @@ class BinaryDistributions(layout: ProjectLayout) {
 
 class BinaryDistributionsEnvironmentProvider(private val internalDistributions: BinaryDistributions) : CommandLineArgumentProvider, Named {
 
-    @get: Nested
-    @get: Optional
+    @get:Nested
+    @get:Optional
     val distributions: BinaryDistributions?
         get() = if (internalDistributions.distributionsRequired) internalDistributions else null
 
-    @get: Input
+    @get:Input
     val binZipRequired
         get() = internalDistributions.binZipRequired
 
@@ -143,6 +148,6 @@ class BinaryDistributionsEnvironmentProvider(private val internalDistributions: 
             emptyList()
 
     @Internal
-    override fun getName(): String = "binaryDistributions"
+    override fun getName() = "binaryDistributions"
 }
 
