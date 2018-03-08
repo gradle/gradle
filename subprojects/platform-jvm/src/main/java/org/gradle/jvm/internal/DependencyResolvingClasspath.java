@@ -25,7 +25,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.dsl.dependencies.NoOpCapabilitiesHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
@@ -186,7 +185,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             public ArtifactTypeContainer create() {
                 throw new UnsupportedOperationException();
             }
-        }, NoOpCapabilitiesHandler.INSTANCE);
+        });
         return result;
     }
 

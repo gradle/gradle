@@ -22,7 +22,6 @@ import org.apache.tools.zip.ZipOutputStream
 import org.gradle.internal.IoActions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.gradle.CapabilitySpec
 
 abstract class AbstractModule implements Module {
     /**
@@ -33,7 +32,6 @@ abstract class AbstractModule implements Module {
     private boolean hasModuleMetadata
 
     Map<String, String> attributes = [:]
-    List<CapabilitySpec> capabilities = []
 
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
@@ -125,10 +123,5 @@ abstract class AbstractModule implements Module {
 
     boolean isHasModuleMetadata() {
         hasModuleMetadata
-    }
-
-    @Override
-    void addCapability(CapabilitySpec spec) {
-        capabilities << spec
     }
 }

@@ -23,8 +23,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.NoOpCapabilitiesHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -66,8 +64,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-        CapabilitiesHandlerInternal capabilities = project == null ? NoOpCapabilitiesHandler.INSTANCE : (CapabilitiesHandlerInternal) project.getDependencies().getCapabilities();
-        metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, capabilities);
+        metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
         localComponentMetadataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         holder.cachedValue = metaData;
         return metaData;

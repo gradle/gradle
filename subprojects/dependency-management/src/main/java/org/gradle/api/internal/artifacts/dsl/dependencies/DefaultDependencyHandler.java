@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.CapabilitiesHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -47,7 +46,6 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
     private final DependencyConstraintHandler dependencyConstraintHandler;
-    private final CapabilitiesHandler capabilitiesHandler;
     private final ComponentMetadataHandler componentMetadataHandler;
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
@@ -62,7 +60,6 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
                                     DependencyConstraintHandler dependencyConstraintHandler,
                                     ComponentMetadataHandler componentMetadataHandler,
                                     ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                    CapabilitiesHandler capabilitiesHandler,
                                     ArtifactResolutionQueryFactory resolutionQueryFactory,
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
@@ -73,7 +70,6 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         this.dependencyConstraintHandler = dependencyConstraintHandler;
         this.componentMetadataHandler = componentMetadataHandler;
         this.componentModuleMetadataHandler = componentModuleMetadataHandler;
-        this.capabilitiesHandler = capabilitiesHandler;
         this.resolutionQueryFactory = resolutionQueryFactory;
         this.attributesSchema = attributesSchema;
         this.transforms = transforms;
@@ -211,16 +207,6 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
         transforms.registerTransform(registrationAction);
-    }
-
-    @Override
-    public void capabilities(Action<? super CapabilitiesHandler> configureAction) {
-        configureAction.execute(capabilitiesHandler);
-    }
-
-    @Override
-    public CapabilitiesHandler getCapabilities() {
-        return capabilitiesHandler;
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {

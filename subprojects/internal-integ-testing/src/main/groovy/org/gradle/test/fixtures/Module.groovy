@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures
 
-import org.gradle.test.fixtures.gradle.CapabilitySpec
 import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 
 /**
@@ -39,6 +38,4 @@ interface Module {
     void withVariant(String name, @DelegatesTo(value=VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
 
     Map<String, String> getAttributes()
-
-    void addCapability(CapabilitySpec spec);
 }

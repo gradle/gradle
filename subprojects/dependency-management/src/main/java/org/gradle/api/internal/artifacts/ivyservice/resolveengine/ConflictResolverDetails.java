@@ -15,14 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-
 import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface ConflictResolverDetails<T extends ComponentResolutionState> {
-    Collection<ModuleIdentifier> getParticipants();
-
     Collection<? extends T> getCandidates();
 
     void select(T candidate);
@@ -31,6 +27,8 @@ public interface ConflictResolverDetails<T extends ComponentResolutionState> {
 
     @Nullable
     T getSelected();
+
+    boolean isRestart();
 
     @Nullable
     Throwable getFailure();

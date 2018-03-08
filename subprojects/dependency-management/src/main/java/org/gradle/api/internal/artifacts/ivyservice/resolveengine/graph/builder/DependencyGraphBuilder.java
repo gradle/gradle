@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -75,7 +74,6 @@ public class DependencyGraphBuilder {
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory attributesFactory;
-    private final CapabilitiesHandlerInternal capabilitiesHandler;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
@@ -85,8 +83,7 @@ public class DependencyGraphBuilder {
                                   BuildOperationExecutor buildOperationExecutor, ModuleReplacementsData moduleReplacementsData,
                                   DependencySubstitutionApplicator dependencySubstitutionApplicator, ComponentSelectorConverter componentSelectorConverter,
                                   FeaturePreviews featurePreviews,
-                                  ImmutableAttributesFactory attributesFactory,
-                                  CapabilitiesHandlerInternal capabilitiesHandler) {
+                                  ImmutableAttributesFactory attributesFactory) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;
@@ -100,7 +97,6 @@ public class DependencyGraphBuilder {
         this.componentSelectorConverter = componentSelectorConverter;
         this.featurePreviews = featurePreviews;
         this.attributesFactory = attributesFactory;
-        this.capabilitiesHandler = capabilitiesHandler;
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor) {
@@ -109,7 +105,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, capabilitiesHandler);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.getRoot().getComponent()));
 
         traverseGraph(resolveState);

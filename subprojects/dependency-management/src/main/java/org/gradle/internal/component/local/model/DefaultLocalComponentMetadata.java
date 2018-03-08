@@ -31,13 +31,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.CapabilityDescriptor;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -63,15 +61,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ComponentIdentifier componentIdentifier;
     private final String status;
     private final AttributesSchemaInternal attributesSchema;
-    private final CapabilitiesHandlerInternal capabilitiesHandler;
     private ImmutableList<ConfigurationMetadata> consumableConfigurations;
 
-    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal attributesSchema, CapabilitiesHandlerInternal capabilitiesHandler) {
+    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal attributesSchema) {
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.status = status;
         this.attributesSchema = attributesSchema;
-        this.capabilitiesHandler = capabilitiesHandler;
     }
 
     @Override
@@ -83,7 +79,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
      * Creates a copy of this metadata, transforming the artifacts and dependencies of this component.
      */
     public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts, Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata> dependencies) {
-        DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(id, componentIdentifier, status, attributesSchema, capabilitiesHandler);
+        DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(id, componentIdentifier, status, attributesSchema);
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
             copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.canBeResolved);
         }
@@ -459,11 +455,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
 
             return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
-        }
-
-        @Override
-        public ImmutableList<? extends CapabilityDescriptor> getCapabilities() {
-            return capabilitiesHandler.listCapabilities();
         }
 
         private boolean include(DefaultLocalConfigurationMetadata configuration) {

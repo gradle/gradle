@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.artifacts.dsl.CapabilitiesHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -48,7 +47,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private DependencySet dependencySet = Mock()
 
     private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyHandler,
-        configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(CapabilitiesHandler), Stub(ArtifactResolutionQueryFactory),
+        configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory))
 
     void setup() {

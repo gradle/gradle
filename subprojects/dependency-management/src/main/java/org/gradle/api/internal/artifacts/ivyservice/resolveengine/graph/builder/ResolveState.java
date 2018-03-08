@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CapabilitiesHandlerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -65,14 +64,12 @@ class ResolveState {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
-    private final CapabilitiesHandlerInternal capabilitiesHandler;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                         ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
                         ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
-                        DependencySubstitutionApplicator dependencySubstitutionApplicator,
-                        CapabilitiesHandlerInternal capabilitiesHandler) {
+                        DependencySubstitutionApplicator dependencySubstitutionApplicator) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -83,7 +80,6 @@ class ResolveState {
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
-        this.capabilitiesHandler = capabilitiesHandler;
         ComponentState rootVersion = getRevision(rootResult.getId());
         rootVersion.setMetaData(rootResult.getMetaData());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
@@ -209,9 +205,5 @@ class ResolveState {
 
     public DependencySubstitutionApplicator getDependencySubstitutionApplicator() {
         return dependencySubstitutionApplicator;
-    }
-
-    public CapabilitiesHandlerInternal getCapabilitiesHandler() {
-        return capabilitiesHandler;
     }
 }

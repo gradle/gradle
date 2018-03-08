@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
@@ -25,8 +24,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.external.model.CapabilityDescriptor
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.Exclude
@@ -97,32 +94,6 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.setAttributes(attributes(foo: 'bar', 'org.gradle.status': 'release'))
-        0 * _
-    }
-
-    def "parses component metadata capabilities"() {
-        def metadata = Mock(MutableModuleComponentResolveMetadata)
-        def capabilities = ImmutableList.<CapabilityDescriptor>of(
-            new DefaultImmutableCapability("slf4j binding", ImmutableList.of("foo", "bar"), "foo", null),
-            new DefaultImmutableCapability("cap", ImmutableList.of("blah"), null, null),
-            new DefaultImmutableCapability("cap2", ImmutableList.of("blah"), null, "because")
-        )
-
-        when:
-        parser.parse(resource('''
-    { 
-        "formatVersion": "0.3", 
-        "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "capabilities": [
-            {"name": "slf4j binding", "providedBy": ["foo", "bar"], "prefer": "foo" },
-            {"name": "cap", "providedBy": ["blah"] },
-            {"name": "cap2", "providedBy": ["blah"], "reason": "because" }
-            ] },
-        "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
-    }
-'''), metadata)
-
-        then:
-        1 * metadata.setCapabilities(capabilities)
         0 * _
     }
 

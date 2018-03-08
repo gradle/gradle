@@ -50,10 +50,9 @@ public class DefaultConflictHandler implements ConflictHandler {
      */
     @Nullable
     public PotentialConflict registerModule(CandidateModule newModule) {
-        final ModuleIdentifier candidateId = newModule.getId();
-        ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidateId);
+        ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(newModule.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
-        return potentialConflict(conflicts.newElement(candidateId, newModule.getVersions(), replacedBy));
+        return potentialConflict(conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy));
     }
 
     /**
@@ -69,7 +68,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.popConflict();
-        DefaultConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.participants, conflict.candidates);
+        DefaultConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
         compositeResolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
