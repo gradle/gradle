@@ -47,8 +47,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         and:
         succeeds "assembleRelease"
-        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), ":assembleRelease")
-        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), ":assembleRelease")
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), installTaskRelease(), ":assembleRelease")
+        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), installTaskRelease(), ":assembleRelease")
 
         executable("build/exe/main/release/app").assertExists()
         installation("build/install/main/release").exec().out == app.expectedOutput
@@ -77,8 +77,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         sharedLibrary("build/lib/main/debug/hello").assertExists()
 
         succeeds "assembleRelease"
-        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), ":assembleRelease")
-        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), ":assembleRelease")
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), ":assembleRelease")
+        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), ":assembleRelease")
 
         sharedLibrary("build/lib/main/release/hello").assertExists()
     }

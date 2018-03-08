@@ -127,7 +127,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds assembleTaskRelease()
-        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), assembleTaskRelease())
+        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), extractAndStripSymbolsTasksRelease(), installTaskRelease(), assembleTaskRelease())
 
         executable("build/exe/main/release/app").assertExists()
         executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -595,7 +595,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         succeeds assembleTaskRelease(':app')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasksRelease(':hello', toolChain), extractAndStripSymbolsTasksRelease(':app', toolChain), installTaskRelease(':app'), assembleTaskRelease(':app'))
+        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasksRelease(':hello'), extractAndStripSymbolsTasksRelease(':app'), installTaskRelease(':app'), assembleTaskRelease(':app'))
         executable("app/build/exe/main/release/app").assertExists()
         executable("app/build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.main.sourceFileNames)
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()

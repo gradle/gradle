@@ -82,7 +82,7 @@ class CppApplicationDependenciesIntegrationTest extends AbstractNativeProduction
 
     @Override
     protected List<String> getAssembleReleaseTasks() {
-        return [':compileReleaseCpp', ':linkRelease', ':installRelease'] + extractAndStripSymbolsTasksRelease(toolChain)
+        return [':compileReleaseCpp', ':linkRelease', ':installRelease'] + extractAndStripSymbolsTasksRelease()
     }
 
     @Override

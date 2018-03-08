@@ -140,7 +140,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         executer.withArgument("--info")
         succeeds assembleTaskRelease()
 
-        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), assembleTaskRelease())
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), assembleTaskRelease())
         sharedLibrary("build/lib/main/release/hello").assertExists()
         sharedLibrary("build/lib/main/release/hello").assertHasStrippedDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         output.contains('compiling with feature enabled')
@@ -380,7 +380,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         succeeds assembleTaskRelease(':lib1')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release, toolChain), extractAndStripSymbolsTasksRelease(':lib1', toolChain), assembleTaskRelease(':lib1'))
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release), extractAndStripSymbolsTasksRelease(':lib1'), assembleTaskRelease(':lib1'))
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
@@ -426,7 +426,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         succeeds assembleTaskRelease(':lib1')
 
-        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], release), compileAndLinkTasks([':lib1'], release), extractAndStripSymbolsTasksRelease(':lib1', toolChain), assembleTaskRelease(':lib1'))
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], release), compileAndLinkTasks([':lib1'], release), extractAndStripSymbolsTasksRelease(':lib1'), assembleTaskRelease(':lib1'))
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         staticLibrary("lib2/build/lib/main/release/lib2").assertExists()
         staticLibrary("lib3/build/lib/main/release/lib3").assertExists()
