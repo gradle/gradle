@@ -16,10 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.internal.serialize.AbstractCollectionSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -33,29 +30,27 @@ import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
 
-import java.io.EOFException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
     private final Serializer<Expression> expressionSerializer = new ExpressionSerializer(enumSerializer);
     private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer, expressionSerializer));
-    private final MultimapSerializer<String, Macro> macroListSerializer = new MultimapSerializer<String, Macro>(BaseSerializerFactory.STRING_SERIALIZER, new MacroSerializer(enumSerializer, expressionSerializer));
-    private final MultimapSerializer<String, MacroFunction> macroFunctionListSerializer = new MultimapSerializer<String, MacroFunction>(BaseSerializerFactory.STRING_SERIALIZER, new MacroFunctionSerializer(enumSerializer, expressionSerializer));
+    private final CollectionSerializer<Macro> macroListSerializer = new CollectionSerializer<Macro>(new MacroSerializer(enumSerializer, expressionSerializer));
+    private final CollectionSerializer<MacroFunction> macroFunctionListSerializer = new CollectionSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
 
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableMultimap.copyOf(macroListSerializer.read(decoder)), ImmutableMultimap.copyOf(macroFunctionListSerializer.read(decoder)));
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)), ImmutableList.copyOf(macroFunctionListSerializer.read(decoder)));
     }
 
     @Override
     public void write(Encoder encoder, IncludeDirectives value) throws Exception {
         includeListSerializer.write(encoder, value.getAll());
-        macroListSerializer.write(encoder, value.getMacros());
-        macroFunctionListSerializer.write(encoder, value.getMacrosFunctions());
+        macroListSerializer.write(encoder, value.getAllMacros());
+        macroFunctionListSerializer.write(encoder, value.getAllMacroFunctions());
     }
 
     private static class ExpressionSerializer implements Serializer<Expression> {
@@ -331,45 +326,13 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     }
 
     private static class CollectionSerializer<T> extends AbstractCollectionSerializer<T, Collection<T>> {
-        public CollectionSerializer(Serializer<T> entrySerializer) {
+        CollectionSerializer(Serializer<T> entrySerializer) {
             super(entrySerializer);
         }
 
         @Override
         protected Collection<T> createCollection(int size) {
             return new ArrayList<T>(size);
-        }
-    }
-
-    private static class MultimapSerializer<K, V> implements Serializer<Multimap<K, V>> {
-        private final Serializer<K> keySerializer;
-        private final CollectionSerializer<V> valueSerializer;
-
-        MultimapSerializer(Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-            this.keySerializer = keySerializer;
-            this.valueSerializer = new CollectionSerializer<V>(valueSerializer);
-        }
-
-        @Override
-        public Multimap<K, V> read(Decoder decoder) throws EOFException, Exception {
-            int size = decoder.readInt();
-            Multimap<K, V> result = ArrayListMultimap.create(size, 1);
-            for (int i = 0; i < size; i++) {
-                K key = keySerializer.read(decoder);
-                Collection<V> value = valueSerializer.read(decoder);
-                result.putAll(key, value);
-            }
-            return result;
-        }
-
-        @Override
-        public void write(Encoder encoder, Multimap<K, V> value) throws Exception {
-            Map<K, Collection<V>> valueAsMap = value.asMap();
-            encoder.writeInt(valueAsMap.size());
-            for (Map.Entry<K, Collection<V>> entry : valueAsMap.entrySet()) {
-                keySerializer.write(encoder, entry.getKey());
-                valueSerializer.write(encoder, entry.getValue());
-            }
         }
     }
 }

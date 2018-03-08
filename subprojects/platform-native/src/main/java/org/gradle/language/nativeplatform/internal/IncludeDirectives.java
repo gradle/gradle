@@ -15,8 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import com.google.common.collect.Multimap;
-
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -29,8 +28,14 @@ public interface IncludeDirectives {
     List<Include> getAll();
     List<Include> getIncludesOnly();
 
-    Multimap<String, Macro> getMacros();
-    Multimap<String, MacroFunction> getMacrosFunctions();
+    Iterable<Macro> getMacros(String name);
+    Iterable<MacroFunction> getMacroFunctions(String name);
+
+    Collection<Macro> getAllMacros();
+    Collection<MacroFunction> getAllMacroFunctions();
+
+    boolean hasMacros();
+    boolean hasMacroFunctions();
 
     /**
      * Returns a copy of these directives, with #import directives removed.

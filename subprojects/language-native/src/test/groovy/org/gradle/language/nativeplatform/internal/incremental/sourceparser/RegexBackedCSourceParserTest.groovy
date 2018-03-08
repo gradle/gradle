@@ -127,11 +127,11 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     List<Macro> getMacros() {
-        return Lists.newArrayList(parsedSource.macros.values())
+        return Lists.newArrayList(parsedSource.allMacros)
     }
 
     List<MacroFunction> getMacroFunctions() {
-        return Lists.newArrayList(parsedSource.macrosFunctions.values())
+        return Lists.newArrayList(parsedSource.allMacroFunctions)
     }
 
     def "parses file with no includes"() {
