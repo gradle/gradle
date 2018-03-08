@@ -17,9 +17,7 @@
 package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.Named
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -57,11 +55,11 @@ class UserguideSamples(layout: ProjectLayout) {
 
     @InputFile
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    val samplesXml: RegularFileProperty = layout.fileProperty()
+    val samplesXml = layout.fileProperty()
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    val userGuideSamplesOutput: DirectoryProperty = layout.directoryProperty()
+    val userGuideSamplesOutput = layout.directoryProperty()
 
 }
 

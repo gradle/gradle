@@ -68,7 +68,7 @@ internal fun <K, V> Map<K, V>.asSystemPropertyJvmArguments(): Iterable<String> =
 class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val dir: DirectoryProperty = layout.directoryProperty()
+    val dir = layout.directoryProperty()
 
     @Input
     var required = false
@@ -82,20 +82,20 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
 class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val gradleHomeDir: DirectoryProperty = project.layout.directoryProperty()
+    val gradleHomeDir = project.layout.directoryProperty()
 
     @Internal
-    val gradleUserHomeDir: DirectoryProperty = project.layout.directoryProperty()
+    val gradleUserHomeDir = project.layout.directoryProperty()
 
     @Internal
-    val toolingApiShadedJarDir: DirectoryProperty = project.layout.directoryProperty()
+    val toolingApiShadedJarDir = project.layout.directoryProperty()
 
     /**
      * The user home dir is not wiped out by clean.
      * Move the daemon working space underneath the build dir so they don't pile up on CI.
      */
     @Internal
-    val daemonRegistry: DirectoryProperty = project.layout.directoryProperty()
+    val daemonRegistry = project.layout.directoryProperty()
 
     @Nested
     val gradleDistribution = GradleDistribution(project, gradleHomeDir)
@@ -121,7 +121,7 @@ class BinaryDistributions(layout: ProjectLayout) {
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    val distsDir: DirectoryProperty = layout.directoryProperty()
+    val distsDir = layout.directoryProperty()
 
     @Internal
     lateinit var distZipVersion: String
@@ -131,8 +131,10 @@ class BinaryDistributionsEnvironmentProvider(private val internalDistributions: 
 
     @get:Nested
     @get:Optional
-    val distributions: BinaryDistributions?
-        get() = if (internalDistributions.distributionsRequired) internalDistributions else null
+    val distributions
+        get() =
+            if (internalDistributions.distributionsRequired) internalDistributions
+            else null
 
     @get:Input
     val binZipRequired
