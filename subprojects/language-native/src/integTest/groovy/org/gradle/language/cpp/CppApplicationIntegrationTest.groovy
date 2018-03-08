@@ -126,15 +126,15 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
          """
 
         expect:
-        succeeds assembleTaskRelease()
-        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), extractAndStripSymbolsTasksRelease(), installTaskRelease(), assembleTaskRelease())
+        succeeds tasks.release.assemble
+        result.assertTasksExecuted(tasks.release.allToInstall, tasks.release.extract, tasks.release.assemble)
 
         executable("build/exe/main/release/app").assertExists()
         executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
-        succeeds assembleTaskDebug()
-        result.assertTasksExecuted(tasks.debug.allToInstall, assembleTaskDebug())
+        succeeds tasks.debug.assemble
+        result.assertTasksExecuted(tasks.debug.allToInstall, tasks.debug.assemble)
 
         executable("build/exe/main/debug/app").assertExists()
         executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -385,7 +385,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        result.assertTasksExecuted(tasks(':hello').debug.allToLink, tasks(':app').debug.allToInstall, ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         def installation = installation("app/build/install/main/debug")
@@ -459,7 +459,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        result.assertTasksExecuted(tasks(':hello').debug.allToLink, tasks(':app').debug.allToInstall, ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         def installation = installation("app/build/install/main/debug")
@@ -593,18 +593,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         app.main.writeToProject(file("app"))
 
         expect:
-        succeeds assembleTaskRelease(':app')
+        succeeds tasks(':app').release.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasksRelease(':hello'), extractAndStripSymbolsTasksRelease(':app'), installTaskRelease(':app'), assembleTaskRelease(':app'))
+        result.assertTasksExecuted(tasks(':hello').release.allToLink, tasks(':app').release.allToInstall, tasks(':app').release.extract, tasks(':app').release.assemble)
         executable("app/build/exe/main/release/app").assertExists()
         executable("app/build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.main.sourceFileNames)
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()
         sharedLibrary("hello/build/lib/main/release/hello").assertHasDebugSymbolsFor(app.greeterLib.sourceFileNamesWithoutHeaders)
         installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
-        succeeds assembleTaskDebug(':app')
+        succeeds tasks(':app').debug.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), assembleTaskDebug(':app'))
+        result.assertTasksExecuted(tasks(':hello').debug.allToLink, tasks(':app').debug.allToInstall, tasks(':app').debug.assemble)
 
         executable("app/build/exe/main/debug/app").assertExists()
         executable("app/build/exe/main/debug/app").assertHasDebugSymbolsFor(app.main.sourceFileNames)
