@@ -16,10 +16,15 @@
 
 package org.gradle.tooling.exceptions;
 
+import org.gradle.api.Incubating;
+
 /**
  * Thrown when the {@link org.gradle.tooling.PhasedBuildActionExecuter.Builder} has been configured
  * with more than one {@link org.gradle.tooling.BuildAction} per phase.
+ *
+ * @since 4.7
  */
+@Incubating
 public class MultipleBuildActionsException extends RuntimeException {
 
     public MultipleBuildActionsException(String message) {
