@@ -180,8 +180,14 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         result.assertTasksExecuted(libraryDebug.allToLink, appDebug.allToInstall)
-        result.assertTasksSkipped(appDebug.compile)
-        result.assertTasksNotSkipped(libraryDebug.allToLink, appDebug.link, appDebug.install)
+        if (toolChain.visualCpp) {
+            // Input to link does not change
+            result.assertTasksSkipped(appDebug.compile, appDebug.link)
+            result.assertTasksNotSkipped(libraryDebug.allToLink, appDebug.install)
+        } else {
+            result.assertTasksSkipped(appDebug.compile)
+            result.assertTasksNotSkipped(libraryDebug.allToLink, appDebug.link, appDebug.install)
+        }
 
         and:
         appObjects.noneRecompiled()
