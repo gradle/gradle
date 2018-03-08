@@ -59,6 +59,7 @@ class SelectorState implements DependencyGraphSelector {
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
+        targetModule.addSelector(this);
     }
 
     @Override
@@ -129,7 +130,6 @@ class SelectorState implements DependencyGraphSelector {
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());
         }
-        targetModule.addSelector(this);
         versionConstraint = idResolveResult.getResolvedVersionConstraint();
 
         // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
