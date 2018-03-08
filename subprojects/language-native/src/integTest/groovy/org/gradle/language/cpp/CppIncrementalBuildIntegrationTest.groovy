@@ -30,6 +30,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     TestFile appSourceFile
     TestFile appOtherSourceFile
     TestFile libraryHeaderFile
+    TestFile libraryImplHeaderFile
     TestFile librarySourceFile
     TestFile libraryOtherSourceFile
     String installApp = ":app:installDebug"
@@ -99,9 +100,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             void EXPORT_FUNC log(const std::string& message);
             void EXPORT_FUNC log(const char* message);
         """
+
+        libraryImplHeaderFile = file("library/src/main/headers/lib_impl.h")
+        libraryImplHeaderFile << """
+            #pragma once
+        """
+
         librarySourceFile = file("library/src/main/cpp/log_string.cpp")
         librarySourceFile << """
             #include <lib.h>
+            #include <lib_impl.h>
             #include <iostream>
 
             using namespace std;
@@ -114,6 +122,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libraryOtherSourceFile << """
             #include <lib.h>
             #include <iostream>
+            #include "lib_impl.h"
 
             using namespace std;
             
@@ -245,7 +254,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.recompiledFiles(librarySourceFile, libraryOtherSourceFile)
     }
 
-    def "recompiles binary when header file changes in a way that does not affect the object files"() {
+    def "recompiles binary when public header file changes in a way that does not affect the object files"() {
         given:
         run installApp
         libObjects.snapshot()
@@ -272,6 +281,42 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         appObjects.recompiledFile(appSourceFile)
+        libObjects.recompiledFiles(librarySourceFile, libraryOtherSourceFile)
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    def "recompiles binary when implementation header file changes"() {
+        given:
+        run installApp
+        libObjects.snapshot()
+        appObjects.snapshot()
+
+        when:
+        libraryImplHeaderFile << """
+            #define UNUSED_MACRO 123
+        """
+        run installApp
+
+        then:
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
+        skipped compileTasksDebug(APP)
+
+        if (nonDeterministicCompilation) {
+            // Relinking may (or may not) be required after recompiling
+            executed linkTaskDebug(LIBRARY)
+            executed linkTaskDebug(APP), installApp
+        } else {
+            skipped linkTaskDebug(LIBRARY)
+            skipped linkTaskDebug(APP), installApp
+        }
+
+        and:
+        appObjects.noneRecompiled()
         libObjects.recompiledFiles(librarySourceFile, libraryOtherSourceFile)
 
         when:
@@ -1079,6 +1124,192 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         executedAndNotSkipped compileTasksDebug(APP)
         skipped compileTasksDebug(LIBRARY)
         install.exec().out == "* INFO: hello world"
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
+    }
+
+    def "project specific header can shadow shared header"() {
+        when:
+        appSourceFile.insertBefore('#include <lib.h>', '#include "common.h"')
+        appSourceFile.replace('"world"', 'TARGET')
+
+        def appHeaderInSrcDir = file("app/src/main/cpp/common.h")
+        appHeaderInSrcDir << """
+            #pragma once
+            #define TARGET "everyone"
+        """
+
+        def appHeaderInHeaderDir = file("app/src/main/headers/common.h")
+        appHeaderInHeaderDir << """
+            // empty
+        """
+
+        def commonHeader = file("library/src/main/public/common.h")
+        commonHeader << """
+            // empty
+        """
+
+        librarySourceFile.insertBefore('#include <lib.h>', '#include <common.h>')
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello everyone"
+
+        when:
+        appHeaderInHeaderDir.text = "// ignore"
+
+        then:
+        succeeds installApp
+
+        and:
+        nonSkippedTasks.empty
+
+        when:
+        appHeaderInSrcDir.replace('"everyone"', '"world"')
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
+
+        when:
+        commonHeader.text = "// changed"
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        and:
+        appObjects.noneRecompiled()
+        libObjects.recompiledFiles(librarySourceFile)
+
+        when:
+        commonHeader.text = appHeaderInSrcDir.text
+        appHeaderInSrcDir.delete()
+        appHeaderInHeaderDir.delete()
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        and:
+        appObjects.noneRecompiled()
+        libObjects.recompiledFiles(librarySourceFile)
+
+        when:
+        appHeaderInHeaderDir.text = commonHeader.text
+
+        then:
+        succeeds installApp
+        nonSkippedTasks.empty
+
+        when:
+        appHeaderInSrcDir.text = appHeaderInHeaderDir.text
+        appHeaderInSrcDir.replace('"world"', '"planet"')
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello planet"
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
+    }
+
+    def "recompiles when include path changes resolve different headers"() {
+        when:
+        appSourceFile.insertBefore('#include <lib.h>', '#include <common.h>')
+        appSourceFile.replace('"world"', 'TARGET')
+
+        def appHeaderInHeaderDir = file("app/src/main/headers/common.h")
+        appHeaderInHeaderDir << """
+            #pragma once
+            #define TARGET "world"
+        """
+
+        def appHeaderInOtherDir = file("app/src/main/include/common.h")
+        appHeaderInOtherDir.text = appHeaderInHeaderDir.text
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        when:
+        buildFile << """
+            project(':app') {
+                application.privateHeaders.from = ['src/main/include']
+            }
+        """
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        and:
+        nonSkippedTasks.empty
+
+        when:
+        appHeaderInHeaderDir << """
+            // changed
+        """
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        and:
+        nonSkippedTasks.empty
+
+        when:
+        appHeaderInOtherDir.replace('"world"', '"universe"')
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello universe"
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
+
+        when:
+        buildFile << """
+            project(':app') {
+                application.privateHeaders.from = ['src/main/headers']
+            }
+        """
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
 
         and:
         appObjects.recompiledFiles(appSourceFile)
