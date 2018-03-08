@@ -135,10 +135,16 @@ abstract trait CppTaskNames {
         return "${DEBUG}Shared"
     }
 
+    /**
+     * Returns the tasks for the project with the given path.
+     */
     ProjectTasks tasks(String project) {
         return new ProjectTasks(project, toolchainUnderTest)
     }
 
+    /**
+     * Returns the tasks for the root project.
+     */
     ProjectTasks getTasks() {
         return new ProjectTasks('', toolchainUnderTest)
     }
