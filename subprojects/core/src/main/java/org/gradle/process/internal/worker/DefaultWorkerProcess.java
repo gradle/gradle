@@ -66,12 +66,17 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public void stopNow() {
-        if (connection != null) {
-            connection.stopNow();
-        }
+        lock.lock();
+        try {
+            if (connection != null) {
+                connection.abort();
+            }
+        } finally {
+            lock.unlock();
 
-        // cleanup() will abort the process as desired
-        cleanup();
+            // cleanup() will abort the process as desired
+            cleanup();
+        }
     }
 
     public void setExecHandle(ExecHandle execHandle) {

@@ -44,5 +44,5 @@ public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilde
     /**
      * Indicate that the execution containing this {@code ObjectConnection} has been prematurely stopped.
      */
-    void stopNow();
+    void abort();
 }
