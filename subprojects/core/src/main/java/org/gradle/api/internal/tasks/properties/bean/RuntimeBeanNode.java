@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
@@ -27,14 +26,7 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import javax.annotation.Nullable;
 import java.util.Queue;
 
-public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<RuntimeBeanNode<?>> {
-
-    private static final Equivalence<RuntimeBeanNode<?>> SAME_BEANS = Equivalence.identity().onResultOf(new Function<RuntimeBeanNode<?>, Object>() {
-        @Override
-        public Object apply(RuntimeBeanNode<?> input) {
-            return input.getBean();
-        }
-    });
+public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<Object> {
 
     private final T bean;
 
@@ -48,6 +40,11 @@ public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<RuntimeBea
         return bean;
     }
 
+    @Override
+    protected Object getNodeValue() {
+        return getBean();
+    }
+
     public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory);
 
     public RuntimeBeanNode<?> createChildNode(String propertyName, @Nullable Object input, RuntimeBeanNodeFactory nodeFactory) {
@@ -57,7 +54,7 @@ public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<RuntimeBea
     }
 
     private void checkCycles() {
-        RuntimeBeanNode<?> nodeCreatingCycle = findNodeCreatingCycle(this, SAME_BEANS);
+        AbstractPropertyNode<?> nodeCreatingCycle = findNodeCreatingCycle(this, Equivalence.identity());
         Preconditions.checkState(
             nodeCreatingCycle == null,
             "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",

@@ -20,12 +20,12 @@ import com.google.common.base.Equivalence;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SELF>> {
+public abstract class AbstractPropertyNode<T> {
     private final String propertyName;
-    private final SELF parentNode;
+    private final AbstractPropertyNode<T> parentNode;
     private final TypeMetadata typeMetadata;
 
-    public AbstractPropertyNode(@Nullable SELF parentNode, @Nullable String propertyName, TypeMetadata typeMetadata) {
+    public AbstractPropertyNode(@Nullable AbstractPropertyNode<T> parentNode, @Nullable String propertyName, TypeMetadata typeMetadata) {
         this.propertyName = propertyName;
         this.parentNode = parentNode;
         this.typeMetadata = typeMetadata;
@@ -45,15 +45,17 @@ public abstract class AbstractPropertyNode<SELF extends AbstractPropertyNode<SEL
     }
 
     @Nullable
-    protected SELF findNodeCreatingCycle(SELF childNode, Equivalence<? super SELF> nodeEquivalence) {
+    protected AbstractPropertyNode<T> findNodeCreatingCycle(AbstractPropertyNode<T> childNode, Equivalence<? super T> nodeEquivalence) {
         if (parentNode == null) {
             return null;
         }
-        if (nodeEquivalence.equivalent(parentNode, childNode)) {
+        if (nodeEquivalence.equivalent(parentNode.getNodeValue(), childNode.getNodeValue())) {
             return parentNode;
         }
         return parentNode.findNodeCreatingCycle(childNode, nodeEquivalence);
     }
+
+    abstract protected T getNodeValue();
 
     @Override
     public String toString() {

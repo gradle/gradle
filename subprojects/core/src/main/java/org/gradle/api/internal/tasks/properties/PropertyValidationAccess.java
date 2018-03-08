@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -102,13 +101,7 @@ public class PropertyValidationAccess {
         }
     }
 
-    private abstract static class BeanTypeNode<T> extends AbstractPropertyNode<BeanTypeNode<?>> {
-        private static final Equivalence<BeanTypeNode<?>> EQUAL_TYPES = Equivalence.equals().onResultOf(new Function<BeanTypeNode<?>, TypeToken<?>>() {
-            @Override
-            public TypeToken<?> apply(BeanTypeNode<?> input) {
-                return input.getBeanType();
-            }
-        });
+    private abstract static class BeanTypeNode<T> extends AbstractPropertyNode<TypeToken<?>> {
 
         protected BeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<? extends T> beanType, TypeMetadata typeMetadata) {
             super(parentNode, propertyName, typeMetadata);
@@ -118,7 +111,7 @@ public class PropertyValidationAccess {
         public abstract void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
 
         public boolean currentNodeCreatesCycle() {
-            return findNodeCreatingCycle(this, EQUAL_TYPES) != null;
+            return findNodeCreatingCycle(this, Equivalence.equals()) != null;
         }
         private final TypeToken<? extends T> beanType;
 
@@ -127,7 +120,8 @@ public class PropertyValidationAccess {
             return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
         }
 
-        public TypeToken<? extends T> getBeanType() {
+        @Override
+        protected TypeToken<?> getNodeValue() {
             return beanType;
         }
     }
