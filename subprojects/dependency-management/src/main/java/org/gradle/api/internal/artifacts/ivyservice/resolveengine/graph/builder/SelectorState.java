@@ -76,27 +76,29 @@ class SelectorState implements DependencyGraphSelector {
         return dependencyState.getRequested();
     }
 
-    ModuleVersionResolveException getFailure() {
-        return failure != null ? failure : selected.getFailure();
-    }
-
-    public ComponentSelectionReason getSelectionReason() {
-        if (selected != null) {
-            return selected.getSelectionReason();
-        }
-        return createReason();
-    }
-
-    public ComponentState getSelected() {
-        return targetModule.getSelected();
-    }
-
-    public ModuleResolveState getSelectedModule() {
+    public ModuleResolveState getTargetModule() {
         return targetModule;
     }
 
     /**
-     * @return The module version, or null if there is a failure to resolve this selector.
+     * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
+     */
+    ModuleVersionResolveException getFailure() {
+        return failure != null ? failure : selected.getFailure();
+    }
+
+    /**
+     * The component that was actually chosen for this component selector.
+     */
+    public ComponentState getSelected() {
+        return targetModule.getSelected();
+    }
+
+    /**
+     * Does the work of actually resolving a component selector to a component identifier.
+     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link #selected}, and returned.
+     * On resolve failure, the failure is recorded and a `null` component is {@link #selected} and returned.
+     * @return A component state for the selected component id, or null if there is a failure to resolve this selector.
      */
     public ComponentState resolveModuleRevisionId() {
         if (selected != null) {
@@ -127,14 +129,27 @@ class SelectorState implements DependencyGraphSelector {
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());
         }
-        targetModule = selected.getModule();
         targetModule.addSelector(this);
         versionConstraint = idResolveResult.getResolvedVersionConstraint();
+
+        // We will never select a component for a different module.
+        assert selected.getModule() == targetModule;
 
         return selected;
     }
 
-    private ComponentSelectionReasonInternal createReason() {
+    public ComponentSelectionReason getSelectionReason() {
+        if (selected != null) {
+            // For successful selection, the selected component provides the reason.
+            return selected.getSelectionReason();
+        }
+        // Create a reason in case of selection failure.
+        return createFailureReason();
+    }
+
+    private ComponentSelectionReasonInternal createFailureReason() {
+        assert failure != null;
+
         boolean hasRuleDescriptor = dependencyState.getRuleDescriptor() != null;
         boolean isConstraint = dependencyMetadata.isPending();
         ComponentSelectionDescriptorInternal description = idResolveResult.getSelectionDescription();
@@ -149,21 +164,21 @@ class SelectorState implements DependencyGraphSelector {
         return VersionSelectionReasons.of(descriptors);
     }
 
+    /**
+     * Overrides the component that is the chosen for this selector.
+     * This happens when the `ModuleResolveState` is restarted, during conflict resolution or 'softSelect' with version range merging.
+     */
+    public void overrideSelection(ComponentState selectedComponent) {
+        this.selected = selectedComponent;
 
+        // Target module can change, if this is called as the result of a module replacement conflict.
+        // TODO:DAZ We are not updating the set of selectors for the updated module (or for the module that the selectors were removed from)
+        this.targetModule = selectedComponent.getModule();
 
-    public void restart(ComponentState moduleRevision) {
-        this.selected = moduleRevision;
-        this.targetModule = moduleRevision.getModule();
-        ComponentResolveMetadata metaData = moduleRevision.getMetaData();
+        ComponentResolveMetadata metaData = selectedComponent.getMetaData();
         if (metaData != null) {
             this.idResolveResult.resolved(metaData);
         }
-    }
-
-    public void reset() {
-        this.idResolveResult = null;
-        this.selected = null;
-        this.targetModule = null;
     }
 
     public DependencyMetadata getDependencyMetadata() {

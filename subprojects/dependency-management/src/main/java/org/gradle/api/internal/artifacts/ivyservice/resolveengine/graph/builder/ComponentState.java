@@ -19,13 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -44,7 +43,7 @@ import java.util.Set;
 /**
  * Resolution state for a given component
  */
-public class ComponentState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
+public class ComponentState implements ComponentResolutionState, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
     private final List<NodeState> nodes = Lists.newLinkedList();
@@ -53,7 +52,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.empty();
     private volatile ComponentResolveMetadata metaData;
 
-    private ModuleState state = ModuleState.Selectable;
+    private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException failure;
     private SelectorState selectedBy;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
@@ -220,6 +219,15 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
         return selected == null ? "unknown" : selected.getMetadata().getName();
     }
 
+    @Override
+    public AttributeContainer getVariantAttributes() {
+        NodeState selected = getSelectedNode();
+        return selected == null ? ImmutableAttributes.EMPTY : desugarAttributes(selected);
+    }
+
+    /**
+     * Returns the _first_ selected node. There may be multiple.
+     */
     private NodeState getSelectedNode() {
         for (NodeState node : nodes) {
             if (node.isSelected()) {
@@ -227,12 +235,6 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
             }
         }
         return null;
-    }
-
-    @Override
-    public AttributeContainer getVariantAttributes() {
-        NodeState selected = getSelectedNode();
-        return selected == null ? ImmutableAttributes.EMPTY : desugarAttributes(selected);
     }
 
     /**
@@ -282,7 +284,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     boolean isSelected() {
-        return state == ModuleState.Selected;
+        return state == ComponentSelectionState.Selected;
     }
 
     boolean isSelectable() {
@@ -294,15 +296,55 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     void evict() {
-        state = ModuleState.Evicted;
+        state = ComponentSelectionState.Evicted;
     }
 
     void select() {
-        state = ModuleState.Selected;
+        state = ComponentSelectionState.Selected;
     }
 
     void makeSelectable() {
-        state = ModuleState.Selectable;
+        state = ComponentSelectionState.Selectable;
+    }
+
+    /**
+     * Describes the possible states of a component in the graph.
+     */
+    enum ComponentSelectionState {
+        /**
+         * A selectable component is either new to the graph, or has been visited before,
+         * but wasn't selected because another compatible version was used.
+         */
+        Selectable(true, true),
+
+        /**
+         * A selected component has been chosen, at some point, as the version to use.
+         * This is not for a lifetime: a component can later be evicted through conflict resolution,
+         * or another compatible component can be chosen instead if more constraints arise.
+         */
+        Selected(true, false),
+
+        /**
+         * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
+         * Either because it has been excluded, or because conflict resolution selected a different version.
+         */
+        Evicted(false, false);
+
+        private final boolean candidateForConflictResolution;
+        private final boolean canSelect;
+
+        ComponentSelectionState(boolean candidateForConflictResolution, boolean canSelect) {
+            this.candidateForConflictResolution = candidateForConflictResolution;
+            this.canSelect = canSelect;
+        }
+
+        boolean isCandidateForConflictResolution() {
+            return candidateForConflictResolution;
+        }
+
+        public boolean isSelectable() {
+            return canSelect;
+        }
     }
 
 }

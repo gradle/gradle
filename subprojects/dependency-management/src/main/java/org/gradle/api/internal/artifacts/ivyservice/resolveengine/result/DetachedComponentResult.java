@@ -22,7 +22,11 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 
-public class DefaultComponentResult implements ComponentResult {
+/**
+ * A {@link ComponentResult} implementation that is detached from the original resolution process.
+ * Instances are created when de-serializing the resolution result.
+ */
+public class DetachedComponentResult implements ComponentResult {
     private final Long resultId;
     private final ModuleVersionIdentifier id;
     private final ComponentSelectionReason reason;
@@ -30,7 +34,7 @@ public class DefaultComponentResult implements ComponentResult {
     private final String variantName;
     private final AttributeContainer variantAttributes;
 
-    public DefaultComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes) {
+    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
