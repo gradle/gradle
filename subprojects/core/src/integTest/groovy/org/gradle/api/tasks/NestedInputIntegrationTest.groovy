@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec {
@@ -109,7 +108,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':generator', ':consumer')
     }
 
-    @ToBeImplemented
     def "nested input using output file property of different task adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
@@ -144,10 +142,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'consumer'
         then:
-        // FIXME: Should have been executed
-        notExecuted(':generator')
-        // FIXME: Should have been executed
-        skipped(':consumer')
+        executedAndNotSkipped(':generator')
+        executedAndNotSkipped(':consumer')
     }
 
     @Unroll

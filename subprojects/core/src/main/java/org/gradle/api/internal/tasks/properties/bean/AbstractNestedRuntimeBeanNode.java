@@ -88,7 +88,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                         }
                     }
                 });
-                return value instanceof Provider ? ((Provider<?>) value).getOrNull() : value;
+                return value instanceof Provider && !((Provider) value).isPresent() ? null : value;
             }
         });
 
