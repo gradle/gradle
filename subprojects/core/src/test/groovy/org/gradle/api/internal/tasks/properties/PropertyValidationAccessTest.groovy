@@ -21,13 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.*
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -196,6 +190,36 @@ class PropertyValidationAccessTest extends Specification {
         assertHasValidationProblems(TaskWithNonAnnotatedProperty, [
             "property 'inputFiles' is not annotated with an input or output annotation"
         ])
+    }
+
+    def "supports recursive types"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedTree, [
+                "property 'tree.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'bean.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'nestedBean.bean.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    static class Tree {
+        @Optional @Nested
+        Tree left
+
+        @Optional @Nested
+        Tree right
+
+        String nonAnnotated
+    }
+
+    static class BeanWithNonAnnotatedType {
+        @Nested
+        NestedBean bean
+    }
+
+    static class TaskWithNestedTree extends DefaultTask {
+        @Nested Tree tree
+        @Nested NestedBean bean
+        @Nested BeanWithNonAnnotatedType nestedBean
     }
 
     private static Set<String> validationProblems(Class<?> task, List messages) {

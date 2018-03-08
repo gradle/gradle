@@ -20,5 +20,5 @@ import java.util.Set;
 
 public interface TypeMetadata {
     Set<PropertyMetadata> getPropertiesMetadata();
-    boolean isAnnotated();
+    boolean hasAnnotatedProperties();
 }

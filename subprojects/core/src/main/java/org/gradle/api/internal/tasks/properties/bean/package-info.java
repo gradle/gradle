@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+@NonNullApi
+package org.gradle.api.internal.tasks.properties.bean;
 
-import javax.annotation.Nullable;
-import java.util.Queue;
-
-public interface PropertyNode<SELF extends PropertyNode<SELF>> {
-    String getQualifiedPropertyName(String childPropertyName);
-    @Nullable
-    String getPropertyName();
-    boolean isRoot();
-    Class<?> getBeanClass();
-
-    /**
-     * @return whether the node could be unpacked.
-     */
-    boolean unpackToQueue(Queue<SELF> queue);
-}
+import org.gradle.api.NonNullApi;
