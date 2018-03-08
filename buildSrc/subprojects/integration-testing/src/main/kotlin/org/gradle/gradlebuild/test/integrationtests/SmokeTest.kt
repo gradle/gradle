@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+
 /**
  * A test that verifies Gradle can be used with popular third party plugins.
  */

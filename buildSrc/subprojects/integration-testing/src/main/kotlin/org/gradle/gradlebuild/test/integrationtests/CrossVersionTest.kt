@@ -18,5 +18,6 @@ package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.tasks.CacheableTask
 
+
 @CacheableTask
 open class CrossVersionTest : DistributionTest()

@@ -18,7 +18,6 @@ package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -32,6 +31,7 @@ import org.gradle.build.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
+
 
 /**
  * Base class for all tests that check the end-to-end behavior of a Gradle distribution.
@@ -63,7 +63,6 @@ open class DistributionTest : Test() {
     }
 }
 
-internal fun <K, V> Map<K, V>.asSystemPropertyJvmArguments(): Iterable<String> = map { (key, value) -> "-D$key=$value" }
 
 class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgumentProvider, Named {
 
@@ -73,11 +72,14 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
     @Input
     var required = false
 
-    override fun asArguments(): Iterable<String> =
-        if (required) mapOf("integTest.libsRepo" to dir.asFile.get().absolutePath).asSystemPropertyJvmArguments() else emptyList()
+    override fun asArguments() =
+        if (required) mapOf("integTest.libsRepo" to dir.asFile.get().absolutePath).asSystemPropertyJvmArguments()
+        else emptyList()
 
-    override fun getName() = "libsRepository"
+    override fun getName() =
+        "libsRepository"
 }
+
 
 class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
@@ -100,7 +102,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     @Nested
     val gradleDistribution = GradleDistribution(project, gradleHomeDir)
 
-    override fun asArguments(): Iterable<String> =
+    override fun asArguments() =
         mapOf(
             "integTest.gradleHomeDir" to gradleHomeDir.asFile.get().absolutePath,
             "integTest.gradleUserHomeDir" to gradleUserHomeDir.asFile.get().absolutePath,
@@ -108,8 +110,10 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
             "integTest.toolingApiShadedJarDir" to toolingApiShadedJarDir.asFile.get().absolutePath
         ).asSystemPropertyJvmArguments()
 
-    override fun getName() = "gradleInstallationForTest"
+    override fun getName() =
+        "gradleInstallationForTest"
 }
+
 
 class BinaryDistributions(layout: ProjectLayout) {
 
@@ -127,6 +131,7 @@ class BinaryDistributions(layout: ProjectLayout) {
     lateinit var distZipVersion: String
 }
 
+
 class BinaryDistributionsEnvironmentProvider(private val internalDistributions: BinaryDistributions) : CommandLineArgumentProvider, Named {
 
     @get:Nested
@@ -140,16 +145,22 @@ class BinaryDistributionsEnvironmentProvider(private val internalDistributions: 
     val binZipRequired
         get() = internalDistributions.binZipRequired
 
-    override fun asArguments(): Iterable<String> =
-        if (internalDistributions.binZipRequired || internalDistributions.distributionsRequired)
+    override fun asArguments() =
+        if (internalDistributions.binZipRequired || internalDistributions.distributionsRequired) {
             mapOf(
                 "integTest.distsDir" to internalDistributions.distsDir.asFile.get().absolutePath,
                 "integTest.distZipVersion" to internalDistributions.distZipVersion
             ).asSystemPropertyJvmArguments()
-        else
+        } else {
             emptyList()
+        }
 
     @Internal
-    override fun getName() = "binaryDistributions"
+    override fun getName() =
+        "binaryDistributions"
 }
 
+
+internal
+fun <K, V> Map<K, V>.asSystemPropertyJvmArguments(): Iterable<String> =
+    map { (key, value) -> "-D$key=$value" }

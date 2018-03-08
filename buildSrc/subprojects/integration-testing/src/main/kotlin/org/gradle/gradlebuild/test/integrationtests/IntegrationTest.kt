@@ -30,6 +30,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
+
 /**
  * Verifies the correct behavior of a feature, as opposed to just a small unit of code.
  * Usually referred to as 'functional tests' in literature, but our code base has historically
@@ -39,14 +40,14 @@ import java.util.concurrent.Callable
 open class IntegrationTest : DistributionTest() {
 
     @Internal
-    val userguideSamples =
-        UserguideSamples(project.layout)
+    val userguideSamples = UserguideSamples(project.layout)
 
     init {
         jvmArgumentProviders.add(UserguideIntegrationTestEnvironmentProvider(userguideSamples))
         dependsOn(Callable { if (userguideSamples.required) ":docs:extractSamples" else null })
     }
 }
+
 
 class UserguideSamples(layout: ProjectLayout) {
 
@@ -60,8 +61,8 @@ class UserguideSamples(layout: ProjectLayout) {
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     val userGuideSamplesOutput = layout.directoryProperty()
-
 }
+
 
 class UserguideIntegrationTestEnvironmentProvider(private val samplesInternal: UserguideSamples) : CommandLineArgumentProvider, Named {
 
@@ -72,15 +73,17 @@ class UserguideIntegrationTestEnvironmentProvider(private val samplesInternal: U
             if (samplesInternal.required) samplesInternal
             else null
 
-    override fun asArguments(): Iterable<String> =
-        if (samplesInternal.required)
+    override fun asArguments() =
+        if (samplesInternal.required) {
             mapOf(
                 "integTest.userGuideInfoDir" to samplesInternal.samplesXml.asFile.get().parentFile.absolutePath,
                 "integTest.userGuideOutputDir" to samplesInternal.userGuideSamplesOutput.asFile.get().absolutePath
             ).asSystemPropertyJvmArguments()
-        else
+        } else {
             emptyList()
+        }
 
-    override fun getName() = "userguide"
+    override fun getName() =
+        "userguide"
 }
 
