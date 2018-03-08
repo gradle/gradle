@@ -64,6 +64,7 @@ class ResolveState {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
+    private final VariantNameBuilder variantNameBuilder = new VariantNameBuilder();
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
@@ -106,7 +107,7 @@ class ResolveState {
     public ModuleResolveState getModule(ModuleIdentifier id) {
         ModuleResolveState module = modules.get(id);
         if (module == null) {
-            module = new ModuleResolveState(idGenerator, id, metaDataResolver);
+            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder);
             modules.put(id, module);
         }
         return module;
