@@ -39,7 +39,7 @@ include("uberPlugins")
 include("packaging")
 include("plugins")
 include("profiling")
-include("testing")
+include("performance")
 include("versioning")
 
 fun buildFileNameFor(projectDirName: String) =

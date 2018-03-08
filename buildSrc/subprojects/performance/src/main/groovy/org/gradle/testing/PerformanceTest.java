@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
 
 import javax.annotation.Nullable;
 import java.io.File;

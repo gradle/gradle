@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.kotlin.dsl.*
-import org.gradle.testing.DistributionTest
 import java.io.File
 import kotlin.collections.component1
 import kotlin.collections.component2

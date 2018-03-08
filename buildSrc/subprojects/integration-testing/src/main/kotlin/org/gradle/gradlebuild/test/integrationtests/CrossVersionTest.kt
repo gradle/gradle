@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.gradlebuild.test.integrationtests
 
-import java.util.regex.Pattern
+import org.gradle.api.tasks.CacheableTask
 
-class LeakingProcessKillPattern {
-    private LeakingProcessKillPattern() {}
 
-    static String generate(String rootProjectDir) {
-        return "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))).+)"
-    }
-}
+@CacheableTask
+open class CrossVersionTest : DistributionTest()

@@ -10,7 +10,6 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":profiling"))
-    implementation(project(":testing"))
     implementation(project(":plugins"))
 }
 

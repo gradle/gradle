@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.testing;
+package org.gradle.testing
 
-/**
- * A test that verifies Gradle can be used with popular third party plugins.
- */
-public class SmokeTest extends DistributionTest {
+import java.util.regex.Pattern
+
+object LeakingProcessKillPattern {
+
+    @JvmStatic
+    fun generate(rootProjectDir: String): String =
+        "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))).+)"
 }

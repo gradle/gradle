@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.gradlebuild.test.fixtures.TestFixturesExtension
 import org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin
 import org.gradle.kotlin.dsl.*
-import org.gradle.testing.CrossVersionTest
 import releasedVersions
 
 class CrossVersionTestsPlugin : Plugin<Project> {

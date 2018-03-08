@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.gradlebuild.test.integrationtests
 
-import groovy.transform.CompileStatic
-import org.gradle.api.tasks.CacheableTask
-
-@CacheableTask
-@CompileStatic
-class CrossVersionTest extends IntegrationTest {
-}
+/**
+ * A test aimed at verifying behavior under heavy load.
+ */
+open class SoakTest : DistributionTest()
