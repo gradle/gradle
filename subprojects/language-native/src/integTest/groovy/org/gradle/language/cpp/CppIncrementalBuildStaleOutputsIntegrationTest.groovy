@@ -45,8 +45,8 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
-        result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToInstall, ":assemble")
+        result.assertTasksNotSkipped(tasks.debug.allToInstall, ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/app").assertExists()
@@ -71,8 +71,8 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
-        result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksNotSkipped(tasks.debug.allToLink, ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
@@ -114,8 +114,8 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
         succeeds "assemble"
 
         then:
-        def skippedTasks = compileAndLinkTasks([":greeter"], debug) + [":greeter:assemble", ":assemble"]
-        def notSkippedTasks = compileAndLinkTasks([":app"], debug) + [installTaskDebug(':app'), ":app:assemble"]
+        def skippedTasks = tasks(":greeter").debug.allToLink + [":greeter:assemble", ":assemble"]
+        def notSkippedTasks = tasks(":app").debug.allToInstall + [":app:assemble"]
         result.assertTasksExecuted(skippedTasks, notSkippedTasks)
         result.assertTasksNotSkipped(notSkippedTasks)
         result.assertTasksSkipped(skippedTasks)
@@ -154,8 +154,8 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
-        result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToInstall, ":assemble")
+        result.assertTasksNotSkipped(tasks.debug.allToInstall, ":assemble")
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
         file("build/exe/main/debug").assertDoesNotExist()
@@ -187,8 +187,8 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
-        result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksNotSkipped(tasks.debug.allToLink, ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
         file("build/lib/main/debug").assertDoesNotExist()

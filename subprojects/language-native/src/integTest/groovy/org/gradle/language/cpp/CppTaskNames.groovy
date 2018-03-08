@@ -134,4 +134,87 @@ abstract trait CppTaskNames {
     String getDebugShared() {
         return "${DEBUG}Shared"
     }
+
+    ProjectTasks tasks(String project) {
+        return new ProjectTasks(project, toolchainUnderTest)
+    }
+
+    ProjectTasks getTasks() {
+        return new ProjectTasks('', toolchainUnderTest)
+    }
+
+    static class ProjectTasks {
+        private final String project
+        private final InstalledToolChain toolChainUnderTest
+
+        ProjectTasks(String project, InstalledToolChain toolChainUnderTest) {
+            this.toolChainUnderTest = toolChainUnderTest
+            this.project = project
+        }
+
+        DebugTasks getDebug() {
+            return new DebugTasks()
+        }
+
+        ReleaseTasks getRelease() {
+            return new ReleaseTasks()
+        }
+
+        private withProject(String t) {
+            project + ":" + t
+        }
+
+        class DebugTasks {
+            String getCompile() {
+                return withProject("compileDebugCpp")
+            }
+
+            String getLink() {
+                return withProject("linkDebug")
+            }
+
+            String getInstall() {
+                return withProject("installDebug")
+            }
+
+            List<String> getAllToLink() {
+                return [compile, link]
+            }
+
+            List<String> getAllToInstall() {
+                return allToLink + [install]
+            }
+        }
+
+        class ReleaseTasks {
+            String getCompile() {
+                return withProject("compileReleaseCpp")
+            }
+
+            String getLink() {
+                return withProject("linkRelease")
+            }
+
+            String getInstall() {
+                return withProject("installRelease")
+            }
+
+            List<String> getExtractAndStrip() {
+                if (toolChainUnderTest.visualCpp) {
+                    return []
+                } else {
+                    return [withProject("stripSymbolsRelease"), withProject("extractSymbolsRelease")]
+                }
+            }
+
+            List<String> getAllToLink() {
+                return [compile, link] + extractAndStrip
+            }
+
+            List<String> getAllToInstall() {
+                return allToLink + [install]
+            }
+        }
+    }
+
 }

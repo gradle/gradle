@@ -39,16 +39,16 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
-        result.assertTasksSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToInstall, ":assemble")
+        result.assertTasksSkipped(tasks.debug.allToInstall, ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
 
         and:
         succeeds "assembleRelease"
-        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), installTaskRelease(), ":assembleRelease")
-        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), installTaskRelease(), ":assembleRelease")
+        result.assertTasksExecuted(tasks.release.allToInstall, ":assembleRelease")
+        result.assertTasksSkipped( tasks.release.allToInstall, ":assembleRelease")
 
         executable("build/exe/main/release/app").assertExists()
         installation("build/install/main/release").exec().out == app.expectedOutput
@@ -71,14 +71,14 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
-        result.assertTasksSkipped(compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksSkipped(tasks.debug.allToLink, ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
 
         succeeds "assembleRelease"
-        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), ":assembleRelease")
-        result.assertTasksSkipped(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), ":assembleRelease")
+        result.assertTasksExecuted(tasks.release.allToLink, ":assembleRelease")
+        result.assertTasksSkipped(tasks.release.allToLink, ":assembleRelease")
 
         sharedLibrary("build/lib/main/release/hello").assertExists()
     }
