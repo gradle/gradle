@@ -139,6 +139,14 @@ open class IdePlugin : Plugin<Project> {
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
                         }
+                        // TODO replace this hack by trying out with kotlinx.dom
+                        val xmlStringBuilder = asString()
+                        val toReplace = "{newline}"
+                        var startIndex = xmlStringBuilder.indexOf(toReplace)
+                        while (startIndex > -1) {
+                            xmlStringBuilder.replace(startIndex, startIndex + toReplace.length, "&#10;")
+                            startIndex = xmlStringBuilder.indexOf(toReplace)
+                        }
                     }
                 }
                 workspace {
@@ -310,7 +318,8 @@ open class IdePlugin : Plugin<Project> {
     private
     fun configureCopyright(root: Element) {
         val options = mapOf(
-            "notice" to "Copyright ${'$'}{today.year} the original author or authors.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;     http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License.",
+            // TODO Get rid of {newline} and the replacement hack by using a better XML parser / writer
+            "notice" to "Copyright ${'$'}{today.year} the original author or authors.{newline}{newline}Licensed under the Apache License, Version 2.0 (the \"License\");{newline}you may not use this file except in compliance with the License.{newline}You may obtain a copy of the License at{newline}{newline}     http://www.apache.org/licenses/LICENSE-2.0{newline}{newline}Unless required by applicable law or agreed to in writing, software{newline}distributed under the License is distributed on an \"AS IS\" BASIS,{newline}WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.{newline}See the License for the specific language governing permissions and{newline}limitations under the License.",
             "keyword" to "Copyright",
             "allowReplaceKeyword" to "",
             "myName" to "ASL2",
