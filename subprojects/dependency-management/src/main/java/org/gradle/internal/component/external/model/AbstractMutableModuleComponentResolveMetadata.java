@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.artifacts.CapabilitiesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -215,7 +216,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             builder.addAll(variants);
         }
         for (MutableVariantImpl variant : newVariants) {
-            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.dependencyConstraints), ImmutableList.copyOf(variant.files)));
+            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.dependencyConstraints), ImmutableList.copyOf(variant.files), new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of())));
         }
         return builder.build();
     }
@@ -452,14 +453,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final ImmutableList<DependencyImpl> dependencies;
         private final ImmutableList<DependencyConstraintImpl> dependencyConstraints;
         private final ImmutableList<FileImpl> files;
+        private final ImmutableCapabilities capabilities;
 
-        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<DependencyImpl> dependencies, ImmutableList<DependencyConstraintImpl> dependencyConstraints, ImmutableList<FileImpl> files) {
+        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<DependencyImpl> dependencies, ImmutableList<DependencyConstraintImpl> dependencyConstraints, ImmutableList<FileImpl> files, ImmutableCapabilities capabilities) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
             this.dependencies = dependencies;
             this.dependencyConstraints = dependencyConstraints;
             this.files = files;
+            this.capabilities = capabilities;
         }
 
         @Override
@@ -490,6 +493,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         @Override
         public ImmutableList<? extends File> getFiles() {
             return files;
+        }
+
+        @Override
+        public CapabilitiesMetadata getCapabilitiesMetadata() {
+            return capabilities;
         }
 
         @Override
@@ -529,4 +537,5 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
                 files);
         }
     }
+
 }
