@@ -976,8 +976,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        buildFile.makeOlder()
-
         when:
         run 'myTask'
 
@@ -986,7 +984,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         file('build/tmp/myTask/output.txt').text == "hello"
 
         when:
-        buildFile.text = buildFile.text.replace('it.text = "hello"', 'it.text = "changed"')
+        buildFile.replace('it.text = "hello"', 'it.text = "changed"')
         run 'myTask', '--info'
 
         then:
