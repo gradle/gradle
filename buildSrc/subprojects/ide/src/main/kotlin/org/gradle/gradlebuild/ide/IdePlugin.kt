@@ -134,8 +134,6 @@ open class IdePlugin : Plugin<Project> {
                             projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
                                 .configureCodeStyleSettings()
 
-                            projectElement.removeBySelector("component[name=GroovyCompilerProjectConfiguration]")
-                                .append(GROOVY_COMPILER_SETTINGS)
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
                         }
@@ -480,18 +478,6 @@ fun Element.option(name: String, value: String) {
         .attr("value", value)
 }
 
-
-private
-const val GROOVY_COMPILER_SETTINGS = """
-    <component name="GroovyCompilerProjectConfiguration">
-        <excludes>
-            <file url="file://${'$'}PROJECT_DIR$/subprojects/testing-jvm/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
-        </excludes>
-        <option name="heapSize" value="2000" />
-    </component>
-"""
-
-
 private
 fun XmlProvider.withJsoup(function: (Document) -> Unit) {
     val xml = asString()
@@ -506,7 +492,6 @@ fun modifyXmlDocument(xml: StringBuilder, function: (Document) -> Unit): String 
     document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
     return document.toString()
 }
-
 
 private
 fun Element.createOrEmptyOutChildElement(childName: String): Element {
