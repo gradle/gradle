@@ -19,6 +19,8 @@ import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.reporting.SingleFileReport;
@@ -54,15 +56,19 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
 
-        extension.setConfigDir(project.provider(new Callable<File>() {
+        extension.setConfigurationDirectory(project.provider(new Callable<Directory>() {
             @Override
-            public File call() {
+            public Directory call() {
+                DirectoryProperty configDir = project.getLayout().directoryProperty();
+
                 if (usesSubprojectCheckstyleConfiguration()) {
                     DeprecationLogger.nagUserOfDeprecated("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead");
-                    return project.file(CONFIG_DIR_NAME);
+                    configDir.set(project.file(CONFIG_DIR_NAME));
                 } else {
-                    return project.getRootProject().file(CONFIG_DIR_NAME);
+                    configDir.set(project.getRootProject().file(CONFIG_DIR_NAME));
                 }
+
+                return configDir.get();
             }
         }));
 
