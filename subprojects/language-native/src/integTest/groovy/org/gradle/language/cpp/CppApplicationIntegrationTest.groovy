@@ -65,9 +65,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksSkipped(tasks.debug.allToInstall, ':assemble')
     }
 
     def "build fails when compilation fails"() {
@@ -104,7 +104,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
@@ -134,7 +134,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds assembleTaskDebug()
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), assembleTaskDebug())
+        result.assertTasksExecuted(tasks.debug.allToInstall, assembleTaskDebug())
 
         executable("build/exe/main/debug/app").assertExists()
         executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -159,7 +159,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "buildDebug"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':buildDebug')
+        result.assertTasksExecuted(tasks.debug.allToLink, ':buildDebug')
         executable("build/exe/main/debug/app").assertExists()
     }
 
@@ -181,7 +181,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "compileDebug"
-        result.assertTasksExecuted(compileTasksDebug(), ':compileDebug')
+        result.assertTasksExecuted(tasks.debug.compile, ':compileDebug')
         executable("build/exe/main/debug/app").assertDoesNotExist()
         objectFiles(app.main)*.assertExists()
     }
@@ -204,7 +204,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "install"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':installDebug', ':install')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':install')
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -227,7 +227,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToInstall, ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -254,7 +254,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
@@ -286,7 +286,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
@@ -308,7 +308,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -330,7 +330,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/test_app").assertExists()
@@ -356,7 +356,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()

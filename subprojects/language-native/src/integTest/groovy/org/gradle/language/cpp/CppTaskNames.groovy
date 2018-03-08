@@ -25,14 +25,6 @@ abstract trait CppTaskNames {
 
     abstract InstalledToolChain getToolchainUnderTest()
 
-    String[] compileTasksDebug(String project = '') {
-        compileTasks(project, DEBUG)
-    }
-
-    String linkTaskDebug(String project = '') {
-        linkTask(project, DEBUG)
-    }
-
     String installTaskDebug(String project = '') {
         installTask(project, DEBUG)
     }
