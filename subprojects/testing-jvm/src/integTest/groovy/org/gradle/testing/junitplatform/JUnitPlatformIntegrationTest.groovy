@@ -17,6 +17,7 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -319,5 +320,40 @@ public class StaticInnerTest {
             .assertTestPassed('inside')
         result.testClass('org.gradle.StaticInnerTest$Nested$Nested2').assertTestCount(1, 0, 0)
             .assertTestPassed('inside')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4605')
+    def 'can publish report entry in Jupiter tests'() {
+        given:
+        file('src/test/java/org/gradle/ReporterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.*;
+
+            public class ReporterTest {
+                @Test
+                public void ok(TestReporter reporter) { 
+                    reporter.publishEntry("status", "successful");
+                }
+                @Test
+                public void fail(TestReporter reporter) { 
+                    reporter.publishEntry("status", "failed");
+                    Assertions.fail("Fails with an additional report entry");
+                }
+            }
+            '''
+        def successfulPattern = /ReportEntry \[timestamp = [-\d\:T.]+, status = 'successful'\]/
+        def failedPattern = /ReportEntry \[timestamp = [-\d\:T.]+, status = 'failed'\]/
+
+        when:
+        fails('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('org.gradle.ReporterTest')
+            .testClass('org.gradle.ReporterTest').assertTestCount(2, 1, 0)
+            .assertTestPassed('ok(TestReporter)')
+            .assertTestFailed('fail(TestReporter)', Matchers.containsText('Fails with an additional report entry'))
+            .assertStdout(Matchers.matchesRegexp("\\s*${successfulPattern}\\s+${failedPattern}\\s*"))
     }
 }
