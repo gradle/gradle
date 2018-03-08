@@ -53,6 +53,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+* `Task.deleteAllActions()` is deprecated without replacement.
+
 ## Potential breaking changes
 
 ### Changes in the caching of missing versions

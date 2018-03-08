@@ -421,7 +421,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Removes all the actions of this task.</p>
      *
      * @return the task object this method is applied to
+     *
+     * @deprecated Don't use this.
      */
+    @Deprecated
     Task deleteAllActions();
 
     /**
