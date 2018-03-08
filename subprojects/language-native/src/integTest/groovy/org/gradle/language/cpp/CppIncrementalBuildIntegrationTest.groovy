@@ -33,12 +33,14 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     TestFile libraryImplHeaderFile
     TestFile librarySourceFile
     TestFile libraryOtherSourceFile
-    String installApp = ":app:installDebug"
     String sourceType = "cpp"
     def libObjects = new CompilationOutputsFixture(file("library/build/obj/main/debug"), [".o", ".obj"])
     def appObjects = new CompilationOutputsFixture(file("app/build/obj/main/debug"), [".o", ".obj"])
 
     def install = installation("app/build/install/main/debug")
+    def libraryDebug = tasks(LIBRARY).debug
+    def appDebug = tasks(APP).debug
+    def installApp = appDebug.install
 
     def setup() {
         buildFile << """    
@@ -145,11 +147,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        skipped compileTasksDebug(LIBRARY)
-        skipped linkTaskDebug(LIBRARY)
-        executedAndNotSkipped compileTasksDebug(APP)
-        executedAndNotSkipped linkTaskDebug(APP)
-        executedAndNotSkipped installApp
+        result.assertTasksExecuted(libraryDebug.allToLink, appDebug.allToInstall)
+        result.assertTasksSkipped(libraryDebug.allToLink)
+        result.assertTasksNotSkipped(appDebug.allToInstall)
 
         and:
         libObjects.noneRecompiled()
@@ -179,10 +179,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(LIBRARY)
-        executedAndNotSkipped linkTaskDebug(LIBRARY)
-        skipped compileTasksDebug(APP)
-        executedAndNotSkipped installApp
+        result.assertTasksExecuted(libraryDebug.allToLink, appDebug.allToInstall)
+        result.assertTasksSkipped(appDebug.compile)
+        result.assertTasksNotSkipped(libraryDebug.allToLink, appDebug.link, appDebug.install)
 
         and:
         appObjects.noneRecompiled()
@@ -237,17 +236,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(LIBRARY)
-        executedAndNotSkipped compileTasksDebug(APP)
-
-        if (nonDeterministicCompilation) {
-            // Relinking may (or may not) be required after recompiling
-            executed linkTaskDebug(LIBRARY)
-            executed linkTaskDebug(APP), installApp
-        } else {
-            skipped linkTaskDebug(LIBRARY)
-            skipped linkTaskDebug(APP), installApp
-        }
+        executedAndNotSkipped libraryDebug.compile
+        executedAndNotSkipped appDebug.compile
 
         and:
         appObjects.recompiledFile(appSourceFile)
@@ -267,16 +257,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(LIBRARY)
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped libraryDebug.compile
+        executedAndNotSkipped appDebug.compile
 
         if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
-            executed linkTaskDebug(LIBRARY)
-            executed linkTaskDebug(APP), installApp
+            executed libraryDebug.link
+            executed appDebug.link, installApp
         } else {
-            skipped linkTaskDebug(LIBRARY)
-            skipped linkTaskDebug(APP), installApp
+            skipped libraryDebug.link
+            skipped appDebug.link, installApp
         }
 
         and:
@@ -303,16 +293,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(LIBRARY)
-        skipped compileTasksDebug(APP)
+        executedAndNotSkipped libraryDebug.compile
+        skipped appDebug.compile
 
         if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
-            executed linkTaskDebug(LIBRARY)
-            executed linkTaskDebug(APP), installApp
+            executed libraryDebug.link
+            executed appDebug.link, installApp
         } else {
-            skipped linkTaskDebug(LIBRARY)
-            skipped linkTaskDebug(APP), installApp
+            skipped libraryDebug.link
+            skipped appDebug.link, installApp
         }
 
         and:
@@ -352,10 +342,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         when:
         succeeds installApp
+        install.exec().out == "Hi world"
 
         then:
         nonSkippedTasks.empty
-        install.exec().out == "Hi world"
 
         when:
         headerFile << "void another_thing();"
@@ -364,7 +354,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         and:
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appOtherSourceFile, sourceFile)
@@ -375,11 +366,13 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         when:
         unused << "broken again"
-        succeeds installApp
 
         then:
-        nonSkippedTasks.empty
+        succeeds installApp
         install.exec().out == "Hi world"
+
+        and:
+        nonSkippedTasks.empty
     }
 
     @Unroll
@@ -452,7 +445,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -524,9 +518,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.noneRecompiled()
 
         and:
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
         output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
-        unresolvedHeadersDetected(':app:compileDebugCpp')
+        unresolvedHeadersDetected(appDebug.compile)
 
         when:
         disableTransitiveUnresolvedHeaderDetection()
@@ -544,9 +539,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.noneRecompiled()
 
         and:
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
         output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
-        unresolvedHeadersDetected(':app:compileDebugCpp')
+        unresolvedHeadersDetected(appDebug.compile)
 
         when:
         file("app/src/main/headers/some-dir").mkdirs()
@@ -566,12 +562,19 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         when:
         headerFile.delete()
+        appObjects.snapshot()
+        libObjects.snapshot()
 
         then:
         succeeds installApp
 
         and:
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
 
         when:
         succeeds installApp
@@ -654,8 +657,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp, '--info'
 
         and:
-        executedAndNotSkipped compileTasksDebug(APP)
-        unresolvedHeadersDetected(':app:compileDebugCpp')
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
+        unresolvedHeadersDetected(appDebug.compile)
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -675,7 +679,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         and:
-        skipped compileTasksDebug(APP)
+        nonSkippedTasks.empty
 
         and:
         appObjects.noneRecompiled()
@@ -736,7 +740,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -790,7 +795,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -868,7 +874,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -889,7 +896,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -910,7 +918,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -971,8 +980,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executedAndNotSkipped compileTasksDebug(APP)
         install.exec().out == "two"
+
+        and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -1026,9 +1038,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        skipped compileTasksDebug(APP)
-        executedAndNotSkipped compileTasksDebug(LIBRARY)
         install.exec().out == "* [info] hello world"
+
+        and:
+        skipped appDebug.compile
+        executedAndNotSkipped libraryDebug.compile
 
         and:
         appObjects.noneRecompiled()
@@ -1043,9 +1057,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(APP)
-        skipped compileTasksDebug(LIBRARY)
         install.exec().out == "* INFO: hello world"
+
+        and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -1104,9 +1120,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        skipped compileTasksDebug(APP)
-        executedAndNotSkipped compileTasksDebug(LIBRARY)
         install.exec().out == "* [info] hello world"
+
+        and:
+        skipped appDebug.compile
+        executedAndNotSkipped libraryDebug.compile
 
         and:
         appObjects.noneRecompiled()
@@ -1121,9 +1139,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         then:
-        executedAndNotSkipped compileTasksDebug(APP)
-        skipped compileTasksDebug(LIBRARY)
         install.exec().out == "* INFO: hello world"
+
+        and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -1178,6 +1198,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello world"
 
         and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
+
+        and:
         appObjects.recompiledFiles(appSourceFile)
         libObjects.noneRecompiled()
 
@@ -1191,6 +1215,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         succeeds installApp
         install.exec().out == "hello world"
+
+        and:
+        skipped appDebug.compile
+        executedAndNotSkipped libraryDebug.compile
 
         and:
         appObjects.noneRecompiled()
@@ -1208,6 +1236,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         succeeds installApp
         install.exec().out == "hello world"
+
+        and:
+        skipped appDebug.compile
+        executedAndNotSkipped libraryDebug.compile
 
         and:
         appObjects.noneRecompiled()
@@ -1231,6 +1263,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         succeeds installApp
         install.exec().out == "hello planet"
+
+        and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -1293,6 +1329,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == "hello universe"
 
         and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
+
+        and:
         appObjects.recompiledFiles(appSourceFile)
         libObjects.noneRecompiled()
 
@@ -1310,6 +1350,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         succeeds installApp
         install.exec().out == "hello world"
+
+        and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
 
         and:
         appObjects.recompiledFiles(appSourceFile)
