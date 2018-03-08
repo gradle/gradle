@@ -926,14 +926,14 @@ st3"
 """
 
         then:
-        macros as Set == [
+        macros == [
             macro('SOME_STRING', '"abc"'),
             macro('SOME_STRING', '"xyz"'),
             macro('OTHER', '"1234"'),
             unresolvedMacro('EMPTY'),
             macro('FUNCTION', 'abc(a, b, c)'),
             unresolvedMacro('UNKNOWN'),
-        ] as Set
+        ]
         macroFunctions.empty
     }
 

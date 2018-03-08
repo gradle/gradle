@@ -117,7 +117,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parses a #define directive body. Consumes all input.
      */
-    private void parseDefineDirectiveBody(Buffer buffer, List<Macro> macros, List<MacroFunction> macroFunctions) {
+    private void parseDefineDirectiveBody(Buffer buffer, Collection<Macro> macros, Collection<MacroFunction> macroFunctions) {
         if (!buffer.consumeWhitespace()) {
             // No separating whitespace between the #define and the name
             return;
@@ -139,7 +139,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parse an "object-like" macro directive body. Consumes all input.
      */
-    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, List<Macro> macros) {
+    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, Collection<Macro> macros) {
         Expression expression = parseDirectiveBodyExpression(buffer);
         expression = expression.asMacroExpansion();
         if (!expression.getArguments().isEmpty()) {
@@ -157,7 +157,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parse a "function-like" macro directive body. Consumes all input.
      */
-    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, List<MacroFunction> macroFunctions) {
+    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Collection<MacroFunction> macroFunctions) {
         buffer.consumeWhitespace();
         List<String> paramNames = new ArrayList<String>();
         consumeParameterList(buffer, paramNames);
