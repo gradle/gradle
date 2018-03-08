@@ -34,8 +34,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     TestFile libraryOtherSourceFile
     String installApp = ":app:installDebug"
     String sourceType = "cpp"
-    CompilationOutputsFixture libObjects = new CompilationOutputsFixture(file("library/build/obj/main/debug"))
-    CompilationOutputsFixture appObjects = new CompilationOutputsFixture(file("app/build/obj/main/debug"))
+    def libObjects = new CompilationOutputsFixture(file("library/build/obj/main/debug"), [".o", ".obj"])
+    def appObjects = new CompilationOutputsFixture(file("app/build/obj/main/debug"), [".o", ".obj"])
+
+    def install = installation("app/build/install/main/debug")
 
     def setup() {
         buildFile << """    
@@ -127,8 +129,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.snapshot()
         appObjects.snapshot()
 
-        def install = installation("app/build/install/main/debug")
-
         when:
         appSourceFile.replace("world", "planet")
 
@@ -162,8 +162,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
         libObjects.snapshot()
         appObjects.snapshot()
-
-        def install = installation("app/build/install/main/debug")
 
         when:
         librarySourceFile.replace("cout << message", 'cout << "[" << message << "]"')
@@ -312,7 +310,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         nonSkippedTasks.empty
-        executable("app/build/exe/main/debug/app").exec().out == "Hi world"
+        install.exec().out == "Hi world"
 
         when:
         headerFile << "void another_thing();"
@@ -328,7 +326,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.noneRecompiled()
 
         and:
-        executable("app/build/exe/main/debug/app").exec().out == "Hi world"
+        install.exec().out == "Hi world"
 
         when:
         unused << "broken again"
@@ -336,7 +334,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         nonSkippedTasks.empty
-        executable("app/build/exe/main/debug/app").exec().out == "Hi world"
+        install.exec().out == "Hi world"
     }
 
     @Unroll
@@ -394,7 +392,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         and:
-        assert executable("app/build/exe/main/debug/app").exec().out == "one"
+        assert install.exec().out == "one"
 
         when:
         succeeds installApp
@@ -416,7 +414,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.noneRecompiled()
 
         and:
-        executable("app/build/exe/main/debug/app").exec().out == "two"
+        install.exec().out == "two"
 
         when:
         unused << "more broken"
@@ -465,7 +463,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "hello"
+        install.exec().out == "hello"
 
         when:
         headerFile.text = "changed"
@@ -598,7 +596,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "hello"
+        install.exec().out == "hello"
 
         when:
         appObjects.snapshot()
@@ -677,7 +675,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "hello"
+        install.exec().out == "hello"
 
         when:
         succeeds installApp
@@ -730,7 +728,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "hello"
+        install.exec().out == "hello"
 
         when:
         succeeds installApp
@@ -808,7 +806,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "two"
+        install.exec().out == "two"
 
         when:
         succeeds installApp
@@ -910,7 +908,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "one"
+        install.exec().out == "one"
 
         when:
         header2 << " // changes"
@@ -929,7 +927,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         succeeds installApp
         executedAndNotSkipped compileTasksDebug(APP)
-        executable("app/build/exe/main/debug/app").exec().out == "two"
+        install.exec().out == "two"
 
         and:
         appObjects.recompiledFiles(appSourceFile)
@@ -941,6 +939,150 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         nonSkippedTasks.empty
+    }
+
+    def "shared header can reference project specific header"() {
+        when:
+        appSourceFile.replace("log(msg)", "log_info(msg)")
+        libraryHeaderFile << """
+            #include <local_defs.h>
+        """
+
+        def appDefsHeader = file("app/src/main/headers/local_defs.h")
+        appDefsHeader << """
+            #pragma once
+            #include <string>
+            #define log_info(msg) log(std::string("[info] ") + msg)
+        """
+
+        librarySourceFile.replace("cout << message", "cout << PREFIX << message")
+
+        def libDefsHeader = file("library/src/main/headers/local_defs.h")
+        libDefsHeader << """
+            #define PREFIX "LOG: "
+        """
+
+        then:
+        succeeds installApp
+        install.exec().out == "LOG: [info] hello world"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        libDefsHeader.replace('PREFIX "LOG: "', 'PREFIX "* "')
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        and:
+        succeeds installApp
+
+        then:
+        skipped compileTasksDebug(APP)
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
+        install.exec().out == "* [info] hello world"
+
+        and:
+        appObjects.noneRecompiled()
+        libObjects.recompiledFiles(librarySourceFile, libraryOtherSourceFile)
+
+        when:
+        appDefsHeader.replace('"[info]', '"INFO:')
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        and:
+        succeeds installApp
+
+        then:
+        executedAndNotSkipped compileTasksDebug(APP)
+        skipped compileTasksDebug(LIBRARY)
+        install.exec().out == "* INFO: hello world"
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
+    }
+
+    def "shared header can reference source file specific header using macro include"() {
+        when:
+        libraryHeaderFile << """
+            #include LOCAL_DEFS
+        """
+
+        appSourceFile.insertBefore("#include <lib.h>", "#define LOCAL_DEFS <app_defs.h>")
+        appSourceFile.replace("log(msg)", "log_info(msg)")
+
+        def appDefsHeader = file("app/src/main/headers/app_defs.h")
+        appDefsHeader << """
+            #pragma once
+            #include <string>
+            #define log_info(msg) log(std::string("[info] ") + msg)
+        """
+
+        librarySourceFile.insertBefore("#include <lib.h>", "#define LOCAL_DEFS <lib_str_defs.h>")
+        librarySourceFile.replace("cout << message", "cout << PREFIX << message")
+
+        def libDefsHeader1 = file("library/src/main/headers/lib_str_defs.h")
+        libDefsHeader1 << """
+            #pragma once
+            #define PREFIX "LOG: "
+        """
+
+        libraryOtherSourceFile.insertBefore("#include <lib.h>", "#define LOCAL_DEFS <lib_char_defs.h>")
+
+        def libDefsHeader2 = file("library/src/main/headers/lib_char_defs.h")
+        libDefsHeader2 << """
+            #pragma once
+            #define PREFIX "LOG: "
+        """
+
+        then:
+        succeeds installApp
+        install.exec().out == "LOG: [info] hello world"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        libDefsHeader1.replace('PREFIX "LOG: "', 'PREFIX "* "')
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        and:
+        succeeds installApp
+
+        then:
+        skipped compileTasksDebug(APP)
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
+        install.exec().out == "* [info] hello world"
+
+        and:
+        appObjects.noneRecompiled()
+        libObjects.recompiledFiles(librarySourceFile)
+
+        when:
+        appDefsHeader.replace('"[info]', '"INFO:')
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        and:
+        succeeds installApp
+
+        then:
+        executedAndNotSkipped compileTasksDebug(APP)
+        skipped compileTasksDebug(LIBRARY)
+        install.exec().out == "* INFO: hello world"
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
     }
 
     private boolean unresolvedHeadersDetected(String taskPath) {
