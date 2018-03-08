@@ -423,7 +423,7 @@ You can see more examples of supported patterns in the API docs for api:org.grad
 ====
 By default, `fileTree()` returns a `FileTree` instance that applies some default exclusion patterns for convenience — the same defaults as Ant in fact. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
 
-If those default exclusions prove problematic, you can workaround the issue by using the {antManual}/Tasks/defaultexcludes.html[`defaultexcludes` Ant task], as demonstrated in this example: 
+If those default exclusions prove problematic, you can workaround the issue by using the {antManual}/Tasks/defaultexcludes.html[`defaultexcludes` Ant task], as demonstrated in this example:
 
 ++++
 <sample id="antDefaultExcludes" dir="userguide/files/copy" title="Changing Ant default exclusions for a copy task">
@@ -440,7 +440,7 @@ You can do many of the same things with file trees that you can with file collec
  * filter them (using api:org.gradle.api.file.FileTree#matching(org.gradle.api.Action)[] and Ant-style patterns)
  * merge them
 
-You can also traverse file trees using the api:org.gradle.api.file.FileTree#visit(org.gradle.api.Action)[] method. All of these techniques are demonstrated in the following example: 
+You can also traverse file trees using the api:org.gradle.api.file.FileTree#visit(org.gradle.api.Action)[] method. All of these techniques are demonstrated in the following example:
 
 ++++
 <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
@@ -585,7 +585,7 @@ There are two common issues people come across when using regular expressions in
  2. It's safest to use single quotes for the second argument, otherwise you need to escape the '$' in group substitutions, i.e. `"\$1\$2"`
 
 The first is a minor inconvenience, but slashy strings have the advantage that you don't have to escape backslash ('\') characters in the regular expression. The second issue stems from Groovy's support for embedded expressions using `${ }` syntax in double-quoted and slashy strings.
-==== 
+====
 
 The closure syntax for `rename()` is straightforward and can be used for any requirements that simple regular expressions can't handle. You're given the name of a file and you return a new name for that file, or `null` if you don't want to change the name. Do be aware that the closure will be executed for every file that's copied, so try to avoid expensive operations where possible.
 
@@ -672,7 +672,7 @@ This is not a straightforward copy as the `WEB-INF` directory and its subdirecto
 The solution is to use _child specifications_, which can be applied to both `from()` and `into()` declarations. The following task definition does the necessary work:
 
 ++++
-<sample id="nestedCopySpecs" dir="userguide/files/archivesWithJavaPlugin" title="Nested copy specs">
+<sample id="nestedCopySpecs" dir="userguide/files/sampleJavaProject" title="Nested copy specs">
     <sourcefile file="build.gradle" snippet="nested-specs"/>
 </sample>
 ++++
@@ -704,7 +704,7 @@ The above example demonstrates the basic syntax and also highlights two major li
  1. The `copy()` method is not <<sec:up_to_date_checks,incremental>>. The example's `copyMethod` task will _always_ execute because it has no information about what files make up the task's inputs. You have to manually define the task inputs and outputs.
 
  2. Using a task as a copy source, i.e. as an argument to `from()`, won't set up an automatic task dependency between your task and that copy source. As such, if you are using the `copy()` method as part of a task action, you must explicitly declare all inputs and outputs in order to get the correct behavior.
- 
+
 The following example shows you how to workaround these limitations by using the <<sec:task_input_output_runtime_api,dynamic API for task inputs and outputs>>:
 
 ++++
@@ -793,7 +793,7 @@ You can also override the default `baseName` value for _all_ the archive tasks i
 You can find all the possible archive task properties in the API documentation for api:org.gradle.api.tasks.bundling.AbstractArchiveTask[], but we have also summarized the main ones here:
 
 `archiveName` — `String`, default: `__baseName__-__appendix__-__version__-__classifier__.__extension__`::
-The complete file name of the generated archive. If any of the properties in the default value are empty, their '-' separator is dropped. 
+The complete file name of the generated archive. If any of the properties in the default value are empty, their '-' separator is dropped.
 
 `archivePath` — `File`, _read-only_, default: `__destinationDir__/__archiveName__`::
 The absolute file path of the generated archive.
