@@ -29,26 +29,6 @@ abstract trait CppTaskNames {
         installTask(project, DEBUG)
     }
 
-    String assembleTaskDebug(String project = '') {
-        assembleTask(project, DEBUG)
-    }
-
-    String[] compileTasksRelease(String project = '') {
-        compileTasks(project, RELEASE)
-    }
-
-    String linkTaskRelease(String project = '') {
-        linkTask(project, RELEASE)
-    }
-
-    String installTaskRelease(String project = '') {
-        installTask(project, RELEASE)
-    }
-
-    String assembleTaskRelease(String project = '') {
-        assembleTask(project, RELEASE)
-    }
-
     String[] compileTasks(String project = '', String buildType) {
         [compileTask(project, buildType)] as String[]
     }
@@ -67,10 +47,6 @@ abstract trait CppTaskNames {
 
     String installTask(String project = '', String buildType) {
         "${project}:install${buildType}"
-    }
-
-    String assembleTask(String project = '', String buildType) {
-        "${project}:assemble${buildType}"
     }
 
     String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
@@ -175,6 +151,10 @@ abstract trait CppTaskNames {
                 return withProject("installDebug")
             }
 
+            String getAssemble() {
+                return withProject("assembleDebug")
+            }
+
             List<String> getAllToLink() {
                 return [compile, link]
             }
@@ -197,16 +177,28 @@ abstract trait CppTaskNames {
                 return withProject("installRelease")
             }
 
-            List<String> getExtractAndStrip() {
+            String getAssemble() {
+                return withProject("assembleRelease")
+            }
+
+            List<String> getExtract() {
                 if (toolChainUnderTest.visualCpp) {
                     return []
                 } else {
-                    return [withProject("stripSymbolsRelease"), withProject("extractSymbolsRelease")]
+                    return [withProject("extractSymbolsRelease")]
+                }
+            }
+
+            List<String> getStrip() {
+                if (toolChainUnderTest.visualCpp) {
+                    return []
+                } else {
+                    return [withProject("stripSymbolsRelease")]
                 }
             }
 
             List<String> getAllToLink() {
-                return [compile, link] + extractAndStrip
+                return [compile, link] + strip
             }
 
             List<String> getAllToInstall() {
