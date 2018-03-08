@@ -33,7 +33,6 @@ public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<Object> {
     protected RuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, T bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, typeMetadata);
         this.bean = Preconditions.checkNotNull(bean, "Null is not allowed as nested property '%s'", propertyName);
-        checkCycles();
     }
 
     public T getBean() {
@@ -53,12 +52,12 @@ public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<Object> {
         return nodeFactory.create(this, qualifiedPropertyName, bean);
     }
 
-    private void checkCycles() {
-        AbstractPropertyNode<?> nodeCreatingCycle = findNodeCreatingCycle(this, Equivalence.identity());
+    public void checkCycles(String propertyName, Object childBean) {
+        AbstractPropertyNode<?> nodeCreatingCycle = findNodeCreatingCycle(childBean, Equivalence.identity());
         Preconditions.checkState(
             nodeCreatingCycle == null,
             "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.",
-            nodeCreatingCycle, this);
+            nodeCreatingCycle, propertyName);
     }
 }
 

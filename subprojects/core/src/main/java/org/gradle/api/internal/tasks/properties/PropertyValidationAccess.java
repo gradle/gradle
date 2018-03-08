@@ -69,9 +69,7 @@ public class PropertyValidationAccess {
 
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
-            if (!node.currentNodeCreatesCycle()) {
-                node.visit(topLevelBean, cacheable, problems, queue, nodeFactory);
-            }
+            node.visit(topLevelBean, cacheable, problems, queue, nodeFactory);
         }
     }
 
@@ -86,7 +84,13 @@ public class PropertyValidationAccess {
             return new NestedBeanTypeNode(null, null, beanType, metadataStore.getTypeMetadata(beanType.getRawType()));
         }
 
-        public BeanTypeNode<?> create(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<?> beanType) {
+        public void createAndAddToQueue(BeanTypeNode<?> parentNode, String propertyName, TypeToken<?> beanType, Queue<BeanTypeNode<?>> queue) {
+            if (!parentNode.nodeCreatesCycle(beanType)) {
+                queue.add(create(parentNode, propertyName, beanType));
+            }
+        }
+
+        private BeanTypeNode<?> create(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<?> beanType) {
             Class<?> rawType = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
@@ -110,8 +114,8 @@ public class PropertyValidationAccess {
 
         public abstract void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
 
-        public boolean currentNodeCreatesCycle() {
-            return findNodeCreatingCycle(this, Equivalence.equals()) != null;
+        public boolean nodeCreatesCycle(TypeToken<?> childType) {
+            return findNodeCreatingCycle(childType, Equivalence.equals()) != null;
         }
         private final TypeToken<? extends T> beanType;
 
@@ -154,7 +158,7 @@ public class PropertyValidationAccess {
                     }
                 }
                 if (metadata.isAnnotationPresent(Nested.class)) {
-                    queue.add(nodeFactory.create(this, qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())));
+                    nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType()), queue);
                 }
             }
         }
@@ -179,7 +183,7 @@ public class PropertyValidationAccess {
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
-            queue.add(nodeFactory.create(this, determinePropertyName(nestedType), nestedType));
+            nodeFactory.createAndAddToQueue(this, determinePropertyName(nestedType), nestedType, queue);
         }
     }
 
@@ -192,7 +196,7 @@ public class PropertyValidationAccess {
         @Override
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
-            queue.add(nodeFactory.create(this, getQualifiedPropertyName("<key>"), nestedType));
+            nodeFactory.createAndAddToQueue(this, getQualifiedPropertyName("<key>"), nestedType, queue);
         }
     }
 

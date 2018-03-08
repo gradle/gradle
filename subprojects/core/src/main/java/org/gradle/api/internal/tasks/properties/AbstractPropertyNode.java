@@ -31,7 +31,7 @@ public abstract class AbstractPropertyNode<T> {
         this.typeMetadata = typeMetadata;
     }
 
-    public String getQualifiedPropertyName(String childPropertyName) {
+    protected String getQualifiedPropertyName(String childPropertyName) {
         return propertyName == null ? childPropertyName : propertyName + "." + childPropertyName;
     }
 
@@ -45,14 +45,14 @@ public abstract class AbstractPropertyNode<T> {
     }
 
     @Nullable
-    protected AbstractPropertyNode<T> findNodeCreatingCycle(AbstractPropertyNode<T> childNode, Equivalence<? super T> nodeEquivalence) {
+    protected AbstractPropertyNode<T> findNodeCreatingCycle(T childValue, Equivalence<? super T> nodeEquivalence) {
+        if (nodeEquivalence.equivalent(getNodeValue(), childValue)) {
+            return this;
+        }
         if (parentNode == null) {
             return null;
         }
-        if (nodeEquivalence.equivalent(parentNode.getNodeValue(), childNode.getNodeValue())) {
-            return parentNode;
-        }
-        return parentNode.findNodeCreatingCycle(childNode, nodeEquivalence);
+        return parentNode.findNodeCreatingCycle(childValue, nodeEquivalence);
     }
 
     abstract protected T getNodeValue();

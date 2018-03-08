@@ -34,6 +34,7 @@ public class RuntimeBeanNodeFactory {
     }
 
     public RuntimeBeanNode<?> create(RuntimeBeanNode parentNode, String propertyName, Object bean) {
+        parentNode.checkCycles(propertyName, bean);
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
         if (!typeMetadata.hasAnnotatedProperties()) {
             if (bean instanceof Map<?, ?>) {
