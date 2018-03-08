@@ -152,9 +152,7 @@ open class IdePlugin : Plugin<Project> {
                             withJsoup { document ->
                                 val projectElement = document.getElementsByTag("project").first()
                                 projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                    .appendElement("option")
-                                    .attr("name", "COMPILER_PROCESS_HEAP_SIZE")
-                                    .attr("value", "2048")
+                                    .option("COMPILER_PROCESS_HEAP_SIZE", "2048")
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
                                 configureJunitRunConfiguration(runManagerComponent)
@@ -337,9 +335,7 @@ open class IdePlugin : Plugin<Project> {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
         compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
-            .appendElement("option")
-            .attr("name", "BUILD_PROCESS_HEAP_SIZE")
-            .attr("value", "2048")
+            .option("BUILD_PROCESS_HEAP_SIZE", "2048")
     }
 
     private
