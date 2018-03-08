@@ -43,6 +43,7 @@ import accessors.*
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
+import org.gradle.gradlebuild.PublicApi
 import org.gradle.kotlin.dsl.*
 
 
@@ -374,8 +375,8 @@ open class IdePlugin : Plugin<Project> {
             "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
             "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
             "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
-            "-Dorg.gradle.public.api.includes=${(rootProject.property("publicApiIncludes") as List<String>).joinToString(":")}",
-            "-Dorg.gradle.public.api.excludes=${(rootProject.property("publicApiExcludes") as List<String>).joinToString(":")}",
+            "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
+            "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
             "-Dorg.gradle.integtest.executer=embedded",
             "-Dorg.gradle.integtest.versions=latest",
             "-Dorg.gradle.integtest.native.toolChains=default",

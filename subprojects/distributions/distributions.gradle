@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
@@ -143,8 +144,8 @@ artifacts {
 
 integTestTasks.all {
     binaryDistributions.distributionsRequired = true
-    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
-    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
+    systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
+    systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
 }
 
 apply from: 'binary-compatibility.gradle'
