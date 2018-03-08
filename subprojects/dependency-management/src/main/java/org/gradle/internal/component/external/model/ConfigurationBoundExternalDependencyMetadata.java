@@ -155,9 +155,4 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public String getReason() {
         return reason;
     }
-
-    @Override
-    public String toString() {
-        return dependencyDescriptor.toString();
-    }
 }

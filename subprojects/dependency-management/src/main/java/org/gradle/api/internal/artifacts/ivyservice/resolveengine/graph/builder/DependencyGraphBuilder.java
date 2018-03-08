@@ -128,7 +128,7 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
-                // Initialize and collect any new outgoing edges of this node
+                // Calculate the outgoing edges of this configuration
                 dependencies.clear();
                 dependenciesMissingLocalMetadata.clear();
                 node.visitOutgoingDependencies(dependencies, pendingDependenciesHandler);
@@ -144,12 +144,13 @@ public class DependencyGraphBuilder {
 
     private void performSelection(final ResolveState resolveState, ComponentState moduleRevision) {
         ModuleIdentifier moduleId = moduleRevision.getId().getModule();
+        String version = moduleRevision.getId().getVersion();
 
         ModuleResolveState module = resolveState.getModule(moduleId);
         // Check for a new conflict
         if (moduleRevision.isSelectable()) {
 
-            if (tryCompatibleSelection(resolveState, moduleRevision, moduleId, module)) {
+            if (tryCompatibleSelection(resolveState, moduleRevision, moduleId, version, module)) {
                 return;
             }
 
@@ -172,22 +173,22 @@ public class DependencyGraphBuilder {
     }
 
     private static boolean tryCompatibleSelection(final ResolveState resolveState,
-                                                  final ComponentState candidate,
+                                                  final ComponentState moduleRevision,
                                                   final ModuleIdentifier moduleId,
+                                                  String version,
                                                   final ModuleResolveState module) {
-        final ComponentState currentlySelected = module.getSelected();
-        String version = candidate.getId().getVersion();
+        final ComponentState selected = module.getSelected();
         List<SelectorState> moduleSelectors = module.getSelectors();
-        if (currentlySelected == null && !resolveState.getModuleReplacementsData().participatesInReplacements(moduleId)) {
+        if (selected == null && !resolveState.getModuleReplacementsData().participatesInReplacements(moduleId)) {
             if (allSelectorsAgreeWith(moduleSelectors, version, ALL_SELECTORS)) {
-                module.select(candidate);
+                module.select(moduleRevision);
                 return true;
             }
         }
 
-        final Collection<SelectorState> selectedBy = candidate.allResolvers;
-        if (currentlySelected != null && currentlySelected != candidate) {
-            if (allSelectorsAgreeWith(candidate.allResolvers, currentlySelected.getVersion(), ALL_SELECTORS)) {
+        final Collection<SelectorState> selectedBy = moduleRevision.allResolvers;
+        if (selected != null && selected != moduleRevision) {
+            if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion(), ALL_SELECTORS)) {
                 // if this selector agrees with the already selected version, don't bother and pick it
                 return true;
             }
@@ -199,7 +200,7 @@ public class DependencyGraphBuilder {
                 }
             })) {
                 resolveState.getDeselectVersionAction().execute(moduleId);
-                module.softSelect(candidate);
+                module.softSelect(moduleRevision);
                 return true;
             }
         }
@@ -364,9 +365,6 @@ public class DependencyGraphBuilder {
         visitor.finish(resolveState.getRoot());
     }
 
-    /**
-     * Check if all of the supplied selectors agree with the version chosen
-     */
     private static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version, Predicate<SelectorState> filter) {
         boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {

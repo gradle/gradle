@@ -21,8 +21,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import java.util.Collection;
 
 /**
- * A {@link ComponentResult} that is used during the resolution of the dependency graph.
- * Additional fields in this interface are not required to reconstitute the serialized graph.
+ * A component in the dependency graph.
  */
 public interface DependencyGraphComponent extends ComponentResult {
     ComponentResolveMetadata getMetadata();

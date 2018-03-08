@@ -134,7 +134,7 @@ class ModuleResolveState implements CandidateModule {
             version.restart(selected);
         }
         for (SelectorState selector : selectors) {
-            selector.overrideSelection(selected);
+            selector.restart(selected);
         }
         if (!unattachedDependencies.isEmpty()) {
             restartUnattachedDependencies(selected);
