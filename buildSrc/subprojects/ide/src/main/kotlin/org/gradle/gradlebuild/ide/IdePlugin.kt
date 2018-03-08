@@ -46,7 +46,6 @@ import java.io.File
 private
 const val ideConfigurationBaseName = "ideConfiguration"
 
-//TODO move into ide
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -127,10 +126,14 @@ open class IdePlugin : Plugin<Project> {
                         withJsoup { document ->
                             val projectElement = document.getElementsByTag("project").first()
                             configureCompilerConfiguration(projectElement)
-                            configureGradleSettings(projectElement)
                             configureCopyright(projectElement)
+
+                            // We are using an extension method instead of appending a fixed XML String,
+                            // since jsoup `append` method converts all xml tags to lower case.
+                            // In doing so, tags in the code style settings are ignored.
                             projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
                                 .configureCodeStyleSettings()
+
                             projectElement.removeBySelector("component[name=GroovyCompilerProjectConfiguration]")
                                 .append(GROOVY_COMPILER_SETTINGS)
                             configureFrameworkDetectionExcludes(projectElement)
@@ -163,15 +166,6 @@ open class IdePlugin : Plugin<Project> {
                 }
             }
         }
-    }
-
-    private
-    fun Project.configureGradleSettings(projectElement: Element) {
-        projectElement.removeBySelector("component[name=GradleSettings]")
-            .appendElement("component")
-            .attr("name", "GradleSettings")
-            .appendElement("option")
-            .attr("SDK_HOME", gradle.gradleHomeDir!!.absolutePath)
     }
 
     private
@@ -323,9 +317,7 @@ open class IdePlugin : Plugin<Project> {
         copyrightManager.attr("default", "ASL2")
         copyrightManager.createOrEmptyOutChildElement("copyright").let {
             options.forEach { name, value ->
-                it.appendElement("option").
-                    attr("name", name).
-                    attr("value", value)
+                it.option(name, value)
             }
         }
     }
@@ -493,7 +485,7 @@ private
 const val GROOVY_COMPILER_SETTINGS = """
     <component name="GroovyCompilerProjectConfiguration">
         <excludes>
-            <file url="file://${'$'}PROJECT_DIR$/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
+            <file url="file://${'$'}PROJECT_DIR$/subprojects/testing-jvm/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
         </excludes>
         <option name="heapSize" value="2000" />
     </component>
