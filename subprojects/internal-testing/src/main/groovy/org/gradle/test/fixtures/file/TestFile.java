@@ -376,6 +376,21 @@ public class TestFile extends File {
         setText(newContent);
     }
 
+    /**
+     * Inserts the given text on a new line before the given text
+     */
+    public void insertBefore(String text, String newText) {
+        String original = getText();
+        int pos = original.indexOf(text);
+        if (pos < 0) {
+            throw new AssertionError("File " + this + " does not contain the expected text.");
+        }
+        StringBuilder newContent = new StringBuilder(original);
+        newContent.insert(pos, '\n');
+        newContent.insert(pos, newText);
+        setText(newContent.toString());
+    }
+
     public TestFile assertExists() {
         assertTrue(String.format("%s does not exist", this), exists());
         return this;
