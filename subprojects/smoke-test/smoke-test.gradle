@@ -40,9 +40,9 @@ testFixtures {
 }
 
 processSmokeTestResources {
-    from ("$rootDir/gradle") {
+    from ("$rootDir/gradle/init-scripts") {
         into "org/gradle/smoketests/cache-init-scripts"
-        include "overlappingTaskOutputsStatsInit.gradle"
+        include "overlapping-task-outputs-stats-init.gradle"
     }
 }
 

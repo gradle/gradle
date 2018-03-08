@@ -161,7 +161,7 @@ subprojects {
         apply plugin: "gradlebuild.publish-public-libraries"
     }
 
-    apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
+    apply from: "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts"
     apply plugin: "gradlebuild.task-properties-validation"
     apply plugin: "gradlebuild.test-files-cleanup"
 }

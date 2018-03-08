@@ -26,6 +26,6 @@ open class ClassycleExtension(project: Project) {
     val excludePatterns: ListProperty<String> = project.objects.listProperty()
 
     val reportResourcesZip: RegularFileProperty = project.layout.fileProperty().also {
-        it.set(project.rootProject.file("gradle/classycle_report_resources.zip"))
+        it.set(project.rootProject.file("config/classycle_report_resources.zip"))
     }
 }
