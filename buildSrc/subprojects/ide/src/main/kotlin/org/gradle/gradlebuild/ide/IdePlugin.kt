@@ -15,6 +15,7 @@
  */
 package org.gradle.gradlebuild.ide
 
+import accessors.*
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -22,29 +23,24 @@ import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
+import org.gradle.gradlebuild.PublicApi
+import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
-import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.gradle.gradlebuild.docs.PegDown
-
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities
 import org.jsoup.parser.Parser
-
 import java.io.File
-
-import accessors.*
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
-import org.gradle.gradlebuild.PublicApi
-import org.gradle.kotlin.dsl.*
 
 
 private
@@ -133,8 +129,8 @@ open class IdePlugin : Plugin<Project> {
                             configureCompilerConfiguration(projectElement)
                             configureGradleSettings(projectElement)
                             configureCopyright(projectElement)
-                            projectElement.removeBySelector("component[name=ProjectCodeStyleSettingsManager]")
-                                .append(CODE_STYLE_SETTINGS)
+                            projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
+                                .configureCodeStyleSettings()
                             projectElement.removeBySelector("component[name=GroovyCompilerProjectConfiguration]")
                                 .append(GROOVY_COMPILER_SETTINGS)
                             configureFrameworkDetectionExcludes(projectElement)
@@ -156,9 +152,7 @@ open class IdePlugin : Plugin<Project> {
                             withJsoup { document ->
                                 val projectElement = document.getElementsByTag("project").first()
                                 projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                    .appendElement("option")
-                                    .attr("name", "COMPILER_PROCESS_HEAP_SIZE")
-                                    .attr("value", "2048")
+                                    .option("COMPILER_PROCESS_HEAP_SIZE", "2048")
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
                                 configureJunitRunConfiguration(runManagerComponent)
@@ -341,9 +335,7 @@ open class IdePlugin : Plugin<Project> {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
         compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
-            .appendElement("option")
-            .attr("name", "BUILD_PROCESS_HEAP_SIZE")
-            .attr("value", "2048")
+            .option("BUILD_PROCESS_HEAP_SIZE", "2048")
     }
 
     private
@@ -440,42 +432,61 @@ const val GRADLE_CONFIGURATION = """
     </configuration>
 """
 
+private
+fun Element.configureCodeStyleSettings() {
+    val config = appendElement("component")
+        .attr("name", "ProjectCodeStyleConfiguration")
+
+    config.option("USE_PER_PROJECT_SETTINGS", "true")
+    val codeScheme = config.appendElement("code_scheme")
+        .attr("name", "Project")
+        .attr("version", "173")
+
+    listOf(
+        "USE_SAME_INDENTS" to "true",
+        "IGNORE_SAME_INDENTS_FOR_LANGUAGES" to "true",
+        "RIGHT_MARGIN" to "200",
+        "WRAP_COMMENTS" to "true",
+        "IF_BRACE_FORCE" to "3",
+        "DOWHILE_BRACE_FORCE" to "3",
+        "WHILE_BRACE_FORCE" to "3",
+        "FOR_BRACE_FORCE" to "3"
+    ).forEach { (name, value) ->
+        codeScheme.option(name, value)
+    }
+
+    val groovyCodeStyleSettings = codeScheme.appendElement("GroovyCodeStyleSettings")
+
+    listOf(
+        "CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
+        "NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
+        "ALIGN_NAMED_ARGS_IN_MAP" to "false"
+    ).forEach { (name, value) ->
+        groovyCodeStyleSettings.option(name, value)
+    }
+
+    val javaCodeStyleSettings = codeScheme.appendElement("JavaCodeStyleSettings")
+
+    listOf(
+        "CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
+        "NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
+        "JD_ALIGN_PARAM_COMMENTS" to "false",
+        "JD_ALIGN_EXCEPTION_COMMENTS" to "false",
+        "JD_P_AT_EMPTY_LINES" to "false",
+        "JD_KEEP_EMPTY_PARAMETER" to "false",
+        "JD_KEEP_EMPTY_EXCEPTION" to "false",
+        "JD_KEEP_EMPTY_RETURN" to "false"
+    ).forEach { (name, value) ->
+        javaCodeStyleSettings.option(name, value)
+    }
+}
 
 private
-const val CODE_STYLE_SETTINGS = """
-    <component name="ProjectCodeStyleSettingsManager">
-        <option name="PER_PROJECT_SETTINGS">
-            <value>
-                <option name="USE_SAME_INDENTS" value="true" />
-                <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="999" />
-                <option name="RIGHT_MARGIN" value="200" />
-                <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
-                <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
-                <option name="JD_P_AT_EMPTY_LINES" value="false" />
-                <option name="JD_KEEP_EMPTY_PARAMETER" value="false" />
-                <option name="JD_KEEP_EMPTY_EXCEPTION" value="false" />
-                <option name="JD_KEEP_EMPTY_RETURN" value="false" />
-                <option name="WRAP_COMMENTS" value="true" />
-                <option name="IF_BRACE_FORCE" value="3" />
-                <option name="DOWHILE_BRACE_FORCE" value="3" />
-                <option name="WHILE_BRACE_FORCE" value="3" />
-                <option name="FOR_BRACE_FORCE" value="3" />
-                <codeStyleSettings language="JAVA">
-                    <option name="KEEP_CONTROL_STATEMENT_IN_ONE_LINE" value="false" />
-                    <option name="IF_BRACE_FORCE" value="3" />
-                    <option name="DOWHILE_BRACE_FORCE" value="3" />
-                    <option name="WHILE_BRACE_FORCE" value="3" />
-                    <option name="FOR_BRACE_FORCE" value="3" />
-                </codeStyleSettings>
-                <GroovyCodeStyleSettings>
-                    <option name="ALIGN_NAMED_ARGS_IN_MAP" value="false" />
-                    <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="999" />
-                </GroovyCodeStyleSettings>
-            </value>
-        </option>
-        <option name="USE_PER_PROJECT_SETTINGS" value="true" />
-    </component>
-"""
+fun Element.option(name: String, value: String) {
+    appendElement("option")
+        .attr("name", name)
+        .attr("value", value)
+}
 
 
 private
@@ -492,10 +503,16 @@ const val GROOVY_COMPILER_SETTINGS = """
 private
 fun XmlProvider.withJsoup(function: (Document) -> Unit) {
     val xml = asString()
+    val document = modifyXmlDocument(xml, function)
+    xml.replace(0, xml.length, document)
+}
+
+private
+fun modifyXmlDocument(xml: StringBuilder, function: (Document) -> Unit): String {
     val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
     function(document)
     document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-    xml.replace(0, xml.length, document.toString())
+    return document.toString()
 }
 
 
@@ -509,7 +526,6 @@ fun Element.createOrEmptyOutChildElement(childName: String): Element {
         children().remove()
     }
 }
-
 
 private
 fun Element.removeBySelector(selector: String): Element =
