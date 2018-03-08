@@ -55,10 +55,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Change of default Checkstyle configuration directory
 
-Configuring rules consumed by the Checkstyle plugin in a multi-project build used to be tedious.
-It's a very common scenario that all sub projects of a multi-project build use the same configuration file.
-Users have to reconfigure the default value of the property `configDir` to point to the shared location hosting the configuration file. 
-With this release of Gradle, the Checkstyle configuration file only needs to be provided in the directory `config/checkstyle` of the root project and automatically applies to all sub projects without having to set a new location for the `configDir` property.
+With this release of Gradle, the Checkstyle configuration file is discovered in the directory `config/checkstyle` of the root project and automatically applies to all sub projects without having to set a new location for the `configDir` property.
 The Checkstyle configuration file in a sub project takes precedence over the file provided in the root project to support backward compatibility.
 
 ## Potential breaking changes
