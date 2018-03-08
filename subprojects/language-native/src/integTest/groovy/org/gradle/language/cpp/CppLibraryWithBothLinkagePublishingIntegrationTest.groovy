@@ -51,7 +51,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         then:
         result.assertTasksExecuted(
             ':compileDebugSharedCpp', ':linkDebugShared',
-            ':compileReleaseSharedCpp', ':linkReleaseShared', stripSymbolsTasks('ReleaseShared', toolChain),
+            ':compileReleaseSharedCpp', ':linkReleaseShared', stripSymbolsTasks('ReleaseShared'),
             ':compileDebugStaticCpp', ':createDebugStatic',
             ':compileReleaseStaticCpp', ':createReleaseStatic',
             ":generatePomFileForMainDebugSharedPublication",

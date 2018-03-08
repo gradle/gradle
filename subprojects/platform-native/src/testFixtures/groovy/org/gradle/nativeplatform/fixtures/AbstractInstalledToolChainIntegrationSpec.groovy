@@ -34,6 +34,8 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     static AvailableToolChains.InstalledToolChain toolChain
     File initScript
 
+    AvailableToolChains.InstalledToolChain getToolchainUnderTest() { toolChain }
+
     def setup() {
         initScript = file("init.gradle") << """
 allprojects { p ->
