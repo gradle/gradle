@@ -22,7 +22,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.ide.visualstudio.VisualStudioProject;
@@ -34,6 +33,7 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -80,9 +80,16 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
-    @Nested
-    public VisualStudioProject getVisualStudioProject() {
-        return visualStudioProject;
+    /**
+     * Returns the xml string that will be written to the project file.
+     *
+     * @since 4.7
+     */
+    @Input
+    public String getProjectFileXml() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        getDomainObject().store(out);
+        return out.toString();
     }
 
     @Override

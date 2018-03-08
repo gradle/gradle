@@ -19,13 +19,14 @@ package org.gradle.ide.visualstudio.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Input;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 /**
@@ -44,9 +45,16 @@ public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFilter
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
-    @Nested
-    public VisualStudioProject getVisualStudioProject() {
-        return visualStudioProject;
+    /**
+     * Returns the xml string that will be written to the filter file.
+     *
+     * @since 4.7
+     */
+    @Input
+    public String getFilterFileXml() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        getDomainObject().store(out);
+        return out.toString();
     }
 
     @Override

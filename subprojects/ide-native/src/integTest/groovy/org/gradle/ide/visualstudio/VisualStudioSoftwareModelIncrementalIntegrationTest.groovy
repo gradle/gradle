@@ -218,8 +218,8 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         run "visualStudio"
 
         then:
-        executedAndNotSkipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("main")
+        skipped getFiltersTask("main")
+        executedAndNotSkipped ":appVisualStudioSolution", getProjectTask("main")
 
         and:
         final projectFile = projectFile("mainExe.vcxproj")
@@ -261,8 +261,8 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("main")
+        skipped ":appVisualStudioSolution", getFiltersTask("main")
+        executedAndNotSkipped getProjectTask("main")
 
         and:
         final projectFile = projectFile("mainExe.vcxproj")
