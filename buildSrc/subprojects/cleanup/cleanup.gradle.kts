@@ -12,7 +12,7 @@ dependencies {
 gradlePlugin {
     (plugins) {
         "cleanup" {
-            id = "cleanup"
+            id = "gradlebuild.cleanup"
             implementationClass = "org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupPlugin"
         }
     }

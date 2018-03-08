@@ -24,6 +24,7 @@ import org.gradle.binarycompatibility.transforms.*
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
 import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.PublicApi
 
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
@@ -114,8 +115,8 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        includedClasses = toPatterns(publicApiIncludes)
-        excludedClasses = toPatterns(publicApiExcludes)
+        includedClasses = toPatterns(PublicApi.includes)
+        excludedClasses = toPatterns(PublicApi.excludes)
 
         title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")

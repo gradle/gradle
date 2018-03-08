@@ -41,7 +41,7 @@ class JavaProjectsPlugin : Plugin<Project> {
             }
 
             if (file("src/jmh").isDirectory) {
-                plugin("jmh")
+                plugin("gradlebuild.jmh")
             }
             from("$rootDir/gradle/testWithUnknownOS.gradle")
         }

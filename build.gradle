@@ -133,7 +133,7 @@ allprojects {
     }
 }
 
-apply plugin: "cleanup"
+apply plugin: "gradlebuild.cleanup"
 apply plugin: "gradlebuild.available-java-installations"
 apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
@@ -144,7 +144,6 @@ apply from: "gradle/testDependencies.gradle"
 apply plugin: "gradlebuild.wrapper"
 apply plugin: "gradlebuild.ide"
 apply plugin: "gradlebuild.no-resolution-at-configuration"
-apply from: "gradle/publicApi.gradle"
 apply plugin: "gradlebuild.update-versions"
 apply plugin: "gradlebuild.dependency-vulnerabilities"
 apply plugin: "gradlebuild.add-verify-production-environment-task"

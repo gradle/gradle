@@ -19,7 +19,7 @@ gradlePlugin {
             implementationClass = "org.gradle.gradlebuild.profiling.buildscan.BuildScanPlugin"
         }
         "jhm" {
-            id = "jmh"
+            id = "gradlebuild.jmh"
             implementationClass = "org.gradle.gradlebuild.profiling.JmhPlugin"
         }
     }
