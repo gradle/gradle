@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
 
@@ -32,4 +33,6 @@ public interface VariantResolveMetadata {
     AttributeContainerInternal getAttributes();
 
     List<? extends ComponentArtifactMetadata> getArtifacts();
+
+    CapabilitiesMetadata getCapabilitiesMetadata();
 }

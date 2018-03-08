@@ -32,7 +32,7 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
 
-public class DefaultConflictHandler implements ConflictHandler {
+public class DefaultConflictHandler implements ModuleConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 

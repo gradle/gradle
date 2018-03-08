@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -351,6 +353,16 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         public boolean isSelectable() {
             return canSelect;
+        }
+    }
+
+
+    public void forEachCapability(Action<? super CapabilityDescriptor> action) {
+        for (NodeState target : nodes) {
+            List<? extends CapabilityDescriptor> capabilities = target.getMetadata().getCapabilitiesMetadata().getCapabilities();
+            for (CapabilityDescriptor capability : capabilities) {
+                action.execute(capability);
+            }
         }
     }
 
