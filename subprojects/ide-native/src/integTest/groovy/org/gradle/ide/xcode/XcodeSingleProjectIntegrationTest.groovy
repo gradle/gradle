@@ -34,7 +34,7 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         project.assertNoTargets()
     }
 
-    def "create empty xcode project when no buildable binaries exist"() {
+    def "create empty xcode project when component does not target current OS"() {
         buildFile << """
             apply plugin: 'cpp-application'
             

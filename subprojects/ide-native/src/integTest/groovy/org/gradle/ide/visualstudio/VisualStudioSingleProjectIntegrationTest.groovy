@@ -50,7 +50,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertHasProjects()
     }
 
-    def "create empty solution when no buildable binaries exist"() {
+    def "create empty solution when component does not target current OS"() {
         when:
         settingsFile << """
             rootProject.name = 'app'
