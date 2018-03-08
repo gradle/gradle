@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.UnsupportedVersionException
-import org.jetbrains.kotlin.com.google.common.collect.Lists
 
 import java.util.regex.Pattern
 
@@ -166,7 +165,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().addAfterConfigurationAction(new CustomAfterConfiguringAction(Lists.newArrayList("hello")), afterConfigurationHandler)
+            connection.phasedAction().addAfterConfigurationAction(new CustomAfterConfiguringAction(["hello"]), afterConfigurationHandler)
                 .build()
                 .setStandardOutput(stdOut)
                 .run()
