@@ -46,6 +46,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private ConnectionAcceptor acceptor;
     private ExecHandle execHandle;
     private boolean running;
+    private boolean aborted;
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
@@ -68,6 +69,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     public void stopNow() {
         lock.lock();
         try {
+            aborted = true;
             if (connection != null) {
                 connection.abort();
             }
@@ -115,6 +117,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
             }
 
             this.connection = connection;
+            if (aborted) {
+                connection.abort();
+            }
             condition.signalAll();
             stoppable = acceptor;
         } finally {
