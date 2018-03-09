@@ -77,7 +77,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         private final AbstractCopyTask copyTask;
 
         public RootCopySpec(AbstractCopyTask copyTask, FileResolver resolver, Instantiator instantiator) {
-            super(null, resolver, instantiator);
+            super(resolver, instantiator);
             this.copyTask = copyTask;
         }
 

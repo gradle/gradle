@@ -39,7 +39,7 @@ public class FileCopier {
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
-        DefaultCopySpec copySpec = new DefaultCopySpec(null, fileResolver, instantiator);
+        DefaultCopySpec copySpec = new DefaultCopySpec(fileResolver, instantiator);
         DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
         CopySpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);

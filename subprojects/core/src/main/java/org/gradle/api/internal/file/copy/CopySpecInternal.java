@@ -30,6 +30,10 @@ public interface CopySpecInternal extends CopySpec {
 
     CopySpecInternal addFirst();
 
+    void addedToParent(CopySpecInternal parent);
+
+    void descendantAdded(CopySpecInternal descendantSpec);
+
     ResolvedCopySpecNode resolveAsRoot();
 
     ResolvedCopySpecNode resolveAsChild(
@@ -43,6 +47,4 @@ public interface CopySpecInternal extends CopySpec {
     boolean hasCustomActions();
 
     void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action);
-
-    void descendantAdded(CopySpecInternal childSpec);
 }

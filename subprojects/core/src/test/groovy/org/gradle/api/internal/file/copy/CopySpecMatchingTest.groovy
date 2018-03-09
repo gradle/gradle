@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(null, TestFiles.resolver(), DirectInstantiator.INSTANCE)
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
 
     FileTree fileTree = Mock()
 

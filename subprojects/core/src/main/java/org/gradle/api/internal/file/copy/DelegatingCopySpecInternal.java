@@ -309,6 +309,11 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    public void addedToParent(CopySpecInternal parent) {
+        getDelegateCopySpec().addedToParent(parent);
+    }
+
+    @Override
     public void descendantAdded(CopySpecInternal childSpec) {
         getDelegateCopySpec().descendantAdded(childSpec);
     }

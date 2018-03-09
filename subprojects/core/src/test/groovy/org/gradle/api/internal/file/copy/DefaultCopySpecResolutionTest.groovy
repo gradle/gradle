@@ -32,7 +32,7 @@ class DefaultCopySpecResolutionTest extends Specification implements CopySpecTes
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
     def instantiator = DirectInstantiator.INSTANCE
-    final CopySpecInternal spec = new DefaultCopySpec(null, fileResolver, instantiator)
+    final CopySpecInternal spec = new DefaultCopySpec(fileResolver, instantiator)
 
     def "spec has root path as destination by default"() {
         expect:
@@ -269,15 +269,15 @@ class DefaultCopySpecResolutionTest extends Specification implements CopySpecTes
 
     def "can walk down tree created using with"() {
         given:
-        CopySpec childOne = new DefaultCopySpec(null, fileResolver, instantiator)
+        CopySpec childOne = new DefaultCopySpec(fileResolver, instantiator)
         childOne.into("child_one")
         spec.with(childOne)
 
-        CopySpec childTwo = new DefaultCopySpec(null, fileResolver, instantiator)
+        CopySpec childTwo = new DefaultCopySpec(fileResolver, instantiator)
          childTwo.into("child_two")
         spec.with( childTwo)
 
-        CopySpec grandchild = new DefaultCopySpec(null, fileResolver, instantiator)
+        CopySpec grandchild = new DefaultCopySpec(fileResolver, instantiator)
         grandchild.into("grandchild")
         childOne.with(grandchild)
         childTwo.with(grandchild)

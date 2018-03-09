@@ -44,7 +44,7 @@ class DefaultCopySpecTest extends Specification implements CopySpecTestSpec {
     def fileResolver = Mock(FileResolver) {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
-    final DefaultCopySpec spec = new DefaultCopySpec(null, fileResolver, DirectInstantiator.INSTANCE)
+    final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -104,8 +104,8 @@ class DefaultCopySpecTest extends Specification implements CopySpecTestSpec {
 
     def 'with Spec'() {
         given:
-        DefaultCopySpec other1 = new DefaultCopySpec(null, fileResolver, DirectInstantiator.INSTANCE)
-        DefaultCopySpec other2 = new DefaultCopySpec(null, fileResolver, DirectInstantiator.INSTANCE)
+        DefaultCopySpec other1 = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
+        DefaultCopySpec other2 = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
 
         when:
         spec.with other1, other2
@@ -361,7 +361,7 @@ class DefaultCopySpecTest extends Specification implements CopySpecTestSpec {
         spec.children == [child1, child2, child3]
 
         where:
-        notContainedChild << [null, new DefaultCopySpec(null, fileResolver, DirectInstantiator.INSTANCE)]
+        notContainedChild << [null, new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)]
     }
 
     def 'properties accessed directly have defaults'() {
@@ -441,7 +441,7 @@ class DefaultCopySpecTest extends Specification implements CopySpecTestSpec {
         ]
 
         when:
-        CopySpec otherSpec = new DefaultCopySpec(null, fileResolver, DirectInstantiator.INSTANCE)
+        CopySpec otherSpec = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
         otherSpec.into "other"
         otherSpec.addChild().into "other-grand"
 
