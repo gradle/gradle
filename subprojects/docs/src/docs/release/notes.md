@@ -49,11 +49,12 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
-
 * `Task.deleteAllActions()` is deprecated without replacement.
+
+### Change of default Checkstyle configuration directory
+
+With this release of Gradle, the Checkstyle configuration file is discovered in the directory `config/checkstyle` of the root project and automatically applies to all sub projects without having to set a new location for the `configDir` property.
+The Checkstyle configuration file in a sub project takes precedence over the file provided in the root project to support backward compatibility.
 
 ## Potential breaking changes
 

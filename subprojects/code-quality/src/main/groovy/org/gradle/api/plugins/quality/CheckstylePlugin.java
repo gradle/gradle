@@ -19,11 +19,14 @@ import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Map;
@@ -35,6 +38,7 @@ import java.util.concurrent.Callable;
 public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     public static final String DEFAULT_CHECKSTYLE_VERSION = "6.19";
+    private static final String CONFIG_DIR_NAME = "config/checkstyle";
     private CheckstyleExtension extension;
 
     @Override
@@ -51,8 +55,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-
-        extension.setConfigDir(project.file("config/checkstyle"));
+        extension.getConfigDirectory().set(determineConfigurationDirectory());
         extension.setConfig(project.getResources().getText().fromFile(new Callable<File>() {
             @Override
             public File call() {
@@ -60,6 +63,28 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             }
         }));
         return extension;
+    }
+
+    private Provider<Directory> determineConfigurationDirectory() {
+        return project.provider(new Callable<Directory>() {
+            @Override
+            public Directory call() {
+                if (usesSubprojectCheckstyleConfiguration()) {
+                    DeprecationLogger.nagUserOfDeprecated("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead");
+                    return project.getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
+                }
+
+                return project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
+            }
+        });
+    }
+
+    private boolean usesSubprojectCheckstyleConfiguration() {
+        return !isRootProject() && project.file(CONFIG_DIR_NAME).isDirectory();
+    }
+
+    private boolean isRootProject() {
+        return project.equals(project.getRootProject());
     }
 
     @Override
