@@ -146,7 +146,7 @@ class HonestProfilerCollector implements DataCollector {
 
     private static void invokeFlameGraphGenerator(File sanitizedOutput, File svgDestFile) {
         File flameGraphHomeDir = locateFlameGraphInstallation()
-        def process = ["$flameGraphHomeDir/flamegraph.pl", "--minwidth", "0.5", sanitizedOutput].execute()
+        def process = ["$flameGraphHomeDir/flamegraph.pl", "--minwidth", "0.5", "--hash", "1", sanitizedOutput].execute()
         def fos = svgDestFile.newOutputStream()
         process.waitForProcessOutput(fos, System.err)
         fos.close()
