@@ -18,22 +18,26 @@ package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 
 
 /**
  * A multiple origin processor can have zero to many originating elements for each generated file.
  */
-public class MultipleOriginProcessor extends IncrementalProcessor {
+public final class MultipleOriginProcessor extends DelegatingProcessor {
+
+    private final AnnotationProcessingResult result;
 
     public MultipleOriginProcessor(Processor delegate, AnnotationProcessingResult result) {
-        super(delegate, result);
+        super(delegate);
+        this.result = result;
     }
 
     @Override
-    IncrementalFiler wrapFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        return new MultipleOriginFiler(filer, result, messager);
+    public final void init(ProcessingEnvironment processingEnv) {
+        IncrementalFiler incrementalFiler = new MultipleOriginFiler(processingEnv.getFiler(), result, processingEnv.getMessager());
+        IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
+        super.init(incrementalProcessingEnvironment);
     }
 }
