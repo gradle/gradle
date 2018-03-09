@@ -19,7 +19,6 @@ package org.gradle.internal.logging.services;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
@@ -51,11 +50,10 @@ import org.gradle.internal.time.Time;
  * </ol>
  */
 public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
-    private final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(new DefaultListenerManager());
     private TextStreamOutputEventListener stdoutListener;
 
-    private OutputEventRenderer renderer;
-
+    protected final OutputEventRenderer renderer = makeOutputEventRenderer();
+    protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
 
     /**
      * Creates a set of logging services which are suitable to use globally in a process. In particular:
@@ -135,9 +133,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
-        OutputEventListenerManager outputEventListenerManager = get(OutputEventListenerManager.class);
         OutputEventListener outputEventBroadcaster = outputEventListenerManager.getBroadcaster();
-        OutputEventRenderer renderer = getOutputEventRenderer();
 
         LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(Clock.class));
         stdout.setLevel(LogLevel.QUIET);
@@ -159,17 +155,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return outputEventListenerManager;
     }
 
-    // Intentionally not a service registry create method.
-    // We do not want to expose this to consumers.
-    protected final OutputEventRenderer getOutputEventRenderer() {
-        if (renderer == null) {
-            renderer = makeOutputEventRenderer();
-            outputEventListenerManager.addListener(renderer);
-        }
-
-        return renderer;
-    }
-
+    // Intentionally not a “create” method as this should not be exposed as a service
     protected OutputEventRenderer makeOutputEventRenderer() {
         return new OutputEventRenderer(Time.clock());
     }
@@ -182,7 +168,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
             // Don't configure anything
             return new DefaultLoggingManagerFactory(
-                getOutputEventRenderer(),
+                renderer,
                 new NoOpLoggingSystem(),
                 new NoOpLoggingSystem(),
                 new NoOpLoggingSystem(),
