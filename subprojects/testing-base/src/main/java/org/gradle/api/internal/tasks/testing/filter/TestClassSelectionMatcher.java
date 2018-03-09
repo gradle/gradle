@@ -28,7 +28,7 @@ import java.util.List;
  *
  * <ul>
  * <li>If pattern starts with a wildcard (*), we can't exclude any class. E.g., pattern '*testMethod' can match 'testMethod' in any class.</li>
- * <li>If pattern doesn't starts with a wildcard (*), we can exclude the classes that can't be matched at all. E.g., 'com.gradle.Test' can be excluded by pattern 'org.gradle*'.</li>
+ * <li>If pattern doesn't starts with a wildcard (*), we can exclude the classes that can't be matched at all. E.g., 'org.apache.Test' can be excluded by pattern 'org.gradle*'.</li>
  * <li>Two kinds of special cases without any wildcards are supported: TestClass/TestClass.testMethod can match TestClass in any package.</li>
  * </ul>
  */
@@ -74,11 +74,11 @@ public class TestClassSelectionMatcher {
         private static TestClassPattern fromPattern(String pattern) {
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                TestClassPattern result = new WildcardPattern();
+                TestClassPattern result = new SimplePattern();
                 result.segments = StringUtils.splitPreserveAllTokens(pattern, '.');
                 return result;
             } else {
-                TestClassPattern result = new SimplePattern();
+                TestClassPattern result = new WildcardPattern();
                 result.segments = StringUtils.splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
                 return result;
             }
