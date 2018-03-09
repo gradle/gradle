@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -93,12 +94,15 @@ public class PropertyValidationAccess {
         private BeanTypeNode<?> create(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<?> beanType) {
             Class<?> rawType = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
-            if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
+            if (parentNode != null && propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
                     return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), typeMetadata);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
                     return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedCast(beanType), typeMetadata);
+                }
+                if (Provider.class.isAssignableFrom(rawType)) {
+                    return new ProviderBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Provider<?>>>uncheckedCast(beanType), typeMetadata);
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);
@@ -197,6 +201,18 @@ public class PropertyValidationAccess {
         public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
             nodeFactory.createAndAddToQueue(this, getQualifiedPropertyName("<key>"), nestedType, queue);
+        }
+    }
+
+    private static class ProviderBeanTypeNode extends BeanTypeNode<Provider<?>> {
+        public ProviderBeanTypeNode(BeanTypeNode<?> parentNode, String propertyName, TypeToken<Provider<?>> providerTypeToken, TypeMetadata typeMetadata) {
+            super(parentNode, propertyName, providerTypeToken, typeMetadata);
+        }
+
+        @Override
+        public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+            TypeToken<?> nestedType = extractNestedType(Provider.class, 0);
+            nodeFactory.createAndAddToQueue(this, getPropertyName(), nestedType, queue);
         }
     }
 

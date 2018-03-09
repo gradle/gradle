@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -139,6 +140,18 @@ class PropertyValidationAccessTest extends Specification {
         assertHasValidationProblems(TaskWithNestedMap, [
                 "property 'beans.<key>.nonAnnotated' is not annotated with an input or output annotation",
                 "property 'beanMap.<key>.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    static class TaskWithNestedProvider extends DefaultTask {
+        @Nested
+        Provider<NestedBean> nested
+    }
+
+    def "analyzes type arguments of Providers"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedProvider, [
+                "property 'nested.nonAnnotated' is not annotated with an input or output annotation"
         ])
     }
 

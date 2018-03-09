@@ -661,6 +661,76 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         succeeds "myTask"
     }
 
+    def "nested #type is unpacked"() {
+        buildFile << taskWithNestedInput()
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """
+            myTask.nested = ${code}
+        """
+
+        def myTask = ':myTask'
+        when:
+        run myTask, '-Pinput=original'
+        then:
+        executedAndNotSkipped myTask
+
+        when:
+        run myTask, '-Pinput=original'
+        then:
+        skipped myTask
+
+        when:
+        run myTask, '-Pinput=changed', '--info'
+        then:
+        executedAndNotSkipped myTask
+        output.contains "Value of input property 'nested.input' has changed for task ':myTask'"
+
+        where:
+        type | code
+        'Callable' | "{ new NestedBean(project.property('input')) }"
+        'Provider' | "provider { new NestedBean(project.property('input')) }"
+    }
+
+    def "annotated Callable is unpacked"() {
+        buildFile << taskWithNestedInput()
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """ 
+            import java.util.concurrent.Callable
+      
+            class MyCallable implements Callable<NestedBean> {
+                @Input
+                String myInput
+            
+                MyCallable(String myInput) {
+                    this.myInput = myInput
+                }
+                
+                NestedBean call() {
+                    return new NestedBean(myInput)
+                }
+            }
+
+            myTask.nested = new MyCallable(project.property('input'))
+        """
+
+        def myTask = ':myTask'
+        when:
+        run myTask, '-Pinput=original'
+        then:
+        executedAndNotSkipped myTask
+
+        when:
+        run myTask, '-Pinput=original'
+        then:
+        skipped myTask
+
+        when:
+        run myTask, '-Pinput=changed', '--info'
+        then:
+        executedAndNotSkipped myTask
+        output.contains "Value of input property 'nested.input' has changed for task ':myTask'"
+    }
+
     def "input changes for task with named nested beans"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
