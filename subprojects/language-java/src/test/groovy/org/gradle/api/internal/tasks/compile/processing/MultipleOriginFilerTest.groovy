@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 
 import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
-import javax.tools.Diagnostic
 
 class MultipleOriginFilerTest extends IncrementalFilerTest {
 
@@ -30,12 +29,12 @@ class MultipleOriginFilerTest extends IncrementalFilerTest {
         new MultipleOriginFiler(delegate, result, messager)
     }
 
-    def "fails when no originating elements are given"() {
+    def "can have zero originating elements"() {
         when:
         filer.createSourceFile("Foo")
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Generated type 'Foo' must have at least one originating element.")
+        0 * messager._
     }
     def "does not fail when many originating elements are given"() {
         when:

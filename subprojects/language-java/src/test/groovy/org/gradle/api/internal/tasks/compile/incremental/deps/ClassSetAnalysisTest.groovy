@@ -20,7 +20,7 @@ import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.*
 
 class ClassSetAnalysisTest extends Specification {
 
@@ -191,6 +191,6 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> dependentClasses) {
-        dependencyToAll ? DependencyToAll.INSTANCE : new DefaultDependentsSet(dependentClasses as Set)
+        dependencyToAll ? DependentsSet.dependencyToAll() : dependents(dependentClasses as Set)
     }
 }

@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
-import javax.tools.Diagnostic;
 import java.util.Set;
 
 /**
@@ -33,9 +32,6 @@ class MultipleOriginFiler extends IncrementalFiler {
     }
 
     protected void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager) {
-        if (originatingTypes.isEmpty()) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Generated type '" + generatedType + "' must have at least one originating element.");
-        }
     }
 
 }

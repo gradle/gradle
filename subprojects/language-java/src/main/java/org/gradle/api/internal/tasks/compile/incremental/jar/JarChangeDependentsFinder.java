@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
@@ -43,10 +42,10 @@ public class JarChangeDependentsFinder {
             if (jarClasspathSnapshot.isAnyClassDuplicated(jarArchive)) {
                 //at least one of the classes from the new jar is already present in jar classpath
                 //to avoid calculation which class gets on the classpath first, rebuild all
-                return new DependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
+                return DependentsSet.dependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
             } else {
                 //none of the new classes in the jar are duplicated on classpath, don't rebuild
-                return DefaultDependentsSet.EMPTY;
+                return DependentsSet.empty();
             }
         }
         final JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
@@ -54,13 +53,13 @@ public class JarChangeDependentsFinder {
         if (previous == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return new DependencyToAll("missing jar snapshot of '" + jarArchive.file.getName() + "' from previous build");
+            return DependentsSet.dependencyToAll("missing jar snapshot of '" + jarArchive.file.getName() + "' from previous build");
         }
 
         if (jarChangeDetails.isRemoved()) {
             DependentsSet allClasses = previous.getAllClasses();
             if (allClasses.isDependencyToAll()) {
-                return new DependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
+                return DependentsSet.dependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
             }
             //recompile all dependents of all the classes from jar
             return previousCompilation.getDependents(allClasses.getDependentClasses(), previous.getAllConstants(allClasses));
@@ -78,12 +77,12 @@ public class JarChangeDependentsFinder {
             if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
                 //A new duplicate class on classpath. As we don't fancy-handle classpath order right now, we don't know which class is on classpath first.
                 //For safe measure rebuild everything
-                return new DependencyToAll("at least one of the classes of modified jar '" + jarArchive.file.getName() + "' is already present in the classpath");
+                return DependentsSet.dependencyToAll("at least one of the classes of modified jar '" + jarArchive.file.getName() + "' is already present in the classpath");
             }
 
             //recompile all dependents of the classes changed in the jar
 
-            final Set<String> dependentClasses = altered.getDependentClasses();
+            final Set<String> dependentClasses = Sets.newHashSet(altered.getDependentClasses());
             final Deque<String> queue = Lists.newLinkedList(dependentClasses);
             while (!queue.isEmpty()) {
                 final String dependentClass = queue.poll();

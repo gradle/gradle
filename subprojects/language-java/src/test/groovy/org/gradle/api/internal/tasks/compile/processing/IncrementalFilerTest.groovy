@@ -40,12 +40,13 @@ abstract class IncrementalFilerTest extends Specification {
 
     abstract Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager)
 
-    def "fails when a package element is given as an originating element"() {
+    def "packages are valid originating elements"() {
         when:
         filer.createSourceFile("Foo", pkg("fizz"))
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors must use types (or elements contained in types) as originating elements.")
+        result.generatedTypesByOrigin.size() == 1
+        result.generatedTypesByOrigin["fizz.package-info"] == ["Foo"] as Set
     }
 
     def "fails when trying to read resources"() {
@@ -70,14 +71,18 @@ abstract class IncrementalFilerTest extends Specification {
         filer.createSourceFile("Bar", type("B"))
 
         then:
-        result.generatedTypesByOrigin.size() == 2
+        result.generatedTypesByOrigin.size() == 3
         result.generatedTypesByOrigin["A"] == ["Foo"] as Set
+        result.generatedTypesByOrigin["pkg.package-info"] == ["Foo"] as Set
         result.generatedTypesByOrigin["B"] == ["Foo", "Bar"] as Set
 
     }
 
     PackageElement pkg(String packageName) {
         Stub(PackageElement) {
+            getQualifiedName() >> Stub(Name) {
+                toString() >> packageName
+            }
             getEnclosingElement() >> null
         }
     }

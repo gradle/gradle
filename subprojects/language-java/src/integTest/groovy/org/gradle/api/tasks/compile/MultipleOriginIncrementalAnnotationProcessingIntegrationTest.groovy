@@ -55,18 +55,6 @@ class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstr
         output.contains("Processor (type: MULTIPLE_ORIGIN)")
     }
 
-    def "processors must provide an originating element for each source element"() {
-        given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN))
-        java "@Thing class A {}"
-
-        expect:
-        fails "compileJava"
-
-        and:
-        errorOutput.contains("Generated type 'AThing' must have at least one originating element.")
-    }
-
     def "processors can't access resources"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN))
