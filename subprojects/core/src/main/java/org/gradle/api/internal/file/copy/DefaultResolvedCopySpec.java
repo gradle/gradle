@@ -15,23 +15,17 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.util.PatternSet;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 
 public class DefaultResolvedCopySpec implements ResolvedCopySpec {
     private final RelativePath destPath;
-    private final FileResolver fileResolver;
-    private final Set<Object> sourcePaths;
-    private final PatternSet patternSet;
+    private final FileTree source;
     private final boolean caseSensitive;
     private final boolean includeEmptyDirs;
     private final DuplicatesStrategy duplicatesStrategy;
@@ -42,9 +36,7 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
 
     public DefaultResolvedCopySpec(
         RelativePath destPath,
-        FileResolver fileResolver,
-        Set<Object> sourcePaths,
-        PatternSet patternSet,
+        FileTree source,
         boolean caseSensitive,
         boolean includeEmptyDirs,
         DuplicatesStrategy duplicatesStrategy,
@@ -54,9 +46,7 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
         Iterable<Action<? super FileCopyDetails>> copyActions
     ) {
         this.destPath = destPath;
-        this.fileResolver = fileResolver;
-        this.sourcePaths = sourcePaths;
-        this.patternSet = patternSet;
+        this.source = source;
         this.caseSensitive = caseSensitive;
         this.includeEmptyDirs = includeEmptyDirs;
         this.duplicatesStrategy = duplicatesStrategy;
@@ -78,17 +68,7 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
 
     @Override
     public FileTree getSource() {
-        FileTree source = fileResolver.resolveFilesAsTree(sourcePaths);
-        if (patternSet.isEmpty()) {
-            return source;
-        } else {
-            return source.matching(patternSet);
-        }
-    }
-
-    @VisibleForTesting
-    PatternSet getPatternSet() {
-        return patternSet;
+        return source;
     }
 
     @Override

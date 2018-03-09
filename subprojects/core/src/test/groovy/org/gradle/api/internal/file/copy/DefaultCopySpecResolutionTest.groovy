@@ -61,18 +61,20 @@ class DefaultCopySpecResolutionTest extends Specification implements CopySpecTes
 
     def "child uses parent patterns as default"() {
         given:
+        def parent = fileResolver.patternSetFactory.create()
+        def child = fileResolver.patternSetFactory.create()
+
         Spec specInclude = Mock(Spec)
         Spec specExclude = Mock(Spec)
 
-        spec.include('parent-include')
-        spec.exclude('parent-exclude')
-        spec.include(specInclude)
-        spec.exclude(specExclude)
-
-        spec.addChild()
+        parent.include('parent-include')
+        parent.exclude('parent-exclude')
+        parent.include(specInclude)
+        parent.exclude(specExclude)
 
         when:
-        def patterns = resolvedChild().patternSet
+        def patterns = DefaultCopySpec.mergePatternSetIfNecessary(fileResolver, true, parent, child)
+
         then:
         patterns.includes == (['parent-include'] as Set)
         patterns.excludes == (['parent-exclude'] as Set)
@@ -82,25 +84,28 @@ class DefaultCopySpecResolutionTest extends Specification implements CopySpecTes
 
     def "child uses patterns from parent"() {
         given:
+        def parent = fileResolver.patternSetFactory.create()
+        def child = fileResolver.patternSetFactory.create()
+
         Spec specInclude = Mock(Spec)
         Spec specExclude = Mock(Spec)
 
-        spec.include('parent-include')
-        spec.exclude('parent-exclude')
-        spec.include(specInclude)
-        spec.exclude(specExclude)
+        parent.include('parent-include')
+        parent.exclude('parent-exclude')
+        parent.include(specInclude)
+        parent.exclude(specExclude)
 
         Spec childInclude = Mock(Spec)
         Spec childExclude = Mock(Spec)
 
-        CopySpec child = spec.addChild()
         child.include('child-include')
         child.exclude('child-exclude')
         child.include(childInclude)
         child.exclude(childExclude)
 
         when:
-        def patterns = resolvedChild().patternSet
+        def patterns = DefaultCopySpec.mergePatternSetIfNecessary(fileResolver, true, parent, child)
+
         then:
         patterns.includes == (['parent-include', 'child-include'] as Set)
         patterns.excludes == (['parent-exclude', 'child-exclude'] as Set)
@@ -159,7 +164,6 @@ class DefaultCopySpecResolutionTest extends Specification implements CopySpecTes
 
         expect:
         resolvedChild().caseSensitive
-        resolvedChild().patternSet.caseSensitive
     }
 
     def "child uses case sensitive flag from parent as default"() {
@@ -170,13 +174,11 @@ class DefaultCopySpecResolutionTest extends Specification implements CopySpecTes
         spec.caseSensitive = false
         then:
         !resolvedChild().caseSensitive
-        !resolvedChild().patternSet.caseSensitive
 
         when:
         child.caseSensitive = true
         then:
         resolvedChild().caseSensitive
-        resolvedChild().patternSet.caseSensitive
     }
 
     def "include empty dirs flag defaults to true"() {

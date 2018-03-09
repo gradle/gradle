@@ -29,6 +29,7 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.ChainingTransformer;
@@ -520,7 +521,17 @@ public class DefaultCopySpec implements CopySpecInternal {
     public ResolvedCopySpecNode resolveAsRoot() {
         boolean caseSensitive = isCaseSensitive();
         PatternSet resolvedPatternSet = copyPatternSetIfNecessary(fileResolver, caseSensitive, patternSet);
-        return resolve(RelativePath.EMPTY_ROOT, resolvedPatternSet, caseSensitive, internEmptyCopyActions());
+        return resolve(
+            RelativePath.EMPTY_ROOT,
+            resolvedPatternSet,
+            caseSensitive,
+            getIncludeEmptyDirs(),
+            getDuplicatesStrategy(),
+            getFileMode(),
+            getDirMode(),
+            getFilteringCharset(),
+            internEmptyCopyActions()
+        );
     }
 
     @Override
@@ -529,31 +540,63 @@ public class DefaultCopySpec implements CopySpecInternal {
         Iterable<Action<? super FileCopyDetails>> parentCopyActions,
         ResolvedCopySpec parent
     ) {
-        boolean caseSensitive = isCaseSensitive();
+        boolean caseSensitive = this.caseSensitive != null
+            ? this.caseSensitive
+            : parent.isCaseSensitive();
         PatternSet resolvedPatternSet = mergePatternSetIfNecessary(fileResolver, caseSensitive, parentPatternSet, patternSet);
         Iterable<Action<? super FileCopyDetails>> resolvedCopyActions = mergeCopyActionsIfNecessary(parentCopyActions, internEmptyCopyActions());
-        return resolve(parent.getDestPath(), resolvedPatternSet, caseSensitive, resolvedCopyActions);
+        return resolve(
+            parent.getDestPath(),
+            resolvedPatternSet,
+            caseSensitive,
+            includeEmptyDirs != null
+                ? includeEmptyDirs
+                : parent.isIncludeEmptyDirs(),
+            duplicatesStrategy != null
+                ? duplicatesStrategy
+                : parent.getDuplicatesStrategy(),
+            fileMode != null
+                ? fileMode
+                : parent.getFileMode(),
+            dirMode != null
+                ? dirMode
+                : parent.getDirMode(),
+            filteringCharset != null
+                ? filteringCharset
+                : parent.getFilteringCharset(),
+            resolvedCopyActions
+        );
     }
 
     private ResolvedCopySpecNode resolve(
         RelativePath parentPath,
         PatternSet patternSet,
         boolean caseSensitive,
+        boolean includeEmptyDirs,
+        DuplicatesStrategy duplicatesStrategy,
+        @Nullable Integer fileMode,
+        @Nullable Integer dirMode,
+        String filteringCharset,
         Iterable<Action<? super FileCopyDetails>> copyActions
     ) {
         RelativePath resolvedPath = resolveDestPath(parentPath);
 
+        FileTree tree = fileResolver.resolveFilesAsTree(sourcePaths);
+        FileTree source;
+        if (patternSet.isEmpty()) {
+            source = tree;
+        } else {
+            source = tree.matching(patternSet);
+        }
         ResolvedCopySpec resolvedSpec = new DefaultResolvedCopySpec(
             resolvedPath,
-            fileResolver,
-            sourcePaths,
-            patternSet,
+            source,
             caseSensitive,
-            getIncludeEmptyDirs(),
-            getDuplicatesStrategy(),
-            getFileMode(),
-            getDirMode(),
-            getFilteringCharset(),
+            includeEmptyDirs,
+            duplicatesStrategy,
+            fileMode,
+            dirMode,
+            filteringCharset,
             copyActions
         );
         ImmutableList.Builder<ResolvedCopySpecNode> builder = ImmutableList.builder();
@@ -576,7 +619,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         return RelativePath.parse(false, parentPath, path);
     }
 
-    private static PatternSet mergePatternSetIfNecessary(FileResolver fileResolver, boolean caseSensitive, PatternSet parentPatternSet, PatternSet patternSet) {
+    @VisibleForTesting
+    static PatternSet mergePatternSetIfNecessary(FileResolver fileResolver, boolean caseSensitive, PatternSet parentPatternSet, PatternSet patternSet) {
         if (patternSet.isEmpty()) {
             if (parentPatternSet.isCaseSensitive() == caseSensitive) {
                 return parentPatternSet;
