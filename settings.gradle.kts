@@ -140,7 +140,6 @@ val groovyBuildScriptProjects = listOf(
     "signing",
     "ear",
     "native",
-    "internal-android-performance-testing",
     "performance",
     "build-scan-performance",
     "javascript",
