@@ -155,6 +155,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
 
+        // TODO:DAZ Should de-duplicate the configurations based on hierarchy: no need to return 'compile' + 'runtime' + 'default'.
         return targets.build().asList();
     }
 

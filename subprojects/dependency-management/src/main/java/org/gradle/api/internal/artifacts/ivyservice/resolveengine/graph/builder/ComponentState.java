@@ -47,6 +47,7 @@ import java.util.Set;
 public class ComponentState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
+    private final VariantNameBuilder variantNameBuilder;
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
@@ -59,11 +60,12 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
     List<SelectorState> allResolvers;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver) {
+    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.resolver = resolver;
+        this.variantNameBuilder = variantNameBuilder;
     }
 
     @Override
@@ -216,8 +218,13 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
 
     @Override
     public String getVariantName() {
-        NodeState selected = getSelectedNode();
-        return selected == null ? "unknown" : selected.getMetadata().getName();
+        String name = null;
+        for (NodeState node : nodes) {
+            if (node.isSelected()) {
+                name = variantNameBuilder.getVariantName(name, node.getMetadata().getName());
+            }
+        }
+        return name == null ? "unknown" : name;
     }
 
     private NodeState getSelectedNode() {

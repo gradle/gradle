@@ -41,12 +41,14 @@ class ModuleResolveState implements CandidateModule {
     private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
     private final List<SelectorState> selectors = Lists.newLinkedList();
+    private final VariantNameBuilder variantNameBuilder;
     private ComponentState selected;
 
-    ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver) {
+    ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver, VariantNameBuilder variantNameBuilder) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
+        this.variantNameBuilder = variantNameBuilder;
     }
 
     @Override
@@ -163,7 +165,7 @@ class ModuleResolveState implements CandidateModule {
     public ComponentState getVersion(ModuleVersionIdentifier id) {
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, metaDataResolver);
+            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, metaDataResolver, variantNameBuilder);
             versions.put(id, moduleRevision);
         }
         return moduleRevision;
