@@ -46,6 +46,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private ConnectionAcceptor acceptor;
     private ExecHandle execHandle;
     private boolean running;
+    private boolean aborted;
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
@@ -66,8 +67,18 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public void stopNow() {
-        // cleanup() will abort the process as desired
-        cleanup();
+        lock.lock();
+        try {
+            aborted = true;
+            if (connection != null) {
+                connection.abort();
+            }
+        } finally {
+            lock.unlock();
+
+            // cleanup() will abort the process as desired
+            cleanup();
+        }
     }
 
     public void setExecHandle(ExecHandle execHandle) {
@@ -106,6 +117,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
             }
 
             this.connection = connection;
+            if (aborted) {
+                connection.abort();
+            }
             condition.signalAll();
             stoppable = acceptor;
         } finally {

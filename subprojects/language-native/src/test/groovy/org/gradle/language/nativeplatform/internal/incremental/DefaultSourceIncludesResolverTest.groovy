@@ -38,8 +38,12 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def setup() {
         included = Mock(IncludeDirectives)
-        included.getMacros() >> macros
-        included.getMacrosFunctions() >> macroFunctions
+        included.getAllMacros() >> macros
+        included.getMacros(_) >> { String name -> macros.findAll {it.name == name} }
+        included.hasMacros() >> { !macros.empty }
+        included.getAllMacroFunctions() >> macroFunctions
+        included.getMacroFunctions(_) >> { String name -> macroFunctions.findAll {it.name == name} }
+        included.hasMacroFunctions() >> { !macroFunctions.empty }
     }
 
     protected TestFile getSourceFile() {
@@ -475,12 +479,12 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def macro(String name, String value) {
         def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#define ${name} $value"))
-        return directives.macros.first()
+        return directives.allMacros.first()
     }
 
     def macroFunction(String name, String value) {
         def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#define ${name}${name.contains('(') ? "" : "()"} $value"))
-        return directives.macrosFunctions.first()
+        return directives.allMacroFunctions.first()
     }
 
     def unresolveableMacro(String name) {

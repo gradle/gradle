@@ -52,7 +52,7 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         output.contains("Processor (type: UNKNOWN)")
     }
 
-    def "generated files are deleted when processor is removed"() {
+    def "generated files and classes are deleted when processor is removed"() {
         given:
         def a = java "@Thing class A {}"
 
@@ -68,6 +68,9 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
 
         then:
         !file("build/classes/java/main/AThing.java").exists()
+
+        and:
+        outputs.deletedClasses("AThing")
 
         and:
         output.contains("Annotation processor path changed")

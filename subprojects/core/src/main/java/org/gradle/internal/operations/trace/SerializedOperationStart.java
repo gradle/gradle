@@ -19,17 +19,16 @@ package org.gradle.internal.operations.trace;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.OperationStartEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
 class SerializedOperationStart implements SerializedOperation {
 
-    final Object id;
-    final Object parentId;
+    final long id;
+    final Long parentId;
     final String displayName;
 
     final long startTime;
@@ -38,8 +37,8 @@ class SerializedOperationStart implements SerializedOperation {
     final String detailsClassName;
 
     SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {
-        this.id = ((OperationIdentifier) descriptor.getId()).getId();
-        this.parentId = descriptor.getParentId() == null ? null : ((OperationIdentifier) descriptor.getParentId()).getId();
+        this.id = descriptor.getId().getId();
+        this.parentId = descriptor.getParentId() == null ? null : descriptor.getParentId().getId();
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
         this.details = transform(descriptor.getDetails());
@@ -72,8 +71,9 @@ class SerializedOperationStart implements SerializedOperation {
     }
 
     SerializedOperationStart(Map<String, ?> map) {
-        this.id = map.get("id");
-        this.parentId = map.get("parentId");
+        this.id = ((Integer) map.get("id")).longValue();
+        Integer parentId = (Integer) map.get("parentId");
+        this.parentId = parentId == null ? null : parentId.longValue();
         this.displayName = (String) map.get("displayName");
         this.startTime = (Long) map.get("startTime");
         this.details = map.get("details");

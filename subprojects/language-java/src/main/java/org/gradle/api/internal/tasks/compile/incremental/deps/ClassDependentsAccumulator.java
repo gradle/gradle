@@ -90,10 +90,10 @@ public class ClassDependentsAccumulator {
         }
         ImmutableMap.Builder<String, DependentsSet> builder = ImmutableMap.builder();
         for (String s : dependenciesToAll) {
-            builder.put(s, DependencyToAll.INSTANCE);
+            builder.put(s, DependentsSet.dependencyToAll());
         }
         for (Map.Entry<String, Set<String>> entry : dependents.entrySet()) {
-            builder.put(entry.getKey(), new DefaultDependentsSet(ImmutableSet.copyOf(entry.getValue())));
+            builder.put(entry.getKey(), DependentsSet.dependents(entry.getValue()));
         }
         return builder.build();
     }

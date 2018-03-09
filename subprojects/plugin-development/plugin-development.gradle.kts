@@ -1,4 +1,4 @@
-import org.gradle.cleanup.EmptyDirectoryCheck
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2014 the original author or authors.
@@ -32,6 +32,11 @@ dependencies {
     testRuntime(project(":launcher"))
     testRuntime(project(":testKit"))
     integTestRuntime(project(":toolingApiBuilders"))
+}
+
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

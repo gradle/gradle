@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
 class ProgressOperationsTest extends Specification {

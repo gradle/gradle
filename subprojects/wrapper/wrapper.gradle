@@ -1,4 +1,4 @@
-import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2010 the original author or authors.
@@ -19,13 +19,14 @@ plugins {
     id 'gradlebuild.classycle'
 }
 
-// Wrapper main entry point requires Java 5
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
-
 dependencies {
     compile project(":cli")
 
     testCompile libraries.ant.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
@@ -42,7 +43,7 @@ normalization {
     }
 }
 
-def generatedTestResourcesDir = getGradlebuildJava(project).generatedTestResourcesDir
+def generatedTestResourcesDir = gradlebuildJava.generatedTestResourcesDir
 
 task wrapperBuildReceiptResource(type: Copy) {
     from {

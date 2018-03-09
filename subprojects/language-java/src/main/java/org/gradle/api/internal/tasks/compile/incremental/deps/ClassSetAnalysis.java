@@ -46,7 +46,7 @@ public class ClassSetAnalysis {
             }
             result.addAll(dependentClasses);
         }
-        return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);
+        return result == null ? DependentsSet.empty() : DependentsSet.dependents(result);
     }
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
@@ -55,15 +55,15 @@ public class ClassSetAnalysis {
             return deps;
         }
         if (!constants.isEmpty()) {
-            return DependencyToAll.INSTANCE;
+            return DependentsSet.dependencyToAll();
         }
         if (deps.getDependentClasses().isEmpty()) {
-            return DefaultDependentsSet.EMPTY;
+            return deps;
         }
         Set<String> result = new HashSet<String>();
         recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
         result.remove(className);
-        return new DefaultDependentsSet(result);
+        return DependentsSet.dependents(result);
     }
 
     public boolean isDependencyToAll(String className) {

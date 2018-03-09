@@ -20,26 +20,31 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Collection;
 
-public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
-    private final BuildController buildController;
-    private BuildSrcBuildListenerFactory listenerFactory;
+public class BuildSrcUpdateFactory implements Factory<ClassPath> {
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    public BuildSrcUpdateFactory(BuildController buildController, BuildSrcBuildListenerFactory listenerFactory) {
+    private final BuildController buildController;
+    private final BuildSrcBuildListenerFactory listenerFactory;
+    private final CachedClasspathTransformer cachedClasspathTransformer;
+
+    public BuildSrcUpdateFactory(BuildController buildController, BuildSrcBuildListenerFactory listenerFactory, CachedClasspathTransformer cachedClasspathTransformer) {
         this.buildController = buildController;
         this.listenerFactory = listenerFactory;
+        this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
-    public DefaultClassPath create() {
+    public ClassPath create() {
         Collection<File> classpath = build();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        return new DefaultClassPath(classpath);
+        return cachedClasspathTransformer.transform(new DefaultClassPath(classpath));
     }
 
     private Collection<File> build() {

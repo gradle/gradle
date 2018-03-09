@@ -1,10 +1,9 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
-
-// Compiler daemon
-sourceCompatibility = 1.6
 
 dependencies {
     compile libraries.groovy.coordinates
@@ -14,6 +13,11 @@ dependencies {
 
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
+}
+
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

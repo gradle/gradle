@@ -20,45 +20,90 @@ import accessors.java
 import availableJavaInstallations
 import library
 import maxParallelForks
-import org.gradle.api.JavaVersion
-import org.gradle.api.Named
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.*
+import org.gradle.api.JavaVersion.*
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
+import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.compile.GradleCompilePlugin
 import org.gradle.process.CommandLineArgumentProvider
 import testLibraries
 import testLibrary
 import java.util.jar.Attributes
 
+enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
+    UNDEFINED(VERSION_1_1, VERSION_1_1),
+    ENTRY_POINT(VERSION_1_5, VERSION_1_5),
+    WORKER(VERSION_1_6, VERSION_1_6),
+    CORE(VERSION_1_7, VERSION_1_7),
+    PLUGIN(VERSION_1_7, VERSION_1_7),
+    INTERNAL(VERSION_1_7, VERSION_1_7),
+    REQUIRES_JAVA_8(VERSION_1_8, VERSION_1_8)
+}
+
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply { plugin("groovy") }
-        apply { plugin(GradleCompilePlugin::class.java) }
+
+        val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
-        java.sourceCompatibility = JavaVersion.VERSION_1_7
         addDependencies()
-        addGeneratedResources()
+        addGeneratedResources(extension)
+        configureCompile()
         configureJarTasks()
-        addCompileAllTask()
         configureTests()
     }
 
-    private fun Project.addGeneratedResources() {
+    private
+    fun Project.configureCompile() {
+        afterEvaluate {
+            val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
+
+            tasks.withType<JavaCompile> {
+                options.isIncremental = true
+                configureCompileTask(this, options, availableJavaInstallations)
+            }
+            tasks.withType<GroovyCompile> {
+                groovyOptions.encoding = "utf-8"
+                configureCompileTask(this, options, availableJavaInstallations)
+            }
+        }
+        addCompileAllTask()
+    }
+
+    private
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
+        options.isFork = true
+        options.encoding = "utf-8"
+        options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+        val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, VERSION_1_7)
+        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(targetJdkVersion)
+        if (!jdkForCompilation.current) {
+            options.forkOptions.javaHome = jdkForCompilation.javaHome
+        }
+        compileTask.inputs.property("javaInstallation", when (compileTask) {
+            is JavaCompile -> jdkForCompilation
+            else -> availableJavaInstallations.currentJavaInstallation
+        }.displayName)
+    }
+
+    private
+    fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest by tasks.creating(ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
 
-    private fun Project.addDependencies() {
+    private
+    fun Project.addDependencies() {
         dependencies {
             val testCompile by configurations
             testCompile(library("junit"))
@@ -94,8 +139,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         tasks.withType<Jar>().all {
             version = rootProject.extra["baseVersion"] as String
             manifest.attributes(mapOf(
-                    Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                    Attributes.Name.IMPLEMENTATION_VERSION.toString() to version))
+                Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to version))
         }
     }
 
@@ -121,7 +166,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         }
     }
 
-    private fun createCiEnvironmentProvider(test: Test) : CommandLineArgumentProvider {
+    private fun createCiEnvironmentProvider(test: Test): CommandLineArgumentProvider {
         return object : CommandLineArgumentProvider, Named {
             override fun getName() = "ciEnvironment"
 
@@ -142,10 +187,29 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 }
 
-val Project.gradlebuildJava
-    get() = GradlebuildJavaExtension(project)
-
-open class GradlebuildJavaExtension(project: Project) {
+open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
+    var moduleType: ModuleType = ModuleType.UNDEFINED
+        set(value) {
+            field = value
+            // Entry points should run against Java so that we can give good error messages for people trying to run
+            // Gradle on Java 5. But Java 9 no longer support Java 5. Therefore, to be able to build Gradle on Java 9,
+            // we need to change the version to the minimum supported one.
+            if (BuildEnvironment.javaVersion.isJava9Compatible && moduleType == ModuleType.ENTRY_POINT) {
+                project.java.sourceCompatibility = VERSION_1_6
+                project.java.targetCompatibility = VERSION_1_6
+            } else {
+                project.java.targetCompatibility = moduleType.target
+                project.java.sourceCompatibility = moduleType.source
+            }
+        }
+
+    init {
+        project.afterEvaluate {
+            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
+                throw InvalidUserDataException("gradlebuild.moduletype must be set for project ${project}")
+            }
+        }
+    }
 }

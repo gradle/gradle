@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -28,6 +30,10 @@ dependencies {
     implementation libraries.jsch.coordinates
     implementation libraries.jcip.coordinates
     implementation libraries.commons_io.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

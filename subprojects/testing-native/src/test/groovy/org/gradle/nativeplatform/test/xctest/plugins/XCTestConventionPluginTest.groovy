@@ -144,7 +144,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkMachOBundle
-        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
@@ -176,7 +176,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
@@ -200,7 +200,7 @@ class XCTestConventionPluginTest extends Specification {
         compileSwift.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
-        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")

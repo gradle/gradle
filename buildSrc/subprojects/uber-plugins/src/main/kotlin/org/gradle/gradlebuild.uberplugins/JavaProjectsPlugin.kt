@@ -25,7 +25,7 @@ class JavaProjectsPlugin : Plugin<Project> {
         apply {
             plugin("gradlebuild.unittest-and-compile")
             plugin("gradlebuild.test-fixtures")
-            from("$rootDir/gradle/distributionTesting.gradle.kts")
+            plugin("gradlebuild.distribution-testing")
             from("$rootDir/gradle/intTestImage.gradle")
 
             if (file("src/integTest").isDirectory) {
@@ -41,7 +41,7 @@ class JavaProjectsPlugin : Plugin<Project> {
             }
 
             if (file("src/jmh").isDirectory) {
-                plugin("jmh")
+                plugin("gradlebuild.jmh")
             }
             from("$rootDir/gradle/testWithUnknownOS.gradle")
         }

@@ -212,11 +212,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
-            for (Macro macro : includeDirectives.getMacros()) {
-                if (expression.getValue().equals(macro.getName())) {
-                    found = true;
-                    resolveExpression(visibleMacros, macro, visitor, tokenLookup);
-                }
+            Iterable<Macro> macros = includeDirectives.getMacros(expression.getValue());
+            for (Macro macro : macros) {
+                found = true;
+                resolveExpression(visibleMacros, macro, visitor, tokenLookup);
             }
         }
         if (!found) {
@@ -227,19 +226,17 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private void resolveMacroFunction(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
-            for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
-                // Currently only handle functions with no parameters
-                if (expression.getValue().equals(macro.getName())) {
-                    List<Expression> arguments = expression.getArguments();
-                    if (arguments.isEmpty() && macro.getParameterCount() == 1) {
-                        // Provide an implicit empty argument
-                        arguments = Collections.singletonList(SimpleExpression.EMPTY_EXPRESSIONS);
-                    }
-                    if (macro.getParameterCount() == arguments.size()) {
-                        found = true;
-                        Expression result = macro.evaluate(arguments);
-                        resolveExpression(visibleMacros, result, visitor, tokenLookup);
-                    }
+            Iterable<MacroFunction> macroFunctions = includeDirectives.getMacroFunctions(expression.getValue());
+            for (MacroFunction macro : macroFunctions) {
+                List<Expression> arguments = expression.getArguments();
+                if (arguments.isEmpty() && macro.getParameterCount() == 1) {
+                    // Provide an implicit empty argument
+                    arguments = Collections.singletonList(SimpleExpression.EMPTY_EXPRESSIONS);
+                }
+                if (macro.getParameterCount() == arguments.size()) {
+                    found = true;
+                    Expression result = macro.evaluate(arguments);
+                    resolveExpression(visibleMacros, result, visitor, tokenLookup);
                 }
             }
         }

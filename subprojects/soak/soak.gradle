@@ -1,9 +1,15 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.classycle'
 }
 
 dependencies {
     testFixturesCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 testFixtures {
@@ -16,7 +22,7 @@ tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
     }
 }
 
-task('soakTest', type: org.gradle.testing.SoakTest) {
+task('soakTest', type: org.gradle.gradlebuild.test.integrationtests.SoakTest) {
     testClassesDirs = sourceSets.integTest.output.classesDirs
     classpath = sourceSets.integTest.runtimeClasspath
     systemProperties['org.gradle.soaktest'] = 'true'

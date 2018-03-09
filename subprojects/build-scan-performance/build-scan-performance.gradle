@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -28,6 +30,10 @@ dependencies {
     performanceTestRuntime allTestRuntimeDependencies
 
     testFixturesCompile project(':internalPerformanceTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 tasks.withType(org.gradle.testing.PerformanceTest) {

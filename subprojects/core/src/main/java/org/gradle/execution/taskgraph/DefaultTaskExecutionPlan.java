@@ -556,7 +556,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Override
-    public boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInfo> taskExecution) {
+    public boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
         final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
         final AtomicBoolean workRemaining = new AtomicBoolean();
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
@@ -591,7 +591,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             }
         });
-
 
         TaskInfo selectedTask = selected.get();
         execute(selectedTask, workerLease, taskExecution);
@@ -654,16 +653,28 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return taskMutationInfo;
     }
 
-    private void execute(TaskInfo selectedTask, WorkerLease workerLease, Action<TaskInfo> taskExecution) {
+    private void execute(final TaskInfo selectedTask, final WorkerLease workerLease, Action<TaskInternal> taskExecution) {
         if (selectedTask == null) {
             return;
         }
         try {
             if (!selectedTask.isComplete()) {
-                taskExecution.execute(selectedTask);
+                try {
+                    taskExecution.execute(selectedTask.getTask());
+                } catch (Throwable e) {
+                    selectedTask.setExecutionFailure(e);
+                }
             }
         } finally {
-            coordinationService.withStateLock(unlock(workerLease, getProjectLock(selectedTask)));
+            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                @Override
+                public ResourceLockState.Disposition transform(ResourceLockState state) {
+                    if (!selectedTask.isComplete()) {
+                        taskComplete(selectedTask);
+                    }
+                    return unlock(workerLease, getProjectLock(selectedTask)).transform(state);
+                }
+            });
         }
     }
 
@@ -890,20 +901,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return taskMutationInfo != null && taskMutationInfo.task.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
     }
 
-    public void taskComplete(final TaskInfo taskInfo) {
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                enforceFinalizerTasks(taskInfo);
-                if (taskInfo.isFailed()) {
-                    handleFailure(taskInfo);
-                }
+    private void taskComplete(TaskInfo taskInfo) {
+        enforceFinalizerTasks(taskInfo);
+        if (taskInfo.isFailed()) {
+            handleFailure(taskInfo);
+        }
 
-                taskInfo.finishExecution();
-                recordTaskCompleted(taskInfo);
-                return FINISHED;
-            }
-        });
+        taskInfo.finishExecution();
+        recordTaskCompleted(taskInfo);
     }
 
     private static void enforceFinalizerTasks(TaskInfo taskInfo) {

@@ -20,8 +20,8 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -59,7 +59,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
             }
 
             @Override
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLeaseRegistry.WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLeaseRegistry.WorkerLease parentWorkerWorkerLease, final BuildOperationRef parentBuildOperation) {
                 WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
 
                 try {

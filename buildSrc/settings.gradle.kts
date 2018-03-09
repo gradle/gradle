@@ -15,7 +15,7 @@
  */
 
 apply {
-    from("../gradle/build-cache-configuration.settings.gradle.kts")
+    from("../gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
 }
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
@@ -33,12 +33,13 @@ include("cleanup")
 include("configuration")
 include("docs")
 include("ide")
+include("integrationTesting")
 include("kotlinDsl")
 include("uberPlugins")
 include("packaging")
 include("plugins")
 include("profiling")
-include("testing")
+include("performance")
 include("versioning")
 
 fun buildFileNameFor(projectDirName: String) =

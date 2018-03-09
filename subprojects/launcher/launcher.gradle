@@ -1,11 +1,9 @@
 import org.gradle.build.GradleStartScriptGenerator
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.classycle'
 }
-
-// Main entry point requires Java 5
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 configurations {
     startScriptGenerator
@@ -32,6 +30,10 @@ dependencies {
     integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

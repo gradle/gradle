@@ -15,7 +15,7 @@
  */
 
 apply {
-    from("gradle/build-cache-configuration.settings.gradle.kts")
+    from("gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
 }
 
 try {

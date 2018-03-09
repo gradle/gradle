@@ -1,4 +1,4 @@
-import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2011 the original author or authors.
@@ -44,11 +44,15 @@ dependencies {
     runtime project(':logging')
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
 testFixtures {
     from(':core', 'main')
 }
 
-def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")

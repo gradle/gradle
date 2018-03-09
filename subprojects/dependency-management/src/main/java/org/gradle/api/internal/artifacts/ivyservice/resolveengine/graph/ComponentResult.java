@@ -21,6 +21,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 
+/**
+ * The final representation of a component in the resolved dependency graph.
+ * This is the type that is serialized on resolve and deserialized when we later need to build a `ResolutionResult`.
+ */
 public interface ComponentResult {
     /**
      * Returns a simple id for this component, unique across components in the same graph.
@@ -29,16 +33,19 @@ public interface ComponentResult {
     Long getResultId();
 
     /**
+     * Returns a unique id for this component.
+     */
+    ComponentIdentifier getComponentId();
+
+    /**
      * Returns the module version for this component.
      */
     ModuleVersionIdentifier getModuleVersion();
 
-    ComponentSelectionReason getSelectionReason();
-
     /**
-     * Returns a unique id for this component.
+     * The reason this component was selected in the graph.
      */
-    ComponentIdentifier getComponentId();
+    ComponentSelectionReason getSelectionReason();
 
     /**
      * Returns the name of the resolved variant. This can currently be 2 different things: for legacy components,

@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -23,4 +25,8 @@ dependencies {
     compile project(':testingBase')
     compile project(':testingJvm')
     compile libraries.junitPlatform.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.REQUIRES_JAVA_8
 }

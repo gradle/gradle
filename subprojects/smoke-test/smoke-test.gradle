@@ -1,5 +1,6 @@
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.testing.SmokeTest
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 
 sourceSets {
     smokeTest {
@@ -29,15 +30,19 @@ dependencies {
     smokeTestRuntimeOnly project(':toolingApiBuilders')
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
 testFixtures {
     from(':core')
     from(':versionControl')
 }
 
 processSmokeTestResources {
-    from ("$rootDir/gradle") {
+    from ("$rootDir/gradle/init-scripts") {
         into "org/gradle/smoketests/cache-init-scripts"
-        include "overlappingTaskOutputsStatsInit.gradle"
+        include "overlapping-task-outputs-stats-init.gradle"
     }
 }
 

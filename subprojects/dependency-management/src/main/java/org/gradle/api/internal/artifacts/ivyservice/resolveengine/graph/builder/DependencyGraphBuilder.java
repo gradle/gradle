@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -72,7 +71,6 @@ public class DependencyGraphBuilder {
     private final ModuleReplacementsData moduleReplacementsData;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
-    private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory attributesFactory;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
@@ -82,7 +80,6 @@ public class DependencyGraphBuilder {
                                   ModuleExclusions moduleExclusions,
                                   BuildOperationExecutor buildOperationExecutor, ModuleReplacementsData moduleReplacementsData,
                                   DependencySubstitutionApplicator dependencySubstitutionApplicator, ComponentSelectorConverter componentSelectorConverter,
-                                  FeaturePreviews featurePreviews,
                                   ImmutableAttributesFactory attributesFactory) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
@@ -95,7 +92,6 @@ public class DependencyGraphBuilder {
         this.moduleReplacementsData = moduleReplacementsData;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.componentSelectorConverter = componentSelectorConverter;
-        this.featurePreviews = featurePreviews;
         this.attributesFactory = attributesFactory;
     }
 
@@ -132,7 +128,7 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
-                // Calculate the outgoing edges of this configuration
+                // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
                 dependenciesMissingLocalMetadata.clear();
                 node.visitOutgoingDependencies(dependencies, pendingDependenciesHandler);
@@ -148,13 +144,12 @@ public class DependencyGraphBuilder {
 
     private void performSelection(final ResolveState resolveState, ComponentState moduleRevision) {
         ModuleIdentifier moduleId = moduleRevision.getId().getModule();
-        String version = moduleRevision.getId().getVersion();
 
         ModuleResolveState module = resolveState.getModule(moduleId);
         // Check for a new conflict
         if (moduleRevision.isSelectable()) {
 
-            if (tryCompatibleSelection(resolveState, moduleRevision, moduleId, version, module)) {
+            if (tryCompatibleSelection(resolveState, moduleRevision, moduleId, module)) {
                 return;
             }
 
@@ -177,22 +172,22 @@ public class DependencyGraphBuilder {
     }
 
     private static boolean tryCompatibleSelection(final ResolveState resolveState,
-                                                  final ComponentState moduleRevision,
+                                                  final ComponentState candidate,
                                                   final ModuleIdentifier moduleId,
-                                                  String version,
                                                   final ModuleResolveState module) {
-        final ComponentState selected = module.getSelected();
+        final ComponentState currentlySelected = module.getSelected();
+        String version = candidate.getId().getVersion();
         List<SelectorState> moduleSelectors = module.getSelectors();
-        if (selected == null && !resolveState.getModuleReplacementsData().participatesInReplacements(moduleId)) {
+        if (currentlySelected == null && !resolveState.getModuleReplacementsData().participatesInReplacements(moduleId)) {
             if (allSelectorsAgreeWith(moduleSelectors, version, ALL_SELECTORS)) {
-                module.select(moduleRevision);
+                module.select(candidate);
                 return true;
             }
         }
 
-        final Collection<SelectorState> selectedBy = moduleRevision.allResolvers;
-        if (selected != null && selected != moduleRevision) {
-            if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion(), ALL_SELECTORS)) {
+        final Collection<SelectorState> selectedBy = candidate.allResolvers;
+        if (currentlySelected != null && currentlySelected != candidate) {
+            if (allSelectorsAgreeWith(candidate.allResolvers, currentlySelected.getVersion(), ALL_SELECTORS)) {
                 // if this selector agrees with the already selected version, don't bother and pick it
                 return true;
             }
@@ -204,7 +199,7 @@ public class DependencyGraphBuilder {
                 }
             })) {
                 resolveState.getDeselectVersionAction().execute(moduleId);
-                module.softSelect(moduleRevision);
+                module.softSelect(candidate);
                 return true;
             }
         }
@@ -369,6 +364,9 @@ public class DependencyGraphBuilder {
         visitor.finish(resolveState.getRoot());
     }
 
+    /**
+     * Check if all of the supplied selectors agree with the version chosen
+     */
     private static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version, Predicate<SelectorState> filter) {
         boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {

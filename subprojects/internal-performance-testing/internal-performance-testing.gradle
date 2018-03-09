@@ -1,4 +1,4 @@
-import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.getGradlebuildJava
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2016 the original author or authors.
@@ -42,7 +42,11 @@ dependencies {
     runtime 'com.h2database:h2:1.4.192'
 }
 
-def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 task reportResources(type: Copy) {
     from configurations.reports

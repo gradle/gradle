@@ -294,7 +294,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
-                                                                FeaturePreviews featurePreviews,
                                                                 ImmutableAttributesFactory attributesFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -304,7 +303,6 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
-            featurePreviews,
             attributesFactory);
     }
 

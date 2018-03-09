@@ -74,9 +74,11 @@ class TaskReportContainerTest extends Specification {
 
     List<String> getInputPropertyValue() {
         TaskPropertyTestUtils.getProperties(task).keySet().findAll {
-            (it.startsWith('reports.enabledReports.') && it.endsWith('.class'))
+            (it.startsWith('reports.enabledReports.'))
         }.collect {
-            it.substring('reports.enabledReports.'.length(), it.length() - '.class'.length())
+            it.substring('reports.enabledReports.'.length())
+        }.findAll {
+            !it.contains('.')
         }.unique().sort()
     }
 

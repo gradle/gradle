@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
     This project contains various native operating system integration utilities.
 */
@@ -5,8 +7,6 @@ plugins {
     id 'java-library'
     id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 dependencies {
     api project(':baseServices')
@@ -16,6 +16,10 @@ dependencies {
     implementation libraries.slf4j_api.coordinates
     implementation libraries.jansi.coordinates
     implementation libraries.guava.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

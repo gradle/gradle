@@ -5,8 +5,8 @@
  * application (eg as part of the tooling API).
  */
 
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import java.util.concurrent.Callable
-import org.gradle.gradlebuild.unittestandcompile.gradlebuildJava
 
 plugins {
     `java-library`
@@ -14,7 +14,9 @@ plugins {
 }
 
 java {
-    sourceCompatibility = sourceCompatibleVersion
+    gradlebuildJava {
+        moduleType = ModuleType.ENTRY_POINT
+    }
 }
 
 dependencies {

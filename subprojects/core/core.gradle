@@ -1,7 +1,5 @@
 import org.gradle.gradlebuild.ProjectGroups
-import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt
-
-import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePluginKt.*
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2010 the original author or authors.
@@ -21,8 +19,6 @@ import static org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin
 plugins {
     id 'java-library'
 }
-
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
 
 configurations {
     reports
@@ -87,6 +83,10 @@ dependencies {
     integTestRuntimeOnly project(':maven')
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
+
 testFixtures {
     from(':core')
     from(':coreApi')
@@ -100,7 +100,7 @@ test {
     forkEvery = 200
 }
 
-def generatedResourcesDir = getGradlebuildJava(project).generatedResourcesDir
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

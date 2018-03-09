@@ -25,16 +25,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
-import org.gradle.api.tasks.Destroys
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.LocalState
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.*
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
@@ -51,7 +42,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == NestedBean })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
 
@@ -170,8 +161,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
-        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$0.class'})
-        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$1.class'})
+        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$0'})
+        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$1'})
     }
 
     static class NamedNestedBean implements Named {

@@ -15,7 +15,7 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.cleanup.EmptyDirectoryCheck
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.modules.PatchExternalModules
 import org.gradle.gradlebuild.BuildEnvironment
@@ -23,7 +23,6 @@ import org.gradle.gradlebuild.BuildEnvironment
 plugins {
     id 'java-base'
     id 'gradlebuild.build-types'
-    id 'gradlebuild.gradle-compile'
     id 'gradlebuild.ci-reporting'
     // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
@@ -134,6 +133,8 @@ allprojects {
     }
 }
 
+apply plugin: "gradlebuild.cleanup"
+apply plugin: "gradlebuild.available-java-installations"
 apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
@@ -143,7 +144,6 @@ apply from: "gradle/testDependencies.gradle"
 apply plugin: "gradlebuild.wrapper"
 apply plugin: "gradlebuild.ide"
 apply plugin: "gradlebuild.no-resolution-at-configuration"
-apply from: "gradle/publicApi.gradle"
 apply plugin: "gradlebuild.update-versions"
 apply plugin: "gradlebuild.dependency-vulnerabilities"
 apply plugin: "gradlebuild.add-verify-production-environment-task"
@@ -160,7 +160,7 @@ subprojects {
         apply plugin: "gradlebuild.publish-public-libraries"
     }
 
-    apply from: "$rootDir/gradle/codeQualityConfiguration.gradle.kts"
+    apply from: "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts"
     apply plugin: "gradlebuild.task-properties-validation"
     apply plugin: "gradlebuild.test-files-cleanup"
 }

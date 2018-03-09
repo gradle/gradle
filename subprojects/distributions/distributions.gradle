@@ -1,4 +1,6 @@
 import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.PublicApi
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2012 the original author or authors.
@@ -39,6 +41,11 @@ configurations {
 dependencies {
     compile project(':distributionsDependencies')
 }
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
 
 evaluationDependsOn ":docs"
 
@@ -137,8 +144,8 @@ artifacts {
 
 integTestTasks.all {
     binaryDistributions.distributionsRequired = true
-    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
-    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
+    systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
+    systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
 }
 
 apply from: 'binary-compatibility.gradle'

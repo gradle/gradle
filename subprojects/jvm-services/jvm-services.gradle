@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /**
  * JVM invocation and inspection abstractions.
  */
@@ -6,11 +8,13 @@ plugins {
     id 'gradlebuild.classycle'
 }
 
-sourceCompatibility = Build_extensionsKt.getSourceCompatibleVersion(project)
-
 dependencies {
     api project(":baseServices")
     api project(":processServices")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

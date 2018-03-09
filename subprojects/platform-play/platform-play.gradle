@@ -1,12 +1,10 @@
 import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
-
-// Compiler daemon
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(":core")
@@ -20,6 +18,11 @@ dependencies {
     integTestRuntime project(":idePlay")
     testFixturesCompile project(":internalIntegTesting")
     testFixturesCompile libraries.commons_httpclient.coordinates
+}
+
+gradlebuildJava {
+    // Code needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {
@@ -37,7 +40,7 @@ integTest {
     exclude 'org/gradle/play/prepare/**'
 }
 
-task integTestPrepare(type: org.gradle.testing.IntegrationTest) {
+task integTestPrepare(type: org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
     systemProperties['org.gradle.integtest.executer'] = 'embedded'
     if (BuildEnvironment.isCiServer) {
         systemProperties['org.gradle.integtest.multiversion'] = 'all'
@@ -46,7 +49,7 @@ task integTestPrepare(type: org.gradle.testing.IntegrationTest) {
     maxParallelForks = 1
 }
 
-tasks.withType(org.gradle.testing.IntegrationTest) { task ->
+tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
     if (task != integTestPrepare) {
         task.dependsOn(integTestPrepare)
     }

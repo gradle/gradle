@@ -52,14 +52,6 @@ fun Project.testLibrary(name: String): Any =
 fun Project.testLibraries(name: String): List<Any> =
     testLibraries[name]!! as List<Any>
 
-val Project.sourceCompatibleVersion: JavaVersion
-    get() {
-        val javaVersion: JavaVersion by rootProject.extra
-        // TODO Use BuildEnvironment once moved to configuration
-        return if (JavaVersion.current().isJava9Compatible) JavaVersion.VERSION_1_6
-        else JavaVersion.VERSION_1_5
-    }
-
 val Project.maxParallelForks: Int
     get() {
         return ifProperty("maxParallelForks",

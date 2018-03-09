@@ -65,9 +65,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksSkipped(tasks.debug.allToInstall, ':assemble')
     }
 
     def "build fails when compilation fails"() {
@@ -104,7 +104,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
@@ -126,15 +126,15 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
          """
 
         expect:
-        succeeds assembleTaskRelease()
-        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), assembleTaskRelease())
+        succeeds tasks.release.assemble
+        result.assertTasksExecuted(tasks.release.allToInstall, tasks.release.extract, tasks.release.assemble)
 
         executable("build/exe/main/release/app").assertExists()
         executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
-        succeeds assembleTaskDebug()
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), assembleTaskDebug())
+        succeeds tasks.debug.assemble
+        result.assertTasksExecuted(tasks.debug.allToInstall, tasks.debug.assemble)
 
         executable("build/exe/main/debug/app").assertExists()
         executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -159,7 +159,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "buildDebug"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':buildDebug')
+        result.assertTasksExecuted(tasks.debug.allToLink, ':buildDebug')
         executable("build/exe/main/debug/app").assertExists()
     }
 
@@ -181,7 +181,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "compileDebug"
-        result.assertTasksExecuted(compileTasksDebug(), ':compileDebug')
+        result.assertTasksExecuted(tasks.debug.compile, ':compileDebug')
         executable("build/exe/main/debug/app").assertDoesNotExist()
         objectFiles(app.main)*.assertExists()
     }
@@ -204,7 +204,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "install"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':installDebug', ':install')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':install')
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -227,7 +227,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(tasks.debug.allToInstall, ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -254,7 +254,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
@@ -286,7 +286,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
@@ -308,7 +308,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -330,7 +330,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/test_app").assertExists()
@@ -349,14 +349,14 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
             application.binaries.get { !it.optimized }.configure {
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
-                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                linkTask.get().linkedFile = layout.buildDirectory.file("exe/some-app.exe")
                 installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
             }
          """
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
+        result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()
@@ -385,7 +385,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        result.assertTasksExecuted(tasks(':hello').debug.allToLink, tasks(':app').debug.allToInstall, ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         def installation = installation("app/build/install/main/debug")
@@ -459,7 +459,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        result.assertTasksExecuted(tasks(':hello').debug.allToLink, tasks(':app').debug.allToInstall, ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         def installation = installation("app/build/install/main/debug")
@@ -593,18 +593,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         app.main.writeToProject(file("app"))
 
         expect:
-        succeeds assembleTaskRelease(':app')
+        succeeds tasks(':app').release.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasksRelease(':hello', toolChain), extractAndStripSymbolsTasksRelease(':app', toolChain), installTaskRelease(':app'), assembleTaskRelease(':app'))
+        result.assertTasksExecuted(tasks(':hello').release.allToLink, tasks(':app').release.allToInstall, tasks(':app').release.extract, tasks(':app').release.assemble)
         executable("app/build/exe/main/release/app").assertExists()
         executable("app/build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.main.sourceFileNames)
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()
         sharedLibrary("hello/build/lib/main/release/hello").assertHasDebugSymbolsFor(app.greeterLib.sourceFileNamesWithoutHeaders)
         installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
-        succeeds assembleTaskDebug(':app')
+        succeeds tasks(':app').debug.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), assembleTaskDebug(':app'))
+        result.assertTasksExecuted(tasks(':hello').debug.allToLink, tasks(':app').debug.allToInstall, tasks(':app').debug.assemble)
 
         executable("app/build/exe/main/debug/app").assertExists()
         executable("app/build/exe/main/debug/app").assertHasDebugSymbolsFor(app.main.sourceFileNames)
@@ -767,7 +767,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-library'
                 library.binaries.get { !it.optimized }.configure {
                     def link = linkTask.get()
-                    link.binaryFile = layout.buildDirectory.file("shared/lib1_debug.dll")
+                    link.linkedFile = layout.buildDirectory.file("shared/lib1_debug.dll")
                     if (link.importLibrary.present) {
                         link.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
                     }
