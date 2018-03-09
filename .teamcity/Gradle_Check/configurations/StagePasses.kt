@@ -1,13 +1,13 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildStep
-import jetbrains.buildServer.configs.kotlin.v10.FailureAction
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v10.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.v10.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v10.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.TestType
@@ -15,7 +15,7 @@ import model.Trigger
 
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-", "")}_Trigger"
-    extId = uuid
+    id = uuid
     name = stage.name + " (Trigger)"
 
     applyDefaultSettings(this)

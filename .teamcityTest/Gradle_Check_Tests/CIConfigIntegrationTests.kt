@@ -1,6 +1,6 @@
 
 import configurations.shouldBeSkipped
-import jetbrains.buildServer.configs.kotlin.v10.Project
+import jetbrains.buildServer.configs.kotlin.v2017_2.Project
 import model.*
 import org.junit.Test
 import projects.RootProject
@@ -40,9 +40,9 @@ class CIConfigIntegrationTests {
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
             val hasPrevStage = if (stageNumber > 1) 1 else 0
-            println(it.extId)
+            println(it.id)
             it.dependencies.items.forEach {
-                println("--> " + it.extId)
+                println("--> " + it.buildTypeId)
             }
             if (stageNumber <= m.stages.size) {
                 val stage = m.stages[stageNumber - 1]
@@ -171,9 +171,9 @@ class CIConfigIntegrationTests {
     }
 
     private fun printTree(project: Project, indent: String = "") {
-        println(indent + project.extId + " (Project)")
+        println(indent + project.id + " (Project)")
         project.buildTypes.forEach { bt ->
-            println("$indent+- ${bt.extId} (Config)")
+            println("$indent+- ${bt.id} (Config)")
         }
         project.subProjects.forEach { subProject ->
             printTree(subProject, "$indent   ")

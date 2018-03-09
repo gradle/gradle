@@ -7,7 +7,7 @@ import model.TestType
 
 class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "") : BaseGradleBuildType(model, {
     uuid = testCoverage.asConfigurationId(model, subProject)
-    extId = uuid
+    id = uuid
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
     val testTask = if (!subProject.isEmpty()) {
         subProject + ":"

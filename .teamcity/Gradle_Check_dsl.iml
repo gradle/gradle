@@ -5,15 +5,14 @@
       <configuration version="3" platform="JVM 1.6" useProjectSettings="false">
         <compilerSettings />
         <compilerArguments>
-          <option name="languageVersion" value="1.0" />
-          <option name="apiVersion" value="1.0" />
+          <option name="languageVersion" value="1.1" />
+          <option name="apiVersion" value="1.1" />
           <option name="pluginOptions">
             <array />
           </option>
           <option name="pluginClasspaths">
             <array />
           </option>
-          <option name="version" value="true" />
         </compilerArguments>
       </configuration>
     </facet>
@@ -31,10 +30,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin:2017.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-converters:2017.1.3" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin:2017.2" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-compiler-embeddable:1.1.4-3" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-converters:2017.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-file-content-replacer:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-dotnet.cli:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-ant:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-bundled:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-commit-status-publisher:1.0-SNAPSHOT" level="project" />
@@ -43,6 +44,7 @@
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-ssh-manager:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-powershell:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-mercurial:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-docker-support:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-perforce:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-svn:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-charisma:1.0-SNAPSHOT" level="project" />
@@ -54,8 +56,12 @@
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-bugzilla:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-gradle:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-jira:1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.3" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.3" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.1.4-3" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains:annotations:13.0" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.1.4-3" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.1.4-3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test-junit:1.1.4-3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.1.4-3" level="project" />
     <orderEntry type="library" name="Maven: junit:junit:4.12" level="project" />
     <orderEntry type="library" name="Maven: org.hamcrest:hamcrest-core:1.3" level="project" />
   </component>

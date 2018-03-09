@@ -4,7 +4,7 @@ import model.CIBuildModel
 
 class SanityCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}SanityCheck"
-    extId = uuid
+    id = uuid
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
 

@@ -1,9 +1,9 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.*
-import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2017_2.*
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
 import model.OS
@@ -190,7 +190,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
             }
             // Get the build receipt from sanity check to reuse the timestamp
             artifacts(sanityCheck) {
-                id = "ARTIFACT_DEPENDENCY_${sanityCheck.extId}"
+                id = "ARTIFACT_DEPENDENCY_${sanityCheck.id}"
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-distributions"
             }

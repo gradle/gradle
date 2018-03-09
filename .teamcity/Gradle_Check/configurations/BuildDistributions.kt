@@ -4,7 +4,7 @@ import model.CIBuildModel
 
 class BuildDistributions(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}BuildDistributions"
-    extId = uuid
+    id = uuid
     name = "Build Distributions"
     description = "Creation and verification of the distribution and documentation"
 

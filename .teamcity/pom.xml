@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   <name>Gradle_Check Config DSL Script</name>
   <properties>
-    <kotlin.version>1.0.3</kotlin.version>
-    <teamcity.dsl.version>2017.1</teamcity.dsl.version>
+    <kotlin.version>1.1.4-3</kotlin.version>
+    <teamcity.dsl.version>2017.2</teamcity.dsl.version>
   </properties>
   <groupId>Gradle_Check</groupId>
   <artifactId>Gradle_Check_dsl</artifactId>
@@ -101,9 +101,27 @@
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-runtime</artifactId>
+      <version>${kotlin.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-reflect</artifactId>
+      <version>${kotlin.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib</artifactId>
       <version>${kotlin.version}</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-test-junit</artifactId>
+      <version>${kotlin.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

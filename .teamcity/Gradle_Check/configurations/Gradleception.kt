@@ -1,11 +1,11 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
 import model.CIBuildModel
 
 class Gradleception(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}Gradleception"
-    extId = uuid
+    id = uuid
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 

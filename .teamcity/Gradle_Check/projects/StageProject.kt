@@ -2,10 +2,9 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.PerformanceTest
-import configurations.SanityCheck
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v10.FailureAction
-import jetbrains.buildServer.configs.kotlin.v10.Project
+import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2017_2.Project
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
@@ -13,7 +12,7 @@ import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-","")}"
-    this.extId = uuid
+    this.id = uuid
     this.name = stage.name
     this.description = stage.description
 
@@ -28,8 +27,9 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
     }
 
     val specificBuildTypes = stage.specificBuilds.map {
-        buildType(it.create(model))
+        it.create(model)
     }
+    specificBuildTypes.forEach { buildType(it) }
 
     stage.performanceTests.forEach {
         buildType(PerformanceTest(model, it))
@@ -38,7 +38,8 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
     stage.functionalTests.forEach { testCoverage ->
         val isSplitIntoBuckets = testCoverage.testType != TestType.soak
         if (isSplitIntoBuckets) {
-            val functionalTests = subProject(FunctionalTestProject(model, testCoverage))
+            val functionalTests = FunctionalTestProject(model, testCoverage)
+            subProject(functionalTests)
             if (stage.functionalTestsDependOnSpecificBuilds) {
                 functionalTests.buildTypes.forEach { functionalTestBuildType ->
                     functionalTestBuildType.dependencies {

@@ -4,7 +4,7 @@ import model.CIBuildModel
 
 class SmokeTests(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}SmokeTests"
-    extId = uuid
+    id = uuid
     name = "Smoke Tests with 3rd Party Plugins - Java8 Linux"
     description = "Smoke tests against third party plugins to see if they still work with the current Gradle version"
 

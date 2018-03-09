@@ -1,6 +1,6 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
 import model.BuildCache
 import model.CIBuildModel
 

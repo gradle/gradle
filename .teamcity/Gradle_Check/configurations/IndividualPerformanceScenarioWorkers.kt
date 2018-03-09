@@ -1,13 +1,13 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildStep
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
-import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
 import model.CIBuildModel
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkersLinux"
-    extId = uuid
+    id = uuid
     name = "Individual Performance Scenario Workers - Linux"
 
     applyDefaultSettings(this, timeout = 420)
