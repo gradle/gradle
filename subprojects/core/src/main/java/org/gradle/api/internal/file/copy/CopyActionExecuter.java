@@ -31,7 +31,7 @@ public class CopyActionExecuter {
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
-    public WorkResult execute(CopySpecInternal rootSpec, CopyAction action) {
+    public WorkResult execute(ResolvedCopySpecNode rootSpec, CopyAction action) {
         final CopyAction effectiveVisitor = new DuplicateHandlingCopyActionDecorator(
                 new NormalizingCopyActionDecorator(action, fileSystem)
         );
