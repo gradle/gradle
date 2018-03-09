@@ -28,7 +28,7 @@ val gradleParameters: List<String> = asList(
         "-s",
         "--daemon",
         "--continue",
-        "-I ./gradle/buildScanInit.gradle",
+        "-I ./gradle/init-scripts/build-scan.init.gradle.kts",
         java7Homes[OS.linux]!!
 )
 
