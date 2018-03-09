@@ -16,28 +16,52 @@
 
 package org.gradle.internal.logging.sink;
 
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 
 public class OutputEventListenerManager {
 
-    private final ListenerManager listenerManager;
-    private final OutputEventListener broadcaster;
+    private final OutputEventRenderer renderer;
+    private OutputEventListener other;
 
-    public OutputEventListenerManager(ListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
-        this.broadcaster = listenerManager.getBroadcaster(OutputEventListener.class);
+    private final OutputEventListener broadcaster = new OutputEventListener() {
+        @Override
+        public void onOutput(OutputEvent event) {
+            try {
+                renderer.onOutput(event);
+            } catch (Exception e) {
+                // TODO what here?
+            }
+
+            OutputEventListener otherRef = other;
+            if (otherRef != null) {
+                otherRef.onOutput(event);
+            }
+        }
+    };
+
+    public OutputEventListenerManager(OutputEventRenderer renderer) {
+        this.renderer = renderer;
     }
 
-    public void addListener(OutputEventListener listener) {
-        listenerManager.addListener(listener);
+    public void setListener(OutputEventListener listener) {
+        if (other != null) {
+            throw new IllegalStateException("Listener is already set to " + other);
+        }
+
+        other = listener;
     }
 
     public void removeListener(OutputEventListener listener) {
-        listenerManager.removeListener(listener);
+        if (other == listener) {
+            other = null;
+        } else {
+            throw new IllegalStateException("Cannot unset listener " + listener + " because the listener is " + other);
+        }
     }
 
     public OutputEventListener getBroadcaster() {
         return broadcaster;
     }
+
 }

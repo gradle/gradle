@@ -76,7 +76,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         def loggingBuildOperationNotificationBridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
 
         then:
-        outputEventListenerManager.addListener(loggingBuildOperationNotificationBridge)
+        outputEventListenerManager.setListener(loggingBuildOperationNotificationBridge)
 
 
         when:
