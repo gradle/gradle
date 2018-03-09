@@ -135,7 +135,6 @@ val groovyBuildScriptProjects = listOf(
     "ide-play",
     "osgi",
     "code-quality",
-    "tooling-api-builders",
     "docs",
     "integ-test",
     "signing",
