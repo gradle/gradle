@@ -28,7 +28,6 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.ChainingTransformer;
@@ -548,12 +547,12 @@ public class DefaultCopySpec implements CopySpecInternal {
         boolean caseSensitive,
         Iterable<Action<? super FileCopyDetails>> copyActions
     ) {
-        FileTree source = fileResolver.resolveFilesAsTree(sourcePaths);
         RelativePath resolvedPath = resolveDestPath(parentPath);
 
         ResolvedCopySpec resolvedSpec = new DefaultResolvedCopySpec(
             resolvedPath,
-            source,
+            fileResolver,
+            sourcePaths,
             patternSet,
             caseSensitive,
             getIncludeEmptyDirs(),
