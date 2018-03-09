@@ -4,13 +4,13 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * JVM invocation and inspection abstractions.
  */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.classycle'
+    `java-library`
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(":baseServices")
-    api project(":processServices")
+    api(project(":baseServices"))
+    api(project(":processServices"))
 }
 
 gradlebuildJava {
@@ -18,5 +18,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
