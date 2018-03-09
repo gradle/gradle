@@ -22,19 +22,19 @@ import org.gradle.internal.reflect.Instantiator;
 
 public class CopySpecBackedCopyActionProcessingStream implements CopyActionProcessingStream {
 
-    private final ResolvedCopySpecNode specRoot;
+    private final CopySpecInternal specRoot;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopySpecBackedCopyActionProcessingStream(ResolvedCopySpecNode specRoot, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
+    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal specRoot, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
         this.specRoot = specRoot;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
-    public void process(final CopyActionProcessingStreamAction action) {
-        specRoot.walk(new CopySpecActionImpl(action, instantiator, fileSystem, reproducibleFileOrder));
+    public void process(CopyActionProcessingStreamAction action) {
+        specRoot.resolveAsRoot().walk(new CopySpecActionImpl(action, instantiator, fileSystem, reproducibleFileOrder));
     }
 }

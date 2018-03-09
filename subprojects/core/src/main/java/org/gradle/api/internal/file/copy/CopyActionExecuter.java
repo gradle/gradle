@@ -31,12 +31,12 @@ public class CopyActionExecuter {
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
-    public WorkResult execute(ResolvedCopySpecNode specRoot, CopyAction action) {
+    public WorkResult execute(CopySpecInternal rootSpec, CopyAction action) {
         final CopyAction effectiveVisitor = new DuplicateHandlingCopyActionDecorator(
                 new NormalizingCopyActionDecorator(action, fileSystem)
         );
 
-        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(specRoot, instantiator, fileSystem, reproducibleFileOrder);
+        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(rootSpec, instantiator, fileSystem, reproducibleFileOrder);
         return effectiveVisitor.execute(processingStream);
     }
 

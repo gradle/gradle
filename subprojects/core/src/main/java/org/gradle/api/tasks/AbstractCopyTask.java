@@ -131,7 +131,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected void copy() {
         CopyActionExecuter copyActionExecuter = createCopyActionExecuter();
         CopyAction copyAction = createCopyAction();
-        WorkResult didWork = copyActionExecuter.execute(getResolvedRootSpec(), copyAction);
+        WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
         setDidWork(didWork.getDidWork());
     }
 

@@ -49,22 +49,22 @@ public class FileCopier {
     public WorkResult copy(Action<? super CopySpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec.resolveAsRoot(), getCopyVisitor(destinationDir));
+        return doCopy(copySpec, getCopyVisitor(destinationDir));
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec.resolveAsRoot(), new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), directoryFileTreeFactory));
+        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), directoryFileTreeFactory));
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
         return new FileCopyAction(fileLookup.getFileResolver(destination));
     }
 
-    private WorkResult doCopy(ResolvedCopySpecNode resolvedRootSpec, CopyAction visitor) {
+    private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
         CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem(), false);
-        return visitorDriver.execute(resolvedRootSpec, visitor);
+        return visitorDriver.execute(copySpec, visitor);
     }
 
 }
