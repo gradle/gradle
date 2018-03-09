@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class TestSelectionMatcher {
-
     private final List<Pattern> buildScriptIncludePatterns;
     private final List<Pattern> commandLineIncludePatterns;
 
@@ -62,29 +61,41 @@ public class TestSelectionMatcher {
             && matchesPattern(commandLineIncludePatterns, className, methodName);
     }
 
-    private boolean matchesPattern(List<Pattern> includePatterns, String fullQualifiedName, String methodName) {
-        String simpleName = StringUtils.substringAfterLast(fullQualifiedName, ".");
-        if ("".equals(simpleName)) {
-            return matchesPatternFQNameOrSimpleName(includePatterns, fullQualifiedName, methodName);
-        } else {
-            return matchesPatternFQNameOrSimpleName(includePatterns, fullQualifiedName, methodName)
-                || matchesPatternFQNameOrSimpleName(includePatterns, simpleName, methodName);
-        }
-    }
-
-    private boolean matchesPatternFQNameOrSimpleName(List<Pattern> includePatterns, String className, String methodName) {
+    private boolean matchesPattern(List<Pattern> includePatterns, String className, String methodName) {
         if (includePatterns.isEmpty()) {
             return true;
         }
-        String fullName = className + "." + methodName;
         for (Pattern pattern : includePatterns) {
-            if (methodName != null && pattern.matcher(fullName).matches()) {
+            if (methodName != null && matchesClassAndMethod(pattern, className, methodName)) {
                 return true;
             }
-            if (pattern.matcher(className).matches()) {
+            if (matchesClassName(pattern, className)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean matchesClassName(Pattern pattern, String className) {
+        return exactlyMatch(pattern, getSimpleName(className))
+            || pattern.matcher(className).matches();
+    }
+
+    private boolean matchesClassAndMethod(Pattern pattern, String fullQualifiedName, String methodName) {
+        return exactlyMatch(pattern, getSimpleName(fullQualifiedName) + "." + methodName)
+            || pattern.matcher(fullQualifiedName + "." + methodName).matches();
+    }
+
+    private boolean exactlyMatch(Pattern pattern, String s) {
+        return Pattern.quote(s).equals(pattern.pattern());
+    }
+
+    private String getSimpleName(String fullQualifiedName) {
+        String simpleName = StringUtils.substringAfterLast(fullQualifiedName, ".");
+        if ("".equals(simpleName)) {
+            return fullQualifiedName;
+        } else {
+            return simpleName;
+        }
     }
 }

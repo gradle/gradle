@@ -28,14 +28,21 @@ import java.util.Set;
  *
  *   test {
  *       filter {
- *          //specific test method
- *          includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
+ *          //specific test class, this can match 'SomeTest' class under any package
+ *          includeTestsMatching "SomeTest"
  *
- *          //specific test method, use wildcard
- *          includeTestsMatching "*SomeTest.someSpecificFeature"
+ *          //specific test class and test method, this can match 'someSpecificFeature' method of 'SomeTest' class under any package
+ *          includeTestsMatching "SomeTest.someTestMethod"
  *
  *          //specific test class
  *          includeTestsMatching "org.gradle.SomeTest"
+ *
+ *          //specific test class and method
+ *          includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
+ *          includeTest "org.gradle.SomeTest", "someTestMethod"
+ *
+ *          //specific test method, use wildcard
+ *          includeTestsMatching "*SomeTest.someSpecificFeature"
  *
  *          //specific test class, wildcard for packages
  *          includeTestsMatching "*.SomeTest"
@@ -48,15 +55,6 @@ import java.util.Set;
  *
  *          //only ui tests from integration tests, by some naming convention
  *          includeTestsMatching "*IntegTest*ui"
- *
- *          //specific test class and test method
- *          includeTest "org.gradle.SomeTest", "someTestMethod"
- *
- *          //special case without any wildcards, this can match 'SomeTest' class under any package
- *          includeTestsMatching "SomeTest"
- *
- *          //special case without any wildcards, this can match 'someSpecificFeature' method of 'SomeTest' class under any package
- *          includeTestsMatching "SomeTest.someTestMethod"
  *       }
  *   }
  *

@@ -46,7 +46,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         testCode()
     }
 
-    boolean supportsTestClassFiltering() {
+    boolean supportsEfficientClassFiltering() {
         return getTargetVersion() >= GradleVersion.version('4.7')
     }
 

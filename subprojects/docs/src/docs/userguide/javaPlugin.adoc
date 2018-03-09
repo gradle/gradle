@@ -628,51 +628,48 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`
-* Wildcard '*' is supported for matching any characters
+* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`.
+* Wildcard '*' is supported for matching any characters, however, abusing wildcards might lead to performance problems - see instructions below.
 * Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
-
-
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testfiltering" dir="testing/filtering" title="Filtering tests in the build script">
-                    <sourcefile file="build.gradle" snippet="test-filtering"/>
-                </sample>
+     <sourcefile file="build.gradle" snippet="test-filtering"/>
+</sample>
 ++++
 
 For more details and examples please see the api:org.gradle.api.tasks.testing.TestFilter[] reference.
 
-Some examples of using the command line option:
+Generally speaking, there're three kinds of pattern:
 
-* `gradle test --tests org.gradle.SomeTest.someSpecificFeature`
-* `gradle test --tests SomeTest.someSpecificFeature`
-* `gradle test --tests \*SomeTest.someSpecificFeature`
-* `gradle test --tests \*SomeSpecificTest`
-* `gradle test --tests \*SomeSpecificTestSuite`
-* `gradle test --tests all.in.specific.package\*`
-* `gradle test --tests \*IntegTest`
-* `gradle test --tests \\*IntegTest\*ui\*`
-* `gradle test --tests "com.example.MyTestSuite"`
-* `gradle test --tests "MyTestSuite"`
-* `gradle test --tests "com.example.ParameterizedTest"`
-* `gradle test --tests "ParameterizedTest"`
-* `gradle test --tests "\*ParameterizedTest.foo*"`
-* `gradle test --tests "\*ParameterizedTest.*[2]"`
-* `gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui`
+* Simple pattern (since Gradle 4.7): pattern which has no wildcards at all. In this case, simple class name are supported:
+  * `gradle test --tests org.gradle.SomeTestClass`
+  * `gradle test --tests org.gradle.SomeTestClass.someSpecificMethod`
+  * `gradle test --tests SomeTestClass` (can match `SomeTest` at any package)
+  * `gradle test --tests SomeTestClass.someSpecificMethod` (can match `SomeTest.someSpecificMethod` at any package)
+* Pattern containing but not starting with a wildcard:
+  * `gradle test --tests all.in.specific.package\*`
+  * `gradle test --tests all.in.specific.package\*.someSpecificMethod`
+* Pattern starting with a wildcard.
+  * `gradle test --tests \*SomeTestClass.someSpecificFeature`
+  * `gradle test --tests \*SomeSpecificTest`
+  * `gradle test --tests \*SomeSpecificTestSuite`
+  * `gradle test --tests \*IntegTest`
+  * `gradle test --tests \*IntegTest\*ui\*`
+  * `gradle test --tests "\*ParameterizedTest.foo*"`
+  * `gradle test --tests "\*ParameterizedTest.*[2]"`
+
+When a pattern starts with a wildcard, Gradle needs to load all classes to search for a potentially matched method,
+which may lead to very bad performance, especially with api:org.gradle.api.tasks.testing.Test#getForkEvery()[`forkEvery`].
+Therefore, to avoid unnecessary performance loss, please don't use a pattern starting with a wildcard (*).
 
 This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
 
 ----
 gradle test --continuous --tests "com.mypackage.foo.*"
 ----
-
-[NOTE]
-====
-Since `--tests` supports method name matching, Gradle has to load all possible classes, which may lead to very bad performance, especially with api:org.gradle.api.tasks.testing.Test#getForkEvery()[`forkEvery`].
-To help Gradle exclude as many classes as possible, please don't use a pattern starting with a wildcard (*).
-====
 
 [[sec:single_test_execution_via_system_properties]]
 ==== Single test execution via System Properties

@@ -188,7 +188,11 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
     @Unroll
     def 'filter as many classes as possible before sending to worker process'() {
         given:
-        Assume.assumeFalse(framework == "JUnitPlatform") // JUnitPlatformTestClassProcessor won't emit test suite events if they're excluded
+        // We can know which class is sent to TestClassProcessor via afterSuite() hook method
+        // because JUnitTestClassProcessor will emit a test suite event for each loaded class.
+        // However, JUnitPlatformTestClassProcessor won't emit such event unless the class is executed.
+        // That's why we run test with JUnit 4 only.
+        Assume.assumeFalse(framework == "JUnitPlatform")
         file('src/test/java/org/gradle/FooTest.java') << """
             package org.gradle;
             import $imports;

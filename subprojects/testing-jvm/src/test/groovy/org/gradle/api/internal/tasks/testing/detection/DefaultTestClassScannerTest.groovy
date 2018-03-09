@@ -34,7 +34,7 @@ public class DefaultTestClassScannerTest extends Specification {
 
     @Test
     public void passesEachClassFileToTestClassDetector() {
-        DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor, new DefaultTestFilter())
+        DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor)
 
         when:
         scanner.run()

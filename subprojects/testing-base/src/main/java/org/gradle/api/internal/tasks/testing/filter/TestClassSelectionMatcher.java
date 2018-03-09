@@ -67,7 +67,7 @@ public class TestClassSelectionMatcher {
     }
 
     private abstract static class TestClassPattern {
-        String[] segments;
+        protected String[] segments;
 
         abstract boolean mayBeIncluded(String fullQualifiedName, String simpleName);
 
