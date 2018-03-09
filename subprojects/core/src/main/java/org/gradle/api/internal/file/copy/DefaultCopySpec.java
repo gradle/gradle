@@ -228,6 +228,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
+        this.patternSet.setCaseSensitive(caseSensitive);
     }
 
     @Override
@@ -516,28 +517,29 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.filteringCharset = charset;
     }
 
+    private static final Iterable<Action<? super FileCopyDetails>> EMPTY_ACTIONS = Collections.emptyList();
+
+    private Iterable<Action<? super FileCopyDetails>> internEmptyCopyActions() {
+        return copyActions.isEmpty() ? EMPTY_ACTIONS : copyActions;
+    }
+
     @Override
     public ResolvedCopySpecNode resolveAsRoot() {
-        PatternSet resolvedPatternSet = createPatternSet(fileResolver);
         boolean caseSensitive = isCaseSensitive();
-        resolvedPatternSet.setCaseSensitive(caseSensitive);
-        copyPatterns(patternSet, resolvedPatternSet);
-        return resolve(RelativePath.EMPTY_ROOT, resolvedPatternSet, caseSensitive, copyActions);
+        PatternSet resolvedPatternSet = copyPatternSetIfNecessary(fileResolver, caseSensitive, patternSet);
+        return resolve(RelativePath.EMPTY_ROOT, resolvedPatternSet, caseSensitive, internEmptyCopyActions());
     }
 
     @Override
     public ResolvedCopySpecNode resolveAsChild(
         PatternSet parentPatternSet,
-        Iterable<? extends Action<? super FileCopyDetails>> parentCopyActions,
+        Iterable<Action<? super FileCopyDetails>> parentCopyActions,
         ResolvedCopySpec parent
     ) {
         boolean caseSensitive = isCaseSensitive();
-        PatternSet resolvedPatternSet = createPatternSet(fileResolver);
-        resolvedPatternSet.setCaseSensitive(caseSensitive);
-        copyPatterns(parentPatternSet, resolvedPatternSet);
-        copyPatterns(patternSet, resolvedPatternSet);
-
-        return resolve(parent.getDestPath(), resolvedPatternSet, caseSensitive, Iterables.concat(parentCopyActions, copyActions));
+        PatternSet resolvedPatternSet = mergePatternSetIfNecessary(fileResolver, caseSensitive, parentPatternSet, patternSet);
+        Iterable<Action<? super FileCopyDetails>> resolvedCopyActions = mergeCopyActionsIfNecessary(parentCopyActions, internEmptyCopyActions());
+        return resolve(parent.getDestPath(), resolvedPatternSet, caseSensitive, resolvedCopyActions);
     }
 
     private ResolvedCopySpecNode resolve(
@@ -581,9 +583,32 @@ public class DefaultCopySpec implements CopySpecInternal {
         return RelativePath.parse(false, parentPath, path);
     }
 
-    private static PatternSet createPatternSet(FileResolver fileResolver) {
+    private static PatternSet mergePatternSetIfNecessary(FileResolver fileResolver, boolean caseSensitive, PatternSet parentPatternSet, PatternSet patternSet) {
+        if (patternSet.isEmpty()) {
+            if (parentPatternSet.isCaseSensitive() == caseSensitive) {
+                return parentPatternSet;
+            }
+        } else {
+            if (parentPatternSet.isEmpty() && patternSet.isCaseSensitive() == caseSensitive) {
+                return patternSet;
+            }
+        }
         PatternSet patterns = fileResolver.getPatternSetFactory().create();
         assert patterns != null;
+        patterns.setCaseSensitive(caseSensitive);
+        copyPatterns(parentPatternSet, patterns);
+        copyPatterns(patternSet, patterns);
+        return patterns;
+    }
+
+    private static PatternSet copyPatternSetIfNecessary(FileResolver fileResolver, boolean caseSensitive, PatternSet patternSet) {
+        if (patternSet.isCaseSensitive() == caseSensitive) {
+            return patternSet;
+        }
+        PatternSet patterns = fileResolver.getPatternSetFactory().create();
+        assert patterns != null;
+        patterns.setCaseSensitive(caseSensitive);
+        copyPatterns(patternSet, patterns);
         return patterns;
     }
 
@@ -592,5 +617,15 @@ public class DefaultCopySpec implements CopySpecInternal {
         target.includeSpecs(source.getIncludeSpecs());
         target.exclude(source.getExcludes());
         target.excludeSpecs(source.getExcludeSpecs());
+    }
+
+    private static Iterable<Action<? super FileCopyDetails>> mergeCopyActionsIfNecessary(Iterable<Action<? super FileCopyDetails>> parentCopyActions, Iterable<Action<? super FileCopyDetails>> copyActions) {
+        if (parentCopyActions == EMPTY_ACTIONS) {
+            return copyActions;
+        }
+        if (copyActions == EMPTY_ACTIONS) {
+            return parentCopyActions;
+        }
+        return Iterables.concat(parentCopyActions, copyActions);
     }
 }
