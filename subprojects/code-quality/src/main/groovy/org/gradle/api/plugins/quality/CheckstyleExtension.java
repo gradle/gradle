@@ -17,9 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 
 import java.io.File;
@@ -130,17 +128,6 @@ public class CheckstyleExtension extends CodeQualityExtension {
     @Incubating
     public DirectoryProperty getConfigDirectory() {
         return configDir;
-    }
-
-    /**
-     * Set the provider for calculating the configuration directory.
-     *
-     * @param configDir Configuration directory provider
-     * @since 4.7
-     */
-    @Incubating
-    public void setConfigurationDirectory(Provider<Directory> configDir) {
-        this.configDir.set(configDir);
     }
 
     /**
