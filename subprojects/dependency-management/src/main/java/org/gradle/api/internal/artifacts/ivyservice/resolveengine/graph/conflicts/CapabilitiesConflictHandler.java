@@ -15,25 +15,31 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
-public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, Void, Void> {
-    class Candidate {
-        private final ComponentState component;
-        private final CapabilityDescriptor capabilityDescriptor;
+import java.util.Collection;
 
-        public Candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor) {
-            this.component = component;
-            this.capabilityDescriptor = capabilityDescriptor;
-        }
+public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult, CapabilitiesConflictHandler.Resolver> {
+    interface Candidate {
+        ComponentState getComponent();
+        CapabilityDescriptor getCapabilityDescriptor();
+    }
 
-        public ComponentState getComponent() {
-            return component;
-        }
+    interface ResolutionDetails extends ConflictResolutionResult {
+        Collection<? extends CapabilityDescriptor> getCapabilityVersions();
+        Collection<? extends CandidateDetails> getCandidates(CapabilityDescriptor capability);
+        boolean hasResult();
+    }
 
-        public CapabilityDescriptor getCapabilityDescriptor() {
-            return capabilityDescriptor;
-        }
+    interface CandidateDetails {
+        ComponentIdentifier getId();
+        void evict();
+        void select();
+    }
+
+    interface Resolver {
+        void resolve(ResolutionDetails details);
     }
 }

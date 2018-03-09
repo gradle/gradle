@@ -74,7 +74,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
         ComponentResolutionState selected = details.getSelected();
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, selected, conflict.candidates);
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, selected);
         resolutionAction.execute(result);
         maybeSetReason(conflict.participants, selected);
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
