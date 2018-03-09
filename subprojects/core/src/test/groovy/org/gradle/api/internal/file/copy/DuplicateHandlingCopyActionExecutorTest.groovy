@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicateFileCopyingException
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCopyDetails
@@ -39,8 +38,6 @@ import spock.lang.Specification
 
 class DuplicateHandlingCopyActionExecutorTest extends Specification {
 
-    private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
-
     def fileSystem = Mock(FileSystem)
     def delegateAction = Mock(CopyActionProcessingStreamAction)
     def delegate = new CopyAction() {
@@ -55,10 +52,11 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
 
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     def executer = new CopyActionExecuter(instantiator, fileSystem, false)
-    def copySpec = Mock(MyCopySpec) {
+    def resolvedSpec = Mock(ResolvedCopySpec)
+    def resolvedSpecNode = Mock(ResolvedCopySpecNode) {
+        getSpec() >> resolvedSpec
         getChildren() >> []
     }
-    def copySpecResolver = Mock(CopySpecResolver)
 
     def duplicatesIncludedByDefault() {
         given:
@@ -107,7 +105,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
+        resolvedSpec.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
 
         when:
         visit()
@@ -121,7 +119,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.FAIL
+        resolvedSpec.duplicatesStrategy >> DuplicatesStrategy.FAIL
 
         when:
         visit()
@@ -136,7 +134,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.WARN
+        resolvedSpec.duplicatesStrategy >> DuplicatesStrategy.WARN
 
         when:
         visit()
@@ -178,9 +176,9 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
 
 
     void files(String... fileNames) {
-        copySpecResolver.destPath >> new RelativePath(false, '/root')
+        resolvedSpec.destPath >> new RelativePath(false, '/root')
         def fileTree = Mock(FileTree)
-        copySpecResolver.getSource() >> fileTree
+        resolvedSpec.getSource() >> fileTree
         fileTree.visit(_ as FileVisitor) >> { FileVisitor visitor ->
             fileNames.each { filename ->
                 def fvd = Mock(FileVisitDetails) {
@@ -190,15 +188,15 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
             }
             fileTree
         }
-        copySpec.walk(_) >> { Action it -> it.execute(copySpecResolver) }
+        resolvedSpecNode.walk(_) >> { Action it -> it.execute(resolvedSpec) }
     }
 
     void actions(Closure... actions) {
-        copySpecResolver.allCopyActions >> actions.collect { new ClosureBackedAction<>(it) }
+        resolvedSpec.getCopyActions() >> actions.collect { new ClosureBackedAction<>(it) }
     }
 
     void visit() {
-        executer.execute(copySpec, delegate)
+        executer.execute(resolvedSpecNode, delegate)
     }
 
 }

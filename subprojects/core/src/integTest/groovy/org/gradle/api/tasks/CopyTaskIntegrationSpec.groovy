@@ -1207,7 +1207,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         run "copy", "--info"
         then:
         skippedTasks.empty
-        output.contains "Value of input property 'rootSpec\$1\$1.$property' has changed for task ':copy'"
+        output.contains "Value of input property 'resolvedRootSpec.children.\$0.children.\$0.spec.$property' has changed for task ':copy'"
 
         where:
         property             | oldValue                     | newValue

@@ -35,23 +35,23 @@ import java.util.Map;
 
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
-    private final CopySpecResolver specResolver;
+    private final ResolvedCopySpec copySpec;
     private final FilterChain filterChain;
     private RelativePath relativePath;
     private boolean excluded;
     private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
-    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, Chmod chmod) {
+    public DefaultFileCopyDetails(FileVisitDetails fileDetails, ResolvedCopySpec copySpec, Chmod chmod) {
         super(chmod);
-        this.filterChain = new FilterChain(specResolver.getFilteringCharset());
+        this.filterChain = new FilterChain(copySpec.getFilteringCharset());
         this.fileDetails = fileDetails;
-        this.specResolver = specResolver;
-        this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
+        this.copySpec = copySpec;
+        this.duplicatesStrategy = copySpec.getDuplicatesStrategy();
     }
 
     public boolean isIncludeEmptyDirs() {
-        return specResolver.getIncludeEmptyDirs();
+        return copySpec.isIncludeEmptyDirs();
     }
 
     public String getDisplayName() {
@@ -122,7 +122,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     public RelativePath getRelativePath() {
         if (relativePath == null) {
             RelativePath path = fileDetails.getRelativePath();
-            relativePath = specResolver.getDestPath().append(path.isFile(), path.getSegments());
+            relativePath = copySpec.getDestPath().append(path.isFile(), path.getSegments());
         }
         return relativePath;
     }
@@ -142,7 +142,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Nullable
     private Integer getSpecMode() {
-        return fileDetails.isDirectory() ? specResolver.getDirMode() : specResolver.getFileMode();
+        return fileDetails.isDirectory() ? copySpec.getDirMode() : copySpec.getFileMode();
     }
 
     public void setRelativePath(RelativePath path) {

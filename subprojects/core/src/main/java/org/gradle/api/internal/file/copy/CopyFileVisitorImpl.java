@@ -24,14 +24,14 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
 public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
-    private final CopySpecResolver copySpecResolver;
+    private final ResolvedCopySpec spec;
     private final CopyActionProcessingStreamAction action;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopyFileVisitorImpl(CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
-        this.copySpecResolver = spec;
+    public CopyFileVisitorImpl(ResolvedCopySpec spec, CopyActionProcessingStreamAction action, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
+        this.spec = spec;
         this.action = action;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
@@ -53,7 +53,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
 
     private void processFile(FileVisitDetails visitDetails) {
         DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
-        for (Action<? super FileCopyDetails> action : copySpecResolver.getAllCopyActions()) {
+        for (Action<? super FileCopyDetails> action : spec.getCopyActions()) {
             action.execute(details);
             if (details.isExcluded()) {
                 return;
@@ -63,7 +63,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     }
 
     private DefaultFileCopyDetails createDefaultFileCopyDetails(FileVisitDetails visitDetails) {
-        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, copySpecResolver, fileSystem);
+        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
     }
 
     @Override

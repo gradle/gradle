@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 
 import javax.annotation.Nullable;
 import java.io.FilterReader;
@@ -278,21 +279,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void walk(Action<? super CopySpecResolver> action) {
-        getDelegateCopySpec().walk(action);
-    }
-
-    @Override
-    public CopySpecResolver buildRootResolver() {
-        return getDelegateCopySpec().buildRootResolver();
-    }
-
-    @Override
-    public CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent) {
-        return getDelegateCopySpec().buildResolverRelativeToParent(parent);
-    }
-
-    @Override
     public String getFilteringCharset() {
         return getDelegateCopySpec().getFilteringCharset();
     }
@@ -308,8 +294,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void visit(CopySpecAddress parentPath, CopySpecVisitor visitor) {
-        getDelegateCopySpec().visit(parentPath, visitor);
+    public void visit(CopySpecVisitor visitor) {
+        getDelegateCopySpec().visit(visitor);
     }
 
     @Override
@@ -320,5 +306,15 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action) {
         getDelegateCopySpec().appendCachingSafeCopyAction(action);
+    }
+
+    @Override
+    public ResolvedCopySpecNode resolveAsRoot() {
+        return getDelegateCopySpec().resolveAsRoot();
+    }
+
+    @Override
+    public ResolvedCopySpecNode resolveAsChild(PatternSet parentPatternSet, Iterable<? extends Action<? super FileCopyDetails>> parentCopyActions, ResolvedCopySpec parent) {
+        return getDelegateCopySpec().resolveAsChild(parentPatternSet, parentCopyActions, parent);
     }
 }

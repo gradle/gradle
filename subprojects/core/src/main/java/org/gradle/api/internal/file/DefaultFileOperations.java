@@ -173,7 +173,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        return instantiator.newInstance(DefaultCopySpec.class, null, fileResolver, instantiator);
     }
 
     public FileResolver getFileResolver() {

@@ -39,7 +39,7 @@ public class FileCopier {
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
-        DefaultCopySpec copySpec = new DefaultCopySpec(this.fileResolver, instantiator);
+        DefaultCopySpec copySpec = new DefaultCopySpec(null, fileResolver, instantiator);
         DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
         CopySpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);
@@ -49,22 +49,22 @@ public class FileCopier {
     public WorkResult copy(Action<? super CopySpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec, getCopyVisitor(destinationDir));
+        return doCopy(copySpec.resolveAsRoot(), getCopyVisitor(destinationDir));
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), directoryFileTreeFactory));
+        return doCopy(copySpec.resolveAsRoot(), new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), directoryFileTreeFactory));
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
         return new FileCopyAction(fileLookup.getFileResolver(destination));
     }
 
-    private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
+    private WorkResult doCopy(ResolvedCopySpecNode resolvedRootSpec, CopyAction visitor) {
         CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem(), false);
-        return visitorDriver.execute(copySpec, visitor);
+        return visitorDriver.execute(resolvedRootSpec, visitor);
     }
 
 }

@@ -23,309 +23,272 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Assert
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.gradle.testing.internal.util.Specification
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
+class DefaultCopySpecResolutionTest extends Specification implements CopySpecTestSpec {
 
-@RunWith(JMock)
-public class DefaultCopySpecResolutionTest {
+    def fileResolver = Mock(FileResolver) {
+        getPatternSetFactory() >> TestFiles.getPatternSetFactory()
+    }
+    def instantiator = DirectInstantiator.INSTANCE
+    final CopySpecInternal spec = new DefaultCopySpec(null, fileResolver, instantiator)
 
-    @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    private TestFile baseFile = testDir.testDirectory
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    private final Instantiator instantiator = DirectInstantiator.INSTANCE
-    private final DefaultCopySpec parentSpec = new DefaultCopySpec(fileResolver, instantiator)
-
-    @Test
-    public void testSpecHasRootPathAsDestinationByDefault() {
-        assertThat(parentSpec.buildRootResolver().getDestPath(), equalTo(new RelativePath(false)))
+    def "spec has root path as destination by default"() {
+        expect:
+        resolvedSpec().getDestPath() == RelativePath.EMPTY_ROOT
     }
 
-    @Test
-    public void testChildResolvesUsingParentDestinationPathAsDefault() {
-        parentSpec.into 'parent'
-        CopySpecResolver parentContext = parentSpec.buildRootResolver()
-        assertThat(parentContext.destPath, equalTo(new RelativePath(false, 'parent')))
+    def "child resolves using parent destination path as default"() {
+        given:
+        spec.into 'parent'
+        spec.addChild()
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        CopySpecResolver childResolver = child.buildResolverRelativeToParent(parentContext)
-        assertThat(childResolver.destPath, equalTo(new RelativePath(false, 'parent')))
+        expect:
+        resolvedSpec().destPath == relativeDirectory('parent')
+        resolvedChild().destPath == relativeDirectory('parent')
     }
 
-    @Test
-    public void testChildDestinationPathIsResolvedAsNestedWithinParent() {
-        parentSpec.into 'parent'
-        CopySpecResolver parentContext = parentSpec.buildRootResolver()
-        assertThat(parentContext.destPath, equalTo(new RelativePath(false, 'parent')))
+    def "child destination path is resolved ads nested within parent"() {
+        given:
+        spec.into 'parent'
+        spec.addChild().into 'child'
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        child.into 'child'
-        CopySpecResolver childResolver = child.buildResolverRelativeToParent(parentContext)
-        assertThat(childResolver.destPath, equalTo(new RelativePath(false, 'parent', 'child')))
+        expect:
+        resolvedSpec().destPath == relativeDirectory('parent')
+        resolvedChild().destPath == relativeDirectory('parent', 'child')
     }
 
-    @Test
-    public void testChildUsesParentPatternsAsDefault() {
+    def "child uses parent patterns as default"() {
+        given:
+        Spec specInclude = Mock(Spec)
+        Spec specExclude = Mock(Spec)
 
-        Spec specInclude = [:] as Spec
-        Spec specExclude = [:] as Spec
+        spec.include('parent-include')
+        spec.exclude('parent-exclude')
+        spec.include(specInclude)
+        spec.exclude(specExclude)
 
-        parentSpec.include('parent-include')
-        parentSpec.exclude('parent-exclude')
-        parentSpec.include(specInclude)
-        parentSpec.exclude(specExclude)
+        spec.addChild()
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-
-
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        PatternSet patterns = childResolver.patternSet
-
-        assertThat(patterns.includes, equalTo(['parent-include'] as Set))
-        assertThat(patterns.excludes, equalTo(['parent-exclude'] as Set))
-        assertThat(patterns.includeSpecs, equalTo([specInclude] as Set))
-        assertThat(patterns.excludeSpecs, equalTo([specExclude] as Set))
+        when:
+        def patterns = resolvedChild().patternSet
+        then:
+        patterns.includes == (['parent-include'] as Set)
+        patterns.excludes == (['parent-exclude'] as Set)
+        patterns.includeSpecs == ([specInclude] as Set)
+        patterns.excludeSpecs == ([specExclude] as Set)
     }
 
+    def "child uses patterns from parent"() {
+        given:
+        Spec specInclude = Mock(Spec)
+        Spec specExclude = Mock(Spec)
 
-    @Test
-    public void testChildUsesPatternsFromParent() {
-        Spec specInclude = [:] as Spec
-        Spec specExclude = [:] as Spec
+        spec.include('parent-include')
+        spec.exclude('parent-exclude')
+        spec.include(specInclude)
+        spec.exclude(specExclude)
 
+        Spec childInclude = Mock(Spec)
+        Spec childExclude = Mock(Spec)
 
-        parentSpec.include('parent-include')
-        parentSpec.exclude('parent-exclude')
-        parentSpec.include(specInclude)
-        parentSpec.exclude(specExclude)
-
-        Spec childInclude = [:] as Spec
-        Spec childExclude = [:] as Spec
-
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
+        CopySpec child = spec.addChild()
         child.include('child-include')
         child.exclude('child-exclude')
         child.include(childInclude)
         child.exclude(childExclude)
 
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        PatternSet patterns = childResolver.patternSet
-
-        assertThat(patterns.includes, equalTo(['parent-include', 'child-include'] as Set))
-        assertThat(patterns.excludes, equalTo(['parent-exclude', 'child-exclude'] as Set))
-        assertThat(patterns.includeSpecs, equalTo([specInclude, childInclude] as Set))
-        assertThat(patterns.excludeSpecs, equalTo([specExclude, childExclude] as Set))
+        when:
+        def patterns = resolvedChild().patternSet
+        then:
+        patterns.includes == (['parent-include', 'child-include'] as Set)
+        patterns.excludes == (['parent-exclude', 'child-exclude'] as Set)
+        patterns.includeSpecs == ([specInclude, childInclude] as Set)
+        patterns.excludeSpecs == ([specExclude, childExclude] as Set)
     }
 
-    @Test
-    public void testResolvesSourceUsingOwnSourceFilteredByPatternset() {
-        fileResolver = context.mock(FileResolver)
-        context.checking {
-            allowing(fileResolver).getPatternSetFactory();
-            will(returnValue(TestFiles.getPatternSetFactory()));
-        }
-
+    def "resolves source using own source filtered by pattern set"() {
         //Does not get source from root
-        parentSpec.from 'x'
-        parentSpec.from 'y'
+        spec.from 'x'
+        spec.from 'y'
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
+        CopySpec child = spec.addChild()
         child.from 'a'
         child.from 'b'
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
+        child.exclude("ex")
 
-        def filteredTree = context.mock(FileTreeInternal, 'filtered')
+        def filteredTree = Mock(FileTreeInternal)
+        def tree = Mock(FileTreeInternal)
 
-        context.checking {
-            one(fileResolver).resolveFilesAsTree(['a', 'b'] as Set)
-            def tree = context.mock(FileTreeInternal, 'source')
-            will(returnValue(tree))
-            one(tree).matching((PatternFilterable)withParam(equalTo(parentSpec.patternSet)))
-            will(returnValue(filteredTree))
-        }
+        when:
+        def childSource = resolvedChild().source
 
-        assertThat(childResolver.source, sameInstance(filteredTree))
+        then:
+        childSource.is(filteredTree)
+        1 * fileResolver.resolveFilesAsTree([['a', 'b'] as Set] as Object[]) >> tree
+        1 * tree.matching(_) >> filteredTree
     }
 
+    def "duplicates Strategy defaults to include"() {
+        given:
+        spec.addChild()
 
-
-    @Test
-    public void duplicatesStrategyDefaultsToInclude() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        assert childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        expect:
+        resolvedChild().duplicatesStrategy == DuplicatesStrategy.INCLUDE
     }
 
-    @Test
-    public void childInheritsDuplicatesStrategyFromParent() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
+    def "inherits duplicate strategy from parent"() {
+        given:
+        def child = spec.addChild()
 
-        assert childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        when:
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        then:
+        resolvedChild().duplicatesStrategy == DuplicatesStrategy.EXCLUDE
 
-        parentSpec.duplicatesStrategy = 'EXCLUDE'
-        assert childResolver.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-
-        child.duplicatesStrategy = 'INCLUDE'
-        assert childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        when:
+        child.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        then:
+        resolvedChild().duplicatesStrategy == DuplicatesStrategy.INCLUDE
     }
 
-    @Test
-    public void caseSensitiveFlagDefaultsToTrue() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        assert childResolver.caseSensitive
-        assert childResolver.patternSet.caseSensitive
+    def "case sensitive flag defaults to true"() {
+        given:
+        spec.addChild()
+
+        expect:
+        resolvedChild().caseSensitive
+        resolvedChild().patternSet.caseSensitive
     }
 
-    @Test
-    public void childUsesCaseSensitiveFlagFromParentAsDefault() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
+    def "child uses case sensitive flag from parent as default"() {
+        given:
+        def child = spec.addChild()
 
-        assert childResolver.caseSensitive
-        assert childResolver.patternSet.caseSensitive
+        when:
+        spec.caseSensitive = false
+        then:
+        !resolvedChild().caseSensitive
+        !resolvedChild().patternSet.caseSensitive
 
-        parentSpec.caseSensitive = false
-        assert !childResolver.caseSensitive
-        assert !childResolver.patternSet.caseSensitive
-
+        when:
         child.caseSensitive = true
-        assert childResolver.caseSensitive
-        assert childResolver.patternSet.caseSensitive
+        then:
+        resolvedChild().caseSensitive
+        resolvedChild().patternSet.caseSensitive
     }
 
-    @Test
-    public void includeEmptyDirsFlagDefaultsToTrue() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        assert childResolver.includeEmptyDirs
+    def "include empty dirs flag defaults to true"() {
+        given:
+        spec.addChild()
 
+        expect:
+        resolvedChild().includeEmptyDirs
     }
 
-    @Test
-    public void childUsesIncludeEmptyDirsFlagFromParentAsDefault() {
+    def "child uses incldue empty dirs flag from parent as default"() {
+        given:
+        def child = spec.addChild()
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
+        when:
+        spec.includeEmptyDirs = false
+        then:
+        !resolvedChild().includeEmptyDirs
 
-        assert childResolver.includeEmptyDirs
-
-        parentSpec.includeEmptyDirs = false
-        assert !childResolver.includeEmptyDirs
-
+        when:
         child.includeEmptyDirs = true
-        assert childResolver.includeEmptyDirs
+        then:
+        resolvedChild().includeEmptyDirs
     }
 
+    def "inherits actions from parent"() {
+        given:
+        def parentAction = Mock(Action)
+        spec.eachFile parentAction
 
-    @Test
-    public void testSpecInheritsActionsFromParent() {
-        Action parentAction = context.mock(Action, 'parent')
-        parentSpec.eachFile parentAction
-
-        Action childAction = context.mock(Action, 'child')
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
+        def childAction = Mock(Action)
+        def child = spec.addChild()
         child.eachFile childAction
 
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-
-        assertThat(childResolver.allCopyActions, equalTo([parentAction, childAction]))
+        expect:
+        resolvedChild().copyActions as List == [parentAction, childAction]
     }
 
-    @Test
-    public void testHasNoPermissionsByDefault() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        assert childResolver.fileMode == null
-        assert childResolver.dirMode == null
+    def "has no permissions by default"() {
+        given:
+        spec.addChild()
+
+        expect:
+        resolvedChild().fileMode == null
+        resolvedChild().dirMode == null
     }
 
-    @Test
-    public void testInheritsPermissionsFromParent() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        parentSpec.fileMode = 0x1
-        parentSpec.dirMode = 0x2
+    def "inherits permissions from parent"() {
+        given:
+        def child = spec.addChild()
 
-        Assert.assertEquals(0x1, childResolver.fileMode)
-        Assert.assertEquals(0x2, childResolver.dirMode)
+        when:
+        spec.fileMode = 0x1
+        spec.dirMode = 0x2
+        then:
+        resolvedChild().fileMode == 0x1
+        resolvedChild().dirMode == 0x2
 
+        when:
         child.fileMode = 0x3
         child.dirMode = 0x4
-
-        Assert.assertEquals(0x3, childResolver.fileMode)
-        Assert.assertEquals(0x4, childResolver.dirMode)
+        then:
+        resolvedChild().fileMode == 0x3
+        resolvedChild().dirMode == 0x4
     }
 
-    @Test
-    public void canWalkDownTreeCreatedUsingFromIntegrationTest() {
+    def "matching spec inherited"() {
+        given:
+        spec.addChild()
+        spec.filesMatching("**/*.java") {}
 
-        CopySpec child = parentSpec.from('somedir') { into 'child' }
+        expect:
+        resolvedChild().copyActions*.class == [MatchingCopyAction]
+    }
+
+
+    def "can walk down tree created using from"() {
+        CopySpec child = spec.from('somedir') { into 'child' }
         child.from('somedir') { into 'grandchild' }
         child.from('somedir') { into '/grandchild' }
 
-        List<RelativePath> paths = new ArrayList<RelativePath>()
-        parentSpec.buildRootResolver().walk(new Action<CopySpecResolver>() {
-            void execute(CopySpecResolver csr) {
-                paths.add(csr.destPath)
-            }
-        })
-
-        assertThat(paths.size(), equalTo(4))
-        assertThat(paths.get(0), equalTo(new RelativePath(false)))
-        assertThat(paths.get(1), equalTo(new RelativePath(false, 'child')))
-        assertThat(paths.get(2), equalTo(new RelativePath(false, 'child', 'grandchild')))
-        assertThat(paths.get(3), equalTo(new RelativePath(false, 'grandchild')))
+        expect:
+        resolvedDestPaths() == [
+            RelativePath.EMPTY_ROOT,
+            relativeDirectory('child'),
+            relativeDirectory('child', 'grandchild'),
+            relativeDirectory('grandchild'),
+        ]
     }
 
-    @Test
-    public void canWalkDownTreeCreatedUsingWithIntegrationTest() {
+    def "can walk down tree created using with"() {
+        given:
+        CopySpec childOne = new DefaultCopySpec(null, fileResolver, instantiator)
+        childOne.into("child_one")
+        spec.with(childOne)
 
-        DefaultCopySpec childOne = new DefaultCopySpec(fileResolver, instantiator)
-        childOne.into("child_one");
-        parentSpec.with(childOne);
+        CopySpec childTwo = new DefaultCopySpec(null, fileResolver, instantiator)
+         childTwo.into("child_two")
+        spec.with( childTwo)
 
-        DefaultCopySpec childTwo = new DefaultCopySpec(fileResolver, instantiator)
-         childTwo.into("child_two");
-        parentSpec.with( childTwo);
+        CopySpec grandchild = new DefaultCopySpec(null, fileResolver, instantiator)
+        grandchild.into("grandchild")
+        childOne.with(grandchild)
+        childTwo.with(grandchild)
 
-        DefaultCopySpec grandchild = new DefaultCopySpec(fileResolver, instantiator)
-        grandchild.into("grandchild");
-        childOne.with(grandchild);
-         childTwo.with(grandchild);
-
-        List<RelativePath> paths = new ArrayList<RelativePath>()
-        parentSpec.buildRootResolver().walk(new Action<CopySpecResolver>() {
-            void execute(CopySpecResolver csr) {
-                paths.add(csr.destPath)
-            }
-        })
-
-        assertThat(paths.size(), equalTo(5))
-        assertThat(paths.get(0), equalTo(new RelativePath(false)))
-        assertThat(paths.get(1), equalTo(new RelativePath(false, 'child_one')))
-        assertThat(paths.get(2), equalTo(new RelativePath(false, 'child_one', 'grandchild')))
-        assertThat(paths.get(3), equalTo(new RelativePath(false, 'child_two')))
-        assertThat(paths.get(4), equalTo(new RelativePath(false, 'child_two', 'grandchild')))
+        expect:
+        resolvedDestPaths() == [
+            RelativePath.EMPTY_ROOT,
+            relativeDirectory('child_one'),
+            relativeDirectory('child_one', 'grandchild'),
+            relativeDirectory('child_two'),
+            relativeDirectory('child_two', 'grandchild'),
+        ]
     }
-
-
 }
-
-

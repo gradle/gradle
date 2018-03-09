@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,48 +15,55 @@
  */
 package org.gradle.api.internal.file.copy;
 
-
 import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
 
-public interface CopySpecResolver {
+public interface ResolvedCopySpec {
+    @Input
+    String getDestinationPath();
 
-    boolean isCaseSensitive();
-    @Nullable
-    Integer getFileMode();
-    @Nullable
-    Integer getDirMode();
-    boolean getIncludeEmptyDirs();
-    String getFilteringCharset();
-
+    @Internal
     RelativePath getDestPath();
 
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @SkipWhenEmpty
     FileTree getSource();
 
-    FileTree getAllSource();
+    @Input
+    boolean isCaseSensitive();
 
-    Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
+    @Input
+    boolean isIncludeEmptyDirs();
 
-    public List<String> getAllIncludes();
-
-    public List<String> getAllExcludes();
-
-    public List<Spec<FileTreeElement>> getAllIncludeSpecs();
-
-    public List<Spec<FileTreeElement>> getAllExcludeSpecs();
-
+    @Input
     DuplicatesStrategy getDuplicatesStrategy();
 
-    void walk(Action<? super CopySpecResolver> action);
+    @Nullable
+    @Optional
+    @Input
+    Integer getFileMode();
 
+    @Nullable
+    @Optional
+    @Input
+    Integer getDirMode();
 
+    @Input
+    String getFilteringCharset();
+
+    @Internal
+    Iterable<Action<? super FileCopyDetails>> getCopyActions();
 }

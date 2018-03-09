@@ -22,13 +22,12 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
+    DefaultCopySpec copySpec = new DefaultCopySpec(null, TestFiles.resolver(), DirectInstantiator.INSTANCE)
 
     FileTree fileTree = Mock()
 
@@ -136,19 +135,6 @@ class CopySpecMatchingTest extends Specification {
         then:
         def exception = thrown(InvalidUserDataException)
         exception.message == 'must provide at least one pattern to not match'
-    }
-
-    def matchingSpecInherited() {
-        given:
-        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
-        CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
-
-        when:
-        copySpec.filesMatching("**/*.java", Actions.doNothing())
-
-        then:
-        1 == childResolver.allCopyActions.size()
-        childResolver.allCopyActions[0] instanceof MatchingCopyAction
     }
 
     private FileCopyDetails details(String file) {

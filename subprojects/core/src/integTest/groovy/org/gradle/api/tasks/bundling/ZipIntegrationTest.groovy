@@ -232,8 +232,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds "zip", "--info"
         then:
         skippedTasks.empty
-        output.contains "Value of input property 'rootSpec\$1\$1.destPath' has changed for task ':zip'"
-        output.contains "Value of input property 'rootSpec\$1\$1\$1.destPath' has changed for task ':zip'"
+        output.contains "Value of input property 'resolvedRootSpec.children.\$0.children.\$0.spec.destinationPath' has changed for task ':zip'"
+        output.contains "Value of input property 'resolvedRootSpec.children.\$0.children.\$0.children.\$0.spec.destinationPath' has changed for task ':zip'"
     }
 
     private def createTestFiles() {
