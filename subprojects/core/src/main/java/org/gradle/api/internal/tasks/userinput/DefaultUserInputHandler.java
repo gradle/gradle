@@ -19,25 +19,25 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
-import org.gradle.internal.logging.sink.OutputEventRenderer;
 
 import java.util.List;
 
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
-    private final OutputEventRenderer outputEventRenderer;
+    private final OutputEventListener outputEventBroadcaster;
     private final UserInputReader userInputReader;
 
-    public DefaultUserInputHandler(OutputEventRenderer outputEventRenderer, UserInputReader userInputReader) {
-        this.outputEventRenderer = outputEventRenderer;
+    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, UserInputReader userInputReader) {
+        this.outputEventBroadcaster = outputEventBroadcaster;
         this.userInputReader = userInputReader;
     }
 
     @Override
     public Boolean askYesNoQuestion(String question) {
-        outputEventRenderer.onOutput(new UserInputRequestEvent(createPrompt(question)));
+        outputEventBroadcaster.onOutput(new UserInputRequestEvent(createPrompt(question)));
 
         try {
             while (true) {
@@ -54,7 +54,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 }
             }
         } finally {
-            outputEventRenderer.onOutput(new UserInputResumeEvent());
+            outputEventBroadcaster.onOutput(new UserInputResumeEvent());
         }
     }
 
