@@ -17,6 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
@@ -528,5 +529,47 @@ class SomeTask extends DefaultTask {
 
         then:
         result.assertTasksSkipped(":doNothing")
+    }
+
+    @ToBeImplemented("Absent Provider in FileCollection throws exception")
+    def "depending on an optional output from another task works"() {
+        given:
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Optional @OutputFile
+                Property<RegularFile> outFile = newOutputFile()
+                
+                @Optional @InputDirectory
+                Property<Directory> inDir = newInputDirectory()
+                
+                @TaskAction
+                def go() { }
+            }
+            
+            class TaskWithDependency extends DefaultTask {
+            
+                @InputFiles
+                FileCollection inputFiles = project.files()
+                
+                @Optional
+                @OutputFile
+                Property<RegularFile> outputFile = newOutputFile() 
+                
+                @TaskAction
+                def go() { }
+            }
+            
+            task doNothing(type: SomeTask)
+            task myTask(type: TaskWithDependency) {
+                inputFiles.from(doNothing.outFile)
+            }
+        """
+
+        when:
+        // FIXME: The task should succeed
+        fails("myTask")
+
+        then:
+        executedAndNotSkipped(':doNothing', ':myTask')
     }
 }
