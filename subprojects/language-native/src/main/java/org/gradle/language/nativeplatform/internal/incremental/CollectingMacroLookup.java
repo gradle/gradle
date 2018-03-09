@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CollectingMacroLookup implements MacroLookup {
+    private final Object lock = new Object();
     private final List<MacroSource> uncollected = new ArrayList<MacroSource>();
     private Map<File, IncludeDirectives> visible;
 
@@ -72,9 +73,11 @@ public class CollectingMacroLookup implements MacroLookup {
     }
 
     private void collectAll() {
-        while (!uncollected.isEmpty()) {
-            MacroSource source = uncollected.remove(0);
-            source.collectInto(this);
+        synchronized (lock) {
+            while (!uncollected.isEmpty()) {
+                MacroSource source = uncollected.remove(0);
+                source.collectInto(this);
+            }
         }
     }
 
