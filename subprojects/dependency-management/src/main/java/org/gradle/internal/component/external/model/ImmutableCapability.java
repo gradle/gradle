@@ -18,7 +18,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import org.gradle.api.capabilities.CapabilityDescriptor;
 
-class ImmutableCapability implements CapabilityDescriptor {
+public class ImmutableCapability implements CapabilityDescriptor {
     private final String group;
     private final String name;
     private final String version;

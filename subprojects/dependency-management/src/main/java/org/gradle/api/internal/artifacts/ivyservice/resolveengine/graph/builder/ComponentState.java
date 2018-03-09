@@ -292,7 +292,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return selectedBy != null && selectedBy.getDependencyMetadata().isPending();
     }
 
-    boolean isSelected() {
+    public boolean isSelected() {
         return state == ComponentSelectionState.Selected;
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.capabilities.CapabilitiesExtension;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -64,7 +65,8 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
-        metaDataBuilder.addConfigurations(metaData, project.getConfigurations().withType(ConfigurationInternal.class));
+        CapabilitiesExtension capabilitiesExtension = project.getExtensions().findByType(CapabilitiesExtension.class);
+        metaDataBuilder.addConfigurations(metaData, project.getConfigurations().withType(ConfigurationInternal.class), capabilitiesExtension);
         return metaData;
     }
 

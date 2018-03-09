@@ -15,10 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.capabilities.CapabilitiesExtension;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 
@@ -32,9 +39,9 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         this.configurationMetadataBuilder = configurationMetadataBuilder;
     }
 
-    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
+    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations, CapabilitiesExtension capabilitiesExtension) {
         for (ConfigurationInternal configuration : configurations) {
-            addConfiguration(metaData, configuration);
+            addConfiguration(metaData, configuration, capabilitiesExtension);
 
             metaData.addDependenciesAndExcludesForConfiguration(configuration, configurationMetadataBuilder);
 
@@ -46,11 +53,16 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         }
     }
 
-    private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
+    private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData,
+                                                                 ConfigurationInternal configuration,
+                                                                 CapabilitiesExtension capabilitiesExtension) {
         configuration.preventFromFurtherMutation();
 
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
+        // Presence of capabilities is bound to the definition of a capabilities extension to the project
+        ImmutableCapabilities capabilities =
+            capabilitiesExtension == null ? ImmutableCapabilities.EMPTY : asImmutable(collectCapabilities(configuration, capabilitiesExtension, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
@@ -59,7 +71,28 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isTransitive(),
             configuration.getAttributes().asImmutable(),
             configuration.isCanBeConsumed(),
-            configuration.isCanBeResolved());
+            configuration.isCanBeResolved(),
+            capabilities);
     }
 
+    private static Set<CapabilityDescriptor> collectCapabilities(Configuration configuration, CapabilitiesExtension capabilitiesExtension, Set<CapabilityDescriptor> out, Set<Configuration> visited) {
+        if (visited.add(configuration)) {
+            out.addAll(capabilitiesExtension.getCapabilities(configuration));
+            for (Configuration parent : configuration.getExtendsFrom()) {
+                collectCapabilities(parent, capabilitiesExtension, out, visited);
+            }
+        }
+        return out;
+    }
+
+    private static ImmutableCapabilities asImmutable(Collection<? extends CapabilityDescriptor> descriptors) {
+        if (descriptors.isEmpty()) {
+            return ImmutableCapabilities.EMPTY;
+        }
+        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<ImmutableCapability>();
+        for (CapabilityDescriptor descriptor : descriptors) {
+            builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
+        }
+        return new ImmutableCapabilities(builder.build());
+    }
 }
