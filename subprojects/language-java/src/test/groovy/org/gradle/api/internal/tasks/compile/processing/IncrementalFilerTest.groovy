@@ -89,7 +89,7 @@ abstract class IncrementalFilerTest extends Specification {
 
     TypeElement type(String typeName) {
         Stub(TypeElement) {
-            getEnclosingElement() >> pkg("")
+            getEnclosingElement() >> null
             getQualifiedName() >> Stub(Name) {
                 toString() >> typeName
             }

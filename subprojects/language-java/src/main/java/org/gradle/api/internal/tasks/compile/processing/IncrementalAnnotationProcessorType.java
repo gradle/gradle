@@ -52,7 +52,7 @@ public enum IncrementalAnnotationProcessorType {
     /**
      * A processor whose generated files can have zero to many originating elements.
      */
-    MULTIPLE_ORIGIN(false),
+    MULTIPLE_ORIGIN(true),
     /**
      * Any other kind of processor.
      */
