@@ -25,6 +25,7 @@ import org.gradle.language.nativeplatform.internal.MacroFunction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.testng.collections.Lists
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -126,11 +127,11 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     List<Macro> getMacros() {
-        return parsedSource.macros
+        return Lists.newArrayList(parsedSource.allMacros)
     }
 
     List<MacroFunction> getMacroFunctions() {
-        return parsedSource.macrosFunctions
+        return Lists.newArrayList(parsedSource.allMacroFunctions)
     }
 
     def "parses file with no includes"() {

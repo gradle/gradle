@@ -34,7 +34,7 @@ public class CollectingMacroLookup implements MacroLookup {
      * Appends a single file.
      */
     public void append(File file, IncludeDirectives includeDirectives) {
-        if (includeDirectives.getMacros().isEmpty() && includeDirectives.getMacrosFunctions().isEmpty()) {
+        if (!includeDirectives.hasMacros() && !includeDirectives.hasMacroFunctions()) {
             // Ignore
             return;
         }
