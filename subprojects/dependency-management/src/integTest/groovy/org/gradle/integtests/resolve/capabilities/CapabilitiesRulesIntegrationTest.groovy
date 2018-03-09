@@ -66,7 +66,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         failure.assertHasCause("Cannot choose between cglib:cglib-nodep:3.2.5 and cglib:cglib:3.2.5 because they provide the same capability: cglib:cglib:3.2.5")
     }
 
-    def "can detect conflict with capability in different versions"() {
+    def "can detect conflict with capability in different versions and upgrade automatically to latest version"() {
         given:
         repository {
             'cglib:cglib:3.2.5'()
@@ -103,13 +103,19 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 expectGetMetadata()
             }
             'cglib:cglib:3.2.5' {
-                expectGetMetadata()
+                expectResolve()
             }
         }
-        fails ':checkDeps'
+        run ':checkDeps'
 
         then:
-        failure.assertHasCause("Cannot choose between cglib:cglib-nodep:3.2.4 and cglib:cglib:3.2.5 because they provide the same capability: cglib:cglib:3.2.4, cglib:cglib:3.2.5")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('cglib:cglib-nodep:3.2.4', 'cglib:cglib:3.2.5')
+                    .byConflictResolution()
+                module('cglib:cglib:3.2.5')
+            }
+        }
     }
 
     def "can detect conflict between local project and capability from external dependency"() {

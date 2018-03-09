@@ -34,8 +34,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.LastCandidateCapabilityResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UpgradeCapabilityResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -96,7 +98,14 @@ public class DependencyGraphBuilder {
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
-        this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler();
+        this.capabilitiesConflictHandler = createCapabilitiesHandler();
+    }
+
+    private DefaultCapabilitiesConflictHandler createCapabilitiesHandler() {
+        DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler();
+        handler.registerResolver(new UpgradeCapabilityResolver());
+        handler.registerResolver(new LastCandidateCapabilityResolver());
+        return handler;
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor) {
@@ -146,7 +155,7 @@ public class DependencyGraphBuilder {
                 if (moduleConflictHandler.hasConflicts()) {
                     moduleConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
                 } else {
-                    capabilitiesConflictHandler.resolveNextConflict(null);
+                    capabilitiesConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
                 }
             }
 
@@ -187,7 +196,7 @@ public class DependencyGraphBuilder {
             @Override
             public void execute(CapabilityDescriptor capability) {
                 PotentialConflict c = capabilitiesConflictHandler.registerModule(
-                    new DefaultCapabilitiesConflictHandler.Candidate(moduleRevision, capability)
+                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability)
                 );
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());
