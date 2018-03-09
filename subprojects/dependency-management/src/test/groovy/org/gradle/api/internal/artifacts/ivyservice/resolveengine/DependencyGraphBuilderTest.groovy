@@ -42,6 +42,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -1000,16 +1001,16 @@ class DependencyGraphBuilderTest extends Specification {
         // TODO Shouldn't really be using the local component implementation here
         def id = newId("group", name, revision)
         def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release", attributesSchema)
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true)
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
     }
 
     def project(String name, String revision = '1.0', List<String> extraConfigs = []) {
         def metaData = new DefaultLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema)
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true)
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
         extraConfigs.each { String config ->
-            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, attributes, true, true)
+            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
         }
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData

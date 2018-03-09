@@ -111,4 +111,49 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         then:
         failure.assertHasCause("Cannot choose between cglib:cglib-nodep:3.2.4 and cglib:cglib:3.2.5 because they provide the same capability: cglib:cglib:3.2.4, cglib:cglib:3.2.5")
     }
+
+    def "can detect conflict between local project and capability from external dependency"() {
+        given:
+        repository {
+            'org:test:1.0'()
+        }
+
+        buildFile << """
+            apply plugin: 'java-library'
+            
+            capabilities {
+                api 'org:capability:1.0'
+            }
+
+            dependencies {
+                conf 'org:test:1.0'
+                
+                components {
+                   withModule('org:test') {
+                      allVariants {
+                          withCapabilities {
+                              addCapability('org', 'capability', '1.0')
+                          }
+                      }
+                   }
+                }
+            }
+            
+            configurations {
+                conf.extendsFrom(api)
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot choose between :test:unspecified and org:test:1.0 because they provide the same capability: org:capability:1.0")
+    }
+
 }
