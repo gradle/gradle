@@ -37,10 +37,6 @@ public interface CopySpecInternal extends CopySpec {
         Iterable<? extends Action<? super FileCopyDetails>> parentCopyActions,
         ResolvedCopySpec parent);
 
-    void addChildSpecListener(CopySpecListener listener);
-
-    void visit(CopySpecVisitor visitor);
-
     /**
      * Returns whether the spec, or any of its children have custom copy actions.
      */
@@ -48,17 +44,5 @@ public interface CopySpecInternal extends CopySpec {
 
     void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action);
 
-    /**
-     * Listener triggered when a spec is added to the hierarchy.
-     */
-    interface CopySpecListener {
-        void childSpecAdded(CopySpecInternal spec);
-    }
-
-    /**
-     * A visitor to traverse the spec hierarchy.
-     */
-    interface CopySpecVisitor {
-        void visit(CopySpecInternal spec);
-    }
+    void descendantAdded(CopySpecInternal childSpec);
 }

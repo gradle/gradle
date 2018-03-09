@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -66,7 +65,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<CopySpecInternal>();
-    private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<CopySpecInternal>();
     protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<Action<? super FileCopyDetails>>();
     private boolean hasCustomActions;
@@ -76,7 +74,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy;
     private String filteringCharset;
-    private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
     public DefaultCopySpec(@Nullable CopySpecInternal parent, FileResolver resolver, Instantiator instantiator) {
         this.parent = parent;
@@ -177,44 +174,14 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     protected void addChildSpec(int index, CopySpecInternal childSpec) {
         childSpecs.add(index, childSpec);
-
-        // We need a consistent index here
-        childSpecsInAdditionOrder.add(childSpec);
-
-        // In case more descendants are added to downward hierarchy, make sure they'll notify us
-        childSpec.addChildSpecListener(new CopySpecListener() {
-            @Override
-            public void childSpecAdded(CopySpecInternal spec) {
-                fireChildSpecListeners(spec);
-            }
-        });
-
-        // Notify upwards of currently existing descendant spec hierarchy
-        childSpec.visit(new CopySpecVisitor() {
-            @Override
-            public void visit(CopySpecInternal spec) {
-                fireChildSpecListeners(spec);
-            }
-        });
-    }
-
-    private void fireChildSpecListeners(CopySpecInternal spec) {
-        for (CopySpecListener listener : listeners) {
-            listener.childSpecAdded(spec);
-        }
+        descendantAdded(childSpec);
     }
 
     @Override
-    public void visit(CopySpecVisitor visitor) {
-        visitor.visit(this);
-        for (CopySpecInternal childSpec : childSpecsInAdditionOrder) {
-            childSpec.visit(visitor);
+    public void descendantAdded(CopySpecInternal childSpec) {
+        if (parent != null) {
+            parent.descendantAdded(childSpec);
         }
-    }
-
-    @Override
-    public void addChildSpecListener(CopySpecListener copySpecListener) {
-        this.listeners.add(copySpecListener);
     }
 
     @VisibleForTesting

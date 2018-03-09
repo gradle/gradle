@@ -64,14 +64,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     protected AbstractCopyTask() {
         this.rootSpec = createRootSpec();
-        rootSpec.addChildSpecListener(new CopySpecInternal.CopySpecListener() {
-            @Override
-            public void childSpecAdded(final CopySpecInternal spec) {
-                if (getState().getExecuting()) {
-                    throw new GradleException("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.");
-                }
-            }
-        });
         this.getOutputs().doNotCacheIf("Has custom actions", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
@@ -81,15 +73,32 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         this.mainSpec = rootSpec.addChild();
     }
 
-    @Nested
-    ResolvedCopySpecNode getResolvedRootSpec() {
-        return rootSpec.resolveAsRoot();
+    // Not private in order for the instantiator to access
+    static class RootCopySpec extends DefaultCopySpec {
+        private final AbstractCopyTask copyTask;
+
+        public RootCopySpec(AbstractCopyTask copyTask, FileResolver resolver, Instantiator instantiator) {
+            super(null, resolver, instantiator);
+            this.copyTask = copyTask;
+        }
+
+        @Override
+        public void descendantAdded(CopySpecInternal childSpec) {
+            if (copyTask.getState().getExecuting()) {
+                throw new GradleException("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.");
+            }
+        }
     }
 
     protected CopySpecInternal createRootSpec() {
         Instantiator instantiator = getInstantiator();
         FileResolver fileResolver = getFileResolver();
-        return instantiator.newInstance(DefaultCopySpec.class, null, fileResolver, instantiator);
+        return instantiator.newInstance(RootCopySpec.class, this, fileResolver, instantiator);
+    }
+
+    @Nested
+    ResolvedCopySpecNode getResolvedRootSpec() {
+        return rootSpec.resolveAsRoot();
     }
 
     protected abstract CopyAction createCopyAction();

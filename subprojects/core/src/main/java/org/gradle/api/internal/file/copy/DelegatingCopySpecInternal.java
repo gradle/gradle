@@ -289,16 +289,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void addChildSpecListener(CopySpecListener listener) {
-        getDelegateCopySpec().addChildSpecListener(listener);
-    }
-
-    @Override
-    public void visit(CopySpecVisitor visitor) {
-        getDelegateCopySpec().visit(visitor);
-    }
-
-    @Override
     public boolean hasCustomActions() {
         return getDelegateCopySpec().hasCustomActions();
     }
@@ -316,5 +306,10 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public ResolvedCopySpecNode resolveAsChild(PatternSet parentPatternSet, Iterable<? extends Action<? super FileCopyDetails>> parentCopyActions, ResolvedCopySpec parent) {
         return getDelegateCopySpec().resolveAsChild(parentPatternSet, parentCopyActions, parent);
+    }
+
+    @Override
+    public void descendantAdded(CopySpecInternal childSpec) {
+        getDelegateCopySpec().descendantAdded(childSpec);
     }
 }

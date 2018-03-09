@@ -331,7 +331,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param copySpec The action to use to configure the child {@code CopySpec}.
      * @return this
      */
-    CopySpec into(Object destPath, @Nullable Action<? super CopySpec> copySpec);
+    CopySpec into(Object destPath, Action<? super CopySpec> copySpec);
 
     /**
      * {@inheritDoc}
