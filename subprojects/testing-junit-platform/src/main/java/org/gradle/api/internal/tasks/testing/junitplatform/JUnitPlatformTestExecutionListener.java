@@ -31,8 +31,6 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
-import java.util.Optional;
-
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 
@@ -167,7 +165,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestDescriptorInternal createDescriptor(TestIdentifier test, String name, String displayName) {
-        Optional<TestIdentifier> classIdentifier = findClassSource(test);
+        TestIdentifier classIdentifier = findClassSource(test);
         String className = className(classIdentifier);
         String classDisplayName = classDisplayName(classIdentifier);
         return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
@@ -181,37 +179,33 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return test.getSource().isPresent() && test.getSource().get() instanceof ClassSource;
     }
 
-    private String className(TestIdentifier testIdentifier) {
-        return className(findClassSource(testIdentifier));
-    }
-
-    private Optional<TestIdentifier> findClassSource(TestIdentifier testIdentifier) {
+    private TestIdentifier findClassSource(TestIdentifier testIdentifier) {
         // For tests in default method of interface,
         // we might not be able to get the implementation class directly.
         // In this case, we need to retrieve test plan to get the real implementation class.
         if (isClass(testIdentifier)) {
-            return Optional.of(testIdentifier);
+            return testIdentifier;
         }
         while (testIdentifier.getParentId().isPresent()) {
             testIdentifier = currentTestPlan.getTestIdentifier(testIdentifier.getParentId().get());
             if (isClass(testIdentifier)) {
-                return Optional.of(testIdentifier);
+                return testIdentifier;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
-    private String className(Optional<TestIdentifier> testClassIdentifier) {
-        if (testClassIdentifier.isPresent()) {
-            return ClassSource.class.cast(testClassIdentifier.get().getSource().get()).getClassName();
+    private String className(TestIdentifier testClassIdentifier) {
+        if (testClassIdentifier != null) {
+            return ClassSource.class.cast(testClassIdentifier.getSource().get()).getClassName();
         } else {
             return "UnknownClass";
         }
     }
 
-    private String classDisplayName(Optional<TestIdentifier> testClassIdentifier) {
-        if (testClassIdentifier.isPresent()) {
-            return testClassIdentifier.get().getDisplayName();
+    private String classDisplayName(TestIdentifier testClassIdentifier) {
+        if (testClassIdentifier != null) {
+            return testClassIdentifier.getDisplayName();
         } else {
             return "UnknownClass";
         }

@@ -37,14 +37,14 @@ public interface TestDescriptorInternal extends TestDescriptor {
     Object getOwnerBuildOperationId();
 
     /**
-     * The name for display. It may be the same or different with {@link #getName()}
+     * The name for display. It may be the same as or different from {@link #getName()}
      *
      * @return the name for display.
      */
     String getDisplayName();
 
     /**
-     * The class name for display. It may be the same or different with {@link #getClassName()}
+     * The class name for display. It may be the same as or different from {@link #getClassName()}
      * @return the class name for display.
      */
     String getClassDisplayName();

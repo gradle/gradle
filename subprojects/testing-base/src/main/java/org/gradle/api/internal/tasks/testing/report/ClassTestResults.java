@@ -75,7 +75,7 @@ public class ClassTestResults extends CompositeTestResults {
         return getSimpleName();
     }
 
-    public String getSimpleName() {
+    private String getSimpleName() {
         String simpleName = StringUtils.substringAfterLast(name, ".");
         if (simpleName.equals("")) {
             return name;
