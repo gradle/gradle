@@ -23,7 +23,6 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.junit.Test
 import spock.lang.Specification
 

@@ -644,26 +644,69 @@ For more details and examples please see the api:org.gradle.api.tasks.testing.Te
 
 Generally speaking, there're three kinds of pattern:
 
-* Simple pattern (since Gradle 4.7): pattern which has no wildcards at all. In this case, simple class name are supported:
-  * `gradle test --tests org.gradle.SomeTestClass`
-  * `gradle test --tests org.gradle.SomeTestClass.someSpecificMethod`
-  * `gradle test --tests SomeTestClass` (can match `SomeTest` at any package)
-  * `gradle test --tests SomeTestClass.someSpecificMethod` (can match `SomeTest.someSpecificMethod` at any package)
-* Pattern containing but not starting with a wildcard:
-  * `gradle test --tests all.in.specific.package\*`
-  * `gradle test --tests all.in.specific.package\*.someSpecificMethod`
-* Pattern starting with a wildcard.
-  * `gradle test --tests \*SomeTestClass.someSpecificFeature`
-  * `gradle test --tests \*SomeSpecificTest`
-  * `gradle test --tests \*SomeSpecificTestSuite`
-  * `gradle test --tests \*IntegTest`
-  * `gradle test --tests \*IntegTest\*ui\*`
-  * `gradle test --tests "\*ParameterizedTest.foo*"`
-  * `gradle test --tests "\*ParameterizedTest.*[2]"`
+[[simple_pattern]]
+===== Simple pattern
+
+A simple pattern has no wildcards at all. In this case, class name or method name should be matched exactly.
+
+```
+# specific class
+gradle test --tests org.gradle.SomeTestClass
+
+# specific class and method
+gradle test --tests org.gradle.SomeTestClass.someSpecificMethod
+
+# method name containing spaces
+gradle test --tests "org.gradle.SomeTestClass.some method containing spaces"
+```
+
+Since Gradle 4.7, simple class name are supported.
+
+```
+# can match 'SomeTest' at any package
+gradle test --tests SomeTestClass
+
+# can match 'SomeTest.someSpecificMethod' at any package
+gradle test --tests SomeTestClass.someSpecificMethod
+```
+
+[[pattern_not_starting_with_wildcard]]
+===== Pattern not starting with wildcard
+
+A pattern containing but not starting with a wildcard can help Gradle exclude many classes.
+
+```
+# all classes at specific package (recursively)
+gradle test --tests 'all.in.specific.package*'
+
+# specific method at specific package (recursively)
+gradle test --tests 'all.in.specific.package*.someSpecificMethod'
+```
+
+[[pattern_starting_with_wildcard]]
+===== Pattern starting with wildcard
 
 When a pattern starts with a wildcard, Gradle needs to load all classes to search for a potentially matched method,
 which may lead to very bad performance, especially with api:org.gradle.api.tasks.testing.Test#getForkEvery()[`forkEvery`].
-Therefore, to avoid unnecessary performance loss, please don't use a pattern starting with a wildcard (*).
+Therefore, to avoid unnecessary performance loss, please use a pattern starting with a wildcard (*) as little as possible.
+
+```
+gradle test --tests '*SomeTestClass.someSpecificFeature'
+
+gradle test --tests '*SomeSpecificTest'
+
+gradle test --tests '*SomeSpecificTestSuite'
+
+gradle test --tests '*IntegTest'
+
+gradle test --tests '*IntegTest*ui*'
+
+gradle test --tests '*ParameterizedTest.foo*'
+
+# the second iteration of a parameterized test
+gradle test --tests '*ParameterizedTest.*[2]'
+```
+
 
 This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
 
