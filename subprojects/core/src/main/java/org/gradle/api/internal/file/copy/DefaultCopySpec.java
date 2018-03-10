@@ -69,12 +69,12 @@ public class DefaultCopySpec implements CopySpecInternal {
     protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<Action<? super FileCopyDetails>>();
     private boolean hasCustomActions;
-    private Integer dirMode;
-    private Integer fileMode;
-    private Boolean caseSensitive;
-    private Boolean includeEmptyDirs;
-    private DuplicatesStrategy duplicatesStrategy;
-    private String filteringCharset;
+    protected Integer dirMode;
+    protected Integer fileMode;
+    protected Boolean caseSensitive;
+    protected Boolean includeEmptyDirs;
+    protected DuplicatesStrategy duplicatesStrategy;
+    protected String filteringCharset;
 
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
         this.fileResolver = resolver;
@@ -150,16 +150,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, instantiator, this);
         addChildSpec(position, child);
         return child;
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator);
-        addChildSpec(child);
-        return child;
+        return addChildAtPosition(childSpecs.size());
     }
 
     @Override
@@ -531,23 +529,22 @@ public class DefaultCopySpec implements CopySpecInternal {
             parent.getDestPath(),
             resolvedPatternSet,
             caseSensitive,
-            includeEmptyDirs != null
-                ? includeEmptyDirs
-                : parent.isIncludeEmptyDirs(),
-            duplicatesStrategy != null
-                ? duplicatesStrategy
-                : parent.getDuplicatesStrategy(),
-            fileMode != null
-                ? fileMode
-                : parent.getFileMode(),
-            dirMode != null
-                ? dirMode
-                : parent.getDirMode(),
-            filteringCharset != null
-                ? filteringCharset
-                : parent.getFilteringCharset(),
+            withDefault(includeEmptyDirs, parent.isIncludeEmptyDirs()),
+            withDefault(duplicatesStrategy, parent.getDuplicatesStrategy()),
+            withDefault(fileMode, parent.getFileMode()),
+            withDefault(dirMode, parent.getDirMode()),
+            withDefault(filteringCharset, parent.getFilteringCharset()),
             resolvedCopyActions
         );
+    }
+
+    protected static boolean withDefault(@Nullable Boolean value, boolean defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Nullable
+    protected static <T> T withDefault(@Nullable T value, @Nullable T defaultValue) {
+        return value != null ? value : defaultValue;
     }
 
     private ResolvedCopySpecNode resolve(
