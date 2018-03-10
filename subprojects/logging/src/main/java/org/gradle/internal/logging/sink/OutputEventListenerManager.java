@@ -45,18 +45,12 @@ public class OutputEventListenerManager {
     }
 
     public void setListener(OutputEventListener listener) {
-        if (other != null) {
-            throw new IllegalStateException("Listener is already set to " + other);
-        }
-
         other = listener;
     }
 
     public void removeListener(OutputEventListener listener) {
         if (other == listener) {
             other = null;
-        } else {
-            throw new IllegalStateException("Cannot unset listener " + listener + " because the listener is " + other);
         }
     }
 
