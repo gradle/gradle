@@ -34,7 +34,8 @@ fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
 
 
 private
-val ClassLoaderScope.root get() = foldHierarchy(this) { _, scope -> scope }
+val ClassLoaderScope.root
+    get() = foldHierarchy(this) { _, scope -> scope }
 
 
 internal

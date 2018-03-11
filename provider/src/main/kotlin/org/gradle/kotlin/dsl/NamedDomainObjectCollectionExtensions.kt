@@ -31,7 +31,8 @@ import kotlin.reflect.KProperty
  * `tasks { val jar by getting }`
  */
 inline
-val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U get() = this
+val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U
+    get() = this
 
 
 /**

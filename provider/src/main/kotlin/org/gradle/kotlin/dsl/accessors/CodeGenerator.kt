@@ -245,7 +245,9 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
 internal
 data class AccessorNameSpec(val original: String) {
 
-    val kotlinIdentifier get() = original
+    val kotlinIdentifier
+        get() = original
+
     val stringLiteral by lazy { stringLiteralFor(original) }
 }
 

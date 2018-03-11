@@ -301,10 +301,12 @@ class KotlinBuildScriptCompiler(
         "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
 
     private
-    val scriptPath get() = scriptSource.scriptPath
+    val scriptPath
+        get() = scriptSource.scriptPath
 
     private
-    val script get() = scriptSource.script
+    val script
+        get() = scriptSource.script
 }
 
 
@@ -423,13 +425,16 @@ class BuildscriptBlockEvaluator(
         }
 
     private
-    val scriptPath get() = scriptSource.scriptPath
+    val scriptPath
+        get() = scriptSource.scriptPath
 
     private
-    val script get() = scriptSource.script
+    val script
+        get() = scriptSource.script
 
     private
-    val buildscriptBlockName get() = scriptTarget.buildscriptBlockName
+    val buildscriptBlockName
+        get() = scriptTarget.buildscriptBlockName
 }
 
 
