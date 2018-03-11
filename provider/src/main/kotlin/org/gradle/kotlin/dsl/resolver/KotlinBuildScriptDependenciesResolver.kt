@@ -187,7 +187,8 @@ object ResolverCoordinator {
 
     private
     fun sameBuildscriptBlockHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
-        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } } ?: false
+        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } }
+            ?: false
 
     private
     fun buildscriptBlockHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
