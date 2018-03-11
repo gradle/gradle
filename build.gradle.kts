@@ -35,6 +35,12 @@ project(":plugins") {
     version = futurePluginsVersion
 }
 
+val futurePluginsExperimentsVersion = "0.1.0"
+project(":plugins-experiments") {
+    group = "org.gradle.kotlin"
+    version = futurePluginsExperimentsVersion
+}
+
 // --- Configure publications ------------------------------------------
 val publishedProjects =
     listOf(
