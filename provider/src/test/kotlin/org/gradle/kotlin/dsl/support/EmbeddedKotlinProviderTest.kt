@@ -14,7 +14,7 @@ class EmbeddedKotlinProviderTest : AbstractIntegrationTest() {
 
         val result = build("buildEnvironment")
 
-        assertThat(result.output, containsString("No dependencies"));
+        assertThat(result.output, containsString("No dependencies"))
     }
 
     @Test
