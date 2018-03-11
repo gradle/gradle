@@ -83,8 +83,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             withClassJar("libs/$fixture.jar", DeepThought::class.java)
 
         val parentJar = withFixture("parent")
-        val fooJar    = withFixture("foo")
-        val barJar    = withFixture("bar")
+        val fooJar = withFixture("foo")
+        val barJar = withFixture("bar")
 
         fun String.withBuildscriptDependencyOn(fixture: File) =
             withFile(this, """
@@ -94,8 +94,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             """)
 
         val parentBuildScript = "build.gradle".withBuildscriptDependencyOn(parentJar)
-        val fooBuildScript    = "foo/build.gradle.kts".withBuildscriptDependencyOn(fooJar)
-        val barBuildScript    = "bar/build.gradle.kts".withBuildscriptDependencyOn(barJar)
+        val fooBuildScript = "foo/build.gradle.kts".withBuildscriptDependencyOn(fooJar)
+        val barBuildScript = "bar/build.gradle.kts".withBuildscriptDependencyOn(barJar)
 
         assertClassPathFor(
             parentBuildScript,

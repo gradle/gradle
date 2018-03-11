@@ -27,17 +27,19 @@ import java.util.jar.JarFile
 
 internal
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
-    file.bufferedWriter().use { it.apply {
-        write(fileHeader)
-        write("\n")
-        write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
-        write("import ${PluginDependencySpec::class.qualifiedName}\n")
-        pluginIdExtensionDeclarationsFor(gradleJars).forEach {
+    file.bufferedWriter().use {
+        it.apply {
+            write(fileHeader)
             write("\n")
-            write(it)
-            write("\n")
+            write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
+            write("import ${PluginDependencySpec::class.qualifiedName}\n")
+            pluginIdExtensionDeclarationsFor(gradleJars).forEach {
+                write("\n")
+                write(it)
+                write("\n")
+            }
         }
-    } }
+    }
 }
 
 

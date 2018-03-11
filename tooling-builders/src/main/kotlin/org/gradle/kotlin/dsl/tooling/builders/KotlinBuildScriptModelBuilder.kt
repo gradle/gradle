@@ -84,10 +84,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         when {
-            parameter.noScriptPath   -> projectScriptModelBuilder(modelRequestProject)
+            parameter.noScriptPath -> projectScriptModelBuilder(modelRequestProject)
             parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject)
-            parameter.initScript     -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
-            else                     -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
+            parameter.initScript -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
+            else -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
         }
 
     private

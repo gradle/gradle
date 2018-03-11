@@ -106,10 +106,10 @@ private
 fun applyGradleInstallationTo(connector: org.gradle.tooling.GradleConnector, request: KotlinBuildScriptModelRequest): org.gradle.tooling.GradleConnector =
     request.gradleInstallation.run {
         when (this) {
-            is GradleInstallation.Local   -> connector.useInstallation(dir)
-            is GradleInstallation.Remote  -> connector.useDistribution(uri)
+            is GradleInstallation.Local -> connector.useInstallation(dir)
+            is GradleInstallation.Remote -> connector.useDistribution(uri)
             is GradleInstallation.Version -> connector.useGradleVersion(number)
-            GradleInstallation.Wrapper    -> connector.useBuildDistribution()
+            GradleInstallation.Wrapper -> connector.useBuildDistribution()
         }
     }
 

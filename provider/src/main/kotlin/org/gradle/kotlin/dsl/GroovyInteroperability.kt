@@ -64,7 +64,7 @@ fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
  * @see [Closure]
  */
 open class KotlinClosure0<V : Any>(
-    val function : () -> V?,
+    val function: () -> V?,
     owner: Any? = null,
     thisObject: Any? = null) : groovy.lang.Closure<V?>(owner, thisObject) {
 
@@ -164,7 +164,7 @@ interface GroovyBuilderScope : GroovyObject {
         fun of(value: Any): GroovyBuilderScope =
             when (value) {
                 is GroovyObject -> GroovyBuilderScopeForGroovyObject(value)
-                else            -> GroovyBuilderScopeForRegularObject(value)
+                else -> GroovyBuilderScopeForRegularObject(value)
             }
     }
 

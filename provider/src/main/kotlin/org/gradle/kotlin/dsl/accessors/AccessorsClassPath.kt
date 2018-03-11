@@ -134,11 +134,12 @@ sealed class InaccessibilityReason {
     data class NonAvailable(val type: String) : InaccessibilityReason()
     data class Synthetic(val type: String) : InaccessibilityReason()
 
-    val explanation get() = when (this) {
-        is NonPublic    -> "`$type` is not public"
-        is NonAvailable -> "`$type` is not available"
-        is Synthetic    -> "`$type` is synthetic"
-    }
+    val explanation
+        get() = when (this) {
+            is NonPublic -> "`$type` is not public"
+            is NonAvailable -> "`$type` is not available"
+            is Synthetic -> "`$type` is synthetic"
+        }
 }
 
 
@@ -184,9 +185,9 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         val classBytes = classBytesFor(className) ?: return nonAvailable(className)
         val access = classAccessFrom(classBytes)
         return when {
-            ACC_PUBLIC !in access   -> nonPublic(className)
+            ACC_PUBLIC !in access -> nonPublic(className)
             ACC_SYNTHETIC in access -> synthetic(className)
-            else                    -> null
+            else -> null
         }
     }
 
@@ -199,9 +200,9 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     private
     fun classFileIndexFor(jarOrDir: File): ClassFileIndex =
         when {
-            jarOrDir.isFile      -> jarIndexFor(jarOrDir)
+            jarOrDir.isFile -> jarIndexFor(jarOrDir)
             jarOrDir.isDirectory -> directoryIndexFor(jarOrDir)
-            else                 -> { _ -> null }
+            else -> { _ -> null }
         }
 
     private
@@ -321,8 +322,8 @@ fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
 private
 fun ProjectSchema<String>.toCacheKeyString(): String =
     (extensions.entries.asSequence()
-     + conventions.entries.asSequence()
-     + mapEntry("configurations", configurations.sorted().joinToString(",")))
+        + conventions.entries.asSequence()
+        + mapEntry("configurations", configurations.sorted().joinToString(",")))
         .map { "${it.key}=${it.value}" }
         .sorted()
         .joinToString(separator = ":")

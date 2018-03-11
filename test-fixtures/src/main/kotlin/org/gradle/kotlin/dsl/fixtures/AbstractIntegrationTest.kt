@@ -95,7 +95,7 @@ open class AbstractIntegrationTest {
         existing(fileName).let {
             when {
                 it.isFile -> it
-                else      -> newFile(fileName)
+                else -> newFile(fileName)
             }
         }
 

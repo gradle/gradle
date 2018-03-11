@@ -43,18 +43,21 @@ sealed class CompactTree {
                 .map { (label, remaining) ->
                     val subTree = CompactTree.Companion.of(remaining)
                     when (subTree) {
-                        is CompactTree.Empty  -> CompactTree.Label(label)
-                        is CompactTree.Label  -> CompactTree.Label(
-                            label + subTree.label)
+                        is CompactTree.Empty -> CompactTree.Label(label)
+                        is CompactTree.Label -> CompactTree.Label(
+                            label + subTree.label
+                        )
                         is CompactTree.Branch -> CompactTree.Edge(
-                            Label(label), subTree)
-                        is CompactTree.Edge   -> CompactTree.Edge(
-                            Label(label + subTree.label), subTree.tree)
+                            Label(label), subTree
+                        )
+                        is CompactTree.Edge -> CompactTree.Edge(
+                            Label(label + subTree.label), subTree.tree
+                        )
                     }
                 }.let {
                     when (it.size) {
-                        0    -> CompactTree.Empty
-                        1    -> it.first()
+                        0 -> CompactTree.Empty
+                        1 -> it.first()
                         else -> CompactTree.Branch(it)
                     }
                 }

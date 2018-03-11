@@ -374,7 +374,7 @@ class CompilationCache(val result: BuildResult) {
 
     fun assertCompilations(cachedScript: CachedScript, count: Int) =
         when (cachedScript) {
-            is CachedScript.WholeFile        -> cachedScript.stages.forEach { assertCompilations(it, count) }
+            is CachedScript.WholeFile -> cachedScript.stages.forEach { assertCompilations(it, count) }
             is CachedScript.CompilationStage -> assertCompilations(cachedScript, count)
         }
 
@@ -399,7 +399,7 @@ class ClassLoadingCache(val result: BuildResult) {
 
     fun assertClassLoads(cachedScript: CachedScript, count: Int) =
         when (cachedScript) {
-            is CachedScript.WholeFile        -> cachedScript.stages.forEach { assertClassLoads(it, count) }
+            is CachedScript.WholeFile -> cachedScript.stages.forEach { assertClassLoads(it, count) }
             is CachedScript.CompilationStage -> assertClassLoads(cachedScript, count)
         }
 

@@ -48,10 +48,10 @@ fun kotlinScriptTargetFor(
     topLevelScript: Boolean): KotlinScriptTarget<Any> =
 
     when (target) {
-        is Project  -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
+        is Project -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
         is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        is Gradle   -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
-        else        -> unsupportedTarget(target)
+        is Gradle -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
+        else -> unsupportedTarget(target)
     }
 
 

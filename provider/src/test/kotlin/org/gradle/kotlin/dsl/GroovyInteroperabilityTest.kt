@@ -31,7 +31,7 @@ class GroovyInteroperabilityTest {
 
     @Test
     fun `can use closure with single nullable argument call`() {
-        var passedIntoClosure : Any? = "Something non null"
+        var passedIntoClosure: Any? = "Something non null"
         closureOf<Any?> { passedIntoClosure = this }.call(null)
         assertNull(passedIntoClosure)
     }
@@ -47,7 +47,7 @@ class GroovyInteroperabilityTest {
     }
     @Test
     fun `can use closure with a null delegate call`() {
-        var passedIntoClosure : Any? = "Something non null"
+        var passedIntoClosure: Any? = "Something non null"
         delegateClosureOf<Any?> { passedIntoClosure = this }.apply {
             delegate = null
             call()
