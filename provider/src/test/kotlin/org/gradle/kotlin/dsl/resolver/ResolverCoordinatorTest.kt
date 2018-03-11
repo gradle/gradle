@@ -63,8 +63,7 @@ class ResolverCoordinatorTest {
 
     private
     fun ResolverAction.RequestNew.scriptDependencies() =
-        KotlinBuildScriptDependencies(emptyList(), emptyList(), emptyList(),
-                                                                             buildscriptBlockHash)
+        KotlinBuildScriptDependencies(emptyList(), emptyList(), emptyList(), buildscriptBlockHash)
 
     private
     fun environmentWithGetScriptSectionTokensReturning(vararg sections: Pair<String, Sequence<String>>) =
@@ -76,8 +75,7 @@ class ResolverCoordinatorTest {
 }
 
 private
-object EmptyScriptContents : kotlin.script.dependencies.ScriptContents
-{
+object EmptyScriptContents : kotlin.script.dependencies.ScriptContents {
     override val file: java.io.File? = null
     override val text: CharSequence? = ""
     override val annotations: Iterable<Annotation> = emptyList()
