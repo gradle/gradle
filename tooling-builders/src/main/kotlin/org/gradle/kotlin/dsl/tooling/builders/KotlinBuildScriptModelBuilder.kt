@@ -63,7 +63,8 @@ data class StandardKotlinBuildScriptModel(
     override val classPath: List<File>,
     override val sourcePath: List<File>,
     override val implicitImports: List<String>,
-    override val exceptions: List<Exception>) : KotlinBuildScriptModel, Serializable
+    override val exceptions: List<Exception>
+) : KotlinBuildScriptModel, Serializable
 
 
 internal
@@ -159,7 +160,8 @@ data class KotlinScriptTargetModelBuilder<T : Any>(
     val project: Project,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
-    val sourceLookupScriptHandlers: List<ScriptHandler>) {
+    val sourceLookupScriptHandlers: List<ScriptHandler>
+) {
 
     fun buildModel(): KotlinBuildScriptModel {
         val accessorsClassPath = accessorsClassPath(scriptClassPath)

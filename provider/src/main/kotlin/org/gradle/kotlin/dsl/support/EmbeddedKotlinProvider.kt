@@ -42,7 +42,8 @@ data class EmbeddedModule(
     val group: String,
     val name: String,
     val version: String,
-    val dependencies: List<EmbeddedModule> = emptyList()) {
+    val dependencies: List<EmbeddedModule> = emptyList()
+) {
 
     val notation = "$group:$name:$version"
     val jarRepoPath = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
@@ -76,7 +77,8 @@ val embeddedModules: List<EmbeddedModule> by lazy {
 
 class EmbeddedKotlinProvider constructor(
     private val cacheRepository: CacheRepository,
-    private val moduleRegistry: ModuleRegistry) {
+    private val moduleRegistry: ModuleRegistry
+) {
 
     fun addRepositoryTo(repositories: RepositoryHandler) {
 
@@ -89,7 +91,8 @@ class EmbeddedKotlinProvider constructor(
     fun addDependenciesTo(
         dependencies: DependencyHandler,
         configuration: String,
-        vararg kotlinModules: String) {
+        vararg kotlinModules: String
+    ) {
 
         embeddedKotlinModulesFor(kotlinModules).forEach { embeddedKotlinModule ->
             dependencies.add(configuration, clientModuleFor(dependencies, embeddedKotlinModule))

@@ -36,7 +36,8 @@ import javax.inject.Inject
 internal
 data class LoadedScriptClass<out T>(
     val compiledScript: CompiledScript<T>,
-    val scriptClass: Class<*>)
+    val scriptClass: Class<*>
+)
 
 
 private
@@ -53,7 +54,8 @@ class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuild
         scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
         createClassLoaderScope: () -> ClassLoaderScope,
-        compile: (ScriptBlock<T>) -> CompiledScript<T>): LoadedScriptClass<T> {
+        compile: (ScriptBlock<T>) -> CompiledScript<T>
+    ): LoadedScriptClass<T> {
 
         val key = cacheKeyFor(scriptBlock, parentClassLoader)
         val cached = cache.get(key)
@@ -97,7 +99,8 @@ private
 class ScriptCacheKey(
     private val templateId: String,
     private val sourceHash: HashCode,
-    parentClassLoader: ClassLoader) {
+    parentClassLoader: ClassLoader
+) {
 
     private
     val parentClassLoader = WeakReference(parentClassLoader)

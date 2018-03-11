@@ -70,7 +70,8 @@ data class PluginExtension(
     val memberName: String,
     val pluginId: String,
     val website: String?,
-    val implementationClass: String)
+    val implementationClass: String
+)
 
 
 private

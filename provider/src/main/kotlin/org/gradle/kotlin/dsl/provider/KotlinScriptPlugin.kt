@@ -22,7 +22,8 @@ import org.gradle.kotlin.dsl.support.loggerFor
 
 class KotlinScriptPlugin(
     private val scriptSource: ScriptSource,
-    private val script: (Any) -> Unit) : ScriptPlugin {
+    private val script: (Any) -> Unit
+) : ScriptPlugin {
 
     private
     val logger = loggerFor<KotlinScriptPlugin>()

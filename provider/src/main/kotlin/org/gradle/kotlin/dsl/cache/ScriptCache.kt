@@ -35,13 +35,15 @@ class ScriptCache(
     val cacheKeyBuilder: CacheKeyBuilder,
 
     private
-    val recompileScripts: Boolean) {
+    val recompileScripts: Boolean
+) {
 
     fun cacheDirFor(
         keySpec: CacheKeySpec,
         properties: Map<String, Any?>? = null,
         scope: Any? = null,
-        initializer: PersistentCache.() -> Unit): File =
+        initializer: PersistentCache.() -> Unit
+    ): File =
 
         cacheRepository
             .cache(scope, cacheKeyFor(keySpec))

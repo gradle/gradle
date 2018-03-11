@@ -43,7 +43,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         script: ScriptContents,
         environment: Map<String, Any?>?,
         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
-        previousDependencies: KotlinScriptExternalDependencies?) = future {
+        previousDependencies: KotlinScriptExternalDependencies?
+    ) = future {
 
         try {
             log(ResolutionRequest(script.file, environment, previousDependencies))
@@ -75,7 +76,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         scriptFile: File?,
         environment: Environment,
         previousDependencies: KotlinScriptExternalDependencies?,
-        buildscriptBlockHash: ByteArray?): KotlinScriptExternalDependencies {
+        buildscriptBlockHash: ByteArray?
+    ): KotlinScriptExternalDependencies {
 
         val request = modelRequestFrom(scriptFile, environment)
         log(SubmittedModelRequest(scriptFile, request))
@@ -130,7 +132,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     private
     fun dependenciesFrom(
         response: KotlinBuildScriptModel,
-        hash: ByteArray?) =
+        hash: ByteArray?
+    ) =
 
         KotlinBuildScriptDependencies(
             response.classPath,
@@ -165,7 +168,8 @@ object ResolverCoordinator {
     fun selectNextActionFor(
         script: ScriptContents,
         environment: Environment?,
-        previousDependencies: KotlinScriptExternalDependencies?): ResolverAction {
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): ResolverAction {
 
         if (environment == null) {
             return ResolverAction.ReturnPrevious
@@ -232,7 +236,8 @@ class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
     override val sources: Iterable<File>,
     override val imports: Iterable<String>,
-    val buildscriptBlockHash: ByteArray?) : KotlinScriptExternalDependencies
+    val buildscriptBlockHash: ByteArray?
+) : KotlinScriptExternalDependencies
 
 
 internal

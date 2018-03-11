@@ -82,7 +82,8 @@ class KotlinBuildScriptCompiler(
     private val targetScope: ClassLoaderScope,
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
-    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
+    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
+) {
 
     private
     val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
@@ -182,7 +183,8 @@ class KotlinBuildScriptCompiler(
     private
     fun executeCompiledPluginsBlockOn(
         pluginRequestCollector: PluginRequestCollector,
-        loadedPluginsBlockClass: LoadedScriptClass<PluginsBlockMetadata>) {
+        loadedPluginsBlockClass: LoadedScriptClass<PluginsBlockMetadata>
+    ) {
 
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(loadedPluginsBlockClass.compiledScript.metadata.lineNumber)
         loadedPluginsBlockClass.eval {
@@ -309,7 +311,8 @@ class KotlinBuildScriptCompiler(
 fun initScriptClassPathFor(
     gradle: GradleInternal,
     scriptHandler: ScriptHandlerInternal,
-    scriptSource: ScriptSource): ClassPath {
+    scriptSource: ScriptSource
+): ClassPath {
 
     val baseScope = gradle.classLoaderScope
     val scriptTarget = gradleInitScriptTarget(gradle, scriptHandler, scriptSource, baseScope)
@@ -339,7 +342,8 @@ class BuildscriptBlockEvaluator(
     val kotlinCompiler: CachingKotlinCompiler,
     val embeddedKotlinProvider: EmbeddedKotlinProvider,
     val classloadingCache: KotlinScriptClassloadingCache,
-    val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
+    val classPathModeExceptionCollector: ClassPathModeExceptionCollector
+) {
 
     fun evaluateForClassPath() {
         ignoringErrors {

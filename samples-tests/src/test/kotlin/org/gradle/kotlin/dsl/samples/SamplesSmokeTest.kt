@@ -18,7 +18,8 @@ import java.io.File
 @RunWith(Parameterized::class)
 class SamplesSmokeTest(
     private val sampleName: String,
-    private val sampleDir: File) : AbstractIntegrationTest() {
+    private val sampleDir: File
+) : AbstractIntegrationTest() {
 
     companion object {
         @Parameterized.Parameters(name = "{0}")

@@ -34,7 +34,8 @@ import kotlin.reflect.full.safeCast
  */
 inline
 operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
-    configuration: NamedDomainObjectContainerScope<T>.() -> Unit): C =
+    configuration: NamedDomainObjectContainerScope<T>.() -> Unit
+): C =
 
     apply {
         configuration(NamedDomainObjectContainerScope(this))
@@ -45,7 +46,8 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
  * Receiver for [NamedDomainObjectContainer] configuration blocks.
  */
 class NamedDomainObjectContainerScope<T : Any>(
-    private val container: NamedDomainObjectContainer<T>) : NamedDomainObjectContainer<T> by container {
+    private val container: NamedDomainObjectContainer<T>
+) : NamedDomainObjectContainer<T> by container {
 
     /**
      * @see [NamedDomainObjectContainer.maybeCreate]
@@ -131,7 +133,8 @@ fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit
  */
 class NamedDomainObjectContainerDelegateProvider<T : Any>(
     val container: NamedDomainObjectContainer<T>,
-    val configuration: T.() -> Unit) {
+    val configuration: T.() -> Unit
+) {
 
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
         container.apply {
@@ -168,7 +171,8 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>
 class PolymorphicDomainObjectContainerDelegateProvider<T : Any, U : T>(
     val container: PolymorphicDomainObjectContainer<T>,
     val type: Class<U>,
-    val configuration: U.() -> Unit) {
+    val configuration: U.() -> Unit
+) {
 
     @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
@@ -197,7 +201,8 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getting(type: KClass<U>
  */
 class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
     val container: PolymorphicDomainObjectContainer<T>,
-    val type: KClass<U>) {
+    val type: KClass<U>
+) {
 
     operator fun getValue(receiver: Any?, property: kotlin.reflect.KProperty<*>): U =
         container.getByName(property.name, type)
@@ -211,7 +216,8 @@ class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
     val container: PolymorphicDomainObjectContainer<T>,
     val type: KClass<U>,
-    val configuration: U.() -> Unit) {
+    val configuration: U.() -> Unit
+) {
 
     @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =

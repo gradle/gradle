@@ -44,7 +44,8 @@ data class KotlinBuildScriptModelRequest(
     val gradleUserHome: java.io.File? = null,
     val javaHome: java.io.File? = null,
     val options: List<String> = emptyList(),
-    val jvmOptions: List<String> = emptyList())
+    val jvmOptions: List<String> = emptyList()
+)
 
 
 internal
@@ -54,8 +55,8 @@ typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() ->
 internal
 suspend fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
-    modelBuilderCustomization: ModelBuilderCustomization = {}): KotlinBuildScriptModel
-{
+    modelBuilderCustomization: ModelBuilderCustomization = {}
+): KotlinBuildScriptModel {
 
     val connection = projectConnectionFor(request)
     try {

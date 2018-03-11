@@ -31,13 +31,15 @@ import javax.inject.Inject
 internal
 class PluginRequestsHandler @Inject constructor(
     private val pluginRequestApplicator: PluginRequestApplicator,
-    private val autoAppliedPluginHandler: AutoAppliedPluginHandler) {
+    private val autoAppliedPluginHandler: AutoAppliedPluginHandler
+) {
 
     fun handle(
         pluginRequests: PluginRequests?,
         scriptHandler: ScriptHandlerInternal,
         target: PluginAwareInternal,
-        targetScope: ClassLoaderScope) {
+        targetScope: ClassLoaderScope
+    ) {
 
         val effectivePluginRequests = pluginRequests
             ?.let { withAutoAppliedPluginsFor(target, it) }

@@ -30,7 +30,8 @@ interface JarGenerationProgressMonitorProvider {
 
 internal
 class StandardJarGenerationProgressMonitorProvider(
-    val progressLoggerFactory: ProgressLoggerFactory) : JarGenerationProgressMonitorProvider {
+    val progressLoggerFactory: ProgressLoggerFactory
+) : JarGenerationProgressMonitorProvider {
 
     override fun progressMonitorFor(outputJar: File, totalWork: Int): ProgressMonitor {
         val progressLogger = progressLoggerFor(outputJar)

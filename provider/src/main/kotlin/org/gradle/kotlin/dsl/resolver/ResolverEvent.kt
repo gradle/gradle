@@ -31,54 +31,63 @@ internal
 data class ResolutionRequest(
     val scriptFile: File?,
     val environment: Map<String, Any?>?,
-    val previousDependencies: KotlinScriptExternalDependencies?) : ResolverEvent()
+    val previousDependencies: KotlinScriptExternalDependencies?
+) : ResolverEvent()
 
 
 internal
 data class ResolutionFailure(
     val scriptFile: File?,
-    val failure: Exception) : ResolverEvent()
+    val failure: Exception
+) : ResolverEvent()
 
 
 internal
 data class ResolutionProgress(
     val scriptFile: File?,
-    val description: String) : ResolverEvent()
+    val description: String
+) : ResolverEvent()
 
 
 internal
 data class ResolvedToPrevious(
     val scriptFile: File?,
-    val previousDependencies: KotlinScriptExternalDependencies?) : ResolverEvent()
+    val previousDependencies: KotlinScriptExternalDependencies?
+) : ResolverEvent()
 
 
 internal
 data class SubmittedModelRequest(
     val scriptFile: File?,
-    val request: KotlinBuildScriptModelRequest) : ResolverEvent()
+    val request: KotlinBuildScriptModelRequest
+) : ResolverEvent()
 
 
 internal
 data class ReceivedModelResponse(
     val scriptFile: File?,
-    val response: KotlinBuildScriptModel) : ResolverEvent()
+    val response: KotlinBuildScriptModel
+) : ResolverEvent()
 
 
 internal
 data class ResolvedDependencies(
     val scriptFile: File?,
-    val dependencies: KotlinScriptExternalDependencies) : ResolverEvent()
+    val dependencies: KotlinScriptExternalDependencies
+) : ResolverEvent()
 
 
 internal
 data class ResolvedDependenciesWithErrors(
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
-    val exceptions: List<Exception>) : ResolverEvent()
+    val exceptions: List<Exception>
+) : ResolverEvent()
 
 
 internal
 data class ResolvedToPreviousWithErrors(
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
-    val exceptions: List<Exception>) : ResolverEvent()
+    val exceptions: List<Exception>
+) : ResolverEvent()

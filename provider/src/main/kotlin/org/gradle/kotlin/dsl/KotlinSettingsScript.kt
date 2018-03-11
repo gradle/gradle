@@ -65,7 +65,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>) : Settings by host.target {
+    private val host: KotlinScriptHost<Settings>
+) : Settings by host.target {
 
     private
     val fileOperations by lazy { fileOperationsFor(settings) }

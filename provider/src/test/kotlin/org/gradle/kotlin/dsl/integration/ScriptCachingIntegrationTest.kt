@@ -278,7 +278,8 @@ data class MultiProjectCachedScripts(
     val settingsFile: CachedScript.WholeFile,
     val rootBuildFile: CachedScript.WholeFile,
     val leftBuildFile: CachedScript.WholeFile,
-    val rightBuildFile: CachedScript.WholeFile)
+    val rightBuildFile: CachedScript.WholeFile
+)
 
 
 private
@@ -287,14 +288,18 @@ sealed class CachedScript {
     class WholeFile(
         val buildscript: CompilationStage? = null,
         val plugins: CompilationStage? = null,
-        val body: CompilationStage) : CachedScript() {
+        val body: CompilationStage
+    ) : CachedScript() {
 
         val stages = listOfNotNull(buildscript, plugins, body)
     }
 
     class CompilationStage(
-        sourceDescription: String, file: File,
-        templateClass: KClass<*>, val enabled: Boolean = true) : CachedScript() {
+        sourceDescription: String,
+        file: File,
+        templateClass: KClass<*>,
+        val enabled: Boolean = true
+    ) : CachedScript() {
 
         val source = "$sourceDescription '$file'"
         val template = templateClass.simpleName!!

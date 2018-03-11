@@ -35,7 +35,8 @@ class KotlinScriptHost<out T : Any>(
     private val scriptSource: ScriptSource,
     private val serviceRegistry: ServiceRegistry,
     private val baseScope: ClassLoaderScope,
-    val scriptHandler: ScriptHandler) {
+    val scriptHandler: ScriptHandler
+) {
 
     internal
     val operations by lazy {

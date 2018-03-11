@@ -34,7 +34,8 @@ import javax.inject.Inject
  * and pins them to the embedded Kotlin version.
  */
 open class EmbeddedKotlinPlugin @Inject internal constructor(
-    private val embeddedKotlin: EmbeddedKotlinProvider) : Plugin<Project> {
+    private val embeddedKotlin: EmbeddedKotlinProvider
+) : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {

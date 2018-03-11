@@ -59,7 +59,8 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     fun assertSourcePathGiven(
         rootProjectScript: String,
         subProjectScript: String,
-        matches: Matcher<Iterable<String>>) {
+        matches: Matcher<Iterable<String>>
+    ) {
 
         val subProjectName = "sub"
         withSettings("include(\"$subProjectName\")")

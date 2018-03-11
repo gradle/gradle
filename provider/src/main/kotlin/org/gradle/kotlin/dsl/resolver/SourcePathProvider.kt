@@ -29,7 +29,8 @@ object SourcePathProvider {
         classPath: ClassPath,
         projectDir: File,
         gradleHomeDir: File?,
-        sourceDistributionResolver: SourceDistributionProvider): ClassPath {
+        sourceDistributionResolver: SourceDistributionProvider
+    ): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)

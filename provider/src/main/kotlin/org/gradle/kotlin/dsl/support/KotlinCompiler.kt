@@ -58,7 +58,8 @@ fun compileKotlinScriptToDirectory(
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
     classPath: List<File>,
-    messageCollector: LoggingMessageCollector): String =
+    messageCollector: LoggingMessageCollector
+): String =
 
     withRootDisposable { rootDisposable ->
 
@@ -102,7 +103,8 @@ fun compileToJar(
     outputJar: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()): Boolean =
+    classPath: Iterable<File> = emptyList()
+): Boolean =
 
     compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
 
@@ -112,7 +114,8 @@ fun compileToDirectory(
     outputDirectory: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()): Boolean =
+    classPath: Iterable<File> = emptyList()
+): Boolean =
 
     compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
 
@@ -123,7 +126,8 @@ fun compileTo(
     output: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File>): Boolean {
+    classPath: Iterable<File>
+): Boolean {
 
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
@@ -275,7 +279,8 @@ const val indent = "  "
 internal
 class LoggingMessageCollector(
     private val log: Logger,
-    private val pathTranslation: (String) -> String) : MessageCollector {
+    private val pathTranslation: (String) -> String
+) : MessageCollector {
 
     val errors = arrayListOf<ScriptCompilationError>()
 

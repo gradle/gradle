@@ -35,7 +35,8 @@ object BuildServices {
     fun createCachingKotlinCompiler(
         scriptCache: ScriptCache,
         implicitImports: ImplicitImports,
-        progressLoggerFactory: ProgressLoggerFactory) =
+        progressLoggerFactory: ProgressLoggerFactory
+    ) =
 
         CachingKotlinCompiler(scriptCache, implicitImports, progressLoggerFactory)
 
@@ -44,7 +45,8 @@ object BuildServices {
         classPathRegistry: ClassPathRegistry,
         dependencyFactory: DependencyFactory,
         jarCache: GeneratedGradleJarCache,
-        progressLoggerFactory: ProgressLoggerFactory) =
+        progressLoggerFactory: ProgressLoggerFactory
+    ) =
 
         KotlinScriptClassPathProvider(
             classPathRegistry,
@@ -55,7 +57,8 @@ object BuildServices {
     @Suppress("unused")
     fun createPluginRequestsHandler(
         pluginRequestApplicator: PluginRequestApplicator,
-        autoAppliedPluginHandler: AutoAppliedPluginHandler) =
+        autoAppliedPluginHandler: AutoAppliedPluginHandler
+    ) =
 
         PluginRequestsHandler(pluginRequestApplicator, autoAppliedPluginHandler)
 

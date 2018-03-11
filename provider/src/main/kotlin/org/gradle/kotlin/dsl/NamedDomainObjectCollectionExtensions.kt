@@ -46,7 +46,8 @@ fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() 
 
 class NamedDomainObjectCollectionDelegateProvider<T>(
     val collection: NamedDomainObjectCollection<T>,
-    val configuration: T.() -> Unit) {
+    val configuration: T.() -> Unit
+) {
 
     operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): NamedDomainObjectCollection<T> =
         collection.apply {

@@ -66,7 +66,8 @@ fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
 open class KotlinClosure0<V : Any>(
     val function: () -> V?,
     owner: Any? = null,
-    thisObject: Any? = null) : groovy.lang.Closure<V?>(owner, thisObject) {
+    thisObject: Any? = null
+) : groovy.lang.Closure<V?>(owner, thisObject) {
 
     @Suppress("unused") // to be called dynamically by Groovy
     fun doCall(): V? = function()
@@ -87,7 +88,8 @@ open class KotlinClosure0<V : Any>(
 class KotlinClosure1<in T : Any?, V : Any>(
     val function: T.() -> V?,
     owner: Any? = null,
-    thisObject: Any? = null) : Closure<V?>(owner, thisObject) {
+    thisObject: Any? = null
+) : Closure<V?>(owner, thisObject) {
 
     @Suppress("unused") // to be called dynamically by Groovy
     fun doCall(it: T): V? = it.function()
@@ -109,7 +111,8 @@ class KotlinClosure1<in T : Any?, V : Any>(
 class KotlinClosure2<in T : Any?, in U : Any?, V : Any>(
     val function: (T, U) -> V?,
     owner: Any? = null,
-    thisObject: Any? = null) : Closure<V?>(owner, thisObject) {
+    thisObject: Any? = null
+) : Closure<V?>(owner, thisObject) {
 
     @Suppress("unused") // to be called dynamically by Groovy
     fun doCall(t: T, u: U): V? = function(t, u)

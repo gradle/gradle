@@ -21,8 +21,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.*
 
 
 internal
-class UnexpectedBlock(val identifier: String, val location: IntRange)
-    : RuntimeException("Unexpected block found.")
+class UnexpectedBlock(val identifier: String, val location: IntRange) : RuntimeException("Unexpected block found.")
 
 
 internal

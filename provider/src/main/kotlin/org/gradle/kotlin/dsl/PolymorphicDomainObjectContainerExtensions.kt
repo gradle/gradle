@@ -35,7 +35,8 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 inline
 fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
     name: String,
-    crossinline configuration: U.() -> Unit) =
+    crossinline configuration: U.() -> Unit
+) =
 
     this.create(name, U::class.java, { configuration(it) })
 
