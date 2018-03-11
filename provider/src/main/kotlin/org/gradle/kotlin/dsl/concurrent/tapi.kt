@@ -42,7 +42,7 @@ fun <T> Continuation<T>.asResultHandler(): ResultHandler<T> =
     object : ResultHandler<T> {
         override fun onComplete(result: T) =
             resume(result)
+
         override fun onFailure(failure: GradleConnectionException) =
             resumeWithException(failure)
     }
-

@@ -16,6 +16,7 @@ import org.junit.Test
 
 import org.mockito.invocation.InvocationOnMock
 
+
 class ComponentSelectionRulesTest {
 
     @Test

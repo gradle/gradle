@@ -119,6 +119,7 @@ fun PluginDependenciesSpec.kotlin(module: String): PluginDependencySpec =
 val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
     get() = id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"
 
+
 /**
  * The `kotlin-dsl` plugin.
  *
@@ -130,7 +131,6 @@ val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
  */
 val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
     get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"
-
 """)
     }
 }

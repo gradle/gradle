@@ -121,7 +121,9 @@ class KotlinClosure2<in T : Any?, in U : Any?, V : Any>(
 
 operator fun <T> Closure<T>.invoke(): T = call()
 
+
 operator fun <T> Closure<T>.invoke(x: Any?): T = call(x)
+
 
 operator fun <T> Closure<T>.invoke(vararg xs: Any?): T = call(*xs)
 

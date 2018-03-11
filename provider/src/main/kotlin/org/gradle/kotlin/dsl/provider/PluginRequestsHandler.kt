@@ -28,6 +28,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import javax.inject.Inject
 
+
 internal
 class PluginRequestsHandler @Inject constructor(
     private val pluginRequestApplicator: PluginRequestApplicator,
@@ -55,5 +56,4 @@ class PluginRequestsHandler @Inject constructor(
     private
     fun withAutoAppliedPluginsFor(target: Any, pluginRequests: PluginRequests): PluginRequests =
         autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(pluginRequests, target)
-
 }

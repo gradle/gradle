@@ -393,4 +393,3 @@ abstract class KotlinInitScript(
     val processOperations
         get() = host.operations
 }
-

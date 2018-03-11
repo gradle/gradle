@@ -13,8 +13,14 @@ import org.objectweb.asm.Opcodes.*
 
 @Suppress("unused")
 class PublicGenericType<T>
+
+
 class PublicComponentType
-private class PrivateComponentType
+
+
+private
+class PrivateComponentType
+
 
 class ProjectSchemaTest : TestWithClassPath() {
 

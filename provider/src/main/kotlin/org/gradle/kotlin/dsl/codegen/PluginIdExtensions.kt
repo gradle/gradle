@@ -259,4 +259,3 @@ fun pluginEntriesFrom(jar: File): List<PluginEntry> =
             PluginEntry(id, implementationClass)
         }.toList()
     }
-

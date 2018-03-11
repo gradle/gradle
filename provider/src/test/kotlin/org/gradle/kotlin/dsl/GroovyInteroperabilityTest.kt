@@ -20,6 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+
 class GroovyInteroperabilityTest {
 
     @Test
@@ -45,6 +46,7 @@ class GroovyInteroperabilityTest {
         }
         assertEquals(42, list.first())
     }
+
     @Test
     fun `can use closure with a null delegate call`() {
         var passedIntoClosure: Any? = "Something non null"
@@ -234,4 +236,3 @@ class GroovyInteroperabilityTest {
         verify(delegate).withKeywordArguments(expectedKeywordArguments)
     }
 }
-

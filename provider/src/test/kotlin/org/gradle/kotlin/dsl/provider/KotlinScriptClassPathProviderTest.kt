@@ -17,6 +17,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+
 class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
 
     @Test

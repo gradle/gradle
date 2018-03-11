@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleDependency
 
 import org.gradle.kotlin.dsl.support.excludeMapFor
 
+
 /**
  * Adds an exclude rule to exclude transitive dependencies for all dependencies of this configuration.
  * You can also add exclude rules per-dependency. See [ModuleDependency.exclude].

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
+
 /**
  * Receiver for `dependencies` block providing convenient utilities for configuring dependencies.
  *

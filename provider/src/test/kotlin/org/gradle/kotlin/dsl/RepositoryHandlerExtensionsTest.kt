@@ -10,6 +10,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.junit.Test
 import org.mockito.invocation.InvocationOnMock
 
+
 class RepositoryHandlerExtensionsTest {
 
     @Test

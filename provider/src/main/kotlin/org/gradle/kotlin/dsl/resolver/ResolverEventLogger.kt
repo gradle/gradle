@@ -190,4 +190,3 @@ object ResolverEventLogger {
             else -> "\t\t"
         }
 }
-

@@ -7,6 +7,7 @@ import org.junit.Assert.fail
 
 import kotlin.reflect.KClass
 
+
 fun <T : Throwable> assertFailsWith(exception: KClass<out T>, block: () -> Unit): T {
     try {
         block()
@@ -19,14 +20,15 @@ fun <T : Throwable> assertFailsWith(exception: KClass<out T>, block: () -> Unit)
     throw IllegalStateException()
 }
 
+
 inline
 fun <reified T> withInstanceOf(o: Any, block: T.() -> Unit) {
     block(assertInstanceOf<T>(o))
 }
+
 
 inline
 fun <reified T> assertInstanceOf(o: Any): T {
     assertThat(o, instanceOf(T::class.java))
     return o as T
 }
-

@@ -260,4 +260,3 @@ val Project.hierarchy: Sequence<Project>
 private
 fun canonicalFile(path: String): File =
     File(path).canonicalFile
-

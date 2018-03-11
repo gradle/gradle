@@ -10,6 +10,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+
 class ConfigurationExtensionsTest {
 
     @Test

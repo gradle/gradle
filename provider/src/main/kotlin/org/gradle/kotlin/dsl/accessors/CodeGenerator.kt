@@ -33,6 +33,7 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
     }
 }
 
+
 private
 fun extensionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
     codeForAccessor(name) {
@@ -85,6 +86,7 @@ fun inaccessibleExtensionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAcc
     """
 }
 
+
 private
 fun conventionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
     codeForAccessor(name) {
@@ -114,6 +116,7 @@ fun accessibleConventionAccessorFor(name: AccessorNameSpec, type: String): Strin
     """
 }
 
+
 private
 fun inaccessibleConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
@@ -135,6 +138,7 @@ fun inaccessibleConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAc
 
     """
 }
+
 
 private
 fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
@@ -245,6 +249,7 @@ data class AccessorNameSpec(val original: String) {
     val stringLiteral by lazy { stringLiteralFor(original) }
 }
 
+
 private
 data class TypedAccessorSpec(val name: AccessorNameSpec, val typeAccess: TypeAccessibility)
 
@@ -300,4 +305,3 @@ fun isKotlinIdentifier(candidate: String): Boolean =
             && tokenEnd == candidate.length
             && tokenType == KtTokens.IDENTIFIER
     }
-

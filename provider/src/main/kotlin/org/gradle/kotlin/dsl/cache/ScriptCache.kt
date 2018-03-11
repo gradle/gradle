@@ -63,4 +63,3 @@ class ScriptCache(
 internal
 operator fun CacheKeySpec.plus(files: List<File>) =
     files.fold(this, CacheKeySpec::plus)
-

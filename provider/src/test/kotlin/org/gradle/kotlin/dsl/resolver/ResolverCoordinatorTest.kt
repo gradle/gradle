@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 
+
 class ResolverCoordinatorTest {
 
     @org.junit.Test
@@ -73,6 +74,7 @@ class ResolverCoordinatorTest {
     fun environmentWithGetScriptSectionTokens(function: (CharSequence, String) -> Sequence<String>) =
         mapOf<String, Any?>("getScriptSectionTokens" to function)
 }
+
 
 private
 object EmptyScriptContents : kotlin.script.dependencies.ScriptContents {
