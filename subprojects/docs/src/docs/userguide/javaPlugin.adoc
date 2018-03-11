@@ -769,7 +769,7 @@ To enable JUnit Jupiter support, add the following dependencies:
 Put the following code into `src/test/java`:
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterexample" dir="testing/junitplatform/engine" title="Jupiter test example">
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterexample" dir="testing/junitplatform/mix" title="Jupiter test example">
     <sourcefile file="src/test/java/org/gradle/junitplatform/JupiterTest.java" snippet="jupiter-example"/>
 </sample>
 ++++
@@ -784,21 +784,24 @@ A Jupiter sample can be found at `samples/testing/junitplatform/jupiter` in the 
 If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="vintagedependencies" dir="testing/junitplatform/engine/" title="JUnit Vintage dependencies">
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="vintagedependencies" dir="testing/junitplatform/mix/" title="JUnit Vintage dependencies">
     <sourcefile file="build.gradle" snippet="vintage-dependencies"/>
 </sample>
 ++++
 
 In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
 
-A sample of mixed tests can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.
+A sample of mixed tests can be found at `samples/testing/junitplatform/mix` in the '-all' distribution of Gradle.
 
-[[custom_test_engine]]
-===== Custom test engine
+[[filtering_test_engine]]
+===== Filtering test engine
 
-With JUnit Platform, you can customize `TestEngine` implementation yourself. By default, `TestEngine` registration is done via Java's `java.util.ServiceLoader` mechanism.
-In most cases, all you need to do is registering your engine implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
-However, if you want to filter specific test engine implementations, you can do as follows:
+JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
+https://junit.org/junit5/docs/current/api/org/junit/jupiter/engine/package-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org/junit/vintage/engine/package-summary.html[junit-vintage-engine].
+You can also write and plug in your own `TestEngine` implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
+
+By default, all test engines on the test runtime classpath will be used.
+To control specific test engine implementations explicitly, you can do as follows:
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="filterengine" dir="testing/junitplatform/engine/" title="Filter specific engines">
@@ -806,6 +809,7 @@ However, if you want to filter specific test engine implementations, you can do 
 </sample>
 ++++
 
+A test engine filtering sample can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.
 
 [[test_execution_order]]
 ==== Test execution order in TestNG
