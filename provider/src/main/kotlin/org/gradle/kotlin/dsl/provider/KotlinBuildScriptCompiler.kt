@@ -277,16 +277,16 @@ class KotlinBuildScriptCompiler(
     fun classLoaderScopeIdFor(stage: String) =
         scriptSource.classLoaderScopeIdFor(stage)
 
-    private inline
-    fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
+    private
+    inline fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
         scriptClass.getConstructor(targetType.java).newInstance(target)
     }
 
-    private inline
-    fun withUnexpectedBlockHandling(action: () -> Unit) {
+    private
+    inline fun withUnexpectedBlockHandling(action: () -> Unit) {
         try {
             action()
         } catch (unexpectedBlock: UnexpectedBlock) {
@@ -366,8 +366,8 @@ class BuildscriptBlockEvaluator(
             compileScriptBlock(scriptBlock, classPath)
         }
 
-    private inline
-    fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
+    private
+    inline fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun buildscriptBlockClassLoaderScope() =
@@ -433,8 +433,8 @@ class BuildscriptBlockEvaluator(
 }
 
 
-private inline
-fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
+private
+inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
     try {
         action()
     } catch (e: Exception) {
@@ -444,8 +444,8 @@ fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
 }
 
 
-private inline
-fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
+private
+inline fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
     try {
         action()
     } catch (e: ScriptCompilationException) {
@@ -453,8 +453,8 @@ fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): 
     }
 
 
-private inline
-fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
+private
+inline fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
     withContextClassLoader(scriptClass.classLoader) {
         try {
             action()
@@ -464,8 +464,8 @@ fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
     }
 
 
-private inline
-fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
+private
+inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     val currentThread = Thread.currentThread()
     val previous = currentThread.contextClassLoader
     try {

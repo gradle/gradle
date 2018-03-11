@@ -36,8 +36,8 @@ class KotlinTypeStringTest {
         assertPrimitiveTypeName<Double>(java.lang.Double.TYPE)
     }
 
-    private inline
-    fun <reified T> assertPrimitiveTypeName(primitiveTypeClass: Class<*>) {
+    private
+    inline fun <reified T> assertPrimitiveTypeName(primitiveTypeClass: Class<*>) {
         assertThat(
             kotlinTypeStringFor(typeOf(primitiveTypeClass)),
             equalTo(T::class.simpleName))

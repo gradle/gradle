@@ -281,8 +281,8 @@ fun documentInaccessibilityReasons(name: AccessorNameSpec, typeAccess: TypeAcces
     }}"
 
 
-private inline
-fun codeForAccessor(name: AccessorNameSpec, code: () -> String): String? =
+private
+inline fun codeForAccessor(name: AccessorNameSpec, code: () -> String): String? =
     if (isLegalAccessorName(name.kotlinIdentifier)) code().replaceIndent()
     else null
 

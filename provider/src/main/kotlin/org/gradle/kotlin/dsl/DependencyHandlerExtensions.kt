@@ -147,8 +147,8 @@ fun DependencyHandler.module(
     configureClientModule(module(notation) as ClientModule, clientModuleConfiguration)
 
 
-private inline
-fun DependencyHandler.configureClientModule(
+private
+inline fun DependencyHandler.configureClientModule(
     module: ClientModule,
     clientModuleConfiguration: ClientModuleScope.() -> Unit
 ): ClientModule =

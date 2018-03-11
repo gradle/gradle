@@ -150,8 +150,8 @@ val kotlinStdlibJar: File
     get() = PathUtil.getResourcePathForClass(Unit::class.java)
 
 
-private inline
-fun <T> withRootDisposable(action: (Disposable) -> T): T {
+private
+inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
     val rootDisposable = newDisposable()
     try {
         return action(rootDisposable)
@@ -161,8 +161,8 @@ fun <T> withRootDisposable(action: (Disposable) -> T): T {
 }
 
 
-private inline
-fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
+private
+inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
     val messageCollector = messageCollectorFor(log)
     withCompilationExceptionHandler(messageCollector) {
         return action(messageCollector)
@@ -170,8 +170,8 @@ fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T
 }
 
 
-private inline
-fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+private
+inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
     try {
         return action()
     } catch (ex: CompilationException) {

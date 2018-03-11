@@ -49,13 +49,13 @@ class ScriptApiTest {
 }
 
 
-private inline
-fun <reified T> assertScriptApiOf() =
+private
+inline fun <reified T> assertScriptApiOf() =
     assertApiOf<T>(ScriptApi::class)
 
 
-private inline
-fun <reified T> assertApiOf(expectedApi: KClass<*>) =
+private
+inline fun <reified T> assertApiOf(expectedApi: KClass<*>) =
     assertThat(
         expectedApi.apiMembers.missingMembersFrom(T::class),
         equalTo(emptyList()))

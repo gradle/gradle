@@ -75,8 +75,8 @@ class RepositoryHandlerExtensionsTest {
         verify(repository).name = "repo name"
     }
 
-    private inline
-    operator fun RepositoryHandler.invoke(action: RepositoryHandler.() -> Unit) = apply(action)
+    private
+    inline operator fun RepositoryHandler.invoke(action: RepositoryHandler.() -> Unit) = apply(action)
 
     private
     fun mavenRepositoryHandlerMockFor(repository: MavenArtifactRepository) = mock<RepositoryHandler> {
