@@ -68,10 +68,8 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
         compilerFor(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope).run {
 
-            if (inClassPathMode())
-                compileForClassPath()
-            else
-                compile()
+            if (inClassPathMode()) compileForClassPath()
+            else compile()
         }
 
     private

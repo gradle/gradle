@@ -46,8 +46,9 @@ class SamplesSmokeTest(
         val buildsToCheck =
             if (File(sampleDir, "buildSrc").isDirectory) {
                 projectBuilds + listOf(buildSpec("-p", "buildSrc", "buildEnvironment"))
-            } else
+            } else {
                 projectBuilds
+            }
 
         val foundKotlinGradlePlugin = buildsToCheck.map(::assertKotlinGradlePluginVersion)
 
@@ -71,8 +72,9 @@ class SamplesSmokeTest(
             if (output.contains(":kotlin-gradle-plugin:")) {
                 assertThat(output, containsString(":kotlin-gradle-plugin:$embeddedKotlinVersion"))
                 true
-            } else
+            } else {
                 false
+            }
         }
 
     private
