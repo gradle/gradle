@@ -46,8 +46,8 @@ class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
             .assertTestsSkipped('disabled()')
     }
 
-    @UsesSample('testing/junitplatform/engine')
-    def 'engine sample test'() {
+    @UsesSample('testing/junitplatform/mix')
+    def 'mix JUnit3/4/5'() {
         given:
         sample sample
 
@@ -61,6 +61,20 @@ class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
             .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0, 0)
         new DefaultTestExecutionResult(sample.dir)
             .testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(1, 0, 0)
+    }
+
+    @UsesSample('testing/junitplatform/engine')
+    def 'engine sample test'() {
+        given:
+        sample sample
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(sample.dir)
+            .assertTestClassesExecuted('org.gradle.junitplatform.JUnit4Test')
+            .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0, 0)
     }
 
     @UsesSample('testing/junitplatform/tagging')
