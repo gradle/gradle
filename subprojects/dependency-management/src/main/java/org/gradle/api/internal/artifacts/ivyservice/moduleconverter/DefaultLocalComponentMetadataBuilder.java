@@ -62,7 +62,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
         ImmutableCapabilities capabilities =
-            capabilitiesExtension == null ? ImmutableCapabilities.EMPTY : asImmutable(collectCapabilities(configuration, capabilitiesExtension, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
+            capabilitiesExtension == null ? ImmutableCapabilities.EMPTY : asImmutable(Configurations.collectCapabilities(configuration, capabilitiesExtension, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
@@ -73,16 +73,6 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isCanBeConsumed(),
             configuration.isCanBeResolved(),
             capabilities);
-    }
-
-    private static Set<CapabilityDescriptor> collectCapabilities(Configuration configuration, CapabilitiesExtension capabilitiesExtension, Set<CapabilityDescriptor> out, Set<Configuration> visited) {
-        if (visited.add(configuration)) {
-            out.addAll(capabilitiesExtension.getCapabilities(configuration));
-            for (Configuration parent : configuration.getExtendsFrom()) {
-                collectCapabilities(parent, capabilitiesExtension, out, visited);
-            }
-        }
-        return out;
     }
 
     private static ImmutableCapabilities asImmutable(Collection<? extends CapabilityDescriptor> descriptors) {

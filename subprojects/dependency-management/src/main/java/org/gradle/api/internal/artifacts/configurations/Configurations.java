@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.capabilities.CapabilitiesExtension;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +36,19 @@ public class Configurations {
             names.add(configuration.getName());
         }
         return names;
+    }
+
+    public static Set<CapabilityDescriptor> collectCapabilities(Configuration configuration, CapabilitiesExtension capabilitiesExtension, Set<CapabilityDescriptor> out, Set<Configuration> visited) {
+        if (capabilitiesExtension == null) {
+            return out;
+        }
+        if (visited.add(configuration)) {
+            out.addAll(capabilitiesExtension.getCapabilities(configuration));
+            for (Configuration parent : configuration.getExtendsFrom()) {
+                collectCapabilities(parent, capabilitiesExtension, out, visited);
+            }
+        }
+        return out;
     }
 
     public static String uploadTaskName(String configurationName) {
