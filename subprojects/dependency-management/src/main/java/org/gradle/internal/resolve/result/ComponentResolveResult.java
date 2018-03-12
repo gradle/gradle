@@ -16,6 +16,7 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -27,6 +28,12 @@ import javax.annotation.Nullable;
  * <p>Very similar to {@link org.gradle.internal.resolve.result.ComponentIdResolveResult}, could probably merge these.
  */
 public interface ComponentResolveResult extends ResolveResult {
+
+    /**
+     * Returns the identifier of the component.
+     */
+    ComponentIdentifier getComponentIdentifier();
+
     /**
      * Returns the module version id of the component.
      *
