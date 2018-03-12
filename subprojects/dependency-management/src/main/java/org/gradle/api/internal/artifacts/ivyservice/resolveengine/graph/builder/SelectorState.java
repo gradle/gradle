@@ -25,12 +25,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
-import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
 import java.util.List;
@@ -47,9 +45,9 @@ class SelectorState implements DependencyGraphSelector {
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
     private ModuleVersionResolveException failure;
+    private ComponentSelectionReasonInternal failureSelectionReason;
     private ModuleResolveState targetModule;
     private ComponentState selected;
-    private BuildableComponentIdResolveResult idResolveResult;
     private ResolvedVersionConstraint versionConstraint;
 
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
@@ -109,7 +107,7 @@ class SelectorState implements DependencyGraphSelector {
             return null;
         }
 
-        idResolveResult = new DefaultBuildableComponentIdResolveResult();
+        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
@@ -121,11 +119,12 @@ class SelectorState implements DependencyGraphSelector {
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
+            failureSelectionReason = createFailureReason(idResolveResult);
             return null;
         }
 
         selected = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId());
-        selected.selectedBy(this);
+        selected.selectedBy(this, idResolveResult);
         selected.addCause(idResolveResult.getSelectionDescription());
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());
@@ -133,7 +132,7 @@ class SelectorState implements DependencyGraphSelector {
         versionConstraint = idResolveResult.getResolvedVersionConstraint();
 
         // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
-        // TODO:DAZ Ditch the JVM Software Model plugins and add this assertion
+        // TODO:DAZ Ditch the JVM Software Model plugins and re-add this assertion
 //        assert selected.getModule() == targetModule;
 
         return selected;
@@ -145,12 +144,13 @@ class SelectorState implements DependencyGraphSelector {
             return selected.getSelectionReason();
         }
         // Create a reason in case of selection failure.
-        return createFailureReason();
+        assert failure != null;
+        assert failureSelectionReason != null;
+        return failureSelectionReason;
     }
 
-    private ComponentSelectionReasonInternal createFailureReason() {
-        assert failure != null;
-
+    private ComponentSelectionReasonInternal createFailureReason(BuildableComponentIdResolveResult idResolveResult) {
+        // TODO:DAZ This duplicates logic in `resolveModuleRevisionId`, and could be simplified
         boolean hasRuleDescriptor = dependencyState.getRuleDescriptor() != null;
         boolean isConstraint = dependencyMetadata.isPending();
         ComponentSelectionDescriptorInternal description = idResolveResult.getSelectionDescription();
@@ -175,19 +175,10 @@ class SelectorState implements DependencyGraphSelector {
         // Target module can change, if this is called as the result of a module replacement conflict.
         // TODO:DAZ We are not updating the set of selectors for the updated module (or for the module that the selectors were removed from)
         this.targetModule = selectedComponent.getModule();
-
-        ComponentResolveMetadata metaData = selectedComponent.getMetaData();
-        if (metaData != null) {
-            this.idResolveResult.resolved(metaData);
-        }
     }
 
     public DependencyMetadata getDependencyMetadata() {
         return dependencyMetadata;
-    }
-
-    public ComponentIdResolveResult getResolveResult() {
-        return idResolveResult;
     }
 
     public ResolvedVersionConstraint getVersionConstraint() {
