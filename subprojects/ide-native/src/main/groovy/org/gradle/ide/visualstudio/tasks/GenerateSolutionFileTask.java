@@ -18,8 +18,8 @@ package org.gradle.ide.visualstudio.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.ide.visualstudio.TextProvider;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
@@ -28,6 +28,7 @@ import org.gradle.ide.visualstudio.tasks.internal.VisualStudioSolutionFile;
 import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 /**
@@ -50,9 +51,21 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
         this.solution = (DefaultVisualStudioSolution) solution;
     }
 
-    @Nested
+    @Internal
     public VisualStudioSolution getSolution() {
         return solution;
+    }
+
+    /**
+     * Returns the content that will be written to the solution file.
+     *
+     * @since 4.7
+     */
+    @Input
+    public String getSolutionFileContent() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        getDomainObject().store(out);
+        return out.toString();
     }
 
     @Override

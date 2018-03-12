@@ -16,10 +16,6 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
-
 public class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject;
     private final String name;
@@ -34,38 +30,27 @@ public class VisualStudioProjectConfiguration {
         this.binary = binary;
     }
 
-    @Input
     public String getName() {
         return name;
     }
 
-    @Input
     public String getConfigurationName() {
         return configurationName;
     }
 
-    @Input
     public String getPlatformName() {
         return platformName;
     }
 
-    @Nested
     public VisualStudioTargetBinary getTargetBinary() {
         return binary;
     }
 
-    @Internal
     public final String getType() {
         return "Makefile";
     }
 
-    @Internal
     public DefaultVisualStudioProject getProject() {
         return vsProject;
-    }
-
-    @Input
-    public String getBinaryOutputPath() {
-        return binary.getOutputFile().getAbsolutePath();
     }
 }

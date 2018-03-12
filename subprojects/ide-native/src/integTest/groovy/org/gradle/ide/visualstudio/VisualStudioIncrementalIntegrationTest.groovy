@@ -184,8 +184,8 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         and:
         final projectFile = projectFile("app.vcxproj")
@@ -222,8 +222,8 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         and:
         final projectFile = projectFile("app.vcxproj")
@@ -332,29 +332,27 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         buildFile << """
             visualStudio {
                 projects.all {
-                    projectFile.withXml { }
+                    projectFile.withXml { xml ->
+                        Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
+                        globals.appendNode("ExtraInfo", "Some extra info")
+                        globals.appendNode("ProjectName", project.name)
+                    }
                 }
             }
         """
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         when:
-        buildFile.text = buildFile.text.replace "projectFile.withXml { }", """
-                    projectFile.withXml { xml ->
-                        Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
-                        globals.appendNode("ExtraInfo", "Some extra info")
-                        globals.appendNode("ProjectName", project.name)
-                    }
-        """
+        buildFile.replace "Some extra info", "Some different extra info"
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         when:
         run "visualStudio"
@@ -378,27 +376,25 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         buildFile << """
             visualStudio {
                 projects.all {
-                    filtersFile.withXml { }
+                    filtersFile.withXml { xml ->
+                        xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
+                    }
                 }
             }
         """
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getProjectTask("app")
+        executedAndNotSkipped getFiltersTask("app")
 
         when:
-        buildFile.text = buildFile.text.replace "filtersFile.withXml { }", """
-                    filtersFile.withXml { xml ->
-                        xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
-                    }
-        """
+        buildFile.replace "ExtraContent", "DifferentContent"
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getProjectTask("app")
+        executedAndNotSkipped getFiltersTask("app")
 
         when:
         run "visualStudio"
@@ -419,13 +415,22 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         executedAndNotSkipped getComponentTasks("app")
 
         when:
-        buildFile << """
+        buildFile << '''
             visualStudio {
                 solution {
-                    solutionFile.withContent { }
+                    solutionFile.withContent { content ->
+                        String projectList = projects.collect({it.name}).join(',')
+        
+                        content.text = content.text.replace("EndGlobal", """
+                        GlobalSection(MyGlobalSection)
+                        Project-list: ${projectList}
+                        EndGlobalSection
+                        EndGlobal
+                        """)
+                    }
                 }
             }
-        """
+        '''
         run "visualStudio"
 
         then:
@@ -433,18 +438,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
 
         when:
-        buildFile.text = buildFile.text.replace "solutionFile.withContent { }", '''
-                    solutionFile.withContent { content ->
-                        String projectList = projects.collect({it.name}).join(',')
-        
-                        content.text = content.text.replace("EndGlobal", """
-                            GlobalSection(MyGlobalSection)
-                            Project-list: ${projectList}
-                            EndGlobalSection
-                            EndGlobal
-                        """)
-                    }
-        '''
+        buildFile.replace "MyGlobalSection", "DifferentGlobalSection"
         run "visualStudio"
         println buildFile.text
 

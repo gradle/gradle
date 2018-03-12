@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -71,7 +72,7 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @since 4.7
      */
-    @Internal
+    @Input
     @Incubating
     protected boolean getIncremental() {
         return false;
@@ -80,6 +81,17 @@ public class GeneratorTask<T> extends ConventionTask {
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     void generate() {
+        generator.write(getDomainObject(), getOutputFile());
+    }
+
+    /**
+     * Returns the domain object produced by this generator task
+     *
+     * @since 4.7
+     */
+    @Internal
+    @Incubating
+    protected T getDomainObject() {
         File inputFile = getInputFileIfExists();
         if (inputFile != null) {
             try {
@@ -87,7 +99,7 @@ public class GeneratorTask<T> extends ConventionTask {
             } catch (RuntimeException e) {
                 throw new GradleException(String.format("Cannot parse file '%s'.\n"
                         + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
-                        inputFile), e);
+                    inputFile), e);
             }
         } else {
             domainObject = generator.defaultInstance();
@@ -96,7 +108,7 @@ public class GeneratorTask<T> extends ConventionTask {
         generator.configure(domainObject);
         afterConfigured.execute(domainObject);
 
-        generator.write(domainObject, getOutputFile());
+        return domainObject;
     }
 
     @Inject
