@@ -20,6 +20,8 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
 class ModelTypeTest extends Specification {
@@ -531,5 +533,33 @@ class ModelTypeTest extends Specification {
         !new ModelType<List<?>>() {}.rawClassOfParameterizedType
         !new ModelType<List<String>>() {}.rawClassOfParameterizedType
         !new ModelType<List<? super String>>() {}.typeVariables[0].rawClassOfParameterizedType
+    }
+
+    enum MyEnum {
+        ONE, TWO
+    }
+
+    def "represents enums"() {
+        given:
+        def enumType = MyEnum.class
+        def enumInstanceType = MyEnum.ONE.class
+
+        expect:
+        def modelOfEnum = ModelType.of(enumType)
+        def modelOfInstance = ModelType.of(enumInstanceType)
+        modelOfEnum == modelOfInstance
+    }
+
+    def "represents enums having constants with class body"() {
+        given:
+        def enumType = TimeUnit.class
+        def enumInstanceType = TimeUnit.SECONDS.class
+
+        expect:
+        def modelOfEnum = ModelType.of(enumType)
+        def modelOfInstance = ModelType.of(enumInstanceType)
+        modelOfInstance.displayName == 'TimeUnit'
+        modelOfEnum.toString() == 'java.util.concurrent.TimeUnit'
+        modelOfEnum == modelOfInstance
     }
 }
