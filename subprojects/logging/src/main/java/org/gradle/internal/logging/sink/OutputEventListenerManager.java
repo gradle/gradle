@@ -19,19 +19,23 @@ package org.gradle.internal.logging.sink;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 
+/**
+ * Manages dispatch of output events to the renderer and at most one other arbitrary listener.
+ *
+ * This is a degeneralisation of the standard ListenerManager pattern as a performance optimisation.
+ * Builds generate many output events, and an extra layer of generic listener manager overhead,
+ * on top of OutputEventRenderer noticeably degraded performance.
+ */
 public class OutputEventListenerManager {
 
     private final OutputEventRenderer renderer;
+
     private OutputEventListener other;
 
     private final OutputEventListener broadcaster = new OutputEventListener() {
         @Override
         public void onOutput(OutputEvent event) {
-            try {
-                renderer.onOutput(event);
-            } catch (Exception e) {
-                // TODO what here?
-            }
+            renderer.onOutput(event);
 
             OutputEventListener otherRef = other;
             if (otherRef != null) {
