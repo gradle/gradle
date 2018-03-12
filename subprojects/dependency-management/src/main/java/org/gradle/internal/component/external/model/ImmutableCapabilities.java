@@ -26,6 +26,10 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
 
     private final ImmutableList<ImmutableCapability> capabilities;
 
+    public static ImmutableCapabilities of(List<ImmutableCapability> capabilities) {
+        return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));
+    }
+
     public ImmutableCapabilities(ImmutableList<ImmutableCapability> capabilities) {
         this.capabilities = capabilities;
     }

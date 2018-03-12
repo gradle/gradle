@@ -22,7 +22,7 @@ import java.io.File;
 public enum CacheLayout {
     ROOT(null, "modules", 2),
     FILE_STORE(ROOT, "files", 1),
-    META_DATA(ROOT, "metadata", 53),
+    META_DATA(ROOT, "metadata", 54),
     RESOURCES(ROOT, "resources", 1),
     TRANSFORMS(null, "transforms", 1),
     TRANSFORMS_META_DATA(TRANSFORMS, "metadata", 1),
