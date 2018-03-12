@@ -146,9 +146,13 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
-        String rawJson = JsonOutput.toJson(BuildOperationTree.serialize(roots));
-        String prettyJson = JsonOutput.prettyPrint(rawJson);
-        Files.asCharSink(file(basePath, "-tree.json"), Charsets.UTF_8).write(prettyJson);
+        try {
+            String rawJson = JsonOutput.toJson(BuildOperationTree.serialize(roots));
+            String prettyJson = JsonOutput.prettyPrint(rawJson);
+            Files.asCharSink(file(basePath, "-tree.json"), Charsets.UTF_8).write(prettyJson);
+        } catch (OutOfMemoryError e) {
+            System.err.println("Failed to write build operation trace JSON due to out of memory.");
+        }
     }
 
     private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {

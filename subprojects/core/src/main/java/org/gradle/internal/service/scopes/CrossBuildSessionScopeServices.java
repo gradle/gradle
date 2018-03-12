@@ -25,18 +25,20 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
+import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.DelegatingBuildOperationExecutor;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildProgressLogger;
-import org.gradle.internal.operations.DelegatingBuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -64,7 +66,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
     private final BuildOperationTrace buildOperationTrace;
     private final BuildOperationNotificationBridge buildOperationNotificationBridge;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
-    private final DefaultBuildOperationListenerManager buildOperationListenerManager;
+    private final BuildOperationListenerManager buildOperationListenerManager;
 
     private final Services services;
 
@@ -76,7 +78,9 @@ public class CrossBuildSessionScopeServices implements Closeable {
         this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(crossSessionListenerManager);
         this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
         this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, globalListenerManager);
-        this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(LoggingManagerInternal.class), buildOperationListenerManager.getBroadcaster());
+
+        LoggingManagerInternal rootLoggingManager = parent.get(DefaultLoggingManagerFactory.class).getRoot();
+        this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(OutputEventListenerManager.class), buildOperationListenerManager.getBroadcaster());
     }
 
     GradleLauncherFactory createGradleLauncherFactory() {

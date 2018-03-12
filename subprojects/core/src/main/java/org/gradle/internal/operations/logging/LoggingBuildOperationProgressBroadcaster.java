@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.logging;
 
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -25,6 +24,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
@@ -58,14 +58,14 @@ import org.gradle.internal.operations.OperationProgressEvent;
  */
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
-    private final LoggingManagerInternal loggingManagerInternal;
+    private final OutputEventListenerManager outputEventListenerManager;
     private final BuildOperationListener buildOperationListener;
 
-    public LoggingBuildOperationProgressBroadcaster(LoggingManagerInternal loggingManagerInternal, BuildOperationListener buildOperationListener) {
-        this.loggingManagerInternal = loggingManagerInternal;
+    public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationListener buildOperationListener) {
+        this.outputEventListenerManager = outputEventListenerManager;
         this.buildOperationListener = buildOperationListener;
 
-        loggingManagerInternal.addOutputEventListener(this);
+        outputEventListenerManager.setListener(this);
     }
 
     @Override
@@ -99,6 +99,6 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
 
     @Override
     public void stop() {
-        loggingManagerInternal.removeOutputEventListener(this);
+        outputEventListenerManager.removeListener(this);
     }
 }

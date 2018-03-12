@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler
+import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -180,6 +181,71 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
         assertNestedTaskOutputTracked()
+    }
+
+    def "supports debug level logging"() {
+        when:
+        buildFile << """
+            task t {
+                doLast {
+                    logger.debug("output")
+                }
+            }
+            """
+
+        then:
+        succeeds "t", "-d"
+
+        and:
+        def taskOp = operations.only(ExecuteTaskBuildOperationType)
+        def children = operations.search(taskOp)
+        children.find {
+            it.progress.find {
+                it.hasDetailsOfType(LogEventBuildOperationProgressDetails) &&
+                    it.details.logLevel == "DEBUG" &&
+                    it.details.message == "output"
+            }
+        }
+    }
+
+    def "supports concurrent output"() {
+        when:
+        def projects = 10
+        def lines = 200
+        projects.times { i ->
+            settingsFile << """
+                include "p$i"
+            """
+            file("p$i/build.gradle") << """
+                task t {
+                    doLast {
+                        ${lines}.times { 
+                            logger.quiet "o: $i \$it"
+                        }
+                    }
+                }
+            """
+        }
+
+        then:
+        succeeds "t", "--parallel"
+
+        and:
+        projects.times { i ->
+            def taskOp = operations.only(ExecuteTaskBuildOperationType) { it.details.taskPath == ":p$i:t" }
+            def children = operations.search(taskOp)
+
+            lines.times { l ->
+                def foundOp = children.find {
+                    it.progress.find {
+                        it.hasDetailsOfType(LogEventBuildOperationProgressDetails) &&
+                            it.details.message == "o: $i $l"
+                    }
+                }
+
+                assert foundOp: "o: $i $l"
+            }
+        }
     }
 
     def "filters non supported output events"() {
