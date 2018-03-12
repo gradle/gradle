@@ -402,7 +402,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.dependencyConstraints + dependencyConstraints.collect { d ->
                         new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects, d.reason)
                     },
-                    v.artifacts ?: defaultArtifacts
+                    v.artifacts ?: defaultArtifacts,
+                    v.capabilities
                 )
             },
             attributes + ['org.gradle.status': status]

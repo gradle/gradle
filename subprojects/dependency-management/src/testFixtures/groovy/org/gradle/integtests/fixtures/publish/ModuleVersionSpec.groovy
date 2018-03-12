@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.gradle.CapabilitySpec
 import org.gradle.test.fixtures.gradle.FileSpec
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
@@ -283,6 +284,9 @@ class ModuleVersionSpec {
                     variant.dependsOn.each {
                         def args = it.split(':') as List
                         dependsOn(*args)
+                    }
+                    capabilities = variant.capabilities.collect {
+                        new CapabilitySpec(group: it.group, name: it.name, version:it.version)
                     }
                 }
             }
