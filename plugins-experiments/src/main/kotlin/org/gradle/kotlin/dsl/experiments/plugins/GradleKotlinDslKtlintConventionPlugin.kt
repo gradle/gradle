@@ -60,8 +60,9 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
     }
 
 
-    // TODO Report and fix upstream
     // Note that below are workarounds, not how things should be fixed upstream
+    // https://github.com/JLLeitschuh/ktlint-gradle/issues/67
+    // https://github.com/JLLeitschuh/ktlint-gradle/issues/51
     private
     fun Project.fixKtlintTasks() {
         val reporters = the<KtlintExtension>().reporters
