@@ -60,10 +60,19 @@ This value must contain an array with zero or more elements. Each element must b
 - `available-at`: optional. Information about where the metadata and files of this variant are available.
 - `dependencies`: optional. When missing the variant is assumed to have no dependencies. Must not be present when `available-at` is present.
 - `files`: optional. When missing the variant is assumed to have no files. Must not be present when `available-at` is present.
+- `capabilities`: optional. When missing the variant is assumed to declared no specific capability.
 
 ### `attributes` value
 
 This value must contain an object with a value for each attribute. The attribute value must be a string or boolean.
+
+### `capabilities` value
+
+This valud must contain an array of 0 or more capabilities. Each capability is an object consisting of the mandatory following values:
+
+- `group`: The group of the capability. A string.
+- `name`: The name of the capability. A string.
+- `version`: The name of the capability. A string.
 
 #### Standard attributes
 
