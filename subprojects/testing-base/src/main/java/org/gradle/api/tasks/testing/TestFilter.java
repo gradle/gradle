@@ -28,11 +28,9 @@ import java.util.Set;
  *
  *   test {
  *       filter {
- *          //specific test class, this can match 'SomeTest' class under any package
+ *          //specific test class, this can match 'SomeTest' class and corresponding method under any package
  *          includeTestsMatching "SomeTest"
- *
- *          //specific test class and test method, this can match 'someSpecificFeature' method of 'SomeTest' class under any package
- *          includeTestsMatching "SomeTest.someTestMethod"
+ *          includeTestsMatching "SomeTest.someTestMethod*"
  *
  *          //specific test class
  *          includeTestsMatching "org.gradle.SomeTest"

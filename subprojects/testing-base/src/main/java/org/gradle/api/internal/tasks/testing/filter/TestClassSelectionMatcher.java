@@ -27,10 +27,11 @@ import java.util.List;
  * in order to improve test performance. Matching rules are:
  *
  * <ul>
- * <li>If pattern starts with a wildcard (*), we can't exclude any class. E.g., pattern '*testMethod' can match 'testMethod' in any class.</li>
- * <li>If pattern doesn't starts with a wildcard (*), we can exclude the classes that can't be matched at all. E.g., 'org.apache.Test' can be excluded by pattern 'org.gradle*'.</li>
- * <li>Two kinds of special cases without any wildcards are supported: TestClass/TestClass.testMethod can match TestClass in any package.</li>
+ * <li>If the pattern starts with an upper-case letter, it's used to match simple class name.
+ * <li>Otherwise, it's used to match full qualified class name.
  * </ul>
+ *
+ * In both cases, wildcards are supported.
  */
 public class TestClassSelectionMatcher {
     private final List<TestClassPattern> patterns = new ArrayList<TestClassPattern>();
@@ -48,9 +49,8 @@ public class TestClassSelectionMatcher {
         if (patterns.isEmpty()) {
             return true;
         }
-        String simpleName = getSimpleName(fullQualifiedName);
         for (TestClassPattern pattern : patterns) {
-            if (pattern.mayBeIncluded(fullQualifiedName, simpleName)) {
+            if (pattern.mayBeIncluded(fullQualifiedName)) {
                 return true;
             }
         }
@@ -58,67 +58,72 @@ public class TestClassSelectionMatcher {
         return false;
     }
 
-    private String getSimpleName(String fullQualifiedName) {
+    public static String getSimpleName(String fullQualifiedName) {
         String simpleName = StringUtils.substringAfterLast(fullQualifiedName, ".");
         if ("".equals(simpleName)) {
-            simpleName = fullQualifiedName;
+            return fullQualifiedName;
         }
         return simpleName;
     }
 
     private abstract static class TestClassPattern {
-        protected String[] segments;
+        protected final String[] segments;
+        protected final boolean exactlyMatch;
 
-        abstract boolean mayBeIncluded(String fullQualifiedName, String simpleName);
+        private TestClassPattern(String pattern) {
+            this.segments = getSegments(pattern);
+            this.exactlyMatch = !pattern.contains("*");
+        }
+
+        protected abstract boolean mayBeIncluded(String fullQualifiedName);
 
         private static TestClassPattern fromPattern(String pattern) {
+            char firstCharacter = pattern.charAt(0);
+            if (Character.isUpperCase(firstCharacter)) {
+                return new SimpleNamePattern(pattern);
+            } else {
+                return new FullQualifiedNamePattern(pattern);
+            }
+        }
+
+        private String[] getSegments(String pattern) {
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                TestClassPattern result = new SimplePattern();
-                result.segments = StringUtils.splitPreserveAllTokens(pattern, '.');
-                return result;
-            } else {
-                TestClassPattern result = new WildcardPattern();
-                result.segments = StringUtils.splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
-                return result;
+                return StringUtils.splitPreserveAllTokens(pattern, '.');
             }
+            return StringUtils.splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
         }
+
     }
 
-    private static class SimplePattern extends TestClassPattern {
+    private static class SimpleNamePattern extends TestClassPattern {
+        private SimpleNamePattern(String pattern) {
+            super(pattern);
+        }
+
         @Override
-        boolean mayBeIncluded(String fullQualifiedName, String simpleName) {
-            if (segments.length == 1) {
+        protected boolean mayBeIncluded(String fullQualifiedName) {
+            String simpleName = getSimpleName(fullQualifiedName);
+            if (exactlyMatch || segments.length > 1) {
                 return simpleName.equals(segments[0]);
-            } else if (segments.length == 2) {
-                return simpleName.equals(segments[segments.length - 1])
-                    || simpleName.equals(segments[segments.length - 2]);
             } else {
-                String[] targetClassNameArray = fullQualifiedName.split("\\.");
-                return patternEqualsClassName(segments.length, targetClassNameArray)
-                    || patternEqualsClassName(segments.length - 1, targetClassNameArray);
+                return simpleName.startsWith(segments[0]);
             }
-        }
-
-        private boolean patternEqualsClassName(int patternArrayEndIndex, String[] targetClassNameArray) {
-            if (patternArrayEndIndex != targetClassNameArray.length) {
-                return false;
-            }
-
-            for (int i = 0; i < patternArrayEndIndex; ++i) {
-                if (!segments[i].equals(targetClassNameArray[i])) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 
-    private static class WildcardPattern extends TestClassPattern {
+    private static class FullQualifiedNamePattern extends TestClassPattern {
+        private FullQualifiedNamePattern(String pattern) {
+            super(pattern);
+        }
+
         @Override
-        boolean mayBeIncluded(String fullQualifiedName, String simpleName) {
+        protected boolean mayBeIncluded(String fullQualifiedName) {
             if (patternStartsWithWildcard()) {
                 return true;
+            }
+            if (!patternStartsWithLowerCase()) {
+                return false;
             }
             String[] className = fullQualifiedName.split("\\.");
             if (classNameIsShorterThanPattern(className)) {
@@ -136,12 +141,20 @@ public class TestClassSelectionMatcher {
             return false;
         }
 
+        private boolean patternStartsWithLowerCase() {
+            return segments[0].length() > 0 && Character.isLowerCase(segments[0].charAt(0));
+        }
+
         private boolean lastNameElementMatchesPenultimatePatternElement(String[] className, int index) {
-            return index == segments.length - 2 && index == className.length - 1 && className[index].startsWith(segments[index]);
+            return index == segments.length - 2 && index == className.length - 1 && lastElementMatch(className[index], segments[index]);
         }
 
         private boolean nameElementMatchesLastPatternElement(String[] className, int index) {
-            return index == segments.length - 1 && className[index].startsWith(segments[index]);
+            return index == segments.length - 1 && lastElementMatch(className[index], segments[index]);
+        }
+
+        private boolean lastElementMatch(String className, String patternName) {
+            return exactlyMatch ? className.equals(patternName) : className.startsWith(patternName);
         }
 
         private boolean patternStartsWithWildcard() {

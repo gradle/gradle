@@ -66,10 +66,10 @@ class TestSelectionMatcherTest extends Specification {
 
         ["FooTest.*slow*"]       | "FooTest"                 | "slowUiTest"          | true
         ["FooTest.*slow*"]       | "FooTest"                 | "veryslowtest"        | true
-        ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | true
+        ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | false
         ["FooTest.*slow*"]       | "FooTest"                 | "a slow test"         | true
         ["FooTest.*slow*"]       | "FooTest"                 | "aslow"               | true
-        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | false
+        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | true
         ["FooTest.*slow*"]       | "FooTest"                 | "verySlowTest"        | false
 
         ["com.FooTest***slow*"]  | "com.FooTest"             | "slowMethod"          | true

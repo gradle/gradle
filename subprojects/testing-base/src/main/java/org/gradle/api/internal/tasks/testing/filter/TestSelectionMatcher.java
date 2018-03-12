@@ -23,7 +23,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.gradle.api.internal.tasks.testing.filter.TestClassSelectionMatcher.getSimpleName;
+
 public class TestSelectionMatcher {
+
     private final List<Pattern> buildScriptIncludePatterns;
     private final List<Pattern> commandLineIncludePatterns;
 
@@ -61,41 +64,42 @@ public class TestSelectionMatcher {
             && matchesPattern(commandLineIncludePatterns, className, methodName);
     }
 
-    private boolean matchesPattern(List<Pattern> includePatterns, String className, String methodName) {
+    private boolean matchesPattern(List<Pattern> includePatterns, String fullQualifiedName, String methodName) {
         if (includePatterns.isEmpty()) {
             return true;
         }
         for (Pattern pattern : includePatterns) {
-            if (methodName != null && matchesClassAndMethod(pattern, className, methodName)) {
+            if (matchesClassAndMethod(pattern, fullQualifiedName, methodName)) {
                 return true;
             }
-            if (matchesClassName(pattern, className)) {
+            if (matchesClass(pattern, fullQualifiedName)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean matchesClassName(Pattern pattern, String className) {
-        return exactlyMatch(pattern, getSimpleName(className))
-            || pattern.matcher(className).matches();
+    private boolean matchesClass(Pattern pattern, String fullQualifiedName) {
+        if (startsWithUpperCase(pattern)) {
+            return pattern.matcher(getSimpleName(fullQualifiedName)).matches();
+        } else {
+            return pattern.matcher(fullQualifiedName).matches();
+        }
     }
 
     private boolean matchesClassAndMethod(Pattern pattern, String fullQualifiedName, String methodName) {
-        return exactlyMatch(pattern, getSimpleName(fullQualifiedName) + "." + methodName)
-            || pattern.matcher(fullQualifiedName + "." + methodName).matches();
-    }
-
-    private boolean exactlyMatch(Pattern pattern, String s) {
-        return Pattern.quote(s).equals(pattern.pattern());
-    }
-
-    private String getSimpleName(String fullQualifiedName) {
-        String simpleName = StringUtils.substringAfterLast(fullQualifiedName, ".");
-        if ("".equals(simpleName)) {
-            return fullQualifiedName;
-        } else {
-            return simpleName;
+        if (methodName == null) {
+            return false;
         }
+        if (startsWithUpperCase(pattern)) {
+            return pattern.matcher(getSimpleName(fullQualifiedName) + "." + methodName).matches();
+        } else {
+            return pattern.matcher(fullQualifiedName + "." + methodName).matches();
+        }
+    }
+
+    private boolean startsWithUpperCase(Pattern pattern) {
+        String patternString = pattern.pattern();
+        return patternString.length() > 2 && patternString.startsWith("\\Q") && Character.isUpperCase(patternString.charAt(2));
     }
 }

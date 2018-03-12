@@ -62,16 +62,19 @@ class TestClassSelectionMatcherTest extends Specification {
         ['org.*']                         | 'com.gradle.FooTest' | false
         ['org.g*']                        | 'com.gradle.FooTest' | false
         ['FooTest*']                      | 'FooTest'            | true
-        ['FooTest*']                      | 'org.gradle.FooTest' | false
+        ['FooTest*']                      | 'org.gradle.FooTest' | true
         ['FooTest*']                      | 'BarTest'            | false
         ['FooTest*']                      | 'org.gradle.BarTest' | false
         ['org.gradle.FooTest*']           | 'org.gradle.BarTest' | false
         ['FooTest.testMethod*']           | 'FooTest'            | true
-        ['FooTest.testMethod*']           | 'org.gradle.FooTest' | false
+        ['FooTest.testMethod*']           | 'org.gradle.FooTest' | true
         ['org.foo.FooTest*']              | 'FooTest'            | false
         ['org.foo.FooTest*']              | 'org.gradle.FooTest' | false
         ['org.foo.*FooTest*']             | 'org.gradle.FooTest' | false
         ['org.foo.*FooTest*']             | 'org.foo.BarTest'    | true // org.foo.BarTest.testFooTest
+
+        ['Foo']                           | 'FooTest'            | false
+        ['org.gradle.Foo']                | 'org.gradle.FooTest' | false
     }
 
     @Unroll

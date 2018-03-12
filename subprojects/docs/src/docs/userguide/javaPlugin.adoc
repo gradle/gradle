@@ -629,6 +629,7 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 Test filtering feature has following characteristic:
 
 * Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`.
+* Simple class name or simple method name is supported if the pattern starts with an upper-case letter, e.g. `SomeTest`, `SomeTest.someMethod` (Since 4.7).
 * Wildcard '*' is supported for matching any characters, however, abusing wildcards might lead to performance problems - see instructions below.
 * Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
@@ -642,12 +643,26 @@ Test filtering feature has following characteristic:
 
 For more details and examples please see the api:org.gradle.api.tasks.testing.TestFilter[] reference.
 
-Generally speaking, there're three kinds of pattern:
+Generally speaking, there're two kinds of pattern:
 
-[[simple_pattern]]
-===== Simple pattern
+[[simple_name_pattern]]
+===== Simple name pattern
 
-A simple pattern has no wildcards at all. In this case, class name or method name should be matched exactly.
+Since 4.7, a pattern starting with an upper-case letter matches simple class name:
+
+```
+# can match 'SomeTest' and corresponding method at any package
+gradle test --tests SomeTestClass
+
+gradle test --tests SomeTestClass.someSpecificMethod
+
+gradle test --tests SomeTestClass.*someMethod*
+```
+
+[[full_qualified_name_pattern]]
+===== Full qualified name pattern
+
+Otherwise, the pattern matches full qualified class name.
 
 ```
 # specific class
@@ -658,33 +673,13 @@ gradle test --tests org.gradle.SomeTestClass.someSpecificMethod
 
 # method name containing spaces
 gradle test --tests "org.gradle.SomeTestClass.some method containing spaces"
-```
 
-Since Gradle 4.7, simple class name are supported.
-
-```
-# can match 'SomeTest' at any package
-gradle test --tests SomeTestClass
-
-# can match 'SomeTest.someSpecificMethod' at any package
-gradle test --tests SomeTestClass.someSpecificMethod
-```
-
-[[pattern_not_starting_with_wildcard]]
-===== Pattern not starting with wildcard
-
-A pattern containing but not starting with a wildcard can help Gradle exclude many classes.
-
-```
 # all classes at specific package (recursively)
 gradle test --tests 'all.in.specific.package*'
 
 # specific method at specific package (recursively)
 gradle test --tests 'all.in.specific.package*.someSpecificMethod'
 ```
-
-[[pattern_starting_with_wildcard]]
-===== Pattern starting with wildcard
 
 When a pattern starts with a wildcard, Gradle needs to load all classes to search for a potentially matched method,
 which may lead to very bad performance, especially with api:org.gradle.api.tasks.testing.Test#getForkEvery()[`forkEvery`].
