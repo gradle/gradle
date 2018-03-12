@@ -119,17 +119,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return module;
     }
 
-    // TODO:DAZ WTF???
     @Override
     public ComponentResolveMetadata getMetadata() {
-        return metaData;
-    }
-
-    @Override
-    public ComponentResolveMetadata getMetaData() {
-        if (metaData == null) {
-            resolve();
-        }
+        resolve();
         return metaData;
     }
 

@@ -134,7 +134,7 @@ class EdgeState implements DependencyGraphEdge {
     private void calculateTargetConfigurations() {
         targetNodes.clear();
         targetNodeSelectionFailure = null;
-        ComponentResolveMetadata targetModuleVersion = targetModuleRevision.getMetaData();
+        ComponentResolveMetadata targetModuleVersion = targetModuleRevision.getMetadata();
         if (targetModuleVersion == null) {
             // Broken version
             return;
