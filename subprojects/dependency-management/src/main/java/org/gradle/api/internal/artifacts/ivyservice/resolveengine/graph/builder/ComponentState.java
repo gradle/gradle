@@ -141,7 +141,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      *
      * @return true if it has been resolved in a cheap way
      */
-    public boolean fastResolve() {
+    public boolean alreadyResolved() {
         if (metaData != null || failure != null) {
             return true;
         }
@@ -159,7 +159,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public void resolve() {
-        if (fastResolve()) {
+        if (alreadyResolved()) {
             return;
         }
 
