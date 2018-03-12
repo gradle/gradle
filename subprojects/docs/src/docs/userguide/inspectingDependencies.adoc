@@ -27,7 +27,7 @@ Rendering the dependency tree is particularly useful if you'd like to identify w
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
 
 ++++
-<sample id="jgit-dependency" dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport" title="Declaring the JGit dependency with a custom configuration">
+<sample id="jgit-dependency" dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport" includeLocation="true" title="Declaring the JGit dependency with a custom configuration">
     <sourcefile file="build.gradle" snippet="dependency-declaration" />
 </sample>
 ++++
@@ -61,7 +61,7 @@ Large software projects inevitably deal with an increased number of dependencies
 Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. In this example the conflicting dependency is represented by `commons-codec:commons-codec`.
 
 ++++
-<sample id="jgit-dependency-with-conflict" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" title="Declaring the JGit dependency and a conflicting dependency">
+<sample id="jgit-dependency-with-conflict" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" includeLocation="true" title="Declaring the JGit dependency and a conflicting dependency">
     <sourcefile file="build.gradle" snippet="dependency-declaration" />
 </sample>
 ++++
@@ -91,7 +91,7 @@ Every Gradle project provides the task `dependencyInsight` to render the so-call
 When you declare a <<declaring_dependencies,dependency>> or a <<sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
 ++++
-<sample id="dependencyReason" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" title="Giving a reason for choosing a certain module version in a dependency declaration">
+<sample id="dependencyReason" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" includeLocation="true" title="Giving a reason for choosing a certain module version in a dependency declaration">
     <sourcefile file="build.gradle" snippet="dependency-reason" />
 </sample>
 ++++

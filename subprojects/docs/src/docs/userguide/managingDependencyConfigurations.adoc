@@ -40,7 +40,7 @@ You can define configurations yourself, so-called _custom configurations_. A cus
 Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code. It's fairly simple to achieve that goal by introducing a custom configuration and using it in a task.
 
 ++++
-<sample id="custom-configuration" dir="userguide/dependencyManagement/definingUsingConfigurations/custom" title="Declaring and using a custom configuration">
+<sample id="custom-configuration" dir="userguide/dependencyManagement/definingUsingConfigurations/custom" includeLocation="true" title="Declaring and using a custom configuration">
     <sourcefile file="build.gradle" snippet="custom-configuration"/>
 </sample>
 ++++
@@ -68,7 +68,7 @@ Under the covers the `testImplementation` and `implementation` configurations fo
 Let's say you wanted to write a suite of smoke tests. Each smoke test makes a HTTP call to verify a web service endpoint. As the underlying test framework the project already uses JUnit. You can define a new configuration named `smokeTest` that extends from the `testImplementation` configuration to reuse the existing test framework dependency.
 
 ++++
-<sample id="configuration-inheritance" dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance" title="Extending a configuration from another configuration">
+<sample id="configuration-inheritance" dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance" includeLocation="true" title="Extending a configuration from another configuration">
     <sourcefile file="build.gradle" snippet="configuration-definition"/>
 </sample>
 ++++
