@@ -145,4 +145,45 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         failure.assertHasCause("Cannot choose between :test:unspecified and org:test:1.0 because they provide the same capability: org:capability:1.0")
     }
 
+    /**
+     * This test illustrates that published modules can declare capabilities, which are then discovered
+     * as we visit the graph. And if no published module declares a preference, then build should fail.
+     */
+    def "fails with reasonable error message if no module express preference for conflict of modules that publish the same capability"() {
+        given:
+        repository {
+            'org:testA:1.0' {
+                variant('runtime') {
+                    capability('cap')
+                }
+            }
+            'org:testB:1.0' {
+                variant('runtime') {
+                    capability('cap')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:testA:1.0'
+                conf 'org:testB:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:testA:1.0' {
+                expectGetMetadata()
+            }
+            'org:testB:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ":checkDeps"
+
+        then:
+        failure.assertHasCause("Cannot choose between org:testA:1.0 and org:testB:1.0 because they provide the same capability: org.test:cap:1.0")
+    }
+
 }
