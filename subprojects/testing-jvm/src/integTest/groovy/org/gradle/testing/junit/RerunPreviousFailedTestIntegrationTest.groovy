@@ -22,9 +22,9 @@ import org.hamcrest.Matchers
 import spock.lang.Unroll
 
 class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
-    static final String INDEX_OF_TEST_TO_FAIL = "index.of.test.to.fail"
-    static final List<Integer> TESTS = [1, 2, 3]
-    static final List<String> TEST_CLASSES = TESTS.collect { "ConditionalFailingTest_${it}".toString() }
+    private static final String INDEX_OF_TEST_TO_FAIL = "index.of.test.to.fail"
+    private static final List<Integer> TESTS = [1, 2, 3]
+    private static final List<String> TEST_CLASSES = TESTS.collect { "ConditionalFailingTest_${it}".toString() }
 
     def setup() {
         buildFile << """
@@ -44,6 +44,7 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
                 public class ConditionalFailingTest_${it} {
                     @Test
                     public void failedTest() {
+                        System.out.println("Test index " + ${it});
                         if("${it}".equals(System.getProperty("${INDEX_OF_TEST_TO_FAIL}"))) {
                             throw new RuntimeException();
                         }
@@ -67,16 +68,16 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
         letTestFail(indexOfTestToFail)
 
         when:
-        fails('test')
+        fails('test', '--info')
 
         then:
         testFailed(indexOfTestToFail)
 
         when:
-        fails('test', '--fail-fast')
+        fails('test', '--info')
 
         then:
-        testFailedAndOthersIgnoredOrNotExecuted(indexOfTestToFail)
+        failedTestAreRerunFirst(indexOfTestToFail)
 
         when:
         letTestFail(0)
@@ -88,6 +89,22 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
         where:
         indexOfTestToFail << TESTS
     }
+
+    void failedTestAreRerunFirst(int failedTestIndex) {
+        List<String> lines = output.readLines()
+        boolean findIt = false
+        for (String line in lines) {
+            if (line.contains("Test index ${failedTestIndex}")) {
+                findIt = true
+                break
+            } else if (line.contains("Test index")) {
+                assert false
+            }
+        }
+
+        assert findIt
+    }
+
 
     @Unroll
     def 'can delete previous failed test'() {
@@ -153,19 +170,5 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
         testClasses.remove(failedTest)
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted(testClasses as String[])
-    }
-
-    void testFailedAndOthersIgnoredOrNotExecuted(def indexOfTestToFail) {
-        def failedTestClass = "ConditionalFailingTest_${indexOfTestToFail}".toString()
-        def testClasses = TEST_CLASSES.clone()
-        testClasses.remove(failedTestClass)
-
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass(failedTestClass).assertTestFailed('failedTest', Matchers.anything())
-        testClasses.each {
-            if (result.testClassExists(it)) {
-                result.testClass(it).assertTestSkipped('failedTest')
-            }
-        }
     }
 }
