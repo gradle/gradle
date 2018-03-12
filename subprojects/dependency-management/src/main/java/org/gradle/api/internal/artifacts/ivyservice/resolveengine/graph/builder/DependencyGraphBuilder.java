@@ -155,7 +155,54 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private void performSelection(final ResolveState resolveState, final ComponentState moduleRevision) {
+    private void registerCapabilities(final ResolveState resolveState, final ComponentState moduleRevision) {
+        moduleRevision.forEachCapability(new Action<Capability>() {
+            @Override
+            public void execute(Capability capability) {
+                // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
+                // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
+                // then we try to find a module which provides the same capability. It that module has been found, then we register it.
+                // Otherwise, we have nothing to do. This avoids most of registrations.
+                Collection<ComponentState> implicitProvidersForCapability = Collections.emptyList();
+                for (ModuleResolveState state : resolveState.getModules()) {
+                    if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
+                        implicitProvidersForCapability = state.getVersions();
+                        break;
+                    }
+                }
+                PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
+                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability, implicitProvidersForCapability)
+                );
+                if (c.conflictExists()) {
+                    c.withParticipatingModules(resolveState.getDeselectVersionAction());
+                }
+            }
+        });
+    }
+
+    private void resolveEdges(final NodeState node,
+                              final List<EdgeState> dependencies,
+                              final ResolveState resolveState,
+                              final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
+        if (dependencies.isEmpty()) {
+            return;
+        }
+        performSelectionSerially(dependencies, resolveState);
+        maybeDownloadMetadataInParallel(node, componentIdentifierCache, dependencies);
+        attachToTargetRevisionsSerially(dependencies);
+
+    }
+
+    private void performSelectionSerially(List<EdgeState> dependencies, ResolveState resolveState) {
+        for (EdgeState dependency : dependencies) {
+            ComponentState moduleRevision = dependency.resolveModuleRevisionId();
+            if (moduleRevision != null) {
+                performSelection(resolveState, moduleRevision);
+            }
+        }
+    }
+
+    private void performSelection(final ResolveState resolveState, ComponentState moduleRevision) {
         ModuleIdentifier moduleId = moduleRevision.getId().getModule();
 
         ModuleResolveState module = resolveState.getModule(moduleId);
@@ -182,31 +229,6 @@ public class DependencyGraphBuilder {
                 c.withParticipatingModules(resolveState.getDeselectVersionAction());
             }
         }
-    }
-
-    private void registerCapabilities(final ResolveState resolveState, final ComponentState moduleRevision) {
-        moduleRevision.forEachCapability(new Action<Capability>() {
-            @Override
-            public void execute(Capability capability) {
-                // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
-                // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
-                // then we try to find a module which provides the same capability. It that module has been found, then we register it.
-                // Otherwise, we have nothing to do. This avoids most of registrations.
-                Collection<ComponentState> implicitProvidersForCapability = Collections.emptyList();
-                for (ModuleResolveState state : resolveState.getModules()) {
-                    if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
-                        implicitProvidersForCapability = state.getVersions();
-                        break;
-                    }
-                }
-                PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
-                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability, implicitProvidersForCapability)
-                );
-                if (c.conflictExists()) {
-                    c.withParticipatingModules(resolveState.getDeselectVersionAction());
-                }
-            }
-        });
     }
 
     private static boolean tryCompatibleSelection(final ResolveState resolveState,
@@ -245,28 +267,6 @@ public class DependencyGraphBuilder {
         return false;
     }
 
-    private void resolveEdges(final NodeState node,
-                              final List<EdgeState> dependencies,
-                              final ResolveState resolveState,
-                              final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
-        if (dependencies.isEmpty()) {
-            return;
-        }
-        performSelectionSerially(dependencies, resolveState);
-        maybeDownloadMetadataInParallel(node, componentIdentifierCache, dependencies);
-        attachToTargetRevisionsSerially(dependencies);
-
-    }
-
-    private void performSelectionSerially(List<EdgeState> dependencies, ResolveState resolveState) {
-        for (EdgeState dependency : dependencies) {
-            ComponentState moduleRevision = dependency.resolveModuleRevisionId();
-            if (moduleRevision != null) {
-                performSelection(resolveState, moduleRevision);
-            }
-        }
-    }
-
     /**
      * Prepares the resolution of edges, either serially or concurrently.
      * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved metadata.
@@ -275,7 +275,7 @@ public class DependencyGraphBuilder {
         List<EdgeState> requiringDownload = null;
         for (EdgeState dependency : dependencies) {
             ComponentState targetComponent = dependency.getTargetComponent();
-            if (targetComponent != null && !targetComponent.fastResolve() && performPreemptiveDownload(targetComponent)) {
+            if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
                 if (!metaDataResolver.isFetchingMetadataCheap(toComponentId(targetComponent.getId(), componentIdentifierCache))) {
                     // Avoid initializing the list if there are no components requiring download (a common case)
                     if (requiringDownload == null) {
@@ -300,6 +300,15 @@ public class DependencyGraphBuilder {
         }
     }
 
+    private ComponentIdentifier toComponentId(ModuleVersionIdentifier id, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
+        ComponentIdentifier identifier = componentIdentifierCache.get(id);
+        if (identifier == null) {
+            identifier = DefaultModuleComponentIdentifier.newId(id);
+            componentIdentifierCache.put(id, identifier);
+        }
+        return identifier;
+    }
+
     private void attachToTargetRevisionsSerially(List<EdgeState> dependencies) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
@@ -309,19 +318,6 @@ public class DependencyGraphBuilder {
                 dependency.attachToTargetConfigurations();
             }
         }
-    }
-
-    private static ComponentIdentifier toComponentId(ModuleVersionIdentifier id, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
-        ComponentIdentifier identifier = componentIdentifierCache.get(id);
-        if (identifier == null) {
-            identifier = DefaultModuleComponentIdentifier.newId(id);
-            componentIdentifierCache.put(id, identifier);
-        }
-        return identifier;
-    }
-
-    private static boolean performPreemptiveDownload(ComponentState state) {
-        return state.isSelected();
     }
 
     /**
