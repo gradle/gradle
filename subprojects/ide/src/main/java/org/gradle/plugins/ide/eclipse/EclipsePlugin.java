@@ -339,13 +339,13 @@ public class EclipsePlugin extends IdePlugin {
         // Default Eclipse JRE paths:
         // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
         String eclipseJavaVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(version);
-        switch (version) {
-            case VERSION_1_1:
+        switch (version.getMajorVersionNumber()) {
+            case 1:
                 return "JRE-1.1";
-            case VERSION_1_2:
-            case VERSION_1_3:
-            case VERSION_1_4:
-            case VERSION_1_5:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
                 return "J2SE-" + eclipseJavaVersion;
             default:
                 return "JavaSE-" + eclipseJavaVersion;

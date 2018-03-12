@@ -33,18 +33,18 @@ public class EclipseJavaVersionMapper {
      * @return the Eclipse-specific representation of the version
      */
     public static String toEclipseJavaVersion(JavaVersion version) {
-        switch (version) {
-            case VERSION_1_1:
-            case VERSION_1_2:
-            case VERSION_1_3:
-            case VERSION_1_4:
-            case VERSION_1_5:
-            case VERSION_1_6:
-            case VERSION_1_7:
-            case VERSION_1_8:
+        switch (version.getMajorVersionNumber()) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
                 return version.toString();
-            case VERSION_1_9:
-            case VERSION_1_10:
+            case 9:
+            case 10:
             default:
                 return version.getMajorVersion();
         }

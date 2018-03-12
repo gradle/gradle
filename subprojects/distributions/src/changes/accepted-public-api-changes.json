@@ -118,6 +118,29 @@
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
             ]
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Class org.gradle.api.JavaVersion",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Class type changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.name()",
+            "acceptation": "A fake synthetic method to keep backward binary compatibility"
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.getDeclaringClass()",
+            "acceptation": "A fake synthetic method to keep backward binary compatibility"
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.ordinal()",
+            "acceptation": "A fake synthetic method to keep backward binary compatibility"
         }
     ]
 }
