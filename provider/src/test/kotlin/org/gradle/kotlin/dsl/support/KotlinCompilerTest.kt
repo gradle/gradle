@@ -1,15 +1,12 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
-
-import java.io.File
-
-import java.net.URLClassLoader
 
 
 class KotlinCompilerTest : TestWithTempFiles() {
@@ -44,9 +41,4 @@ class KotlinCompilerTest : TestWithTempFiles() {
 
         assert(outputJar.delete())
     }
-
-    private
-    fun classLoaderFor(outputJar: File) =
-        URLClassLoader.newInstance(
-            arrayOf(outputJar.toURI().toURL()))
 }
