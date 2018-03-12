@@ -245,9 +245,9 @@ public class DependencyGraphBuilder {
             }
         }
 
-        final Collection<SelectorState> selectedBy = candidate.allResolvers;
+        final Collection<SelectorState> selectedBy = candidate.getSelectedBy();
         if (currentlySelected != null && currentlySelected != candidate) {
-            if (allSelectorsAgreeWith(candidate.allResolvers, currentlySelected.getVersion(), ALL_SELECTORS)) {
+            if (allSelectorsAgreeWith(selectedBy, currentlySelected.getVersion(), ALL_SELECTORS)) {
                 // if this selector agrees with the already selected version, don't bother and pick it
                 return true;
             }
