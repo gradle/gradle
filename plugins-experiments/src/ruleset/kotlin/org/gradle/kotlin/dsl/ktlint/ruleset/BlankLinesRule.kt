@@ -41,8 +41,7 @@ class BlankLinesRule : Rule("gradle-kotlin-dsl-blank-lines") {
                 }
                 if (node.treeNext != null
                     && node.treeNext.elementType != KtStubElementTypes.IMPORT_LIST
-                    && PsiTreeUtil.nextLeaf(node) != null /* not oef */
-                ) {
+                    && PsiTreeUtil.nextLeaf(node) != null /* not oef */) {
                     if (split.size < 4) {
                         emit(
                             node.startOffset,
