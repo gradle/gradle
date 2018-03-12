@@ -537,7 +537,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         private CopySpecResolver parentResolver;
 
-        private DefaultCopySpecResolver(@Nullable CopySpecResolver parent) {
+        private DefaultCopySpecResolver(CopySpecResolver parent) {
             this.parentResolver = parent;
         }
 
