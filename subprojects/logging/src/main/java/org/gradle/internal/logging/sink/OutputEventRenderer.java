@@ -52,6 +52,9 @@ import org.gradle.internal.time.Clock;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -66,6 +69,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+
+    private final AtomicBoolean draining = new AtomicBoolean();
+    private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
 
     private ColorMap colourMap;
     private OutputStream originalStdOut;
@@ -229,7 +235,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                         console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
                     console.getStatusBar(), console, consoleMetaData, clock),
                 console),
-                clock);
+            clock);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
@@ -307,6 +313,49 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     @Override
     public void onOutput(OutputEvent event) {
+        if (draining.compareAndSet(false, true)) {
+            try {
+                if (eventQueue.isEmpty()) {
+                    render(event);
+                } else {
+                    eventQueue.add(event);
+                }
+                drainEventQueue();
+            } finally {
+                draining.set(false);
+            }
+        } else {
+            eventQueue.add(event);
+        }
+
+        maybeDrainEventQueue();
+    }
+
+    private void maybeDrainEventQueue() {
+        if (!eventQueue.isEmpty() && draining.compareAndSet(false, true)) {
+            try {
+                drainEventQueue();
+            } finally {
+                draining.set(false);
+            }
+
+            maybeDrainEventQueue();
+        }
+    }
+
+    private void drainEventQueue() {
+        OutputEvent event = eventQueue.poll();
+        while (event != null) {
+            try {
+                render(event);
+            } catch (Exception e) {
+                // TODO what here?
+            }
+            event = eventQueue.poll();
+        }
+    }
+
+    private void render(OutputEvent event) {
         if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel.get()) < 0 && !isProgressEvent(event)) {
             return;
         }
@@ -318,6 +367,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             this.logLevel.set(newLogLevel);
         }
+
         synchronized (lock) {
             formatters.getSource().onOutput(event);
         }
