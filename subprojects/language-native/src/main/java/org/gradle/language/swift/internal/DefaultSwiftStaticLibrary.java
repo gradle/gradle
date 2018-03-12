@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
@@ -24,11 +25,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
@@ -42,24 +46,23 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Set;
 
-public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements SwiftStaticLibrary, ConfigurableComponentWithStaticLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage {
+public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements SwiftStaticLibrary, ConfigurableComponentWithStaticLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     private final RegularFileProperty linkFile;
     private final Property<CreateStaticLibrary> createTaskProperty;
     private final Property<Configuration> linkElements;
     private final Property<Configuration> runtimeElements;
     private final ConfigurableFileCollection outputs;
-    private final NativeVariantIdentity identity;
 
     @Inject
     public DefaultSwiftStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, projectLayout, objectFactory, module, identity.isDebuggable(), identity.isOptimized(), testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+        super(name, projectLayout, objectFactory, module, identity.isDebuggable(), identity.isOptimized(), testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.linkFile = projectLayout.fileProperty();
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
         this.outputs = fileOperations.files();
-        this.identity = identity;
     }
 
     @Override
@@ -105,11 +108,22 @@ public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements Swi
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return identity.getLinkUsageContext().getAttributes();
+        return getIdentity().getLinkUsageContext().getAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return identity.getRuntimeUsageContext().getAttributes();
+        return getIdentity().getRuntimeUsageContext().getAttributes();
+    }
+
+    @Override
+    public Set<? extends UsageContext> getUsages() {
+        Configuration linkElements = getLinkElements().get();
+        Configuration runtimeElements = getRuntimeElements().get();
+        return Sets.newHashSet(
+            // TODO: Does a static library have runtime elements?
+            new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
+            new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)
+        );
     }
 }

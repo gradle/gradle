@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -44,8 +45,8 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultSwiftXCTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+    public DefaultSwiftXCTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         debuggerExecutableFile = projectLayout.fileProperty();
         linkTask = objectFactory.property(LinkExecutable.class);
         installTask = objectFactory.property(InstallExecutable.class);

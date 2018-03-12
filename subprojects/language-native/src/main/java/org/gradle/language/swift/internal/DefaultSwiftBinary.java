@@ -37,6 +37,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.cpp.internal.NativeDependencyCache;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
@@ -56,6 +57,7 @@ import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBinary {
+    private final NativeVariantIdentity identity;
     private final Provider<String> module;
     private final boolean debuggable;
     private final boolean optimized;
@@ -72,7 +74,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Property<SwiftVersion> sourceCompatibility;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(name, objectFactory, projectLayout, componentImplementation);
         this.module = module;
         this.debuggable = debuggable;
@@ -113,6 +115,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration));
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
+        this.identity = identity;
     }
 
     @Override
@@ -195,6 +198,10 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     @Inject
     protected NativeDependencyCache getNativeDependencyCache() {
         throw new UnsupportedOperationException();
+    }
+
+    public NativeVariantIdentity getIdentity() {
+        return identity;
     }
 
     private class ModulePath implements MinimalFileSet, Buildable {
