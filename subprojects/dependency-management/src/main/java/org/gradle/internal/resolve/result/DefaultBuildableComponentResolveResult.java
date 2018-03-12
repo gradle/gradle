@@ -17,6 +17,7 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -45,6 +46,12 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     public void setMetaData(ComponentResolveMetadata metaData) {
         assertResolved();
         this.metaData = metaData;
+    }
+
+    @Override
+    public ComponentIdentifier getComponentIdentifier() {
+        assertResolved();
+        return metaData.getComponentId();
     }
 
     public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
