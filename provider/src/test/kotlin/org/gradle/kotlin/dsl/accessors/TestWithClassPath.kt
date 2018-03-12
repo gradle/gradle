@@ -7,8 +7,13 @@ import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.support.zipTo
 
-import org.objectweb.asm.*
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.objectweb.asm.Opcodes.ALOAD
+import org.objectweb.asm.Opcodes.INVOKESPECIAL
+import org.objectweb.asm.Opcodes.RETURN
+import org.objectweb.asm.Opcodes.V1_7
 
 import java.io.File
 

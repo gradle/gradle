@@ -90,8 +90,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         compileKotlin()
     }
 
-    private inline
-    fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
+    private
+    inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
         loadCompiledKotlinClass(className)
             .getConstructor(T::class.java)
             .newInstance(target)

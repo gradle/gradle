@@ -17,7 +17,10 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
-import org.jetbrains.kotlin.lexer.KtTokens.*
+import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
+import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
+import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
+import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE_OR_COMMENT_BIT_SET
 
 
 internal

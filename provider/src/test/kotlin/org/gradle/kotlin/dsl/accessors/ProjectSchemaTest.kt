@@ -8,7 +8,8 @@ import org.junit.Assert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 
 
 @Suppress("unused")

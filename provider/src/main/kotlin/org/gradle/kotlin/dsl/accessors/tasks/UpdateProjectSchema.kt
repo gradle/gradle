@@ -23,7 +23,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.accessors.*
+import org.gradle.kotlin.dsl.accessors.multiProjectKotlinStringSchemaFor
+import org.gradle.kotlin.dsl.accessors.PROJECT_SCHEMA_RESOURCE_PATH
 
 import java.io.File
 

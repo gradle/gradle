@@ -19,7 +19,10 @@ package org.gradle.kotlin.dsl.accessors.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.accessors.*
+import org.gradle.kotlin.dsl.accessors.accessible
+import org.gradle.kotlin.dsl.accessors.forEachAccessor
+import org.gradle.kotlin.dsl.accessors.schemaFor
+import org.gradle.kotlin.dsl.accessors.withKotlinTypeStrings
 
 
 open class PrintAccessors : DefaultTask() {

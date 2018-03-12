@@ -34,8 +34,15 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
-import org.jetbrains.kotlin.config.*
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
+import org.jetbrains.kotlin.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
 import org.jetbrains.kotlin.name.NameUtils
