@@ -89,7 +89,7 @@ open class KotlinDslPluginBundle : Plugin<Project> {
     }
 
     // TODO Remove work around for TestKit withPluginClassPath() issues
-    // See TODO ISSUE NUMBER
+    // See https://github.com/gradle/kotlin-dsl/issues/492
     // Also see AbstractPluginTest
     private
     fun Project.workAroundTestKitWithPluginClassPathIssues() {
