@@ -18,7 +18,9 @@ package org.gradle.api.internal.java;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencySet;
@@ -26,6 +28,9 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.CapabilitiesExtension;
+import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -36,6 +41,7 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.DeprecationLogger;
@@ -63,11 +69,13 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final ExtensionContainer extensions;
 
     @Inject
-    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
+    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ExtensionContainer extensions, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
+        this.extensions = extensions;
         this.attributesFactory = attributesFactory;
         this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
         this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
@@ -90,6 +98,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
         this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
         this.configurations = null;
+        this.extensions = null;
     }
 
     @VisibleForTesting
@@ -105,10 +114,18 @@ public class JavaLibrary implements SoftwareComponentInternal {
         return ImmutableSet.of(runtimeUsage, compileUsage);
     }
 
+    private CapabilitiesExtension getCapabilitiesExtension() {
+        if (extensions == null) {
+            return null;
+        }
+        // We need to defer the search for extension to the very last moment, because it can be added by
+        // a different plugin than the one this library was created
+        return extensions.findByType(CapabilitiesExtension.class);
+    }
+
     private abstract class AbstractUsageContext implements UsageContext {
         private final Usage usage;
         private final ImmutableAttributes attributes;
-
         AbstractUsageContext(String usageName) {
             this.usage = objectFactory.named(Usage.class, usageName);
             this.attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, usage);
@@ -132,6 +149,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private class RuntimeUsageContext extends AbstractUsageContext {
         private DomainObjectSet<ModuleDependency> dependencies;
         private DomainObjectSet<DependencyConstraint> dependencyConstraints;
+        private Set<? extends CapabilityDescriptor> capabilities;
 
         RuntimeUsageContext(String usageName) {
             super(usageName);
@@ -157,11 +175,24 @@ public class JavaLibrary implements SoftwareComponentInternal {
             }
             return dependencyConstraints;
         }
+
+        @Override
+        public Set<? extends CapabilityDescriptor> getCapabilities() {
+            if (capabilities == null) {
+                CapabilitiesExtension capabilitiesExtension = getCapabilitiesExtension();
+                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME),
+                    capabilitiesExtension,
+                    Sets.<CapabilityDescriptor>newHashSet(),
+                    Sets.<Configuration>newHashSet()));
+            }
+            return capabilities;
+        }
     }
 
     private class CompileUsageContext extends AbstractUsageContext {
         private DomainObjectSet<ModuleDependency> dependencies;
         private DomainObjectSet<DependencyConstraint> dependencyConstraints;
+        private Set<? extends CapabilityDescriptor> capabilities;
 
         CompileUsageContext(String usageName) {
             super(usageName);
@@ -187,6 +218,18 @@ public class JavaLibrary implements SoftwareComponentInternal {
             }
             return dependencyConstraints;
         }
+
+        @Override
+        public Set<? extends CapabilityDescriptor> getCapabilities() {
+            if (capabilities == null) {
+                CapabilitiesExtension capabilitiesExtension = getCapabilitiesExtension();
+                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME),
+                    capabilitiesExtension,
+                    Sets.<CapabilityDescriptor>newHashSet(),
+                    Sets.<Configuration>newHashSet()));
+            }
+            return capabilities;
+        }
     }
 
     private class BackwardsCompatibilityUsageContext extends AbstractUsageContext {
@@ -209,6 +252,11 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<? extends CapabilityDescriptor> getCapabilities() {
             return Collections.emptySet();
         }
     }

@@ -32,12 +32,19 @@ class TestUsage implements org.gradle.api.internal.component.UsageContext {
     Set dependencies = []
     Set dependencyConstraints = []
     Set artifacts = []
+    Set capabilities = []
     AttributeContainer attributes
 }
 
 class TestVariant implements org.gradle.api.internal.component.SoftwareComponentInternal {
     String name
     Set usages = []
+}
+
+class TestCapability implements CapabilityDescriptor {
+    String group
+    String name
+    String version
 }
 
     allprojects {
@@ -410,6 +417,46 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
             constraint('org:bar:2.0') {
                 hasReason 'because 2.0 is cool'
             }
+            noMoreDependencies()
+        }
+    }
+
+    def "publishes capabilities"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    attributes: configurations.implementation.attributes,
+                    capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variant('api') {
+            capability('org.test', 'test', '1')
+            noMoreCapabilities()
             noMoreDependencies()
         }
     }
