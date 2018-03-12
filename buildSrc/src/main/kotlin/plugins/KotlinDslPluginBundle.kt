@@ -33,7 +33,7 @@ open class KotlinDslPluginBundle : Plugin<Project> {
         plugins.apply("java-gradle-plugin")
         plugins.apply("com.gradle.plugin-publish")
 
-        testsDependOnCustomInstallation()
+        testDependsOnCustomInstallation()
 
         kotlinDslPlugins = container(KotlinDslPlugin::class.java)
         extensions.add("kotlinDslPlugins", kotlinDslPlugins)
@@ -44,10 +44,8 @@ open class KotlinDslPluginBundle : Plugin<Project> {
     }
 
     private
-    fun Project.testsDependOnCustomInstallation() =
-        tasks.withType(Test::class.java).all {
-            it.dependsOn(rootProject.tasks.getByName("customInstallation"))
-        }
+    fun Project.testDependsOnCustomInstallation() =
+        tasks.getByName("test").dependsOn(rootProject.tasks.getByName("customInstallation"))
 
     private
     fun Project.configureGradlePluginDevelopmentPlugins() {
