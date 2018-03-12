@@ -24,6 +24,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.accessors.multiProjectKotlinStringSchemaFor
+import org.gradle.kotlin.dsl.accessors.toJson
 import org.gradle.kotlin.dsl.accessors.PROJECT_SCHEMA_RESOURCE_PATH
 
 import java.io.File
