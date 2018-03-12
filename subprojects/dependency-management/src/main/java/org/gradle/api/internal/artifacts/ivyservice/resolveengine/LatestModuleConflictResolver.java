@@ -131,7 +131,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
                 details.select(component);
                 return;
             }
-            ComponentResolveMetadata metaData = component.getMetaData();
+            ComponentResolveMetadata metaData = component.getMetadata();
             if (metaData != null && "release".equals(metaData.getStatus())) {
                 details.select(component);
                 return;
