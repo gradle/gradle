@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.CapabilitiesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -216,7 +217,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             builder.addAll(variants);
         }
         for (MutableVariantImpl variant : newVariants) {
-            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.dependencyConstraints), ImmutableList.copyOf(variant.files), new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of())));
+            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.dependencyConstraints), ImmutableList.copyOf(variant.files), ImmutableCapabilities.of(variant.capabilities)));
         }
         return builder.build();
     }
@@ -260,9 +261,10 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     protected static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;
         private final ImmutableAttributes attributes;
-        private final List<DependencyImpl> dependencies = new ArrayList<DependencyImpl>();
-        private final List<DependencyConstraintImpl> dependencyConstraints = new ArrayList<DependencyConstraintImpl>();
-        private final List<FileImpl> files = new ArrayList<FileImpl>();
+        private final List<DependencyImpl> dependencies = Lists.newArrayList();
+        private final List<DependencyConstraintImpl> dependencyConstraints = Lists.newArrayList();
+        private final List<FileImpl> files = Lists.newArrayList();
+        private final List<ImmutableCapability> capabilities = Lists.newArrayList();
 
         MutableVariantImpl(String name, ImmutableAttributes attributes) {
             this.name = name;
@@ -277,6 +279,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         @Override
         public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason) {
             dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason));
+        }
+
+        @Override
+        public void addCapability(String group, String name, String version) {
+            capabilities.add(new ImmutableCapability(group, name, version));
         }
 
         @Override
