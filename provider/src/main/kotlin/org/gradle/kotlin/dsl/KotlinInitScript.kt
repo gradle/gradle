@@ -24,6 +24,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -56,13 +57,38 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
-    private val host: KotlinScriptHost<Gradle>) : Gradle by host.target {
+    private val host: KotlinScriptHost<Gradle>) : InitScriptApi(host.target) {
 
     /**
      * The [ScriptHandler] for this script.
      */
     val initscript
         get() = host.scriptHandler
+
+    /**
+     * Applies zero or more plugins or scripts.
+     * <p>
+     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
+     * <p>
+     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
+     * @see [PluginAware.apply]
+     */
+    override fun apply(action: Action<in ObjectConfigurationAction>) =
+        host.applyObjectConfigurationAction(action)
+
+    override val operations
+        get() = host.operations
+}
+
+
+/**
+ * Standard implementation of the API exposed to all types of [Gradle] scripts,
+ * precompiled and otherwise.
+ */
+abstract class InitScriptApi(target: Gradle) : Gradle by target {
+
+    protected
+    abstract val operations: DefaultFileOperations
 
     /**
      * Configures the classpath of the init script.
@@ -88,7 +114,7 @@ abstract class KotlinInitScript(
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      */
     @Suppress("unused")
-    val resources: ResourceHandler by lazy { fileOperations.resources }
+    val resources: ResourceHandler by lazy { operations.resources }
 
     /**
      * Returns the relative path from this script's target base directory to the given path.
@@ -101,7 +127,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun relativePath(path: Any): String =
-        fileOperations.relativePath(path)
+        operations.relativePath(path)
 
     /**
      * Resolves a file path to a URI, relative to this script's target base directory.
@@ -111,7 +137,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun uri(path: Any): URI =
-        fileOperations.uri(path)
+        operations.uri(path)
 
     /**
      * Resolves a file path relative to this script's target base directory.
@@ -145,7 +171,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun file(path: Any): File =
-        fileOperations.file(path)
+        operations.file(path)
 
     /**
      * Resolves a file path relative to this script's target base directory.
@@ -157,7 +183,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun file(path: Any, validation: PathValidation): File =
-        fileOperations.file(path, validation)
+        operations.file(path, validation)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -204,7 +230,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
-        fileOperations.files(paths)
+        operations.files(paths)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -216,7 +242,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        fileOperations.files(paths).also(configuration)
+        operations.files(paths).also(configuration)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -232,7 +258,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any): ConfigurableFileTree =
-        fileOperations.fileTree(baseDir)
+        operations.fileTree(baseDir)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -244,7 +270,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
-        fileOperations.fileTree(baseDir).also(configuration)
+        operations.fileTree(baseDir).also(configuration)
 
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
@@ -262,7 +288,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun zipTree(zipPath: Any): FileTree =
-        fileOperations.zipTree(zipPath)
+        operations.zipTree(zipPath)
 
     /**
      * Creates a new [FileTree] which contains the contents of the given TAR file.
@@ -285,7 +311,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun tarTree(tarPath: Any): FileTree =
-        fileOperations.tarTree(tarPath)
+        operations.tarTree(tarPath)
 
     /**
      * Copies the specified files.
@@ -295,7 +321,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun copy(configuration: CopySpec.() -> Unit): WorkResult =
-        fileOperations.copy(configuration)
+        operations.copy(configuration)
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
@@ -304,7 +330,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun copySpec(): CopySpec =
-        fileOperations.copySpec()
+        operations.copySpec()
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
@@ -314,7 +340,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun copySpec(configuration: CopySpec.() -> Unit): CopySpec =
-        fileOperations.copySpec().also(configuration)
+        operations.copySpec().also(configuration)
 
     /**
      * Creates a directory and returns a file pointing to it.
@@ -325,7 +351,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun mkdir(path: Any): File =
-        fileOperations.mkdir(path)
+        operations.mkdir(path)
 
     /**
      * Deletes files and directories.
@@ -337,7 +363,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun delete(vararg paths: Any): Boolean =
-        fileOperations.delete(*paths)
+        operations.delete(*paths)
 
     /**
      * Deletes the specified files.
@@ -347,7 +373,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun delete(configuration: DeleteSpec.() -> Unit): WorkResult =
-        fileOperations.delete(configuration)
+        operations.delete(configuration)
 
     /**
      * Executes an external command.
@@ -359,7 +385,7 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        processOperations.exec(configuration)
+        operations.exec(configuration)
 
     /**
      * Executes an external Java process.
@@ -371,25 +397,6 @@ abstract class KotlinInitScript(
      */
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        processOperations.javaexec(configuration)
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
-     * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
-     * @see [PluginAware.apply]
-     */
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
-
-    private
-    val fileOperations
-        get() = host.operations
-
-    private
-    val processOperations
-        get() = host.operations
+        operations.javaexec(configuration)
 }
 

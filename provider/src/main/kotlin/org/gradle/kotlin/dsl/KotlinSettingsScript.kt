@@ -15,6 +15,7 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -26,6 +27,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -65,10 +67,35 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>) : Settings by host.target {
+    private val host: KotlinScriptHost<Settings>) : SettingsScriptApi(host.target) {
 
-    private
-    val fileOperations by lazy { fileOperationsFor(settings) }
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    override fun getBuildscript(): ScriptHandler =
+        host.scriptHandler
+
+    override val fileOperations: DefaultFileOperations
+        get() = host.operations
+
+    /**
+     * Applies zero or more plugins or scripts.
+     *
+     * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
+     */
+    override fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
+        host.applyObjectConfigurationAction(Action { it.configuration() })
+}
+
+
+/**
+ * Standard implementation of the API exposed to all types of [Settings] scripts,
+ * precompiled and otherwise.
+ */
+abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
+
+    protected
+    abstract val fileOperations: DefaultFileOperations
 
     /**
      * Logger for settings. You can use this in your settings file to write log messages.
@@ -372,12 +399,6 @@ abstract class KotlinSettingsScript(
         fileOperations.javaexec(configuration)
 
     /**
-     * The [ScriptHandler] for this script.
-     */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
-
-    /**
      * Configures the build script classpath for settings.
      *
      * @see [Settings.getBuildscript]
@@ -390,13 +411,12 @@ abstract class KotlinSettingsScript(
      *
      * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
      */
-    inline
-    fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
+    open fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
         settings.apply({ it.configuration() })
 }
 
 
-private
+internal
 fun fileOperationsFor(settings: Settings): DefaultFileOperations =
     fileOperationsFor(settings.gradle, settings.rootDir)
 

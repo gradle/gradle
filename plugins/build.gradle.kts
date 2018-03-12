@@ -12,7 +12,7 @@ base {
 }
 
 dependencies {
-    compileOnly(gradleKotlinDsl())
+    compileOnly(project(":provider"))
 
     implementation(futureKotlin("stdlib-jdk8"))
     implementation(futureKotlin("gradle-plugin"))
