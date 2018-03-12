@@ -15,7 +15,6 @@ class PropertyAccessorOnNewLine : Rule("property-get-new-line") {
     ) {
         if (node.elementType == KtNodeTypes.PROPERTY_ACCESSOR) {
             if (!node.treePrev.text.contains("\n")) {
-                // fail
                 emit(node.startOffset, "Property accessor must be on a new line", false)
             }
         }
