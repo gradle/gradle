@@ -25,6 +25,10 @@
                 <td><literal>'wrapper/dists'</literal></td>
             </tr>
             <tr>
+                <td>distributionUid</td>
+                <td><literal>Hash of the distribution url</literal></td>
+            </tr>
+            <tr>
                 <td>distributionBase</td>
                 <td><literal>PathBase.GRADLE_USER_HOME</literal></td>
             </tr>

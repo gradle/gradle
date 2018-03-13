@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 
 public class WrapperExecutor {
+    public static final String DISTRIBUTION_UID_PROPERTY = "distributionUid";
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
     public static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
@@ -52,6 +53,7 @@ public class WrapperExecutor {
             try {
                 loadProperties(propertiesFile, properties);
                 config.setDistribution(prepareDistributionUri());
+                config.setDistributionUid(getProperty(DISTRIBUTION_UID_PROPERTY, null, false));
                 config.setDistributionBase(getProperty(DISTRIBUTION_BASE_PROPERTY, config.getDistributionBase()));
                 config.setDistributionPath(getProperty(DISTRIBUTION_PATH_PROPERTY, config.getDistributionPath()));
                 config.setDistributionSha256Sum(getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));

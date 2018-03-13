@@ -32,7 +32,6 @@ class WrapperExecutorTest extends Specification {
     def setup() {
         projectDir = tmpDir.testDirectory
         propertiesFile = tmpDir.file('gradle/wrapper/gradle-wrapper.properties')
-
         properties.distributionUrl = 'http://server/test/gradle.zip'
         properties.distributionBase = 'testDistBase'
         properties.distributionPath = 'testDistPath'
@@ -48,6 +47,7 @@ class WrapperExecutorTest extends Specification {
 
         expect:
         wrapper.distribution == new URI('http://server/test/gradle.zip')
+        wrapper.configuration.distributionUid == null
         wrapper.configuration.distribution == new URI('http://server/test/gradle.zip')
         wrapper.configuration.distributionBase == 'testDistBase'
         wrapper.configuration.distributionPath == 'testDistPath'
@@ -61,6 +61,7 @@ class WrapperExecutorTest extends Specification {
 
         expect:
         wrapper.distribution == new URI('http://server/test/gradle.zip')
+        wrapper.configuration.distributionUid == null
         wrapper.configuration.distribution == new URI('http://server/test/gradle.zip')
         wrapper.configuration.distributionBase == 'testDistBase'
         wrapper.configuration.distributionPath == 'testDistPath'
@@ -74,6 +75,7 @@ class WrapperExecutorTest extends Specification {
 
         expect:
         wrapper.distribution == null
+        wrapper.configuration.distributionUid == null
         wrapper.configuration.distribution == null
         wrapper.configuration.distributionBase == PathAssembler.GRADLE_USER_HOME_STRING
         wrapper.configuration.distributionPath == Install.DEFAULT_DISTRIBUTION_PATH
@@ -92,6 +94,7 @@ class WrapperExecutorTest extends Specification {
 
         expect:
         wrapper.distribution == new URI("http://server/test/gradle.zip")
+        wrapper.configuration.distributionUid == null
         wrapper.configuration.distribution == new URI("http://server/test/gradle.zip")
         wrapper.configuration.distributionBase == PathAssembler.GRADLE_USER_HOME_STRING
         wrapper.configuration.distributionPath == Install.DEFAULT_DISTRIBUTION_PATH
@@ -167,5 +170,20 @@ class WrapperExecutorTest extends Specification {
         //distribution uri should resolve into absolute path
         wrapper.distribution.schemeSpecificPart != 'some/relative/url/to/bin.zip'
         wrapper.distribution.schemeSpecificPart.endsWith 'some/relative/url/to/bin.zip'
+    }
+    
+    
+    def "supports custom storage distribution uid"() {
+        given:
+        properties.distributionUrl = 'some/relative/url/to/bin.zip'
+        properties.distributionUid = 'testUid'
+        propertiesFile.withOutputStream { properties.store(it, 'header') }
+
+        when:
+        WrapperExecutor wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile)
+
+        then:
+        //distribution uid should be the one supplied
+        wrapper.configuration.distributionUid == 'testUid'
     }
 }

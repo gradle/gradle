@@ -43,6 +43,7 @@ class WrapperTest extends AbstractTaskTest {
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
+        wrapper.setDistributionUid("someid")
     }
 
     AbstractTask getTask() {
@@ -64,6 +65,7 @@ class WrapperTest extends AbstractTaskTest {
         Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase()
         wrapper.getDistributionUrl() != null
         wrapper.getDistributionSha256Sum() == null
+        wrapper.getDistributionUid() == null
     }
 
     def "determines Windows script path from unix script path"() {
@@ -128,6 +130,15 @@ class WrapperTest extends AbstractTaskTest {
         expect:
         "somehash" == wrapper.getDistributionSha256Sum()
     }
+    
+    
+    def "uses explicitly defined distribution unique id"() {
+        given:
+        wrapper.setDistributionUid("someid")
+
+        expect:
+        "someid" == wrapper.getDistributionUid()
+    }
 
     def "execute with non extant wrapper jar parent directory"() {
         when:
@@ -144,13 +155,14 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath()
         properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()
         properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_UID_PROPERTY) == wrapper.getDistributionUid()
     }
 
     def "check inputs"() {
         expect:
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
-            "distributionType", "archiveBase", "archivePath", "gradleVersion")
+            "distributionType", "archiveBase", "archivePath", "gradleVersion", "distributionUid")
     }
 
     def "execute with extant wrapper jar parent directory and extant wraper jar"() {
@@ -177,6 +189,7 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath()
         properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()
         properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_UID_PROPERTY) == wrapper.getDistributionUid()
     }
 
     def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {

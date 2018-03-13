@@ -19,11 +19,32 @@ import java.net.URI;
 
 public class WrapperConfiguration {
     private URI distribution;
+    private String distributionUid;
     private String distributionBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String distributionPath = Install.DEFAULT_DISTRIBUTION_PATH;
     private String distributionSha256Sum;
     private String zipBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
+    
+    
+    
+     
+    /**
+     * Gets the distributions unique id.
+     * @return the id
+     */
+    public String getDistributionUid() {
+        return distributionUid;
+    }
+
+    /**
+     * Set the unique id for the distribution.
+     * @param id the unique id
+     */
+    public void setDistributionUid(String id) {
+        this.distributionUid = id;
+    }
+    
 
     public URI getDistribution() {
         return distribution;

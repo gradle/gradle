@@ -45,9 +45,13 @@ public class PathAssembler {
         return new LocalDistribution(distDir, distZip);
     }
 
-    private String rootDirName(String distName, WrapperConfiguration configuration) {
-        String urlHash = getHash(configuration.getDistribution().toString());
-        return distName + "/" + urlHash;
+    
+    private String rootDirName(String distName, WrapperConfiguration config) {
+        String id = config.getDistributionUid();
+        if (id == null || id.isEmpty()) {
+            id = getHash(config.getDistribution().toString());
+        }
+        return distName + "/" + id;
     }
 
     /**

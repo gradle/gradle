@@ -97,6 +97,7 @@ public class Wrapper extends DefaultTask {
     private String distributionPath;
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
     private String distributionUrl;
+    private String distributionUid;
     private String distributionSha256Sum;
     private GradleVersion gradleVersion;
     private DistributionType distributionType = DistributionType.BIN;
@@ -177,6 +178,11 @@ public class Wrapper extends DefaultTask {
     private void writeProperties(File propertiesFileDestination) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
+        
+        if (distributionUid != null) {
+            wrapperProperties.put(WrapperExecutor.DISTRIBUTION_UID_PROPERTY, distributionUid);
+        }
+        
         if (distributionSha256Sum != null) {
             wrapperProperties.put(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, distributionSha256Sum);
         }
@@ -402,6 +408,11 @@ public class Wrapper extends DefaultTask {
     public void setDistributionSha256Sum(@Nullable String distributionSha256Sum) {
         this.distributionSha256Sum = distributionSha256Sum;
     }
+    
+    
+    
+    
+    
 
     /**
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
@@ -452,5 +463,32 @@ public class Wrapper extends DefaultTask {
      */
     public void setArchiveBase(PathBase archiveBase) {
         this.archiveBase = archiveBase;
+    }
+    
+    
+   
+    /**
+     * The user supplied distribution unique id if set.
+     *
+     * <p>If not set, then internally the hash of the distribution url is used {@link #getDistributionUrl()}, and
+     * null is returned
+     * 
+     * <p>The default is almost always the required behaviour you want.
+     * 
+     */
+    @Optional
+    @Input
+    public String getDistributionUid() {
+        return distributionUid;
+    }
+
+    
+    /**
+     * The distribution unique id overrides default internal id generation.
+     * @param uid the id
+     */
+    @Option(option = "gradle-distribution-uid", description = "The unique id for storing the Gradle distribution.")
+    public void setDistributionUid(@Nullable String uid) {
+        this.distributionUid = uid;
     }
 }

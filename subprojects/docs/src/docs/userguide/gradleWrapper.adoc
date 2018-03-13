@@ -86,6 +86,10 @@ The full URL pointing to Gradle distribution ZIP file. Using this option makes `
 `--gradle-distribution-sha256-sum`::
 The SHA256 hash sum used for <<sec:verification,verifying the downloaded Gradle distribution>>.
 
+`--gradle-distribution-uid`::
+The unique id used to store the distribution under. The default behaviour is almost always what you want, however this allows overriding for specific use cases. 
+
+
 Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version 4.0 and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
 ++++
