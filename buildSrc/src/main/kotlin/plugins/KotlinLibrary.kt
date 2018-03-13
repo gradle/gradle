@@ -10,6 +10,7 @@ open class KotlinLibrary : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
 
         plugins.apply("kotlin")
+        plugins.apply("org.gradle.kotlin.ktlint-convention")
 
         kotlin {
             experimental.coroutines = Coroutines.ENABLE
