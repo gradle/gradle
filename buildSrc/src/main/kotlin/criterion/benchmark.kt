@@ -18,8 +18,6 @@
 /**
  * A small, criterion-like benchmarking framework.
  */
-
-
 package criterion
 
 
