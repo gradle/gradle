@@ -23,6 +23,7 @@ import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 plugins {
     `kotlin-dsl`
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.1" apply false
 }
 
 subprojects {
@@ -65,7 +66,10 @@ subprojects {
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply { plugin("kotlin") }
+        apply {
+            plugin("kotlin")
+            plugin("org.gradle.kotlin.ktlint-convention")
+        }
 
         tasks.withType<KotlinCompile> {
             kotlinOptions {
