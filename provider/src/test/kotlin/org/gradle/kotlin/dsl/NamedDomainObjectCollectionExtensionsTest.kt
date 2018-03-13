@@ -19,6 +19,7 @@ import org.junit.Test
 
 import java.util.regex.Pattern
 
+
 class NamedDomainObjectCollectionExtensionsTest {
 
     data class DomainObject(var foo: String? = null)

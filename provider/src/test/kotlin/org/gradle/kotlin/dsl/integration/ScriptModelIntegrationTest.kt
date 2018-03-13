@@ -1,4 +1,5 @@
 package org.gradle.kotlin.dsl.integration
+
 import org.gradle.kotlin.dsl.concurrent.future
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
@@ -59,7 +60,8 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     fun assertSourcePathGiven(
         rootProjectScript: String,
         subProjectScript: String,
-        matches: Matcher<Iterable<String>>) {
+        matches: Matcher<Iterable<String>>
+    ) {
 
         val subProjectName = "sub"
         withSettings("include(\"$subProjectName\")")

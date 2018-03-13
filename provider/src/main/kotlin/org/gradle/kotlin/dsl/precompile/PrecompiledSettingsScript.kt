@@ -39,6 +39,4 @@ import kotlin.script.templates.ScriptTemplateDefinition
 abstract class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target) {
 
     override val fileOperations by lazy { fileOperationsFor(settings) }
-
 }
-

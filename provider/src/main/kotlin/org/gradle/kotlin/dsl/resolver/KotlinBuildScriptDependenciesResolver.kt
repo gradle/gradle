@@ -43,21 +43,26 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         script: ScriptContents,
         environment: Map<String, Any?>?,
         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
-        previousDependencies: KotlinScriptExternalDependencies?) = future {
+        previousDependencies: KotlinScriptExternalDependencies?
+    ) = future {
 
         try {
             log(ResolutionRequest(script.file, environment, previousDependencies))
             val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)
             when (action) {
-                is ResolverAction.Return         -> {
+                is ResolverAction.Return -> {
                     action.dependencies
                 }
                 is ResolverAction.ReturnPrevious -> {
                     log(ResolvedToPrevious(script.file, previousDependencies))
                     previousDependencies
                 }
-                is ResolverAction.RequestNew     -> {
-                    assembleDependenciesFrom(script.file, environment!!, previousDependencies, action.buildscriptBlockHash)
+                is ResolverAction.RequestNew -> {
+                    assembleDependenciesFrom(
+                        script.file,
+                        environment!!,
+                        previousDependencies,
+                        action.buildscriptBlockHash)
                 }
             }
         } catch (e: Exception) {
@@ -71,7 +76,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         scriptFile: File?,
         environment: Environment,
         previousDependencies: KotlinScriptExternalDependencies?,
-        buildscriptBlockHash: ByteArray?): KotlinScriptExternalDependencies {
+        buildscriptBlockHash: ByteArray?
+    ): KotlinScriptExternalDependencies {
 
         val request = modelRequestFrom(scriptFile, environment)
         log(SubmittedModelRequest(scriptFile, request))
@@ -80,7 +86,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         log(ReceivedModelResponse(scriptFile, response))
 
         return when {
-            response.exceptions.isEmpty()                                                                    ->
+            response.exceptions.isEmpty() ->
                 dependenciesFrom(response, buildscriptBlockHash).also {
                     log(ResolvedDependencies(scriptFile, it))
                 }
@@ -88,7 +94,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 previousDependencies.also {
                     log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
                 }
-            else                                                                                             ->
+            else ->
                 dependenciesFrom(response, buildscriptBlockHash).also {
                     log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
                 }
@@ -126,7 +132,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     private
     fun dependenciesFrom(
         response: KotlinBuildScriptModel,
-        hash: ByteArray?) =
+        hash: ByteArray?
+    ) =
 
         KotlinBuildScriptDependencies(
             response.classPath,
@@ -161,7 +168,8 @@ object ResolverCoordinator {
     fun selectNextActionFor(
         script: ScriptContents,
         environment: Environment?,
-        previousDependencies: KotlinScriptExternalDependencies?): ResolverAction {
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): ResolverAction {
 
         if (environment == null) {
             return ResolverAction.ReturnPrevious
@@ -187,7 +195,8 @@ object ResolverCoordinator {
 
     private
     fun sameBuildscriptBlockHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
-        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } } ?: false
+        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } }
+            ?: false
 
     private
     fun buildscriptBlockHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
@@ -227,7 +236,8 @@ class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
     override val sources: Iterable<File>,
     override val imports: Iterable<String>,
-    val buildscriptBlockHash: ByteArray?) : KotlinScriptExternalDependencies
+    val buildscriptBlockHash: ByteArray?
+) : KotlinScriptExternalDependencies
 
 
 internal
@@ -244,12 +254,12 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
     tailrec fun test(dir: File): File =
         when {
             dir == importedProjectRoot -> importedProjectRoot
-            isProjectRoot(dir)         -> dir
-            else                       -> {
+            isProjectRoot(dir) -> dir
+            else -> {
                 val parentDir = dir.parentFile
                 when (parentDir) {
                     null, dir -> scriptFile.parentFile // external project
-                    else      -> test(parentDir)
+                    else -> test(parentDir)
                 }
             }
         }

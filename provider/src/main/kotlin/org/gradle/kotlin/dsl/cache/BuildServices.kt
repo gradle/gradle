@@ -29,7 +29,8 @@ object BuildServices {
     fun createScriptCache(
         cacheKeyBuilder: CacheKeyBuilder,
         cacheRepository: CacheRepository,
-        startParameters: StartParameter) =
+        startParameters: StartParameter
+    ) =
 
         ScriptCache(
             cacheRepository, cacheKeyBuilder, startParameters.isRecompileScripts)

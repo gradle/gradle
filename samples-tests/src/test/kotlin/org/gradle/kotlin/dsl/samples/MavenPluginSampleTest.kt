@@ -6,6 +6,7 @@ import org.junit.Assert.assertThat
 import org.xmlunit.matchers.CompareMatcher.isIdenticalTo
 import java.io.File
 
+
 class MavenPluginSampleTest : AbstractSampleTest("maven-plugin") {
 
     @Test

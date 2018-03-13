@@ -94,9 +94,9 @@ object ResolverEventLogger {
     fun logDirForOperatingSystem() =
         OperatingSystem.current().run {
             when {
-                isMacOsX  -> "Library/Logs/gradle-kotlin-dsl"
+                isMacOsX -> "Library/Logs/gradle-kotlin-dsl"
                 isWindows -> "Application Data/gradle-kotlin-dsl/log"
-                else      -> ".gradle-kotlin-dsl/log"
+                else -> ".gradle-kotlin-dsl/log"
             }
         }
 
@@ -120,12 +120,13 @@ object ResolverEventLogger {
                         "scriptFile" to scriptFile,
                         "response" to prettyPrint(response, indentation = 2)))
 
-            is ResolutionFailure     ->
-                prettyPrint("ResolutionFailure",
+            is ResolutionFailure ->
+                prettyPrint(
+                    "ResolutionFailure",
                     sequenceOf(
                         "scriptFile" to scriptFile,
                         "failure" to stringForException(failure, indentation = 2)))
-            else                     ->
+            else ->
                 prettyPrintAny(this)
         }
     }
@@ -186,7 +187,6 @@ object ResolverEventLogger {
     fun indentationStringFor(indentation: Int?) =
         when (indentation) {
             null, 1 -> "\t"
-            else    -> "\t\t"
+            else -> "\t\t"
         }
 }
-

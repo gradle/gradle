@@ -63,7 +63,8 @@ data class StandardKotlinBuildScriptModel(
     override val classPath: List<File>,
     override val sourcePath: List<File>,
     override val implicitImports: List<String>,
-    override val exceptions: List<Exception>) : KotlinBuildScriptModel, Serializable
+    override val exceptions: List<Exception>
+) : KotlinBuildScriptModel, Serializable
 
 
 internal
@@ -84,10 +85,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         when {
-            parameter.noScriptPath   -> projectScriptModelBuilder(modelRequestProject)
+            parameter.noScriptPath -> projectScriptModelBuilder(modelRequestProject)
             parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject)
-            parameter.initScript     -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
-            else                     -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
+            parameter.initScript -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
+            else -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
         }
 
     private
@@ -159,7 +160,8 @@ data class KotlinScriptTargetModelBuilder<T : Any>(
     val project: Project,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
-    val sourceLookupScriptHandlers: List<ScriptHandler>) {
+    val sourceLookupScriptHandlers: List<ScriptHandler>
+) {
 
     fun buildModel(): KotlinBuildScriptModel {
         val accessorsClassPath = accessorsClassPath(scriptClassPath)
@@ -258,4 +260,3 @@ val Project.hierarchy: Sequence<Project>
 private
 fun canonicalFile(path: String): File =
     File(path).canonicalFile
-

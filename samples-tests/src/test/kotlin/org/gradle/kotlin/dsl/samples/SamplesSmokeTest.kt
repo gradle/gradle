@@ -18,7 +18,8 @@ import java.io.File
 @RunWith(Parameterized::class)
 class SamplesSmokeTest(
     private val sampleName: String,
-    private val sampleDir: File) : AbstractIntegrationTest() {
+    private val sampleDir: File
+) : AbstractIntegrationTest() {
 
     companion object {
         @Parameterized.Parameters(name = "{0}")
@@ -46,8 +47,9 @@ class SamplesSmokeTest(
         val buildsToCheck =
             if (File(sampleDir, "buildSrc").isDirectory) {
                 projectBuilds + listOf(buildSpec("-p", "buildSrc", "buildEnvironment"))
-            } else
+            } else {
                 projectBuilds
+            }
 
         val foundKotlinGradlePlugin = buildsToCheck.map(::assertKotlinGradlePluginVersion)
 
@@ -71,8 +73,9 @@ class SamplesSmokeTest(
             if (output.contains(":kotlin-gradle-plugin:")) {
                 assertThat(output, containsString(":kotlin-gradle-plugin:$embeddedKotlinVersion"))
                 true
-            } else
+            } else {
                 false
+            }
         }
 
     private

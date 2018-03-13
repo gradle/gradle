@@ -34,8 +34,15 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
-import org.jetbrains.kotlin.config.*
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
+import org.jetbrains.kotlin.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
 import org.jetbrains.kotlin.name.NameUtils
@@ -58,7 +65,8 @@ fun compileKotlinScriptToDirectory(
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
     classPath: List<File>,
-    messageCollector: LoggingMessageCollector): String =
+    messageCollector: LoggingMessageCollector
+): String =
 
     withRootDisposable { rootDisposable ->
 
@@ -102,7 +110,8 @@ fun compileToJar(
     outputJar: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()): Boolean =
+    classPath: Iterable<File> = emptyList()
+): Boolean =
 
     compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
 
@@ -112,7 +121,8 @@ fun compileToDirectory(
     outputDirectory: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()): Boolean =
+    classPath: Iterable<File> = emptyList()
+): Boolean =
 
     compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
 
@@ -123,7 +133,8 @@ fun compileTo(
     output: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File>): Boolean {
+    classPath: Iterable<File>
+): Boolean {
 
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
@@ -146,8 +157,8 @@ val kotlinStdlibJar: File
     get() = PathUtil.getResourcePathForClass(Unit::class.java)
 
 
-private inline
-fun <T> withRootDisposable(action: (Disposable) -> T): T {
+private
+inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
     val rootDisposable = newDisposable()
     try {
         return action(rootDisposable)
@@ -157,8 +168,8 @@ fun <T> withRootDisposable(action: (Disposable) -> T): T {
 }
 
 
-private inline
-fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
+private
+inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
     val messageCollector = messageCollectorFor(log)
     withCompilationExceptionHandler(messageCollector) {
         return action(messageCollector)
@@ -166,8 +177,8 @@ fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T
 }
 
 
-private inline
-fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+private
+inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
     try {
         return action()
     } catch (ex: CompilationException) {
@@ -275,7 +286,8 @@ const val indent = "  "
 internal
 class LoggingMessageCollector(
     private val log: Logger,
-    private val pathTranslation: (String) -> String) : MessageCollector {
+    private val pathTranslation: (String) -> String
+) : MessageCollector {
 
     val errors = arrayListOf<ScriptCompilationError>()
 

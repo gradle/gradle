@@ -34,26 +34,27 @@ fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
 
 
 private
-val ClassLoaderScope.root get() = foldHierarchy(this) { _, scope -> scope }
+val ClassLoaderScope.root
+    get() = foldHierarchy(this) { _, scope -> scope }
 
 
-internal inline
-fun <T> ClassLoaderScope.foldHierarchy(initial: T, operation: (T, ClassLoaderScope) -> T): T {
+internal
+inline fun <T> ClassLoaderScope.foldHierarchy(initial: T, operation: (T, ClassLoaderScope) -> T): T {
     var result = initial
     traverseHierarchy { result = operation(result, it) }
     return result
 }
 
 
-internal inline
-fun ClassLoaderScope.traverseHierarchy(action: (ClassLoaderScope) -> Unit) {
+internal
+inline fun ClassLoaderScope.traverseHierarchy(action: (ClassLoaderScope) -> Unit) {
     action(this)
     traverseAncestors(action)
 }
 
 
-internal inline
-fun ClassLoaderScope.traverseAncestors(action: (ClassLoaderScope) -> Unit) {
+internal
+inline fun ClassLoaderScope.traverseAncestors(action: (ClassLoaderScope) -> Unit) {
     var scope = this
     while (scope.parent != scope) {
         scope = scope.parent

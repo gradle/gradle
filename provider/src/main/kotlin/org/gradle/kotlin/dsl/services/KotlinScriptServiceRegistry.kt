@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.services
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
+
 internal
 class KotlinScriptServiceRegistry : AbstractPluginServiceRegistry() {
 
@@ -36,4 +37,3 @@ class KotlinScriptServiceRegistry : AbstractPluginServiceRegistry() {
         registration.addProvider(org.gradle.kotlin.dsl.provider.GradleUserHomeServices)
     }
 }
-

@@ -20,30 +20,30 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 
-internal inline
-fun <reified T : Any> loggerFor(): Logger =
+internal
+inline fun <reified T : Any> loggerFor(): Logger =
     LoggerFactory.getLogger(T::class.java)
 
 
-internal inline
-fun Logger.trace(msg: () -> String) {
+internal
+inline fun Logger.trace(msg: () -> String) {
     if (isTraceEnabled) trace(msg())
 }
 
 
-internal inline
-fun Logger.debug(msg: () -> String) {
+internal
+inline fun Logger.debug(msg: () -> String) {
     if (isDebugEnabled) debug(msg())
 }
 
 
-internal inline
-fun Logger.info(msg: () -> String) {
+internal
+inline fun Logger.info(msg: () -> String) {
     if (isInfoEnabled) info(msg())
 }
 
 
-internal inline
-fun Logger.error(msg: () -> String) {
+internal
+inline fun Logger.error(msg: () -> String) {
     if (isErrorEnabled) error(msg())
 }

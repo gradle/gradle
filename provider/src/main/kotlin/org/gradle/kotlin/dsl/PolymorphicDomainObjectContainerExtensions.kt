@@ -35,7 +35,8 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 inline
 fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
     name: String,
-    crossinline configuration: U.() -> Unit) =
+    crossinline configuration: U.() -> Unit
+) =
 
     this.create(name, U::class.java, { configuration(it) })
 
@@ -50,7 +51,7 @@ fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
  * exists or the container does not support creating a domain object with the specified
  * type
  */
-inline
 @Suppress("extension_shadowed_by_member")
+inline
 fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String) =
     create(name, U::class.java)

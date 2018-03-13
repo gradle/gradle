@@ -30,8 +30,8 @@ import kotlin.coroutines.experimental.suspendCoroutine
  *
  * Execution will continue on the TAPI executor thread.
  */
-internal inline
-suspend fun <T> tapi(crossinline computation: (ResultHandler<T>) -> Unit): T =
+internal
+suspend inline fun <T> tapi(crossinline computation: (ResultHandler<T>) -> Unit): T =
     suspendCoroutine { k: Continuation<T> ->
         computation(k.asResultHandler())
     }
@@ -42,7 +42,7 @@ fun <T> Continuation<T>.asResultHandler(): ResultHandler<T> =
     object : ResultHandler<T> {
         override fun onComplete(result: T) =
             resume(result)
+
         override fun onFailure(failure: GradleConnectionException) =
             resumeWithException(failure)
     }
-

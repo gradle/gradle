@@ -27,7 +27,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -67,7 +66,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>) : SettingsScriptApi(host.target) {
+    private val host: KotlinScriptHost<Settings>
+) : SettingsScriptApi(host.target) {
 
     /**
      * The [ScriptHandler] for this script.

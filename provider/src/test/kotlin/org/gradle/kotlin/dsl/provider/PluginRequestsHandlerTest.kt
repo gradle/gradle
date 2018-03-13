@@ -15,6 +15,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import org.junit.Test
 
+
 class PluginRequestsHandlerTest {
 
     @Test

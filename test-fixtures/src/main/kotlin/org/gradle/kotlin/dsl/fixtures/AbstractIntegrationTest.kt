@@ -95,7 +95,7 @@ open class AbstractIntegrationTest {
         existing(fileName).let {
             when {
                 it.isFile -> it
-                else      -> newFile(fileName)
+                else -> newFile(fileName)
             }
         }
 
@@ -168,9 +168,9 @@ fun customDaemonRegistry() =
 
 fun customInstallation() =
     customInstallationBuildDir.listFiles()?.let {
-        it.singleOrNull { it.name.startsWith("gradle") } ?:
-            throw IllegalStateException(
-                "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
+        it.singleOrNull { it.name.startsWith("gradle") } ?: throw IllegalStateException(
+            "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`."
+        )
     } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 
 

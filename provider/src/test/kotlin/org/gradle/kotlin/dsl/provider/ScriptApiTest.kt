@@ -31,7 +31,6 @@ import kotlin.reflect.jvm.jvmErasure
 import org.hamcrest.CoreMatchers.equalTo
 
 import org.junit.Assert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -67,13 +66,13 @@ class ScriptApiTest {
 }
 
 
-private inline
-fun <reified T> assertScriptApiOf() =
+private
+inline fun <reified T> assertScriptApiOf() =
     assertApiOf<T>(ScriptApi::class)
 
 
-private inline
-fun <reified T> assertApiOf(expectedApi: KClass<*>) =
+private
+inline fun <reified T> assertApiOf(expectedApi: KClass<*>) =
     assertThat(
         expectedApi.apiMembers.missingMembersFrom(T::class),
         equalTo(emptyList()))
@@ -115,7 +114,7 @@ fun KCallable<*>.isCompatibleWith(api: KCallable<*>) =
     when (this) {
         is KFunction -> isCompatibleWith(api)
         is KProperty -> isCompatibleWith(api)
-        else         -> false
+        else -> false
     }
 
 
@@ -130,8 +129,8 @@ private
 fun KFunction<*>.isCompatibleWith(api: KCallable<*>) =
     when {
         api is KProperty && api !is KMutableProperty && isCompatibleWithGetterOf(api) -> true
-        api is KFunction && isCompatibleWith(api)                                     -> true
-        else                                                                          -> false
+        api is KFunction && isCompatibleWith(api) -> true
+        else -> false
     }
 
 
@@ -153,18 +152,18 @@ private
 fun List<KParameter>.isCompatibleWith(api: List<KParameter>) =
     when {
         size != api.size -> false
-        isEmpty()        -> true
-        else             -> (0..(size - 1)).all { idx -> this[idx].isCompatibleWith(api[idx]) }
+        isEmpty() -> true
+        else -> (0..(size - 1)).all { idx -> this[idx].isCompatibleWith(api[idx]) }
     }
 
 
 private
 fun KParameter.isCompatibleWith(api: KParameter) =
     when {
-        isVarargCompatibleWith(api)                  -> true
-        isGradleActionCompatibleWith(api)            -> true
+        isVarargCompatibleWith(api) -> true
+        isGradleActionCompatibleWith(api) -> true
         type.isParameterTypeCompatibleWith(api.type) -> true
-        else                                         -> false
+        else -> false
     }
 
 
@@ -189,10 +188,10 @@ fun KParameter.isVarargCompatibleWith(api: KParameter) =
 private
 fun KType.isParameterTypeCompatibleWith(apiParameterType: KType) =
     when {
-        this == apiParameterType                     -> true
-        classifier != apiParameterType.classifier    -> false
+        this == apiParameterType -> true
+        classifier != apiParameterType.classifier -> false
         hasCompatibleTypeArguments(apiParameterType) -> true
-        else                                         -> false
+        else -> false
     }
 
 

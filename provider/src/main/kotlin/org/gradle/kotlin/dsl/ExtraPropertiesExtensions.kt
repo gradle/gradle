@@ -64,7 +64,8 @@ operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): ExtraProperty
 
 class ExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
-    val initialValue: T) {
+    val initialValue: T
+) {
 
     operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): ExtraPropertyDelegate<T> {
         extra.set(property.name, initialValue)

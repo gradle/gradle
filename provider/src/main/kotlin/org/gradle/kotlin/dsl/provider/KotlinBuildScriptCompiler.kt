@@ -82,7 +82,8 @@ class KotlinBuildScriptCompiler(
     private val targetScope: ClassLoaderScope,
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
-    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
+    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
+) {
 
     private
     val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
@@ -182,7 +183,8 @@ class KotlinBuildScriptCompiler(
     private
     fun executeCompiledPluginsBlockOn(
         pluginRequestCollector: PluginRequestCollector,
-        loadedPluginsBlockClass: LoadedScriptClass<PluginsBlockMetadata>) {
+        loadedPluginsBlockClass: LoadedScriptClass<PluginsBlockMetadata>
+    ) {
 
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(loadedPluginsBlockClass.compiledScript.metadata.lineNumber)
         loadedPluginsBlockClass.eval {
@@ -275,16 +277,16 @@ class KotlinBuildScriptCompiler(
     fun classLoaderScopeIdFor(stage: String) =
         scriptSource.classLoaderScopeIdFor(stage)
 
-    private inline
-    fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
+    private
+    inline fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
         scriptClass.getConstructor(targetType.java).newInstance(target)
     }
 
-    private inline
-    fun withUnexpectedBlockHandling(action: () -> Unit) {
+    private
+    inline fun withUnexpectedBlockHandling(action: () -> Unit) {
         try {
             action()
         } catch (unexpectedBlock: UnexpectedBlock) {
@@ -299,17 +301,20 @@ class KotlinBuildScriptCompiler(
         "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
 
     private
-    val scriptPath get() = scriptSource.scriptPath
+    val scriptPath
+        get() = scriptSource.scriptPath
 
     private
-    val script get() = scriptSource.script
+    val script
+        get() = scriptSource.script
 }
 
 
 fun initScriptClassPathFor(
     gradle: GradleInternal,
     scriptHandler: ScriptHandlerInternal,
-    scriptSource: ScriptSource): ClassPath {
+    scriptSource: ScriptSource
+): ClassPath {
 
     val baseScope = gradle.classLoaderScope
     val scriptTarget = gradleInitScriptTarget(gradle, scriptHandler, scriptSource, baseScope)
@@ -339,7 +344,8 @@ class BuildscriptBlockEvaluator(
     val kotlinCompiler: CachingKotlinCompiler,
     val embeddedKotlinProvider: EmbeddedKotlinProvider,
     val classloadingCache: KotlinScriptClassloadingCache,
-    val classPathModeExceptionCollector: ClassPathModeExceptionCollector) {
+    val classPathModeExceptionCollector: ClassPathModeExceptionCollector
+) {
 
     fun evaluateForClassPath() {
         ignoringErrors {
@@ -362,8 +368,8 @@ class BuildscriptBlockEvaluator(
             compileScriptBlock(scriptBlock, classPath)
         }
 
-    private inline
-    fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
+    private
+    inline fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun buildscriptBlockClassLoaderScope() =
@@ -419,18 +425,21 @@ class BuildscriptBlockEvaluator(
         }
 
     private
-    val scriptPath get() = scriptSource.scriptPath
+    val scriptPath
+        get() = scriptSource.scriptPath
 
     private
-    val script get() = scriptSource.script
+    val script
+        get() = scriptSource.script
 
     private
-    val buildscriptBlockName get() = scriptTarget.buildscriptBlockName
+    val buildscriptBlockName
+        get() = scriptTarget.buildscriptBlockName
 }
 
 
-private inline
-fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
+private
+inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
     try {
         action()
     } catch (e: Exception) {
@@ -440,8 +449,8 @@ fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
 }
 
 
-private inline
-fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
+private
+inline fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
     try {
         action()
     } catch (e: ScriptCompilationException) {
@@ -449,8 +458,8 @@ fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () -> T): 
     }
 
 
-private inline
-fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
+private
+inline fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
     withContextClassLoader(scriptClass.classLoader) {
         try {
             action()
@@ -460,8 +469,8 @@ fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
     }
 
 
-private inline
-fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
+private
+inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     val currentThread = Thread.currentThread()
     val previous = currentThread.contextClassLoader
     try {

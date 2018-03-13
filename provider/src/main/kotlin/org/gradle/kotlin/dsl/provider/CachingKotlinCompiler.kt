@@ -51,7 +51,8 @@ data class ScriptBlock<out T>(
     val scriptTemplate: KClass<*>,
     val scriptPath: String,
     val source: String,
-    val metadata: T) {
+    val metadata: T
+) {
 
     val sourceHash: HashCode = Hashing.md5().hashString(source)
 }
@@ -61,7 +62,8 @@ internal
 data class CompiledScript<out T>(
     val location: File,
     val className: String,
-    val metadata: T)
+    val metadata: T
+)
 
 
 private
@@ -72,7 +74,8 @@ internal
 class CachingKotlinCompiler(
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
-    private val progressLoggerFactory: ProgressLoggerFactory) {
+    private val progressLoggerFactory: ProgressLoggerFactory
+) {
 
     init {
         org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
@@ -109,7 +112,8 @@ class CachingKotlinCompiler(
         cacheKeySpec: CacheKeySpec,
         classPath: ClassPath,
         metadata: T,
-        compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript<T> {
+        compilationSpecFor: (File) -> ScriptCompilationSpec
+    ): CompiledScript<T> {
 
         try {
             val cacheDir = cacheDirFor(cacheKeySpec + classPath) {
@@ -127,13 +131,15 @@ class CachingKotlinCompiler(
         val displayName: String,
         val scriptTemplate: KClass<out Any>,
         val originalPath: String,
-        val scriptFile: File)
+        val scriptFile: File
+    )
 
     private
     fun compileScriptTo(
         outputDir: File,
         spec: ScriptCompilationSpec,
-        classPath: ClassPath): String =
+        classPath: ClassPath
+    ): String =
 
         spec.run {
             withProgressLoggingFor(displayName) {
@@ -187,7 +193,8 @@ class CachingKotlinCompiler(
         object : DependenciesResolver {
             override fun resolve(
                 scriptContents: ScriptContents,
-                environment: Environment): DependenciesResolver.ResolveResult =
+                environment: Environment
+            ): DependenciesResolver.ResolveResult =
 
                 DependenciesResolver.ResolveResult.Success(
                     ScriptDependencies(imports = implicitImports.list), emptyList())

@@ -24,13 +24,16 @@ import org.gradle.internal.progress.PercentageProgressFormatter
 
 import java.io.File
 
+
 interface JarGenerationProgressMonitorProvider {
     fun progressMonitorFor(outputJar: File, totalWork: Int): ProgressMonitor
 }
 
+
 internal
 class StandardJarGenerationProgressMonitorProvider(
-    val progressLoggerFactory: ProgressLoggerFactory) : JarGenerationProgressMonitorProvider {
+    val progressLoggerFactory: ProgressLoggerFactory
+) : JarGenerationProgressMonitorProvider {
 
     override fun progressMonitorFor(outputJar: File, totalWork: Int): ProgressMonitor {
         val progressLogger = progressLoggerFor(outputJar)
@@ -39,6 +42,7 @@ class StandardJarGenerationProgressMonitorProvider(
             override fun onProgress() {
                 progressLogger.progress(progressFormatter.incrementAndGetProgress())
             }
+
             override fun close() {
                 progressLogger.completed()
             }

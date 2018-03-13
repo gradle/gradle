@@ -57,7 +57,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
-    private val host: KotlinScriptHost<Gradle>) : InitScriptApi(host.target) {
+    private val host: KotlinScriptHost<Gradle>
+) : InitScriptApi(host.target) {
 
     /**
      * The [ScriptHandler] for this script.
@@ -399,4 +400,3 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         operations.javaexec(configuration)
 }
-

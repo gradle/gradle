@@ -23,6 +23,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
+
 class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {

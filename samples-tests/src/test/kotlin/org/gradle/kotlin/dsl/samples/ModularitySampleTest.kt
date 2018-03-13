@@ -12,7 +12,8 @@ class ModularitySampleTest : AbstractSampleTest("modularity") {
     fun `modularity`() {
         assertThat(
             build("foo", "bar").output,
-            allOf(containsString("Foo!"),
-                  containsString("Bar!")))
+            allOf(
+                containsString("Foo!"),
+                containsString("Bar!")))
     }
 }

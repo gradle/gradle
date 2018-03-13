@@ -41,7 +41,8 @@ internal
 fun classLoaderHierarchyJsonFor(
     klass: Class<*>,
     targetScope: ClassLoaderScope,
-    pathFormatter: PathStringFormatter = { it }) =
+    pathFormatter: PathStringFormatter = { it }
+) =
 
     classLoaderHierarchyJsonFor(
         hierarchyOf(klass.classLoader),
@@ -58,14 +59,16 @@ class ClassLoaderNode(
     val id: ClassLoaderId,
     val label: String,
     val classPath: MutableSet<URL> = LinkedHashSet(),
-    val parents: MutableSet<ClassLoaderId> = LinkedHashSet())
+    val parents: MutableSet<ClassLoaderId> = LinkedHashSet()
+)
 
 
 private
 fun classLoaderHierarchyJsonFor(
     classLoaders: List<ClassLoaderNode>,
     scopes: List<ClassLoaderScope>,
-    pathFormatter: PathStringFormatter): String {
+    pathFormatter: PathStringFormatter
+): String {
 
     fun labelFor(scope: ClassLoaderScope) =
         pathFormatter(if (scope is AbstractClassLoaderScope) scope.path else scope.toString())

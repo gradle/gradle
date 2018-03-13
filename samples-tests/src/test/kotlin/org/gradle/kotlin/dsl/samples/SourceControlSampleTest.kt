@@ -4,6 +4,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+
 class SourceControlSampleTest : AbstractSampleTest("source-control") {
 
     @Test

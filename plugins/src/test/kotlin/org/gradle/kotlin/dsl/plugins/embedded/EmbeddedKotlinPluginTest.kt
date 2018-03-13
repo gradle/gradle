@@ -16,7 +16,7 @@
 package org.gradle.kotlin.dsl.plugins.embedded
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -247,4 +247,3 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             "$configuration(\"org.jetbrains.kotlin:kotlin-$it:${version ?: embeddedKotlinVersion}\")"
         }.joinToString("\n")
 }
-

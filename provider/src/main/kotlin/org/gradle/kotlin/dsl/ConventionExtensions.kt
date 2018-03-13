@@ -57,9 +57,11 @@ fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
  * @see [Convention.getPlugin]
  */
 inline
-fun <ConventionType : Any, ReturnType> Any.withConvention(conventionType: KClass<ConventionType>, function: ConventionType.() -> ReturnType): ReturnType =
+fun <ConventionType : Any, ReturnType> Any.withConvention(
+    conventionType: KClass<ConventionType>,
+    function: ConventionType.() -> ReturnType
+): ReturnType =
     when (this) {
         is HasConvention -> convention.getPlugin(conventionType).run(function)
         else -> throw IllegalStateException("Object `$this` doesn't support conventions!")
     }
-

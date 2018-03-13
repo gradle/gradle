@@ -29,7 +29,8 @@ object SourcePathProvider {
         classPath: ClassPath,
         projectDir: File,
         gradleHomeDir: File?,
-        sourceDistributionResolver: SourceDistributionProvider): ClassPath {
+        sourceDistributionResolver: SourceDistributionProvider
+    ): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
@@ -64,7 +65,5 @@ object SourcePathProvider {
 
 internal
 fun subDirsOf(dir: File): Collection<File> =
-    if (dir.isDirectory)
-        dir.listFiles().filter { it.isDirectory }
-    else
-        emptyList()
+    if (dir.isDirectory) dir.listFiles().filter { it.isDirectory }
+    else emptyList()

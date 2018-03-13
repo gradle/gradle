@@ -28,16 +28,19 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import javax.inject.Inject
 
+
 internal
 class PluginRequestsHandler @Inject constructor(
     private val pluginRequestApplicator: PluginRequestApplicator,
-    private val autoAppliedPluginHandler: AutoAppliedPluginHandler) {
+    private val autoAppliedPluginHandler: AutoAppliedPluginHandler
+) {
 
     fun handle(
         pluginRequests: PluginRequests?,
         scriptHandler: ScriptHandlerInternal,
         target: PluginAwareInternal,
-        targetScope: ClassLoaderScope) {
+        targetScope: ClassLoaderScope
+    ) {
 
         val effectivePluginRequests = pluginRequests
             ?.let { withAutoAppliedPluginsFor(target, it) }
@@ -53,5 +56,4 @@ class PluginRequestsHandler @Inject constructor(
     private
     fun withAutoAppliedPluginsFor(target: Any, pluginRequests: PluginRequests): PluginRequests =
         autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(pluginRequests, target)
-
 }

@@ -68,7 +68,8 @@ class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
     val gradleApiJarsProvider: JarsProvider,
     val jarCache: JarCache,
-    val progressMonitorProvider: JarGenerationProgressMonitorProvider) {
+    val progressMonitorProvider: JarGenerationProgressMonitorProvider
+) {
 
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.

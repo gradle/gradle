@@ -64,11 +64,21 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
     }
 
     data class ClassLoaderHierarchy(
-        val classLoaders: List<ClassLoaderNode>, val scopes: List<ScopeNode>)
+        val classLoaders: List<ClassLoaderNode>,
+        val scopes: List<ScopeNode>
+    )
 
     data class ClassLoaderNode(
-        val id: String, val label: String, val parents: Set<String>, val classPath: List<String>)
+        val id: String,
+        val label: String,
+        val parents: Set<String>,
+        val classPath: List<String>
+    )
 
     data class ScopeNode(
-        val label: String, val localClassLoader: String, val exportClassLoader: String, val isLocked: Boolean)
+        val label: String,
+        val localClassLoader: String,
+        val exportClassLoader: String,
+        val isLocked: Boolean
+    )
 }

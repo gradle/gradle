@@ -12,6 +12,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+
 class PluginDependenciesSpecScopeTest {
 
     @Test
@@ -72,7 +73,6 @@ class PluginDependenciesSpecScopeTest {
             kotlin("jvm") version "1.1.1"
         }
     }
-
 }
 
 
@@ -82,13 +82,15 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
         equalTo(expected.asList()))
 }
 
+
 fun plugins(block: PluginDependenciesSpecScope.() -> Unit): List<PluginRequestInternal> =
     PluginRequestCollector(StringScriptSource("script", "")).run {
         PluginDependenciesSpecScope(createSpec(1)).block()
         pluginRequests.toList()
     }
 
+
 fun plugin(id: String, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
 
-data class Plugin(val id: String, val version: String?, val isApply: Boolean)
 
+data class Plugin(val id: String, val version: String?, val isApply: Boolean)

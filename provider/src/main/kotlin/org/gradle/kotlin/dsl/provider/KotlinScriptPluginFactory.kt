@@ -36,12 +36,16 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     val classloadingCache: KotlinScriptClassloadingCache,
     val pluginRequestsHandler: PluginRequestsHandler,
     val embeddedKotlinProvider: EmbeddedKotlinProvider,
-    val classPathModeExceptionCollector: ClassPathModeExceptionCollector) : ScriptPluginFactory {
+    val classPathModeExceptionCollector: ClassPathModeExceptionCollector
+) : ScriptPluginFactory {
 
     override fun create(
-        scriptSource: ScriptSource, scriptHandler: ScriptHandler,
-        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-        topLevelScript: Boolean): ScriptPlugin =
+        scriptSource: ScriptSource,
+        scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope,
+        baseScope: ClassLoaderScope,
+        topLevelScript: Boolean
+    ): ScriptPlugin =
 
         KotlinScriptPlugin(
             scriptSource,
@@ -49,9 +53,12 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
     private
     fun createScriptAction(
-        scriptSource: ScriptSource, scriptHandler: ScriptHandler,
-        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-        topLevelScript: Boolean): (Any) -> Unit = { target ->
+        scriptSource: ScriptSource,
+        scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope,
+        baseScope: ClassLoaderScope,
+        topLevelScript: Boolean
+    ): (Any) -> Unit = { target ->
 
         val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
         val script = compile(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope)
@@ -64,21 +71,23 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
-        baseScope: ClassLoaderScope): KotlinScript =
+        baseScope: ClassLoaderScope
+    ): KotlinScript =
 
         compilerFor(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope).run {
 
-            if (inClassPathMode())
-                compileForClassPath()
-            else
-                compile()
+            if (inClassPathMode()) compileForClassPath()
+            else compile()
         }
 
     private
     fun compilerFor(
         scriptTarget: KotlinScriptTarget<Any>,
-        scriptSource: ScriptSource, scriptHandler: ScriptHandler,
-        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope) =
+        scriptSource: ScriptSource,
+        scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope,
+        baseScope: ClassLoaderScope
+    ) =
 
         KotlinBuildScriptCompiler(
             kotlinCompiler,

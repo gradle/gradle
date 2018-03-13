@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.initialization.GradleApiSpecProvider
 
+
 class KotlinGradleApiSpecProvider : GradleApiSpecProvider {
 
     override fun get() = KotlinSpec

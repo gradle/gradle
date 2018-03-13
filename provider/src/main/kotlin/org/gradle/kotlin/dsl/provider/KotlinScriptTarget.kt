@@ -32,7 +32,11 @@ import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
-import org.gradle.kotlin.dsl.support.*
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 
 import java.lang.IllegalArgumentException
 
@@ -45,13 +49,14 @@ fun kotlinScriptTargetFor(
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
     baseScope: ClassLoaderScope,
-    topLevelScript: Boolean): KotlinScriptTarget<Any> =
+    topLevelScript: Boolean
+): KotlinScriptTarget<Any> =
 
     when (target) {
-        is Project  -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
+        is Project -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
         is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        is Gradle   -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
-        else        -> unsupportedTarget(target)
+        is Gradle -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
+        else -> unsupportedTarget(target)
     }
 
 
@@ -66,7 +71,8 @@ fun settingsScriptTarget(
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
     baseScope: ClassLoaderScope,
-    topLevelScript: Boolean) =
+    topLevelScript: Boolean
+) =
 
     KotlinScriptTarget(
         host = KotlinScriptHost(settings, scriptSource, serviceRegistryOf(settings), baseScope, scriptHandler),
@@ -80,7 +86,8 @@ fun projectScriptTarget(
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
     baseScope: ClassLoaderScope,
-    topLevelScript: Boolean): KotlinScriptTarget<Project> =
+    topLevelScript: Boolean
+): KotlinScriptTarget<Project> =
 
     KotlinScriptTarget(
         host = KotlinScriptHost(project, scriptSource, serviceRegistryOf(project), baseScope, scriptHandler),
@@ -100,7 +107,8 @@ fun gradleInitScriptTarget(
     gradle: Gradle,
     scriptHandler: ScriptHandler,
     scriptSource: ScriptSource,
-    baseScope: ClassLoaderScope): KotlinScriptTarget<Gradle> =
+    baseScope: ClassLoaderScope
+): KotlinScriptTarget<Gradle> =
 
     KotlinScriptTarget(
         host = KotlinScriptHost(gradle, scriptSource, serviceRegistryOf(gradle), baseScope, scriptHandler),
@@ -131,7 +139,8 @@ data class KotlinScriptTarget<out T : Any>(
     val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val buildscriptBlockName: String = "buildscript",
-    private val onPrepare: T.() -> Unit = {}) {
+    private val onPrepare: T.() -> Unit = {}
+) {
 
     val `object`
         get() = host.target

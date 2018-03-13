@@ -8,6 +8,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+
 class KotlinCompilerTest : TestWithTempFiles() {
 
     @Test
@@ -41,4 +42,3 @@ class KotlinCompilerTest : TestWithTempFiles() {
         assert(outputJar.delete())
     }
 }
-

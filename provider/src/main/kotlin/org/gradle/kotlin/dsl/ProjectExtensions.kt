@@ -55,8 +55,8 @@ import kotlin.reflect.KProperty
  * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
  */
-inline
 @Suppress("nothing_to_inline")
+inline
 fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
@@ -117,8 +117,8 @@ fun <reified type : Task> Project.task(name: String, noinline configuration: typ
  * @see [Project.getTasks]
  * @see [TaskContainer.create]
  */
-inline
 @Suppress("extension_shadowed_by_member")
+inline
 fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 

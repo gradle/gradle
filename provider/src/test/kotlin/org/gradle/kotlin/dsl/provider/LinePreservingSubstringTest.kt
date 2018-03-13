@@ -5,6 +5,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+
 class LinePreservingSubstringTest {
 
     @Test

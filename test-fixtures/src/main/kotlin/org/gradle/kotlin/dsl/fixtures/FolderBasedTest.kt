@@ -4,6 +4,7 @@ import org.junit.Rule
 
 import java.io.File
 
+
 abstract class FolderBasedTest {
 
     @JvmField
@@ -29,10 +30,13 @@ abstract class FolderBasedTest {
         }
 }
 
+
 typealias FoldersDslExpression = FoldersDsl.() -> Unit
+
 
 fun File.withFolders(folders: FoldersDslExpression) =
     apply { FoldersDsl(this).folders() }
+
 
 class FoldersDsl(val root: File) {
 
@@ -48,5 +52,4 @@ class FoldersDsl(val root: File) {
     private
     fun String.asCanonicalFile(): File =
         File(root, this).canonicalFile
-
 }

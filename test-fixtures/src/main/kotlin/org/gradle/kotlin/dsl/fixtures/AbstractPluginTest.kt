@@ -1,6 +1,4 @@
-package org.gradle.kotlin.dsl.plugins
-
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -9,6 +7,11 @@ import org.junit.Before
 import java.io.File
 import java.util.*
 
+
+/**
+ * Base class for Gradle plugins tests.
+ * You must apply the `kotlin-dsl-plugin-bundle` plugin for this to work.
+ */
 open class AbstractPluginTest : AbstractIntegrationTest() {
 
     @Before
@@ -19,7 +22,7 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
             pluginManagement {
                 repositories {
                     maven { url = uri("$testRepository") }
-                    jcenter()
+                    gradlePluginPortal()
                 }
                 resolutionStrategy {
                     eachPlugin {

@@ -15,12 +15,13 @@ fun loadExtraPropertiesOf(project: Project) = project.run {
 }
 
 
-val Project.kotlinVersion get() = rootProject.extra["kotlinVersion"] as String
+val Project.kotlinVersion
+    get() = rootProject.extra["kotlinVersion"] as String
 
 
 fun Project.futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
 
 private
-val Project.extra: ExtraPropertiesExtension get() = extensions.extraProperties
-
+val Project.extra: ExtraPropertiesExtension
+    get() = extensions.extraProperties

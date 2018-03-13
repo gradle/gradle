@@ -32,7 +32,8 @@ internal
 data class ProjectSchema<out T>(
     val extensions: Map<String, T>,
     val conventions: Map<String, T>,
-    val configurations: List<String>) : Serializable {
+    val configurations: List<String>
+) : Serializable {
 
     fun <U> map(f: (T) -> U) =
         ProjectSchema(
@@ -64,7 +65,8 @@ internal
 fun accessibleProjectSchemaFrom(
     extensionSchema: ExtensionsSchema,
     conventionPlugins: Map<String, Any>,
-    configurationNames: List<String>): ProjectSchema<TypeOf<*>> =
+    configurationNames: List<String>
+): ProjectSchema<TypeOf<*>> =
 
     ProjectSchema(
         extensions = extensionSchema

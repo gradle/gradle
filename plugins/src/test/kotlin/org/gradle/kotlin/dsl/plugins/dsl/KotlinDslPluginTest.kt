@@ -2,7 +2,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
-import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
 

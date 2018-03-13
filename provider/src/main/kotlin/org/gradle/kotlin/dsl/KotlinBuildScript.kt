@@ -37,7 +37,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinBuildScript(
-    private val host: KotlinScriptHost<Project>) : Project by host.target {
+    private val host: KotlinScriptHost<Project>
+) : Project by host.target {
 
     /**
      * The [ScriptHandler] for this script.
@@ -61,4 +62,3 @@ abstract class KotlinBuildScript(
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit) = Unit
 }
-

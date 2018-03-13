@@ -26,6 +26,7 @@ import org.junit.Test
 
 import java.io.File
 
+
 class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
@@ -774,4 +775,3 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     val fixturesRepository: File
         get() = File(rootProjectDir, "fixtures/repository").absoluteFile
 }
-

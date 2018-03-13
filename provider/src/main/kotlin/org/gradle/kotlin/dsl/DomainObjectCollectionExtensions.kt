@@ -47,4 +47,3 @@ fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configur
 inline
 fun <reified S : Any> DomainObjectCollection<in S>.withType() =
     withType(S::class.java)
-

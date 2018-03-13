@@ -27,17 +27,19 @@ import java.util.jar.JarFile
 
 internal
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
-    file.bufferedWriter().use { it.apply {
-        write(fileHeader)
-        write("\n")
-        write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
-        write("import ${PluginDependencySpec::class.qualifiedName}\n")
-        pluginIdExtensionDeclarationsFor(gradleJars).forEach {
+    file.bufferedWriter().use {
+        it.apply {
+            write(fileHeader)
             write("\n")
-            write(it)
-            write("\n")
+            write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
+            write("import ${PluginDependencySpec::class.qualifiedName}\n")
+            pluginIdExtensionDeclarationsFor(gradleJars).forEach {
+                write("\n")
+                write(it)
+                write("\n")
+            }
         }
-    } }
+    }
 }
 
 
@@ -68,7 +70,8 @@ data class PluginExtension(
     val memberName: String,
     val pluginId: String,
     val website: String?,
-    val implementationClass: String)
+    val implementationClass: String
+)
 
 
 private
@@ -256,4 +259,3 @@ fun pluginEntriesFrom(jar: File): List<PluginEntry> =
             PluginEntry(id, implementationClass)
         }.toList()
     }
-
