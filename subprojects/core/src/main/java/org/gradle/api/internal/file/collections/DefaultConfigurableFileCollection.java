@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -38,23 +39,23 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
 
-    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this("file collection", fileResolver, taskResolver, null);
     }
 
-    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Collection<?> files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Collection<?> files) {
         this("file collection", fileResolver, taskResolver, files);
     }
 
-    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Object[] files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Object[] files) {
         this("file collection", fileResolver, taskResolver, Arrays.asList(files));
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver) {
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this(displayName, fileResolver, taskResolver, null);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver, Collection<?> files) {
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new LinkedHashSet<Object>();
