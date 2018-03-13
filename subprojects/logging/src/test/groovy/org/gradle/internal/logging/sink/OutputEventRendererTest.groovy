@@ -358,6 +358,59 @@ class OutputEventRendererTest extends OutputSpecification {
         outputs.stdOut.readLines() == ['info']
         outputs.stdErr == ''
     }
+
+    def "renders log events when plain console is attached"() {
+        def snapshot = renderer.snapshot()
+        def stdoutListener = new TestListener()
+        def stderrListener = new TestListener()
+        renderer.attachPlainConsole(stdoutListener, stderrListener)
+
+        when:
+        renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(event('info', LogLevel.INFO, 1L))
+        renderer.onOutput(event('error', LogLevel.ERROR, 1L))
+        renderer.onOutput(complete('status'))
+        renderer.restore(snapshot) // close console to flush
+
+        then:
+        stdoutListener.value.readLines() == ['description', 'info', 'description status']
+        stderrListener.value.readLines() == ['error']
+    }
+
+    def "renders log events in plain console when log level is debug"() {
+        renderer.configure(LogLevel.DEBUG)
+        def snapshot = renderer.snapshot()
+        def stdoutListener = new TestListener()
+        def stderrListener = new TestListener()
+        renderer.attachPlainConsole(stdoutListener, stderrListener)
+
+        when:
+        renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
+        renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
+        renderer.restore(snapshot) // close console to flush
+
+        then:
+        stdoutListener.value.readLines() == ['10:00:00.000 [INFO] [category] info']
+        stderrListener.value.readLines() == ['10:00:00.000 [ERROR] [category] error']
+    }
+
+    def "attaches plain console when stdout and stderr are attached"() {
+        when:
+        def stdoutListener = new TestListener()
+        def stderrListener = new TestListener()
+        renderer.attachSystemOutAndErr()
+        def snapshot = renderer.snapshot()
+        renderer.attachPlainConsole(stdoutListener, stderrListener)
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('error', LogLevel.ERROR))
+        renderer.restore(snapshot) // close console to flush
+
+        then:
+        stdoutListener.value.readLines() == ['info']
+        stderrListener.value.readLines() == ['error']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
+    }
 }
 
 class TestListener implements StandardOutputListener {
