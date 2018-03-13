@@ -40,15 +40,6 @@ abstract class IncrementalFilerTest extends Specification {
 
     abstract Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager)
 
-    def "packages are valid originating elements"() {
-        when:
-        filer.createSourceFile("Foo", pkg("fizz"))
-
-        then:
-        result.generatedTypesByOrigin.size() == 1
-        result.generatedTypesByOrigin["fizz.package-info"] == ["Foo"] as Set
-    }
-
     def "fails when trying to read resources"() {
         when:
         filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
@@ -63,19 +54,6 @@ abstract class IncrementalFilerTest extends Specification {
 
         then:
         1 * messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors are not allowed to create resources.")
-    }
-
-    def "adds originating types to the processing result"() {
-        when:
-        filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
-        filer.createSourceFile("Bar", type("B"))
-
-        then:
-        result.generatedTypesByOrigin.size() == 3
-        result.generatedTypesByOrigin["A"] == ["Foo"] as Set
-        result.generatedTypesByOrigin["pkg.package-info"] == ["Foo"] as Set
-        result.generatedTypesByOrigin["B"] == ["Foo", "Bar"] as Set
-
     }
 
     PackageElement pkg(String packageName) {

@@ -36,11 +36,22 @@ class MultipleOriginFilerTest extends IncrementalFilerTest {
         then:
         0 * messager._
     }
+
     def "does not fail when many originating elements are given"() {
         when:
         filer.createSourceFile("Foo", type("Bar"), type("Baz"))
 
         then:
         0 * messager._
+    }
+
+    def "adds generated types to the processing result"() {
+        when:
+        filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
+        filer.createSourceFile("Bar", type("B"))
+
+        then:
+        result.generatedTypesByOrigin.isEmpty()
+        result.aggregatedTypes == ["Foo", "Bar"] as Set
     }
 }
