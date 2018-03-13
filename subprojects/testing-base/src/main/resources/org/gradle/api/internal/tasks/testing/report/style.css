@@ -82,3 +82,14 @@ ul.linkList li {
     list-style: none;
     margin-bottom: 5px;
 }
+
+span:empty {
+    display: none;
+}
+
+span.method {
+    padding: 2px 8px;
+    margin: 4px;
+    border-radius: 4px;
+    background-color: #c5f0f5;
+}

@@ -110,10 +110,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             parseTestClassFile()
         }
 
-        private extractTestCaseTo(String cssSelector, Collection<TestCase> target){
+        private extractTestCaseTo(String cssSelector, Collection<TestCase> target) {
             html.select(cssSelector).each {
-                def testName = it.attr('title')
                 def testDisplayName = it.textNodes().first().wholeText.trim()
+                def testName = it.childNode(1).textNodes().isEmpty() ? testDisplayName : it.childNode(1).textNodes().first().wholeText.trim()
                 def failureMessage = getFailureMessages(testName)
                 def testCase = new TestCase(testName, testDisplayName, failureMessage)
                 testsExecuted << testCase
@@ -182,7 +182,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         boolean testFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
-            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName}
+            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName }
             if (testCase.isEmpty()) {
                 return false
             }

@@ -133,7 +133,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //it's possible that we receive an output for a suite here
             //in this case we will create the test result for a suite that normally would not be created
             //feels like this scenario should modelled more explicitly
-            classResult = new TestClassResult(internalIdCounter++, className, 0);
+            classResult = new TestClassResult(internalIdCounter++, className, TestDescriptorInternal.class.cast(testDescriptor).getClassDisplayName(), 0);
             results.put(className, classResult);
         }
 

@@ -136,7 +136,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportTestClassStarted(TestIdentifier testIdentifier) {
-        currentRunningTestClass.start(className(testIdentifier));
+        currentRunningTestClass.start(className(testIdentifier), classDisplayName(testIdentifier));
     }
 
     private void reportTestClassFinished(TestIdentifier testIdentifier, Throwable failure) {
@@ -196,7 +196,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String className(TestIdentifier testClassIdentifier) {
-        if (testClassIdentifier != null) {
+        if (testClassIdentifier != null && testClassIdentifier.getSource().isPresent()) {
             return ClassSource.class.cast(testClassIdentifier.getSource().get()).getClassName();
         } else {
             return "UnknownClass";
@@ -215,10 +215,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         private String name;
         private int count;
 
-        private void start(String className) {
+        private void start(String className, String displayName) {
             if (name == null) {
                 name = className;
-                executionListener.testClassStarted(className);
+                executionListener.testClassStarted(className, displayName);
                 count = 1;
             } else if (className.equals(name)) {
                 count++;
