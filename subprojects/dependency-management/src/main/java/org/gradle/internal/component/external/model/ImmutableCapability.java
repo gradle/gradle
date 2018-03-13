@@ -22,11 +22,13 @@ public class ImmutableCapability implements CapabilityDescriptor {
     private final String group;
     private final String name;
     private final String version;
+    private final int hashCode;
 
     public ImmutableCapability(String group, String name, String version) {
         this.group = group;
         this.name = name;
         this.version = version;
+        this.hashCode = Objects.hashCode(group, name, version);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class ImmutableCapability implements CapabilityDescriptor {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(group, name, version);
+        return hashCode;
     }
 
     @Override
