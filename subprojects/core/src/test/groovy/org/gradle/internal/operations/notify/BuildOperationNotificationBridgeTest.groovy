@@ -30,7 +30,7 @@ import org.gradle.testing.internal.util.Specification
 class BuildOperationNotificationBridgeTest extends Specification {
 
     def listenerManager = new DefaultListenerManager()
-    def buildOperationListenerManager = new DefaultBuildOperationListenerManager(listenerManager)
+    def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
     def broadcast = buildOperationListenerManager.broadcaster
     def listener = Mock(BuildOperationNotificationListener)
     def listener2 = Mock(BuildOperationNotificationListener2)

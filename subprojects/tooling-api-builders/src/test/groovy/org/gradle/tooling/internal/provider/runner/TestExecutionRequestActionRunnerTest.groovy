@@ -25,7 +25,7 @@ class TestExecutionRequestActionRunnerTest extends Specification {
     def "does not handle non TestExecutionRequestAction"(){
         given:
         BuildOperationListenerManager buildOperationService = Mock(BuildOperationListenerManager)
-        def runner = new TestExecutionRequestActionRunner(buildOperationService, listenerManager)
+        def runner = new TestExecutionRequestActionRunner(buildOperationService)
         BuildAction buildAction = Mock(BuildAction)
         BuildController buildController= Mock(BuildController)
         when:
