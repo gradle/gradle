@@ -23,15 +23,12 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
-import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.DelegatingBuildOperationExecutor;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
@@ -73,13 +70,11 @@ public class CrossBuildSessionScopeServices implements Closeable {
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
         this.services = new Services(parent);
 
-        ListenerManager globalListenerManager = parent.get(ListenerManager.class);
-        ListenerManager crossSessionListenerManager = globalListenerManager.createChild();
-        this.buildOperationListenerManager = new DefaultBuildOperationListenerManager(crossSessionListenerManager);
-        this.buildOperationTrace = new BuildOperationTrace(startParameter, globalListenerManager);
-        this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, globalListenerManager);
+        this.buildOperationListenerManager = parent.get(BuildOperationListenerManager.class);
 
-        LoggingManagerInternal rootLoggingManager = parent.get(DefaultLoggingManagerFactory.class).getRoot();
+        ListenerManager generalListenerManager = parent.get(ListenerManager.class);
+        this.buildOperationTrace = new BuildOperationTrace(startParameter, buildOperationListenerManager, generalListenerManager);
+        this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
         this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(OutputEventListenerManager.class), buildOperationListenerManager.getBroadcaster());
     }
 

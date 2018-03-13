@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.TaskInternal;
@@ -38,7 +39,6 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEve
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -50,7 +50,9 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private final BuildOperationListener delegate;
-    private final Set<Object> skipEvents = new HashSet<Object>();
+
+    // BuildOperationListener dispatch is not serialized
+    private final Set<Object> skipEvents = Sets.newConcurrentHashSet();
 
     ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
         this.eventConsumer = eventConsumer;
@@ -60,7 +62,8 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (skipEvents.contains(buildOperation.getParentId())) {
+        OperationIdentifier parentId = buildOperation.getParentId();
+        if (parentId != null && skipEvents.contains(parentId)) {
             skipEvents.add(buildOperation.getId());
             return;
         }

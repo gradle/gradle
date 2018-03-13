@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,16 @@ package org.gradle.internal.operations;
 /**
  * Manages listeners of build operations.
  *
- * Be aware that there are two instances of this within the services hierarchy:
+ * There is one global listener for the life of the build runtime.
+ * Listeners must be sure to remove themselves if they want to only listen for a single build.
  *
- * - Global scoped (used by TAPI infrastructure)
- * - Cross build session
+ * Listeners are notified in registration order.
+ * Started and progress notifications are emitted in registration order,
+ * while finished notifications are emitted in reverse registration order.
+ *
+ * Listeners will not receive progress notifications for events before they have received
+ * the corresponding start notification or after they have received the corresponding finished notification.
+ * Such notifications are just discarded for the listener.
  *
  * @since 3.5
  */

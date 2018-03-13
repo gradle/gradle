@@ -18,12 +18,9 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.Maps;
 import org.gradle.api.Task;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -50,11 +47,11 @@ import java.util.Map;
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestOperationListener implements TestListenerInternal, BuildOperationListener {
+class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
-    private Map<Object, String> runningTasks = Maps.newHashMap();
+    private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
 
     ClientForwardingTestOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
@@ -62,8 +59,19 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     }
 
     @Override
-    public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(startEvent.getStartTime(), adapt(testDescriptor)));
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        Object details = buildOperation.getDetails();
+        if (details instanceof ExecuteTaskBuildOperationDetails) {
+            Task task = ((ExecuteTaskBuildOperationDetails) details).getTask();
+            if (!(task instanceof Test)) {
+                return;
+            }
+            runningTasks.put(buildOperation.getId(), task.getPath());
+        } else if (details instanceof ExecuteTestBuildOperationType.Details) {
+            ExecuteTestBuildOperationType.Details testOperationDetails = (ExecuteTestBuildOperationType.Details) details;
+            TestDescriptorInternal testDescriptor = (TestDescriptorInternal) testOperationDetails.getTestDescriptor();
+            eventConsumer.dispatch(new DefaultTestStartedProgressEvent(testOperationDetails.getStartTime(), adapt(testDescriptor)));
+        }
     }
 
     @Override
@@ -71,13 +79,14 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     }
 
     @Override
-    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(completeEvent.getEndTime(), adapt(testDescriptor), adapt(testResult)));
-    }
-
-    @Override
-    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-        // Don't forward
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
+            runningTasks.remove(buildOperation.getId());
+        } else if (finishEvent.getResult() instanceof ExecuteTestBuildOperationType.Result) {
+            TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
+            TestDescriptorInternal testDescriptor = (TestDescriptorInternal) ((ExecuteTestBuildOperationType.Details) buildOperation.getDetails()).getTestDescriptor();
+            eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(testResult.getEndTime(), adapt(testDescriptor), adapt(testResult)));
+        }
     }
 
     private DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
@@ -152,23 +161,4 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
         return failures;
     }
 
-    @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails)) {
-            return;
-        }
-        Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
-        if (!(task instanceof Test)) {
-            return;
-        }
-        runningTasks.put(buildOperation.getId(), task.getPath());
-    }
-
-    @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails)) {
-            return;
-        }
-        runningTasks.remove(buildOperation.getId());
-    }
 }
