@@ -1,5 +1,6 @@
 import build.futureKotlin
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.internal.hash.Hashing
 
 plugins {
     id("kotlin-dsl-plugin-bundle")
@@ -66,7 +67,16 @@ val rulesetJar by tasks.creating(ShadowJar::class) {
     configurations = listOf(rulesetShaded)
     from(java.sourceSets["ruleset"].output)
 }
-java.sourceSets["main"].output.dir(mapOf("builtBy" to rulesetJar), generatedResourcesRulesetJarDir)
+val rulesetChecksum by tasks.creating {
+    dependsOn(rulesetJar)
+    val rulesetChecksumFile = generatedResourcesRulesetJarDir.resolve(basePackagePath).resolve("gradle-kotlin-dsl-ruleset.md5")
+    outputs.file(rulesetChecksumFile)
+    doLast {
+        rulesetChecksumFile.parentFile.mkdirs()
+        rulesetChecksumFile.writeText(Hashing.md5().hashBytes(rulesetJar.archivePath.readBytes()).toString())
+    }
+}
+java.sourceSets["main"].output.dir(mapOf("builtBy" to listOf(rulesetJar, rulesetChecksum)), generatedResourcesRulesetJarDir)
 
 dependencies {
     rulesetShaded("com.github.shyiko.ktlint:ktlint-ruleset-standard:$ktlintVersion") {

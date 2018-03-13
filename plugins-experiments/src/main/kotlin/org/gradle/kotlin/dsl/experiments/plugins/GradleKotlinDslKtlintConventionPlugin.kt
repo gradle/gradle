@@ -10,7 +10,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskState
 
 import org.gradle.cache.internal.GeneratedGradleJarCache
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.logging.ConsoleRenderer
 
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
@@ -21,7 +20,11 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 
 private
-const val rulesetJarName = "gradle-kotlin-dsl-ruleset.jar"
+val rulesetJar = GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.jar")
+
+
+private
+val rulesetChecksum = GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.md5").readText()
 
 
 open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
@@ -51,11 +54,8 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
 
     private
     fun Project.gradleKotlinDslKtlintRulesetJar() = provider {
-        val ruleset = this@GradleKotlinDslKtlintConventionPlugin.javaClass
-            .getResourceAsStream(rulesetJarName)!!.use { it.readBytes() }
-        val cacheKey = Hashing.md5().hashBytes(ruleset).toString()
-        serviceOf<GeneratedGradleJarCache>().get("ktlint-convention-ruleset-$cacheKey") { jar ->
-            jar.outputStream().use { it.write(ruleset) }
+        serviceOf<GeneratedGradleJarCache>().get("ktlint-convention-ruleset-$rulesetChecksum") { jar ->
+            jar.outputStream().use { it.write(rulesetJar.readBytes()) }
         }
     }
 
