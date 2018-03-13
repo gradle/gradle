@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@SuppressWarnings("WhileLoopReplaceableByForEach") // necessary for thread safety
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
     // This cannot be CopyOnWriteArrayList because we need to iterate it in reverse,
