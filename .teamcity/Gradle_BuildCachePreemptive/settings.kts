@@ -37,6 +37,7 @@ val buildModel = CIBuildModel(
         buildScanTags = listOf("BuildCachePreemptive"),
         stages = listOf(
                 Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
+                        trigger = Trigger.eachCommit,
                         specificBuilds = listOf(
                                 SpecificBuild.SanityCheck),
                         functionalTests = listOf(
