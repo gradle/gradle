@@ -54,7 +54,6 @@ public class ResourceVersionLister implements VersionLister {
         for (ResourcePattern pattern : patterns) {
             visit(pattern, artifact, module, collector, result);
         }
-        // Could be a bit smarter about this
         if (!collector.isEmpty()) {
             result.listed(collector);
         }
