@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -26,6 +28,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -35,7 +38,10 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications {
@@ -46,18 +52,30 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final AttributeContainerInternal attributes;
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
+    private final NotationParser<Object, CapabilityDescriptor> capabilityNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
+    private List<CapabilityDescriptor> capabilities;
+    private boolean canCreate = true;
 
-    public DefaultConfigurationPublications(DisplayName displayName, PublishArtifactSet artifacts, PublishArtifactSetProvider allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
+    public DefaultConfigurationPublications(DisplayName displayName,
+                                            PublishArtifactSet artifacts,
+                                            PublishArtifactSetProvider allArtifacts,
+                                            AttributeContainerInternal parentAttributes,
+                                            Instantiator instantiator,
+                                            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+                                            NotationParser<Object, CapabilityDescriptor> capabilityNotationParser,
+                                            FileCollectionFactory fileCollectionFactory,
+                                            ImmutableAttributesFactory attributesFactory) {
         this.displayName = displayName;
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
         this.parentAttributes = parentAttributes;
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
+        this.capabilityNotationParser = capabilityNotationParser;
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
         this.attributes = attributesFactory.mutable(parentAttributes);
@@ -140,17 +158,34 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         configureAction.execute(getVariants());
     }
 
+    @Override
+    public void capability(Object notation) {
+        if (canCreate) {
+            CapabilityDescriptor descriptor = capabilityNotationParser.parseNotation(notation);
+            if (capabilities == null) {
+                capabilities = Lists.newArrayListWithExpectedSize(1); // it's rare that a component would declare more than 1 capability
+            }
+            capabilities.add(descriptor);
+        } else {
+            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' after " + displayName + " has been resolved");
+        }
+    }
+
+    @Override
+    public Collection<? extends CapabilityDescriptor> getCapabilities() {
+        return capabilities == null ? Collections.<CapabilityDescriptor>emptyList() : ImmutableList.copyOf(capabilities);
+    }
+
     void preventFromFurtherMutation() {
+        canCreate = false;
         if (variants != null) {
             for (ConfigurationVariant variant : variants) {
                 ((ConfigurationVariantInternal)variant).preventFurtherMutation();
             }
-            variantFactory.canCreate = false;
         }
     }
 
     private class ConfigurationVariantFactory implements NamedDomainObjectFactory<ConfigurationVariant> {
-        private boolean canCreate = true;
         @Override
         public ConfigurationVariant create(String name) {
             if (canCreate) {

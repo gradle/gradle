@@ -29,8 +29,8 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             apply plugin: 'java-library'
             
-            capabilities {
-                api 'org:capability:1.0'
+            configurations.api.outgoing {
+                capability 'org:capability:1.0'
             }
 
             dependencies {
@@ -41,8 +41,8 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         file('b/build.gradle') << """
             apply plugin: 'java-library'
             
-            capabilities {
-                api 'org:capability:1.0'
+            configurations.api.outgoing {
+                capability group:'org', name:'capability', version:'1.0'
             }
         """
 

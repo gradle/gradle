@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.CapabilitiesExtension;
 import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
@@ -41,7 +40,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.DeprecationLogger;
@@ -69,13 +67,11 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ExtensionContainer extensions;
 
     @Inject
-    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ExtensionContainer extensions, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
+    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
-        this.extensions = extensions;
         this.attributesFactory = attributesFactory;
         this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
         this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
@@ -98,7 +94,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
         this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
         this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
         this.configurations = null;
-        this.extensions = null;
     }
 
     @VisibleForTesting
@@ -112,15 +107,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
     public Set<UsageContext> getUsages() {
         return ImmutableSet.of(runtimeUsage, compileUsage);
-    }
-
-    private CapabilitiesExtension getCapabilitiesExtension() {
-        if (extensions == null) {
-            return null;
-        }
-        // We need to defer the search for extension to the very last moment, because it can be added by
-        // a different plugin than the one this library was created
-        return extensions.findByType(CapabilitiesExtension.class);
     }
 
     private abstract class AbstractUsageContext implements UsageContext {
@@ -179,9 +165,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<? extends CapabilityDescriptor> getCapabilities() {
             if (capabilities == null) {
-                CapabilitiesExtension capabilitiesExtension = getCapabilitiesExtension();
                 this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME),
-                    capabilitiesExtension,
                     Sets.<CapabilityDescriptor>newHashSet(),
                     Sets.<Configuration>newHashSet()));
             }
@@ -222,9 +206,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<? extends CapabilityDescriptor> getCapabilities() {
             if (capabilities == null) {
-                CapabilitiesExtension capabilitiesExtension = getCapabilitiesExtension();
                 this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME),
-                    capabilitiesExtension,
                     Sets.<CapabilityDescriptor>newHashSet(),
                     Sets.<Configuration>newHashSet()));
             }

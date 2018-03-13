@@ -32,11 +32,14 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def parentAttributes = ImmutableAttributes.EMPTY
     def artifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact), TestFiles.fileCollectionFactory())
     def allArtifacts = new DefaultPublishArtifactSet("artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact), TestFiles.fileCollectionFactory())
-    def notationParser = Stub(NotationParser)
+    def artifactNotationParser = Stub(NotationParser)
+    def capabilityNotationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def attributesFactory = TestUtil.attributesFactory()
     def displayName = Describables.of("<config>")
-    def publications = new DefaultConfigurationPublications(displayName, artifacts, { allArtifacts }, parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory, attributesFactory)
+    def publications = new DefaultConfigurationPublications(displayName, artifacts, {
+        allArtifacts
+    }, parentAttributes, DirectInstantiator.INSTANCE, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory)
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }

@@ -127,8 +127,8 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         buildFile << """
             apply plugin: 'java-library'
             
-            capabilities {
-                api 'org:capability:1.0'
+            configurations.api.outgoing {
+                capability 'org:capability:1.0'
             }
 
             dependencies {

@@ -617,10 +617,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         given:
         createBuildScripts("""
 
-            capabilities {
-                api 'org:foo:1.0'
-                implementation 'org:bar:1.0'
-            }
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {

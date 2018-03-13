@@ -18,14 +18,13 @@ package org.gradle.api.internal.java;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionContainer;
 
 import javax.inject.Inject;
 
 public class JavaLibraryPlatform extends JavaLibrary {
     @Inject
-    public JavaLibraryPlatform(ObjectFactory objectFactory, ConfigurationContainer configurations, ExtensionContainer extensions, ImmutableAttributesFactory attributesFactory) {
-        super(objectFactory, configurations, extensions, attributesFactory, null);
+    public JavaLibraryPlatform(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory) {
+        super(objectFactory, configurations, attributesFactory, null);
     }
 
     @Override
