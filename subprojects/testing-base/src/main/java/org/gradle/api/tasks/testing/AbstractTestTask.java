@@ -432,6 +432,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
+        TestExecutionSpec executionSpec = createTestExecutionSpec();
+
         File binaryResultsDir = getBinResultsDir();
         getProject().delete(binaryResultsDir);
         getProject().mkdir(binaryResultsDir);
@@ -465,7 +467,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
 
         try {
-            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
+            testExecuter.execute(executionSpec, resultProcessor);
         } finally {
             parentProgressLogger.completed();
             testWorkerProgressListener.completeAll();
