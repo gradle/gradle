@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
@@ -34,6 +35,7 @@ public interface FileOperations {
 
     File file(Object path, PathValidation validation);
 
+    @Nullable
     URI uri(Object path);
 
     FileResolver getFileResolver();
