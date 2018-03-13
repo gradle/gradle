@@ -7,10 +7,9 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-
-import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
