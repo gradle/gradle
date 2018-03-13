@@ -54,7 +54,7 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
         variant2.artifacts >> artifacts2
 
         when:
-        converter.addConfigurations(metaData, [config1, config2], null)
+        converter.addConfigurations(metaData, [config1, config2])
 
         then:
         1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY)

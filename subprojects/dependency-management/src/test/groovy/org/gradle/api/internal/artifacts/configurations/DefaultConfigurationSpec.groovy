@@ -1642,7 +1642,7 @@ All Artifacts:
 
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
     }
 
     private DefaultPublishArtifact artifact(String name) {

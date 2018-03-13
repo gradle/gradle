@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.capabilities.CapabilitiesExtension;
 import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
@@ -39,9 +38,9 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         this.configurationMetadataBuilder = configurationMetadataBuilder;
     }
 
-    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations, CapabilitiesExtension capabilitiesExtension) {
+    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
         for (ConfigurationInternal configuration : configurations) {
-            addConfiguration(metaData, configuration, capabilitiesExtension);
+            addConfiguration(metaData, configuration);
 
             metaData.addDependenciesAndExcludesForConfiguration(configuration, configurationMetadataBuilder);
 
@@ -54,15 +53,14 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
     }
 
     private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData,
-                                                                 ConfigurationInternal configuration,
-                                                                 CapabilitiesExtension capabilitiesExtension) {
+                                                                 ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
 
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
         ImmutableCapabilities capabilities =
-            capabilitiesExtension == null ? ImmutableCapabilities.EMPTY : asImmutable(Configurations.collectCapabilities(configuration, capabilitiesExtension, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
+            asImmutable(Configurations.collectCapabilities(configuration, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,

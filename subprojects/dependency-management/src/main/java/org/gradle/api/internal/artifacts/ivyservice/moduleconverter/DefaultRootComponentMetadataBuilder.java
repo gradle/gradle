@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesExtension;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -66,8 +65,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
-        CapabilitiesExtension capabilitiesExtension = project == null ? null : project.getExtensions().findByType(CapabilitiesExtension.class);
-        localComponentMetadataBuilder.addConfigurations(metaData, configurationsProvider.getAll(), capabilitiesExtension);
+        localComponentMetadataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         holder.cachedValue = metaData;
         return metaData;
     }

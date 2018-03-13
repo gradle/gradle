@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.CapabilitiesExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -56,7 +55,6 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         JavaPluginConvention convention = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
         ConfigurationContainer configurations = project.getConfigurations();
         addApiToMainSourceSet(project, convention, configurations);
-        createCapabilitiesExtension(project);
     }
 
     private void addApiToMainSourceSet(Project project, JavaPluginConvention convention, ConfigurationContainer configurations) {
@@ -91,7 +89,4 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiConfiguration.extendsFrom(compileConfiguration);
     }
 
-    private void createCapabilitiesExtension(Project project) {
-        project.getExtensions().create("capabilities", CapabilitiesExtension.class, project.getConfigurations());
-    }
 }
