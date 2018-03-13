@@ -58,7 +58,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             htmlWriter.startElement("tr")
                 .startElement("td").attribute("class", test.getStatusClass())
                     .characters(test.getDisplayName())
-                        .startElement("span").attribute("class", "method").characters(determineTestName(test))
+                        .startElement("span").attribute("class", "method").characters(test.getMethodSpanName())
                         .endElement()
                     .endElement()
                 .startElement("td").characters(test.getFormattedDuration()).endElement()
@@ -66,14 +66,6 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             .endElement();
         }
         htmlWriter.endElement();
-    }
-
-    private String determineTestName(TestResult test) {
-        if (test.getName().equals(test.getDisplayName())) {
-            return ""; // empty span can be invisible via css
-        } else {
-            return test.getName();
-        }
     }
 
     @Override
