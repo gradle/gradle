@@ -20,14 +20,14 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.filter.TestClassSelectionMatcher;
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 
 public class PatternMatchTestClassProcessor implements TestClassProcessor {
-    private final TestClassSelectionMatcher testClassSelectionMatcher;
+    private final TestSelectionMatcher testClassSelectionMatcher;
     private final TestClassProcessor delegate;
 
     public PatternMatchTestClassProcessor(DefaultTestFilter testFilter, TestClassProcessor delegate) {
-        this.testClassSelectionMatcher = new TestClassSelectionMatcher(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns());
+        this.testClassSelectionMatcher = new TestSelectionMatcher(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns());
         this.delegate = delegate;
     }
 
@@ -38,7 +38,7 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        if (testClassSelectionMatcher.mayBeIncluded(testClass.getTestClassName())) {
+        if (testClassSelectionMatcher.mayIncludeClass(testClass.getTestClassName())) {
             delegate.processTestClass(testClass);
         }
     }
