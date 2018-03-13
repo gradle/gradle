@@ -212,7 +212,11 @@ class NodeState implements DependencyGraphNode {
         }
     }
 
-    // TODO:DAZ This should be done as a decorator on ConfigurationMetadata.getDependencies() ???
+    /**
+     * Execute any dependency substitution rules that apply to this dependency.
+     *
+     * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
+     */
     private DependencyState maybeSubstitute(DependencyState dependencyState) {
         DependencySubstitutionApplicator.SubstitutionResult substitutionResult = resolveState.getDependencySubstitutionApplicator().apply(dependencyState.getDependency());
         if (substitutionResult.hasFailure()) {
