@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -36,7 +37,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      * were not published using Gradle, so the consumer needs a way to express that and
      * enforce the use of only one of them at the same time.
      */
-    def "can choose between cglib and cglib-nodep by declaring capabilities"() {
+    @Unroll
+    def "can choose between cglib and cglib-nodep by declaring capabilities (#description)"() {
         given:
         repository {
             'cglib:cglib:3.2.5'()
@@ -49,17 +51,17 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib') {
+                  withModule('cglib:cglib') { details -> 
                      allVariants {
                          withCapabilities {
-                             addCapability('cglib', 'cglib', '3.2.5')
+                             addCapability('cglib', 'cglib', details.id.version)
                          }
                      }
                   }
-                  withModule('cglib:cglib-nodep') {
+                  withModule('cglib:cglib-nodep') { details ->
                      allVariants {
                          withCapabilities {
-                             addCapability('cglib', 'cglib', '3.2.5')
+                             addCapability('cglib', 'cglib', details.id.version)
                          }
                      }
                   }
@@ -69,9 +71,11 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             configurations.all {
                 resolutionStrategy {
                     dependencySubstitution {
-                        substitute(module('cglib:cglib-nodep'))
-                            .because('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
-                            .with(module('cglib:cglib:3.2.5'))
+                        if ($fixConflict) {
+                            substitute(module('cglib:cglib-nodep'))
+                                .because('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                                .with(module('cglib:cglib:3.2.5'))
+                        }
                     }
                 }
             }
@@ -80,18 +84,36 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         when:
         repositoryInteractions {
             'cglib:cglib:3.2.5' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
+            }
+            'cglib:cglib-nodep:3.2.5' {
+                if (!fixConflict) {
+                    expectGetMetadata()
+                }
             }
         }
-        run ':checkDeps'
+        if (fixConflict) {
+            run ':checkDeps'
+        } else {
+            fails ':checkDeps'
+        }
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
-                edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+        if (fixConflict) {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module('cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                    edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                }
             }
+        } else {
+            failure.assertHasCause("Cannot choose between cglib:cglib-nodep:3.2.5 and cglib:cglib:3.2.5 because they provide the same capability: cglib:cglib:3.2.5")
         }
+
+        where:
+        fixConflict | description
+        false       | 'conflict fix not applied'
+        true        | 'conflict fix applied'
 
     }
 
@@ -103,7 +125,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      *
      * This is from the consumer point of view, fixing the fact the library doesn't declare capabilities.
      */
-    def "can select groovy-all over individual groovy-whatever"() {
+    @Unroll
+    def "can select groovy-all over individual groovy-whatever (#description)"() {
         given:
         repository {
             'org.apache:groovy:1.0'()
@@ -126,25 +149,25 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy') {
+                  withModule('org.apache:groovy') { details ->
                      allVariants {
                         withCapabilities {
-                            addCapability('org.apache', 'groovy', '1.0')
+                            addCapability('org.apache', 'groovy', details.id.version)
                         }
                      }
                   }
-                  withModule('org.apache:groovy-json') {
+                  withModule('org.apache:groovy-json') { details ->
                      allVariants {
                         withCapabilities {
-                            addCapability('org.apache', 'groovy-json', '1.0')
+                            addCapability('org.apache', 'groovy-json', details.id.version)
                         }
                      }
                   }
-                  withModule('org.apache:groovy-all') {
+                  withModule('org.apache:groovy-all') { details ->
                      allVariants {
                         withCapabilities {
-                            addCapability('org.apache', 'groovy', '1.0')
-                            addCapability('org.apache', 'groovy-json', '1.0')
+                            addCapability('org.apache', 'groovy', details.id.version)
+                            addCapability('org.apache', 'groovy-json', details.id.version)
                         }
                      }
                   }
@@ -154,8 +177,10 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                configurations.all {
                    resolutionStrategy {
                        dependencySubstitution {
-                           substitute module('org.apache:groovy') with module('org.apache:groovy-all:1.0')
-                           substitute module('org.apache:groovy-json') with module('org.apache:groovy-all:1.0')
+                           if ($fixConflict) {
+                              substitute module('org.apache:groovy') with module('org.apache:groovy-all:1.0')
+                              substitute module('org.apache:groovy-json') with module('org.apache:groovy-all:1.0')
+                           }
                        }
                    }
                }
@@ -165,29 +190,47 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         when:
         repositoryInteractions {
             'org:a:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org:b:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org.apache:groovy-all:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
+            }
+            if (!fixConflict) {
+                'org.apache:groovy:1.0' {
+                    expectGetMetadata()
+                }
+                'org.apache:groovy-json:1.0' {
+                    expectGetMetadata()
+                }
             }
         }
 
         then:
-        run ':checkDeps'
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org:a:1.0') {
-                    edge('org.apache:groovy:1.0', 'org.apache:groovy-all:1.0')
-                    edge('org.apache:groovy-json:1.0', 'org.apache:groovy-all:1.0')
-                }
-                module('org:b:1.0') {
-                    edge('org.apache:groovy-all:1.0', 'org.apache:groovy-all:1.0')
+        if (fixConflict) {
+            run ':checkDeps'
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module('org:a:1.0') {
+                        edge('org.apache:groovy:1.0', 'org.apache:groovy-all:1.0')
+                        edge('org.apache:groovy-json:1.0', 'org.apache:groovy-all:1.0')
+                    }
+                    module('org:b:1.0') {
+                        edge('org.apache:groovy-all:1.0', 'org.apache:groovy-all:1.0')
+                    }
                 }
             }
+        } else {
+            fails ':checkDeps'
+            failure.assertHasCause("Cannot choose between org.apache:groovy-all:1.0 and org.apache:groovy:1.0 because they provide the same capability: org.apache:groovy:1.0")
         }
+
+        where:
+        fixConflict | description
+        false       | 'conflict fix not applied'
+        true        | 'conflict fix applied'
 
     }
 
@@ -202,7 +245,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      *
      * This is from the consumer point of view, fixing the fact the library doesn't declare capabilities.
      */
-    def "can select individual groovy-whatever over individual groovy-all"() {
+    @Unroll
+    def "can select individual groovy-whatever over individual groovy-all (#description)"() {
         given:
         repository {
             'org.apache:groovy:1.0'()
@@ -225,25 +269,25 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy') {
+                  withModule('org.apache:groovy') { details ->
                      allVariants {
                         withCapabilities {
-                            addCapability('org.apache', 'groovy', '1.0')
+                            addCapability('org.apache', 'groovy', details.id.version)
                         }
                      }
                   }
-                  withModule('org.apache:groovy-json') {
+                  withModule('org.apache:groovy-json') { details ->
                      allVariants {
                         withCapabilities {
-                            addCapability('org.apache', 'groovy-json', '1.0')
+                            addCapability('org.apache', 'groovy-json', details.id.version)
                         }
                      }
                   }
-                  withModule('org.apache:groovy-all') {
+                  withModule('org.apache:groovy-all') { details ->
                      allVariants {
                         withCapabilities {
-                            addCapability('org.apache', 'groovy', '1.0')
-                            addCapability('org.apache', 'groovy-json', '1.0')
+                            addCapability('org.apache', 'groovy', details.id.version)
+                            addCapability('org.apache', 'groovy-json', details.id.version)
                         }
                      }
                   }
@@ -252,7 +296,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                   configurations.all {
                       resolutionStrategy {
                           dependencySubstitution {
-                              substitute module('org.apache:groovy-all') with module('org.apache:groovy-json:1.0')
+                              if ($fixConflict) { substitute module('org.apache:groovy-all') with module('org.apache:groovy-json:1.0') }
                           }
                       }
                   }
@@ -263,35 +307,48 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         when:
         repositoryInteractions {
             'org:a:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org:b:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org.apache:groovy:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org.apache:groovy-json:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
+            }
+            'org.apache:groovy-all:1.0' {
+                if (!fixConflict)  { expectGetMetadata() }
             }
         }
 
         then:
-        run ':checkDeps'
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org:a:1.0') {
-                    edge('org.apache:groovy:1.0', 'org.apache:groovy:1.0')
-                    edge('org.apache:groovy-json:1.0', 'org.apache:groovy-json:1.0')
-                }
-                module('org:b:1.0') {
-                    // this is not quite right, as we should replace with 2 edges
-                    // one option to do it is to construct "adhoc" modules, and select an adhoc target in "prefer"
-                    // where this adhoc target would have dependencies on groovy-json and groovy
-                    edge('org.apache:groovy-all:1.0', 'org.apache:groovy-json:1.0')
+        if (fixConflict) {
+            run ':checkDeps'
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module('org:a:1.0') {
+                        edge('org.apache:groovy:1.0', 'org.apache:groovy:1.0')
+                        edge('org.apache:groovy-json:1.0', 'org.apache:groovy-json:1.0')
+                    }
+                    module('org:b:1.0') {
+                        // this is not quite right, as we should replace with 2 edges
+                        // one option to do it is to construct "adhoc" modules, and select an adhoc target in "prefer"
+                        // where this adhoc target would have dependencies on groovy-json and groovy
+                        edge('org.apache:groovy-all:1.0', 'org.apache:groovy-json:1.0')
+                    }
                 }
             }
+        } else {
+            fails ':checkDeps'
+            failure.assertHasCause("Cannot choose between org.apache:groovy-all:1.0 and org.apache:groovy:1.0 because they provide the same capability: org.apache:groovy:1.0")
         }
+
+        where:
+        fixConflict | description
+        false       | 'conflict fix not applied'
+        true        | 'conflict fix applied'
     }
 
     /**
@@ -354,7 +411,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         second << ['org.ow2.asm:asm:4.0', 'asm:asm:3.0']
     }
 
-
     /**
      * This test illustrates that published modules can declare capabilities, which are then discovered
      * as we visit the graph. But using a module substitution rule, we can fix the problem.
@@ -363,7 +419,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
-    def "can express preference for capabilities declared in published modules"() {
+    @Unroll
+    def "can express preference for capabilities declared in published modules (#description)"() {
         given:
         repository {
             'org:testA:1.0' {
@@ -388,7 +445,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             configurations.all {
                 resolutionStrategy {
                    dependencySubstitution {
-                      substitute module('org:testA') with module('org:testB:1.0')
+                      if ($fixConflict) { substitute module('org:testA') with module('org:testB:1.0') }
                    }
                 }
             }
@@ -397,19 +454,40 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         when:
         repositoryInteractions {
             'org:testB:1.0' {
-                expectResolve()
+                fixConflict ? expectResolve() : expectGetMetadata()
+            }
+            'org:testA:1.0' {
+                if (!fixConflict) { expectGetMetadata() }
             }
         }
-        run ":checkDeps"
+        if (fixConflict) {
+            run ":checkDeps"
+        } else {
+            fails ':checkDeps'
+        }
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge('org:testA:1.0', 'org:testB:1.0')
-                    .selectedByRule()
-                module('org:testB:1.0')
+        if (fixConflict) {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge('org:testA:1.0', 'org:testB:1.0')
+                        .selectedByRule()
+                    module('org:testB:1.0')
+                }
             }
+        } else {
+            failure.assertHasCause("Cannot choose between org:testA:1.0 and org:testB:1.0 because they provide the same capability: org.test:cap:1.0")
         }
+
+        where:
+        fixConflict | description
+        false       | 'conflict fix not applied'
+        true        | 'conflict fix applied'
     }
 
+    @Ignore
+    def "trust no one"() {
+        expect:
+        true // Spock doesn't like when there are only Unroll tests in a test class
+    }
 }
