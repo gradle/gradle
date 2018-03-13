@@ -37,6 +37,6 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         result.output.contains("Welcome to Gradle ${distribution.version.version}!")
-        result.output.contains("See what's new at https://gradle.org/releases/${distribution.version.version}")
+        result.output.contains("See what's new at https://gradle.org/releases#${distribution.version.version}")
     }
 }

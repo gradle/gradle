@@ -106,7 +106,7 @@ public class Install {
         if (gradleVersion != null) { // appVersion could be null in custom distributions
             logger.log("");
             logger.log("Welcome to Gradle " + gradleVersion + "!");
-            logger.log("See what's new at https://gradle.org/releases/" + gradleVersion);
+            logger.log("See what's new at https://gradle.org/releases#" + gradleVersion);
             logger.log("");
         }
     }
