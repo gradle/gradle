@@ -26,6 +26,10 @@ package org.gradle.internal.operations;
  * Started and progress notifications are emitted in registration order,
  * while finished notifications are emitted in reverse registration order.
  *
+ * Listeners will not receive progress notifications for events before they have received
+ * the corresponding start notification or after they have received the corresponding finished notification.
+ * Such notifications are just discarded for the listener.
+ *
  * @since 3.5
  */
 public interface BuildOperationListenerManager {

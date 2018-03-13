@@ -30,6 +30,7 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -257,13 +258,13 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "captures logging emitted from build operation listeners"() {
+    def "does not fail when build operation listeners emit logging"() {
         when:
         buildFile << """
             def manager = gradle.services.get($BuildOperationListenerManager.name)
             def listener = new $BuildOperationListener.name() {
                 void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {
-                    println "started \$buildOperation.id"
+                    logger.lifecycle "started operation"
                 }
 
                 void progress($OperationIdentifier.name operationIdentifier, $OperationProgressEvent.name progressEvent) {
@@ -275,12 +276,12 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                     ) {
                         // ignore, otherwise we recurse unto death
                     } else {
-                        println "progress \$operationIdentifier"
+                        logger.lifecycle "progress \$operationIdentifier"
                     }      
                 }
 
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
-                    println "finished \$buildOperation.id"
+                    logger.lifecycle "finished operation"
                 }
             } 
             manager.addListener(listener) 
@@ -292,6 +293,15 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "t"
+
+        List<BuildOperationRecord.Progress> output = []
+        operations.walk(operations.roots().first()) {
+            output.addAll(it.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) })
+        }
+
+        def uniqueMessages = output.collect { it.details.message }.unique()
+        uniqueMessages.contains "started operation"
+        uniqueMessages.contains "finished operation"
     }
 
     def "filters non supported output events"() {

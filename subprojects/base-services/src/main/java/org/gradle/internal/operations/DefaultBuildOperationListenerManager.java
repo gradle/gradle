@@ -16,48 +16,50 @@
 
 package org.gradle.internal.operations;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @SuppressWarnings("WhileLoopReplaceableByForEach") // necessary for thread safety
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
-    private final Lock listenersLock = new ReentrantLock();
-
     // This cannot be CopyOnWriteArrayList because we need to iterate it in reverse,
     // which requires atomically getting an iterator and the size.
     // Moreover, we iterate this list far more often that we mutate,
     // making a (albeit home grown) copy-on-write strategy more appealing.
-    private List<BuildOperationListener> listeners = Collections.emptyList();
+    private List<ProgressShieldingBuildOperationListener> listeners = Collections.emptyList();
+    private final Lock listenersLock = new ReentrantLock();
 
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            Iterator<BuildOperationListener> iterator = listeners.iterator();
-            while (iterator.hasNext()) {
-                iterator.next().started(buildOperation, startEvent);
+            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < listeners.size(); ++i) {
+                listeners.get(i).started(buildOperation, startEvent);
             }
         }
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            Iterator<BuildOperationListener> iterator = listeners.iterator();
-            while (iterator.hasNext()) {
-                iterator.next().progress(operationIdentifier, progressEvent);
+            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < listeners.size(); ++i) {
+                listeners.get(i).progress(operationIdentifier, progressEvent);
             }
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            List<BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
-            ListIterator<BuildOperationListener> iterator = listeners.listIterator(listeners.size());
-            while (iterator.hasPrevious()) {
-                iterator.previous().finished(buildOperation, finishEvent);
+            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
+            for (int i = listeners.size() - 1; i >= 0; --i) {
+                listeners.get(i).finished(buildOperation, finishEvent);
             }
         }
     };
@@ -66,8 +68,8 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     public void addListener(BuildOperationListener listener) {
         listenersLock.lock();
         try {
-            List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>(this.listeners);
-            listeners.add(listener);
+            List<ProgressShieldingBuildOperationListener> listeners = new ArrayList<ProgressShieldingBuildOperationListener>(this.listeners);
+            listeners.add(new ProgressShieldingBuildOperationListener(listener));
             this.listeners = listeners;
         } finally {
             listenersLock.unlock();
@@ -78,8 +80,13 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     public void removeListener(BuildOperationListener listener) {
         listenersLock.lock();
         try {
-            List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>(this.listeners);
-            listeners.remove(listener);
+            List<ProgressShieldingBuildOperationListener> listeners = new ArrayList<ProgressShieldingBuildOperationListener>(this.listeners);
+            ListIterator<ProgressShieldingBuildOperationListener> listIterator = listeners.listIterator();
+            while (listIterator.hasNext()) {
+                if (listIterator.next().delegate.equals(listener)) {
+                    listIterator.remove();
+                }
+            }
             this.listeners = listeners;
         } finally {
             listenersLock.unlock();
@@ -91,4 +98,35 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
         return broadcaster;
     }
 
+    /**
+     * Prevents sending progress notifications to a given listener outside of start/finished for that operation.
+     */
+    private static class ProgressShieldingBuildOperationListener implements BuildOperationListener {
+
+        private final Set<OperationIdentifier> active = Sets.newConcurrentHashSet();
+        private final BuildOperationListener delegate;
+
+        private ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            active.add(buildOperation.getId());
+            delegate.started(buildOperation, startEvent);
+        }
+
+        @Override
+        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+            if (active.contains(operationIdentifier)) {
+                delegate.progress(operationIdentifier, progressEvent);
+            }
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            active.remove(buildOperation.getId());
+            delegate.finished(buildOperation, finishEvent);
+        }
+    }
 }

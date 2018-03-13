@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.Action
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -164,17 +165,24 @@ class BuildOperationsFixture {
     List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         def matches = []
         def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
+        walk(parent) {
+            if (predicate.isSatisfiedBy(it)) {
+                matches << it
+            }
+            search.addAll(it.children)
+        }
+        matches
+    }
+
+    @SuppressWarnings("GrMethodMayBeStatic")
+    void walk(BuildOperationRecord parent, Action<? super BuildOperationRecord> action) {
+        def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
 
         def operation = search.poll()
         while (operation != null) {
-            if (predicate.isSatisfiedBy(operation)) {
-                matches << operation
-            }
-            search.addAll(operation.children)
+            action.execute(operation)
             operation = search.poll()
         }
-
-        matches
     }
 
     void orderedSerialSiblings(BuildOperationRecord... expectedOrder) {
