@@ -68,10 +68,6 @@ val rulesetJar by tasks.creating(ShadowJar::class) {
 }
 java.sourceSets["main"].output.dir(mapOf("builtBy" to rulesetJar), generatedResourcesRulesetJarDir)
 
-artifacts {
-    add("archives", rulesetJar)
-}
-
 dependencies {
     rulesetShaded("com.github.shyiko.ktlint:ktlint-ruleset-standard:$ktlintVersion") {
         isTransitive = false
