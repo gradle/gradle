@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations.notify;
 
-import com.google.common.collect.Lists;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
@@ -35,9 +34,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BuildOperationNotificationBridge implements Stoppable {
 
@@ -138,7 +141,6 @@ public class BuildOperationNotificationBridge implements Stoppable {
         However, this will require restructuring this type and associated things such as
         OperationStartEvent. This will happen later.
      */
-    // No synchronization as Gradle event dispatching guarantees serialization and memory fences.
     private static class Adapter implements BuildOperationListener {
 
         private final BuildOperationNotificationListener2 notificationListener;
@@ -231,10 +233,9 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
     }
 
-    // No synchronization as Gradle event dispatching guarantees serialization and memory fences.
     private static class RecordingListener implements BuildOperationNotificationListener2 {
 
-        private final List<Object> storedEvents = Lists.newArrayList();
+        private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
 
         @Override
         public void started(BuildOperationStartedNotification notification) {
@@ -251,47 +252,79 @@ public class BuildOperationNotificationBridge implements Stoppable {
             storedEvents.add(notification);
         }
 
-
     }
 
-    // Synchronization required as attach could happen concurrently with receive
     private static class ReplayAndAttachListener implements BuildOperationNotificationListener2 {
 
         private RecordingListener recordingListener = new RecordingListener();
 
-        private BuildOperationNotificationListener2 listener = recordingListener;
+        private volatile BuildOperationNotificationListener2 listener = recordingListener;
+
+        private final AtomicBoolean needLock = new AtomicBoolean(true);
+        private final Lock lock = new ReentrantLock();
 
         private synchronized void attach(BuildOperationNotificationListener2 realListener) {
-            for (Object storedEvent : recordingListener.storedEvents) {
-                if (storedEvent instanceof BuildOperationStartedNotification) {
-                    realListener.started((BuildOperationStartedNotification) storedEvent);
-                } else if (storedEvent instanceof BuildOperationProgressNotification) {
-                    realListener.progress((BuildOperationProgressNotification) storedEvent);
-                } else if (storedEvent instanceof BuildOperationFinishedNotification) {
-                    realListener.finished((BuildOperationFinishedNotification) storedEvent);
+            lock.lock();
+            try {
+                for (Object storedEvent : recordingListener.storedEvents) {
+                    if (storedEvent instanceof BuildOperationStartedNotification) {
+                        realListener.started((BuildOperationStartedNotification) storedEvent);
+                    } else if (storedEvent instanceof BuildOperationProgressNotification) {
+                        realListener.progress((BuildOperationProgressNotification) storedEvent);
+                    } else if (storedEvent instanceof BuildOperationFinishedNotification) {
+                        realListener.finished((BuildOperationFinishedNotification) storedEvent);
+                    }
                 }
 
+                this.listener = realListener;
+                this.recordingListener = null; // release
+            } finally {
+                lock.unlock();
+                needLock.set(false);
             }
-
-            this.listener = realListener;
-            this.recordingListener = null; // release
         }
 
         @Override
         public synchronized void started(BuildOperationStartedNotification notification) {
-            listener.started(notification);
+            if (needLock.get()) {
+                lock.lock();
+                try {
+                    listener.started(notification);
+                } finally {
+                    lock.unlock();
+                }
+            } else {
+                listener.started(notification);
+            }
         }
 
         @Override
-        public void progress(BuildOperationProgressNotification notification) {
-            listener.progress(notification);
+        public synchronized void progress(BuildOperationProgressNotification notification) {
+            if (needLock.get()) {
+                lock.lock();
+                try {
+                    listener.progress(notification);
+                } finally {
+                    lock.unlock();
+                }
+            } else {
+                listener.progress(notification);
+            }
         }
 
         @Override
         public synchronized void finished(BuildOperationFinishedNotification notification) {
-            listener.finished(notification);
+            if (needLock.get()) {
+                lock.lock();
+                try {
+                    listener.finished(notification);
+                } finally {
+                    lock.unlock();
+                }
+            } else {
+                listener.finished(notification);
+            }
         }
-
 
     }
 

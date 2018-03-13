@@ -21,6 +21,15 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
+import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
+import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -246,6 +255,43 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 assert foundOp: "o: $i $l"
             }
         }
+    }
+
+    def "captures logging emitted from build operation listeners"() {
+        when:
+        buildFile << """
+            def manager = gradle.services.get($BuildOperationListenerManager.name)
+            def listener = new $BuildOperationListener.name() {
+                void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {
+                    println "started \$buildOperation.id"
+                }
+
+                void progress($OperationIdentifier.name operationIdentifier, $OperationProgressEvent.name progressEvent) {
+                    def details = progressEvent.details
+                    if (
+                        details instanceof $LogEventBuildOperationProgressDetails.name || 
+                        details instanceof $StyledTextBuildOperationProgressDetails.name || 
+                        details instanceof $ProgressStartBuildOperationProgressDetails.name
+                    ) {
+                        // ignore, otherwise we recurse unto death
+                    } else {
+                        println "progress \$operationIdentifier"
+                    }      
+                }
+
+                void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
+                    println "finished \$buildOperation.id"
+                }
+            } 
+            manager.addListener(listener) 
+            gradle.buildFinished {
+                manager.removeListener(listener)
+            }
+            task t
+        """
+
+        then:
+        succeeds "t"
     }
 
     def "filters non supported output events"() {

@@ -31,6 +31,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
@@ -53,6 +54,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -92,11 +94,14 @@ public class BuildOperationTrace implements Stoppable {
 
     private final String basePath;
     private final OutputStream logOutputStream;
+
+    private final BuildOperationListenerManager buildOperationListenerManager;
     private final ListenerManager listenerManager;
 
     private final BuildOperationListener listener = new LoggingListener();
 
-    public BuildOperationTrace(StartParameter startParameter, ListenerManager listenerManager) {
+    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
+        this.buildOperationListenerManager = buildOperationListenerManager;
         this.listenerManager = listenerManager;
 
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
@@ -125,16 +130,20 @@ public class BuildOperationTrace implements Stoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
+        buildOperationListenerManager.addListener(listener);
         listenerManager.addListener(listener);
     }
 
     @Override
     public void stop() {
+        buildOperationListenerManager.removeListener(listener);
         listenerManager.removeListener(listener);
 
         if (logOutputStream != null) {
             try {
-                logOutputStream.close();
+                synchronized (logOutputStream) {
+                    logOutputStream.close();
+                }
 
                 final List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
                 writeDetailTree(roots);
@@ -364,7 +373,7 @@ public class BuildOperationTrace implements Stoppable {
         // truly immutable and convey values known at the time.
         private boolean buffering = true;
         private final Lock bufferLock = new ReentrantLock();
-        private final Queue<Entry> buffer = new ArrayDeque<Entry>();
+        private final Queue<Entry> buffer = new ConcurrentLinkedQueue<Entry>();
 
         @Override
         public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {
@@ -381,6 +390,9 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            if (buildOperation.getId().getId() == 11) {
+                int i = 1;
+            }
             new Entry(new SerializedOperationStart(buildOperation, startEvent), false).add();
         }
 
@@ -425,6 +437,11 @@ public class BuildOperationTrace implements Stoppable {
                     bufferLock.lock();
                     try {
                         if (buffering) {
+                            if (operation instanceof SerializedOperationStart) {
+                                if (((SerializedOperationStart) operation).id == 11) {
+                                    int i = 1;
+                                }
+                            }
                             buffer.add(this);
                         } else {
                             write();
@@ -441,11 +458,14 @@ public class BuildOperationTrace implements Stoppable {
             private void write() {
                 String json = JsonOutput.toJson(operation.toMap());
                 try {
-                    if (indent) {
-                        logOutputStream.write(INDENT);
+                    synchronized (logOutputStream) {
+                        if (indent) {
+                            logOutputStream.write(INDENT);
+                        }
+                        logOutputStream.write(json.getBytes("UTF-8"));
+                        logOutputStream.write(NEWLINE);
+                        logOutputStream.flush();
                     }
-                    logOutputStream.write(json.getBytes("UTF-8"));
-                    logOutputStream.write(NEWLINE);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

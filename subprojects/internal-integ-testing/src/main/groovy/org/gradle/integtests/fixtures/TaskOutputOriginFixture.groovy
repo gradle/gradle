@@ -51,8 +51,7 @@ class TaskOutputOriginFixture extends UserInitScriptExecuterFixture {
             if (gradle.parent == null) {
                 def origins = Collections.synchronizedMap([:])
                 gradle.ext.origins = origins
-                
-                gradle.services.get($BuildOperationListenerManager.name).addListener(new $BuildOperationListener.name() {
+                def listener = new $BuildOperationListener.name() {
                     void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {}
                     void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                         if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
@@ -75,9 +74,13 @@ class TaskOutputOriginFixture extends UserInitScriptExecuterFixture {
                     }
                     void progress(${OperationIdentifier.name} buildOperationId, ${OperationProgressEvent.name} progressEvent){
                     }
-                })
+                } 
+                
+                def buildOpListenerManager = gradle.services.get($BuildOperationListenerManager.name)
+                buildOpListenerManager.addListener(listener)
                 
                 gradle.buildFinished {
+                buildOpListenerManager.removeListener(listener)
                     println "Build finished"
                     println "--------------"
                     gradle.rootProject.file("${TextUtil.normaliseFileSeparators(file.absolutePath)}").text = groovy.json.JsonOutput.toJson(origins)
