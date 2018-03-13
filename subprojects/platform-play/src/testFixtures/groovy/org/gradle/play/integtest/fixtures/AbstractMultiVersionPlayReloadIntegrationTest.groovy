@@ -18,14 +18,23 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.test.fixtures.ConcurrentTestUtil
+
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetCoverage({ JavaVersion.current().isJava8Compatible() ? PlayCoverage.PLAY23_OR_LATER : PlayCoverage.PLAY23_OR_EARLIER })
 abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
-    protected serverRestart() {
-        ConcurrentTestUtil.poll {
+    protected boolean serverRestart() {
+        poll {
             assert serverStartCount > 1
         }
+        return true
+    }
+
+    protected boolean serverStarted() {
+        poll {
+            assert serverStartCount == 1
+        }
+        return true
     }
 
     protected noServerRestart() {
