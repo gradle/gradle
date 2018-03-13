@@ -46,6 +46,12 @@ import java.util.Set;
  */
 class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
+    private static final Spec<EdgeState> TRANSITIVE_EDGES = new Spec<EdgeState>() {
+        @Override
+        public boolean isSatisfiedBy(EdgeState edge) {
+            return edge.isTransitive();
+        }
+    };
 
     private final Long resultId;
     private final ComponentState component;
@@ -241,12 +247,7 @@ class NodeState implements DependencyGraphNode {
         for (EdgeState incomingEdge : incomingEdges) {
             if (!incomingEdge.isTransitive()) {
                 // Have a non-transitive edge: return a filtered list
-                return CollectionUtils.filter(incomingEdges, new Spec<EdgeState>() {
-                    @Override
-                    public boolean isSatisfiedBy(EdgeState edge) {
-                        return edge.isTransitive();
-                    }
-                });
+                return CollectionUtils.filter(incomingEdges, TRANSITIVE_EDGES);
             }
         }
         // All edges are transitive, no need to construct a filtered list.
