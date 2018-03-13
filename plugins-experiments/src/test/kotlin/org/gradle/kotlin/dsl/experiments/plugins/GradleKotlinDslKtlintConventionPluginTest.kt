@@ -140,14 +140,32 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
         assertKtLintError("Needless blank line(s)", 10, 1)
 
         withSource("""
+            /*
+             * Copyright 2016 the original author or authors.
+             */
+
+            // Random words
+            @file:JvmName("Something")
+
+            /**
+             * Package kdoc.
+             */
             package some
 
             import org.gradle.kotlin.dsl.*
 
 
+            /*
+             * Some file documentation.
+             */
+
+
             val foo = "bar"
 
 
+            /**
+             * Interface kdoc.
+             */
             interface Foo
 
 
