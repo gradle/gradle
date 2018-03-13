@@ -70,6 +70,7 @@ val rulesetJar by tasks.creating(ShadowJar::class) {
 val rulesetChecksum by tasks.creating {
     dependsOn(rulesetJar)
     val rulesetChecksumFile = generatedResourcesRulesetJarDir.resolve(basePackagePath).resolve("gradle-kotlin-dsl-ruleset.md5")
+    inputs.file(rulesetJar.archivePath)
     outputs.file(rulesetChecksumFile)
     doLast {
         rulesetChecksumFile.parentFile.mkdirs()
