@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.resolve.capabilities
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -162,4 +165,56 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         failure.assertHasCause("Cannot choose between :test:unspecified and org:test:1.0 because they provide the same capability: org:capability:1.0")
     }
 
+    @RequiredFeatures(
+        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")]
+    )
+    def "can remove a published capability"() {
+        given:
+        repository {
+            'org:a:1.0' {
+                variant('runtime') {
+                    capability('test_capability')
+                }
+            }
+            'org:b:1.0' {
+                variant('runtime') {
+                    capability('test_capability')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'org:b:1.0'
+                
+                components.all {
+                    allVariants {
+                        withCapabilities {
+                            removeCapability('org.test', 'test_capability')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:a:1.0' {
+                expectResolve()
+            }
+            'org:b:1.0' {
+                expectResolve()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:a:1.0')
+                module('org:b:1.0')
+            }
+        }
+    }
 }
