@@ -23,6 +23,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/Gradle_Check" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Gradle_BuildCacheDeactivated" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Gradle_BuildCachePreemptive" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <content url="file://$MODULE_DIR$/../.teamcityTest">
