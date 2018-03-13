@@ -15,6 +15,7 @@ buildscript {
 
 plugins {
     `java-gradle-plugin`
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.0"
 }
 
 apply {
