@@ -60,5 +60,6 @@ abstract class KotlinBuildScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit) = Unit
+    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
+        throw Exception("The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply { plugin(\"..\") } instead.")
 }

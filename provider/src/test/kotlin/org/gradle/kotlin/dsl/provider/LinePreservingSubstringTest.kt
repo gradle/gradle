@@ -47,4 +47,28 @@ class LinePreservingSubstringTest {
                 }""".replaceIndent())
         )
     }
+
+    @Test
+    fun `given a range linePreservingBlankRange should blank its lines`() {
+        val original = """
+            |// line 1
+            |// line 2
+            |plugins {
+            |    // line 4
+            |}
+            |// line 6
+        """.trimMargin()
+        val begin = original.indexOf("plugins")
+        val end = original.indexOf("}")
+        assertThat(
+            original.linePreservingBlankRange(begin..end),
+            equalTo("""
+                |// line 1
+                |// line 2
+                |
+                |
+                |
+                |// line 6
+            """.trimMargin()))
+    }
 }

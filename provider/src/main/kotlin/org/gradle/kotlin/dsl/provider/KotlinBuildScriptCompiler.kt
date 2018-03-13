@@ -247,8 +247,14 @@ class KotlinBuildScriptCompiler(
             scriptSource.displayName,
             scriptTarget.scriptTemplate,
             scriptPath,
-            script,
+            scriptSourceForBody(),
             Unit)
+
+    private
+    fun scriptSourceForBody(): String =
+        extractPluginsBlockFrom(script)?.let { pluginRange ->
+            script.linePreservingBlankRange(pluginRange)
+        } ?: script
 
     private
     fun compileScriptBody(scriptBlock: ScriptBlock<Unit>) =
