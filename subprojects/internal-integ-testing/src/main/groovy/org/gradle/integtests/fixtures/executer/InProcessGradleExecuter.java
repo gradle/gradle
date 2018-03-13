@@ -50,6 +50,7 @@ import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
@@ -71,6 +72,7 @@ import org.hamcrest.Matchers;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -96,6 +98,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
+
+    private final static PrintStream ORIGINAL_STD_OUT = System.out;
+    private final static PrintStream ORIGINAL_STD_ERR = System.err;
 
     static {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
@@ -264,11 +269,24 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 }
             }), startParameter.getConsoleOutput() == ConsoleOutput.Verbose));
         } else {
-            loggingManager.addStandardOutputListener(outputListener);
-            loggingManager.addStandardErrorListener(errorListener);
+            // Mirror the output sent to our plain console to the original standard output/error so we can see what's happening
+            StandardOutputListener realStdout = new StreamBackedStandardOutputListener((Appendable) ORIGINAL_STD_OUT);
+            StandardOutputListener realStderr = new StreamBackedStandardOutputListener((Appendable) ORIGINAL_STD_ERR);
+            loggingManager.attachPlainConsole(mirroredOutputListener(realStdout, outputListener), mirroredOutputListener(realStderr, errorListener));
         }
 
         return loggingManager;
+    }
+
+    private static StandardOutputListener mirroredOutputListener(final StandardOutputListener... listeners) {
+        return new StandardOutputListener() {
+            @Override
+            public void onOutput(CharSequence output) {
+                for (StandardOutputListener listener : listeners) {
+                    listener.onOutput(output);
+                }
+            }
+        };
     }
 
     private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, final StandardOutputListener errorListener, BuildListenerImpl listener) {

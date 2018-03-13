@@ -257,7 +257,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, true, true, metaData)
+        renderer.addRichConsole(console, true, true, metaData)
 
         when:
         renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -272,7 +272,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, true, false, metaData)
+        renderer.addRichConsole(console, true, false, metaData)
 
         when:
         renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -287,7 +287,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, false, true, metaData)
+        renderer.addRichConsole(console, false, true, metaData)
 
         when:
         renderer.onOutput(start('description'))
@@ -303,7 +303,7 @@ class OutputEventRendererTest extends OutputSpecification {
     def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
         renderer.configure(LogLevel.DEBUG)
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, true, true, metaData)
+        renderer.addRichConsole(console, true, true, metaData)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -318,7 +318,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, true, true, metaData)
+        renderer.addRichConsole(console, true, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -333,7 +333,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, true, false, metaData)
+        renderer.addRichConsole(console, true, false, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -348,7 +348,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.addConsole(console, false, true, metaData)
+        renderer.addRichConsole(console, false, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush

@@ -79,17 +79,36 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new UserInputStandardOutputRenderer(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)), clock));
+                return new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), clock);
             }
         });
-        formatters.add(stdOutChain);
         OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false)));
+                return new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource()));
             }
         });
-        formatters.add(stdErrChain);
+        formatters.add(
+            new BuildLogLevelFilterRenderer(
+                new ProgressLogEventGenerator(dispatchChain(stdOutChain, stdErrChain), false)
+            )
+        );
+    }
+
+    private static OutputEventListener dispatchChain(final OutputEventListener stdoutChain, final OutputEventListener stderrChain) {
+        return new OutputEventListener() {
+            @Override
+            public void onOutput(OutputEvent event) {
+                if (event.getLogLevel() == null) {
+                    stdoutChain.onOutput(event);
+                    stderrChain.onOutput(event);
+                } else if (event.getLogLevel() == LogLevel.ERROR) {
+                    stderrChain.onOutput(event);
+                } else {
+                    stdoutChain.onOutput(event);
+                }
+            }
+        };
     }
 
     @Override
@@ -149,12 +168,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         attachAnsiConsole(outputStream, false);
     }
 
+    @Override
+    public void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+        addPlainConsole(outputListener, errorListener);
+    }
+
     protected void attachAnsiConsole(OutputStream outputStream, boolean verbose) {
         synchronized (lock) {
             ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-            addConsole(console, true, true, consoleMetaData, verbose);
+            addRichConsole(console, true, true, consoleMetaData, verbose);
         }
     }
 
@@ -215,11 +239,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        return addConsole(console, stdout, stderr, consoleMetaData, false);
+    public OutputEventRenderer addRichConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
+        return addRichConsole(console, stdout, stderr, consoleMetaData, false);
     }
 
-    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
+    public OutputEventRenderer addRichConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new UserInputConsoleRenderer(
                 new BuildStatusRenderer(
@@ -230,6 +254,27 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     console.getStatusBar(), console, consoleMetaData, clock),
                 console),
                 clock);
+        return addConsoleChain(consoleChain, stdout, stderr);
+    }
+
+    public OutputEventRenderer addPlainConsole() {
+        return addPlainConsole(stdOutListener, stdErrListener);
+    }
+
+    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+        final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
+        final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
+        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
+            new BuildLogLevelFilterRenderer(
+                new ProgressLogEventGenerator(dispatchChain(stdoutChain, stderrChain), false)
+            ),
+            clock
+        );
+
+        return addConsoleChain(consoleChain, true, true);
+    }
+
+    private OutputEventRenderer addConsoleChain(OutputEventListener consoleChain, boolean stdout, boolean stderr) {
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
@@ -238,9 +283,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             } else if (stdout) {
                 this.console = onNonError(consoleChain);
                 removeStandardOutputListener();
-            } else {
+            } else if (stderr) {
                 this.console = onError(consoleChain);
                 removeStandardErrorListener();
+            } else {
+                this.console = consoleChain;
             }
             consoleChain.onOutput(new LogLevelChangeEvent(logLevel.get()));
             formatters.add(this.console);

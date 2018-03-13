@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.api.logging.configuration.ConsoleOutput.Plain
@@ -25,6 +26,7 @@ class PlainConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec {
         executer.withConsole(Plain)
     }
 
+    @NotYetImplemented
     def "output from tasks is grouped with a header"() {
         buildFile << """
             task foo {
@@ -50,6 +52,7 @@ class PlainConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec {
         result.groupedOutput.task(':bar').output == "bar First line of text\nbar Second line of text"
     }
 
+    @NotYetImplemented
     def "output from outside of tasks are present"() {
         given:
         buildFile << """Thread.start { 
@@ -73,6 +76,7 @@ class PlainConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec {
         output.contains('baz')
     }
 
+    @NotYetImplemented
     def "tasks run in parallel have their output grouped with a header"() {
         settingsFile << """
             include ':foo', ':bar'
@@ -97,6 +101,7 @@ class PlainConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec {
         result.groupedOutput.task(':bar:baz').output == "logged from bar\nalso logged from bar"
     }
 
+    @NotYetImplemented
     def "tasks that log to both stdout and stderr are grouped with a header"() {
         buildFile << """
             task foo {
