@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.specs.Spec;
@@ -53,6 +52,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -65,7 +65,9 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.SystemPropertyHandler;
 import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.DefaultSystemPropertyHandler;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -1057,5 +1059,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
+    }
+
+    /**
+     * Configure system properties.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    void systemProperties(Action<SystemPropertyHandler> action) {
+        action.execute(new DefaultSystemPropertyHandler(this));
     }
 }

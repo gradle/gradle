@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
@@ -23,6 +25,8 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.SystemPropertyHandler;
+import org.gradle.process.internal.DefaultSystemPropertyHandler;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
@@ -527,5 +531,15 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaExecHandleBuilder.getJvmArgumentProviders();
+    }
+
+    /**
+     * Configure system properties.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    public void systemProperties(Action<SystemPropertyHandler> action) {
+        action.execute(new DefaultSystemPropertyHandler(this));
     }
 }

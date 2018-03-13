@@ -176,4 +176,51 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
         outputFile.text == "different"
     }
+
+    def "system properties can be passed using the systemProperties block"() {
+        def inputFile = file("input.txt")
+        def outputFile = file("out.txt")
+        buildFile << """
+            run.systemProperties {
+                add 'input.file', inputFile(project.property('inputFile'))
+                add 'output.file', outputFile("out.txt")
+            }
+             
+        """
+        inputFile.text = "first"
+        mainJavaFile.text = mainClass("""
+            try {
+                String location = System.getProperty("input.file");
+                BufferedReader reader = new BufferedReader(new FileReader(location));
+                String input = reader.readLine();
+                reader.close();
+                FileWriter out = new FileWriter(System.getProperty("output.file"), false);
+                out.write(input);
+                out.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+        """)
+
+        when:
+        run "run", "-PinputFile=${inputFile.absolutePath}"
+        then:
+        executedAndNotSkipped ":run"
+
+        when:
+        def secondInputFile = file("second-input.txt")
+        secondInputFile.text = inputFile.text
+        run "run", "-PinputFile=${secondInputFile.absolutePath}"
+        then:
+        outputFile.text == "first"
+        skipped ":run"
+
+        when:
+        secondInputFile.text = "different"
+        run "run", "-PinputFile=${secondInputFile.absolutePath}"
+        then:
+        executedAndNotSkipped ":run"
+        outputFile.text == "different"
+    }
 }

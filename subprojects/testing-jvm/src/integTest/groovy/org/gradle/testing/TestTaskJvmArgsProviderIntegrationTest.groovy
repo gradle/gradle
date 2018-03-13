@@ -17,22 +17,68 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
-    def "jvm argument providers are passed to the test worker"() {
+    def setup() {
         file("src/test/java/FooTest.java") << """
             import java.io.*;
             import org.junit.*;
+            import java.lang.*;
 
             public class FooTest {
                 @Test
-                public void test() throws IOException {
-                    String location = System.getProperty("input.path");
-                    BufferedReader reader = new BufferedReader(new FileReader(location));
-                    String input = reader.readLine();
-                    reader.close();
+                public void checkInputFile() throws IOException {
+                    String location = System.getProperty("input.file.path");
+                    Assume.assumeNotNull(location);
+                    String input = readText(new File(location));
                     Assert.assertEquals("Test", input);
+                }
+                
+                @Test
+                public void checkInputDirectory() throws IOException {
+                    String location = System.getProperty("input.directory.path");
+                    Assume.assumeNotNull(location);
+                    String input = readText(new File(location, "file.txt"));
+                    Assert.assertEquals("Test", input);
+                }
+                
+                @Test
+                public void checkOutputFile() throws IOException {
+                    String location = System.getProperty("output.file.path");
+                    Assume.assumeNotNull(location);
+                    File outputFile = new File(location);
+                    Assert.assertTrue(outputFile.getParentFile().isDirectory());
+                    writeText(outputFile, "Test");
+                }
+                
+                @Test
+                public void checkOutputDirectory() throws IOException {
+                    String location = System.getProperty("output.directory.path");
+                    Assume.assumeNotNull(location);
+                    File outputDirectory = new File(location);
+                    Assert.assertTrue(outputDirectory.isDirectory());
+                    System.out.println(new File(outputDirectory, "file.txt").getAbsolutePath());
+                    writeText(new File(outputDirectory, "file.txt"), "Test");
+                }
+                
+                private String readText(File file) throws IOException {
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    try {
+                        return reader.readLine();
+                    } finally {
+                        reader.close();
+                    }
+                }
+                
+                private void writeText(File file, String text) throws IOException {
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                    try {
+                        writer.write(text);
+                    } finally {
+                        writer.close();
+                    }
                 }
             }
         """
@@ -45,7 +91,11 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 testCompile "junit:junit:4.12"
             }              
-                                   
+        """
+    }
+
+    def "jvm argument providers are passed to the test worker"() {
+        file("build.gradle") << """
             class MyTestSystemProperties implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
@@ -53,7 +103,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 List<String> asArguments() {
-                    ["-Dinput.path=\${inputFile.absolutePath}"]
+                    ["-Dinput.file.path=\${inputFile.absolutePath}"]
                 }
             }
 
@@ -79,5 +129,127 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         fails "test", "-PinputFile=different-file.txt"
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+    }
+
+    @Unroll
+    def "can pass inputs as system properties via #value"() {
+        buildFile << """
+            test.systemProperties {
+                add '${systemPropertyName}', ${value}
+            }
+        """
+
+        def original = isDirectory ? file('directory').create {
+            file('file.txt').text = "Test"
+        } : file('original-file.txt')
+        def moved = isDirectory ? file('moved-directory').create {
+            file('file.txt').text = "Test"
+        } : file('other-location.txt')
+        def changed = isDirectory ? file('changed-directory').create {
+            file('file.txt').text = "changed"
+        } : file('changed-file.txt')
+        file('original-file.txt').text = "Test"
+        file('other-location.txt').text = "Test"
+        file('changed-file.txt').text = "changed"
+
+        when:
+        run 'test', "-PfilePath=${original}"
+        then:
+        executedAndNotSkipped ':test'
+
+        when:
+        run 'test', "-PfilePath=${moved}"
+        then:
+        skipped ':test'
+
+        when:
+        fails 'test', "-PfilePath=${changed}"
+        then:
+        executedAndNotSkipped ':test'
+        failure.assertHasCause("There were failing tests.")
+
+        where:
+        systemPropertyName     | value                      | isDirectory
+        'input.file.path'      | 'inputFile(filePath)'      | false
+        'input.directory.path' | 'inputDirectory(filePath)' | true
+    }
+
+    @Unroll
+    def "can pass outputs as system properties via #value"() {
+        buildFile << """
+            test.systemProperties {
+                add '${systemPropertyName}', ${value}
+            }
+        """
+
+        def output = isDirectory ? file('directory') : file('output-file.txt')
+
+        def outputFile = isDirectory ? output.file('file.txt') : output
+
+        when:
+        run 'test', "-PfilePath=${output}"
+        then:
+        executedAndNotSkipped ':test'
+        outputFile.text == 'Test'
+
+        when:
+        run 'test', "-PfilePath=${output}"
+        then:
+        skipped ':test'
+
+        when:
+        outputFile.text = "changed"
+        run 'test', "-PfilePath=${output}"
+        then:
+        executedAndNotSkipped ':test'
+        outputFile.text == 'Test'
+
+        where:
+        systemPropertyName      | value                       | isDirectory
+        'output.file.path'      | 'outputFile(filePath)'      | false
+        'output.directory.path' | 'outputDirectory(filePath)' | true
+    }
+
+    @Unroll
+    def "can pass #type as ignored system property"() {
+        buildFile << """
+            test.systemProperties {
+                add 'path.ignored', ignored(${expression})
+            }
+        """
+
+        when:
+        run 'test', "-PpropertyValue=${value}"
+        then:
+        executedAndNotSkipped ':test'
+
+        when:
+        run 'test', "-PpropertyValue=${changedValue}"
+        then:
+        skipped ':test'
+
+        where:
+        type | expression | value | changedValue
+        'file'   | 'file(propertyValue)'            | 'ignored.txt' | 'ignored2.text'
+        'object' | 'Integer.valueOf(propertyValue)' | '25'          | '38'
+    }
+
+    def "can pass providers as system properties"() {
+        buildFile << """
+            test.systemProperties {
+                add 'path.ignored', ignored(layout.projectDirectory.file(provider { "ignored.txt" }))
+                add 'output.file.path', outputFile(layout.buildDirectory.file("output.txt"))
+                add 'output.directory.path', outputDirectory(layout.buildDirectory.dir("output"))
+                add 'input.file.path', inputFile(layout.projectDirectory.file("input.txt"))
+                add 'input.directory.path', inputDirectory(layout.projectDirectory.dir("input"))
+            }
+        """
+        file('input.txt').text = "Test"
+        file("input/file.txt").text = "Test"
+
+        when:
+        run 'test'
+        then:
+        executedAndNotSkipped ':test'
     }
 }
