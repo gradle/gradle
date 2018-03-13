@@ -18,14 +18,8 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.gradleKotlinDsl
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
-
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -48,7 +42,6 @@ open class KotlinDslPlugin : Plugin<Project> {
             applyEmbeddedKotlinPlugin()
             addGradleKotlinDslDependencyTo("compileOnly", "testRuntimeOnly")
             configureCompilerPlugins()
-            configureCompilerTasks()
         }
     }
 
@@ -70,28 +63,5 @@ open class KotlinDslPlugin : Plugin<Project> {
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(org.gradle.api.HasImplicitReceiver::class.qualifiedName!!)
         }
-    }
-
-    private
-    fun Project.configureCompilerTasks() {
-        tasks {
-            "compileKotlin"(KotlinCompile::class) {
-                kotlinOptions {
-                    freeCompilerArgs += listOf("-script-templates", scriptTemplates)
-                }
-            }
-        }
-    }
-
-    private
-    val scriptTemplates by lazy {
-        listOf(
-            // treat *.settings.gradle.kts files as Settings scripts
-            PrecompiledSettingsScript::class.qualifiedName!!,
-            // treat *.init.gradle.kts files as Gradle scripts
-            PrecompiledInitScript::class.qualifiedName!!,
-            // treat *.gradle.kts files as Project scripts
-            PrecompiledProjectScript::class.qualifiedName!!
-        ).joinToString(separator = ",")
     }
 }
