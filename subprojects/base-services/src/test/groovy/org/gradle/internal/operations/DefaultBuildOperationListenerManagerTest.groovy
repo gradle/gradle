@@ -62,7 +62,7 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
         ]
     }
 
-    def "does not forward progress notifications outside of start/finish"() {
+    def "does not forward progress notifications outside of start and finish"() {
         given:
         manager.addListener(recordingListener("1"))
         manager.addListener(new RecordingListener("2") {
