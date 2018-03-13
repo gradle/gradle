@@ -54,7 +54,7 @@ public class ResourceVersionLister implements VersionLister {
         for (ResourcePattern pattern : patterns) {
             visit(pattern, artifact, module, collector, result);
         }
-        // TODO:DAZ Be a bit smarter about this
+        // Could be a bit smarter about this
         if (!collector.isEmpty()) {
             result.listed(collector);
         }

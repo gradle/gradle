@@ -132,7 +132,7 @@ class SelectorState implements DependencyGraphSelector {
         versionConstraint = idResolveResult.getResolvedVersionConstraint();
 
         // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
-        // TODO:DAZ Ditch the JVM Software Model plugins and re-add this assertion
+        // TODO Ditch the JVM Software Model plugins and re-add this assertion
 //        assert selected.getModule() == targetModule;
 
         return selected;
