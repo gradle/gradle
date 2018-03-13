@@ -164,12 +164,10 @@ class BuildOperationsFixture {
     @SuppressWarnings("GrMethodMayBeStatic")
     List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         def matches = []
-        def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
         walk(parent) {
             if (predicate.isSatisfiedBy(it)) {
                 matches << it
             }
-            search.addAll(it.children)
         }
         matches
     }
@@ -181,6 +179,7 @@ class BuildOperationsFixture {
         def operation = search.poll()
         while (operation != null) {
             action.execute(operation)
+            search.addAll(operation.children)
             operation = search.poll()
         }
     }
