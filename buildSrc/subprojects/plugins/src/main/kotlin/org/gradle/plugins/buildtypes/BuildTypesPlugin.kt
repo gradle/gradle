@@ -79,7 +79,8 @@ fun Project.insertBuildTypeTasksInto(
     taskList: MutableList<String>,
     index: Int,
     buildType: BuildType,
-    subproject: String) {
+    subproject: String
+) {
 
     fun insert(task: String) =
         taskList.add(index, task)
@@ -88,7 +89,7 @@ fun Project.insertBuildTypeTasksInto(
         buildType.tasks.reversed().forEach(act)
 
     when {
-        subproject.isEmpty()            ->
+        subproject.isEmpty() ->
             forEachBuildTypeTask(::insert)
 
         findProject(subproject) != null ->
@@ -100,8 +101,9 @@ fun Project.insertBuildTypeTasksInto(
                     println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
                 }
             }
-        else                            ->
+        else -> {
             println("Skipping execution of build type '${buildType.name}'. Project '$subproject' not found in root project '$name'.")
+        }
     }
 
     if (taskList.isEmpty()) {
@@ -113,6 +115,6 @@ fun Project.insertBuildTypeTasksInto(
 fun Project.setOrCreateProperty(propertyName: String, value: Any) {
     when {
         hasProperty(propertyName) -> setProperty(propertyName, value)
-        else                      -> extra.set(propertyName, value)
+        else -> extra.set(propertyName, value)
     }
 }

@@ -20,7 +20,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DirectDependenciesMetadata
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
-import org.gradle.kotlin.dsl.dependencies
+
+import org.gradle.kotlin.dsl.*
+
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
@@ -96,6 +98,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     }
 }
 
+
 fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
     withModule(module) {
         allVariants {
@@ -105,6 +108,7 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: Dir
         }
     }
 }
+
 
 fun ComponentMetadataHandler.replaceJCLWithAdapter(module: String) {
     withModule(module) {
@@ -119,6 +123,7 @@ fun ComponentMetadataHandler.replaceJCLWithAdapter(module: String) {
     }
 }
 
+
 fun ComponentMetadataHandler.replaceJCLConstraintWithAdapter(module: String) {
     withModule(module) {
         allVariants {
@@ -131,6 +136,7 @@ fun ComponentMetadataHandler.replaceJCLConstraintWithAdapter(module: String) {
         }
     }
 }
+
 
 fun ComponentMetadataHandler.replaceLog4JWithAdapter(module: String) {
     withModule(module) {
@@ -145,6 +151,7 @@ fun ComponentMetadataHandler.replaceLog4JWithAdapter(module: String) {
     }
 }
 
+
 fun ComponentMetadataHandler.replaceGoogleCollectionsWithGuava(module: String) {
     withModule(module) {
         allVariants {
@@ -157,6 +164,7 @@ fun ComponentMetadataHandler.replaceGoogleCollectionsWithGuava(module: String) {
         }
     }
 }
+
 
 fun ComponentMetadataHandler.replaceJunitDepWithJunit(module: String) {
     withModule(module) {
@@ -171,6 +179,7 @@ fun ComponentMetadataHandler.replaceJunitDepWithJunit(module: String) {
     }
 }
 
+
 fun ComponentMetadataHandler.replaceAsmWithOW2Asm(module: String) {
     withModule(module) {
         allVariants {
@@ -183,6 +192,7 @@ fun ComponentMetadataHandler.replaceAsmWithOW2Asm(module: String) {
         }
     }
 }
+
 
 fun ComponentMetadataHandler.replaceBeanshellWithApacheBeanshell(module: String) {
     withModule(module) {
@@ -197,6 +207,7 @@ fun ComponentMetadataHandler.replaceBeanshellWithApacheBeanshell(module: String)
     }
 }
 
+
 fun ComponentMetadataHandler.downgradeIvy(module: String) {
     withModule(module) {
         allVariants {
@@ -209,6 +220,7 @@ fun ComponentMetadataHandler.downgradeIvy(module: String) {
         }
     }
 }
+
 
 fun ComponentMetadataHandler.downgradeTestNG(module: String) {
     withModule(module) {
@@ -223,6 +235,7 @@ fun ComponentMetadataHandler.downgradeTestNG(module: String) {
     }
 }
 
+
 fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
     withModule(module) {
         allVariants {
@@ -235,4 +248,3 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
         }
     }
 }
-

@@ -65,5 +65,6 @@ class WrapperPlugin : Plugin<Project> {
     }
 }
 
+
 private
 data class VersionDownloadInfo(val version: String, val downloadUrl: String)

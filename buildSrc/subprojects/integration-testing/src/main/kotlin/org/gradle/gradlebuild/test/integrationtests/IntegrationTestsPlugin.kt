@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 
+
 class IntegrationTestsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val sourceSet = addSourceSet(TestType.INTEGRATION)
@@ -30,4 +31,3 @@ class IntegrationTestsPlugin : Plugin<Project> {
         val integTestTasks by extra { tasks.withType<IntegrationTest>() }
     }
 }
-

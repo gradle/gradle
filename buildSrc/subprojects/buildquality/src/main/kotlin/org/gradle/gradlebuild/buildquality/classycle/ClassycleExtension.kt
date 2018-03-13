@@ -21,6 +21,7 @@ import org.gradle.api.provider.ListProperty
 
 import org.gradle.kotlin.dsl.*
 
+
 open class ClassycleExtension(project: Project) {
 
     val excludePatterns: ListProperty<String> = project.objects.listProperty()

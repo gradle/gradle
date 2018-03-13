@@ -10,6 +10,7 @@ import org.gradle.jvm.toolchain.internal.LocalJavaInstallation
 import org.slf4j.LoggerFactory
 import java.io.File
 
+
 class DefaultJavaInstallation(val current: Boolean, private val javaHome: File) : LocalJavaInstallation {
     private
     lateinit var name: String
@@ -27,17 +28,25 @@ class DefaultJavaInstallation(val current: Boolean, private val javaHome: File) 
     override fun setJavaHome(javaHome: File) { throw UnsupportedOperationException("JavaHome cannot be changed") }
     val toolsJar: File? by lazy { Jvm.forHome(javaHome).toolsJar }
 
-    override fun toString(): String = "${displayName} (${javaHome.absolutePath})"
+    override fun toString(): String = "$displayName (${javaHome.absolutePath})"
 }
+
 
 private
 const val java7HomePropertyName = "java7Home"
+
+
 private
 const val testJavaHomePropertyName = "testJavaHome"
+
+
 private
 const val oracleJdk8 = "Oracle JDK 8"
+
+
 private
 const val oracleJdk7 = "Oracle JDK 7"
+
 
 open class AvailableJavaInstallations(project: Project, private val javaInstallationProbe: JavaInstallationProbe) {
     private
@@ -98,7 +107,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     fun validateCompilationJdks(): Collection<String> {
         val jdkForCompilation = javaInstallations.values.firstOrNull()
         return mapOf(
-            "Must set project or system property '${java7HomePropertyName}' to the path of an ${oracleJdk7}, is currently unset." to (jdkForCompilation == null),
+            "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
             validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.displayName != oracleJdk7),
             "Must use Oracle JDK 8 to perform this build. Is currently ${currentJavaInstallation.displayName} at ${currentJavaInstallation.javaHome}." to
                 (currentJavaInstallation.displayName != oracleJdk8)

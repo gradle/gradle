@@ -19,12 +19,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.build.ReleasedVersion
 import org.gradle.build.UpdateReleasedVersions
-import org.gradle.build.remote.DefaultRemoteGradleVersionResolver
 import org.gradle.build.remote.VersionType
 import com.google.gson.Gson
 import org.gradle.kotlin.dsl.*
 import java.net.URL
 import java.util.concurrent.Callable
+
 
 // TODO Don't use Gson for Json. Extract
 class UpdateVersionsPlugin : Plugin<Project> {
@@ -55,6 +55,7 @@ class UpdateVersionsPlugin : Plugin<Project> {
         }
     }
 }
+
 
 private
 class VersionBuildTimeInfo(val version: String, val buildTime: String)

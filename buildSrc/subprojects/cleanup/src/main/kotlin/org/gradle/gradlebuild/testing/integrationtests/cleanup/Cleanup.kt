@@ -126,4 +126,3 @@ fun Project.removeDaemonLogFiles(dir: File) {
         delete(daemonLogFiles)
     }
 }
-

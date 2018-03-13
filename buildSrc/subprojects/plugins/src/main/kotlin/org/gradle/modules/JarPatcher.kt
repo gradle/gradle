@@ -38,7 +38,8 @@ class JarPatcher(
     private val project: Project,
     private val temporaryDir: File,
     private val runtime: Configuration,
-    private val jarFile: String) {
+    private val jarFile: String
+) {
 
     private
     var excludedEntries = mutableListOf<String>()
@@ -97,4 +98,3 @@ class JarPatcher(
         }
     }
 }
-

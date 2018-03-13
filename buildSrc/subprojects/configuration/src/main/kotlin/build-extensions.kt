@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.*
@@ -47,10 +46,12 @@ fun Project.libraryReason(name: String): String? =
 fun Project.testLibrary(name: String): Any =
     testLibraries[name]!!
 
+
 // TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
 @Suppress("unchecked_cast")
 fun Project.testLibraries(name: String): List<Any> =
     testLibraries[name]!! as List<Any>
+
 
 val Project.maxParallelForks: Int
     get() {
@@ -58,10 +59,12 @@ val Project.maxParallelForks: Int
             findProperty("maxParallelForks")?.let { Integer.valueOf(it.toString(), 10) }) ?: 4
     }
 
+
 val Project.useAllDistribution: Boolean
     get() {
         return ifProperty("useAllDistribution", true) ?: false
     }
+
 
 private
 fun <T> Project.ifProperty(name: String, then: T): T? =

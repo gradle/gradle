@@ -28,7 +28,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import accessors.*
+import accessors.base
 import gradlebuildJava
 import org.gradle.kotlin.dsl.*
 
@@ -85,4 +85,3 @@ open class ClasspathManifest : DefaultTask() {
     fun <T : Any> Iterable<T>.joinForProperties(transform: ((T) -> CharSequence)? = null) =
         joinToString(",", transform = transform)
 }
-

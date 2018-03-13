@@ -15,7 +15,9 @@
  */
 package org.gradle.gradlebuild.ide
 
-import accessors.*
+import accessors.base
+import accessors.eclipse
+import accessors.idea
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -45,6 +47,7 @@ import java.io.File
 
 private
 const val ideConfigurationBaseName = "ideConfiguration"
+
 
 open class IdePlugin : Plugin<Project> {
 
@@ -353,7 +356,8 @@ open class IdePlugin : Plugin<Project> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun getDefaultJunitVmParameter(docsProject: Project): String {
+    private
+    fun getDefaultJunitVmParameter(docsProject: Project): String {
         val rootProject = docsProject.rootProject
         val releaseNotesMarkdown: PegDown by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
@@ -422,6 +426,7 @@ const val GRADLE_CONFIGURATION = """
     </configuration>
 """
 
+
 private
 fun Element.configureCodeStyleSettings() {
     val config = appendElement("component")
@@ -471,12 +476,14 @@ fun Element.configureCodeStyleSettings() {
     }
 }
 
+
 private
 fun Element.option(name: String, value: String) {
     appendElement("option")
         .attr("name", name)
         .attr("value", value)
 }
+
 
 private
 fun XmlProvider.withJsoup(function: (Document) -> Unit) {
@@ -485,6 +492,7 @@ fun XmlProvider.withJsoup(function: (Document) -> Unit) {
     xml.replace(0, xml.length, document)
 }
 
+
 private
 fun modifyXmlDocument(xml: StringBuilder, function: (Document) -> Unit): String {
     val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
@@ -492,6 +500,7 @@ fun modifyXmlDocument(xml: StringBuilder, function: (Document) -> Unit): String 
     document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
     return document.toString()
 }
+
 
 private
 fun Element.createOrEmptyOutChildElement(childName: String): Element {
@@ -503,6 +512,7 @@ fun Element.createOrEmptyOutChildElement(childName: String): Element {
         children().remove()
     }
 }
+
 
 private
 fun Element.removeBySelector(selector: String): Element =

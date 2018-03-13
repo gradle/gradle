@@ -19,6 +19,7 @@ package org.gradle.gradlebuild.testing.integrationtests.cleanup
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
+
 open class KillLeakingJavaProcesses : DefaultTask() {
 
     @TaskAction

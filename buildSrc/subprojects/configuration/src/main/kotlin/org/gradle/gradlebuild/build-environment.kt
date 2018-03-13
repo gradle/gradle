@@ -3,6 +3,7 @@ package org.gradle.gradlebuild
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
+
 object BuildEnvironment {
     val isCiServer = "CI" in System.getenv()
     val gradleKotlinDslVersion = "0.16.2"
@@ -19,5 +20,4 @@ object BuildEnvironment {
             }
             return 1
         }
-
 }

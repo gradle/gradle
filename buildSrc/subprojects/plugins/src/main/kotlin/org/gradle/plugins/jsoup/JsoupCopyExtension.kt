@@ -24,6 +24,7 @@ import org.jsoup.nodes.Document
 
 import org.gradle.kotlin.dsl.*
 
+
 private
 val DEFAULT_TRANSFORM_EXTENSIONS = listOf("html")
 
