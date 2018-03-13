@@ -156,6 +156,7 @@
                                     <li><a href="/userguide/build_cache.html">Build Cache Basics</a></li>
                                     <li><a href="/userguide/build_init_plugin.html">Build Initialization</a></li>
                                     <li><a href="/userguide/build_lifecycle.html">Build Lifecycle</a></li>
+                                    <li><a href="/userguide/tutorial_using_tasks.html">Build Script Basics</a></li>
                                     <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
                                     <li><a href="/userguide/multi_project_builds.html">Configuring Multi-Project Builds</a></li>
                                     <li><a href="/userguide/more_about_tasks.html">Declaring Tasks</a></li>
@@ -266,6 +267,7 @@
                                     <li><a href="/userguide/idea_plugin.html">IDEA Plugin</a></li>
                                 </ul>
                             </li>
+                            <li><a href="/userguide/embedding.html">Tooling API</a></li>
                         </ul>
 
                         <h3 id="developing-gradle-plugins">Extending Gradle</h3>
