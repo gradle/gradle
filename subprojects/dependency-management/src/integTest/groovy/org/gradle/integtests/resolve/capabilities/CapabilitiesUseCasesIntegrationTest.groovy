@@ -51,13 +51,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib') { details -> 
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
-                         }
-                     }
-                  }
                   withModule('cglib:cglib-nodep') { details ->
                      allVariants {
                          withCapabilities {
@@ -149,20 +142,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy', details.id.version)
-                        }
-                     }
-                  }
-                  withModule('org.apache:groovy-json') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy-json', details.id.version)
-                        }
-                     }
-                  }
                   withModule('org.apache:groovy-all') { details ->
                      allVariants {
                         withCapabilities {
@@ -269,20 +248,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy', details.id.version)
-                        }
-                     }
-                  }
-                  withModule('org.apache:groovy-json') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy-json', details.id.version)
-                        }
-                     }
-                  }
                   withModule('org.apache:groovy-all') { details ->
                      allVariants {
                         withCapabilities {
@@ -366,15 +331,11 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
     def "published module can declare relocation (first in graph = #first, second in graph = #second)"() {
         given:
         repository {
-            'asm:asm:3.0' {
-                variant('runtime') {
-                    capability('asm', 'asm', '3.0')
-                }
-            }
+            // // there's an implicit capability for every component, corresponding to the component coordinates
+            'asm:asm:3.0'()
             'org.ow2.asm:asm:4.0' {
                 variant('runtime') {
                     capability('asm', 'asm', '4.0') // upgrades the asm capability
-                    capability('org.ow2.asm', 'asm', '4.0') // self capability
                 }
             }
         }
