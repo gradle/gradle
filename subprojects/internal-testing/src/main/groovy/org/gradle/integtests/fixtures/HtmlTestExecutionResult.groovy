@@ -113,7 +113,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         private extractTestCaseTo(String cssSelector, Collection<TestCase> target) {
             html.select(cssSelector).each {
                 def testDisplayName = it.textNodes().first().wholeText.trim()
-                def testName = it.childNode(1).textNodes().isEmpty() ? testDisplayName : it.childNode(1).textNodes().first().wholeText.trim()
+                def testName = it.nextElementSibling().text()
                 def failureMessage = getFailureMessages(testName)
                 def testCase = new TestCase(testName, testDisplayName, failureMessage)
                 testsExecuted << testCase

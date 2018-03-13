@@ -52,7 +52,7 @@ public class ClassTestResults extends CompositeTestResults {
 
     @Override
     public String getTitle() {
-        return "Class " + name;
+        return name.equals(displayName) ? "Class " + name : displayName;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class ClassTestResults extends CompositeTestResults {
         return getSimpleName();
     }
 
-    private String getSimpleName() {
+    public String getSimpleName() {
         String simpleName = StringUtils.substringAfterLast(name, ".");
         if (simpleName.equals("")) {
             return name;

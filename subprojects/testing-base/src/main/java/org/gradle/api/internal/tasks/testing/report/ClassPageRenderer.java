@@ -40,15 +40,17 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             .startElement("a").attribute("href", getResults().getUrlTo(getResults().getParent().getParent())).characters("all").endElement()
             .characters(" > ")
             .startElement("a").attribute("href", getResults().getUrlTo(getResults().getPackageResults())).characters(getResults().getPackageResults().getName()).endElement()
-            .characters(" > " + getResults().getReportName())
+            .characters(" > " + getResults().getSimpleName())
         .endElement();
     }
 
     private void renderTests(SimpleHtmlWriter htmlWriter) throws IOException {
+        boolean methodNameColumnIsVisible = determineIfMethodNameColumnIsVisible();
         htmlWriter.startElement("table")
             .startElement("thead")
                 .startElement("tr")
                     .startElement("th").characters("Test").endElement()
+                    .startElement("th").attribute("class", methodNameColumnIsVisible ? "" : "invisible").characters("Method name").endElement()
                     .startElement("th").characters("Duration").endElement()
                     .startElement("th").characters("Result").endElement()
                 .endElement()
@@ -56,16 +58,22 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
 
         for (TestResult test : getResults().getTestResults()) {
             htmlWriter.startElement("tr")
-                .startElement("td").attribute("class", test.getStatusClass())
-                    .characters(test.getDisplayName())
-                        .startElement("span").attribute("class", "method").characters(test.getMethodSpanName())
-                        .endElement()
-                    .endElement()
+                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement()
+                .startElement("td").attribute("class", methodNameColumnIsVisible ? "" : "invisible").characters(test.getName()).endElement()
                 .startElement("td").characters(test.getFormattedDuration()).endElement()
                 .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
             .endElement();
         }
         htmlWriter.endElement();
+    }
+
+    private boolean determineIfMethodNameColumnIsVisible() {
+        for (TestResult result : getResults().getTestResults()) {
+            if (!result.getName().equals(result.getDisplayName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

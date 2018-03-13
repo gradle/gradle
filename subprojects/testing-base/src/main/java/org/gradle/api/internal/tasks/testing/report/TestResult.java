@@ -53,14 +53,6 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return displayName;
     }
 
-    public String getMethodSpanName() {
-        if (name.equals(displayName)) {
-            return ""; // empty span can be invisible via css
-        } else {
-            return name;
-        }
-    }
-
     @Override
     public String getTitle() {
         return "Test " + name;

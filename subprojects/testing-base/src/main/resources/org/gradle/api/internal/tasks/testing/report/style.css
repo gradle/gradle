@@ -83,13 +83,10 @@ ul.linkList li {
     margin-bottom: 5px;
 }
 
-span:empty {
+td.invisible {
     display: none;
 }
 
-span.method {
-    padding: 2px 8px;
-    margin: 4px;
-    border-radius: 4px;
-    background-color: #c5f0f5;
+th.invisible {
+    display: none;
 }
