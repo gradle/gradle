@@ -232,12 +232,15 @@ open class Benchmark : DefaultTask() {
         File(temporaryDir, "$sampleName/$temporaryDirName")
 }
 
+
 private
 data class BenchmarkRunConfig(
     val name: String,
     val sampleName: String,
     val sampleDir: File,
-    val benchmarkConfig: BenchmarkConfig)
+    val benchmarkConfig: BenchmarkConfig
+)
+
 
 class QuotientResult(observations: List<Double>) : Result<Double>(observations) {
 
@@ -248,8 +251,10 @@ class QuotientResult(observations: List<Double>) : Result<Double>(observations) 
         get() = this
 }
 
+
 fun connectorFor(projectDir: File) =
     newConnector().forProjectDirectory(projectDir)!!
+
 
 inline
 fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T {
@@ -260,6 +265,7 @@ fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.
     }
 }
 
+
 inline
 fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
     try {
@@ -269,6 +275,7 @@ fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
     }
 }
 
+
 /**
  * Forces a new daemon process to be started by basing the registry on an unique temp dir.
  */
@@ -276,9 +283,11 @@ inline
 fun <T> withUniqueDaemonRegistry(baseDir: File, block: () -> T) =
     withDaemonRegistry(createTempDir("daemon-registry-", directory = baseDir), block)
 
+
 inline
 fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.path, block)
+
 
 inline
 fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
@@ -290,6 +299,7 @@ fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
         setOrClearProperty(key, originalValue)
     }
 }
+
 
 fun setOrClearProperty(key: String, value: String?) {
     when (value) {

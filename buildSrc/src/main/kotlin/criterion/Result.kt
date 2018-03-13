@@ -18,6 +18,7 @@ package criterion
 
 import java.lang.Math.sqrt
 
+
 /**
  * A result of an experiment expressed as a set of observations measured in a unit [U].
  *
@@ -59,5 +60,6 @@ abstract class Result<U>(observations: List<U>) {
     fun Iterable<U>.average() =
         map { it.magnitude }.average().measure
 }
+
 
 fun square(d: Double) = d * d

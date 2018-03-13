@@ -8,7 +8,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.WriteProperties
-import org.gradle.api.tasks.testing.Test
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 
