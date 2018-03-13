@@ -341,7 +341,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
 
         @Override
-        public boolean isAnnotated() {
+        public boolean hasAnnotatedProperties() {
             for (PropertyMetadata metadata : propertiesMetadata) {
                 if (metadata.getPropertyType() != null) {
                     return true;

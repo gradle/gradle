@@ -1,5 +1,7 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
-    id 'strict-compile'
+    id 'gradlebuild.strict-compile'
 }
 
 dependencies {
@@ -11,14 +13,20 @@ dependencies {
     integTestRuntime project(':pluginDevelopment')
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.CORE
+}
+
 testFixtures {
     from(':core')
 }
 
-task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
+task crossVersionTests(type: org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

@@ -36,7 +36,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def attributesFactory = TestUtil.attributesFactory()
     def displayName = Describables.of("<config>")
-    def publications = new DefaultConfigurationPublications(displayName, artifacts, allArtifacts, parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory, attributesFactory)
+    def publications = new DefaultConfigurationPublications(displayName, artifacts, { allArtifacts }, parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory, attributesFactory)
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }

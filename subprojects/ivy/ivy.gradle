@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -14,7 +16,7 @@
  * limitations under the License.
  */
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -30,11 +32,17 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
 testFixtures {
     from(':core')
     from(':modelCore')
     from(':platformBase')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

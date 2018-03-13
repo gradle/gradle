@@ -71,8 +71,24 @@ class CompilationOutputsFixture {
     }
 
     //asserts files changed/added since last snapshot
+    void recompiledFiles(File... files) {
+        recompiledFiles(files as List)
+    }
+
+    //asserts files changed/added since last snapshot
     void recompiledFiles(Collection<File> files) {
         def expectedNames = files.collect({ removeExtension(it.name) }) as Set
+        assert changedFileNames == expectedNames
+    }
+
+    //asserts file changed/added since last snapshot
+    void recompiledFile(String fileName) {
+        recompiledFiles(fileName)
+    }
+
+    //asserts files changed/added since last snapshot
+    void recompiledFiles(String... fileNames) {
+        def expectedNames = fileNames.collect({ removeExtension(it) }) as Set
         assert changedFileNames == expectedNames
     }
 

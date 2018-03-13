@@ -1,16 +1,20 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /**
  * JVM invocation and inspection abstractions.
  */
 plugins {
     id 'java-library'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(":baseServices")
     api project(":processServices")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

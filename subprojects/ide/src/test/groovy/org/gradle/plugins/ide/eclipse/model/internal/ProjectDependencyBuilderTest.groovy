@@ -15,18 +15,16 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
-    def ProjectComponentIdentifier projectId = newProjectId(":nested:project-name")
-    def localComponentRegistry = Mock(LocalComponentRegistry)
-    def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(localComponentRegistry)
+    def projectId = newProjectId(":nested:project-name")
+    def artifactRegistry = Mock(IdeArtifactRegistry)
+    def builder = new ProjectDependencyBuilder(artifactRegistry)
 
     def "should create dependency using project name for project without eclipse plugin applied"() {
         when:
@@ -36,15 +34,15 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         dependency.path == "/project-name"
 
         and:
-        localComponentRegistry.getAdditionalArtifacts(_) >> []
+        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
     }
 
     def "should create dependency using eclipse projectName"() {
         given:
-        def projectArtifact = Stub(LocalComponentArtifactMetadata) {
-            getName() >> new DefaultIvyArtifactName("foo", "eclipse.project", "project", null)
+        def projectMetadata = Stub(EclipseProjectMetadata) {
+            getName() >> "foo"
         }
-        localComponentRegistry.findAdditionalArtifact(projectId, "eclipse.project") >> projectArtifact
+        artifactRegistry.getIdeArtifactMetadata(EclipseProjectMetadata, projectId) >> projectMetadata
 
         when:
         def dependency = builder.build(projectId)

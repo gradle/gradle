@@ -1,5 +1,7 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -15,6 +17,10 @@ dependencies {
     crossVersionTestCompile project(':signing')
 
     crossVersionTestRuntime allTestRuntimeDependencies
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 testFixtures {
@@ -42,5 +48,7 @@ parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

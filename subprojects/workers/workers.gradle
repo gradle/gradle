@@ -1,14 +1,18 @@
-plugins {
-    id 'classycle'
-}
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+plugins {
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(':core')
     compile libraries.jcip.coordinates
 
     integTestCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

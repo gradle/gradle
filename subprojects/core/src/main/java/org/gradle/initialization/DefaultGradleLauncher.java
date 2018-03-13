@@ -35,7 +35,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.util.Path;
@@ -341,7 +341,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return BuildOperationDescriptor.displayName(contextualize("Run tasks")).parent(getGradle().getBuildOperation());
         }
     }
-
 
     private boolean isConfigureOnDemand() {
         return gradle.getStartParameter().isConfigureOnDemand();

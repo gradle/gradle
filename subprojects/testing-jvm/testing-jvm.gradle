@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -15,12 +17,9 @@
  */
 plugins {
     // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-    // id 'strict-compile'
-    // id 'classycle'
+    // id 'gradlebuild.strict-compile'
+    // id 'gradlebuild.classycle'
 }
-
-// Test execution
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(':core')
@@ -37,6 +36,10 @@ dependencies {
     }
 
     integTestRuntime project(':testingJunitPlatform')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 test {

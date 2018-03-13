@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -14,8 +16,8 @@
  * limitations under the License.
  */
 plugins {
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -24,6 +26,10 @@ dependencies {
     compile project(':maven')
 
     integTestRuntime project(":ideNative")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

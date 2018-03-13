@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -14,7 +16,7 @@
  * limitations under the License.
  */
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -30,6 +32,10 @@ dependencies {
     testFixturesImplementation project(":internalTesting")
 
     integTestRuntime allTestRuntimeDependencies
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

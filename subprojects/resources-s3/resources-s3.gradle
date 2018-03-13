@@ -1,7 +1,9 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -23,5 +25,11 @@ testFixtures {
     from(':maven')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

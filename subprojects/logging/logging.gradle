@@ -1,12 +1,12 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /**
  * Logging infrastructure.
  */
 plugins {
     id 'java-library'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
@@ -27,6 +27,10 @@ dependencies {
     runtimeOnly libraries.jcl_to_slf4j.coordinates
 
     testImplementation project(":internalTesting")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

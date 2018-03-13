@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -15,8 +17,8 @@
  */
 plugins {
     `java-library`
-    id("strict-compile")
-    id("classycle")
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 
 }
 
@@ -48,6 +50,11 @@ dependencies {
     jmh("org.iq80.snappy:snappy:0.4")
     jmh("org.kamranzafar:jtar:2.3")
 }
+
+gradlebuildJava {
+    moduleType = ModuleType.CORE
+}
+
 
 testFixtures {
     from(":core")

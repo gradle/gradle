@@ -43,7 +43,7 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
                     def linkDebug = linkTask.get()
                     extract.toolChain = linkDebug.toolChain
                     extract.targetPlatform = linkDebug.targetPlatform
-                    extract.binaryFile.set linkDebug.binaryFile
+                    extract.binaryFile.set linkDebug.linkedFile
                 }
                 symbolFile.set file("build/symbols")
             }

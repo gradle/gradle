@@ -26,6 +26,7 @@ import org.gradle.internal.logging.config.LoggingSystemAdapter;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
 import org.gradle.internal.logging.source.DefaultStdErrLoggingSystem;
@@ -41,24 +42,27 @@ import org.gradle.internal.time.Time;
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
  *
  * <ol>
- *     <li>Create an instance using one of the static factory methods below.</li>
- *     <li>Create an instance of {@link LoggingManagerInternal}.</li>
- *     <li>Configure the logging manager as appropriate.</li>
- *     <li>Start the logging manager using {@link LoggingManagerInternal#start()}.</li>
- *     <li>When finished, stop the logging manager using {@link LoggingManagerInternal#stop()}.</li>
+ * <li>Create an instance using one of the static factory methods below.</li>
+ * <li>Create an instance of {@link LoggingManagerInternal}.</li>
+ * <li>Configure the logging manager as appropriate.</li>
+ * <li>Start the logging manager using {@link LoggingManagerInternal#start()}.</li>
+ * <li>When finished, stop the logging manager using {@link LoggingManagerInternal#stop()}.</li>
  * </ol>
  */
 public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
 
+    protected final OutputEventRenderer renderer = makeOutputEventRenderer();
+    protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
+
     /**
      * Creates a set of logging services which are suitable to use globally in a process. In particular:
      *
      * <ul>
-     *     <li>Replaces System.out and System.err with implementations that route output through the logging system as per {@link LoggingManagerInternal#captureSystemSources()}.</li>
-     *     <li>Configures slf4j, log4j and java util logging to route log messages through the logging system.</li>
-     *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
-     *     <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
+     * <li>Replaces System.out and System.err with implementations that route output through the logging system as per {@link LoggingManagerInternal#captureSystemSources()}.</li>
+     * <li>Configures slf4j, log4j and java util logging to route log messages through the logging system.</li>
+     * <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
+     * <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
@@ -77,16 +81,16 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      * Creates a set of logging services which are suitable to use embedded in another application. In particular:
      *
      * <ul>
-     *     <li>Configures slf4j and log4j to route log messages through the logging system.</li>
-     *     <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
+     * <li>Configures slf4j and log4j to route log messages through the logging system.</li>
+     * <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
      * </ul>
      *
      * <p>Does not:</p>
      *
      * <ul>
-     *     <li>Replace System.out and System.err to capture output written to these destinations. Use {@link LoggingManagerInternal#captureSystemSources()} to enable this.</li>
-     *     <li>Configure java util logging. Use {@link LoggingManagerInternal#captureSystemSources()} to enable this.</li>
-     *     <li>Route logging output to the original System.out and System.err. Use {@link LoggingManagerInternal#attachSystemOutAndErr()} to enable this.</li>
+     * <li>Replace System.out and System.err to capture output written to these destinations. Use {@link LoggingManagerInternal#captureSystemSources()} to enable this.</li>
+     * <li>Configure java util logging. Use {@link LoggingManagerInternal#captureSystemSources()} to enable this.</li>
+     * <li>Route logging output to the original System.out and System.err. Use {@link LoggingManagerInternal#attachSystemOutAndErr()} to enable this.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
@@ -119,7 +123,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected TextStreamOutputEventListener getStdoutListener() {
         if (stdoutListener == null) {
-            stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+            stdoutListener = new TextStreamOutputEventListener(get(OutputEventListenerManager.class).getBroadcaster());
         }
         return stdoutListener;
     }
@@ -129,35 +133,47 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
-        OutputEventRenderer renderer = get(OutputEventRenderer.class);
+        OutputEventListener outputEventBroadcaster = outputEventListenerManager.getBroadcaster();
+
         LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(Clock.class));
         stdout.setLevel(LogLevel.QUIET);
-        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(Clock.class));
+        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(outputEventBroadcaster), get(Clock.class));
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
             renderer,
-            new LoggingSystemAdapter(new Slf4jLoggingConfigurer(renderer)),
+            new LoggingSystemAdapter(new Slf4jLoggingConfigurer(outputEventBroadcaster)),
             new JavaUtilLoggingSystem(),
             stdout,
             stderr);
     }
 
-    protected OutputEventRenderer createOutputEventRenderer(Clock clock) {
-        return new OutputEventRenderer(clock);
+    protected OutputEventListener createOutputEventListener(OutputEventListenerManager manager) {
+        return manager.getBroadcaster();
+    }
+
+    protected OutputEventListenerManager createOutputEventListenerManager() {
+        return outputEventListenerManager;
+    }
+
+    // Intentionally not a “create” method as this should not be exposed as a service
+    protected OutputEventRenderer makeOutputEventRenderer() {
+        return new OutputEventRenderer(Time.clock());
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
     }
 
     private static class NestedLogging extends LoggingServiceRegistry {
+
         protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
-            OutputEventRenderer renderer = get(OutputEventRenderer.class);
             // Don't configure anything
-            return new DefaultLoggingManagerFactory(renderer,
+            return new DefaultLoggingManagerFactory(
+                renderer,
                 new NoOpLoggingSystem(),
                 new NoOpLoggingSystem(),
                 new NoOpLoggingSystem(),
-                new NoOpLoggingSystem());
+                new NoOpLoggingSystem()
+            );
         }
     }
 }

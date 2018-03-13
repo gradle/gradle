@@ -86,7 +86,9 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
 
     /**
      * <p>Disable caching the results of the task if the given spec is satisfied. The spec will be evaluated at task execution time, not
-     * during configuration. If the spec is not satisfied, the results of the task will be cached according to {@link #cacheIf(Spec)}.</p>
+     * during configuration.</p>
+     *
+     * <p>As opposed to {@link #cacheIf(String, Spec)}, this method never enables caching for a task, it can only be used to disable caching.</p>
      *
      * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code true},
      * or if any of the predicates passed to {@link #cacheIf(String, Spec)} returns {@code false}.</p>

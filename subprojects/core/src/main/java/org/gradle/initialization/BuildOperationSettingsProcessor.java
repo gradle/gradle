@@ -23,7 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Details;
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Result;

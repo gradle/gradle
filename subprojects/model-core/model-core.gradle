@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -19,11 +21,9 @@
  */
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
@@ -42,6 +42,10 @@ dependencies {
 
     testFixturesImplementation project(':internalTesting')
     testFixturesImplementation project(':core')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

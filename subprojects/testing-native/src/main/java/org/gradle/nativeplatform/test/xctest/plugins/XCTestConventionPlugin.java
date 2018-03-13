@@ -50,13 +50,13 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
-import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -113,7 +113,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                     // Test configuration extends main configuration
                     testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                    project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getTestBinary().get()).getImportPathConfiguration().getName(), project);
+                    project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
                 }
 
                 testSuite.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
@@ -169,7 +169,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             }));
 
             InstallXCTestBundle install = tasks.create(names.getTaskName("install"), InstallXCTestBundle.class);
-            install.getBundleBinaryFile().set(link.getBinaryFile());
+            install.getBundleBinaryFile().set(link.getLinkedFile());
             install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
             binary.getInstallDirectory().set(install.getInstallDirectory());
 
@@ -182,12 +182,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
                 }
             }));
-            link.setOutputFile(exeLocation);
-            link.setTargetPlatform(currentPlatform);
-            link.setToolChain(toolChain);
-            link.setDebuggable(binary.isDebuggable());
+            link.getLinkedFile().set(exeLocation);
+            link.getTargetPlatform().set(currentPlatform);
+            link.getToolChain().set(toolChain);
+            link.getDebuggable().set(binary.isDebuggable());
 
-            binary.getExecutableFile().set(link.getBinaryFile());
+            binary.getExecutableFile().set(link.getLinkedFile());
 
             DefaultSwiftXCTestBundle bundle = (DefaultSwiftXCTestBundle) binary;
             bundle.getLinkTask().set(link);

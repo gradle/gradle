@@ -1,7 +1,6 @@
-import org.gradle.ShadedJar
-
-// GradleConnector entry point requires Java 5
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.packaging.ShadedJar
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 configurations {
     testPublishRuntime
@@ -21,10 +20,14 @@ dependencies {
     integTestRuntime project(":toolingApiBuilders")
     integTestRuntime project(":ivy")
 
-    crossVersionTestRuntime "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
+    crossVersionTestRuntime "org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}"
     crossVersionTestRuntime project(':buildComparison')
     crossVersionTestRuntime project(":ivy")
     crossVersionTestRuntime project(":maven")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
@@ -106,5 +109,7 @@ integTestTasks.all {
     libsRepository.required = true
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

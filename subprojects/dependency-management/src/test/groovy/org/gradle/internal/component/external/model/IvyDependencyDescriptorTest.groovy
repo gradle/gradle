@@ -224,13 +224,10 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
-        def toConfig3 = Stub(ConfigurationMetadata)
         fromConfig.hierarchy >> ["from"]
-        toConfig1.visible >> true
-        toConfig2.visible >> true
-        toConfig3.visible >> false
+        def toConfig1 = config('to-1', true)
+        def toConfig2 = config('to-2', true)
+        def toConfig3 = config('to-3', false)
         toComponent.getConfigurationNames() >> ["to-1", "to-2", "to-3"]
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
@@ -244,6 +241,14 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
         metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+    }
+
+    private ConfigurationMetadata config(name, visible) {
+        def toConfig1 = Stub(ConfigurationMetadata)
+        toConfig1.visible >> visible
+        toConfig1.name >> name
+        toConfig1.getHierarchy() >> [name]
+        toConfig1
     }
 
     def "configuration mapping can use all-except-wildcard on LHS"() {

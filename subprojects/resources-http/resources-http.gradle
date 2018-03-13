@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -18,8 +20,8 @@ plugins {
     // Cannot use strict compile because JDK 7 doesn't recognize
     // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
     // in the context of a delegation pattern
-    // id 'strict-compile'
-    id 'classycle'
+    // id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -37,6 +39,10 @@ dependencies {
     implementation libraries.nekohtml.coordinates
 
     testImplementation testLibraries.jetty
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

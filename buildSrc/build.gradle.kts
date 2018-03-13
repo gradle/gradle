@@ -26,6 +26,7 @@ plugins {
 }
 
 subprojects {
+    apply { plugin("java-library") }
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
         apply { plugin("groovy") }
         dependencies {
@@ -50,9 +51,27 @@ subprojects {
             groovyOptions.encoding = "utf-8"
             configureCompileTask(this, options)
         }
+
+        val compileGroovy: GroovyCompile by tasks
+
+        configurations {
+            "apiElements" {
+                outgoing.variants["classes"].artifact(mapOf(
+                    "file" to compileGroovy.destinationDir,
+                    "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+                    "builtBy" to compileGroovy
+                ))
+            }
+        }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
         apply { plugin("kotlin") }
+
+        tasks.withType<KotlinCompile> {
+            kotlinOptions {
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+            }
+        }
     }
     apply {
         plugin("idea")
@@ -62,6 +81,21 @@ subprojects {
     dependencies {
         compile(gradleApi())
     }
+
+    afterEvaluate {
+        if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
+            tasks.create<ValidateTaskProperties>("validateTaskProperties") {
+                outputFile.set(the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
+
+                val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+                classes = mainSourceSet.output.classesDirs
+                classpath = mainSourceSet.compileClasspath
+                dependsOn(mainSourceSet.output)
+
+                project.tasks["check"].dependsOn(this)
+            }
+        }
+    }
 }
 
 allprojects {
@@ -70,42 +104,35 @@ allprojects {
         maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
         gradlePluginPortal()
     }
-    // Workaround caching problems with 'java-gradle-plugin'
-    // vvvvv
-    normalization {
-        runtimeClasspath {
-            ignore("plugin-under-test-metadata.properties")
-        }
-    }
-    // ^^^^^
 }
 
 dependencies {
     subprojects.forEach {
         "runtime"(project(it.path))
     }
-
-    compile("com.google.code.gson:gson:2.7")
 }
 
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/codeQualityConfiguration.gradle.kts") }
+    apply { from("../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts") }
 }
 
 if (isCiServer) {
     gradle.buildFinished {
-        tasks.all {
-            if (this is Reporting<*> && state.failure != null) {
-                prepareReportForCIPublishing(this.reports["html"].destination)
+        allprojects.forEach { project ->
+            project.tasks.all {
+                if (this is Reporting<*> && state.failure != null) {
+                    prepareReportForCIPublishing(project.name, this.reports["html"].destination)
+                }
             }
         }
     }
 }
 
-fun Project.prepareReportForCIPublishing(report: File) {
+fun Project.prepareReportForCIPublishing(projectName: String, report: File) {
     if (report.isDirectory) {
-        val destFile = File("${rootProject.buildDir}/report-$name-${report.name}.zip")
+        val destFile = File("${rootProject.buildDir}/report-$projectName-${report.name}.zip")
         ant.withGroovyBuilder {
             "zip"("destFile" to destFile) {
                 "fileset"("dir" to report)
@@ -115,7 +142,7 @@ fun Project.prepareReportForCIPublishing(report: File) {
         copy {
             from(report)
             into(rootProject.buildDir)
-            rename { "report-$name-${report.parentFile.name}-${report.name}" }
+            rename { "report-$projectName-${report.parentFile.name}-${report.name}" }
         }
     }
 }

@@ -1,8 +1,8 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'javascript-base'
 }
-
-sourceCompatibility = 1.6
 
 configurations {
     reports
@@ -24,9 +24,15 @@ dependencies {
     reports "jquery:jquery.min:1.11.0@js"
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
 testFixtures {
     from(':core')
 }
+
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 task reportResources(type: Copy) {
     from configurations.reports

@@ -41,19 +41,17 @@ class DefaultTaskPlanExecutorTest extends Specification {
         project.gradle >> gradle
         task.project >> project
         task.state >> state
-        def taskInfo = new TaskInfo(task)
 
         when:
         executor.process(taskPlan, worker)
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
-        1 * taskPlan.executeWithTask(_,_) >> { args ->
-            args[1].execute(taskInfo)
+        1 * taskPlan.executeWithTask(_,_) >> { lease, Action action ->
+            action.execute(task)
             return true
         }
         1 * worker.execute(task)
-        1 * taskPlan.taskComplete(taskInfo)
         1 * taskPlan.executeWithTask(_,_) >> false
         1 * taskPlan.awaitCompletion()
     }

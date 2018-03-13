@@ -41,7 +41,7 @@ import java.util.Set;
 public class DefaultConfigurationPublications implements ConfigurationPublications {
     private final DisplayName displayName;
     private final PublishArtifactSet artifacts;
-    private final PublishArtifactSet allArtifacts;
+    private final PublishArtifactSetProvider allArtifacts;
     private final AttributeContainerInternal parentAttributes;
     private final AttributeContainerInternal attributes;
     private final Instantiator instantiator;
@@ -51,7 +51,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
 
-    public DefaultConfigurationPublications(DisplayName displayName, PublishArtifactSet artifacts, PublishArtifactSet allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
+    public DefaultConfigurationPublications(DisplayName displayName, PublishArtifactSet artifacts, PublishArtifactSetProvider allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
         this.displayName = displayName;
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
@@ -83,8 +83,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             @Override
             public Set<? extends OutgoingVariant> getChildren() {
                 Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>();
-                if (allArtifacts.size() > 0 || variants == null) {
-                    result.add(new LeafOutgoingVariant(displayName, attributes, allArtifacts));
+                PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
+                if (allArtifactSet.size() > 0 || variants == null) {
+                    result.add(new LeafOutgoingVariant(displayName, attributes, allArtifactSet));
                 }
                 if (variants != null) {
                     for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {

@@ -50,6 +50,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -1357,8 +1358,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static LoggingServiceRegistry newCommandLineProcessLogging() {
         LoggingServiceRegistry loggingServices = new LoggingServiceRegistry() {
             @Override
-            protected OutputEventRenderer createOutputEventRenderer(Clock clock) {
-                return new VerboseAwareOutputEventRenderer(clock);
+            protected OutputEventRenderer makeOutputEventRenderer() {
+                return new VerboseAwareOutputEventRenderer(Time.clock());
             }
         };
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();

@@ -28,7 +28,11 @@ import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
-import org.gradle.plugins.pegdown.PegDown
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.PublicApi
+import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
@@ -36,7 +40,7 @@ import javax.xml.transform.stream.StreamSource
 
 plugins {
     id 'base'
-    id 'jsoup'
+    id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
 }
@@ -81,6 +85,10 @@ dependencies {
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 ext {
@@ -129,7 +137,9 @@ tasks.withType(CacheableAsciidoctorTask) {
         }
     }
 
-    attributes website: 'http://www.gradle.org'
+    attributes website: 'http://www.gradle.org',
+               javaApi: 'https://docs.oracle.com/javase/7/docs/api',
+               antManual: 'https://ant.apache.org/manual'
 
     doLast {
         outputDir.eachFileMatch(~/.*.xml/) { File file ->
@@ -188,11 +198,14 @@ task css(type: Sync, dependsOn: configureCss) {
     include "*.svg"
 }
 
-
 artifacts {
     // declare that the generated css directory is an output of cssElements
     cssElements file: css.destinationDir, builtBy: css
 }
+
+// TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
+// Don't publish the CSS artifacts when calling uploadArchives
+configurations.archives.artifacts.removeAll(configurations.cssElements.artifacts)
 
 ext.cssFiles = fileTree(css.destinationDir) {
     builtBy css
@@ -225,6 +238,8 @@ task userguideStyleSheets(type: Copy) {
 }
 
 tasks.remove(asciidoctor)
+
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 task userguideAsciidoc(type: CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
@@ -398,17 +413,17 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (javaVersion.isJava8Compatible()) {
+    if (BuildEnvironment.javaVersion.isJava8Compatible()) {
         options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
-    source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }
+    source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
-    publicApiIncludes.each {
+    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    PublicApi.includes.each {
         include it
     }
-    publicApiExcludes.each {
+    PublicApi.excludes.each {
         exclude it
     }
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import java.util.List;
@@ -29,12 +30,6 @@ import java.util.Set;
  * Represents a graph of dependent tasks, returned in execution order.
  */
 public interface TaskExecutionPlan extends Describable {
-    /**
-     * Signals to the plan that execution of this task has completed. Execution is complete if the task succeeds, fails, or an exception is thrown during execution.
-     * @param task the completed task.
-     */
-    void taskComplete(TaskInfo task);
-
     /**
      * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
      */
@@ -65,9 +60,7 @@ public interface TaskExecutionPlan extends Describable {
      * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
      * can be executed.  If all tasks have been executed, returns false.
      *
-     * @param parentWorkerLease
-     * @param taskExecution
      * @return true if there are more tasks waiting to execute, false if all tasks have executed.
      */
-    boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInfo> taskExecution);
+    boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInternal> taskExecution);
 }

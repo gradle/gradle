@@ -26,7 +26,11 @@
             </tr>
             <tr>
                 <td>configDir</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/config/checkstyle</literal></td>
+                <td><literal><replaceable>${rootProject.projectDir}</replaceable>/config/checkstyle</literal></td>
+            </tr>
+            <tr>
+                <td>configDirectory</td>
+                <td><literal><replaceable>${rootProject.projectDir}</replaceable>/config/checkstyle</literal></td>
             </tr>
             <tr>
                 <td>configProperties</td>

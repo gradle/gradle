@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
@@ -87,7 +86,6 @@ import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -119,17 +117,6 @@ import java.util.List;
 class DependencyManagementBuildScopeServices {
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
         return new DefaultDependencyManagementServices(parent);
-    }
-
-    BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
-        ProjectInternal rootProject = projectRegistry.getRootProject();
-        if (rootProject == null || rootProject.getGradle().getParent() == null) {
-            // BuildIdentity for a top-level build
-            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":"));
-        }
-        // BuildIdentity for an included build
-        // This hard-codes the assumption that buildName == rootProject.name for included builds
-        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName()));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
@@ -307,7 +294,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
-                                                                FeaturePreviews featurePreviews,
                                                                 ImmutableAttributesFactory attributesFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -317,7 +303,6 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
-            featurePreviews,
             attributesFactory);
     }
 

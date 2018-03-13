@@ -26,10 +26,10 @@ import java.util.Map;
 public class BuildOperationTree {
 
     public final List<BuildOperationRecord> roots;
-    public final Map<Object, BuildOperationRecord> records;
+    public final Map<Long, BuildOperationRecord> records;
 
     BuildOperationTree(List<BuildOperationRecord> roots) {
-        ImmutableMap.Builder<Object, BuildOperationRecord> records = ImmutableMap.builder();
+        ImmutableMap.Builder<Long, BuildOperationRecord> records = ImmutableMap.builder();
         for (BuildOperationRecord record : roots) {
             visit(records, record);
         }
@@ -37,7 +37,7 @@ public class BuildOperationTree {
         this.records = records.build();
     }
 
-    private void visit(ImmutableMap.Builder<Object, BuildOperationRecord> records, BuildOperationRecord record) {
+    private void visit(ImmutableMap.Builder<Long, BuildOperationRecord> records, BuildOperationRecord record) {
         records.put(record.id, record);
         for (BuildOperationRecord child : record.children) {
             visit(records, child);

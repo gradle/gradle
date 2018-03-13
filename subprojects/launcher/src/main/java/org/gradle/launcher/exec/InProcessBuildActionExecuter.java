@@ -30,15 +30,14 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
 
-    public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner, GradleLauncherFactory gradleLauncherFactory) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
+    public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+        GradleLauncherFactory gradleLauncherFactory = contextServices.get(GradleLauncherFactory.class);
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         checkDeprecations(action.getStartParameter());

@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -15,8 +17,8 @@
  */
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -30,6 +32,10 @@ dependencies {
     implementation libraries.commons_io.coordinates
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
 testFixtures {
     from(':dependencyManagement')
     from(':ivy')
@@ -37,5 +43,7 @@ testFixtures {
     from(':core')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

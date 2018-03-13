@@ -32,10 +32,10 @@ transformDocument {
             append("<title>Gradle @version@ Release Notes</title>").
             append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>")
 
-    head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
+    head().append("<style>${baseStyleFile.text}${releaseNotesStyleFile.text}</style>")
 
     [project.configurations.jquery.singleFile, project.configurations.jqueryTipTip.singleFile, scriptFile].each {
-        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", it.text)
+        head().append("<script type='text/javascript'>${it.text}</script>")
     }
 }
 

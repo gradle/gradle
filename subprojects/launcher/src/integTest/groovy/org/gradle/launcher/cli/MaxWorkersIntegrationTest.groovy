@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
-import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.work.WorkerLeaseService
 
 

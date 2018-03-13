@@ -138,17 +138,17 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         executer.withArgument("--info")
-        succeeds assembleTaskRelease()
+        succeeds tasks.release.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), assembleTaskRelease())
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(), tasks.release.assemble)
         sharedLibrary("build/lib/main/release/hello").assertExists()
         sharedLibrary("build/lib/main/release/hello").assertHasStrippedDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
-        succeeds assembleTaskDebug()
+        succeeds tasks.debug.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks(debug), assembleTaskDebug())
+        result.assertTasksExecuted(tasks.debug.allToLink, tasks.debug.assemble)
         sharedLibrary("build/lib/main/debug/hello").assertExists()
         sharedLibrary("build/lib/main/debug/hello").assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         !output.contains('compiling with feature enabled')
@@ -308,7 +308,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
             library.binaries.get { !it.optimized }.configure { 
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
                 def link = linkTask.get()
-                link.binaryFile = layout.buildDirectory.file("shared/main.bin")
+                link.linkedFile = layout.buildDirectory.file("shared/main.bin")
                 if (link.importLibrary.present) {
                     link.importLibrary = layout.buildDirectory.file("import/main.lib")
                 }
@@ -371,16 +371,16 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         app.shuffle.writeToProject(file("lib3"))
 
         expect:
-        succeeds assembleTaskDebug(':lib1')
+        succeeds tasks(':lib1').debug.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), assembleTaskDebug(':lib1'))
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), tasks(':lib1').debug.assemble)
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
-        succeeds assembleTaskRelease(':lib1')
+        succeeds tasks(':lib1').release.assemble
 
-        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release, toolChain), extractAndStripSymbolsTasksRelease(':lib1', toolChain), assembleTaskRelease(':lib1'))
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release), extractAndStripSymbolsTasksRelease(':lib1'), tasks(':lib1').release.assemble)
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
@@ -417,16 +417,16 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         app.shuffle.writeToProject(file("lib3"))
 
         expect:
-        succeeds assembleTaskDebug(':lib1')
+        succeeds tasks(':lib1').debug.assemble
 
-        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], debug), compileAndLinkTasks([':lib1'], debug), assembleTaskDebug(':lib1'))
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], debug), compileAndLinkTasks([':lib1'], debug), tasks(':lib1').debug.assemble)
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         staticLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         staticLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
-        succeeds assembleTaskRelease(':lib1')
+        succeeds tasks(':lib1').release.assemble
 
-        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], release), compileAndLinkTasks([':lib1'], release), extractAndStripSymbolsTasksRelease(':lib1', toolChain), assembleTaskRelease(':lib1'))
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], release), compileAndLinkTasks([':lib1'], release), extractAndStripSymbolsTasksRelease(':lib1'), tasks(':lib1').release.assemble)
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         staticLibrary("lib2/build/lib/main/release/lib2").assertExists()
         staticLibrary("lib3/build/lib/main/release/lib3").assertExists()

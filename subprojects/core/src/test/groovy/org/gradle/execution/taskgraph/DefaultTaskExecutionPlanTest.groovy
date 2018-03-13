@@ -896,11 +896,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         def tasks = []
         def moreTasks = true
         while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(workerLease, new Action<TaskInfo>() {
+            moreTasks = executionPlan.executeWithTask(workerLease, new Action<TaskInternal>() {
                 @Override
-                void execute(TaskInfo taskInfo) {
-                    tasks << taskInfo.task
-                    executionPlan.taskComplete(taskInfo)
+                void execute(TaskInternal task) {
+                    tasks << task
                 }
             })
         }

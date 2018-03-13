@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -14,8 +16,8 @@
  * limitations under the License.
  */
 plugins {
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -27,12 +29,16 @@ dependencies {
     integTestRuntime project(':compositeBuilds')
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
 testFixtures {
     from(':core')
     from(':platformPlay')
     from(':ide')
 }
 
-tasks.withType(org.gradle.testing.IntegrationTest) { task ->
+tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
     task.dependsOn(':platformPlay:integTestPrepare')
 }

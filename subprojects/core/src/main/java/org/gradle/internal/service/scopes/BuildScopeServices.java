@@ -77,6 +77,7 @@ import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.configuration.BuildConfigurer;
@@ -144,7 +145,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.sink.OutputEventRenderer;
+import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -317,6 +318,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry,
+                                                                FileLockManager fileLockManager,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
@@ -327,6 +329,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                fileLockManager,
                 buildOperationExecutor,
                 cachedClasspathTransformer,
                 new BuildSrcBuildListenerFactory(
@@ -452,12 +455,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return registry;
     }
 
-    protected UserInputHandler createUserInputHandler(StartParameter startParameter, OutputEventRenderer outputEventRenderer) {
+    protected UserInputHandler createUserInputHandler(StartParameter startParameter, OutputEventListenerManager outputEventListenerManager) {
         if (!startParameter.isInteractive()) {
             return new NonInteractiveUserInputHandler();
         }
 
-        return new DefaultUserInputHandler(outputEventRenderer, new DefaultUserInputReader());
+        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), new DefaultUserInputReader());
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {

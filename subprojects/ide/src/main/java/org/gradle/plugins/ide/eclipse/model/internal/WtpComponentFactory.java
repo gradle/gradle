@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
@@ -32,6 +31,7 @@ import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
 import org.gradle.plugins.ide.eclipse.model.WbModuleEntry;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
@@ -45,7 +45,7 @@ public class WtpComponentFactory {
     private final ProjectDependencyBuilder projectDependencyBuilder;
 
     public WtpComponentFactory(Project project) {
-        projectDependencyBuilder = new ProjectDependencyBuilder(((ProjectInternal) project).getServices().get(LocalComponentRegistry.class));
+        projectDependencyBuilder = new ProjectDependencyBuilder(((ProjectInternal) project).getServices().get(IdeArtifactRegistry.class));
     }
 
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {

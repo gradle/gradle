@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;

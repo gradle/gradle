@@ -1,5 +1,4 @@
-
-sourceCompatibility = 1.6
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 configurations {
     mvn3Input
@@ -42,6 +41,11 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
+gradlebuildJava {
+    // TODO Souce Compatibility was set to 1.6. Why? Is this worker code?
+    moduleType = ModuleType.WORKER
+}
+
 testFixtures {
     from(':core')
     from(':messaging')
@@ -49,7 +53,9 @@ testFixtures {
     from(':versionControl')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 
 classpathManifest {
     additionalProjects = [project(':runtimeApiInfo')]

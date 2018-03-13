@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.Action
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -65,7 +66,7 @@ class BuildOperationsFixture {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().findAll {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
-        }
+        }.toList()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
@@ -98,6 +99,17 @@ class BuildOperationsFixture {
 
     BuildOperationRecord only(String displayName) {
         only(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
+        def parents = []
+        def parentId = child.parentId
+        while (parentId != null) {
+            def parent = operations.records.get(parentId)
+            parents.add(0, parent)
+            parentId = parent.parentId
+        }
+        parents
     }
 
     BuildOperationRecord only(Pattern displayName) {
@@ -152,18 +164,24 @@ class BuildOperationsFixture {
     @SuppressWarnings("GrMethodMayBeStatic")
     List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         def matches = []
+        walk(parent) {
+            if (predicate.isSatisfiedBy(it)) {
+                matches << it
+            }
+        }
+        matches
+    }
+
+    @SuppressWarnings("GrMethodMayBeStatic")
+    void walk(BuildOperationRecord parent, Action<? super BuildOperationRecord> action) {
         def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
 
         def operation = search.poll()
         while (operation != null) {
-            if (predicate.isSatisfiedBy(operation)) {
-                matches << operation
-            }
+            action.execute(operation)
             search.addAll(operation.children)
             operation = search.poll()
         }
-
-        matches
     }
 
     void orderedSerialSiblings(BuildOperationRecord... expectedOrder) {

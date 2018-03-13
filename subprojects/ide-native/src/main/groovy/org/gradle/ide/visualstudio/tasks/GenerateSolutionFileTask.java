@@ -75,8 +75,7 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
         public void configure(final VisualStudioSolutionFile solutionFile) {
             DefaultVisualStudioSolution solution = (DefaultVisualStudioSolution) getSolution();
 
-            solutionFile.setProjects(solution.getProjectArtifacts());
-            solutionFile.setProjectConfigurations(solution.getProjectConfigurationArtifacts());
+            solutionFile.setProjects(solution.getProjects());
 
             for (Action<? super TextProvider> textAction : solution.getSolutionFile().getTextActions()) {
                 solutionFile.getActions().add(textAction);

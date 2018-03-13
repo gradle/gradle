@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
@@ -95,13 +95,13 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             WorkerLease childLease = parentWorkerLease.createChild();
             boolean moreTasksToExecute = true;
             while (moreTasksToExecute) {
-                moreTasksToExecute = taskExecutionPlan.executeWithTask(childLease, new Action<TaskInfo>() {
+                moreTasksToExecute = taskExecutionPlan.executeWithTask(childLease, new Action<TaskInternal>() {
                     @Override
-                    public void execute(TaskInfo task) {
-                        final String taskPath = task.getTask().getPath();
+                    public void execute(TaskInternal task) {
+                        final String taskPath = task.getPath();
                         LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
                         taskTimer.reset();
-                        processTask(task);
+                        taskWorker.execute(task);
                         long taskDuration = taskTimer.getElapsedMillis();
                         busy.addAndGet(taskDuration);
                         if (LOGGER.isInfoEnabled()) {
@@ -115,16 +115,6 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
-            }
-        }
-
-        private void processTask(TaskInfo taskInfo) {
-            try {
-                taskWorker.execute(taskInfo.getTask());
-            } catch (Throwable e) {
-                taskInfo.setExecutionFailure(e);
-            } finally {
-                taskExecutionPlan.taskComplete(taskInfo);
             }
         }
     }

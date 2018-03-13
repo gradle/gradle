@@ -17,12 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependents
 
 class JarSnapshotTest extends Specification {
 
@@ -93,7 +92,7 @@ class JarSnapshotTest extends Specification {
         JarSnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
         JarSnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)], analysis)
 
-        analysis.getDependents("B") >> new DependencyToAll()
+        analysis.getDependents("B") >> DependentsSet.dependencyToAll()
 
         expect:
         altered(s1, s2).isDependencyToAll()

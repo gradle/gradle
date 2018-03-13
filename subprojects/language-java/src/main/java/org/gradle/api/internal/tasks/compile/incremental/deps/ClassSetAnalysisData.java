@@ -52,10 +52,10 @@ public class ClassSetAnalysisData {
 
     public DependentsSet getDependents(String className) {
         if (fullRebuildCause != null) {
-            return new DependencyToAll(fullRebuildCause);
+            return DependentsSet.dependencyToAll(fullRebuildCause);
         }
         DependentsSet dependentsSet = dependents.get(className);
-        return dependentsSet == null ? DefaultDependentsSet.EMPTY : dependentsSet;
+        return dependentsSet == null ? DependentsSet.empty(): dependentsSet;
     }
 
     public IntSet getConstants(String className) {
@@ -158,14 +158,14 @@ public class ClassSetAnalysisData {
         private DependentsSet readDependentsSet(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             byte b = decoder.readByte();
             if (b == 1) {
-                return new DependencyToAll(decoder.readNullableString());
+                return DependentsSet.dependencyToAll(decoder.readNullableString());
             }
             int count = decoder.readSmallInt();
             ImmutableSet.Builder<String> builder = ImmutableSet.builder();
             for (int i = 0; i < count; i++) {
                 builder.add(readClassName(decoder, classNameMap));
             }
-            return new DefaultDependentsSet(builder.build());
+            return DependentsSet.dependents(builder.build());
         }
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {

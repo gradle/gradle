@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -13,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-sourceCompatibility = 1.6
 
 dependencies {
     compile libraries.groovy.coordinates
@@ -49,6 +49,11 @@ dependencies {
     integTestRuntime project(":maven")
 }
 
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
 testFixtures {
     from(':core')
     from(':core', 'testFixtures')
@@ -66,4 +71,6 @@ task wrapperJar(type: Copy) {
 }
 sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

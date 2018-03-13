@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.testing.DistributionTest
+import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 
 task intTestImage(type: Sync) {
     group = "Verification"
@@ -33,7 +33,7 @@ configurations {
     }
 }
 
-if (useAllDistribution) {
+if (Build_extensionsKt.getUseAllDistribution(project)) {
     task unpackAllDistribution(type: Sync) {
         dependsOn ':distributions:allZip'
         from { zipTree(tasks.getByPath(':distributions:allZip').archivePath) }

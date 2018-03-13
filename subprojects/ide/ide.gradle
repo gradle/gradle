@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -34,9 +36,15 @@ dependencies {
     testCompile project(':dependencyManagement')
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
 testFixtures {
     from(':core')
     from(':dependencyManagement')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

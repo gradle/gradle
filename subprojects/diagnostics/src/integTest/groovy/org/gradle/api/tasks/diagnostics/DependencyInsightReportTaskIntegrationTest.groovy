@@ -287,19 +287,19 @@ org:leaf:2.0 -> 1.0
         then:
         output.contains """
 org:leaf:1.0
-   variant "runtime"
+   variant "default"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:[1.0,2.0] -> 1.0
-   variant "runtime"
+   variant "default"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:latest.integration -> 1.0
-   variant "runtime"
+   variant "default"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
@@ -582,20 +582,20 @@ org:foo:1.0 -> 2.0
         then:
         output.contains """
 org:leaf:1.6
-   variant "runtime"
+   variant "default"
 
 org:leaf:1.+ -> 1.6
-   variant "runtime"
+   variant "default"
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:[1.5,1.9] -> 1.6
-   variant "runtime"
+   variant "default"
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:latest.integration -> 1.6
-   variant "runtime"
+   variant "default"
 \\--- org:top:1.0
      \\--- conf
 """
@@ -722,13 +722,13 @@ org:leaf:2.0 -> 1.5
         then:
         output.contains """
 org:leaf:1.0 (forced)
-   variant "default"
+   variant "default+runtime"
 +--- conf
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "default"
+   variant "default+runtime"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -1093,7 +1093,7 @@ org:leaf2:1.0
         then:
         output.contains """
 project :
-   variant "compile"
+   variant "compile+runtimeElements"
 \\--- project :impl
      \\--- project : (*)
 """

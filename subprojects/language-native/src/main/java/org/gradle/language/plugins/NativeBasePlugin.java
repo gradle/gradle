@@ -174,17 +174,18 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 link.source(executable.getObjects());
                 link.lib(executable.getLinkLibraries());
                 final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
-                link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
+                link.getLinkedFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return toolProvider.getExecutableName("exe/" + names.getDirName() + executable.getBaseName().get());
                     }
                 })));
-                link.setTargetPlatform(targetPlatform);
-                link.setToolChain(toolChain);
-                link.setDebuggable(executable.isDebuggable());
+                link.getTargetPlatform().set(targetPlatform);
+                link.getToolChain().set(toolChain);
+                link.getDebuggable().set(executable.isDebuggable());
 
                 executable.getLinkTask().set(link);
+                executable.getDebuggerExecutableFile().set(link.getLinkedFile());
 
                 if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
                     Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -204,17 +205,17 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
                     executable.getOutputs().from(extractSymbols.getSymbolFile());
                 } else {
-                    executable.getExecutableFile().set(link.getBinaryFile());
+                    executable.getExecutableFile().set(link.getLinkedFile());
                 }
 
                 // Add an install task
                 // TODO - should probably not add this for all executables?
                 // TODO - add stripped symbols to the installation
                 final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-                install.setPlatform(link.getTargetPlatform());
-                install.setToolChain(link.getToolChain());
+                install.getTargetPlatform().set(targetPlatform);
+                install.getToolChain().set(toolChain);
                 install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                install.getSourceFile().set(executable.getExecutableFile());
+                install.getExecutableFile().set(executable.getExecutableFile());
                 install.lib(executable.getRuntimeLibraries());
 
                 executable.getInstallTask().set(install);
@@ -247,13 +248,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                         return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
                     }
                 }));
-                link.setOutputFile(runtimeFile);
-                link.setTargetPlatform(targetPlatform);
-                link.setToolChain(toolChain);
-                link.setDebuggable(library.isDebuggable());
+                link.getLinkedFile().set(runtimeFile);
+                link.getTargetPlatform().set(targetPlatform);
+                link.getToolChain().set(toolChain);
+                link.getDebuggable().set(library.isDebuggable());
 
-                Provider<RegularFile> linkFile = link.getBinaryFile();
-                runtimeFile = link.getBinaryFile();
+                Provider<RegularFile> linkFile = link.getLinkedFile();
+                runtimeFile = link.getLinkedFile();
 
                 if (toolProvider.producesImportLibrary()) {
                     Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -294,7 +295,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
             }
         });
     }
-    
+
     private void addTasksForComponentWithStaticLibrary(final TaskContainer tasks, final ProviderFactory providers, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
             @Override
@@ -305,15 +306,15 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 final CreateStaticLibrary createTask = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
                 createTask.source(library.getObjects());
                 final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
-                Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                Provider<RegularFile> linktimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                     @Override
                     public String call() {
                         return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
                     }
                 }));
-                createTask.setOutputFile(runtimeFile);
-                createTask.setTargetPlatform(library.getTargetPlatform());
-                createTask.setToolChain(library.getToolChain());
+                createTask.getOutputFile().set(linktimeFile);
+                createTask.getTargetPlatform().set(library.getTargetPlatform());
+                createTask.getToolChain().set(library.getToolChain());
 
                 // Wire the task into the library model
                 library.getLinkFile().set(createTask.getBinaryFile());
@@ -419,20 +420,20 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
     private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {
         StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
-        stripSymbols.getBinaryFile().set(link.getBinaryFile());
+        stripSymbols.getBinaryFile().set(link.getLinkedFile());
         stripSymbols.getOutputFile().set(strippedLocation);
-        stripSymbols.setTargetPlatform(currentPlatform);
-        stripSymbols.setToolChain(toolChain);
+        stripSymbols.getTargetPlatform().set(currentPlatform);
+        stripSymbols.getToolChain().set(toolChain);
 
         return stripSymbols;
     }
 
     private ExtractSymbols extractSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> symbolLocation) {
         ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
-        extractSymbols.getBinaryFile().set(link.getBinaryFile());
+        extractSymbols.getBinaryFile().set(link.getLinkedFile());
         extractSymbols.getSymbolFile().set(symbolLocation);
-        extractSymbols.setTargetPlatform(currentPlatform);
-        extractSymbols.setToolChain(toolChain);
+        extractSymbols.getTargetPlatform().set(currentPlatform);
+        extractSymbols.getToolChain().set(toolChain);
 
         return extractSymbols;
     }

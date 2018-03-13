@@ -19,9 +19,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -41,12 +42,9 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Assembles a static library from object files.
@@ -55,20 +53,18 @@ import java.util.concurrent.Callable;
 public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
-    private RegularFileProperty outputFile;
-    private List<String> staticLibArgs = new ArrayList<String>();
+    private final RegularFileProperty outputFile;
+    private final ListProperty<String> staticLibArgs;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
 
     public CreateStaticLibrary() {
-        source = getProject().files();
-        getInputs().property("outputType", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
-            }
-        });
-        outputFile = newOutputFile();
+        ObjectFactory objectFactory = getProject().getObjects();
+        this.source = getProject().files();
+        this.outputFile = newOutputFile();
+        this.staticLibArgs = getProject().getObjects().listProperty(String.class);
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
@@ -92,68 +88,58 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
         throw new UnsupportedOperationException();
     }
 
+    // TODO: Need to track version/implementation of ar tool.
+
     @TaskAction
     public void link() {
 
         StaticLibraryArchiverSpec spec = new DefaultStaticLibraryArchiverSpec();
         spec.setTempDir(getTemporaryDir());
-        spec.setOutputFile(getOutputFile());
+        spec.setOutputFile(getOutputFile().get().getAsFile());
         spec.objectFiles(getSource());
-        spec.args(getStaticLibArgs());
+        spec.args(getStaticLibArgs().get());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);
 
-        Compiler<StaticLibraryArchiverSpec> compiler = Cast.uncheckedCast(toolChain.select(targetPlatform).newCompiler(spec.getClass()));
+        Compiler<StaticLibraryArchiverSpec> compiler = createCompiler();
         WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
         setDidWork(result.getDidWork());
     }
 
+    private Compiler<StaticLibraryArchiverSpec> createCompiler() {
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        return toolProvider.newCompiler(StaticLibraryArchiverSpec.class);
+    }
+
     /**
-     * The tool chain used for creating the static library.
+     * The tool chain used for linking.
+     *
+     * @since 4.7
      */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
-    }
-
     /**
-      * The platform being targeted.
-      */
+     * The platform being linked for.
+     *
+     * @since 4.7
+     */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
-    }
-
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**
      * The file where the output binary will be located.
      */
     @OutputFile
-    public File getOutputFile() {
-        return outputFile.get().getAsFile();
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile.set(outputFile);
-    }
-
-    /**
-     * Sets the output file generated by the linking process via a {@link Provider}.
-     *
-     * @param outputFile the output file provider to use
-     * @see #setOutputFile(File)
-     * @since 4.5
-     */
-    public void setOutputFile(Provider<? extends RegularFile> outputFile) {
-        this.outputFile.set(outputFile);
+    public RegularFileProperty getOutputFile() {
+        return outputFile;
     }
 
     /**
@@ -167,14 +153,13 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     }
 
     /**
-     * Additional arguments passed to the archiver.
+     * <em>Additional</em> arguments passed to the archiver.
+     *
+     * @since 4.7
      */
     @Input
-    public List<String> getStaticLibArgs() {
+    public ListProperty<String> getStaticLibArgs() {
         return staticLibArgs;
     }
 
-    public void setStaticLibArgs(List<String> staticLibArgs) {
-        this.staticLibArgs = staticLibArgs;
-    }
 }

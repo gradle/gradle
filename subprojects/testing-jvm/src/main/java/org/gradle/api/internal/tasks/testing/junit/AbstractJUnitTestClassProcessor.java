@@ -70,4 +70,10 @@ public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> imple
     public void stop() {
         resultProcessorActor.stop();
     }
+
+
+    @Override
+    public void stopNow() {
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+    }
 }

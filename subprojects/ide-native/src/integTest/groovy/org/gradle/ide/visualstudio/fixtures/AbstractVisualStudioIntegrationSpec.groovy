@@ -21,6 +21,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
+    final def projectConfigurations = ['debug', 'release'] as Set
+
     protected static String filePath(String... paths) {
         return (paths as List).join(';')
     }
