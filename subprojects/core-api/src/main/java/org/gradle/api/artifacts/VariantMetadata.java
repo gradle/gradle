@@ -19,6 +19,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 
 /**
  * Represents the metadata of one variant of a component, see {@link ComponentMetadataDetails#withVariant(String, Action)}.

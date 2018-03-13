@@ -17,7 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.CapabilitiesMetadata;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
