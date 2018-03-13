@@ -323,22 +323,36 @@ public class IdeaModule {
 
     /**
      * The directories containing resources. <p> For example see docs for {@link IdeaModule}
+     * @since 4.7
      */
+    @Incubating
     public Set<File> getResourceDirs() {
         return resourceDirs;
     }
 
+    /**
+     * Sets the directories containing resources. <p> For example see docs for {@link IdeaModule}
+     * @since 4.7
+     */
+    @Incubating
     public void setResourceDirs(Set<File> resourceDirs) {
         this.resourceDirs = resourceDirs;
     }
 
     /**
      * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     * @since 4.7
      */
+    @Incubating
     public Set<File> getTestResourceDirs() {
         return testResourceDirs;
     }
 
+    /**
+     * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     * @since 4.7
+     */
+    @Incubating
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
     }

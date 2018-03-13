@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
@@ -100,11 +101,18 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing resources.
      * Must not be null.
+     * @since 4.7
      */
+    @Incubating
     public Set<Path> getResourceFolders() {
         return resourceFolders;
     }
 
+    /**
+     * Sets the directories containing resources.
+     * @since 4.7
+     */
+    @Incubating
     public void setResourceFolders(Set<Path> resourceFolders) {
         this.resourceFolders = resourceFolders;
     }
@@ -112,11 +120,18 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing test resources.
      * Must not be null.
+     * @since 4.7
      */
+    @Incubating
     public Set<Path> getTestResourceFolders() {
         return testResourceFolders;
     }
 
+    /**
+     * Sets the directories containing test resources.
+     * @since 4.7
+     */
+    @Incubating
     public void setTestResourceFolders(Set<Path> testResourceFolders) {
         this.testResourceFolders = testResourceFolders;
     }
