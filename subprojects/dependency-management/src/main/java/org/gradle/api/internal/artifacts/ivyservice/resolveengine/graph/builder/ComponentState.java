@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -53,6 +54,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final Long resultId;
     private final ModuleResolveState module;
     private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.empty();
+    private final ImmutableCapability implicitCapability;
     private volatile ComponentResolveMetadata metaData;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
@@ -67,6 +69,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.id = id;
         this.resolver = resolver;
         this.variantNameBuilder = variantNameBuilder;
+        this.implicitCapability = new ImmutableCapability(id.getGroup(), id.getName(), id.getVersion());
     }
 
     @Override
@@ -358,6 +361,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
 
     public void forEachCapability(Action<? super CapabilityDescriptor> action) {
+        // first, implicitly add a capability corresponding to the module
+        action.execute(implicitCapability);
+
+        // check conflict for each target node
         for (NodeState target : nodes) {
             List<? extends CapabilityDescriptor> capabilities = target.getMetadata().getCapabilitiesMetadata().getCapabilities();
             for (CapabilityDescriptor capability : capabilities) {
