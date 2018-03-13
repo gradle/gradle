@@ -13,75 +13,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-subprojects {
-    dependencies {
-        components {
-            // Gradle distribution - minify: remove unused transitive dependencies
-            withLibraryDependencies("maven3") {
-                removeAll {
-                    it.name != "maven-settings-builder" &&
-                        it.name != "maven-model" &&
-                        it.name != "maven-model-builder" &&
-                        it.name != "maven-artifact" &&
-                        it.name != "maven-aether-provider" &&
-                        it.group != "org.sonatype.aether"
+package org.gradle.gradlebuild.dependencies
+
+import library
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.artifacts.DirectDependenciesMetadata
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+import org.gradle.kotlin.dsl.dependencies
+
+open class DependenciesMetadataRulesPlugin : Plugin<Project> {
+    override fun apply(project: Project): Unit = project.run {
+        dependencies {
+            components {
+                // Gradle distribution - minify: remove unused transitive dependencies
+                withLibraryDependencies(library("maven3")) {
+                    removeAll {
+                        it.name != "maven-settings-builder" &&
+                            it.name != "maven-model" &&
+                            it.name != "maven-model-builder" &&
+                            it.name != "maven-artifact" &&
+                            it.name != "maven-aether-provider" &&
+                            it.group != "org.sonatype.aether"
+                    }
                 }
+                withLibraryDependencies(library("awsS3_core")) {
+                    removeAll { it.name == "jackson-dataformat-cbor" }
+                }
+                withLibraryDependencies(library("jgit")) {
+                    removeAll { it.group == "com.googlecode.javaewah" }
+                }
+                withLibraryDependencies(library("maven3_wagon_http_shared4")) {
+                    removeAll { it.group == "org.jsoup" }
+                }
+                withLibraryDependencies(library("aether_connector")) {
+                    removeAll { it.group == "org.sonatype.sisu" }
+                }
+                withLibraryDependencies(library("maven3_compat")) {
+                    removeAll { it.group == "org.sonatype.sisu" }
+                }
+                withLibraryDependencies(library("maven3_plugin_api")) {
+                    removeAll { it.group == "org.sonatype.sisu" }
+                }
+
+                // Gradle distribution - replace similar library with different coordinates
+                replaceGoogleCollectionsWithGuava("org.codehaus.plexus:plexus-container-default")
+
+                replaceJunitDepWithJunit("org.jmock:jmock-junit4")
+
+                replaceBeanshellWithApacheBeanshell("org.testng:testng")
+
+                replaceLog4JWithAdapter("org.apache.xbean:xbean-reflect")
+
+                replaceJCLWithAdapter("org.apache.xbean:xbean-reflect")
+                replaceJCLWithAdapter("org.apache.httpcomponents:httpclient")
+                replaceJCLWithAdapter("com.amazonaws:aws-java-sdk-core")
+                replaceJCLWithAdapter("org.apache.httpcomponents:httpmime")
+                replaceJCLWithAdapter("net.sourceforge.htmlunit:htmlunit")
+                replaceJCLWithAdapter("org.apache.maven.wagon:wagon-http")
+                replaceJCLWithAdapter("org.apache.maven.wagon:wagon-http-shared4")
+
+                replaceJCLConstraintWithAdapter("org.codehaus.groovy:groovy-all")
+
+                replaceAsmWithOW2Asm("com.google.code.findbugs:findbugs")
+                replaceAsmWithOW2Asm("org.parboiled:parboiled-java")
+
+                //TODO check if we can upgrade the following dependencies and remove the rules
+                downgradeIvy("org.codehaus.groovy:groovy-all")
+                downgradeTestNG("org.codehaus.groovy:groovy-all")
+
+                downgradeXmlApis("jaxen:jaxen")
+                downgradeXmlApis("jdom:jdom")
+                downgradeXmlApis("xalan:xalan")
+                downgradeXmlApis("jaxen:jaxen")
             }
-            withLibraryDependencies("awsS3_core") {
-                removeAll { it.name == "jackson-dataformat-cbor" }
-            }
-            withLibraryDependencies("jgit") {
-                removeAll { it.group == "com.googlecode.javaewah" }
-            }
-            withLibraryDependencies("maven3_wagon_http_shared4") {
-                removeAll { it.group == "org.jsoup" }
-            }
-            withLibraryDependencies("aether_connector") {
-                removeAll { it.group == "org.sonatype.sisu" }
-            }
-            withLibraryDependencies("maven3_compat") {
-                removeAll { it.group == "org.sonatype.sisu" }
-            }
-            withLibraryDependencies("maven3_plugin_api") {
-                removeAll { it.group == "org.sonatype.sisu" }
-            }
-
-            // Gradle distribution - replace similar library with different coordinates
-            replaceGoogleCollectionsWithGuava("org.codehaus.plexus:plexus-container-default")
-
-            replaceJunitDepWithJunit("org.jmock:jmock-junit4")
-
-            replaceBeanshellWithApacheBeanshell("org.testng:testng")
-
-            replaceLog4JWithAdapter("org.apache.xbean:xbean-reflect")
-
-            replaceJCLWithAdapter("org.apache.xbean:xbean-reflect")
-            replaceJCLWithAdapter("org.apache.httpcomponents:httpclient")
-            replaceJCLWithAdapter("com.amazonaws:aws-java-sdk-core")
-            replaceJCLWithAdapter("org.apache.httpcomponents:httpmime")
-            replaceJCLWithAdapter("net.sourceforge.htmlunit:htmlunit")
-            replaceJCLWithAdapter("org.apache.maven.wagon:wagon-http")
-            replaceJCLWithAdapter("org.apache.maven.wagon:wagon-http-shared4")
-
-            replaceJCLConstraintWithAdapter("org.codehaus.groovy:groovy-all")
-
-            replaceAsmWithOW2Asm("com.google.code.findbugs:findbugs")
-            replaceAsmWithOW2Asm("org.parboiled:parboiled-java")
-
-            //TODO check if we can upgrade the following dependencies and remove the rules
-            downgradeIvy("org.codehaus.groovy:groovy-all")
-            downgradeTestNG("org.codehaus.groovy:groovy-all")
-
-            downgradeXmlApis("jaxen:jaxen")
-            downgradeXmlApis("jdom:jdom")
-            downgradeXmlApis("xalan:xalan")
-            downgradeXmlApis("jaxen:jaxen")
         }
     }
 }
 
 fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
-    withModule(library(module)) {
+    withModule(module) {
         allVariants {
             withDependencies {
                 action()
@@ -219,3 +230,4 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
         }
     }
 }
+
