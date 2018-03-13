@@ -82,11 +82,3 @@ ul.linkList li {
     list-style: none;
     margin-bottom: 5px;
 }
-
-td.invisible {
-    display: none;
-}
-
-th.invisible {
-    display: none;
-}

@@ -21,10 +21,13 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
@@ -45,29 +48,42 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     }
 
     private void renderTests(SimpleHtmlWriter htmlWriter) throws IOException {
-        boolean methodNameColumnIsVisible = determineIfMethodNameColumnIsVisible();
-        htmlWriter.startElement("table")
-            .startElement("thead")
-                .startElement("tr")
-                    .startElement("th").characters("Test").endElement()
-                    .startElement("th").attribute("class", methodNameColumnIsVisible ? "" : "invisible").characters("Method name").endElement()
-                    .startElement("th").characters("Duration").endElement()
-                    .startElement("th").characters("Result").endElement()
-                .endElement()
-            .endElement();
+        SimpleMarkupWriter writer = htmlWriter.startElement("table");
+        renderTableHead(writer, determineTableHeaders());
 
         for (TestResult test : getResults().getTestResults()) {
-            htmlWriter.startElement("tr")
-                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement()
-                .startElement("td").attribute("class", methodNameColumnIsVisible ? "" : "invisible").characters(test.getName()).endElement()
-                .startElement("td").characters(test.getFormattedDuration()).endElement()
-                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
-            .endElement();
+            renderTableRow(writer, test);
         }
         htmlWriter.endElement();
     }
 
-    private boolean determineIfMethodNameColumnIsVisible() {
+    private List<String> determineTableRow(TestResult test) {
+        return methodNameColumnExists()
+            ? Arrays.asList(test.getDisplayName(), test.getName(), test.getFormattedDuration(), test.getFormattedResultType())
+            : Arrays.asList(test.getDisplayName(), test.getFormattedDuration(), test.getFormattedResultType());
+    }
+
+    private List<String> determineTableHeaders() {
+        return methodNameColumnExists() ? Arrays.asList("Test", "Method name", "Duration", "Result") : Arrays.asList("Test", "Duration", "Result");
+    }
+
+    private void renderTableHead(SimpleMarkupWriter writer, List<String> headers) throws IOException {
+        writer.startElement("thead").startElement("tr");
+        for (String header : headers) {
+            writer.startElement("th").characters(header).endElement();
+        }
+        writer.endElement().endElement();
+    }
+
+    private void renderTableRow(SimpleMarkupWriter writer, TestResult test) throws IOException {
+        writer.startElement("tr");
+        for (String cell : determineTableRow(test)) {
+            writer.startElement("td").attribute("class", test.getStatusClass()).characters(cell).endElement();
+        }
+        writer.endElement();
+    }
+
+    private boolean methodNameColumnExists() {
         for (TestResult result : getResults().getTestResults()) {
             if (!result.getName().equals(result.getDisplayName())) {
                 return true;

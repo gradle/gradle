@@ -113,12 +113,16 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         private extractTestCaseTo(String cssSelector, Collection<TestCase> target) {
             html.select(cssSelector).each {
                 def testDisplayName = it.textNodes().first().wholeText.trim()
-                def testName = it.nextElementSibling().text()
+                def testName = hasMethodNameColumn() ? it.nextElementSibling().text() : testDisplayName
                 def failureMessage = getFailureMessages(testName)
                 def testCase = new TestCase(testName, testDisplayName, failureMessage)
                 testsExecuted << testCase
                 target << testCase
             }
+        }
+
+        private boolean hasMethodNameColumn() {
+            return html.select('tr > th').size() == 4
         }
 
         private void parseTestClassFile() {
