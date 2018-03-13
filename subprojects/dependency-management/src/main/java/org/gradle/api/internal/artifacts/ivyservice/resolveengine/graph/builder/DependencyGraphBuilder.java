@@ -252,11 +252,11 @@ public class DependencyGraphBuilder {
         performSelectionSerially(dependencies, resolveState);
         computePreemptiveDownloadList(dependencies, dependenciesMissingMetadataLocally, componentIdentifierCache);
         downloadMetadataConcurrently(node, dependenciesMissingMetadataLocally);
-        attachToTargetRevisionsSerially(dependencies, resolveState);
+        attachToTargetRevisionsSerially(dependencies);
 
     }
 
-    private void attachToTargetRevisionsSerially(List<EdgeState> dependencies, ResolveState resolveState) {
+    private void attachToTargetRevisionsSerially(List<EdgeState> dependencies) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
