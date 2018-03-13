@@ -50,7 +50,6 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
             htmlWriter.startElement("td").attribute("class", testClass.getStatusClass());
             htmlWriter.startElement("a")
                 .attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(testClass)))
-                .attribute("title", asHtmlLinkEncoded(testClass.getName()))
                 .characters(testClass.getReportName()).endElement();
             htmlWriter.endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
