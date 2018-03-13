@@ -1,6 +1,5 @@
 package plugins
 
-import com.gradle.publish.PluginBundleExtension
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Named
 import org.gradle.api.Plugin
@@ -8,8 +7,12 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.WriteProperties
+
 import org.gradle.language.jvm.tasks.ProcessResources
+
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
+
+import com.gradle.publish.PluginBundleExtension
 
 
 class KotlinDslPlugin(private val name: String) : Named {
@@ -27,15 +30,15 @@ open class KotlinDslPluginBundle : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
+        kotlinDslPlugins = container(KotlinDslPlugin::class.java)
+        extensions.add("kotlinDslPlugins", kotlinDslPlugins)
+
         plugins.apply(KotlinDslModule::class.java)
         plugins.apply("maven-publish")
         plugins.apply("java-gradle-plugin")
         plugins.apply("com.gradle.plugin-publish")
 
         testDependsOnCustomInstallation()
-
-        kotlinDslPlugins = container(KotlinDslPlugin::class.java)
-        extensions.add("kotlinDslPlugins", kotlinDslPlugins)
 
         configureGradlePluginDevelopmentPlugins()
 
