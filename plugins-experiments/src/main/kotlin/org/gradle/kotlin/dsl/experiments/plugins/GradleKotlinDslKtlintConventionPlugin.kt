@@ -19,17 +19,19 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 
 
+private
+val rulesetChecksum by lazy {
+    GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.md5").readText()
+}
+
+
+private
+val rulesetJar by lazy {
+    GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.jar")
+}
+
+
 open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
-
-    companion object {
-
-        private
-        val rulesetJar = GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.jar")
-
-
-        private
-        val rulesetChecksum = GradleKotlinDslKtlintConventionPlugin::class.java.getResource("gradle-kotlin-dsl-ruleset.md5").readText()
-    }
 
     override fun apply(project: Project): Unit = project.run {
 
