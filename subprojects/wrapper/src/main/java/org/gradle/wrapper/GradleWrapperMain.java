@@ -58,9 +58,10 @@ public class GradleWrapperMain {
         Logger logger = logger(options);
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
+        String appVersion = wrapperVersion();
         wrapperExecutor.execute(
                 args,
-                new Install(logger, new Download(logger, "gradlew", wrapperVersion()), new PathAssembler(gradleUserHome)),
+                new Install(logger, new Download(logger, "gradlew", appVersion), new PathAssembler(gradleUserHome), appVersion),
                 new BootstrapMainStarter());
     }
 

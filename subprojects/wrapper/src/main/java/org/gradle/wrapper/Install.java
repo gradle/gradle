@@ -16,25 +16,43 @@
 
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Formatter;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.security.MessageDigest;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final Logger logger;
     private final IDownload download;
     private final PathAssembler pathAssembler;
+    private final String gradleVersion;
     private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(120000, 200);
 
     public Install(Logger logger, IDownload download, PathAssembler pathAssembler) {
+        this(logger, download, pathAssembler, null);
+    }
+
+    public Install(Logger logger, IDownload download, PathAssembler pathAssembler, String gradleVersion) {
         this.logger = logger;
         this.download = download;
         this.pathAssembler = pathAssembler;
+        this.gradleVersion = gradleVersion;
     }
 
     public File createDist(final WrapperConfiguration configuration) throws Exception {
@@ -71,16 +89,26 @@ public class Install {
 
                 verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
 
-                logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
                 unzip(localZipFile, distDir);
 
                 File root = getAndVerifyDistributionRoot(distDir, safeDistributionUrl.toString());
                 setExecutablePermissions(root);
                 markerFile.createNewFile();
 
+                printReleaseSummary();
+
                 return root;
             }
         });
+    }
+
+    private void printReleaseSummary() {
+        if (gradleVersion != null) { // appVersion could be null in custom distributions
+            logger.log("");
+            logger.log("Welcome to Gradle " + gradleVersion + "!");
+            logger.log("See what's new at https://gradle.org/releases/" + gradleVersion);
+            logger.log("");
+        }
     }
 
     private String calculateSha256Sum(File file)
@@ -165,9 +193,7 @@ public class Install {
         try {
             ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
             Process p = pb.start();
-            if (p.waitFor() == 0) {
-                logger.log("Set executable permissions for: " + gradleCommand.getAbsolutePath());
-            } else {
+            if (p.waitFor() != 0) {
                 BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 Formatter stdout = new Formatter();
                 String line;
@@ -210,30 +236,34 @@ public class Install {
         return dir.delete();
     }
 
-    private void unzip(File zip, File dest) throws IOException {
-        Enumeration entries;
-        ZipFile zipFile = new ZipFile(zip);
-
+    private void unzip(File zip, File dest) {
         try {
-            entries = zipFile.entries();
+            Enumeration entries;
+            ZipFile zipFile = new ZipFile(zip);
+            try {
+                entries = zipFile.entries();
 
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry) entries.nextElement();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = (ZipEntry) entries.nextElement();
 
-                if (entry.isDirectory()) {
-                    (new File(dest, entry.getName())).mkdirs();
-                    continue;
+                    if (entry.isDirectory()) {
+                        (new File(dest, entry.getName())).mkdirs();
+                        continue;
+                    }
+
+                    OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName())));
+                    try {
+                        copyInputStream(zipFile.getInputStream(entry), outputStream);
+                    } finally {
+                        outputStream.close();
+                    }
                 }
-
-                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName())));
-                try {
-                    copyInputStream(zipFile.getInputStream(entry), outputStream);
-                } finally {
-                    outputStream.close();
-                }
+            } finally {
+                zipFile.close();
             }
-        } finally {
-            zipFile.close();
+        } catch (IOException e) {
+            logger.log("Could not unzip " + zip.getAbsolutePath() + " to " + dest.getAbsolutePath() + ".");
+            logger.log("Reason: " + e.getMessage());
         }
     }
 
