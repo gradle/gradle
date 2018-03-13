@@ -49,6 +49,11 @@ public interface LoggingOutputInternal extends LoggingOutput {
      */
     void attachAnsiConsole(OutputStream outputStream);
 
+    /**
+     * Adds the given {@link StandardOutputListener} objects as logging destinations.  The output will include plain text only, with no color or dynamic text.
+     *
+     * <p>Removes standard output and/or error as a side-effect.
+     */
     void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener);
 
     /**
