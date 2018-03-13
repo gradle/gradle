@@ -75,6 +75,7 @@ class TestClassSelectionMatcherTest extends Specification {
 
         ['Foo']                           | 'FooTest'            | false
         ['org.gradle.Foo']                | 'org.gradle.FooTest' | false
+        ['org.gradle.Foo.*']              | 'org.gradle.FooTest' | false
     }
 
     @Unroll
