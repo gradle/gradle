@@ -528,7 +528,7 @@ Main goals for incremental compilations are:
 
 The incremental compilation at a high level:
 
-* The detection of the correct set of stale classes is reliable at some expense of speed. The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc. Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
+* The stale class detection favors reliability over speed. The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc. Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
 * To make incremental compilation fast, we cache class analysis results and jar snapshots. The initial incremental compilation can be slower due to the cold caches.
 
 [[sec:incremental_compilation_known_issues]]
@@ -538,7 +538,69 @@ The incremental compilation at a high level:
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * Because of type erasure, the incremental compiler is not able to recognize when a type is only used in a type parameter, and never actually used in the code. For example, imagine that you have the following code: `List&lt;? extends A&gt; list = Lists.newArrayList();` but that no member of `A` is in practice used in the code, then changes to `A` will not trigger recompilation of the class. In practice, this should very rarely be an issue.
 
+[[sec:incremental_annotation_processing]]
+=== Incremental annotation processing
 
+Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
+Annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
+As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
+
+==== Making an annotation processor incremental
+
+Gradle supports incremental compilation for two common categories of annotation processors: "Isolated" and "Aggregating".
+As a processor author, please consult the information below to decide which category fits your processor.
+You can then register it for incremental compilation in its META-INF folder.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="incrementalAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors">
+     <sourcefile file="processor/src/main/resources/META-INF/gradle/incremental.annotation.processors" snippet="registering-incremental-annotation-processors"/>
+</sample>
+++++
+
+Processors that don't fit these categories will result in full recompilation.
+This includes processors that use `java.io` instead of the `Filer` API and processors that need to read or write resource files.
+
+===== Isolated annotation processors
+These look at each annotated element in isolation, creating generated files or validation messages for it.
+For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="isolatedAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An isolated annotation processor">
+     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="isolated-annotation-processor"/>
+</sample>
+++++
+
+
+Isolated processors have the following limitations:
+
+* Can't read resources
+* Can't write resources
+* Can't have any side effects except for using the `Filer` and `Messager` APIs
+* Must provide exactly one originating element for each file generated with the `Filer` API
+* Must make all decisions about an element based on information reachable from its AST.
+For instance it can query the super class, method return types etc, but can't look at other, unrelated elements.
+
+Gradle will recompile the generated file whenever the source file is affected.
+If the source file is deleted, the generated file is deleted.
+
+===== Aggregating annotation processors
+These aggregate several source files into one ore more output files or validation messages.
+For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="aggregatingAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An aggregating annotation processor">
+     <sourcefile file="processor/src/main/java/ServiceRegistryProcessor.java" snippet="aggregating-annotation-processor"/>
+</sample>
+++++
+
+Aggregating processors have the following limitations:
+
+* Can't read resources (this may change in the future)
+* Can't write resources (this may change in the future)
+* Can't have any side effects except for using the `Filer` and `Messager` APIs
+
+Gradle will always recompile all files that contain annotations which the aggregating processor registered itself for, as well as all files generated by it.
+In other words, aggregating processors create small non-incremental clusters in the code base.
 
 [[sec:java_compile_avoidance]]
 === Compile avoidance
