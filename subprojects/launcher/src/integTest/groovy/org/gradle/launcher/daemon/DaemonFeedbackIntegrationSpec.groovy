@@ -175,8 +175,10 @@ task sleep {
         then:
         getLogs(executer.daemonBaseDir).size() == 0 //we should connect to the foreground daemon so no log was created
 
-        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
-        daemon.standardOutput.count("info me!") == 1
+        poll(5) {
+            assert daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
+            assert daemon.standardOutput.count("info me!") == 1
+        }
 
         infoBuild.output.count("debug me!") == 0
         infoBuild.output.count("info me!") == 1
@@ -185,8 +187,10 @@ task sleep {
         def debugBuild = executer.withArguments("-d", "-Dorg.gradle.jvmargs=-ea").run()
 
         then:
-        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
-        daemon.standardOutput.count("debug me!") == 1
+        poll(5) {
+            assert daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
+            assert daemon.standardOutput.count("debug me!") == 1
+        }
 
         debugBuild.output.count("debug me!") == 1
 
