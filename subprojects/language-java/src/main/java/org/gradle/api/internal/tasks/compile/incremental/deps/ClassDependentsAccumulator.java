@@ -67,8 +67,7 @@ public class ClassDependentsAccumulator {
         }
         for (String dependency : classDependencies) {
             if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
-                Set<String> d = rememberClass(dependency);
-                d.add(className);
+                addDependency(dependency, className);
             }
         }
         for (String superType : superTypes) {
@@ -105,10 +104,18 @@ public class ClassDependentsAccumulator {
 
     public void addAnnotationProcessingResult(AnnotationProcessingResult annotationProcessingResult) {
         for (Map.Entry<String, Set<String>> entry : annotationProcessingResult.getGeneratedTypesByOrigin().entrySet()) {
-            Set<String> dependents = rememberClass(entry.getKey());
-            dependents.addAll(entry.getValue());
+            String originatingType = entry.getKey();
+            for (String generatedType : entry.getValue()) {
+                addDependency(originatingType, generatedType);
+                addDependency(generatedType, originatingType);
+            }
         }
         dependentsOnAll.addAll(annotationProcessingResult.getAggregatedTypes());
+    }
+
+    private void addDependency(String dependency, String dependent) {
+        Set<String> dependents = rememberClass(dependency);
+        dependents.add(dependent);
     }
 
     public void fullRebuildNeeded(String fullRebuildCause) {

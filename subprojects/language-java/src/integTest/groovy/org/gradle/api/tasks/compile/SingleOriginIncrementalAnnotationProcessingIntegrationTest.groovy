@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
@@ -79,6 +80,22 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
 
         then:
         outputs.recompiledClasses("A", "AHelper", "Dependent")
+    }
+
+    def "source file is recompiled when dependency of generated file changes"() {
+        given:
+        withProcessor(new OpaqueDependencyProcessor())
+        java "@Thingy class A {}"
+        def dependency = java "class Dependency {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        dependency.text = "class Dependency { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "AThingy", "Dependency")
     }
 
     def "classes files of generated sources are deleted when annotated file is deleted"() {
@@ -236,4 +253,39 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
         and:
         errorOutput.contains("Generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
+
+    /**
+     * An annotation processor whose generated code depends on some library class that the annotated
+     * file does not depend on. A real-world example would be a processor that generated database
+     * access classes and depends on the concrete database driver, which might change.
+     */
+    private static class OpaqueDependencyProcessor extends AnnotationProcessorFixture {
+        OpaqueDependencyProcessor() {
+            super("Thingy")
+        }
+
+        @Override
+        protected String getGeneratorCode() {
+            """
+                for (Element element : elements) {
+                    TypeElement typeElement = (TypeElement) element;
+                    String className = typeElement.getSimpleName().toString() + "Thingy";
+                    try {
+                        JavaFileObject sourceFile = filer.createSourceFile(className, element);
+                        Writer writer = sourceFile.openWriter();
+                        try {
+                            writer.write("class " + className + " {");
+                            writer.write("    Dependency getValue() { return new Dependency();}");
+                            writer.write("}");
+                        } finally {
+                            writer.close();
+                        }
+                    } catch (IOException e) {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate source file " + className, element);
+                    }
+                }
+            """
+        }
+    }
+
 }
