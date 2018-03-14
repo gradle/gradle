@@ -96,7 +96,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     open fun initscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
-        throw InternalError("INERNAL ERROR")
+        throw InternalError("This should not happen, please report")
 
     /**
      * Logger for init scripts. You can use this in your init script to write log messages.

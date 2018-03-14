@@ -53,7 +53,7 @@ abstract class KotlinBuildScript(
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
-        throw InternalError("INERNAL ERROR")
+        throw InternalError("This should not happen, please report")
 
     /**
      * Configures the plugin dependencies for this project.
