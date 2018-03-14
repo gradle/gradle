@@ -285,7 +285,7 @@ public class Module extends XmlPersistableConfigurationObject {
         for (Node sourceFolder : findSourceFolder()) {
             String url = (String) sourceFolder.attribute("url");
             String isTestSource = (String) sourceFolder.attribute("isTestSource");
-            if(isTestSource != null){
+            if (isTestSource != null) {
                 if ("false".equals(isTestSource)) {
                     sourceFolders.add(pathFactory.path(url));
                 } else {
@@ -421,7 +421,7 @@ public class Module extends XmlPersistableConfigurationObject {
             }
             content.appendNode("sourceFolder", attributes);
         }
-        for(Path path : resourceFolders){
+        for (Path path : resourceFolders) {
             Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-resource");
@@ -430,7 +430,7 @@ public class Module extends XmlPersistableConfigurationObject {
             }
             content.appendNode("sourceFolder", attributes);
         }
-        for(Path path : testResourceFolders){
+        for (Path path : testResourceFolders) {
             Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-test-resource");
@@ -475,7 +475,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     protected boolean isDependencyOrderEntry(Object orderEntry) {
-        return Arrays.asList("module-library", "module").contains(((Node)orderEntry).attribute("type"));
+        return Arrays.asList("module-library", "module").contains(((Node) orderEntry).attribute("type"));
     }
 
     private void addDependenciesToXml() {
