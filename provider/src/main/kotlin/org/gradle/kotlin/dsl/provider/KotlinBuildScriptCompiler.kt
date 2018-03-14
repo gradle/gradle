@@ -105,7 +105,7 @@ class KotlinBuildScriptCompiler(
         asKotlinScript {
             withUnexpectedBlockHandling {
                 val buildscriptRange = executeBuildscriptBlock()
-                val pluginsRange = prepareTargetClassLoaderScope()
+                val pluginsRange = executePluginsBlock()
                 executeScriptBody(listOfNotNull(buildscriptRange, pluginsRange))
             }
         }
@@ -113,7 +113,7 @@ class KotlinBuildScriptCompiler(
     fun compileForClassPath() =
         asKotlinScript {
             val buildscriptRange = ignoringErrors { executeBuildscriptBlock() }
-            val pluginsRange = ignoringErrors { prepareTargetClassLoaderScope() }
+            val pluginsRange = ignoringErrors { executePluginsBlock() }
             ignoringErrors { executeScriptBody(listOfNotNull(buildscriptRange, pluginsRange)) }
         }
 
@@ -143,37 +143,40 @@ class KotlinBuildScriptCompiler(
             classPathModeExceptionCollector).evaluate()
 
     private
-    fun prepareTargetClassLoaderScope(): IntRange? {
+    fun executePluginsBlock(): IntRange? {
+        prepareTargetClassLoaderScope()
+        return doExecutePluginsBlock()
+    }
+
+    private
+    fun prepareTargetClassLoaderScope() {
         targetScope.export(classPathProvider.gradleApiExtensions)
-        return executePluginsBlock()
     }
 
     private
-    fun executePluginsBlock(): IntRange? =
-        pluginRequests().let {
-            applyPlugins(it?.first)
-            return it?.second
+    fun doExecutePluginsBlock() =
+        extractPluginsBlockFrom(script).also { pluginsRange ->
+            applyPlugins(pluginRequests(pluginsRange))
         }
 
     private
-    fun pluginRequests() =
+    fun pluginRequests(pluginsRange: IntRange?) =
         scriptTarget.pluginsBlockTemplate?.let { template ->
-            collectPluginRequestsFromPluginsBlock(template)
+            collectPluginRequestsFromPluginsBlock(pluginsRange, template)
         }
 
     private
-    fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): Pair<PluginRequests?, IntRange?> {
+    fun collectPluginRequestsFromPluginsBlock(pluginsRange: IntRange?, scriptTemplate: KClass<*>): PluginRequests {
         val pluginRequestCollector = PluginRequestCollector(scriptSource.source)
-        val pluginsRange = executePluginsBlockOn(pluginRequestCollector, scriptTemplate)
-        return Pair(pluginRequestCollector.pluginRequests, pluginsRange)
+        if (pluginsRange != null) executePluginsBlockOn(pluginRequestCollector, pluginsRange, scriptTemplate)
+        return pluginRequestCollector.pluginRequests
     }
 
     private
-    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, scriptTemplate: KClass<*>) =
-        extractPluginsBlockFrom(script)?.also { pluginsRange ->
-            val loadedPluginsBlockClass = loadPluginsBlockClass(scriptBlockForPlugins(pluginsRange, scriptTemplate))
-            executeCompiledPluginsBlockOn(pluginRequestCollector, loadedPluginsBlockClass)
-        }
+    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, pluginsRange: IntRange, scriptTemplate: KClass<*>) {
+        val loadedPluginsBlockClass = loadPluginsBlockClass(scriptBlockForPlugins(pluginsRange, scriptTemplate))
+        executeCompiledPluginsBlockOn(pluginRequestCollector, loadedPluginsBlockClass)
+    }
 
     private
     fun executeCompiledPluginsBlockOn(
