@@ -19,14 +19,16 @@ package org.gradle.plugins.ide.tooling.r47
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 
+@ToolingApiVersion(">=4.7")
+@TargetGradleVersion(">=4.7")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=4.7")
-    @TargetGradleVersion(">=4.7")
+
     def "provides source dir information"() {
 
         buildFile.text = "apply plugin: 'java'"
@@ -61,9 +63,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         root.testResourceDirectories.first().directory == file('src/test/resources')
     }
 
-
-    @ToolingApiVersion(">=4.7")
-    @TargetGradleVersion(">=4.7")
     def "has empty source dirs for project without java plugin"() {
 
         projectDir.create {
@@ -91,8 +90,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         root.testResourceDirectories.empty
     }
 
-    @ToolingApiVersion(">=4.7")
-    @TargetGradleVersion(">=4.7")
     def "custom source sets are not added as source directories by default"() {
 
         buildFile.text = '''
@@ -142,8 +139,6 @@ sourceSets {
         root.testResourceDirectories[0].directory == file('testResources')
     }
 
-    @ToolingApiVersion(">=4.7")
-    @TargetGradleVersion(">=4.7")
     def "accepts source directories of custom source sets as source directories"() {
 
         buildFile.text = '''
@@ -199,5 +194,37 @@ idea.module {
         root.testDirectories[0].directory == file('testSources')
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories[0].directory == file('testResources')
+    }
+
+    @TargetGradleVersion("<4.7")
+    def "older Gradle version throw UnsupportedMethodException when querying resources and test resources"() {
+        given:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        IdeaModule module = project.children[0]
+        IdeaContentRoot root = module.contentRoots[0]
+
+        when:
+        root.getResourceDirectories()
+
+        then:
+        thrown(UnsupportedMethodException)
+
+        when:
+        root.getTestResourceDirectories()
+
+        then:
+        thrown(UnsupportedMethodException)
+
+        when:
+        root.getGeneratedResourceDirectories()
+
+        then:
+        thrown(UnsupportedMethodException)
+
+        when:
+        root.getGeneratedTestResourceDirectories()
+
+        then:
+        thrown(UnsupportedMethodException)
     }
 }
