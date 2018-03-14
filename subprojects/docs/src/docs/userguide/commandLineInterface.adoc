@@ -527,6 +527,7 @@ The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper,Gradle wrapper section>>.
 
+[[continuous_build]]
 === Continuous Build
 
 Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.

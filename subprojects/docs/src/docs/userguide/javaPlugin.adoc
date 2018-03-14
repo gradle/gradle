@@ -272,11 +272,11 @@ The Java plugin adds a number of convention properties to the project, shown bel
 
 ==== Directory properties
 
-`String reportsDirName`::
+`String reporting.baseDir`::
 _The name of the directory to generate reports into, relative to the build directory._ Default value: `reports`
 
 `(read-only) File reportsDir`::
-_The directory to generate reports into._ Default value: `__buildDir__/__reportsDirName__`
+_The directory to generate reports into._ Default value: `__buildDir__/__reporting.baseDir__`
 
 `String testResultsDirName`::
 _The name of the directory to generate test result .xml files into, relative to the build directory._ Default value: `test-results`

@@ -83,7 +83,7 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
- * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
  * The sample below shows various configuration options.
  *
  * <pre class='autoTested'>
