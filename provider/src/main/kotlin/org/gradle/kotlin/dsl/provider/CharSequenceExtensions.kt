@@ -41,7 +41,7 @@ fun CharSequence.linePreservingBlankRanges(ranges: List<IntRange>): String {
 }
 
 
-internal
+private
 fun CharSequence.linePreservingBlankRange(range: IntRange): String {
     val lineCount = substring(range).count { it == '\n' }
     return substring(0, range.start) + "\n".repeat(lineCount) + substring(range.endInclusive + 1)
