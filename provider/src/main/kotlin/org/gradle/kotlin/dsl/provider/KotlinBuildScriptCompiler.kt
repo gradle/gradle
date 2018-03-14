@@ -105,7 +105,8 @@ class KotlinBuildScriptCompiler(
         asKotlinScript {
             withUnexpectedBlockHandling {
                 executeBuildscriptBlock()
-                prepareAndExecuteScriptBody()
+                prepareTargetClassLoaderScope()
+                executeScriptBody()
             }
         }
 
@@ -120,12 +121,6 @@ class KotlinBuildScriptCompiler(
     fun asKotlinScript(script: () -> Unit): KotlinScript = {
         scriptTarget.prepare()
         script()
-    }
-
-    private
-    fun prepareAndExecuteScriptBody() {
-        prepareTargetClassLoaderScope()
-        executeScriptBody()
     }
 
     private
