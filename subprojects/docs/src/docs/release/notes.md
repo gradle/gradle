@@ -46,7 +46,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### De-incubation of Google repository shortcut method
 
-The method `RepositoryHandler.google()` was introduced with Gradle 4.0. The Android community wholehearted started to use it and has become an essential building block of many Android builds. With this release of Gradle, the incubation status has been removed.
+The method `RepositoryHandler.google()` has been promoted.
 
 ## Fixed issues
 
