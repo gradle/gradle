@@ -33,11 +33,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.LastCandidateCapabilityResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UpgradeCapabilityResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -77,11 +76,13 @@ public class DependencyGraphBuilder {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ImmutableAttributesFactory attributesFactory;
-    private final DefaultCapabilitiesConflictHandler capabilitiesConflictHandler;
+    private final CapabilitiesConflictHandler capabilitiesConflictHandler;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
-                                  ModuleConflictHandler moduleConflictHandler, Spec<? super DependencyMetadata> edgeFilter,
+                                  ModuleConflictHandler moduleConflictHandler,
+                                  CapabilitiesConflictHandler capabilitiesConflictHandler,
+                                  Spec<? super DependencyMetadata> edgeFilter,
                                   AttributesSchemaInternal attributesSchema,
                                   ModuleExclusions moduleExclusions,
                                   BuildOperationExecutor buildOperationExecutor, ModuleReplacementsData moduleReplacementsData,
@@ -99,14 +100,7 @@ public class DependencyGraphBuilder {
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
-        this.capabilitiesConflictHandler = createCapabilitiesHandler();
-    }
-
-    private DefaultCapabilitiesConflictHandler createCapabilitiesHandler() {
-        DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler();
-        handler.registerResolver(new UpgradeCapabilityResolver());
-        handler.registerResolver(new LastCandidateCapabilityResolver());
-        return handler;
+        this.capabilitiesConflictHandler = capabilitiesConflictHandler;
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor) {
