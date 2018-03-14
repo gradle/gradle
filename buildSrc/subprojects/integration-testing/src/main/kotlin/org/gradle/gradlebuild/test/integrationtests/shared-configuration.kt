@@ -64,7 +64,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     tasks["check"].dependsOn("${prefix}Test")
 }
 
-private
+internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType): IntegrationTest {
 
     return tasks.create<IntegrationTest>(name) {

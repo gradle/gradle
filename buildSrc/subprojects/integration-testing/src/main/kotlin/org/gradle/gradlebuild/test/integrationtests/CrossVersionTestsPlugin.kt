@@ -17,6 +17,7 @@ package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSet
 import org.gradle.gradlebuild.test.fixtures.TestFixturesExtension
 import org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin
 import org.gradle.kotlin.dsl.*
@@ -30,7 +31,7 @@ class CrossVersionTestsPlugin : Plugin<Project> {
             "crossVersionTestRuntime"(project(":toolingApiBuilders"))
         }
         createTasks(sourceSet, TestType.CROSSVERSION)
-        createAggregateTasks()
+        createAggregateTasks(sourceSet)
         configureIde(TestType.CROSSVERSION)
         configureTestFixturesForCrossVersionTests()
     }
@@ -44,7 +45,7 @@ class CrossVersionTestsPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.createAggregateTasks() {
+    fun Project.createAggregateTasks(sourceSet: SourceSet) {
         // Calculate the set of released versions - do this at configuration time because we need this to create various tasks
         val allVersionsCrossVersionTests by tasks.creating {
             group = "verification"
@@ -58,14 +59,14 @@ class CrossVersionTestsPlugin : Plugin<Project> {
 
         val quickTestVersions = releasedVersions.getTestedVersions(true)
         releasedVersions.getTestedVersions(false).forEach { targetVersion ->
-            tasks.create<CrossVersionTest>("gradle${targetVersion}CrossVersionTest") {
-                allVersionsCrossVersionTests.dependsOn(this)
+            val crossVersionTest = createTestTask("gradle${targetVersion}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION)
+            crossVersionTest.apply {
                 description = "Runs the cross-version tests against Gradle $targetVersion"
                 systemProperties["org.gradle.integtest.versions"] = targetVersion
-                systemProperties["org.gradle.integtest.executer"] = "forking"
-                if (targetVersion in quickTestVersions) {
-                    quickFeedbackCrossVersionTests.dependsOn(this)
-                }
+            }
+            allVersionsCrossVersionTests.dependsOn(crossVersionTest)
+            if (targetVersion in quickTestVersions) {
+                quickFeedbackCrossVersionTests.dependsOn(crossVersionTest)
             }
         }
     }
