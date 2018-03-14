@@ -85,6 +85,9 @@ class EmbeddedKotlinProvider constructor(
         repositories.maven { repo ->
             repo.name = "Embedded Kotlin Repository"
             repo.url = embeddedKotlinRepositoryURI()
+            repo.metadataSources { sources ->
+                sources.artifact()
+            }
         }
     }
 
