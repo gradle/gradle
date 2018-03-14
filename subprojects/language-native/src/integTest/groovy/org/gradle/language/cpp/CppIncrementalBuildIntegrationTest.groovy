@@ -1178,7 +1178,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
             // empty
         """
 
-        librarySourceFile.insertBefore('#include <lib.h>', '#include <common.h>')
+        librarySourceFile.insertBefore('#include <lib.h>', '#include "common.h"')
 
         then:
         succeeds installApp

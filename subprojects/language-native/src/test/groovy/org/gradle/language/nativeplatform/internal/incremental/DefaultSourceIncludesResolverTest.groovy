@@ -53,7 +53,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def resolve(Include include) {
         def macros = new CollectingMacroLookup()
         macros.append(sourceFile, included)
-        return new DefaultSourceIncludesResolver(includePaths, fileSystemSnapshotter).resolveInclude(sourceFile, include, macros)
+        return new DefaultSourceIncludesResolver(new DefaultSourceIncludesSearchPath(includePaths, fileSystemSnapshotter)).resolveInclude(sourceFile, include, macros)
     }
 
     def "ignores system include file that does not exist"() {
