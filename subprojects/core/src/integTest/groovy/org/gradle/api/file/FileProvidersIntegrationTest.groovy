@@ -535,18 +535,15 @@ class SomeTask extends DefaultTask {
     def "depending on an optional output from another task works"() {
         given:
         buildFile << """
-            class SomeTask extends DefaultTask {
+            class ProducerTask extends DefaultTask {
                 @Optional @OutputFile
                 Property<RegularFile> outFile = newOutputFile()
-                
-                @Optional @InputDirectory
-                Property<Directory> inDir = newInputDirectory()
                 
                 @TaskAction
                 def go() { }
             }
             
-            class TaskWithDependency extends DefaultTask {
+            class ConsumerTask extends DefaultTask {
             
                 @InputFiles
                 FileCollection inputFiles = project.files()
@@ -559,17 +556,19 @@ class SomeTask extends DefaultTask {
                 def go() { }
             }
             
-            task doNothing(type: SomeTask)
-            task myTask(type: TaskWithDependency) {
-                inputFiles.from(doNothing.outFile)
+            task producer(type: ProducerTask)
+            task consumer(type: ConsumerTask) {
+                inputFiles.from(producer.outFile)
             }
         """
 
         when:
         // FIXME: The task should succeed
-        fails("myTask")
+        fails("consumer")
 
         then:
-        executedAndNotSkipped(':doNothing', ':myTask')
+        failure.assertHasDescription("Failed to capture snapshot of input files for task ':consumer' property 'inputFiles' during up-to-date check.")
+        failure.assertHasCause("No value has been specified for this provider.")
+        executedAndNotSkipped(':producer', ':consumer')
     }
 }
