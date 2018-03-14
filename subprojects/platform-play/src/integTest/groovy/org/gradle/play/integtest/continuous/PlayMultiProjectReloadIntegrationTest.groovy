@@ -170,7 +170,7 @@ var message = "Hello JS";
         fails()
         !executedTasks.contains(':primary:runPlayBinary')
         errorPageHasTaskFailure(":submodule:compilePlayBinaryScala")
-        serverStarted()
+        serverStartCount == 1
 
         when:
         fixBadScala("submodule/app")
