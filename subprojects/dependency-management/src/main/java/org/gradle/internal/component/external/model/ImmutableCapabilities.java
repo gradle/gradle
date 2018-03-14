@@ -17,7 +17,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     }
 
     @Override
-    public List<? extends CapabilityDescriptor> getCapabilities() {
+    public List<? extends Capability> getCapabilities() {
         return capabilities;
     }
 }

@@ -30,5 +30,5 @@ public interface CapabilitiesMetadata {
      * Returns an immutable view of the capabilities.
      * @return the list of capabilities. Immutable.
      */
-    List<? extends CapabilityDescriptor> getCapabilities();
+    List<? extends Capability> getCapabilities();
 }

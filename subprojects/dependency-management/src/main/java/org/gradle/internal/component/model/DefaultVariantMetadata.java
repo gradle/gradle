@@ -56,7 +56,7 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilitiesMetadata() {
+    public CapabilitiesMetadata getCapabilities() {
         return capabilitiesMetadata;
     }
 }

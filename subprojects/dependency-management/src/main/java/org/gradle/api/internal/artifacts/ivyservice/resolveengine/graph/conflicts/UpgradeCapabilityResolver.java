@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.util.VersionNumber;
 
 import java.util.Collection;
@@ -30,11 +30,11 @@ import java.util.Set;
 public class UpgradeCapabilityResolver implements CapabilitiesConflictHandler.Resolver {
     @Override
     public void resolve(CapabilitiesConflictHandler.ResolutionDetails details) {
-        Collection<? extends CapabilityDescriptor> capabilityVersions = details.getCapabilityVersions();
+        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
         if (capabilityVersions.size() > 1) {
-            Set<CapabilityDescriptor> sorted = Sets.newTreeSet(new Comparator<CapabilityDescriptor>() {
+            Set<Capability> sorted = Sets.newTreeSet(new Comparator<Capability>() {
                 @Override
-                public int compare(CapabilityDescriptor o1, CapabilityDescriptor o2) {
+                public int compare(Capability o1, Capability o2) {
                     VersionNumber v1 = VersionNumber.parse(o1.getVersion());
                     VersionNumber v2 = VersionNumber.parse(o2.getVersion());
                     return v2.compareTo(v1);
@@ -42,9 +42,9 @@ public class UpgradeCapabilityResolver implements CapabilitiesConflictHandler.Re
             });
             sorted.addAll(capabilityVersions);
             boolean first = true;
-            for (CapabilityDescriptor capabilityDescriptor : sorted) {
+            for (Capability capability : sorted) {
                 if (!first) {
-                    Collection<? extends CapabilitiesConflictHandler.CandidateDetails> candidates = details.getCandidates(capabilityDescriptor);
+                    Collection<? extends CapabilitiesConflictHandler.CandidateDetails> candidates = details.getCandidates(capability);
                     for (CapabilitiesConflictHandler.CandidateDetails candidate : candidates) {
                         candidate.evict();
                     }

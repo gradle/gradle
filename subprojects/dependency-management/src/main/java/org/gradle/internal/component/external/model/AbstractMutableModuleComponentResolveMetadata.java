@@ -503,7 +503,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilitiesMetadata() {
+        public CapabilitiesMetadata getCapabilities() {
             return capabilities;
         }
 
