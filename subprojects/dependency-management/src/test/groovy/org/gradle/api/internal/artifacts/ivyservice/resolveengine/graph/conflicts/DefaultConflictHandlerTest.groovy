@@ -38,8 +38,8 @@ class DefaultConflictHandlerTest extends Specification {
         def b = candidate("org", "b")
 
         expect:
-        !handler.registerModule(a).conflictExists()
-        !handler.registerModule(b).conflictExists()
+        !handler.registerCandidate(a).conflictExists()
+        !handler.registerCandidate(b).conflictExists()
         !handler.hasConflicts()
     }
 
@@ -48,8 +48,8 @@ class DefaultConflictHandlerTest extends Specification {
         def b = candidate("org", "b", "1")
 
         when:
-        def aX = handler.registerModule(a)
-        def bX = handler.registerModule(b)
+        def aX = handler.registerCandidate(a)
+        def bX = handler.registerCandidate(b)
 
         then:
         aX.conflictExists()
@@ -64,8 +64,8 @@ class DefaultConflictHandlerTest extends Specification {
         replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> new ModuleReplacementsData.Replacement(DefaultModuleIdentifier.newId("org", "b"), null)
 
         when:
-        def aX = handler.registerModule(a)
-        def bX = handler.registerModule(b)
+        def aX = handler.registerCandidate(a)
+        def bX = handler.registerCandidate(b)
 
         then:
         aX.conflictExists()
@@ -75,7 +75,7 @@ class DefaultConflictHandlerTest extends Specification {
 
     def "resolves conflict"() {
         def a = candidate("org", "a", "1", "2")
-        handler.registerModule(a)
+        handler.registerCandidate(a)
 
         when:
         details.getCandidates() >> { a.versions.findAll { it.id.version in ['1', '2']} }

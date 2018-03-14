@@ -49,10 +49,10 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
     @Nullable
-    public PotentialConflict registerModule(CandidateModule newModule) {
-        ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(newModule.getId());
+    public PotentialConflict registerCandidate(CandidateModule candidate) {
+        ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
-        return potentialConflict(conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy));
+        return potentialConflict(conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy));
     }
 
     /**
