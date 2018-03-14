@@ -20,38 +20,57 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 
 import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
+import javax.tools.Diagnostic
 
-class MultipleOriginFilerTest extends IncrementalFilerTest {
-
+class IsolatedFilerTest extends IncrementalFilerTest {
 
     @Override
     Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new MultipleOriginFiler(delegate, result, messager)
+        new IsolatedFiler(delegate, result, messager)
     }
 
-    def "can have zero originating elements"() {
+    def "fails when no originating elements are given"() {
         when:
         filer.createSourceFile("Foo")
 
         then:
-        0 * messager._
+        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Generated type 'Foo' must have exactly one originating element, but had 0.")
     }
 
-    def "does not fail when many originating elements are given"() {
+    def "fails when too many originating elements are given"() {
         when:
         filer.createSourceFile("Foo", type("Bar"), type("Baz"))
+
+        then:
+        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Generated type 'Foo' must have exactly one originating element, but had 2.")
+    }
+
+    def "does not fail when all originating elements come from the same tpye"() {
+        when:
+        filer.createSourceFile("Foo", methodInside("Bar"), methodInside("Bar"))
 
         then:
         0 * messager._
     }
 
-    def "adds generated types to the processing result"() {
+    def "packages are valid originating elements"() {
+        when:
+        filer.createSourceFile("Foo", pkg("fizz"))
+
+        then:
+        result.generatedTypesByOrigin.size() == 1
+        result.generatedTypesByOrigin["fizz.package-info"] == ["Foo"] as Set
+    }
+
+    def "adds originating types to the processing result"() {
         when:
         filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
         filer.createSourceFile("Bar", type("B"))
 
         then:
-        result.generatedTypesByOrigin.isEmpty()
-        result.aggregatedTypes == ["Foo", "Bar"] as Set
+        result.generatedTypesByOrigin.size() == 3
+        result.generatedTypesByOrigin["A"] == ["Foo"] as Set
+        result.generatedTypesByOrigin["pkg.package-info"] == ["Foo"] as Set
+        result.generatedTypesByOrigin["B"] == ["Foo", "Bar"] as Set
     }
 }

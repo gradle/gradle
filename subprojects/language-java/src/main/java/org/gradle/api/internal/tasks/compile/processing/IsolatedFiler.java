@@ -25,11 +25,11 @@ import javax.tools.Diagnostic;
 import java.util.Set;
 
 /**
- * Decorates the filer to validate the correct behavior for {@link SingleOriginProcessor}s.
+ * Decorates the filer to validate the correct behavior for {@link IsolatedProcessor}s.
  */
-class SingleOriginFiler extends IncrementalFiler {
+class IsolatedFiler extends IncrementalFiler {
 
-    SingleOriginFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
+    IsolatedFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
         super(delegate, result, messager);
     }
 

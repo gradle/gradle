@@ -33,7 +33,7 @@ class HelperProcessorFixture extends AnnotationProcessorFixture {
 
     HelperProcessorFixture() {
         super("Helper")
-        declaredType = IncrementalAnnotationProcessorType.SINGLE_ORIGIN
+        declaredType = IncrementalAnnotationProcessorType.ISOLATED
     }
 
     void setSuffix(String suffix) {

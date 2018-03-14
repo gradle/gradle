@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
-import org.gradle.api.internal.tasks.compile.processing.MultipleOriginProcessor;
-import org.gradle.api.internal.tasks.compile.processing.SingleOriginProcessor;
+import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
+import org.gradle.api.internal.tasks.compile.processing.IsolatedProcessor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -97,10 +97,10 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
 
     private Processor decorateIfIncremental(Processor processor, IncrementalAnnotationProcessorType type) {
         switch (type) {
-            case SINGLE_ORIGIN:
-                return new SingleOriginProcessor(processor, result);
-            case MULTIPLE_ORIGIN:
-                return new MultipleOriginProcessor(processor, result);
+            case ISOLATED:
+                return new IsolatedProcessor(processor, result);
+            case AGGREGATING:
+                return new AggregatingProcessor(processor, result);
             default:
                 return processor;
         }
