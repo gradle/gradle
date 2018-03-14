@@ -90,25 +90,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         });
         formatters.add(
             new BuildLogLevelFilterRenderer(
-                new ProgressLogEventGenerator(dispatchChain(stdOutChain, stdErrChain), false)
+                new ProgressLogEventGenerator(new LogEventDispatcher(stdOutChain, stdErrChain), false)
             )
         );
-    }
-
-    private static OutputEventListener dispatchChain(final OutputEventListener stdoutChain, final OutputEventListener stderrChain) {
-        return new OutputEventListener() {
-            @Override
-            public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() == null) {
-                    stdoutChain.onOutput(event);
-                    stderrChain.onOutput(event);
-                } else if (event.getLogLevel() == LogLevel.ERROR) {
-                    stderrChain.onOutput(event);
-                } else {
-                    stdoutChain.onOutput(event);
-                }
-            }
-        };
     }
 
     @Override
@@ -266,7 +250,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildLogLevelFilterRenderer(
-                new ProgressLogEventGenerator(dispatchChain(stdoutChain, stderrChain), false)
+                new ProgressLogEventGenerator(new LogEventDispatcher(stdoutChain, stderrChain), false)
             ),
             clock
         );
@@ -296,23 +280,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     private OutputEventListener onError(final OutputEventListener listener) {
-        return new OutputEventListener() {
-            public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() == LogLevel.ERROR || event.getLogLevel() == null) {
-                    listener.onOutput(event);
-                }
-            }
-        };
+        return new LogEventDispatcher(null, listener);
     }
 
     private OutputEventListener onNonError(final OutputEventListener listener) {
-        return new OutputEventListener() {
-            public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() != LogLevel.ERROR || event.getLogLevel() == null) {
-                    listener.onOutput(event);
-                }
-            }
-        };
+        return new LogEventDispatcher(listener, null);
     }
 
     public void addStandardErrorListener(StandardOutputListener listener) {
