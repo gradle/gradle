@@ -26,9 +26,8 @@ class ClassTypeWrapper implements TypeWrapper {
     private final int hashCode;
 
     public ClassTypeWrapper(Class<?> clazz) {
-        Class<?> effectiveClass = effectiveClassOf(clazz);
-        this.reference = new WeakReference<Class<?>>(effectiveClass);
-        this.hashCode = effectiveClass.hashCode();
+        this.reference = new WeakReference<Class<?>>(clazz);
+        hashCode = clazz.hashCode();
     }
 
     public Class<?> unwrap() {
@@ -109,23 +108,5 @@ class ClassTypeWrapper implements TypeWrapper {
             clazz = clazz.getEnclosingClass();
         } while (clazz != null);
         return classChain;
-    }
-
-    private Class<?> effectiveClassOf(Class<?> clazz) {
-        Class<?> enclosingClass = clazz.getEnclosingClass();
-
-        // Detect anonymous static classes of enum constants with class body
-        // See https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#d5e12300
-        // And https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.9.1
-        // "The optional class body of an enum constant implicitly defines an anonymous class declaration
-        //  that extends the immediately enclosing enum type."
-        if (enclosingClass != null
-            && enclosingClass.isEnum()
-            && clazz.getSimpleName().length() == 0
-            && clazz.getSuperclass() == enclosingClass) {
-
-            return enclosingClass;
-        }
-        return clazz;
     }
 }
