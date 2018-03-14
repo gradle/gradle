@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -57,11 +58,12 @@ public class ClassSetAnalysis {
         if (!constants.isEmpty()) {
             return DependentsSet.dependencyToAll();
         }
-        if (deps.getDependentClasses().isEmpty()) {
+        DependentsSet dependentsOnAll = data.getDependentsOnAll();
+        if (deps.getDependentClasses().isEmpty() && dependentsOnAll.getDependentClasses().isEmpty()) {
             return deps;
         }
         Set<String> result = new HashSet<String>();
-        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        recurseDependents(new HashSet<String>(), result, Iterables.concat(deps.getDependentClasses(), dependentsOnAll.getDependentClasses()));
         result.remove(className);
         return DependentsSet.dependents(result);
     }
@@ -70,7 +72,7 @@ public class ClassSetAnalysis {
         return data.getDependents(className).isDependencyToAll();
     }
 
-    private void recurseDependents(Set<String> visited, Set<String> result, Set<String> dependentClasses) {
+    private void recurseDependents(Set<String> visited, Set<String> result, Iterable<String> dependentClasses) {
         for (String d : dependentClasses) {
             if (!visited.add(d)) {
                 continue;

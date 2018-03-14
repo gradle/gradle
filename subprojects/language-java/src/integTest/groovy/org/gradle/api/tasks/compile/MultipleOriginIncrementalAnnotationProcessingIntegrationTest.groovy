@@ -28,9 +28,10 @@ class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstr
         withProcessor(new ServiceRegistryProcessorFixture())
     }
 
-    def "all sources are recompiled when any class changes"() {
+    def "generated files are recompiled when any annotated file changes"() {
         def a = java "@Service class A {}"
-        java "class B {}"
+        java "@Service class B {}"
+        java "class Unrelated {}"
 
         outputs.snapshot { run "compileJava" }
 
@@ -42,17 +43,135 @@ class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstr
         outputs.recompiledClasses("A", "ServiceRegistry", "B")
     }
 
-    def "the user is informed about non-incremental processors"() {
+    def "unrelated files are not recompiled when annotated file changes"() {
+        def a = java "@Service class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "@Service class A { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "ServiceRegistry")
+    }
+
+    def "all annotated files are recompiled when an unrelated file changes"() {
+        java "@Service class A {}"
+        def unrelated = java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        unrelated.text = "class Unrelated { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "ServiceRegistry", "Unrelated")
+    }
+
+    def "all annotated files are recompiled when a new file is added"() {
+        java "@Service class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        java "@Service class B {}"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "ServiceRegistry", "B")
+    }
+
+    def "all annotated files are recompiled when a file is deleted"() {
+        def a = java "@Service class A {}"
+        java "@Service class B {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.delete()
+        run "compileJava"
+
+        then:
+        outputs.deletedClasses("A")
+        outputs.recompiledClasses( "ServiceRegistry", "B")
+    }
+
+    def "classes depending on generated file are recompiled when source file changes"() {
+        given:
+        def a = java "@Service class A {}"
+        java """class Dependent {
+            private ServiceRegistry registry = new ServiceRegistry();
+        }"""
+
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "@Service class A { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "ServiceRegistry", "Dependent")
+    }
+
+    def "classes files of generated sources are deleted when annotated file is deleted"() {
+        given:
+        def a = java "@Service class A {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.delete()
+        run "compileJava"
+
+        then:
+        outputs.deletedClasses("A", "ServiceRegistry")
+    }
+
+    def "generated files are deleted when annotated file is deleted"() {
+        given:
+        def a = java "@Service class A {}"
+        java "class Unrelated {}"
+
+        when:
+        outputs.snapshot { run "compileJava" }
+
+        then:
+        file("build/classes/java/main/ServiceRegistry.java").exists()
+
+        when:
+        a.delete()
+        run "compileJava"
+
+        then:
+        !file("build/classes/java/main/ServiceRegistry.java").exists()
+    }
+
+    def "generated files and classes are deleted when processor is removed"() {
+        given:
         def a = java "@Service class A {}"
 
         when:
-        run "compileJava"
-        a.text = "@Service class A { public void foo() {} }"
-        run "compileJava", "--info"
+        outputs.snapshot { run "compileJava" }
 
         then:
-        output.contains("The following annotation processors don't support incremental compilation:")
-        output.contains("Processor (type: MULTIPLE_ORIGIN)")
+        file("build/classes/java/main/ServiceRegistry.java").exists()
+
+        when:
+        buildFile << "compileJava.options.annotationProcessorPath = files()"
+        run "compileJava"
+
+        then:
+        !file("build/classes/java/main/ServiceRegistry.java").exists()
+
+        and:
+        outputs.deletedClasses("ServiceRegistry")
     }
 
     def "processors can't access resources"() {

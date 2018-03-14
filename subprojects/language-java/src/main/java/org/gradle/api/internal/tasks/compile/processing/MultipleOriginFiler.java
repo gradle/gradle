@@ -20,7 +20,8 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
-import java.util.Set;
+import javax.lang.model.element.Element;
+import java.util.Collections;
 
 /**
  * Decorates the filer to validate the correct behavior for {@link MultipleOriginProcessor}s.
@@ -31,7 +32,8 @@ class MultipleOriginFiler extends IncrementalFiler {
         super(delegate, result, messager);
     }
 
-    protected void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager) {
+    @Override
+    protected void recordGeneratedType(CharSequence name, Element[] originatingElements) {
+        result.addAggregatedTypes(Collections.singleton(name.toString()));
     }
-
 }
