@@ -16,11 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -34,12 +33,13 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(2);
-    private final Multimap<String, ComponentState> capabilityWithoutVersionToComponents = HashMultimap.create();
+    private final Map<String, Set<ComponentState>> capabilityWithoutVersionToComponents = Maps.newHashMap();
     private final Deque<CapabilityConflict> conflicts = new ArrayDeque<CapabilityConflict>();
 
     @Override
@@ -47,8 +47,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         CapabilityInternal capabilityDescriptor = (CapabilityInternal) newModule.getCapabilityDescriptor();
         String group = capabilityDescriptor.getGroup();
         String name = capabilityDescriptor.getName();
-        Collection<ComponentState> components = capabilityWithoutVersionToComponents.get(capabilityDescriptor.getCapabilityId());
+        final Set<ComponentState> components = findComponentsFor(capabilityDescriptor);
         if (components.add(newModule.getComponent()) && components.size() > 1) {
+            // The registered components may contain components which are no longer selected.
+            // We don't remove them from the list in the first place because it proved to be
+            // slower than filtering as needed.
             final List<ComponentState> currentlySelected = Lists.newArrayListWithCapacity(components.size());
             for (ComponentState component : components) {
                 if (component.isSelected()) {
@@ -74,6 +77,17 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             }
         }
         return PotentialConflictFactory.noConflict();
+    }
+
+    private Set<ComponentState> findComponentsFor(CapabilityInternal capability) {
+        String capabilityId = capability.getCapabilityId();
+        Set<ComponentState> componentStates = capabilityWithoutVersionToComponents.get(capabilityId);
+        if (componentStates == null) {
+            componentStates = Sets.newHashSet();
+            capabilityWithoutVersionToComponents.put(capabilityId, componentStates);
+            return componentStates;
+        }
+        return componentStates;
     }
 
     @Override
@@ -194,10 +208,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private static class CapabilityConflict {
 
-        private final List<ComponentState> components;
+        private final Collection<ComponentState> components;
         private final Set<CapabilityDescriptor> descriptors;
 
-        private CapabilityConflict(String group, String name, List<ComponentState> components) {
+        private CapabilityConflict(String group, String name, Collection<ComponentState> components) {
             this.components = components;
             final ImmutableSet.Builder<CapabilityDescriptor> builder = new ImmutableSet.Builder<CapabilityDescriptor>();
             for (final ComponentState component : components) {
