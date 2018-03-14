@@ -118,6 +118,19 @@
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.configure(org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.lang.Boolean,org.gradle.plugins.ide.idea.model.Path,org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.lang.String,java.lang.String)",
+            "acceptation": "This method is not meant to be part of the public API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.configure(org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.lang.Boolean,org.gradle.plugins.ide.idea.model.Path,org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.lang.String,java.lang.String)",
+            "acceptation": "This method is not meant to be part of the public API"
         }
     ]
 }
