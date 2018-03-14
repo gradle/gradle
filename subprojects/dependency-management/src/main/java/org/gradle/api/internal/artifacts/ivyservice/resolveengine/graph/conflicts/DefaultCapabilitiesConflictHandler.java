@@ -43,13 +43,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     private final Deque<CapabilityConflict> conflicts = new ArrayDeque<CapabilityConflict>();
 
     @Override
-    public PotentialConflict registerModule(CapabilitiesConflictHandler.Candidate newModule) {
-        CapabilityInternal capability = (CapabilityInternal) newModule.getCapability();
+    public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
+        CapabilityInternal capability = (CapabilityInternal) candidate.getCapability();
         String group = capability.getGroup();
         String name = capability.getName();
         final Set<ComponentState> components = findComponentsFor(capability);
-        components.addAll(newModule.getImplicitCapabilityProviders());
-        if (components.add(newModule.getComponent()) && components.size() > 1) {
+        components.addAll(candidate.getImplicitCapabilityProviders());
+        if (components.add(candidate.getComponent()) && components.size() > 1) {
             // The registered components may contain components which are no longer selected.
             // We don't remove them from the list in the first place because it proved to be
             // slower than filtering as needed.

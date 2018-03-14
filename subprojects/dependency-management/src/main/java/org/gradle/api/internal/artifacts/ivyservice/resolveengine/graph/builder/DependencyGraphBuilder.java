@@ -175,7 +175,7 @@ public class DependencyGraphBuilder {
             }
 
             // A new module revision. Check for conflict
-            PotentialConflict c = moduleConflictHandler.registerModule(module);
+            PotentialConflict c = moduleConflictHandler.registerCandidate(module);
             if (!c.conflictExists()) {
                 // No conflict. Select it for now
                 LOGGER.debug("Selecting new module version {}", moduleRevision);
@@ -207,7 +207,7 @@ public class DependencyGraphBuilder {
                         break;
                     }
                 }
-                PotentialConflict c = capabilitiesConflictHandler.registerModule(
+                PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
                     DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability, implicitProvidersForCapability)
                 );
                 if (c.conflictExists()) {
