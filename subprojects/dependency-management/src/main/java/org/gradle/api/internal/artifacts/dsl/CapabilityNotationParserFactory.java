@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -29,11 +29,11 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import javax.annotation.Nullable;
 
-public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, CapabilityDescriptor>> {
-    private final static NotationParser<Object, CapabilityDescriptor> SINGLETON_CONVERTER = createSingletonConverter();
+public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
+    private final static NotationParser<Object, Capability> SINGLETON_CONVERTER = createSingletonConverter();
 
-    private static NotationParser<Object, CapabilityDescriptor> createSingletonConverter() {
-        return NotationParserBuilder.toType(CapabilityDescriptor.class)
+    private static NotationParser<Object, Capability> createSingletonConverter() {
+        return NotationParserBuilder.toType(Capability.class)
             .converter(new StringNotationParser())
             .converter(new CapabilityMapNotationParser())
             .toComposite();
@@ -41,19 +41,19 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
 
     @Nullable
     @Override
-    public NotationParser<Object, CapabilityDescriptor> create() {
+    public NotationParser<Object, Capability> create() {
         // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton
         return SINGLETON_CONVERTER;
     }
 
-    private static class StringNotationParser extends TypedNotationConverter<String, CapabilityDescriptor> {
+    private static class StringNotationParser extends TypedNotationConverter<String, Capability> {
 
         StringNotationParser() {
             super(String.class);
         }
 
         @Override
-        protected CapabilityDescriptor parseType(String notation) {
+        protected Capability parseType(String notation) {
             String[] parts = notation.split(":");
             if (parts.length != 3) {
                 reportInvalidNotation(notation);
@@ -73,15 +73,15 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         }
     }
 
-    private static class CapabilityMapNotationParser extends MapNotationConverter<CapabilityDescriptor> {
+    private static class CapabilityMapNotationParser extends MapNotationConverter<Capability> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
-        protected CapabilityDescriptor parseMap(@MapKey("group") String group,
-                                                @MapKey("name") String name,
-                                                @MapKey("version") String version) {
+        protected Capability parseMap(@MapKey("group") String group,
+                                      @MapKey("name") String name,
+                                      @MapKey("version") String version) {
             return new ImmutableCapability(group, name, version);
         }
     }

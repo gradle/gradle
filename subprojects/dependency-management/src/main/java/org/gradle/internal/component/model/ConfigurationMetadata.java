@@ -89,5 +89,5 @@ public interface ConfigurationMetadata extends HasAttributes {
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 
-    CapabilitiesMetadata getCapabilitiesMetadata();
+    CapabilitiesMetadata getCapabilities();
 }

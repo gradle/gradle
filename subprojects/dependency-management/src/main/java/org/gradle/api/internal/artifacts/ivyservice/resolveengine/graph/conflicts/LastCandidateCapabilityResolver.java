@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 
 import java.util.Collection;
 
@@ -25,9 +25,9 @@ import java.util.Collection;
 public class LastCandidateCapabilityResolver implements CapabilitiesConflictHandler.Resolver {
     @Override
     public void resolve(CapabilitiesConflictHandler.ResolutionDetails details) {
-        Collection<? extends CapabilityDescriptor> capabilityVersions = details.getCapabilityVersions();
+        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
         CapabilitiesConflictHandler.CandidateDetails single = null;
-        for (CapabilityDescriptor capabilityVersion : capabilityVersions) {
+        for (Capability capabilityVersion : capabilityVersions) {
             Collection<? extends CapabilitiesConflictHandler.CandidateDetails> candidates = details.getCandidates(capabilityVersion);
             int size = candidates.size();
             if (size >= 1) {

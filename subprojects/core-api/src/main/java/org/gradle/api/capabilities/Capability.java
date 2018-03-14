@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * @since 4.7
  */
 @Incubating
-public interface CapabilityDescriptor {
+public interface Capability {
     String getGroup();
     String getName();
     String getVersion();

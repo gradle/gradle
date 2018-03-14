@@ -41,7 +41,7 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
     Set usages = []
 }
 
-class TestCapability implements CapabilityDescriptor {
+class TestCapability implements Capability {
     String group
     String name
     String version
