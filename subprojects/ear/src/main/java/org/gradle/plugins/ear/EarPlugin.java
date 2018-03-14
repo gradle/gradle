@@ -149,7 +149,10 @@ public class EarPlugin implements Plugin<Project> {
             public void execute(Ear task) {
                 task.getLib().from(new Callable<FileCollection>() {
                     public FileCollection call() throws Exception {
-                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME);
+                        // Ensure that deploy jars are not also added into lib folder.
+                        // Allows the user to get transitive dependencies for a bean artifact by adding it to both earlib and deploy but only having the file once in the ear.
+                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME)
+                            .minus(project.getConfigurations().getByName(DEPLOY_CONFIGURATION_NAME));
                     }
                 });
                 task.from(new Callable<FileCollection>() {
