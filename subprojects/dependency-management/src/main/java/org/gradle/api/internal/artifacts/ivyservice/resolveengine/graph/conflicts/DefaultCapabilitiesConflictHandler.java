@@ -26,9 +26,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilityDescriptor;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.component.external.model.CapabilityInternal;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -39,14 +39,15 @@ import java.util.TreeSet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(2);
-    private final Multimap<ModuleIdentifier, ComponentState> capabilityWithoutVersionToComponents = HashMultimap.create();
+    private final Multimap<String, ComponentState> capabilityWithoutVersionToComponents = HashMultimap.create();
     private final Deque<CapabilityConflict> conflicts = new ArrayDeque<CapabilityConflict>();
 
     @Override
     public PotentialConflict registerModule(CapabilitiesConflictHandler.Candidate newModule) {
-        CapabilityDescriptor capabilityDescriptor = newModule.getCapabilityDescriptor();
-        ModuleIdentifier capabilityWithoutVersion = DefaultModuleIdentifier.newId(capabilityDescriptor.getGroup(), capabilityDescriptor.getName());
-        Collection<ComponentState> components = capabilityWithoutVersionToComponents.get(capabilityWithoutVersion);
+        CapabilityInternal capabilityDescriptor = (CapabilityInternal) newModule.getCapabilityDescriptor();
+        String group = capabilityDescriptor.getGroup();
+        String name = capabilityDescriptor.getName();
+        Collection<ComponentState> components = capabilityWithoutVersionToComponents.get(capabilityDescriptor.getCapabilityId());
         if (components.add(newModule.getComponent()) && components.size() > 1) {
             final List<ComponentState> currentlySelected = Lists.newArrayListWithCapacity(components.size());
             for (ComponentState component : components) {
@@ -68,7 +69,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                         return true;
                     }
                 };
-                conflicts.add(new CapabilityConflict(capabilityWithoutVersion, currentlySelected));
+                conflicts.add(new CapabilityConflict(group, name, currentlySelected));
                 return conflict;
             }
         }
@@ -196,10 +197,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         private final List<ComponentState> components;
         private final Set<CapabilityDescriptor> descriptors;
 
-        private CapabilityConflict(final ModuleIdentifier capabilityWithoutVersion, List<ComponentState> components) {
+        private CapabilityConflict(String group, String name, List<ComponentState> components) {
             this.components = components;
-            final String group = capabilityWithoutVersion.getGroup();
-            final String name = capabilityWithoutVersion.getName();
             final ImmutableSet.Builder<CapabilityDescriptor> builder = new ImmutableSet.Builder<CapabilityDescriptor>();
             for (final ComponentState component : components) {
                 CapabilityDescriptor capability = component.findCapability(group, name);

@@ -16,19 +16,21 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.capabilities.CapabilityDescriptor;
 
-public class ImmutableCapability implements CapabilityDescriptor {
+public class ImmutableCapability implements CapabilityInternal {
+
     private final String group;
     private final String name;
     private final String version;
     private final int hashCode;
+    private final String cachedId;
 
     public ImmutableCapability(String group, String name, String version) {
         this.group = group;
         this.name = name;
         this.version = version;
         this.hashCode = Objects.hashCode(group, name, version);
+        this.cachedId = group + ":" + name;
     }
 
     @Override
@@ -71,5 +73,10 @@ public class ImmutableCapability implements CapabilityDescriptor {
             + "group='" + group + '\''
             + ", name='" + name + '\''
             + ", version='" + version + '\'';
+    }
+
+    @Override
+    public String getCapabilityId() {
+        return cachedId;
     }
 }
