@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -127,7 +127,7 @@ public class ModuleMetadataSerializer {
                 writeVariantDependencies(variant.getDependencies());
                 writeVariantConstraints(variant.getDependencyConstraints());
                 writeVariantFiles(variant.getFiles());
-                writeVariantCapabilities(variant.getCapabilitiesMetadata().getCapabilities());
+                writeVariantCapabilities(variant.getCapabilities().getCapabilities());
             }
         }
 
@@ -168,9 +168,9 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeVariantCapabilities(List<? extends CapabilityDescriptor> capabilities) throws IOException {
+        private void writeVariantCapabilities(List<? extends Capability> capabilities) throws IOException {
             encoder.writeSmallInt(capabilities.size());
-            for (CapabilityDescriptor capability : capabilities) {
+            for (Capability capability : capabilities) {
                 encoder.writeString(capability.getGroup());
                 encoder.writeString(capability.getName());
                 encoder.writeString(capability.getVersion());

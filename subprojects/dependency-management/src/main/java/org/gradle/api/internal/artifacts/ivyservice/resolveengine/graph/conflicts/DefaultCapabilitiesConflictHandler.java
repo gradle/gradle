@@ -24,7 +24,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.CapabilityInternal;
@@ -44,10 +44,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     @Override
     public PotentialConflict registerModule(CapabilitiesConflictHandler.Candidate newModule) {
-        CapabilityInternal capabilityDescriptor = (CapabilityInternal) newModule.getCapabilityDescriptor();
-        String group = capabilityDescriptor.getGroup();
-        String name = capabilityDescriptor.getName();
-        final Set<ComponentState> components = findComponentsFor(capabilityDescriptor);
+        CapabilityInternal capability = (CapabilityInternal) newModule.getCapability();
+        String group = capability.getGroup();
+        String name = capability.getName();
+        final Set<ComponentState> components = findComponentsFor(capability);
         components.addAll(newModule.getImplicitCapabilityProviders());
         if (components.add(newModule.getComponent()) && components.size() > 1) {
             // The registered components may contain components which are no longer selected.
@@ -116,18 +116,18 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         resolvers.add(conflictResolver);
     }
 
-    public static CapabilitiesConflictHandler.Candidate candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor, Collection<ComponentState> implicitCapabilityProviders) {
-        return new Candidate(component, capabilityDescriptor, implicitCapabilityProviders);
+    public static CapabilitiesConflictHandler.Candidate candidate(ComponentState component, Capability capability, Collection<ComponentState> implicitCapabilityProviders) {
+        return new Candidate(component, capability, implicitCapabilityProviders);
     }
 
     private static class Candidate implements CapabilitiesConflictHandler.Candidate {
         private final ComponentState component;
-        private final CapabilityDescriptor capabilityDescriptor;
+        private final Capability capability;
         private final Collection<ComponentState> implicitCapabilityProviders;
 
-        public Candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor, Collection<ComponentState> implicitCapabilityProviders) {
+        public Candidate(ComponentState component, Capability capability, Collection<ComponentState> implicitCapabilityProviders) {
             this.component = component;
-            this.capabilityDescriptor = capabilityDescriptor;
+            this.capability = capability;
             this.implicitCapabilityProviders = implicitCapabilityProviders;
         }
 
@@ -135,8 +135,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return component;
         }
 
-        public CapabilityDescriptor getCapabilityDescriptor() {
-            return capabilityDescriptor;
+        public Capability getCapability() {
+            return capability;
         }
 
         @Override
@@ -156,19 +156,19 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         @Override
-        public Collection<? extends CapabilityDescriptor> getCapabilityVersions() {
+        public Collection<? extends Capability> getCapabilityVersions() {
             return conflict.descriptors;
         }
 
         @Override
-        public Collection<? extends CandidateDetails> getCandidates(CapabilityDescriptor capability) {
+        public Collection<? extends CandidateDetails> getCandidates(Capability capability) {
             ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<CandidateDetails>();
             String group = capability.getGroup();
             String name = capability.getName();
             String version = capability.getVersion();
             for (final ComponentState component : conflict.components) {
                 if (!evicted.contains(component)) {
-                    CapabilityDescriptor componentCapability = component.findCapability(group, name);
+                    Capability componentCapability = component.findCapability(group, name);
                     if (componentCapability != null && componentCapability.getVersion().equals(version)) {
                         candidates.add(new CandidateDetails() {
                             @Override
@@ -217,13 +217,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     private static class CapabilityConflict {
 
         private final Collection<ComponentState> components;
-        private final Set<CapabilityDescriptor> descriptors;
+        private final Set<Capability> descriptors;
 
         private CapabilityConflict(String group, String name, Collection<ComponentState> components) {
             this.components = components;
-            final ImmutableSet.Builder<CapabilityDescriptor> builder = new ImmutableSet.Builder<CapabilityDescriptor>();
+            final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<Capability>();
             for (final ComponentState component : components) {
-                CapabilityDescriptor capability = component.findCapability(group, name);
+                Capability capability = component.findCapability(group, name);
                 if (capability != null) {
                     builder.add(capability);
                 }
@@ -235,7 +235,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private static String prettifyCapabilities(CapabilityConflict conflict) {
         TreeSet<String> capabilities = Sets.newTreeSet();
-        for (CapabilityDescriptor c : conflict.descriptors) {
+        for (Capability c : conflict.descriptors) {
             capabilities.add(c.getGroup() + ":" + c.getName() + ":" + c.getVersion());
         }
         return Joiner.on(", ").join(capabilities);

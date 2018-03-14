@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -152,15 +152,15 @@ public class VariantMetadataRules {
     }
 
     private static class MutableCapabilities implements MutableCapabilitiesMetadata {
-        private final List<CapabilityDescriptor> descriptors;
+        private final List<Capability> descriptors;
 
-        private MutableCapabilities(List<CapabilityDescriptor> descriptors) {
+        private MutableCapabilities(List<Capability> descriptors) {
             this.descriptors = descriptors;
         }
 
         @Override
         public void addCapability(String group, String name, String version) {
-            for (CapabilityDescriptor descriptor : descriptors) {
+            for (Capability descriptor : descriptors) {
                 if (descriptor.getGroup().equals(group) && descriptor.getName().equals(name) && !descriptor.getVersion().equals(version)) {
                     throw new InvalidUserDataException("Cannot add capability " + group + ":" + name + " with version " + version + " because it's already defined with version " + descriptor.getVersion());
                 }
@@ -170,9 +170,9 @@ public class VariantMetadataRules {
 
         @Override
         public void removeCapability(String group, String name) {
-            Iterator<CapabilityDescriptor> it = descriptors.iterator();
+            Iterator<Capability> it = descriptors.iterator();
             while (it.hasNext()) {
-                CapabilityDescriptor next = it.next();
+                Capability next = it.next();
                 if (next.getGroup().equals(group) && next.getName().equals(name)) {
                     it.remove();
                 }
@@ -186,7 +186,7 @@ public class VariantMetadataRules {
         }
 
         @Override
-        public List<? extends CapabilityDescriptor> getCapabilities() {
+        public List<? extends Capability> getCapabilities() {
             return ImmutableList.copyOf(descriptors);
         }
 

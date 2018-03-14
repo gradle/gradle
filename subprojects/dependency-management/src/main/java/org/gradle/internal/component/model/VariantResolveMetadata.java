@@ -34,5 +34,5 @@ public interface VariantResolveMetadata {
 
     List<? extends ComponentArtifactMetadata> getArtifacts();
 
-    CapabilitiesMetadata getCapabilitiesMetadata();
+    CapabilitiesMetadata getCapabilities();
 }

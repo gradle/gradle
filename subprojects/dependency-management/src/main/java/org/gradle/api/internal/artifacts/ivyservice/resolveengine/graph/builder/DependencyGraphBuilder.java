@@ -23,7 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -193,9 +193,9 @@ public class DependencyGraphBuilder {
     }
 
     private void registerCapabilities(final ResolveState resolveState, final ComponentState moduleRevision) {
-        moduleRevision.forEachCapability(new Action<CapabilityDescriptor>() {
+        moduleRevision.forEachCapability(new Action<Capability>() {
             @Override
-            public void execute(CapabilityDescriptor capability) {
+            public void execute(Capability capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
                 // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
                 // then we try to find a module which provides the same capability. It that module has been found, then we register it.

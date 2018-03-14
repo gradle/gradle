@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 
-public interface CapabilityInternal extends CapabilityDescriptor{
+public interface CapabilityInternal extends Capability {
     String getCapabilityId();
 }

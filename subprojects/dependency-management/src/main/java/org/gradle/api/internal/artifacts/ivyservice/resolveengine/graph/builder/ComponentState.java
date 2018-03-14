@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -360,33 +360,33 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
 
-    public void forEachCapability(Action<? super CapabilityDescriptor> action) {
+    public void forEachCapability(Action<? super Capability> action) {
         // check conflict for each target node
         for (NodeState target : nodes) {
-            List<? extends CapabilityDescriptor> capabilities = target.getMetadata().getCapabilitiesMetadata().getCapabilities();
+            List<? extends Capability> capabilities = target.getMetadata().getCapabilities().getCapabilities();
             // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
             // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
             // so just adding this check has a significant impact because most components do not declare any capability
             if (!capabilities.isEmpty()) {
-                for (CapabilityDescriptor capability : capabilities) {
+                for (Capability capability : capabilities) {
                     action.execute(capability);
                 }
             }
         }
     }
 
-    public CapabilityDescriptor findCapability(String group, String name) {
+    public Capability findCapability(String group, String name) {
         if (id.getGroup().equals(group) && id.getName().equals(name)) {
             return implicitCapability;
         }
         return findCapabilityOnTarget(group, name);
     }
 
-    private CapabilityDescriptor findCapabilityOnTarget(String group, String name) {
+    private Capability findCapabilityOnTarget(String group, String name) {
         for (NodeState target : nodes) {
-            List<? extends CapabilityDescriptor> capabilities = target.getMetadata().getCapabilitiesMetadata().getCapabilities();
+            List<? extends Capability> capabilities = target.getMetadata().getCapabilities().getCapabilities();
             if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
-                for (CapabilityDescriptor capability : capabilities) {
+                for (Capability capability : capabilities) {
                     if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
                         return capability;
                     }
