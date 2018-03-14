@@ -241,6 +241,26 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         }
     }
 
+    @Test
+    fun `can be used with GRADLE_METADATA feature preview enabled`() {
+
+        withSettings("""enableFeaturePreview("GRADLE_METADATA")""")
+
+        withBuildScript("""
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+        """)
+
+        withFile("src/main/kotlin/source.kt", """var foo = "bar"""")
+
+        val result = buildWithPlugin("assemble")
+
+        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
+    }
+
     private
     fun dependencyDeclarationsFor(configuration: String, modules: List<String>, version: String? = null) =
         modules.map {
