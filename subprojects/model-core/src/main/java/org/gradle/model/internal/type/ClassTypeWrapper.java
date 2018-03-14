@@ -119,7 +119,8 @@ class ClassTypeWrapper implements TypeWrapper {
         // And https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.9.1
         // "The optional class body of an enum constant implicitly defines an anonymous class declaration
         //  that extends the immediately enclosing enum type."
-        if (enclosingClass != null && enclosingClass.isEnum()
+        if (enclosingClass != null
+            && enclosingClass.isEnum()
             && clazz.getSimpleName().length() == 0
             && clazz.getSuperclass() == enclosingClass) {
 
