@@ -404,7 +404,8 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      * @see [Settings.getBuildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
+    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+        throw InternalError("INERNAL ERROR")
 
     /**
      * Applies zero or more plugins or scripts.

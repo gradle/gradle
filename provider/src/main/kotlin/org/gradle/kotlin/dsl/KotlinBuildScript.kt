@@ -52,7 +52,8 @@ abstract class KotlinBuildScript(
      * @see [Project.buildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
+    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+        throw InternalError("INERNAL ERROR")
 
     /**
      * Configures the plugin dependencies for this project.
