@@ -416,5 +416,5 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @since 2.14
      */
     @Incubating
-    void setFilteringCharset(@Nullable String charset);
+    void setFilteringCharset(String charset);
 }

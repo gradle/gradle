@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
@@ -40,6 +41,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -129,7 +131,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
+        //noinspection ConstantConditions
         if (configureAction == null) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.from()");
             from(sourcePath);
             return this;
         } else {
@@ -235,7 +239,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        //noinspection ConstantConditions
         if (copySpec == null) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.into()");
             into(destPath);
             return this;
         } else {
@@ -514,6 +520,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpecResolver buildRootResolver() {
+        //noinspection ConstantConditions
         return this.new DefaultCopySpecResolver(null);
     }
 
@@ -523,10 +530,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public void setFilteringCharset(@Nullable String charset) {
-        if (charset == null) {
-            throw new InvalidUserDataException("filteringCharset must not be null");
-        }
+    public void setFilteringCharset(String charset) {
+        Preconditions.checkNotNull(charset, "filteringCharset must not be null");
         if (!Charset.isSupported(charset)) {
             throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
         }
@@ -537,7 +542,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         private CopySpecResolver parentResolver;
 
-        private DefaultCopySpecResolver(CopySpecResolver parent) {
+        // Not marked as @Nullable because of Groovy compiler bug: https://issues.apache.org/jira/browse/GROOVY-8505
+        @SuppressWarnings("NullableProblems")
+        private DefaultCopySpecResolver(/* @Nullable */ CopySpecResolver parent) {
             this.parentResolver = parent;
         }
 
