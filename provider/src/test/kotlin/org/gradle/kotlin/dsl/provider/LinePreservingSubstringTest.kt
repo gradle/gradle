@@ -49,19 +49,23 @@ class LinePreservingSubstringTest {
     }
 
     @Test
-    fun `given a range linePreservingBlankRange should blank its lines`() {
+    fun `given ranges linePreservingBlankRange should blank lines`() {
         val original = """
             |// line 1
             |// line 2
-            |plugins {
+            |buildscript {
             |    // line 4
             |}
             |// line 6
+            |plugins {
+            |    // line 8
+            |}
+            |// line 10
         """.trimMargin()
-        val begin = original.indexOf("plugins")
-        val end = original.indexOf("}")
+        val buildscriptRange = original.indexOf("buildscript")..original.indexOf("}")
+        val pluginsRange = original.indexOf("plugins")..original.lastIndexOf("}")
         assertThat(
-            original.linePreservingBlankRange(begin..end),
+            original.linePreservingBlankRanges(listOf(buildscriptRange, pluginsRange)),
             equalTo("""
                 |// line 1
                 |// line 2
@@ -69,6 +73,10 @@ class LinePreservingSubstringTest {
                 |
                 |
                 |// line 6
+                |
+                |
+                |
+                |// line 10
             """.trimMargin()))
     }
 }

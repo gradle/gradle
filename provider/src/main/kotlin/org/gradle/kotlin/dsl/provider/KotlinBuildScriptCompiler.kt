@@ -104,17 +104,17 @@ class KotlinBuildScriptCompiler(
     fun compile() =
         asKotlinScript {
             withUnexpectedBlockHandling {
-                executeBuildscriptBlock()
-                prepareTargetClassLoaderScope()
-                executeScriptBody()
+                val buildscriptRange = executeBuildscriptBlock()
+                val pluginsRange = prepareTargetClassLoaderScope()
+                executeScriptBody(listOfNotNull(buildscriptRange, pluginsRange))
             }
         }
 
     fun compileForClassPath() =
         asKotlinScript {
-            ignoringErrors { executeBuildscriptBlock() }
-            ignoringErrors { prepareTargetClassLoaderScope() }
-            ignoringErrors { executeScriptBody() }
+            val buildscriptRange = ignoringErrors { executeBuildscriptBlock() }
+            val pluginsRange = ignoringErrors { prepareTargetClassLoaderScope() }
+            ignoringErrors { executeScriptBody(listOfNotNull(buildscriptRange, pluginsRange)) }
         }
 
     private
@@ -124,14 +124,14 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun executeScriptBody() {
-        loadScriptBodyClass().eval {
+    fun executeScriptBody(ranges: List<IntRange>) {
+        loadScriptBodyClass(ranges).eval {
             scriptTarget.eval(scriptClass)
         }
     }
 
     private
-    fun executeBuildscriptBlock() {
+    fun executeBuildscriptBlock() =
         BuildscriptBlockEvaluator(
             scriptSource,
             scriptTarget,
@@ -141,18 +141,19 @@ class KotlinBuildScriptCompiler(
             embeddedKotlinProvider,
             classloadingCache,
             classPathModeExceptionCollector).evaluate()
-    }
 
     private
-    fun prepareTargetClassLoaderScope() {
+    fun prepareTargetClassLoaderScope(): IntRange? {
         targetScope.export(classPathProvider.gradleApiExtensions)
-        executePluginsBlock()
+        return executePluginsBlock()
     }
 
     private
-    fun executePluginsBlock() {
-        applyPlugins(pluginRequests())
-    }
+    fun executePluginsBlock(): IntRange? =
+        pluginRequests().let {
+            applyPlugins(it?.first)
+            return it?.second
+        }
 
     private
     fun pluginRequests() =
@@ -161,19 +162,18 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): PluginRequests {
+    fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): Pair<PluginRequests?, IntRange?> {
         val pluginRequestCollector = PluginRequestCollector(scriptSource.source)
-        executePluginsBlockOn(pluginRequestCollector, scriptTemplate)
-        return pluginRequestCollector.pluginRequests
+        val pluginsRange = executePluginsBlockOn(pluginRequestCollector, scriptTemplate)
+        return Pair(pluginRequestCollector.pluginRequests, pluginsRange)
     }
 
     private
-    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, scriptTemplate: KClass<*>) {
-        extractPluginsBlockFrom(script)?.let { pluginsRange ->
+    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, scriptTemplate: KClass<*>) =
+        extractPluginsBlockFrom(script)?.also { pluginsRange ->
             val loadedPluginsBlockClass = loadPluginsBlockClass(scriptBlockForPlugins(pluginsRange, scriptTemplate))
             executeCompiledPluginsBlockOn(pluginRequestCollector, loadedPluginsBlockClass)
         }
-    }
 
     private
     fun executeCompiledPluginsBlockOn(
@@ -229,33 +229,21 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun loadScriptBodyClass() =
+    fun loadScriptBodyClass(ranges: List<IntRange>) =
         classloadingCache.loadScriptClass(
-            scriptBlockForBody(),
+            scriptBlockForBody(ranges),
             targetScope.localClassLoader,
             ::scriptBodyClassLoaderScope,
             ::compileScriptBody)
 
     private
-    fun scriptBlockForBody() =
+    fun scriptBlockForBody(ranges: List<IntRange>) =
         ScriptBlock(
             scriptSource.displayName,
             scriptTarget.scriptTemplate,
             scriptPath,
-            scriptSourceForBody(),
+            script.linePreservingBlankRanges(ranges),
             Unit)
-
-    private
-    fun scriptSourceForBody(): String {
-
-        fun String.blankBuildscriptBlock() =
-            extractBuildscriptBlockFrom(this)?.let { linePreservingBlankRange(it) } ?: this
-
-        fun String.blankPluginsBlock() =
-            extractPluginsBlockFrom(this)?.let { linePreservingBlankRange(it) } ?: this
-
-        return script.blankBuildscriptBlock().blankPluginsBlock()
-    }
 
     private
     fun compileScriptBody(scriptBlock: ScriptBlock<Unit>) =
@@ -285,7 +273,7 @@ class KotlinBuildScriptCompiler(
         scriptSource.classLoaderScopeIdFor(stage)
 
     private
-    inline fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
+    inline fun <T> ignoringErrors(action: () -> T) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
@@ -360,14 +348,13 @@ class BuildscriptBlockEvaluator(
         }
     }
 
-    fun evaluate() {
+    fun evaluate(): IntRange? =
         scriptTarget.buildscriptBlockTemplate?.let { template ->
             setupEmbeddedKotlinForBuildscript()
-            extractTopLevelSectionFrom(script, buildscriptBlockName)?.let { buildscriptRange ->
+            extractTopLevelSectionFrom(script, buildscriptBlockName)?.also { buildscriptRange ->
                 executeBuildscriptBlockFrom(buildscriptRange, template)
             }
         }
-    }
 
     private
     fun compileBuildscriptBlock(scriptBlock: ScriptBlock<Unit>) =
@@ -446,12 +433,13 @@ class BuildscriptBlockEvaluator(
 
 
 private
-inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) {
-    try {
+inline fun <T> ClassPathModeExceptionCollector.ignoringErrors(action: () -> T): T? {
+    return try {
         action()
     } catch (e: Exception) {
         e.printStackTrace()
         collect(e)
+        null
     }
 }
 
