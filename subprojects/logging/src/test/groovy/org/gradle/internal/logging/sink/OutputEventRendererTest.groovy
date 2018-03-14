@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
+import org.gradle.internal.logging.events.FlushOutputEvent
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
@@ -211,6 +212,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
+        1 * listener.onOutput(_ as FlushOutputEvent)
         0 * listener._
     }
 
