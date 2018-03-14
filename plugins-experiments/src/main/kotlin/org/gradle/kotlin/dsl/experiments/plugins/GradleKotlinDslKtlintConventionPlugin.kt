@@ -50,8 +50,10 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
             ktlint(files(gradleKotlinDslKtlintRulesetJar()))
         }
 
-        afterEvaluate {
-            fixKtlintTasks()
+        plugins.withId("kotlin") {
+            afterEvaluate {
+                fixKtlintTasks()
+            }
         }
     }
 
