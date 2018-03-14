@@ -42,21 +42,26 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
     }
 
+    @Unroll
     def "executes single method from a test class"() {
         buildFile << """
             test {
               filter {
-                includeTestsMatching "FooTest.pass"
+                includeTestsMatching "${pattern}"
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import $imports;
+        file("src/test/java/org/gradle/FooTest.java") << """
+            package org.gradle;
+            import $imports;
             public class FooTest {
                 @Test public void pass() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import $imports;
+        file("src/test/java/org/gradle/OtherTest.java") << """
+            package org.gradle;
+            import $imports;
             public class OtherTest {
                 @Test public void pass() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
@@ -68,8 +73,11 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("FooTest")
-        result.testClass("FooTest").assertTestsExecuted("pass")
+        result.assertTestClassesExecuted("org.gradle.FooTest")
+        result.testClass("org.gradle.FooTest").assertTestsExecuted("pass")
+
+        where:
+        pattern << ['FooTest.pass', 'org.gradle.FooTest.pass']
     }
 
     def "executes multiple methods from a test class"() {
@@ -146,22 +154,28 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         result.testClass("Foo2Test").assertTestsExecuted("pass2")
     }
 
+    @Unroll
     def "reports when no matching methods found"() {
-        file("src/test/java/FooTest.java") << """import $imports;
+        file("src/test/java/org/gradle/FooTest.java") << """
+            package org.gradle;
+            import $imports;
             public class FooTest {
                 @Test public void pass() {}
             }
         """
 
         //by command line
-        when: fails("test", "--tests", 'FooTest.missingMethod')
-        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod](--tests filter)")
+        when: fails("test", "--tests", pattern)
+        then: failure.assertHasCause("No tests found for given includes: [${pattern}](--tests filter)")
 
         //by build script
         when:
-        buildFile << "test.filter.includeTestsMatching 'FooTest.missingMethod'"
+        buildFile << "test.filter.includeTestsMatching '${pattern}'"
         fails("test")
-        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod](filter.includeTestsMatching)")
+        then: failure.assertHasCause("No tests found for given includes: [${pattern}](filter.includeTestsMatching)")
+
+        where:
+        pattern << ['FooTest.missingMethod', 'org.gradle.FooTest.missingMethod']
     }
 
     def "adds import/export rules to report about no matching methods found"() {
