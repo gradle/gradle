@@ -313,7 +313,7 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     @Override
-    public void setFilteringCharset(@Nullable String charset) {
+    public void setFilteringCharset(String charset) {
         delegate.setFilteringCharset(charset);
     }
 }
