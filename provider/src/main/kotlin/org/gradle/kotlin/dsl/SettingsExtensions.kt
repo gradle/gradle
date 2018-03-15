@@ -26,5 +26,5 @@ fun <reified T : Plugin<Settings>> Settings.apply() =
 
 
 inline
-fun <reified T : Plugin<*>> Settings.apply(to: Any? = null) =
+fun <reified T : Plugin<*>> Settings.apply(to: Any) =
     (this as PluginAware).apply<T>(to)

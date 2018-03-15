@@ -78,7 +78,7 @@ fun <reified T : Plugin<Project>> Project.apply() =
 
 
 inline
-fun <reified T : Plugin<*>> Project.apply(to: Any? = null) =
+fun <reified T : Plugin<*>> Project.apply(to: Any) =
     (this as PluginAware).apply<T>(to)
 
 

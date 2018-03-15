@@ -26,5 +26,5 @@ fun <reified T : Plugin<Gradle>> Gradle.apply() =
 
 
 inline
-fun <reified T : Plugin<*>> Gradle.apply(to: Any? = null) =
+fun <reified T : Plugin<*>> Gradle.apply(to: Any) =
     (this as PluginAware).apply<T>(to)
