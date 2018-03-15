@@ -440,7 +440,7 @@ public abstract class OperatingSystem {
         protected String getArch() {
             String arch = System.getProperty("os.arch");
             if (arch.equals("i386") || arch.equals("x86")) {
-                return "i386";
+                return "x86";
             }
             return super.getArch();
         }
