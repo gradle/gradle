@@ -32,13 +32,11 @@ fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
 
 
 internal
-fun CharSequence.linePreservingBlankRanges(ranges: List<IntRange>): String {
-    var string = this
-    ranges.sortedByDescending { it.start }.forEach { range ->
-        string = string.linePreservingBlankRange(range)
-    }
-    return string.toString()
-}
+fun CharSequence.linePreservingBlankRanges(ranges: List<IntRange>): String =
+    ranges
+        .sortedByDescending { it.start }
+        .fold(this, CharSequence::linePreservingBlankRange)
+        .toString()
 
 
 private
