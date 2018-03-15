@@ -22,21 +22,21 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 
 /**
- * An isolated processor must provide exactly one originating element
+ * An isolating processor must provide exactly one originating element
  * for each file it generates.
  */
-public class IsolatedProcessor extends DelegatingProcessor {
+public class IsolatingProcessor extends DelegatingProcessor {
 
     private final AnnotationProcessingResult result;
 
-    public IsolatedProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public IsolatingProcessor(Processor delegate, AnnotationProcessingResult result) {
         super(delegate);
         this.result = result;
     }
 
     @Override
     public final void init(ProcessingEnvironment processingEnv) {
-        IncrementalFiler incrementalFiler = new IsolatedFiler(processingEnv.getFiler(), this.result, processingEnv.getMessager());
+        IncrementalFiler incrementalFiler = new IsolatingFiler(processingEnv.getFiler(), this.result, processingEnv.getMessager());
         IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalProcessingEnvironment);
     }

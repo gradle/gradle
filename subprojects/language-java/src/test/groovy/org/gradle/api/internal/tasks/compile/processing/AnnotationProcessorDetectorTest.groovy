@@ -78,9 +78,9 @@ class AnnotationProcessorDetectorTest extends Specification {
     def "detects no processors when processor declaration is missing, even if Gradle metadata is present"() {
         given:
         def jar = tmpDir.file("classes.jar")
-        jar << JarUtils.jarWithContents((INCREMENTAL_PROCESSOR_DECLARATION): "InJar,ISOLATED")
+        jar << JarUtils.jarWithContents((INCREMENTAL_PROCESSOR_DECLARATION): "InJar,ISOLATING")
         def dir = tmpDir.file("classes")
-        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "InDir,ISOLATED"
+        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "InDir,ISOLATING"
         def cp = files(jar, dir)
 
         expect:
@@ -163,13 +163,13 @@ class AnnotationProcessorDetectorTest extends Specification {
         )
         def dir = tmpDir.file("classes")
         dir.file(PROCESSOR_DECLARATION) << "InDir"
-        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "InDir,ISOLATED,Foo,Bar,Baz"
+        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "InDir,ISOLATING,Foo,Bar,Baz"
         def cp = files(jar, dir)
 
         expect:
         detector.detectProcessors(cp).values().asList() == [
             new AnnotationProcessorDeclaration("InJar", IncrementalAnnotationProcessorType.AGGREGATING),
-            new AnnotationProcessorDeclaration("InDir", IncrementalAnnotationProcessorType.ISOLATED)
+            new AnnotationProcessorDeclaration("InDir", IncrementalAnnotationProcessorType.ISOLATING)
         ]
     }
 
@@ -182,13 +182,13 @@ class AnnotationProcessorDetectorTest extends Specification {
         )
         def dir = tmpDir.file("classes")
         dir.file(PROCESSOR_DECLARATION) << "InDir"
-        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "InDir,ISOLATED"
+        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "InDir,ISOLATING"
         def cp = files(jar, dir)
 
         expect:
         detector.detectProcessors(cp).values().asList() == [
             new AnnotationProcessorDeclaration("InJar", IncrementalAnnotationProcessorType.AGGREGATING),
-            new AnnotationProcessorDeclaration("InDir", IncrementalAnnotationProcessorType.ISOLATED)
+            new AnnotationProcessorDeclaration("InDir", IncrementalAnnotationProcessorType.ISOLATING)
         ]
     }
 
@@ -201,7 +201,7 @@ class AnnotationProcessorDetectorTest extends Specification {
         )
         def dir = tmpDir.file("classes")
         dir.file(PROCESSOR_DECLARATION) << "Foo"
-        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "Foo,ISOLATED"
+        dir.file(INCREMENTAL_PROCESSOR_DECLARATION) << "Foo,ISOLATING"
         def cp = files(jar, dir)
 
         expect:

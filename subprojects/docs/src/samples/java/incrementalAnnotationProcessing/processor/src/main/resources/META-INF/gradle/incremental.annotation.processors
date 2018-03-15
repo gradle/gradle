@@ -1,4 +1,4 @@
 # START SNIPPET registering-incremental-annotation-processors
-EntityProcessor,isolated
+EntityProcessor,isolating
 ServiceRegistryProcessor,aggregating
 # END SNIPPET registering-incremental-annotation-processors

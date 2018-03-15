@@ -187,7 +187,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         errorOutput.contains("Incremental annotation processors are not allowed to create resources.")
     }
 
-    def "an isolated processor is also a valid aggregating processor"() {
+    def "an isolating processor is also a valid aggregating processor"() {
         given:
         withProcessor(new HelperProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
         java "@Helper class A {}"

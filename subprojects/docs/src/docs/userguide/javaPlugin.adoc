@@ -547,7 +547,7 @@ As a user you can see which annotation processors are triggering full recompilat
 
 ==== Making an annotation processor incremental
 
-Gradle supports incremental compilation for two common categories of annotation processors: "Isolated" and "Aggregating".
+Gradle supports incremental compilation for two common categories of annotation processors: "Isolating" and "Aggregating".
 As a processor author, please consult the information below to decide which category fits your processor.
 You can then register it for incremental compilation in its META-INF folder.
 
@@ -560,18 +560,18 @@ You can then register it for incremental compilation in its META-INF folder.
 Processors that don't fit these categories will result in full recompilation.
 This includes processors that use `java.io` instead of the `Filer` API and processors that need to read or write resource files.
 
-===== Isolated annotation processors
+===== Isolating annotation processors
 These look at each annotated element in isolation, creating generated files or validation messages for it.
 For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="isolatedAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An isolated annotation processor">
-     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="isolated-annotation-processor"/>
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="isolatingAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An isolated annotation processor">
+     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="isolating-annotation-processor"/>
 </sample>
 ++++
 
 
-Isolated processors have the following limitations:
+Isolating processors have the following limitations:
 
 * Can't read resources
 * Can't write resources

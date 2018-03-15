@@ -22,11 +22,11 @@ import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
 
-class IsolatedFilerTest extends IncrementalFilerTest {
+class IsolatingFilerTest extends IncrementalFilerTest {
 
     @Override
     Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new IsolatedFiler(delegate, result, messager)
+        new IsolatingFiler(delegate, result, messager)
     }
 
     def "fails when no originating elements are given"() {

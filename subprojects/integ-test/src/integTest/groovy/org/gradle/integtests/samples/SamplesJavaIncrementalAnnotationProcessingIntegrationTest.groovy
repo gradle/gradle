@@ -24,7 +24,7 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
     @Rule public final Sample processing = new Sample(temporaryFolder, 'java/incrementalAnnotationProcessing')
 
-    def "isolated annotation processors are incremental"() {
+    def "isolating annotation processors are incremental"() {
         given:
         CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("/user/build/classes"))
         outputs.snapshot { compile() }
