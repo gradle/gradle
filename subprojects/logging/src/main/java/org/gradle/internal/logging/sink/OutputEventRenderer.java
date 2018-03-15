@@ -77,22 +77,18 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
-        OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
-            @Override
-            public OutputEventListener create() {
-                return new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), clock);
-            }
-        });
-        OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
-            @Override
-            public OutputEventListener create() {
-                return new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource()));
-            }
-        });
         formatters.add(
-            new BuildLogLevelFilterRenderer(
-                new ProgressLogEventGenerator(new LogEventDispatcher(stdOutChain, stdErrChain), false)
-            )
+            new LazyListener(new Factory<OutputEventListener>() {
+                @Override
+                public OutputEventListener create() {
+                    OutputEventListener stdOutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), clock);
+                    OutputEventListener stdErrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource()));
+
+                    return new BuildLogLevelFilterRenderer(
+                        new ProgressLogEventGenerator(new LogEventDispatcher(stdOutChain, stdErrChain), false)
+                    );
+                }
+            })
         );
     }
 
