@@ -11,8 +11,12 @@ import java.util.Collections;
 import java.util.Set;
 
 @SupportedAnnotationTypes("Service")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ServiceRegistryProcessor extends AbstractProcessor {
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
