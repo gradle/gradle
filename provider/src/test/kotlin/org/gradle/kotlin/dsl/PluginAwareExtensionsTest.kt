@@ -38,7 +38,6 @@ class PluginAwareExtensionsTest {
         assertNonReifiedApplyExtension<Gradle>()
     }
 
-
     @Test
     fun `reified apply extension`() {
 
