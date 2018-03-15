@@ -10,7 +10,6 @@ import org.junit.Test
 
 class KotlintBuildScriptIntegrationTest : AbstractIntegrationTest() {
 
-
     @Test
     fun `use of the plugins block on nested project block fails with reasonable error message`() {
 
