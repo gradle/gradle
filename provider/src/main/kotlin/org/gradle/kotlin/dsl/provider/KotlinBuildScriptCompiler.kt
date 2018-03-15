@@ -37,7 +37,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
-import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
+import org.gradle.util.TextUtil
 
 import java.lang.reflect.InvocationTargetException
 
@@ -60,7 +60,7 @@ class KotlinScriptSource(val source: ScriptSource) {
 
     val scriptPath = source.fileName!!
 
-    val script = convertLineSeparators(scriptResource.text!!)
+    val script = TextUtil.convertLineSeparators(scriptResource.text!!, "\n")
 
     val displayName: String
         get() = source.displayName
