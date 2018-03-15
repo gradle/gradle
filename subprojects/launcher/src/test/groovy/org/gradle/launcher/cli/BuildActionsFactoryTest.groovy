@@ -16,6 +16,7 @@
 package org.gradle.launcher.cli
 
 import org.gradle.StartParameter
+import org.gradle.api.JavaVersion
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
@@ -73,6 +74,8 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.getFactory(LoggingManagerInternal) >> Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
         _ * loggingServices.getAll(_) >> []
+
+        _ * jvmVersionDetector.getJavaVersion(_) >> JavaVersion.current()
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {
