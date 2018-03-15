@@ -46,7 +46,7 @@ class ConsoleFunctionalTest extends Specification {
     def setup() {
         renderer = new OutputEventRenderer(timeProvider)
         renderer.configure(LogLevel.INFO)
-        renderer.addConsole(console, true, true, metaData)
+        renderer.addRichConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
         _ * metaData.getCols() >> 36
         _ * timeProvider.getCurrentTime() >> { currentTimeMs }

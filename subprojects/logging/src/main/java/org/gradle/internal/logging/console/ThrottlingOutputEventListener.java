@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UpdateNowEvent;
@@ -67,6 +68,11 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     public void onOutput(OutputEvent newEvent) {
         synchronized (lock) {
             queue.add(newEvent);
+
+            if (newEvent instanceof FlushOutputEvent) {
+                renderNow(clock.getCurrentTime());
+                return;
+            }
 
             if (newEvent instanceof EndOutputEvent) {
                 // Flush and clean up
