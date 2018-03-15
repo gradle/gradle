@@ -32,6 +32,12 @@ This allows for declaring nice names when adding `CommandLineArgumentProviders`,
 ### Rerun failed tests first
 
 Now, in the subsequent test, Gradle will execute the previous failed test class first. With [`--fail-fast`](userguide/java_plugin.html#sec:test_execution) option introduced in `4.6`, this can provide a much faster feedback loop for development.
+
+### Incremental annotation processing
+
+Gradle's incremental Java compiler can now also run annotation processing incrementally. 
+No user-facing configuration is necessary, but processor authors need to opt in.
+If you are a processor author, have a look at the [user guide](userguide/java_plugin.html#sec:incremental_annotation_processing) to find out how to make your processor compatible.
     
 ## Promoted features
 
