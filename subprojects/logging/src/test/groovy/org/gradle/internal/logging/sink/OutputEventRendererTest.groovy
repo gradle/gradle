@@ -375,7 +375,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['description', 'info', 'description status']
+        stdoutListener.value.readLines() == ['', '> description status', 'info']
         stderrListener.value.readLines() == ['error']
     }
 

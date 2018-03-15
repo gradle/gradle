@@ -90,7 +90,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
             [new StyledTextOutputEvent.Span("Header $taskStartEvent.description")]
         }
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
@@ -112,7 +112,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
             [new StyledTextOutputEvent.Span(taskStartEvent.description + ' '), new StyledTextOutputEvent.Span(StyledTextOutput.Style.ProgressStatus, taskCompleteEvent.status)]
         }
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>$taskStartEvent.description </Normal><ProgressStatus>$taskCompleteEvent.status</ProgressStatus>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>$taskStartEvent.description </Normal><ProgressStatus>$taskCompleteEvent.status</ProgressStatus>".toString() })
         then:
         0 * downstreamListener._
     }
@@ -142,7 +142,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
             [new StyledTextOutputEvent.Span("Header $taskStartEvent.description")]
         }
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Child task log message" })
         then:
@@ -161,7 +161,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(endBuildEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
@@ -192,7 +192,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
             [new StyledTextOutputEvent.Span("Header $taskBStartEvent.description")]
         }
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
         then:
@@ -200,7 +200,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
             [new StyledTextOutputEvent.Span("Header $taskAStartEvent.description")]
         }
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then:
@@ -246,7 +246,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(updateNowEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
     }
@@ -273,11 +273,11 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(updateNowEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskAStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[QUIET] [category] <Normal>Header $taskBStartEvent.description</Normal>".toString() })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
     }
