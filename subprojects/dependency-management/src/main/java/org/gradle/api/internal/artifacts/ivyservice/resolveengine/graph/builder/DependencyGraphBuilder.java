@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -195,8 +196,19 @@ public class DependencyGraphBuilder {
         moduleRevision.forEachCapability(new Action<CapabilityDescriptor>() {
             @Override
             public void execute(CapabilityDescriptor capability) {
+                // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
+                // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
+                // then we try to find a module which provides the same capability. It that module has been found, then we register it.
+                // Otherwise, we have nothing to do. This avoids most of registrations.
+                Collection<ComponentState> implicitProvidersForCapability = Collections.emptyList();
+                for (ModuleResolveState state : resolveState.getModules()) {
+                    if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
+                        implicitProvidersForCapability = state.getVersions();
+                        break;
+                    }
+                }
                 PotentialConflict c = capabilitiesConflictHandler.registerModule(
-                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability)
+                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability, implicitProvidersForCapability)
                 );
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());

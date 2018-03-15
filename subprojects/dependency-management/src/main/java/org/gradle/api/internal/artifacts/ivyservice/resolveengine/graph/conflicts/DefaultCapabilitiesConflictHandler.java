@@ -48,6 +48,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         String group = capabilityDescriptor.getGroup();
         String name = capabilityDescriptor.getName();
         final Set<ComponentState> components = findComponentsFor(capabilityDescriptor);
+        components.addAll(newModule.getImplicitCapabilityProviders());
         if (components.add(newModule.getComponent()) && components.size() > 1) {
             // The registered components may contain components which are no longer selected.
             // We don't remove them from the list in the first place because it proved to be
@@ -85,8 +86,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         if (componentStates == null) {
             componentStates = Sets.newHashSet();
             capabilityWithoutVersionToComponents.put(capabilityId, componentStates);
-            return componentStates;
         }
+
         return componentStates;
     }
 
@@ -115,17 +116,19 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         resolvers.add(conflictResolver);
     }
 
-    public static CapabilitiesConflictHandler.Candidate candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor) {
-        return new Candidate(component, capabilityDescriptor);
+    public static CapabilitiesConflictHandler.Candidate candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor, Collection<ComponentState> implicitCapabilityProviders) {
+        return new Candidate(component, capabilityDescriptor, implicitCapabilityProviders);
     }
 
     private static class Candidate implements CapabilitiesConflictHandler.Candidate {
         private final ComponentState component;
         private final CapabilityDescriptor capabilityDescriptor;
+        private final Collection<ComponentState> implicitCapabilityProviders;
 
-        public Candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor) {
+        public Candidate(ComponentState component, CapabilityDescriptor capabilityDescriptor, Collection<ComponentState> implicitCapabilityProviders) {
             this.component = component;
             this.capabilityDescriptor = capabilityDescriptor;
+            this.implicitCapabilityProviders = implicitCapabilityProviders;
         }
 
         public ComponentState getComponent() {
@@ -134,6 +137,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         public CapabilityDescriptor getCapabilityDescriptor() {
             return capabilityDescriptor;
+        }
+
+        @Override
+        public Collection<ComponentState> getImplicitCapabilityProviders() {
+            return implicitCapabilityProviders;
         }
     }
 
