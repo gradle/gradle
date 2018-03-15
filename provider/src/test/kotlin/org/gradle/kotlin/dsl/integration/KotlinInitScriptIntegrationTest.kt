@@ -42,7 +42,7 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
 
         val initScript =
             withFile("gradle/init.gradle.kts", """
-                apply { from("./answer.gradle.kts") }
+                apply(from = "./answer.gradle.kts")
             """)
 
         withFile("gradle/answer.gradle.kts", """
