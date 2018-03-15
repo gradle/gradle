@@ -27,7 +27,6 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
 abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
