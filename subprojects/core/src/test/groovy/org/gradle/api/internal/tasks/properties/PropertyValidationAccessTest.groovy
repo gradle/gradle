@@ -81,13 +81,13 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithNestedIterable extends DefaultTask {
         @Nested
-        Iterable<NestedBean> beans
+        Iterable<NestedBeanWithNonAnnotatedProperty> beans
 
         @Nested
-        List<NestedBean> beanList
+        List<NestedBeanWithNonAnnotatedProperty> beanList
     }
 
-    static class NestedBean {
+    static class NestedBeanWithNonAnnotatedProperty {
         @Input
         String input
 
@@ -129,10 +129,10 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithNestedMap extends DefaultTask {
         @Nested
-        Map<String, NestedBean> beans
+        Map<String, NestedBeanWithNonAnnotatedProperty> beans
 
         @Nested
-        ImmutableMap<Object, NestedBean> beanMap
+        ImmutableMap<Object, NestedBeanWithNonAnnotatedProperty> beanMap
     }
 
     def "analyzes type arguments of Maps"() {
@@ -145,7 +145,7 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithNestedProvider extends DefaultTask {
         @Nested
-        Provider<NestedBean> nested
+        Provider<NestedBeanWithNonAnnotatedProperty> nested
     }
 
     def "analyzes type arguments of Providers"() {
@@ -165,10 +165,10 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithIterableInIterable extends DefaultTask {
         @Nested
-        List<Set<NestedBean>> beans
+        List<Set<NestedBeanWithNonAnnotatedProperty>> beans
 
         @Nested
-        List<Map<String, List<NestedBean>>> nestedBeans
+        List<Map<String, List<NestedBeanWithNonAnnotatedProperty>>> nestedBeans
     }
 
     def "for Iterables of Iterables the right type is selected"() {
@@ -179,7 +179,7 @@ class PropertyValidationAccessTest extends Specification {
         ])
     }
 
-    static class AnnotatedIterable extends ArrayList<NestedBean> {
+    static class AnnotatedIterable extends ArrayList<NestedBeanWithNonAnnotatedProperty> {
         @Input
         String someProperty = "annotated"
 
@@ -233,12 +233,12 @@ class PropertyValidationAccessTest extends Specification {
 
     static class BeanWithNonAnnotatedType {
         @Nested
-        NestedBean bean
+        NestedBeanWithNonAnnotatedProperty bean
     }
 
     static class TaskWithNestedTree extends DefaultTask {
         @Nested Tree tree
-        @Nested NestedBean bean
+        @Nested NestedBeanWithNonAnnotatedProperty bean
         @Nested BeanWithNonAnnotatedType nestedBean
     }
 

@@ -182,7 +182,12 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        1 * visitor.visitInputProperty({ it.propertyName == "nested" })
         1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
+        1 * visitor.visitInputFileProperty({ it.propertyName == "nested.inputDir" })
+        1 * visitor.visitOutputFileProperty({ it.propertyName == "nested.outputDir" })
+
+        0 * _
     }
 
     def "callables are unpacked"() {
