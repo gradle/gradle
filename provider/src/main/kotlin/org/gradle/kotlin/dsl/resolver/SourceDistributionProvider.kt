@@ -92,6 +92,9 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         val repoName = repositoryNameFor(gradleVersion)
         name = "Gradle $repoName"
         setUrl("https://services.gradle.org/$repoName")
+        metadataSources { sources ->
+            sources.artifact()
+        }
         layout("pattern") {
             val layout = it as IvyPatternRepositoryLayout
             if (isSnapshot(gradleVersion)) {
