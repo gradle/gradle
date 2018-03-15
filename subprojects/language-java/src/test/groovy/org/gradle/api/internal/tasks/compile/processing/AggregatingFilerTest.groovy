@@ -21,12 +21,12 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
 
-class MultipleOriginFilerTest extends IncrementalFilerTest {
+class AggregatingFilerTest extends IncrementalFilerTest {
 
 
     @Override
     Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new MultipleOriginFiler(delegate, result, messager)
+        new AggregatingFiler(delegate, result, messager)
     }
 
     def "can have zero originating elements"() {

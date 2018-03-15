@@ -25,7 +25,7 @@ import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import org.gradle.util.TextUtil
 
-class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
+class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
     private HelperProcessorFixture helperProcessor
 
     @Override
@@ -218,7 +218,7 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
 
     def "processors must provide an originating element for each source element"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.SINGLE_ORIGIN))
+        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         java "@Thing class A {}"
 
         expect:
@@ -230,7 +230,7 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
 
     def "processors can't access resources"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.SINGLE_ORIGIN))
+        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         java "@Thing class A {}"
 
         expect:
@@ -243,7 +243,7 @@ class SingleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstrac
 
     def "processors cannot provide multiple originating elements"() {
         given:
-        withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.SINGLE_ORIGIN))
+        withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         java "@Service class A {}"
         java "@Service class B {}"
 

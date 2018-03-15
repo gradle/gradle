@@ -24,7 +24,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Name
 import javax.lang.model.element.TypeElement
 
-class MultipleOriginProcessorTest extends Specification {
+class AggregatingProcessorTest extends Specification {
 
     Set<TypeElement> annotationTypes = [
         type("Helper"),
@@ -44,7 +44,7 @@ class MultipleOriginProcessorTest extends Specification {
 
     AnnotationProcessingResult result = new AnnotationProcessingResult()
     Processor delegate = Stub(Processor)
-    MultipleOriginProcessor processor = new MultipleOriginProcessor(delegate, result)
+    AggregatingProcessor processor = new AggregatingProcessor(delegate, result)
 
     def "when delegate reacts to any class, all root elements are aggregated"() {
         given:
@@ -57,7 +57,7 @@ class MultipleOriginProcessorTest extends Specification {
         result.getAggregatedTypes() == ["A", "B", "C"] as Set
     }
 
-    def "when delegate reacts to specific annotatitons, only types annotated with those are aggregated"() {
+    def "when delegate reacts to specific annotations, only types annotated with those are aggregated"() {
         given:
         delegate.getSupportedAnnotationTypes() >> annotationTypes.collect { it.getQualifiedName().toString() }
 

@@ -121,8 +121,8 @@ class ExtractSnippetsTask extends DefaultTask {
                 startSnippetPattern = Pattern.compile('\\s*<!--\\s*START\\s+SNIPPET\\s+(\\S+)\\s*-->')
                 endSnippetPattern = Pattern.compile('\\s*<!--\\s*END\\s+SNIPPET\\s+(\\S+)\\s*-->')
             } else {
-                startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
-                endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
+                startSnippetPattern = Pattern.compile('.*START\\s+SNIPPET\\s+(\\S+)\\s*')
+                endSnippetPattern = Pattern.compile('.*END\\s+SNIPPET\\s+(\\S+)\\s*')
             }
 
             try {

@@ -24,11 +24,11 @@ import javax.lang.model.element.Element;
 import java.util.Collections;
 
 /**
- * Decorates the filer to validate the correct behavior for {@link MultipleOriginProcessor}s.
+ * Decorates the filer to validate the correct behavior for {@link AggregatingProcessor}s.
  */
-class MultipleOriginFiler extends IncrementalFiler {
+class AggregatingFiler extends IncrementalFiler {
 
-    MultipleOriginFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
+    AggregatingFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
         super(delegate, result, messager);
     }
 

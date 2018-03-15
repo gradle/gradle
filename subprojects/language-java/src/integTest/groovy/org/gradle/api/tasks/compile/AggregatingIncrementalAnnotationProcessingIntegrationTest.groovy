@@ -21,7 +21,7 @@ import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 
-class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
+class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
 
     @Override
     def setup() {
@@ -176,7 +176,7 @@ class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstr
 
     def "processors can't access resources"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN))
+        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
         java "@Thing class A {}"
 
         expect:
@@ -187,9 +187,9 @@ class MultipleOriginIncrementalAnnotationProcessingIntegrationTest extends Abstr
         errorOutput.contains("Incremental annotation processors are not allowed to create resources.")
     }
 
-    def "a single origin processor is also a valid multi origin processor"() {
+    def "an isolating processor is also a valid aggregating processor"() {
         given:
-        withProcessor(new HelperProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN))
+        withProcessor(new HelperProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
         java "@Helper class A {}"
 
         expect:

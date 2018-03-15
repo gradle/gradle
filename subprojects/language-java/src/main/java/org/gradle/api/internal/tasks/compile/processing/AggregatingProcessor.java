@@ -20,24 +20,43 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.TypeElement;
+import java.util.Set;
+
 
 /**
- * A single origin processor must provide exactly one originating element
- * for each file it generates.
+ * An aggregating processor can have zero to many originating elements for each generated file.
  */
-public class SingleOriginProcessor extends DelegatingProcessor {
+public final class AggregatingProcessor extends DelegatingProcessor {
 
     private final AnnotationProcessingResult result;
 
-    public SingleOriginProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public AggregatingProcessor(Processor delegate, AnnotationProcessingResult result) {
         super(delegate);
         this.result = result;
     }
 
     @Override
     public final void init(ProcessingEnvironment processingEnv) {
-        IncrementalFiler incrementalFiler = new SingleOriginFiler(processingEnv.getFiler(), this.result, processingEnv.getMessager());
+        IncrementalFiler incrementalFiler = new AggregatingFiler(processingEnv.getFiler(), result, processingEnv.getMessager());
         IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalProcessingEnvironment);
+    }
+
+    @Override
+    public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        recordAggregatedTypes(annotations, roundEnv);
+        return super.process(annotations, roundEnv);
+    }
+
+    private void recordAggregatedTypes(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        if (getSupportedAnnotationTypes().contains("*")) {
+            result.addAggregatedTypes(ElementUtils.getTopLevelTypeNames(roundEnv.getRootElements()));
+        } else {
+            for (TypeElement annotation : annotations) {
+                result.addAggregatedTypes(ElementUtils.getTopLevelTypeNames(roundEnv.getElementsAnnotatedWith(annotation)));
+            }
+        }
     }
 }

@@ -30,7 +30,7 @@ class ServiceRegistryProcessorFixture extends AnnotationProcessorFixture {
 
     ServiceRegistryProcessorFixture() {
         super("Service")
-        declaredType = IncrementalAnnotationProcessorType.MULTIPLE_ORIGIN
+        declaredType = IncrementalAnnotationProcessorType.AGGREGATING
     }
 
     String getGeneratorCode() {
