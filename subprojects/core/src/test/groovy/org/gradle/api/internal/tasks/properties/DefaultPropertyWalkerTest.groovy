@@ -190,17 +190,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
-    def "callables are unpacked"() {
-        def task = project.tasks.create("myTask", TaskWithNestedObject)
-        task.nested = { new NestedBean() }
-
-        when:
-        visitProperties(task)
-
-        then:
-        1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
-    }
-
     static class NamedNestedBean implements Named {
         @Internal
         final String name

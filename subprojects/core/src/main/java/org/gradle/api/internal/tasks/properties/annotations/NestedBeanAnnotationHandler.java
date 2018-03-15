@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -43,7 +43,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         Object nested;
         try {
-            nested = DeferredUtil.unpack(propertyValue.getValue());
+            nested = unpackProvider(propertyValue.getValue());
         } catch (Exception e) {
             visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyValue.getPropertyName(), new InvalidPropertyValue(e)));
             return;
@@ -53,6 +53,15 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         } else if (!propertyValue.isOptional()) {
             visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyValue.getPropertyName(), new AbsentPropertyValue()));
         }
+    }
+
+    @Nullable
+    private static Object unpackProvider(@Nullable Object value) {
+        // Only unpack one level of Providers, since Provider<Provider<>> is not supported - we don't need two levels of lazyness.
+        if (value instanceof Provider) {
+            return ((Provider<?>) value).get();
+        }
+        return value;
     }
 
     private static class InvalidPropertyValue implements ValidatingValue {
