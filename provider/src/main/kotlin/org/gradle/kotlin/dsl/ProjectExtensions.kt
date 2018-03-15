@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginManager
 
 import org.gradle.api.provider.ListProperty
@@ -73,7 +74,12 @@ fun Project.defaultTasks(vararg tasks: Task) {
  */
 inline
 fun <reified T : Plugin<Project>> Project.apply() =
-    pluginManager.apply(T::class.java)
+    (this as PluginAware).apply<T>()
+
+
+inline
+fun <reified T : Plugin<*>> Project.apply(to: Any? = null) =
+    (this as PluginAware).apply<T>(to)
 
 
 /**
