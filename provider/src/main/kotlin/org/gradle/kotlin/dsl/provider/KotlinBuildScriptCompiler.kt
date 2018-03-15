@@ -101,20 +101,30 @@ class KotlinBuildScriptCompiler(
         scriptTarget.accessorsClassPathFor(compilationClassPath).bin
     }
 
+    private
+    val buildscriptBlockRange: IntRange? by lazy {
+        extractTopLevelSectionFrom(script, scriptTarget.buildscriptBlockName)
+    }
+
+    private
+    val pluginsBlockRange: IntRange? by lazy {
+        extractTopLevelSectionFrom(script, "plugins")
+    }
+
     fun compile() =
         asKotlinScript {
             withUnexpectedBlockHandling {
-                val buildscriptRange = executeBuildscriptBlock()
-                val pluginsRange = executePluginsBlock()
-                executeScriptBody(listOfNotNull(buildscriptRange, pluginsRange))
+                executeBuildscriptBlock()
+                executePluginsBlock()
+                executeScriptBody()
             }
         }
 
     fun compileForClassPath() =
         asKotlinScript {
-            val buildscriptRange = ignoringErrors { executeBuildscriptBlock() }
-            val pluginsRange = ignoringErrors { executePluginsBlock() }
-            ignoringErrors { executeScriptBody(listOfNotNull(buildscriptRange, pluginsRange)) }
+            ignoringErrors { executeBuildscriptBlock() }
+            ignoringErrors { executePluginsBlock() }
+            ignoringErrors { executeScriptBody() }
         }
 
     private
@@ -124,17 +134,17 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun executeScriptBody(ranges: List<IntRange>) {
-        loadScriptBodyClass(ranges).eval {
+    fun executeScriptBody() =
+        loadScriptBodyClass().eval {
             scriptTarget.eval(scriptClass)
         }
-    }
 
     private
     fun executeBuildscriptBlock() =
         BuildscriptBlockEvaluator(
             scriptSource,
             scriptTarget,
+            buildscriptBlockRange,
             buildscriptBlockCompilationClassPath,
             baseScope,
             kotlinCompiler,
@@ -143,9 +153,9 @@ class KotlinBuildScriptCompiler(
             classPathModeExceptionCollector).evaluate()
 
     private
-    fun executePluginsBlock(): IntRange? {
+    fun executePluginsBlock() {
         prepareTargetClassLoaderScope()
-        return doExecutePluginsBlock()
+        applyPlugins(pluginRequests())
     }
 
     private
@@ -154,29 +164,24 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun doExecutePluginsBlock() =
-        extractPluginsBlockFrom(script).also { pluginsRange ->
-            applyPlugins(pluginRequests(pluginsRange))
-        }
-
-    private
-    fun pluginRequests(pluginsRange: IntRange?) =
+    fun pluginRequests() =
         scriptTarget.pluginsBlockTemplate?.let { template ->
-            collectPluginRequestsFromPluginsBlock(pluginsRange, template)
+            collectPluginRequestsFromPluginsBlock(template)
         }
 
     private
-    fun collectPluginRequestsFromPluginsBlock(pluginsRange: IntRange?, scriptTemplate: KClass<*>): PluginRequests {
+    fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): PluginRequests {
         val pluginRequestCollector = PluginRequestCollector(scriptSource.source)
-        if (pluginsRange != null) executePluginsBlockOn(pluginRequestCollector, pluginsRange, scriptTemplate)
+        executePluginsBlockOn(pluginRequestCollector, scriptTemplate)
         return pluginRequestCollector.pluginRequests
     }
 
     private
-    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, pluginsRange: IntRange, scriptTemplate: KClass<*>) {
-        val loadedPluginsBlockClass = loadPluginsBlockClass(scriptBlockForPlugins(pluginsRange, scriptTemplate))
-        executeCompiledPluginsBlockOn(pluginRequestCollector, loadedPluginsBlockClass)
-    }
+    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, scriptTemplate: KClass<*>) =
+        pluginsBlockRange?.let { pluginsRange ->
+            val loadedPluginsBlockClass = loadPluginsBlockClass(scriptBlockForPlugins(pluginsRange, scriptTemplate))
+            executeCompiledPluginsBlockOn(pluginRequestCollector, loadedPluginsBlockClass)
+        }
 
     private
     fun executeCompiledPluginsBlockOn(
@@ -191,14 +196,9 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun extractPluginsBlockFrom(script: String) =
-        extractTopLevelSectionFrom(script, "plugins")
-
-    private
-    fun applyPlugins(pluginRequests: PluginRequests?) {
+    fun applyPlugins(pluginRequests: PluginRequests?) =
         pluginRequestsHandler.handle(
             pluginRequests, scriptHandler, scriptTarget.`object` as PluginAwareInternal, targetScope)
-    }
 
     private
     fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T) =
@@ -232,20 +232,20 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun loadScriptBodyClass(ranges: List<IntRange>) =
+    fun loadScriptBodyClass() =
         classloadingCache.loadScriptClass(
-            scriptBlockForBody(ranges),
+            scriptBlockForBody(),
             targetScope.localClassLoader,
             ::scriptBodyClassLoaderScope,
             ::compileScriptBody)
 
     private
-    fun scriptBlockForBody(ranges: List<IntRange>) =
+    fun scriptBlockForBody() =
         ScriptBlock(
             scriptSource.displayName,
             scriptTarget.scriptTemplate,
             scriptPath,
-            script.linePreservingBlankRanges(ranges),
+            script.linePreservingBlankRanges(listOfNotNull(buildscriptBlockRange, pluginsBlockRange)),
             Unit)
 
     private
@@ -276,7 +276,7 @@ class KotlinBuildScriptCompiler(
         scriptSource.classLoaderScopeIdFor(stage)
 
     private
-    inline fun <T> ignoringErrors(action: () -> T) = classPathModeExceptionCollector.ignoringErrors(action)
+    inline fun ignoringErrors(action: () -> Unit) = classPathModeExceptionCollector.ignoringErrors(action)
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
@@ -315,13 +315,17 @@ fun initScriptClassPathFor(
 ): ClassPath {
 
     val baseScope = gradle.classLoaderScope
-    val scriptTarget = gradleInitScriptTarget(gradle, scriptHandler, scriptSource, baseScope)
     val classPathProvider = gradle.serviceOf<KotlinScriptClassPathProvider>()
     val gradleKotlinDsl = classPathProvider.gradleKotlinDsl
 
+    val kotlinScriptSource = KotlinScriptSource(scriptSource)
+    val scriptTarget = gradleInitScriptTarget(gradle, scriptHandler, scriptSource, baseScope)
+    val initscriptBlockRange: IntRange? = extractTopLevelSectionFrom(kotlinScriptSource.script, scriptTarget.buildscriptBlockName)
+
     BuildscriptBlockEvaluator(
-        KotlinScriptSource(scriptSource),
+        kotlinScriptSource,
         scriptTarget,
+        initscriptBlockRange,
         gradleKotlinDsl,
         baseScope,
         gradle.serviceOf(),
@@ -337,6 +341,7 @@ private
 class BuildscriptBlockEvaluator(
     val scriptSource: KotlinScriptSource,
     val scriptTarget: KotlinScriptTarget<Any>,
+    val buildscriptBlockRange: IntRange?,
     val classPath: ClassPath,
     val baseScope: ClassLoaderScope,
     val kotlinCompiler: CachingKotlinCompiler,
@@ -351,10 +356,10 @@ class BuildscriptBlockEvaluator(
         }
     }
 
-    fun evaluate(): IntRange? =
+    fun evaluate() =
         scriptTarget.buildscriptBlockTemplate?.let { template ->
             setupEmbeddedKotlinForBuildscript()
-            extractTopLevelSectionFrom(script, buildscriptBlockName)?.also { buildscriptRange ->
+            buildscriptBlockRange?.let { buildscriptRange ->
                 executeBuildscriptBlockFrom(buildscriptRange, template)
             }
         }
@@ -405,7 +410,7 @@ class BuildscriptBlockEvaluator(
             Unit)
 
     private
-    fun setupEmbeddedKotlinForBuildscript() {
+    fun setupEmbeddedKotlinForBuildscript() =
         embeddedKotlinProvider.run {
             val scriptHandler = scriptTarget.scriptHandler
             addRepositoryTo(scriptHandler.repositories)
@@ -413,7 +418,6 @@ class BuildscriptBlockEvaluator(
                 scriptHandler.configurations["classpath"],
                 "stdlib-jdk8", "reflect")
         }
-    }
 
     private
     fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T): T =
@@ -436,15 +440,13 @@ class BuildscriptBlockEvaluator(
 
 
 private
-inline fun <T> ClassPathModeExceptionCollector.ignoringErrors(action: () -> T): T? {
-    return try {
+inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) =
+    try {
         action()
     } catch (e: Exception) {
         e.printStackTrace()
         collect(e)
-        null
     }
-}
 
 
 private
