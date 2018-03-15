@@ -33,7 +33,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginManager
@@ -45,6 +44,7 @@ import org.gradle.api.provider.PropertyState
 import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.support.configureWith
 
 import java.io.File
 
@@ -53,7 +53,7 @@ import kotlin.reflect.KProperty
 
 
 fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
-    action(ScriptHandlerScope((project as ProjectInternal).buildscript))
+    project.buildscript.configureWith(action)
 
 
 /**
