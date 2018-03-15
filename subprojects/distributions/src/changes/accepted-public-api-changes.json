@@ -121,7 +121,12 @@
         },
         {
             "type": "org.gradle.api.JavaVersion",
-            "member": "Field VERSION_1_11_OR_LATER",
+            "member": "Field VERSION_11",
+            "acceptation": "Support JDK 11"
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Field VERSION_UNKNOWN",
             "acceptation": "Support JDK 11"
         }
     ]

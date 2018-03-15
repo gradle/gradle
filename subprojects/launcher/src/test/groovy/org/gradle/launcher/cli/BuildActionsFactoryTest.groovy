@@ -16,7 +16,6 @@
 package org.gradle.launcher.cli
 
 import org.gradle.StartParameter
-import org.gradle.api.JavaVersion
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
@@ -58,10 +57,10 @@ class BuildActionsFactoryTest extends Specification {
     PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
     JvmVersionDetector jvmVersionDetector = Stub()
     ParametersConverter parametersConverter = new ParametersConverter(
-            Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
-            Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-            new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
-            propertiesToDaemonParametersConverter)
+        Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
+        Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
+        new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
+        propertiesToDaemonParametersConverter)
 
     BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)
 
@@ -74,8 +73,6 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.getFactory(LoggingManagerInternal) >> Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
         _ * loggingServices.getAll(_) >> []
-
-        _ * jvmVersionDetector.getJavaVersion(_) >> JavaVersion.current()
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {

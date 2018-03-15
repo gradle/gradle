@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+package org.gradle.api
 
 
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class JavaVersionSpec extends Specification {
     private static final BigInteger TOO_BIG = (BigInteger.valueOf(Integer.MAX_VALUE)).add(BigInteger.ONE)
@@ -42,9 +43,10 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_6.toString() == "1.6"
         JavaVersion.VERSION_1_7.toString() == "1.7"
         JavaVersion.VERSION_1_8.toString() == "1.8"
-        JavaVersion.VERSION_1_9.toString() == "1.9"
-        JavaVersion.VERSION_1_10.toString() == "1.10"
-        JavaVersion.VERSION_1_11_OR_LATER.toString() == "1.11"
+        JavaVersion.VERSION_1_9.toString() == "9"
+        JavaVersion.VERSION_1_10.toString() == "10"
+        JavaVersion.VERSION_11.toString() == "11"
+        JavaVersion.VERSION_UNKNOWN.toString() == "12"
     }
 
     def convertsStringToVersion() {
@@ -75,9 +77,9 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("10-ea") == JavaVersion.VERSION_1_10
         JavaVersion.toVersion("10-internal") == JavaVersion.VERSION_1_10
 
-        JavaVersion.toVersion("11-ea") == JavaVersion.VERSION_1_11_OR_LATER
-        JavaVersion.toVersion("12-ea") == JavaVersion.VERSION_1_11_OR_LATER
-        JavaVersion.toVersion("999-ea") == JavaVersion.VERSION_1_11_OR_LATER
+        JavaVersion.toVersion("11-ea") == JavaVersion.VERSION_11
+        JavaVersion.toVersion("12-ea") == JavaVersion.VERSION_UNKNOWN
+        JavaVersion.toVersion("999-ea") == JavaVersion.VERSION_UNKNOWN
     }
 
     def convertClassVersionToJavaVersion() {
@@ -92,8 +94,8 @@ class JavaVersionSpec extends Specification {
         JavaVersion.forClassVersion(52) == JavaVersion.VERSION_1_8
         JavaVersion.forClassVersion(53) == JavaVersion.VERSION_1_9
         JavaVersion.forClassVersion(54) == JavaVersion.VERSION_1_10
-        JavaVersion.forClassVersion(55) == JavaVersion.VERSION_1_11_OR_LATER
-        JavaVersion.forClassVersion(999) == JavaVersion.VERSION_1_11_OR_LATER
+        JavaVersion.forClassVersion(55) == JavaVersion.VERSION_11
+        JavaVersion.forClassVersion(999) == JavaVersion.VERSION_UNKNOWN
     }
 
     def failsToConvertStringToVersionForUnknownVersion() {
@@ -152,135 +154,39 @@ class JavaVersionSpec extends Specification {
         }
     }
 
-    def "uses system property to determine if compatible with Java 5"() {
-        System.properties['java.version'] = '1.5'
+    @Unroll
+    def "uses system property to determine if compatible with Java #versionString"() {
+        System.properties['java.version'] = versionString
 
         expect:
-        JavaVersion.current().java5
-        !JavaVersion.current().java6
-        !JavaVersion.current().java7
-        !JavaVersion.current().java8
+        JavaVersion.current() == current
+        JavaVersion.current().java5 == isJava5
+        JavaVersion.current().java6 == isJava6
+        JavaVersion.current().java7 == isJava7
+        JavaVersion.current().java8 == isJava8
+        JavaVersion.current().java9 == isJava9
+        JavaVersion.current().java10 == isJava10
 
         and:
-        JavaVersion.current().java5Compatible
-        !JavaVersion.current().java6Compatible
-        !JavaVersion.current().java7Compatible
-        !JavaVersion.current().java8Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 6"() {
-        System.properties['java.version'] = '1.6'
-
-        expect:
-        !JavaVersion.current().java5
-        JavaVersion.current().java6
-        !JavaVersion.current().java7
-        !JavaVersion.current().java8
-
-        and:
-        JavaVersion.current().java5Compatible
-        JavaVersion.current().java6Compatible
-        !JavaVersion.current().java7Compatible
-        !JavaVersion.current().java8Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 7"() {
-        System.properties['java.version'] = '1.7'
-
-        expect:
-        !JavaVersion.current().java5
-        !JavaVersion.current().java6
-        JavaVersion.current().java7
-        !JavaVersion.current().java8
-
-        and:
-        JavaVersion.current().java5Compatible
-        JavaVersion.current().java6Compatible
-        JavaVersion.current().java7Compatible
-        !JavaVersion.current().java8Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 8"() {
-        System.properties['java.version'] = '1.8'
-
-        expect:
-        !JavaVersion.current().java5
-        !JavaVersion.current().java6
-        !JavaVersion.current().java7
-        JavaVersion.current().java8
-
-        and:
-        JavaVersion.current().java5Compatible
-        JavaVersion.current().java6Compatible
-        JavaVersion.current().java7Compatible
-        JavaVersion.current().java8Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 9"() {
-        System.properties['java.version'] = javaVersion
-
-        expect:
-        !JavaVersion.current().java5
-        !JavaVersion.current().java6
-        !JavaVersion.current().java7
-        !JavaVersion.current().java8
-        JavaVersion.current().java9
-
-        and:
-        JavaVersion.current().java5Compatible
-        JavaVersion.current().java6Compatible
-        JavaVersion.current().java7Compatible
-        JavaVersion.current().java8Compatible
-        JavaVersion.current().java9Compatible
+        JavaVersion.current().java5Compatible == isJava5Compatible
+        JavaVersion.current().java6Compatible == isJava6Compatible
+        JavaVersion.current().java7Compatible == isJava7Compatible
+        JavaVersion.current().java8Compatible == isJava8Compatible
 
         where:
-        javaVersion << ['1.9', '9-ea']
-    }
-
-    def "uses system property to determine if compatible with Java 10"() {
-        System.properties['java.version'] = javaVersion
-
-        expect:
-        !JavaVersion.current().java5
-        !JavaVersion.current().java6
-        !JavaVersion.current().java7
-        !JavaVersion.current().java8
-        !JavaVersion.current().java9
-        JavaVersion.current().java10
-
-        and:
-        JavaVersion.current().java5Compatible
-        JavaVersion.current().java6Compatible
-        JavaVersion.current().java7Compatible
-        JavaVersion.current().java8Compatible
-        JavaVersion.current().java9Compatible
-        JavaVersion.current().java10Compatible
-
-        where:
-        javaVersion << ['1.10', '10-ea']
-    }
-
-    def "uses system property to determine if compatible with Java 11"() {
-        System.properties['java.version'] = javaVersion
-
-        expect:
-        !JavaVersion.current().java5
-        !JavaVersion.current().java6
-        !JavaVersion.current().java7
-        !JavaVersion.current().java8
-        !JavaVersion.current().java9
-        !JavaVersion.current().java10
-
-        and:
-        JavaVersion.current().java5Compatible
-        JavaVersion.current().java6Compatible
-        JavaVersion.current().java7Compatible
-        JavaVersion.current().java8Compatible
-        JavaVersion.current().java9Compatible
-        JavaVersion.current().java10Compatible
-
-        where:
-        javaVersion << ['1.11', '11-ea', '12-ea', '999']
+        versionString | current                  | isJava5 | isJava6 | isJava7 | isJava8 | isJava9 | isJava10 | isJava5Compatible | isJava6Compatible | isJava7Compatible | isJava8Compatible | isJava9Compatible | isJava10Compatible
+        '1.5'         | JavaVersion.VERSION_1_5  | true    | false   | false   | false   | false   | false    | true              | false             | false             | false             | false             | false
+        '1.6'         | JavaVersion.VERSION_1_6  | false   | true    | false   | false   | false   | false    | true              | true              | false             | false             | false             | false
+        '1.7'         | JavaVersion.VERSION_1_7  | false   | false   | true    | false   | false   | false    | true              | true              | true              | false             | false             | false
+        '1.8'         | JavaVersion.VERSION_1_8  | false   | false   | false   | true    | false   | false    | true              | true              | true              | true              | false             | false
+        '1.9'         | JavaVersion.VERSION_1_9  | false   | false   | false   | false   | true    | false    | true              | true              | true              | true              | true              | false
+        '9-ea'        | JavaVersion.VERSION_1_9  | false | false | false | false | true  | false | true | true | true | true | true | false
+        '1.10'        | JavaVersion.VERSION_1_10    | false | false | false | false | false | true  | true | true | true | true | true | true
+        '10-ea'       | JavaVersion.VERSION_1_10    | false | false | false | false | false | true  | true | true | true | true | true | true
+        '1.11'        | JavaVersion.VERSION_11      | false | false | false | false | false | false | true | true | true | true | true | true
+        '11-ea'       | JavaVersion.VERSION_11      | false | false | false | false | false | false | true | true | true | true | true | true
+        '12'          | JavaVersion.VERSION_UNKNOWN | false | false | false | false | false | false | true | true | true | true | true | true
+        '999'         | JavaVersion.VERSION_UNKNOWN | false | false | false | false | false | false | true | true | true | true | true | true
     }
 
     /* Following test cases are from http://hg.openjdk.java.net/jdk/jdk/file/af37d9997bd6/test/jdk/java/lang/Runtime/Version/Basic.java */
@@ -292,9 +198,9 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion('9.0.1') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9.0.0.1') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9.0.0.0.1') == JavaVersion.VERSION_1_9
-        JavaVersion.toVersion('404.1.2') == JavaVersion.VERSION_1_11_OR_LATER
+        JavaVersion.toVersion('404.1.2') == JavaVersion.VERSION_UNKNOWN
         JavaVersion.toVersion('9.1.2.3') == JavaVersion.VERSION_1_9
-        JavaVersion.toVersion('1000.0.0.0.0.0.99999999') == JavaVersion.VERSION_1_11_OR_LATER
+        JavaVersion.toVersion('1000.0.0.0.0.0.99999999') == JavaVersion.VERSION_UNKNOWN
     }
 
     def 'can recognize version with $pre'() {
@@ -318,9 +224,9 @@ class JavaVersionSpec extends Specification {
         expect:
         JavaVersion.toVersion('9+-foo') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9-pre-opt') == JavaVersion.VERSION_1_9
-        JavaVersion.toVersion('42+---bar') == JavaVersion.VERSION_1_11_OR_LATER
+        JavaVersion.toVersion('42+---bar') == JavaVersion.VERSION_UNKNOWN
         JavaVersion.toVersion('2.91+-8061493-') == JavaVersion.VERSION_1_2
-        JavaVersion.toVersion('24+-foo.bar') == JavaVersion.VERSION_1_11_OR_LATER
+        JavaVersion.toVersion('24+-foo.bar') == JavaVersion.VERSION_UNKNOWN
         JavaVersion.toVersion('9-ribbit+17-...') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion("7+1-$TOO_BIG_STR") == JavaVersion.VERSION_1_7
     }

@@ -26,12 +26,15 @@ import java.util.List;
 public enum JavaVersion {
     VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4,
     VERSION_1_5, VERSION_1_6, VERSION_1_7, VERSION_1_8,
-    VERSION_1_9, VERSION_1_10, VERSION_1_11_OR_LATER;
+    VERSION_1_9, VERSION_1_10, VERSION_11, VERSION_UNKNOWN;
+    // Before 9: http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+    // 9+: http://openjdk.java.net/jeps/223
+    private static final int FIRST_MAJOR_VERSION_ORDINAL = 8;
     private static JavaVersion currentJavaVersion;
     private final String versionName;
 
     JavaVersion() {
-        this.versionName = "1." + getMajorVersion();
+        this.versionName = ordinal() >= FIRST_MAJOR_VERSION_ORDINAL ? getMajorVersion() : "1." + getMajorVersion();
     }
 
     /**
@@ -83,8 +86,8 @@ public enum JavaVersion {
 
     public static JavaVersion forClassVersion(int classVersion) {
         int index = classVersion - 45; //class file versions: 1.1 == 45, 1.2 == 46...
-        if (index >= values().length) {
-            return VERSION_1_11_OR_LATER;
+        if (index >= values().length - 1) {
+            return VERSION_UNKNOWN;
         }
         if (index >= 0) {
             return values()[index];
@@ -162,7 +165,7 @@ public enum JavaVersion {
     }
 
     private static JavaVersion getVersionForMajor(int major) {
-        return major >= values().length ? JavaVersion.VERSION_1_11_OR_LATER : values()[major - 1];
+        return major >= values().length ? JavaVersion.VERSION_UNKNOWN : values()[major - 1];
     }
 
     private static void assertTrue(String value, boolean condition) {
@@ -194,7 +197,7 @@ public enum JavaVersion {
     }
 
     private static int findFirstNonVersionCharIndex(String s) {
-        assertTrue(s, !s.isEmpty());
+        assertTrue(s, s.length() != 0);
 
         for (int i = 0; i < s.length(); ++i) {
             if (!isDigitOrPeriod(s.charAt(i))) {
