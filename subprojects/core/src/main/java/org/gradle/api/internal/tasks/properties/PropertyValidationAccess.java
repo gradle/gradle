@@ -87,14 +87,14 @@ public class PropertyValidationAccess {
 
         public void createAndAddToQueue(BeanTypeNode<?> parentNode, String propertyName, TypeToken<?> beanType, Queue<BeanTypeNode<?>> queue) {
             if (!parentNode.nodeCreatesCycle(beanType)) {
-                queue.add(create(parentNode, propertyName, beanType));
+                queue.add(createChild(parentNode, propertyName, beanType));
             }
         }
 
-        private BeanTypeNode<?> create(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<?> beanType) {
+        private BeanTypeNode<?> createChild(BeanTypeNode<?> parentNode, String propertyName, TypeToken<?> beanType) {
             Class<?> rawType = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
-            if (parentNode != null && propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
+            if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
                     return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), typeMetadata);
                 }
