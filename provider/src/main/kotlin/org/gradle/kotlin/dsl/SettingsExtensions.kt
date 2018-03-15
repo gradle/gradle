@@ -20,11 +20,30 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
 
 
+/**
+ * Applies the given plugin. Does nothing if the plugin has already been applied.
+ *
+ * The given class should implement the [Plugin] interface, and be parameterized for a
+ * compatible type of `this`.
+ *
+ * @param T the plugin type.
+ * @see [PluginAware.apply]
+ */
 inline
 fun <reified T : Plugin<Settings>> Settings.apply() =
     (this as PluginAware).apply<T>()
 
 
+/**
+ * Applies the given plugin to the specified object. Does nothing if the plugin has already been applied.
+ *
+ * The given class should implement the [Plugin] interface, and be parameterized for a
+ * compatible type of `to`.
+ *
+ * @param T the plugin type.
+ * @param to the plugin target object or collection of objects
+ * @see [PluginAware.apply]
+ */
 inline
 fun <reified T : Plugin<*>> Settings.apply(to: Any) =
     (this as PluginAware).apply<T>(to)

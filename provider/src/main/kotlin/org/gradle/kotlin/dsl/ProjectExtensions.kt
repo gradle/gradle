@@ -36,7 +36,6 @@ import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
-import org.gradle.api.plugins.PluginManager
 
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -70,13 +69,23 @@ fun Project.defaultTasks(vararg tasks: Task) {
  * compatible type of `this`.
  *
  * @param T the plugin type.
- * @see [PluginManager.apply]
+ * @see [PluginAware.apply]
  */
 inline
 fun <reified T : Plugin<Project>> Project.apply() =
     (this as PluginAware).apply<T>()
 
 
+/**
+ * Applies the given plugin to the specified object. Does nothing if the plugin has already been applied.
+ *
+ * The given class should implement the [Plugin] interface, and be parameterized for a
+ * compatible type of `to`.
+ *
+ * @param T the plugin type.
+ * @param to the plugin target object or collection of objects
+ * @see [PluginAware.apply]
+ */
 inline
 fun <reified T : Plugin<*>> Project.apply(to: Any) =
     (this as PluginAware).apply<T>(to)
