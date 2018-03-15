@@ -16,15 +16,21 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
 
 @Issue("https://github.com/gradle/gradle/issues/2009")
-class ExecOutputIntegrationTest extends AbstractConsoleFunctionalSpec {
+class ExecOutputIntegrationTest extends AbstractIntegrationSpec implements RichConsoleStyling {
 
     private static final String EXPECTED_OUTPUT = "Hello, World!"
     private static final String EXPECTED_ERROR = "Goodbye, World!"
+
+    def setup() {
+        executer.withConsole(ConsoleOutput.Rich)
+    }
 
     def "Project#javaexec output is grouped with its task output"() {
         given:

@@ -17,12 +17,11 @@
 package org.gradle.internal.logging.console.jvm
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
-import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
-
-class TestedProjectFixture {
+class TestedProjectFixture implements RichConsoleStyling {
 
     static String testClass(String testAnnotationClassName, String testClassName, String serverResource, BlockingHttpServer server) {
         """

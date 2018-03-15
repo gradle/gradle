@@ -16,16 +16,18 @@
 
 package org.gradle.internal.logging.console.jvm
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
-class ConsoleJvmTestLoggingFunctionalTest extends AbstractConsoleFunctionalSpec {
+class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
 
     private static final String TEST_TASK_NAME = 'test'
     private static final String TEST_TASK_PATH = ":$TEST_TASK_NAME"
     private static final String JAVA_TEST_FILE_PATH = 'src/test/java/MyTest.java'
 
     def setup() {
+        executer.withConsole(ConsoleOutput.Rich)
         buildFile << javaProject()
     }
 
