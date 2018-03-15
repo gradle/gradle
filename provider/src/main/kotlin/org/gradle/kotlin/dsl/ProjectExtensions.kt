@@ -77,21 +77,6 @@ fun <reified T : Plugin<Project>> Project.apply() =
 
 
 /**
- * Applies the plugin of the given type [T] to the specified object. Does nothing if the plugin has already been applied.
- *
- * The given class should implement the [Plugin] interface, and be parameterized for a
- * compatible type of `to`.
- *
- * @param T the plugin type.
- * @param to the plugin target object or collection of objects
- * @see [PluginAware.apply]
- */
-inline
-fun <reified T : Plugin<*>> Project.apply(to: Any) =
-    (this as PluginAware).apply<T>(to)
-
-
-/**
  * Executes the given configuration block against the [plugin convention]
  * [Convention.getPlugin] or extension of the specified type.
  *
