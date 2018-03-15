@@ -26,7 +26,6 @@ class KotlintBuildScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         buildAndFail("help").apply {
-            println(output)
             assertThat(output, containsString("The plugins {} block must not be used here"))
         }
     }
@@ -47,7 +46,6 @@ class KotlintBuildScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         buildAndFail("help").apply {
-            println(output)
             assertThat(output, containsString("The plugins {} block must not be used here"))
         }
     }
