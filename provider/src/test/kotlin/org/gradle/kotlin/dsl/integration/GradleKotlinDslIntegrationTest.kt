@@ -771,15 +771,15 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can cross configure buildscript`() {
 
-        val zero = withClassJar("zero.jar", ZeroThought::class.java)
-        val light = withClassJar("light.jar", LightThought::class.java)
-        val deep = withClassJar("deep.jar", DeepThought::class.java)
+        withClassJar("zero.jar", ZeroThought::class.java)
+        withClassJar("light.jar", LightThought::class.java)
+        withClassJar("deep.jar", DeepThought::class.java)
 
         val init = withFile("some.init.gradle.kts", """
             projectsLoaded {
                 rootProject.buildscript {
                     dependencies {
-                        classpath(files("$zero"))
+                        classpath(files("zero.jar"))
                     }
                 }
             }
@@ -790,7 +790,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             gradle.projectsLoaded {
                 rootProject.buildscript {
                     dependencies {
-                        classpath(files("$light"))
+                        classpath(files("light.jar"))
                     }
                 }
             }
@@ -800,7 +800,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             project(":sub") {
                 buildscript {
                     dependencies {
-                        classpath(files("$deep"))
+                        classpath(files("../deep.jar"))
                     }
                 }
             }
