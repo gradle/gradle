@@ -21,7 +21,7 @@ import org.gradle.api.plugins.PluginAware
 
 
 /**
- * Applies the given plugin. Does nothing if the plugin has already been applied.
+ * Applies the plugin of the given type [T]. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface, and be parameterized for a
  * compatible type of `this`.
@@ -35,7 +35,7 @@ fun <reified T : Plugin<Settings>> Settings.apply() =
 
 
 /**
- * Applies the given plugin to the specified object. Does nothing if the plugin has already been applied.
+ * Applies the plugin of the given type [T] to the specified object. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface, and be parameterized for a
  * compatible type of `to`.

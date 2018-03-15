@@ -38,7 +38,7 @@ fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null
 
 
 /**
- * Applies the given plugin. Does nothing if the plugin has already been applied.
+ * Applies the plugin of the given type [T]. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface.
  *
@@ -54,7 +54,7 @@ fun <reified T : Plugin<*>> PluginAware.apply() {
 
 
 /**
- * Applies the given plugin to the specified object. Does nothing if the plugin has already been applied.
+ * Applies the plugin of the given type [T] to the specified object. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface.
  *
