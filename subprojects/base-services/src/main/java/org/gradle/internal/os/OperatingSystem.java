@@ -105,6 +105,14 @@ public abstract class OperatingSystem {
         return false;
     }
 
+    public boolean isFreeBsd() {
+        return false;
+    }
+
+    public boolean isSolaris() {
+        return false;
+    }
+
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
@@ -406,9 +414,18 @@ public abstract class OperatingSystem {
     }
 
     static class FreeBSD extends Unix {
+        @Override
+        public boolean isFreeBsd() {
+            return true;
+        }
     }
 
     static class Solaris extends Unix {
+        @Override
+        public boolean isSolaris() {
+            return true;
+        }
+
         @Override
         public String getFamilyName() {
             return "solaris";
@@ -423,7 +440,7 @@ public abstract class OperatingSystem {
         protected String getArch() {
             String arch = System.getProperty("os.arch");
             if (arch.equals("i386") || arch.equals("x86")) {
-                return "x86";
+                return "i386";
             }
             return super.getArch();
         }
