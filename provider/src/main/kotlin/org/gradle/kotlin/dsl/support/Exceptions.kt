@@ -27,5 +27,5 @@ fun illegalElementType(container: NamedDomainObjectCollection<*>, name: String, 
 
 
 internal
-fun internalErrorShouldNotHappen() =
-    InternalError("This should not happen, please report")
+fun internalError(): Nothing =
+    throw InternalError("This should not happen, please report")

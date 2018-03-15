@@ -44,7 +44,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.get
-import org.gradle.kotlin.dsl.support.internalErrorShouldNotHappen
+import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.process.ExecResult
@@ -406,7 +406,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
-        throw internalErrorShouldNotHappen()
+        internalError()
 
     /**
      * Applies zero or more plugins or scripts.
