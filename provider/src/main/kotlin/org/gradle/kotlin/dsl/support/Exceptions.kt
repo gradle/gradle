@@ -28,4 +28,4 @@ fun illegalElementType(container: NamedDomainObjectCollection<*>, name: String, 
 
 internal
 fun internalError(): Nothing =
-    throw InternalError("This should not happen, please report")
+    throw InternalError("This should not happen, please report at https://github.com/gradle/kotlin-dsl/issues/new")
