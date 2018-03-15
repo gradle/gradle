@@ -23,6 +23,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.internalErrorShouldNotHappen
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -53,7 +54,7 @@ abstract class KotlinBuildScript(
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
-        throw InternalError("This should not happen, please report")
+        throw internalErrorShouldNotHappen()
 
     /**
      * Configures the plugin dependencies for this project.
