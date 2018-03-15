@@ -416,16 +416,20 @@ class DefaultCopySpecTest extends Specification {
         method << ['from', 'into']
     }
 
-    @Unroll
-    def 'setting the filteringCharset to #invalidFilteringCharset throws an exception'(invalidFilteringCharset) {
+    def 'setting the filteringCharset to invalid value throws an exception'() {
+        when:
+        spec.filteringCharset = "THAT_SURE_IS_AN_INVALID_CHARSET"
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def 'setting the filteringCharset to null throws an exception'() {
         when:
         spec.filteringCharset = null
 
         then:
-        thrown(InvalidUserDataException)
-
-        where:
-        invalidFilteringCharset << [null, "THAT_SURE_IS_AN_INVALID_CHARSET"]
+        thrown(NullPointerException)
     }
 
     def 'can add spec hierarchy as child'() {

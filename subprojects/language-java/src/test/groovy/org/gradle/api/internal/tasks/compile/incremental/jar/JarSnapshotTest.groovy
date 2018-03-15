@@ -62,7 +62,7 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when transitive class is affected transitively via class change"() {
-        def analysis = Mock(ClassSetAnalysisData)
+        def analysis = Stub(ClassSetAnalysisData)
         JarSnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)], analysis)
         JarSnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcccc)], analysis)
 
@@ -75,7 +75,7 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when transitive class is affected transitively via class removal"() {
-        def analysis = Mock(ClassSetAnalysisData)
+        def analysis = Stub(ClassSetAnalysisData)
         JarSnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)], analysis)
         JarSnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
 

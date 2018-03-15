@@ -129,6 +129,7 @@ public class ModuleMetadataParser {
         List<ModuleFile> files = Collections.emptyList();
         List<ModuleDependency> dependencies = Collections.emptyList();
         List<ModuleDependencyConstraint> dependencyConstraints = Collections.emptyList();
+        List<VariantCapability> capabilities = Collections.emptyList();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
             if (name.equals("name")) {
@@ -141,6 +142,8 @@ public class ModuleMetadataParser {
                 dependencies = consumeDependencies(reader);
             } else if (name.equals("dependencyConstraints")) {
                 dependencyConstraints = consumeDependencyConstraints(reader);
+            }  else if (name.equals("capabilities")) {
+                capabilities = consumeCapabilities(reader);
             } else if (name.equals("available-at")) {
                 // For now just collect this as another dependency
                 // TODO - collect this information and merge the metadata from the other module
@@ -160,6 +163,9 @@ public class ModuleMetadataParser {
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
             variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason);
+        }
+        for (VariantCapability capability : capabilities) {
+            variant.addCapability(capability.group, capability.name, capability.version);
         }
     }
 
@@ -215,6 +221,31 @@ public class ModuleMetadataParser {
         }
         reader.endArray();
         return dependencies;
+    }
+
+    private List<VariantCapability> consumeCapabilities(JsonReader reader) throws IOException {
+        ImmutableList.Builder<VariantCapability> capabilities = ImmutableList.builder();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            reader.beginObject();
+            String group = null;
+            String name = null;
+            String version = null;
+            while (reader.peek() != END_OBJECT) {
+                String val = reader.nextName();
+                if (val.equals("group")) {
+                    group = reader.nextString();
+                } else if (val.equals("name")) {
+                    name = reader.nextString();
+                } else if (val.equals("version")) {
+                    version = reader.nextString();
+                }
+            }
+            capabilities.add(new VariantCapability(group, name, version));
+            reader.endObject();
+        }
+        reader.endArray();
+        return capabilities.build();
     }
 
     private List<ModuleDependencyConstraint> consumeDependencyConstraints(JsonReader reader) throws IOException {
@@ -374,6 +405,18 @@ public class ModuleMetadataParser {
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.reason = reason;
+        }
+    }
+
+    private static class VariantCapability {
+        final String group;
+        final String name;
+        final String version;
+
+        private VariantCapability(String group, String name, String version) {
+            this.group = group;
+            this.name = name;
+            this.version = version;
         }
     }
 }

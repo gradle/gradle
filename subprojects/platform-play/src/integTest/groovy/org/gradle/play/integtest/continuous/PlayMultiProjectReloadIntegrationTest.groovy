@@ -179,7 +179,7 @@ var message = "Hello JS";
         succeeds()
         appIsRunningAndDeployed()
         runningApp.playUrl().text
-        serverStartCount > 1
+        serverRestart()
     }
 
     def addBadScala(path) {

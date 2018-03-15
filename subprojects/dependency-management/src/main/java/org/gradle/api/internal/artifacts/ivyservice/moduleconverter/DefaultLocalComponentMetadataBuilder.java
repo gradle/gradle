@@ -15,10 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 
@@ -46,11 +52,15 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         }
     }
 
-    private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
+    private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData,
+                                                                 ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
 
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
+        // Presence of capabilities is bound to the definition of a capabilities extension to the project
+        ImmutableCapabilities capabilities =
+            asImmutable(Configurations.collectCapabilities(configuration, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
@@ -59,7 +69,18 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isTransitive(),
             configuration.getAttributes().asImmutable(),
             configuration.isCanBeConsumed(),
-            configuration.isCanBeResolved());
+            configuration.isCanBeResolved(),
+            capabilities);
     }
 
+    private static ImmutableCapabilities asImmutable(Collection<? extends CapabilityDescriptor> descriptors) {
+        if (descriptors.isEmpty()) {
+            return ImmutableCapabilities.EMPTY;
+        }
+        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<ImmutableCapability>();
+        for (CapabilityDescriptor descriptor : descriptors) {
+            builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
+        }
+        return new ImmutableCapabilities(builder.build());
+    }
 }

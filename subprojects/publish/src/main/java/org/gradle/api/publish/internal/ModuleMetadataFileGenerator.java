@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -284,6 +285,7 @@ public class ModuleMetadataFileGenerator {
         writeDependencies(variant, jsonWriter);
         writeDependencyConstraints(variant, jsonWriter);
         writeArtifacts(publication, variant, jsonWriter);
+        writeCapabilities(variant, jsonWriter);
 
         jsonWriter.endObject();
     }
@@ -449,6 +451,22 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.endObject();
         }
         jsonWriter.endArray();
+    }
+
+    private void writeCapabilities(UsageContext variant, JsonWriter jsonWriter) throws IOException {
+        Set<? extends CapabilityDescriptor> capabilities = variant.getCapabilities();
+        if (!capabilities.isEmpty()) {
+            jsonWriter.name("capabilities");
+            jsonWriter.beginArray();
+            for (CapabilityDescriptor capability : capabilities) {
+                jsonWriter.beginObject();
+                jsonWriter.name("group").value(capability.getGroup());
+                jsonWriter.name("name").value(capability.getName());
+                jsonWriter.name("version").value(capability.getVersion());
+                jsonWriter.endObject();
+            }
+            jsonWriter.endArray();
+        }
     }
 
     private static class ComponentData {

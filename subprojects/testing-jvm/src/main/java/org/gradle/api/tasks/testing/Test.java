@@ -594,7 +594,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 getServices().get(BuildOperationExecutor.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
-                getServices().get(DocumentationRegistry.class));
+                getServices().get(DocumentationRegistry.class),
+                (DefaultTestFilter) getFilter());
         } else {
             return testExecuter;
         }

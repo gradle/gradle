@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -177,7 +176,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
-    @Incubating
     @Nullable
     @Optional
     @PathSensitive(PathSensitivity.NONE)
@@ -191,7 +189,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      *
      * @see #getConfigurationScript()
      */
-    @Incubating
     public void setConfigurationScript(@Nullable File configurationFile) {
         this.configurationScript = configurationFile;
     }
@@ -208,7 +205,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      * If the compiler argument {@code "-proc:none"} was specified as part of the Java compile options, the value of this flag will be ignored.
      * No annotation processing will be performed regardless, on Java or Groovy source.
      */
-    @Incubating
     @Input
     public boolean isJavaAnnotationProcessing() {
         return javaAnnotationProcessing;
@@ -219,7 +215,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      *
      * Defaults to {@code false}.
      */
-    @Incubating
     public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
         this.javaAnnotationProcessing = javaAnnotationProcessing;
     }
@@ -292,7 +287,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
     @Input
-    @Incubating
     public List<String> getFileExtensions() {
         return fileExtensions;
     }
@@ -301,7 +295,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Sets the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
-    @Incubating
     public void setFileExtensions(List<String> fileExtensions) {
         this.fileExtensions = fileExtensions;
     }

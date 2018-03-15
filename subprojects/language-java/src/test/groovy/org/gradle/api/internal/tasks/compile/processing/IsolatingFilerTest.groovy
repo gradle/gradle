@@ -22,11 +22,11 @@ import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
 
-class SingleOriginFilerTest extends IncrementalFilerTest {
+class IsolatingFilerTest extends IncrementalFilerTest {
 
     @Override
     Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new SingleOriginFiler(delegate, result, messager)
+        new IsolatingFiler(delegate, result, messager)
     }
 
     def "fails when no originating elements are given"() {
@@ -51,5 +51,26 @@ class SingleOriginFilerTest extends IncrementalFilerTest {
 
         then:
         0 * messager._
+    }
+
+    def "packages are valid originating elements"() {
+        when:
+        filer.createSourceFile("Foo", pkg("fizz"))
+
+        then:
+        result.generatedTypesByOrigin.size() == 1
+        result.generatedTypesByOrigin["fizz.package-info"] == ["Foo"] as Set
+    }
+
+    def "adds originating types to the processing result"() {
+        when:
+        filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
+        filer.createSourceFile("Bar", type("B"))
+
+        then:
+        result.generatedTypesByOrigin.size() == 3
+        result.generatedTypesByOrigin["A"] == ["Foo"] as Set
+        result.generatedTypesByOrigin["pkg.package-info"] == ["Foo"] as Set
+        result.generatedTypesByOrigin["B"] == ["Foo", "Bar"] as Set
     }
 }

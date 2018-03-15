@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -126,6 +127,7 @@ public class ModuleMetadataSerializer {
                 writeVariantDependencies(variant.getDependencies());
                 writeVariantConstraints(variant.getDependencyConstraints());
                 writeVariantFiles(variant.getFiles());
+                writeVariantCapabilities(variant.getCapabilitiesMetadata().getCapabilities());
             }
         }
 
@@ -165,6 +167,16 @@ public class ModuleMetadataSerializer {
                 encoder.writeString(file.getUri());
             }
         }
+
+        private void writeVariantCapabilities(List<? extends CapabilityDescriptor> capabilities) throws IOException {
+            encoder.writeSmallInt(capabilities.size());
+            for (CapabilityDescriptor capability : capabilities) {
+                encoder.writeString(capability.getGroup());
+                encoder.writeString(capability.getName());
+                encoder.writeString(capability.getVersion());
+            }
+        }
+
 
         private void write(IvyModuleResolveMetadata metadata) throws IOException {
             encoder.writeByte(TYPE_IVY);
@@ -413,6 +425,7 @@ public class ModuleMetadataSerializer {
                 readVariantDependencies(variant);
                 readVariantConstraints(variant);
                 readVariantFiles(variant);
+                readVariantCapabilities(variant);
             }
         }
 
@@ -454,6 +467,13 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 variant.addFile(decoder.readString(), decoder.readString());
+            }
+        }
+
+        private void readVariantCapabilities(MutableComponentVariant variant) throws IOException {
+            int count = decoder.readSmallInt();
+            for (int i = 0; i < count; i++) {
+                variant.addCapability(decoder.readString(), decoder.readString(), decoder.readString());
             }
         }
 

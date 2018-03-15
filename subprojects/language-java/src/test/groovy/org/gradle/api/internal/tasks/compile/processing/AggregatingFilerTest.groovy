@@ -21,12 +21,12 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
 
-class MultipleOriginFilerTest extends IncrementalFilerTest {
+class AggregatingFilerTest extends IncrementalFilerTest {
 
 
     @Override
     Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new MultipleOriginFiler(delegate, result, messager)
+        new AggregatingFiler(delegate, result, messager)
     }
 
     def "can have zero originating elements"() {
@@ -36,11 +36,22 @@ class MultipleOriginFilerTest extends IncrementalFilerTest {
         then:
         0 * messager._
     }
+
     def "does not fail when many originating elements are given"() {
         when:
         filer.createSourceFile("Foo", type("Bar"), type("Baz"))
 
         then:
         0 * messager._
+    }
+
+    def "adds generated types to the processing result"() {
+        when:
+        filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
+        filer.createSourceFile("Bar", type("B"))
+
+        then:
+        result.generatedTypesByOrigin.isEmpty()
+        result.aggregatedTypes == ["Foo", "Bar"] as Set
     }
 }

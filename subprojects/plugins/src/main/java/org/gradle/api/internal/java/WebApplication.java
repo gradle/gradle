@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -78,6 +79,11 @@ public class WebApplication implements SoftwareComponentInternal {
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<? extends CapabilityDescriptor> getCapabilities() {
             return Collections.emptySet();
         }
     }

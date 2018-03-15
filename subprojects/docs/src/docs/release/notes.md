@@ -47,6 +47,12 @@ The IDEA plugin now automatically marks your Java resource directories (e.g. `sr
             testResourceDirs += file('src/test/some-extra-test-resource-dir')
         }
     }
+
+### Incremental annotation processing
+
+Gradle's incremental Java compiler can now also run annotation processing incrementally. 
+No user-facing configuration is necessary, but processor authors need to opt in.
+If you are a processor author, have a look at the [user guide](userguide/java_plugin.html#sec:incremental_annotation_processing) to find out how to make your processor compatible.
     
 ## Promoted features
 
@@ -55,9 +61,21 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### De-incubation of Google repository shortcut method
+
+The method `RepositoryHandler.google()` has been promoted.
+
+### De-incubation of Project#findProperty
+
+See [javadocs](https://docs.gradle.org/current/javadoc/org/gradle/api/Project.html#findProperty-java.lang.String-) for details
+
+### De-incubation of several Groovy compile options
+
+The following Groovy compile options have been promoted:
+
+- [configurationScript](https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/compile/GroovyCompileOptions.html#getConfigurationScript--)
+- [javaAnnotationProcessing](https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/compile/GroovyCompileOptions.html#isJavaAnnotationProcessing--)
+- [fileExtensions](https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/compile/GroovyCompileOptions.html#getFileExtensions--)
 
 ## Fixed issues
 
@@ -134,6 +152,8 @@ We would like to thank the following community members for making contributions 
 
  - [Piotr Kubowicz](https://github.com/pkubowicz) - Make CheckStyle plugin work by default for multi-project builds (gradle/gradle#2811)
  - [Philippe Agra](https://github.com/philippeagra) - Fix annotation-processors cache (gradle/gradle#4680)
+ - [Jesper Utoft](https://github.com/jutoft) - Improve ear plugin (gradle/gradle#4381)
+ - [Henrik Brautaset Aronsen](https://github.com/henrik242) - Upgrade ASM to `6.1` (gradle/gradle#4696)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

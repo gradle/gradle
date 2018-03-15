@@ -18,44 +18,11 @@ package org.gradle.api.internal.tasks.compile.processing;
 
 /**
  * The different kinds of annotation processors that the incremental compiler knows how to handle.
- *
- * <p>
- * In order to be treated incrementally, annotation processors need to use the originating element
- * API provided by {@link javax.annotation.processing.Filer#createSourceFile(CharSequence, javax.lang.model.element.Element...)}
- * and {@link javax.annotation.processing.Filer#createClassFile(CharSequence, javax.lang.model.element.Element...)}.
- * Depending on how this API is used by the processor, it can be categorized as either SINGLE_ORIGIN or MULTIPLE_ORIGIN.
- * </p>
- *
- * <p>
- * Processors that want to use {@link javax.annotation.processing.Filer#createResource(javax.tools.JavaFileManager.Location, CharSequence, CharSequence, javax.lang.model.element.Element...)}
- * or {@link javax.annotation.processing.Filer#getResource(javax.tools.JavaFileManager.Location, CharSequence, CharSequence)}
- * are unsupported.
- * </p>
- *
- * <p>
- * Processors can register themselves as incremental by providing a <code>META-INF/gradle/incremental.annotation.processors</code> file,
- * which has one line per processor, each line containing the fully qualified class name and one of the processor types listed
- * here, separated by a comma. E.g.:
- *
- * <pre>
- *     com.my.processor.MyProcessor,SINGLE_ORIGIN
- *     com.my.other.OtherProcessor,MULTIPLE_ORIGIN
- * </pre>
- *
- * </p>
+ * See the user guide chapter on incremental annotation processing for more information.
  */
 public enum IncrementalAnnotationProcessorType {
-    /**
-     * A processor whose generated files have exactly one originating element.
-     */
-    SINGLE_ORIGIN(true),
-    /**
-     * A processor whose generated files can have zero to many originating elements.
-     */
-    MULTIPLE_ORIGIN(false),
-    /**
-     * Any other kind of processor.
-     */
+    ISOLATING(true),
+    AGGREGATING(true),
     UNKNOWN(false);
 
     private final boolean incremental;

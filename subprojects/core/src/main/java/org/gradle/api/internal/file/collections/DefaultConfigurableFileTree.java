@@ -33,6 +33,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -46,11 +47,11 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final DefaultTaskDependency buildDependency;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, @Nullable TaskResolver taskResolver, FileCopier fileCopier, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this(Collections.singletonMap("dir", dir), resolver, taskResolver, fileCopier, directoryFileTreeFactory);
     }
 
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, @Nullable TaskResolver taskResolver, FileCopier fileCopier, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.resolver = resolver;
         this.fileCopier = fileCopier;
         this.directoryFileTreeFactory = directoryFileTreeFactory;

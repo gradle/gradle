@@ -26,8 +26,8 @@ class ClassSetAnalysisTest extends Specification {
 
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                               Map<String, IntSet> classToConstants = [:],
-                              Map<String, Set<String>> classesToChildren = [:], String fullRebuildCause = null) {
-        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren, fullRebuildCause))
+                              Map<String, Set<String>> classesToChildren = [:], DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
+        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren, dependentsOnAll, fullRebuildCause))
     }
 
     def "returns empty analysis"() {
@@ -158,6 +158,16 @@ class ClassSetAnalysisTest extends Specification {
         deps.dependentClasses == ["E", "B", "C"] as Set
     }
 
+    def "some classes may depend on any change"() {
+        def a = analysis([
+            "A": dependents("B"), "B": empty(), "DependsOnAny" : dependents("C")
+        ], [:], [:], dependents("DependsOnAny") )
+        def deps = a.getRelevantDependents(["A"], IntSets.EMPTY_SET)
+
+        expect:
+        deps.dependentClasses == ["DependsOnAny", "B", "C"] as Set
+    }
+
     def "knows when any of the input classes is a dependency to all"() {
         def a = analysis([
             "A": dependents("B"), "B": dependents(),
@@ -183,7 +193,7 @@ class ClassSetAnalysisTest extends Specification {
 
     def "all classes are dependencies to all if a full rebuild cause is given"() {
         def a = analysis(
-            [:], [:], [:], "Some cause"
+            [:], [:], [:], empty(), "Some cause"
         )
 
         expect:

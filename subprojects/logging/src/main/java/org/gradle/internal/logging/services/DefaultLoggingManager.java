@@ -188,6 +188,11 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         loggingRouter.attachProcessConsole(consoleOutput);
     }
 
+    @Override
+    public void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+        loggingRouter.attachPlainConsole(outputListener, errorListener);
+    }
+
     public void attachAnsiConsole(OutputStream outputStream) {
         loggingRouter.attachAnsiConsole(outputStream);
     }
@@ -200,8 +205,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final LoggingRouter loggingRouter;
         private LogLevel level;
         private LoggingSystem.Snapshot originalState;
-        private ConsoleOutput consoleOutput;
-        private OutputStream consoleOutputStream;
+        private Runnable consoleAttachment;
 
         public StartableLoggingRouter(LoggingRouter loggingRouter) {
             this.loggingRouter = loggingRouter;
@@ -212,42 +216,36 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             if (level != null) {
                 loggingRouter.configure(level);
             }
-            if (consoleOutput != null) {
-                loggingRouter.attachProcessConsole(consoleOutput);
+            if (consoleAttachment != null) {
+                consoleAttachment.run();
             }
-            if (consoleOutputStream != null) {
-                loggingRouter.attachAnsiConsole(consoleOutputStream);
+        }
+
+        private void addConsoleAttachement(Runnable consoleAttachment) {
+            if (consoleAttachment.equals(this.consoleAttachment)) {
+                return;
             }
+            if (this.consoleAttachment != null) {
+                throw new UnsupportedOperationException("Not implemented yet.");
+            }
+
+            if (originalState != null) {
+                // Already started
+                consoleAttachment.run();
+            }
+            this.consoleAttachment = consoleAttachment;
         }
 
         public void attachProcessConsole(ConsoleOutput consoleOutput) {
-            if (this.consoleOutput == consoleOutput) {
-                return;
-            }
-            if (consoleOutputStream != null) {
-                throw new UnsupportedOperationException("Not implemented yet.");
-            }
-
-            if (originalState != null) {
-                // Already started
-                loggingRouter.attachProcessConsole(consoleOutput);
-            }
-            this.consoleOutput = consoleOutput;
+            addConsoleAttachement(new ProcessConsoleAttachement(loggingRouter, consoleOutput));
         }
 
         public void attachAnsiConsole(OutputStream outputStream) {
-            if (this.consoleOutputStream == outputStream) {
-                return;
-            }
-            if (consoleOutput != null) {
-                throw new UnsupportedOperationException("Not implemented yet.");
-            }
+            addConsoleAttachement(new AnsiConsoleAttachment(loggingRouter, outputStream));
+        }
 
-            if (originalState != null) {
-                // Already started
-                loggingRouter.attachAnsiConsole(outputStream);
-            }
-            this.consoleOutputStream = outputStream;
+        public void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+            addConsoleAttachement(new PlainConsoleAttachment(loggingRouter, outputListener, errorListener));
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -340,6 +338,115 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
                 enabled = false;
                 originalState = null;
             }
+        }
+    }
+
+    private static class ProcessConsoleAttachement implements Runnable {
+        private final LoggingRouter loggingRouter;
+        private final ConsoleOutput consoleOutput;
+
+        public ProcessConsoleAttachement(LoggingRouter loggingRouter, ConsoleOutput consoleOutput) {
+            this.loggingRouter = loggingRouter;
+            this.consoleOutput = consoleOutput;
+        }
+
+        @Override
+        public void run() {
+            loggingRouter.attachProcessConsole(consoleOutput);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ProcessConsoleAttachement that = (ProcessConsoleAttachement) o;
+
+            return consoleOutput == that.consoleOutput;
+        }
+
+        @Override
+        public int hashCode() {
+            return consoleOutput.hashCode();
+        }
+    }
+
+    private static class AnsiConsoleAttachment implements Runnable {
+        private final LoggingRouter loggingRouter;
+        private final OutputStream outputStream;
+
+        public AnsiConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream) {
+            this.loggingRouter = loggingRouter;
+            this.outputStream = outputStream;
+        }
+
+        @Override
+        public void run() {
+            loggingRouter.attachAnsiConsole(outputStream);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            AnsiConsoleAttachment that = (AnsiConsoleAttachment) o;
+
+            return outputStream == that.outputStream;
+        }
+
+        @Override
+        public int hashCode() {
+            return outputStream.hashCode();
+        }
+    }
+
+    private static class PlainConsoleAttachment implements Runnable {
+        private final LoggingRouter loggingRouter;
+        private final StandardOutputListener outputListener;
+        private final StandardOutputListener errorListener;
+
+        public PlainConsoleAttachment(LoggingRouter loggingRouter, StandardOutputListener outputListener, StandardOutputListener errorListener) {
+            this.loggingRouter = loggingRouter;
+            this.outputListener = outputListener;
+            this.errorListener = errorListener;
+        }
+
+        @Override
+        public void run() {
+            loggingRouter.attachPlainConsole(outputListener, errorListener);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            PlainConsoleAttachment that = (PlainConsoleAttachment) o;
+
+            if (outputListener != that.outputListener) {
+                return false;
+            }
+            return errorListener == that.errorListener;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = outputListener.hashCode();
+            result = 31 * result + errorListener.hashCode();
+            return result;
         }
     }
 }
