@@ -85,7 +85,7 @@ subprojects {
     afterEvaluate {
         if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
             tasks.create<ValidateTaskProperties>("validateTaskProperties") {
-                outputFile.set(the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
+                outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
 
                 val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
                 classes = mainSourceSet.output.classesDirs

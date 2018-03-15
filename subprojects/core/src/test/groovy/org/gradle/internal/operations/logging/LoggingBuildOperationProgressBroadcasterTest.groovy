@@ -17,10 +17,10 @@
 package org.gradle.internal.operations.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
+import org.gradle.internal.logging.sink.OutputEventListenerManager
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.OperationIdentifier
@@ -30,13 +30,13 @@ import spock.lang.Unroll
 
 class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
-    def loggingManagerInternal = Mock(LoggingManagerInternal)
+    def outputEventListenerManager = Mock(OutputEventListenerManager)
     def buildOperationListener = Mock(BuildOperationListener)
 
     @Shared
     def operationId = Mock(OperationIdentifier)
 
-    LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(loggingManagerInternal, buildOperationListener)
+    LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
 
     @Unroll
     def "forwards #eventType with operationId"() {
@@ -73,17 +73,17 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
     def "registers / unregisters itself as output listener"() {
         when:
-        def loggingBuildOperationNotificationBridge = new LoggingBuildOperationProgressBroadcaster(loggingManagerInternal, buildOperationListener)
+        def loggingBuildOperationNotificationBridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
 
         then:
-        loggingManagerInternal.addOutputEventListener(loggingBuildOperationNotificationBridge)
+        outputEventListenerManager.setListener(loggingBuildOperationNotificationBridge)
 
 
         when:
         loggingBuildOperationNotificationBridge.stop()
 
         then:
-        loggingManagerInternal.removeOutputEventListener(loggingBuildOperationNotificationBridge)
+        outputEventListenerManager.removeListener(loggingBuildOperationNotificationBridge)
     }
 
     private ProgressStartEvent progressStartEvent(OperationIdentifier operationId, String header = 'header') {

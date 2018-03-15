@@ -7,12 +7,12 @@ import accessors.java
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
+import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.gradlebuild.java.AvailableJavaInstallations
 
-enum class TestType(val prefix: String, val modes: List<String>, val libRepoRequired: Boolean) {
+enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
     INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel"),  false),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"), true)
 }
@@ -53,13 +53,18 @@ internal
 fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
     val defaultExecuter = project.findProperty("defaultIntegTestExecuter") as? String ?: "embedded"
-    (listOf("${prefix}Test" to defaultExecuter) + testType.modes.map { "${it}${prefix.capitalize()}Test" to it }).
-        forEach { createTestTask("${it.first}", it.second, sourceSet, testType)
-        }
+
+    // For all of the other executers, add an executer specific task
+    testType.executers.forEach { executer ->
+        val taskName = "$executer${prefix.capitalize()}Test"
+        createTestTask(taskName, executer, sourceSet, testType)
+    }
+    // Use the default executer for the simply named task. This is what most developers will run when running check
+    createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType)
     tasks["check"].dependsOn("${prefix}Test")
 }
 
-private
+internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType): IntegrationTest {
 
     return tasks.create<IntegrationTest>(name) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.capabilities;
 
-package org.gradle.internal.operations;
+import org.gradle.api.Incubating;
 
 /**
- * Manages listeners of build operations.
+ * Represents a capability. Capabilities are versioned. Only one component for a specific capability
+ * can be found on a dependency graph.
  *
- * Be aware that there are two instances of this within the services hierarchy:
- *
- * - Global scoped (used by TAPI infrastructure)
- * - Cross build session
- *
- * @since 3.5
+ * @since 4.7
  */
-public interface BuildOperationListenerManager {
-
-    void addListener(BuildOperationListener listener);
-
-    void removeListener(BuildOperationListener listener);
-
-    BuildOperationListener getBroadcaster();
-
+@Incubating
+public interface CapabilityDescriptor {
+    String getGroup();
+    String getName();
+    String getVersion();
 }

@@ -442,7 +442,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.rejects, d.reason)
                     },
-                    v.artifacts?:defaultArtifacts
+                    v.artifacts?:defaultArtifacts,
+                    v.capabilities
                 )
             },
             attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']

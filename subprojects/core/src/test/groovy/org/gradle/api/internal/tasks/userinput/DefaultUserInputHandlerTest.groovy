@@ -16,27 +16,27 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
-import org.gradle.internal.logging.sink.OutputEventRenderer
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultUserInputHandlerTest extends Specification {
 
     private static final String TEXT = 'Accept license?'
-    def outputEventRenderer = Mock(OutputEventRenderer)
+    def outputEventBroadcaster = Mock(OutputEventListener)
     def userInputReader = Mock(UserInputReader)
-    @Subject def userInputHandler = new DefaultUserInputHandler(outputEventRenderer, userInputReader)
+    @Subject def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, userInputReader)
 
     def "can read sanitized input to yes/no question"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
         then:
-        1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
-        0 * outputEventRenderer._
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> enteredUserInput
         input == sanitizedUserInput
 
@@ -54,11 +54,11 @@ class DefaultUserInputHandlerTest extends Specification {
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
         then:
-        1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
-        0 * outputEventRenderer._
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> 'bla'
         1 * userInputReader.readInput() >> 'no'
-        1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         input == false
     }
 }

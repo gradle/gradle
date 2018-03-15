@@ -198,10 +198,10 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                 throw UncheckedException.throwAsUncheckedException(failure, true);
             }
 
-            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         } finally {
             setCurrentBuildOperation(parentOperation);
             newOperation.setRunning(false);
+            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         }
     }
 

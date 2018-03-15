@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
@@ -50,6 +51,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Generates parsers from Antlr grammars.
  */
+@NonNullApi
 @CacheableTask
 public class AntlrTask extends SourceTask {
 

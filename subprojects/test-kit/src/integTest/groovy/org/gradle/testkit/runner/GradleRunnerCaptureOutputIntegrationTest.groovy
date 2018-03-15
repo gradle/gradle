@@ -46,7 +46,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         buildScript helloWorldWithStandardOutputAndError()
 
         when:
-        def result = runner('helloWorld')
+        def result = runner('helloWorld', "-d", "-s")
             .forwardStdOutput(standardOutput)
             .forwardStdError(standardError)
             .build()

@@ -42,9 +42,6 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         given:
         file("include") << "bar"
 
-        expect:
-        task.rootSpec.hasSource() == false
-
         when:
         task.from testDirectory.absolutePath
         task.include "include"

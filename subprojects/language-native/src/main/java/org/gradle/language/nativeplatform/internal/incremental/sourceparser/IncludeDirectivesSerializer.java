@@ -17,6 +17,7 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.serialize.AbstractCollectionSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -30,14 +31,15 @@ import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
     private final Serializer<Expression> expressionSerializer = new ExpressionSerializer(enumSerializer);
     private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer, expressionSerializer));
-    private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer(enumSerializer, expressionSerializer));
-    private final ListSerializer<MacroFunction> macroFunctionListSerializer = new ListSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
+    private final CollectionSerializer<Macro> macroListSerializer = new CollectionSerializer<Macro>(new MacroSerializer(enumSerializer, expressionSerializer));
+    private final CollectionSerializer<MacroFunction> macroFunctionListSerializer = new CollectionSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
 
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
@@ -47,8 +49,8 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     @Override
     public void write(Encoder encoder, IncludeDirectives value) throws Exception {
         includeListSerializer.write(encoder, value.getAll());
-        macroListSerializer.write(encoder, value.getMacros());
-        macroFunctionListSerializer.write(encoder, value.getMacrosFunctions());
+        macroListSerializer.write(encoder, value.getAllMacros());
+        macroFunctionListSerializer.write(encoder, value.getAllMacroFunctions());
     }
 
     private static class ExpressionSerializer implements Serializer<Expression> {
@@ -320,6 +322,17 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             } else {
                 throw new IllegalArgumentException();
             }
+        }
+    }
+
+    private static class CollectionSerializer<T> extends AbstractCollectionSerializer<T, Collection<T>> {
+        CollectionSerializer(Serializer<T> entrySerializer) {
+            super(entrySerializer);
+        }
+
+        @Override
+        protected Collection<T> createCollection(int size) {
+            return new ArrayList<T>(size);
         }
     }
 }

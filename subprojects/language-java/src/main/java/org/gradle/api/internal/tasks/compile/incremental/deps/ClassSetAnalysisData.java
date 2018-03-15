@@ -36,13 +36,15 @@ public class ClassSetAnalysisData {
     final Map<String, DependentsSet> dependents;
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
+    final DependentsSet dependentsOnAll;
     final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, DependentsSet dependentsOnAll, String fullRebuildCause) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
+        this.dependentsOnAll = dependentsOnAll;
         this.fullRebuildCause = fullRebuildCause;
     }
 
@@ -52,10 +54,14 @@ public class ClassSetAnalysisData {
 
     public DependentsSet getDependents(String className) {
         if (fullRebuildCause != null) {
-            return new DependencyToAll(fullRebuildCause);
+            return DependentsSet.dependencyToAll(fullRebuildCause);
         }
         DependentsSet dependentsSet = dependents.get(className);
-        return dependentsSet == null ? DefaultDependentsSet.EMPTY : dependentsSet;
+        return dependentsSet == null ? DependentsSet.empty(): dependentsSet;
+    }
+
+    public DependentsSet getDependentsOnAll() {
+        return dependentsOnAll;
     }
 
     public IntSet getConstants(String className) {
@@ -114,9 +120,11 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
+            DependentsSet dependentsOnAll = readDependentsSet(decoder, classNameMap);
+
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), dependentsOnAll, fullRebuildCause);
         }
 
         @Override
@@ -152,20 +160,22 @@ public class ClassSetAnalysisData {
                 }
             }
 
+            writeDependentSet(value.dependentsOnAll, classNameMap, encoder);
+
             encoder.writeNullableString(value.fullRebuildCause);
         }
 
         private DependentsSet readDependentsSet(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             byte b = decoder.readByte();
             if (b == 1) {
-                return new DependencyToAll(decoder.readNullableString());
+                return DependentsSet.dependencyToAll(decoder.readNullableString());
             }
             int count = decoder.readSmallInt();
             ImmutableSet.Builder<String> builder = ImmutableSet.builder();
             for (int i = 0; i < count; i++) {
                 builder.add(readClassName(decoder, classNameMap));
             }
-            return new DefaultDependentsSet(builder.build());
+            return DependentsSet.dependents(builder.build());
         }
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {

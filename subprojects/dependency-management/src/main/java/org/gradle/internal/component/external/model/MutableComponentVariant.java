@@ -27,4 +27,6 @@ public interface MutableComponentVariant {
     void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason);
 
     void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason);
+
+    void addCapability(String group, String name, String version);
 }

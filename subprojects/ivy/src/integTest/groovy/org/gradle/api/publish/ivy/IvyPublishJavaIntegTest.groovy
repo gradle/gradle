@@ -699,6 +699,43 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "can publish java-library with capabilities"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            capability('org', 'foo', '1.0')
+            noMoreCapabilities()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            capability('org', 'foo', '1.0')
+            capability('org', 'bar', '1.0')
+            noMoreCapabilities()
+        }
+    }
+
+
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 

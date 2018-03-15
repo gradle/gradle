@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -46,7 +47,7 @@ public class ClassSetAnalysis {
             }
             result.addAll(dependentClasses);
         }
-        return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);
+        return result == null ? DependentsSet.empty() : DependentsSet.dependents(result);
     }
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
@@ -55,22 +56,23 @@ public class ClassSetAnalysis {
             return deps;
         }
         if (!constants.isEmpty()) {
-            return DependencyToAll.INSTANCE;
+            return DependentsSet.dependencyToAll();
         }
-        if (deps.getDependentClasses().isEmpty()) {
-            return DefaultDependentsSet.EMPTY;
+        DependentsSet dependentsOnAll = data.getDependentsOnAll();
+        if (deps.getDependentClasses().isEmpty() && dependentsOnAll.getDependentClasses().isEmpty()) {
+            return deps;
         }
         Set<String> result = new HashSet<String>();
-        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        recurseDependents(new HashSet<String>(), result, Iterables.concat(deps.getDependentClasses(), dependentsOnAll.getDependentClasses()));
         result.remove(className);
-        return new DefaultDependentsSet(result);
+        return DependentsSet.dependents(result);
     }
 
     public boolean isDependencyToAll(String className) {
         return data.getDependents(className).isDependencyToAll();
     }
 
-    private void recurseDependents(Set<String> visited, Set<String> result, Set<String> dependentClasses) {
+    private void recurseDependents(Set<String> visited, Set<String> result, Iterable<String> dependentClasses) {
         for (String d : dependentClasses) {
             if (!visited.add(d)) {
                 continue;

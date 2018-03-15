@@ -233,27 +233,6 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'has no source by default'() {
-        expect:
-        !spec.hasSource()
-    }
-
-    def 'has source when Spec has source'() {
-        when:
-        spec.from 'source'
-
-        then:
-        spec.hasSource()
-    }
-
-    def 'has source when child Spec has source'() {
-        when:
-        spec.from('source') {}
-
-        then:
-        spec.hasSource()
-    }
-
     def 'matching creates appropriate action'() {
         when:
         spec.filesMatching 'root/**/a*', Actions.doNothing()
@@ -437,16 +416,20 @@ class DefaultCopySpecTest extends Specification {
         method << ['from', 'into']
     }
 
-    @Unroll
-    def 'setting the filteringCharset to #invalidFilteringCharset throws an exception'(invalidFilteringCharset) {
+    def 'setting the filteringCharset to invalid value throws an exception'() {
+        when:
+        spec.filteringCharset = "THAT_SURE_IS_AN_INVALID_CHARSET"
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def 'setting the filteringCharset to null throws an exception'() {
         when:
         spec.filteringCharset = null
 
         then:
-        thrown(InvalidUserDataException)
-
-        where:
-        invalidFilteringCharset << [null, "THAT_SURE_IS_AN_INVALID_CHARSET"]
+        thrown(NullPointerException)
     }
 
     def 'can add spec hierarchy as child'() {
@@ -479,15 +462,15 @@ class DefaultCopySpecTest extends Specification {
         added == ['$2$2', '$2$2$1']
     }
 
-    private DefaultCopySpec unpackWrapper(CopySpec copySpec) {
+    private static DefaultCopySpec unpackWrapper(CopySpec copySpec) {
         (copySpec as CopySpecWrapper).delegate as DefaultCopySpec
     }
 
-    private RelativePath relativeDirectory(String... segments) {
+    private static RelativePath relativeDirectory(String... segments) {
         new RelativePath(false, segments)
     }
 
-    private RelativePath relativeFile(String segments) {
+    private static RelativePath relativeFile(String segments) {
         RelativePath.parse(true, segments)
     }
 }

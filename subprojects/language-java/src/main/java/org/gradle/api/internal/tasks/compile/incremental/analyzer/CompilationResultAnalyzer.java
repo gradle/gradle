@@ -64,7 +64,7 @@ public class CompilationResultAnalyzer implements FileVisitor {
         if (annotationProcessingResult == null) {
             accumulator.fullRebuildNeeded("the chosen compiler did not support incremental annotation processing");
         } else {
-            accumulator.addGeneratedTypeMappings(annotationProcessingResult);
+            accumulator.addAnnotationProcessingResult(annotationProcessingResult);
         }
     }
 }

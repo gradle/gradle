@@ -244,14 +244,15 @@ public class XcodePlugin extends IdePlugin {
     private void configureXcodeForSwift(final Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
-            public void execute(Project project) {
+            public void execute(final Project project) {
                 // TODO: Assumes there's a single 'main' Swift component
-                ProductionSwiftComponent component = project.getComponents().withType(ProductionSwiftComponent.class).getByName("main");
+                final ProductionSwiftComponent component = project.getComponents().withType(ProductionSwiftComponent.class).getByName("main");
+
                 FileCollection sources = component.getSwiftSource();
                 xcodeProject.getGroups().getSources().from(sources);
 
                 // TODO - should use the _install_ task for an executable
-                String targetName = component.getModule().get();
+                final String targetName = component.getModule().get();
                 final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
                 component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
                     @Override
@@ -270,14 +271,16 @@ public class XcodePlugin extends IdePlugin {
                             target.setRelease(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
                         }
                         target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
+
+                        if (swiftBinary == component.getDevelopmentBinary().get()) {
+                            target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
+                            target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
+                            xcodeProject.addTarget(target);
+
+                            createSchemeTask(project.getTasks(), targetName, xcodeProject);
+                        }
                     }
                 });
-
-                target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
-                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
-                xcodeProject.addTarget(target);
-
-                createSchemeTask(project.getTasks(), targetName, xcodeProject);
             }
         });
     }
@@ -301,9 +304,10 @@ public class XcodePlugin extends IdePlugin {
     private void configureXcodeForCpp(Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
-            public void execute(Project project) {
+            public void execute(final Project project) {
                 // TODO: Assumes there's a single 'main' C++ component
-                ProductionCppComponent component = project.getComponents().withType(ProductionCppComponent.class).getByName("main");
+                final ProductionCppComponent component = project.getComponents().withType(ProductionCppComponent.class).getByName("main");
+
                 FileCollection sources = component.getCppSource();
                 xcodeProject.getGroups().getSources().from(sources);
 
@@ -311,7 +315,7 @@ public class XcodePlugin extends IdePlugin {
                 xcodeProject.getGroups().getHeaders().from(headers);
 
                 // TODO - should use the _install_ task for an executable
-                String targetName = StringUtils.capitalize(component.getBaseName().get());
+                final String targetName = StringUtils.capitalize(component.getBaseName().get());
                 final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project), getBridgeTaskPath(project), sources);
                 component.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                     @Override
@@ -329,14 +333,16 @@ public class XcodePlugin extends IdePlugin {
                         } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
                             target.setRelease(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
                         }
+
+                        if (cppBinary == component.getDevelopmentBinary().get()) {
+                            target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
+                            target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
+                            xcodeProject.addTarget(target);
+
+                            createSchemeTask(project.getTasks(), targetName, xcodeProject);
+                        }
                     }
                 });
-
-                target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
-                target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
-                xcodeProject.addTarget(target);
-
-                createSchemeTask(project.getTasks(), targetName, xcodeProject);
             }
         });
     }

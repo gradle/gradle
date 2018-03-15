@@ -342,11 +342,6 @@ class UserGuideSamplesRunner extends Runner {
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
         samplesById.playComponentReport.runs.each { it.outputFormatter = new PlayComponentReportOutputFormatter() }
 
-        if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
-            // Ignore for now
-            samplesById.remove('completeCUnitExample')
-        }
-
         samplesById.each { id, sample ->
             sample.runs = sample.runs.sort { it.index }
         }
