@@ -119,6 +119,8 @@ We would like to thank the following community members for making contributions 
 
  - [Piotr Kubowicz](https://github.com/pkubowicz) - Make CheckStyle plugin work by default for multi-project builds (gradle/gradle#2811)
  - [Philippe Agra](https://github.com/philippeagra) - Fix annotation-processors cache (gradle/gradle#4680)
+ - [Jesper Utoft](https://github.com/jutoft) - Improve ear plugin (gradle/gradle#4381)
+ - [Henrik Brautaset Aronsen](https://github.com/henrik242) - Upgrade ASM to `6.1` (gradle/gradle#4696)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
