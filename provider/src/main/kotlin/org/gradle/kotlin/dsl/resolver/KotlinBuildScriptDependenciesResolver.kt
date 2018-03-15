@@ -175,16 +175,6 @@ object ResolverCoordinator {
             return ResolverAction.ReturnPrevious
         }
 
-        val implicitImports = (environment["kotlinDslImplicitImportsFile"] as? String)?.let(::File)?.readLines()
-        if (implicitImports != null) {
-            return ResolverAction.Return(
-                KotlinBuildScriptDependencies(
-                    imports = implicitImports,
-                    classpath = emptyList(),
-                    sources = emptyList(),
-                    buildscriptBlockHash = null))
-        }
-
         val buildscriptBlockHash = buildscriptBlockHashFor(script, environment)
         if (sameBuildscriptBlockHashAs(previousDependencies, buildscriptBlockHash)) {
             return ResolverAction.ReturnPrevious

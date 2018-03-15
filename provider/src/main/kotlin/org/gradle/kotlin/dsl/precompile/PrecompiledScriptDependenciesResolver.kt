@@ -16,7 +16,39 @@
 
 package org.gradle.kotlin.dsl.precompile
 
+import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
+
+import java.util.concurrent.Future
+
 import kotlin.script.dependencies.ScriptDependenciesResolver
+import kotlin.script.dependencies.PseudoFuture
+import kotlin.script.dependencies.ScriptContents
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
+import kotlin.script.dependencies.Environment
 
 
-class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver
+class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
+
+    object EnvironmentProperties {
+        const val kotlinDslImplicitImports = "kotlinDslImplicitImports"
+    }
+
+    override fun resolve(
+        script: ScriptContents,
+        environment: Environment?,
+        report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): Future<KotlinScriptExternalDependencies?> =
+
+        PseudoFuture(
+            KotlinBuildScriptDependencies(
+                imports = implicitImportsFrom(environment),
+                classpath = emptyList(),
+                sources = emptyList(),
+                buildscriptBlockHash = null))
+
+    private
+    fun implicitImportsFrom(environment: Environment?) =
+        (environment?.get(EnvironmentProperties.kotlinDslImplicitImports) as? String)?.split(':')
+            ?: emptyList()
+}
