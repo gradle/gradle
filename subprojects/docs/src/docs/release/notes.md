@@ -44,6 +44,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### De-incubation of Google repository shortcut method
+
+The method `RepositoryHandler.google()` has been promoted.
+
 ## Fixed issues
 
 ## Deprecations
