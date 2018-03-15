@@ -37,7 +37,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
-import org.gradle.util.TextUtil
+import org.gradle.util.TextUtil.convertLineSeparators
 
 import java.lang.reflect.InvocationTargetException
 
@@ -60,7 +60,7 @@ class KotlinScriptSource(val source: ScriptSource) {
 
     val scriptPath = source.fileName!!
 
-    val script = TextUtil.convertLineSeparators(scriptResource.text!!, "\n")
+    val script = convertLineSeparators(scriptResource.text!!, "\n")
 
     val displayName: String
         get() = source.displayName
@@ -245,8 +245,12 @@ class KotlinBuildScriptCompiler(
             scriptSource.displayName,
             scriptTarget.scriptTemplate,
             scriptPath,
-            script.linePreservingBlankRanges(listOfNotNull(buildscriptBlockRange, pluginsBlockRange)),
+            scriptWithoutBuildscriptAndPluginsBlocks,
             Unit)
+
+    private
+    val scriptWithoutBuildscriptAndPluginsBlocks
+        get() = script.linePreservingBlankRanges(listOfNotNull(buildscriptBlockRange, pluginsBlockRange))
 
     private
     fun compileScriptBody(scriptBlock: ScriptBlock<Unit>) =
