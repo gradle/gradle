@@ -140,6 +140,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final DefaultJavaForkOptions forkOptions;
+    private final DefaultSystemPropertyHandler systemPropertyHandler;
 
     private FileCollection testClassesDirs;
     private PatternFilterable patternSet;
@@ -154,6 +155,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         patternSet = getFileResolver().getPatternSetFactory().create();
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
+        systemPropertyHandler = new DefaultSystemPropertyHandler(this, getFileResolver());
     }
 
     @Inject
@@ -1068,6 +1070,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Incubating
     void systemProperties(Action<SystemPropertyHandler> action) {
-        action.execute(new DefaultSystemPropertyHandler(this));
+        action.execute(systemPropertyHandler);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.process;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.HasStringRepresentation;
 
 import javax.annotation.Nullable;
 
@@ -31,9 +32,9 @@ public interface SystemPropertyHandler {
      * Adds a system property to use for the process.
      *
      * @param name The name of the property.
-     * @param value an @{@link InputOutputValue} representing the property.
+     * @param value a value which can be converted to a String.
      */
-    void add(String name, InputOutputValue value);
+    void add(String name, HasStringRepresentation value);
 
     /**
      * Adds a system property to use for the process.
@@ -44,27 +45,55 @@ public interface SystemPropertyHandler {
     void add(String name, @Nullable Object value);
 
     /**
-     * An input file with path sensitivity {@link org.gradle.api.tasks.PathSensitivity#NONE}.
+     * Returns a value which is an input file.
+     *
+     * <p>
+     * The string representation of the input file is its absolute path.
+     * The file is resolved according to {@link org.gradle.api.Project#file}.
+     * </p>
+     *
+     * <p>The path sensitivity of the input file is {@link org.gradle.api.tasks.PathSensitivity#NONE}.</p>
      */
-    InputOutputValue inputFile(Object file);
+    HasStringRepresentation inputFile(Object file);
 
     /**
-     * An input directory with path sensitivity {@link org.gradle.api.tasks.PathSensitivity#RELATIVE}.
+     * Returns a value which is an input directory.
+     *
+     * <p>
+     * The string representation of the input directory is its absolute path.
+     * The directory is resolved according to {@link org.gradle.api.Project#file}.
+     * </p>
+     *
+     * <p>The path sensitivity of the input directory is {@link org.gradle.api.tasks.PathSensitivity#RELATIVE}.</p>
      */
-    InputOutputValue inputDirectory(Object file);
+    HasStringRepresentation inputDirectory(Object directory);
 
     /**
-     * An output file.
+     * Returns a value which is an output file.
+     *
+     * <p>
+     * The string representation of the output file is its absolute path.
+     * The file is resolved according to {@link org.gradle.api.Project#file}.
+     * </p>
      */
-    InputOutputValue outputFile(Object file);
+    HasStringRepresentation outputFile(Object file);
 
     /**
-     * An output directory.
+     * Returns a value which is an output directory.
+     *
+     * <p>
+     * The string representation of the output directory is its absolute path.
+     * The directory is resolved according to {@link org.gradle.api.Project#file}.
+     * </p>
      */
-    InputOutputValue outputDirectory(Object file);
+    HasStringRepresentation outputDirectory(Object directory);
 
     /**
-     * A value declaring no inputs or outputs.
+     * Returns a value which is neither an input nor an output.
+     *
+     * <p>
+     * The string representation of the value is the result of calling {@link Object#toString()}.
+     * </p>
      */
-    InputOutputValue ignored(Object file);
+    HasStringRepresentation ignored(Object value);
 }

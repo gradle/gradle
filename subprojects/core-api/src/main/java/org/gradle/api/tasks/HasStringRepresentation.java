@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Internal;
 
 /**
- * An input or output value.
+ * A value with a String representation.
  *
  * Subtypes should be annotated with the corresponding input/output annotations.
  *
  * @since 4.7
  */
 @Incubating
-public interface InputOutputValue {
-    @Internal
-    Object getValue();
+public interface HasStringRepresentation {
+    /**
+     * The String representation of the value.
+     */
+    String asString();
 }

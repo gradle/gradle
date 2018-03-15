@@ -252,4 +252,23 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':test'
     }
+
+    def "can pass callables as system properties"() {
+        buildFile << """
+            test.systemProperties {
+                add 'path.ignored', ignored { "ignored.txt" }
+                add 'output.file.path', outputFile { "output.txt" }
+                add 'output.directory.path', outputDirectory { "output" }
+                add 'input.file.path', inputFile { "input.txt" }
+                add 'input.directory.path', inputDirectory { "input" }
+            }
+        """
+        file('input.txt').text = "Test"
+        file("input/file.txt").text = "Test"
+
+        when:
+        run 'test'
+        then:
+        executedAndNotSkipped ':test'
+    }
 }

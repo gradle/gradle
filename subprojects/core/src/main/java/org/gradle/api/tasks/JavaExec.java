@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
@@ -63,9 +64,11 @@ import java.util.Map;
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
+    private final DefaultSystemPropertyHandler systemPropertyHandler;
 
     public JavaExec() {
         javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
+        systemPropertyHandler = new DefaultSystemPropertyHandler(this, ((ProjectInternal) getProject()).getFileResolver());
     }
 
     @Inject
@@ -540,6 +543,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Incubating
     public void systemProperties(Action<SystemPropertyHandler> action) {
-        action.execute(new DefaultSystemPropertyHandler(this));
+        action.execute(systemPropertyHandler);
     }
 }

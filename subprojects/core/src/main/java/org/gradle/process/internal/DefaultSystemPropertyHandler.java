@@ -16,8 +16,10 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.HasStringRepresentation;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -27,21 +29,23 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.InputOutputValue;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.SystemPropertyHandler;
 import org.gradle.util.DeferredUtil;
 
 public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
     private final JavaForkOptions javaForkOptions;
+    private final PathToFileResolver resolver;
 
-    public DefaultSystemPropertyHandler(JavaForkOptions javaForkOptions) {
+    public DefaultSystemPropertyHandler(JavaForkOptions javaForkOptions, PathToFileResolver resolver) {
         this.javaForkOptions = javaForkOptions;
+        this.resolver = resolver;
     }
 
     @Override
-    public void add(String name, InputOutputValue value) {
+    public void add(String name, HasStringRepresentation value) {
         javaForkOptions.getJvmArgumentProviders().add(new SystemPropertyCommandLineArgument(name, value));
     }
 
@@ -51,42 +55,42 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
     }
 
     @Override
-    public InputOutputValue inputFile(Object file) {
+    public HasStringRepresentation inputFile(Object file) {
         return new InputFileValue(file);
     }
 
     @Override
-    public InputOutputValue inputDirectory(Object file) {
-        return new InputDirectoryValue(file);
+    public HasStringRepresentation inputDirectory(Object directory) {
+        return new InputDirectoryValue(directory);
     }
 
     @Override
-    public InputOutputValue outputFile(Object file) {
+    public HasStringRepresentation outputFile(Object file) {
         return new OutputFileValue(file);
     }
 
     @Override
-    public InputOutputValue outputDirectory(Object file) {
-        return new OutputDirectoryValue(file);
+    public HasStringRepresentation outputDirectory(Object directory) {
+        return new OutputDirectoryValue(directory);
     }
 
     @Override
-    public InputOutputValue ignored(Object file) {
-        return new IgnoredValue(file);
+    public HasStringRepresentation ignored(Object value) {
+        return new IgnoredValue(value);
     }
 
     private class SystemPropertyCommandLineArgument implements CommandLineArgumentProvider, Named {
         private final String name;
-        private final InputOutputValue inputOutputValue;
+        private final HasStringRepresentation value;
 
-        public SystemPropertyCommandLineArgument(String name, InputOutputValue inputOutputValue) {
+        public SystemPropertyCommandLineArgument(String name, HasStringRepresentation value) {
             this.name = name;
-            this.inputOutputValue = inputOutputValue;
+            this.value = value;
         }
 
         @Nested
-        public InputOutputValue getValue() {
-            return inputOutputValue;
+        public HasStringRepresentation getValue() {
+            return value;
         }
 
         @Input
@@ -97,28 +101,38 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
 
         @Override
         public Iterable<String> asArguments() {
-            return ImmutableList.of("-D" + name + "=" + DeferredUtil.unpack(inputOutputValue.getValue()));
+            return ImmutableList.of("-D" + name + "=" + value.asString());
         }
     }
 
-    private class BaseInputOutputValue implements InputOutputValue {
+    private abstract class AbstractValueWithStringRepresentation<T> implements HasStringRepresentation {
 
-        private final Object value;
+        private final T value;
 
-        public BaseInputOutputValue(Object value) {
+        public AbstractValueWithStringRepresentation(T value) {
             this.value = value;
         }
 
-        @Override
         public Object getValue() {
             return value;
         }
     }
 
-    private class InputFileValue extends BaseInputOutputValue {
+    private class FileAsAbsolutePath extends AbstractValueWithStringRepresentation<Object> {
 
-        public InputFileValue(Object path) {
-            super(path);
+        public FileAsAbsolutePath(Object value) {
+            super(value);
+        }
+
+        @Override
+        public String asString() {
+            return resolver.resolve(getValue()).getAbsolutePath();
+        }
+    }
+
+    private class InputFileValue extends FileAsAbsolutePath {
+        public InputFileValue(Object file) {
+            super(file);
         }
 
         @Override
@@ -129,9 +143,9 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
         }
     }
 
-    private class InputDirectoryValue extends BaseInputOutputValue {
-        public InputDirectoryValue(Object path) {
-            super(path);
+    private class InputDirectoryValue extends FileAsAbsolutePath {
+        public InputDirectoryValue(Object directory) {
+            super(directory);
         }
 
         @Override
@@ -142,9 +156,9 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
         }
     }
 
-    private class OutputFileValue extends BaseInputOutputValue {
-        public OutputFileValue(Object path) {
-            super(path);
+    private class OutputFileValue extends FileAsAbsolutePath {
+        public OutputFileValue(Object file) {
+            super(file);
         }
 
         @Override
@@ -154,9 +168,9 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
         }
     }
 
-    private class OutputDirectoryValue extends BaseInputOutputValue {
-        public OutputDirectoryValue(Object path) {
-            super(path);
+    private class OutputDirectoryValue extends FileAsAbsolutePath {
+        public OutputDirectoryValue(Object directory) {
+            super(directory);
         }
 
         @Override
@@ -166,7 +180,7 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
         }
     }
 
-    private class IgnoredValue extends BaseInputOutputValue {
+    private class IgnoredValue extends AbstractValueWithStringRepresentation<Object> {
         public IgnoredValue(Object value) {
             super(value);
         }
@@ -175,6 +189,11 @@ public class DefaultSystemPropertyHandler implements SystemPropertyHandler {
         @Internal
         public Object getValue() {
             return super.getValue();
+        }
+
+        @Override
+        public String asString() {
+            return Preconditions.checkNotNull(DeferredUtil.unpack(getValue())).toString();
         }
     }
 }
