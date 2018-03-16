@@ -29,18 +29,36 @@ import javax.annotation.Nullable;
  * The result may optionally include the meta-data for the selected component, if it is cheaply available (for example, it was used to select the component).
  */
 public interface ComponentIdResolveResult extends ResolveResult {
+    /**
+     * Returns the resolve failure, if any.
+     */
     @Nullable
     ModuleVersionResolveException getFailure();
 
+    /**
+     * Returns the identifier of the component.
+     *
+     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     */
     ComponentIdentifier getId();
 
+    /**
+     * Returns the module version id of the component.
+     *
+     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     */
     ModuleVersionIdentifier getModuleVersionId();
-
-    ComponentSelectionDescriptorInternal getSelectionDescription();
 
     /**
      * Returns the meta-data for the component, if it was available at resolve time.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
     @Nullable
     ComponentResolveMetadata getMetadata();
+
+    /**
+     * Returns a description for this selection.
+     */
+    ComponentSelectionDescriptorInternal getSelectionDescription();
 }

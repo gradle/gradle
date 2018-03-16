@@ -24,15 +24,29 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentIdResolveResult extends ComponentIdResolveResult, ResourceAwareResolveResult {
+    /**
+     * Marks the component selector as resolved to the specified id.
+     */
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
+    /**
+     * Marks the component selector as resolved, with the provided metadata. The id is taken from the metadata.
+     */
     void resolved(ComponentResolveMetadata metaData);
 
+    /**
+     * Marks the component selection as failed.
+     */
     void failed(ModuleVersionResolveException failure);
 
+    /**
+     * Sets the description for this component selection.
+     */
     void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
 
+    // TODO:DAZ Remove this from this result.
     ResolvedVersionConstraint getResolvedVersionConstraint();
 
+    // TODO:DAZ Remove this from this result.
     void setResolvedVersionConstraint(ResolvedVersionConstraint versionConstraint);
 }
