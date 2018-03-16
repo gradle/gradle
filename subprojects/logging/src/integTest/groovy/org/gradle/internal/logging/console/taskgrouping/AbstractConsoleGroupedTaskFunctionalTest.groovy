@@ -27,9 +27,10 @@ import spock.lang.IgnoreIf
  */
 @IgnoreIf({ GradleContextualExecuter.parallel })
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
-    final static List<ConsoleOutput> CONSOLE_TYPES = [ConsoleOutput.Rich, ConsoleOutput.Plain]
-
     def setup() {
+        executer.withConsole(consoleType)
         executer.withArgument('--parallel')
     }
+
+    abstract ConsoleOutput getConsoleType()
 }

@@ -371,12 +371,13 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(event('info', LogLevel.INFO, 1L))
         renderer.onOutput(event('error', LogLevel.ERROR, 1L))
+        renderer.onOutput(event('un-grouped error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['', '> description status', 'info']
-        stderrListener.value.readLines() == ['error']
+        stdoutListener.value.readLines() == ['', '> description status', 'info', 'error']
+        stderrListener.value.readLines() == ['un-grouped error']
     }
 
     def "renders log events in plain console when log level is debug"() {

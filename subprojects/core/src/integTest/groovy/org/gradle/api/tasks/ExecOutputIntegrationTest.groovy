@@ -17,22 +17,21 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 import spock.util.environment.OperatingSystem
 
-@Issue("https://github.com/gradle/gradle/issues/2009")
-class ExecOutputIntegrationTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+import static org.gradle.api.logging.configuration.ConsoleOutput.*
 
+@Issue("https://github.com/gradle/gradle/issues/2009")
+class ExecOutputIntegrationTest extends AbstractIntegrationSpec {
+    private static final List<ConsoleOutput> CONSOLE_TYPES = [Rich, Plain]
     private static final String EXPECTED_OUTPUT = "Hello, World!"
     private static final String EXPECTED_ERROR = "Goodbye, World!"
 
-    def setup() {
-        executer.withConsole(ConsoleOutput.Rich)
-    }
-
-    def "Project#javaexec output is grouped with its task output"() {
+    @Unroll
+    def "Project#javaexec output is grouped with its task output (#consoleType console)"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
@@ -50,15 +49,20 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec implements RichC
         """
 
         when:
+        executer.withConsole(consoleType)
         succeeds("run")
 
         then:
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
         output.contains(EXPECTED_ERROR)
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "JavaExec task output is grouped with its task output"() {
+    @Unroll
+    def "JavaExec task output is grouped with its task output (#consoleType console)"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
@@ -72,15 +76,20 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec implements RichC
         """
 
         when:
+        executer.withConsole(consoleType)
         succeeds("run")
 
         then:
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
         output.contains(EXPECTED_ERROR)
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "Project#exec output is grouped with its task output"() {
+    @Unroll
+    def "Project#exec output is grouped with its task output (#consoleType console)"() {
         given:
         buildFile << """
             task run {
@@ -93,13 +102,17 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec implements RichC
         """
 
         when:
+        executer.withConsole(consoleType)
         succeeds("run")
 
         then:
         result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "Exec task output is grouped with its task output"() {
+    def "Exec task output is grouped with its task output (#consoleType console)"() {
         given:
         buildFile << """
             task run(type: Exec) {
@@ -108,10 +121,14 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec implements RichC
         """
 
         when:
+        executer.withConsole(consoleType)
         succeeds("run")
 
         then:
         result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
     private static String echo(String s) {

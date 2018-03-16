@@ -19,33 +19,41 @@ package org.gradle.internal.logging.console.jvm
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import spock.lang.Unroll
+
+import static org.gradle.api.logging.configuration.ConsoleOutput.*
 
 class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
-
+    private static final List<ConsoleOutput> CONSOLE_TYPES = [Rich, Plain]
     private static final String TEST_TASK_NAME = 'test'
     private static final String TEST_TASK_PATH = ":$TEST_TASK_NAME"
     private static final String JAVA_TEST_FILE_PATH = 'src/test/java/MyTest.java'
 
     def setup() {
-        executer.withConsole(ConsoleOutput.Rich)
         buildFile << javaProject()
     }
 
-    def "can group failed test log event with task by default"() {
+    @Unroll
+    def "can group failed test log event with task by default (#consoleType console)"() {
         given:
         file(JAVA_TEST_FILE_PATH) << javaTestClass {
             'throw new RuntimeException("expected");'
         }
 
         when:
+        executer.withConsole(consoleType)
         fails(TEST_TASK_NAME)
 
         then:
         def taskOutput = getTaskOutput(result)
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "can group skipped test log event with task if configured"() {
+    @Unroll
+    def "can group skipped test log event with task if configured (#consoleType console)"() {
         given:
         buildFile << testLoggingEvents(TestLogEvent.SKIPPED.testLoggingIdentifier)
 
@@ -61,27 +69,37 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.withConsole(consoleType)
         succeeds(TEST_TASK_NAME)
 
         then:
         def taskOutput = getTaskOutput(result)
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.SKIPPED.consoleMarker))
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "can group started test log event with task if configured"() {
+    @Unroll
+    def "can group started test log event with task if configured (#consoleType console)"() {
         given:
         buildFile << testLoggingEvents(TestLogEvent.STARTED.testLoggingIdentifier)
         file(JAVA_TEST_FILE_PATH) << javaTestClass { '' }
 
         when:
+        executer.withConsole(consoleType)
         succeeds(TEST_TASK_NAME)
 
         then:
         def taskOutput = getTaskOutput(result)
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "can group standard output streams with task if configured"() {
+    @Unroll
+    def "can group standard output streams with task if configured (#consoleType console)"() {
         given:
         buildFile << testLoggingStandardStream()
 
@@ -93,6 +111,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
         }
 
         when:
+        executer.withConsole(consoleType)
         succeeds(TEST_TASK_NAME)
 
         then:
@@ -101,9 +120,13 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
     standard output""")
         taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
     standard error""")
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "can group multiple test log events with task"() {
+    @Unroll
+    def "can group multiple test log events with task (#consoleType console)"() {
         given:
         buildFile << testLoggingEvents(TestLogEvent.STARTED.testLoggingIdentifier, TestLogEvent.FAILED.testLoggingIdentifier)
         buildFile << testLoggingStandardStream()
@@ -116,6 +139,7 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
         }
 
         when:
+        executer.withConsole(consoleType)
         fails(TEST_TASK_NAME)
 
         then:
@@ -124,9 +148,13 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
     standard output""")
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.STARTED.consoleMarker))
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
-    def "can group output from custom test listener with task"() {
+    @Unroll
+    def "can group output from custom test listener with task (#consoleType console)"() {
         buildFile << """
             test {
                 beforeTest { descriptor ->
@@ -140,12 +168,16 @@ class ConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
         file(JAVA_TEST_FILE_PATH) << javaTestClass { '' }
 
         when:
+        executer.withConsole(consoleType)
         succeeds(TEST_TASK_NAME)
 
         then:
         def taskOutput = getTaskOutput(result)
         taskOutput.contains('Starting test: MyTest > testExpectation')
         taskOutput.contains('Finishing test: MyTest > testExpectation')
+
+        where:
+        consoleType << CONSOLE_TYPES
     }
 
     static String javaProject() {

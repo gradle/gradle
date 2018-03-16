@@ -16,16 +16,14 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.fusesource.jansi.Ansi
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Issue
 
-class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFunctionalTest {
+abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -85,18 +83,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
 
         then:
         result.groupedOutput.task(':log').output == "Standard out\nStandard err"
-    }
-
-    @Issue("gradle/gradle#2038")
-    def "tasks with no actions are not displayed"() {
-        given:
-        buildFile << "task log"
-
-        when:
-        succeeds('log')
-
-        then:
-        !result.groupedOutput.hasTask(':log')
     }
 
     def "grouped output is displayed for failed tasks"() {
@@ -204,52 +190,6 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
 
         cleanup:
         gradle?.waitForFinish()
-    }
-
-    def "group header is printed red if task failed"() {
-        given:
-        buildFile << """
-            task failing { doFirst { 
-                logger.quiet 'hello'
-                throw new RuntimeException('Failure...')
-            } }
-        """
-
-        when:
-        fails('failing')
-
-        then:
-        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
-    }
-
-    def "group header is printed white if task succeeds"() {
-        given:
-        buildFile << """
-            task succeeding { doFirst { 
-                logger.quiet 'hello'
-            } }
-        """
-
-        when:
-        succeeds('succeeding')
-
-        then:
-        result.output.contains(styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD))
-    }
-
-    def "configure project group header is printed red if configuration fails with additional failures"() {
-        given:
-        buildFile << """
-            afterEvaluate { throw new RuntimeException("After Evaluate Failure...") }
-            throw new RuntimeException('Config Failure...')
-        """
-        executer.withStacktraceDisabled()
-
-        when:
-        fails('failing')
-
-        then:
-        result.output.contains(styled("> Configure project :", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
     }
 
     private void assertOutputContains(GradleHandle gradle, String str) {
