@@ -1,6 +1,4 @@
-apply {
-    from("groovy.gradle")
-}
+apply(from = "groovy.gradle")
 
 val groovySum: groovy.lang.Closure<Any?> by extra
 
