@@ -28,7 +28,8 @@ dependencies {
     integTestCompile files(rootProject.availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7).toolsJar ?: [])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
-    integTestRuntime project(':docs').releaseFeaturesJar.outputs.files
+    integTestRuntime project(':docs')
+    integTestRuntime project(path: ':docs', configuration: 'releaseFeatures')
 
     testFixturesCompile project(':internalIntegTesting')
 }
@@ -56,7 +57,7 @@ task configureJar {
 }
 
 jar {
-    dependsOn configureJar
+    dependsOn configureJar, project(':docs').releaseFeaturesJar
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
     from { zipTree(project(':docs').releaseFeaturesJar.outputs.files.singleFile) }
 }
