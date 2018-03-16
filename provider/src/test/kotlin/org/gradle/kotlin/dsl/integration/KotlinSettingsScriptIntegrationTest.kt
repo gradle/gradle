@@ -14,7 +14,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
     fun `Settings script path is resolved relative to parent script dir`() {
 
         withFile("gradle/my.settings.gradle.kts", """
-            apply { from("./answer.settings.gradle.kts") }
+            apply(from = "./answer.settings.gradle.kts")
         """)
 
         withFile("gradle/answer.settings.gradle.kts", """
@@ -24,7 +24,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         withSettings("""
-            apply { from("gradle/my.settings.gradle.kts") }
+            apply(from = "gradle/my.settings.gradle.kts")
         """)
 
         withBuildScript("""

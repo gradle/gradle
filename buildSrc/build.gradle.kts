@@ -18,9 +18,7 @@ plugins {
     id("org.gradle.kotlin.ktlint-convention") version "0.1.2"
 }
 
-apply {
-    plugin("kotlin")
-}
+apply(plugin = "kotlin")
 
 gradlePlugin {
     (plugins) {
