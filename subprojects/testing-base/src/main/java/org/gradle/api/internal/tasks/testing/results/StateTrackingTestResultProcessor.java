@@ -16,10 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
@@ -47,8 +54,26 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         delegate.started(state.test, event);
     }
 
+    private void ensureChildrenCompleted(Object testId, long endTime) {
+        List<Object> incompleteChildren = new LinkedList<Object>();
+        for (Map.Entry<Object, TestState> entry : executing.entrySet()) {
+            if (testId.equals(entry.getValue().startEvent.getParentId())) {
+                incompleteChildren.add(entry.getKey());
+            }
+        }
+
+        if (!incompleteChildren.isEmpty()) {
+            TestCompleteEvent skippedEvent = new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED);
+            for (Object childTestId : incompleteChildren) {
+                completed(childTestId, skippedEvent);
+            }
+        }
+    }
+
     @Override
     public final void completed(Object testId, TestCompleteEvent event) {
+        ensureChildrenCompleted(testId, event.getEndTime());
+
         TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(

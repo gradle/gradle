@@ -164,6 +164,10 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    int getTestSkippedCount() {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
+    }
+
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         def testMethodNode = findTestMethod(name)
         assert testMethodNode.@status as String == 'FAIL'
