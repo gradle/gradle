@@ -19,6 +19,7 @@ package org.gradle.launcher.cli
 import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 
 class NotificationsIntegrationTest extends AbstractIntegrationSpec {
@@ -58,7 +59,8 @@ ${readReleaseFeatures()}
         markerFile.exists()
     }
 
-    @Ignore("does not render message yet")
+    @Ignore("not supported yet")
+    @ToBeImplemented
     def "renders welcome message only once when executed with Tooling API"() {
         expect:
         !markerFile.exists()
