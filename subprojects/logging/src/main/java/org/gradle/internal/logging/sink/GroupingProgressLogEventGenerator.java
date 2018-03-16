@@ -177,6 +177,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private String status = "";
         private boolean failed;
+        private boolean headerSent;
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
@@ -211,6 +212,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             if (shouldForward()) {
                 if (!buildOpIdentifier.equals(lastRenderedBuildOpId)) {
                     listener.onOutput(header());
+                    headerSent = true;
                 }
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
@@ -236,7 +238,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK);
+            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK && !headerSent);
         }
     }
 }

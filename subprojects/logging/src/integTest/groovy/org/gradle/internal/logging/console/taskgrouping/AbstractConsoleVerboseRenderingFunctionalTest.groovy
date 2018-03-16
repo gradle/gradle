@@ -20,12 +20,13 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
     def 'failed task result can be rendered (#consoleType console)'() {
         given:
         buildFile << '''
-task myFailure {
-    doLast {
-        assert false
-    }
-}
-'''
+            task myFailure {
+                doLast {
+                    assert false
+                }
+            }
+        '''
+
         when:
         executer.withConsole(consoleType)
         fails('myFailure')
@@ -37,11 +38,12 @@ task myFailure {
     def 'up-to-date task result can be rendered'() {
         given:
         buildFile << '''
-task upToDate{
-    outputs.upToDateWhen {true}
-    doLast {}
-}
-'''
+            task upToDate{
+                outputs.upToDateWhen {true}
+                doLast {}
+            }
+        '''
+
         when:
         succeeds('upToDate')
 
@@ -53,5 +55,37 @@ task upToDate{
 
         then:
         result.groupedOutput.task(':upToDate').outcome == 'UP-TO-DATE'
+    }
+
+    def "task headers for long running tasks are printed only once when there is no output"() {
+        given:
+        settingsFile << """
+            12.times { i ->
+                include ":project\${i}"
+            }
+        """
+        buildFile << """
+            task allTasks
+            
+            12.times { i ->
+                project(":project\${i}") {
+                    task "slowTask\${i}" {
+                        doLast {
+                            sleep 2000 + (1000*(i%2))
+                        }
+                    }
+                    
+                    rootProject.allTasks.dependsOn ":project\${i}:slowTask\${i}"
+                }
+            }
+        """
+
+        when:
+        succeeds "allTasks"
+
+        then:
+        12.times { i ->
+            assert result.groupedOutput.task(":project${i}:slowTask${i}").outputs.size() == 1
+        }
     }
 }
