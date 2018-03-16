@@ -43,6 +43,7 @@ testFixtures {
     from(':languageJava')
     from(':messaging')
     from(':logging')
+    from(':toolingApi')
 }
 
 integTestTasks.all {
