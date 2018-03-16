@@ -1,0 +1,96 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.launcher.cli
+
+import org.apache.commons.io.IOUtils
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.tooling.fixture.ToolingApi
+import spock.lang.Ignore
+
+class NotificationsIntegrationTest extends AbstractIntegrationSpec {
+
+    def customGradleUserHomeDir = testDirectoryProvider.getTestDirectory().file('user-home')
+    def markerFile
+    def welcomeMessage
+    def toolingApi = new ToolingApi(distribution, temporaryFolder)
+
+    def setup() {
+        executer.requireGradleDistribution()
+        executer.withGradleUserHomeDir(customGradleUserHomeDir)
+        markerFile = new File(executer.gradleUserHomeDir, "notifications/$distribution.version.version/release-features.rendered")
+        welcomeMessage = """Welcome to Gradle $distribution.version.version!
+
+Here is what's new:
+${readReleaseFeatures()}
+"""
+    }
+
+    def "renders welcome message only once when executed with Gradle executable"() {
+        expect:
+        !markerFile.exists()
+
+        when:
+        def result = executer.run()
+
+        then:
+        result.output.contains(welcomeMessage)
+        markerFile.exists()
+
+        when:
+        result = executer.run()
+
+        then:
+        !result.output.contains(welcomeMessage)
+        markerFile.exists()
+    }
+
+    @Ignore("does not render message yet")
+    def "renders welcome message only once when executed with Tooling API"() {
+        expect:
+        !markerFile.exists()
+
+        when:
+        def stdOut1 = new ByteArrayOutputStream()
+        def connector = toolingApi.connector()
+        connector.useGradleUserHomeDir(customGradleUserHomeDir)
+
+        toolingApi.withConnection(connector) { connection ->
+            connection.newBuild().setStandardOutput(stdOut1).run()
+        }
+
+        then:
+        stdOut1.toString().contains(welcomeMessage)
+        markerFile.exists()
+
+        when:
+        def stdOut2 = new ByteArrayOutputStream()
+        toolingApi.withConnection { connection ->
+            connection.newBuild().setStandardOutput(stdOut2).run()
+        }
+
+        then:
+        !stdOut2.toString().contains(welcomeMessage)
+        markerFile.exists()
+    }
+
+    static String readReleaseFeatures() {
+        InputStream inputStream = NotificationsIntegrationTest.class.getClassLoader().getResourceAsStream('release-features.txt')
+        StringWriter writer = new StringWriter()
+        IOUtils.copy(inputStream, writer, 'UTF-8')
+        writer.toString()
+    }
+}

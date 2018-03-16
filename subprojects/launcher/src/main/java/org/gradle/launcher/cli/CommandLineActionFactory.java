@@ -16,8 +16,10 @@
 package org.gradle.launcher.cli;
 
 import groovy.lang.GroovySystem;
+import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.Main;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
@@ -50,9 +52,14 @@ import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToLogLevelConfigurationConverter;
 import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationConverter;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -109,6 +116,69 @@ public class CommandLineActionFactory {
         out.println();
         parser.printUsage(out);
         out.println();
+    }
+
+    private static class WelcomeMessageAction implements Action<PrintStream> {
+        private final BuildLayoutParameters buildLayoutParameters;
+
+        public WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
+            this.buildLayoutParameters = buildLayoutParameters;
+        }
+
+        @Override
+        public void execute(PrintStream out) {
+            GradleVersion currentVersion = GradleVersion.current();
+            File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
+            File notificationsDir = new File(gradleUserHomeDir, "notifications/" + currentVersion.getVersion());
+            File markerFile = new File(notificationsDir, "release-features.rendered");
+
+            if (!markerFile.exists()) {
+                out.println();
+                out.print("Welcome to Gradle " + currentVersion.getVersion() + "!");
+
+                String featureList = readReleaseFeatures();
+
+                if (featureList != null) {
+                    out.println();
+                    out.println();
+                    out.print("Here is what's new:");
+                    out.println();
+                    out.print(featureList);
+                }
+
+                if (!currentVersion.isSnapshot()) {
+                    out.println();
+                    out.print("For more details see https://gradle.org/releases/" + currentVersion.getVersion() + "/release-notes.html");
+                    out.println();
+                }
+
+                out.println();
+
+                writeMarkerFile(markerFile);
+            }
+        }
+
+        private String readReleaseFeatures() {
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("release-features.txt");
+
+            if (inputStream != null) {
+                StringWriter writer = new StringWriter();
+
+                try {
+                    IOUtils.copy(inputStream, writer, "UTF-8");
+                    return writer.toString();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
+            return null;
+        }
+
+        private void writeMarkerFile(File markerFile) {
+            GFileUtils.mkdirs(markerFile.getParentFile());
+            GFileUtils.touch(markerFile);
+        }
     }
 
     private static class BuiltInActions implements CommandLineAction {
@@ -248,6 +318,7 @@ public class CommandLineActionFactory {
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
+                new WelcomeMessageAction(buildLayout).execute(System.out);
                 action.execute(executionListener);
             } finally {
                 loggingManager.stop();
