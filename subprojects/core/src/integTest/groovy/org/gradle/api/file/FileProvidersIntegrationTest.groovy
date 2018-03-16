@@ -531,8 +531,56 @@ class SomeTask extends DefaultTask {
         result.assertTasksSkipped(":doNothing")
     }
 
+    def "optional output consumed as non-optional input yields a reasonable error message"() {
+        given:
+        buildFile << """
+            class ProducerTask extends DefaultTask {
+                @Optional @OutputFile
+                Property<RegularFile> outFile = newOutputFile()
+                
+                @TaskAction
+                def go() { }
+            }
+            
+            class NestedBean {
+                NestedBean(RegularFileProperty inputFile) {
+                    this.inputFile = inputFile
+                }
+            
+                @InputFile
+                final RegularFileProperty inputFile
+            }
+            
+            class ConsumerTask extends DefaultTask {
+            
+                @Nested
+                NestedBean bean = new NestedBean(project.layout.fileProperty())
+                
+                @Optional
+                @OutputFile
+                Property<RegularFile> outputFile = newOutputFile() 
+                
+                @TaskAction
+                def go() { }
+            }
+            
+            task producer(type: ProducerTask)
+            task consumer(type: ConsumerTask) {
+                bean.inputFile.set(producer.outFile)
+            }
+        """
+
+        when:
+        fails("consumer")
+
+        then:
+        failure.assertHasDescription("A problem was found with the configuration of task ':consumer'.")
+        failure.assertHasCause("No value has been specified for property 'bean.inputFile'.")
+        executedTasks == [':consumer']
+    }
+
     @ToBeImplemented("Absent Provider in FileCollection throws exception")
-    def "depending on an optional output from another task works"() {
+    def "depending on an optional output from another task as part of a FileCollection works"() {
         given:
         buildFile << """
             class ProducerTask extends DefaultTask {
