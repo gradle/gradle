@@ -586,7 +586,7 @@ This means that changes which only touch the implementation of classes do not ma
 When analyzing `@api:org.gradle.api.tasks.Nested[]` task properties for declared input and output sub-properties Gradle uses the type of the actual value.
 Hence it can discover all sub-properties declared by a runtime sub-type.
 
-When adding `@api:org.gradle.api.tasks.Nested[]` to a `@api:org.gradle.api.provider.Provider[]`, the value of the `Provider` is treated as nested input.
+When adding `@api:org.gradle.api.tasks.Nested[]` to a `@api:org.gradle.api.provider.Provider[]`, the value of the `Provider` is treated as a nested input.
 
 When adding `@api:org.gradle.api.tasks.Nested[]` to an iterable, each element is treated as a separate nested input.
 Each nested input in the iterable is assigned a name, which by default is the dollar sign followed by the index in the iterable, e.g. `$2`.
