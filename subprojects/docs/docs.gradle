@@ -510,3 +510,9 @@ task docs {
 task docsZip(type: Zip) {
     from project.outputs.docs
 }
+
+task releaseFeaturesJar(type: Jar) {
+    description = 'Builds a JAR file containing release information needed at runtime.'
+    baseName = 'gradle-release-features'
+    from 'src/docs/release/release-features.txt'
+}
