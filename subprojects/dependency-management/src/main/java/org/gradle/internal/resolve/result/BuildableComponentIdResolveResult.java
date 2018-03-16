@@ -28,9 +28,9 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
 
     void resolved(ComponentResolveMetadata metaData);
 
-    void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
-
     void failed(ModuleVersionResolveException failure);
+
+    void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
 
     ResolvedVersionConstraint getResolvedVersionConstraint();
 

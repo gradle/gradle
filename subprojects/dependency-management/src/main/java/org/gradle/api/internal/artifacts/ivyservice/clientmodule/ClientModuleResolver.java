@@ -64,12 +64,12 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
         ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
-            ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getMetaData();
+            ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getMetadata();
             List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(identifier, clientModule);
             ModuleComponentArtifactMetadata clientModuleArtifact = createClientModuleArtifact(originalMetadata);
             ClientModuleComponentResolveMetadata clientModuleMetaData = new ClientModuleComponentResolveMetadata(originalMetadata, clientModuleArtifact, clientModuleDependencies);
 
-            result.setMetaData(clientModuleMetaData);
+            result.setMetadata(clientModuleMetaData);
         }
     }
 

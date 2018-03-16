@@ -46,7 +46,7 @@ public interface ComponentResolveResult extends ResolveResult {
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
-    ComponentResolveMetadata getMetaData() throws ModuleVersionResolveException;
+    ComponentResolveMetadata getMetadata() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

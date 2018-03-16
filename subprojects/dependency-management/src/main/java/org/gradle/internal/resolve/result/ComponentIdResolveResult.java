@@ -25,8 +25,8 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import javax.annotation.Nullable;
 
 /**
- * The result of resolving a module version selector to a particular component id. The result may optionally include the meta-data for the selected component, if it
- * is cheaply available (for example, it was used to select the component).
+ * The result of resolving a module version selector to a particular component id.
+ * The result may optionally include the meta-data for the selected component, if it is cheaply available (for example, it was used to select the component).
  */
 public interface ComponentIdResolveResult extends ResolveResult {
     @Nullable
@@ -42,5 +42,5 @@ public interface ComponentIdResolveResult extends ResolveResult {
      * Returns the meta-data for the component, if it was available at resolve time.
      */
     @Nullable
-    ComponentResolveMetadata getMetaData();
+    ComponentResolveMetadata getMetadata();
 }

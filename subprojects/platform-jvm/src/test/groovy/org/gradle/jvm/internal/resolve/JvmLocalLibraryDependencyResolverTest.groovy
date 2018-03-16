@@ -137,7 +137,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             assert result.failure.cause.message =~ failure
         } else {
             assert result.failure == null
-            def md = result.metaData
+            def md = result.metadata
             assert md.id.group == selector.projectPath
             if (selector.libraryName) {
                 assert md.id.name == selector.libraryName

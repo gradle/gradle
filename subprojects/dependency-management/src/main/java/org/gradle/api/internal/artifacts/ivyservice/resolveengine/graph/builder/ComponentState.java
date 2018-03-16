@@ -148,7 +148,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
         selectedBy.add(resolver);
         if (!alreadyResolved()) {
-            metaData = idResolveResult.getMetaData();
+            metaData = idResolveResult.getMetadata();
         }
     }
 
@@ -176,7 +176,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             failure = result.getFailure();
             return;
         }
-        metaData = result.getMetaData();
+        metaData = result.getMetadata();
     }
 
     public ResolvedVersionConstraint getVersionConstraint() {

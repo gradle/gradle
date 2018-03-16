@@ -27,7 +27,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
-    private ComponentResolveMetadata metaData;
+    private ComponentResolveMetadata metadata;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private ComponentSelectionDescriptorInternal selectionDescription;
@@ -61,9 +61,9 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         return selectionDescription;
     }
 
-    public ComponentResolveMetadata getMetaData() {
+    public ComponentResolveMetadata getMetadata() {
         assertResolved();
-        return metaData;
+        return metadata;
     }
 
     public void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
@@ -72,9 +72,9 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         this.moduleVersionId = moduleVersionIdentifier;
     }
 
-    public void resolved(ComponentResolveMetadata metaData) {
-        resolved(metaData.getComponentId(), metaData.getId());
-        this.metaData = metaData;
+    public void resolved(ComponentResolveMetadata metadata) {
+        resolved(metadata.getComponentId(), metadata.getId());
+        this.metadata = metadata;
     }
 
     public void failed(ModuleVersionResolveException failure) {
@@ -93,7 +93,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     private void reset() {
         failure = null;
-        metaData = null;
+        metadata = null;
         id = null;
         moduleVersionId = null;
         selectionDescription = selectionDescription == null || selectionDescription.getCause() != ComponentSelectionCause.CONSTRAINT ? VersionSelectionReasons.REQUESTED : VersionSelectionReasons.CONSTRAINT;
