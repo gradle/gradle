@@ -19,6 +19,7 @@ package org.gradle.testing.fixture
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -29,7 +30,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
-abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator

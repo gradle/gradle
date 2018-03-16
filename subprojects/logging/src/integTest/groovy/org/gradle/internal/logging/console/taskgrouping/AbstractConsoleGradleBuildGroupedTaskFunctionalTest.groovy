@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-class ConsoleGradleBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
+abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
     private static final String IMPORTANT_MESSAGE = 'Something important needs to happen'

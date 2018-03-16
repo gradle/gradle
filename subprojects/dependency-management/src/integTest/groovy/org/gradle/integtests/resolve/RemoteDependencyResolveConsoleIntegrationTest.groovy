@@ -17,12 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyResolutionTest {
+class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyResolutionTest implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
