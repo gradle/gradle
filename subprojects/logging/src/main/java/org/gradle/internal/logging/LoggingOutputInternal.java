@@ -79,4 +79,9 @@ public interface LoggingOutputInternal extends LoggingOutput {
      */
     @UsedByScanPlugin
     void removeOutputEventListener(OutputEventListener listener);
+
+    /**
+     * Flush any outstanding output.
+     */
+    void flush();
 }

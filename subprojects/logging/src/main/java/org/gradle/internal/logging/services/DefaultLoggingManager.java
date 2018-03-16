@@ -201,6 +201,11 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         loggingOutput.attachSystemOutAndErr();
     }
 
+    @Override
+    public void flush() {
+        loggingRouter.flush();
+    }
+
     private static class StartableLoggingRouter implements Stoppable {
         private final LoggingRouter loggingRouter;
         private LogLevel level;
@@ -269,6 +274,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             } finally {
                 originalState = null;
             }
+        }
+
+        public void flush() {
+            loggingRouter.flush();
         }
     }
 
