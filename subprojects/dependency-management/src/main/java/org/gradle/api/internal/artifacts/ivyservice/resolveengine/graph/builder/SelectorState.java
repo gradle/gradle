@@ -123,8 +123,8 @@ class SelectorState implements DependencyGraphSelector {
             return null;
         }
 
-        selected = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId());
-        selected.selectedBy(this, idResolveResult);
+        selected = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        selected.selectedBy(this);
         selected.addCause(idResolveResult.getSelectionDescription());
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());

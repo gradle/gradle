@@ -37,7 +37,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
-import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.List;
@@ -56,7 +55,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.empty();
     private final ImmutableCapability implicitCapability;
-    private volatile ComponentResolveMetadata metaData;
+    private volatile ComponentResolveMetadata metadata;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException failure;
@@ -123,14 +122,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ComponentResolveMetadata getMetadata() {
         resolve();
-        return metaData;
+        return metadata;
     }
 
     @Override
     public ComponentIdentifier getComponentId() {
         // Use the resolved component id if available: this ensures that Maven Snapshot ids are correctly reported
-        if (metaData != null) {
-            return metaData.getId();
+        if (metadata != null) {
+            return metadata.getId();
         }
         return componentIdentifier;
     }
@@ -141,15 +140,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    public void selectedBy(SelectorState resolver, ComponentIdResolveResult idResolveResult) {
+    public void selectedBy(SelectorState resolver) {
         if (firstSelectedBy == null) {
             firstSelectedBy = resolver;
             selectedBy = Lists.newLinkedList();
         }
         selectedBy.add(resolver);
-        if (!alreadyResolved()) {
-            metaData = idResolveResult.getMetadata();
-        }
     }
 
     public List<SelectorState> getSelectedBy() {
@@ -162,7 +158,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      * @return true if it has been resolved in a cheap way
      */
     public boolean alreadyResolved() {
-        return metaData != null || failure != null;
+        return metadata != null || failure != null;
     }
 
     public void resolve() {
@@ -176,7 +172,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             failure = result.getFailure();
             return;
         }
-        metaData = result.getMetadata();
+        metadata = result.getMetadata();
     }
 
     public ResolvedVersionConstraint getVersionConstraint() {
@@ -185,11 +181,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public boolean isResolved() {
-        return metaData != null;
+        return metadata != null;
     }
 
-    public void setMetaData(ComponentResolveMetadata metaData) {
-        this.metaData = metaData;
+    public void setMetadata(ComponentResolveMetadata metaData) {
+        this.metadata = metaData;
         this.failure = null;
     }
 
