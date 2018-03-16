@@ -14,11 +14,11 @@ import java.util.*
  */
 open class AbstractPluginTest : AbstractIntegrationTest() {
 
-    @Before
-    fun setUpTestPluginRepository() {
+    protected
+    val testPluginRepositorySettings by lazy {
         val testRepository = normaliseFileSeparators(absolutePathOf("build/repository"))
         val futureVersion = loadTestProperties()["version"]
-        withSettings("""
+        """
             pluginManagement {
                 repositories {
                     maven { url = uri("$testRepository") }
@@ -32,7 +32,12 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
                     }
                 }
             }
-        """)
+        """
+    }
+
+    @Before
+    fun setUpTestPluginRepository() {
+        withSettings(testPluginRepositorySettings)
     }
 
     private

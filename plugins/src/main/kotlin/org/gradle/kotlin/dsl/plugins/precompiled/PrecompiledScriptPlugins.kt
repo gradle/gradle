@@ -17,8 +17,12 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.SourceSet
 
-import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.*
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
@@ -28,51 +32,168 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
+import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+import java.io.File
 
 
 /*
- * Enables the compilation of `*.gradle.kts` scripts in regular Kotlin source-sets.
+ * Exposes `*.gradle.kts` scripts from regular Kotlin source-sets as binary Gradle plugins.
  */
 open class PrecompiledScriptPlugins : Plugin<Project> {
 
-    override fun apply(project: Project) = project.run {
+    override fun apply(project: Project): Unit = project.run {
 
-        afterEvaluate {
+        enableScriptCompilation()
 
-            tasks {
+        plugins.withType<JavaGradlePluginPlugin> {
+            exposeScriptsAsGradlePlugins()
+        }
+    }
+}
 
-                "compileKotlin"(KotlinCompile::class) {
-                    kotlinOptions {
-                        freeCompilerArgs += listOf(
-                            "-script-templates", scriptTemplates,
-                            // Propagate implicit imports and other settings
-                            "-Xscript-resolver-environment=${resolverEnvironment()}"
-                        )
-                    }
+
+private
+fun Project.enableScriptCompilation() {
+
+    afterEvaluate {
+
+        tasks {
+
+            "compileKotlin"(KotlinCompile::class) {
+                kotlinOptions {
+                    freeCompilerArgs += listOf(
+                        "-script-templates", scriptTemplates,
+                        // Propagate implicit imports and other settings
+                        "-Xscript-resolver-environment=${resolverEnvironment()}"
+                    )
                 }
             }
         }
     }
+}
 
-    private
-    val scriptTemplates by lazy {
-        listOf(
-            // treat *.settings.gradle.kts files as Settings scripts
-            PrecompiledSettingsScript::class.qualifiedName!!,
-            // treat *.init.gradle.kts files as Gradle scripts
-            PrecompiledInitScript::class.qualifiedName!!,
-            // treat *.gradle.kts files as Project scripts
-            PrecompiledProjectScript::class.qualifiedName!!
-        ).joinToString(separator = ",")
+
+private
+val scriptTemplates by lazy {
+    listOf(
+        // treat *.settings.gradle.kts files as Settings scripts
+        PrecompiledSettingsScript::class.qualifiedName!!,
+        // treat *.init.gradle.kts files as Gradle scripts
+        PrecompiledInitScript::class.qualifiedName!!,
+        // treat *.gradle.kts files as Project scripts
+        PrecompiledProjectScript::class.qualifiedName!!
+    ).joinToString(separator = ",")
+}
+
+
+private
+fun Project.resolverEnvironment() =
+    (PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
+        + "=\"" + implicitImports().joinToString(separator = ":") + "\"")
+
+
+private
+fun Project.implicitImports(): List<String> =
+    serviceOf<ImplicitImports>().list
+
+
+private
+fun Project.exposeScriptsAsGradlePlugins() {
+
+    // TODO: script plugins from custom source-set dirs
+    val scriptSourceFiles = fileTree("src/main/kotlin") {
+        it.include("**/*.gradle.kts")
     }
 
-    private
-    fun Project.resolverEnvironment() =
-        (PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
-            + "=\"" + implicitImports().joinToString(separator = ":") + "\"")
+    val scriptPlugins by lazy {
+        scriptSourceFiles.map(::ScriptPlugin)
+    }
 
-    private
-    fun Project.implicitImports(): List<String> =
-        serviceOf<ImplicitImports>().list
+    declareScriptPlugins(scriptPlugins)
+
+    generatePluginAdaptersFor(scriptPlugins, scriptSourceFiles)
 }
+
+
+private
+fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
+
+    tasks {
+
+        val inferGradlePluginDeclarations by creating {
+            doLast {
+                project.configure<GradlePluginDevelopmentExtension> {
+                    for (scriptPlugin in scriptPlugins) {
+                        plugins.create(scriptPlugin.id) {
+                            it.id = scriptPlugin.id
+                            it.implementationClass = scriptPlugin.implementationClass
+                        }
+                    }
+                }
+            }
+        }
+
+        getByName("pluginDescriptors") {
+            it.dependsOn(inferGradlePluginDeclarations)
+        }
+    }
+}
+
+
+private
+fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: ConfigurableFileTree) {
+
+    tasks {
+
+        val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
+        val sourceSet = sourceSets["main"]
+        sourceSet.kotlin.srcDir(generatedSourcesDir)
+
+        val generateScriptPluginAdapters by creating {
+            inputs.files(scriptSourceFiles)
+            outputs.dir(generatedSourcesDir)
+            doLast {
+                for (scriptPlugin in scriptPlugins) {
+                    scriptPlugin.writeScriptPluginAdaterTo(generatedSourcesDir.get().asFile)
+                }
+            }
+        }
+
+        getByName("compileKotlin") {
+            it.dependsOn(generateScriptPluginAdapters)
+        }
+    }
+}
+
+
+internal
+fun ScriptPlugin.writeScriptPluginAdaterTo(outputDir: File) =
+    File(outputDir, "$implementationClass.kt").writeText(
+        """
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class $implementationClass : Plugin<Project> {
+                override fun apply(target: Project) {
+                    Class
+                        .forName("$compiledScriptTypeName")
+                        .getDeclaredConstructor(Project::class.java)
+                        .newInstance(target)
+                }
+            }
+        """.replaceIndent())
+
+
+private
+val Project.sourceSets
+    get() = project.the<JavaPluginConvention>().sourceSets
+
+
+private
+val SourceSet.kotlin: SourceDirectorySet
+    get() = withConvention(KotlinSourceSet::class) { kotlin }
