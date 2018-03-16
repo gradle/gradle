@@ -34,6 +34,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
+import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
 import java.util.List;
@@ -50,19 +51,19 @@ class SelectorState implements DependencyGraphSelector {
     private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
     private final DependencyToComponentIdResolver resolver;
-    private final ResolveState resolveState;
     private final ResolvedVersionConstraint versionConstraint;
+
+    private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
     private ComponentSelectionReasonInternal failureSelectionReason;
     private ModuleResolveState targetModule;
-    private ComponentState selected;
+    ComponentState selected;
 
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
         this.resolver = resolver;
-        this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionConstraint = resolveVersionConstraint(dependencyMetadata.getSelector());
         targetModule.addSelector(this);
@@ -110,16 +111,10 @@ class SelectorState implements DependencyGraphSelector {
 
     /**
      * Does the work of actually resolving a component selector to a component identifier.
-     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link #selected}, and returned.
-     * On resolve failure, the failure is recorded and a `null` component is {@link #selected} and returned.
-     * @return A component state for the selected component id, or null if there is a failure to resolve this selector.
      */
-    public ComponentState resolveModuleRevisionId() {
-        if (selected != null) {
-            return selected;
-        }
-        if (failure != null) {
-            return null;
+    public ComponentIdResolveResult resolve() {
+        if (idResolveResult != null) {
+            return idResolveResult;
         }
 
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
@@ -135,10 +130,14 @@ class SelectorState implements DependencyGraphSelector {
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
             failureSelectionReason = createFailureReason(idResolveResult);
-            return null;
         }
 
-        selected = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        this.idResolveResult = idResolveResult;
+        return idResolveResult;
+
+    }
+
+    public void select(ComponentState selected) {
         selected.selectedBy(this);
         selected.addCause(idResolveResult.getSelectionDescription());
         if (dependencyState.getRuleDescriptor() != null) {
@@ -149,7 +148,7 @@ class SelectorState implements DependencyGraphSelector {
         // TODO Ditch the JVM Software Model plugins and re-add this assertion
 //        assert selected.getModule() == targetModule;
 
-        return selected;
+        this.selected = selected;
     }
 
     public ComponentSelectionReason getSelectionReason() {
