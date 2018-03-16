@@ -31,11 +31,12 @@ import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
 public class AnnotationProcessorPathFactory {
-    public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "Putting annotation processors on the compile classpath";
+    public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "The following annotation processors were detected on the compile classpath:";
     public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
 
     private final FileCollectionFactory fileCollectionFactory;
@@ -142,8 +143,15 @@ public class AnnotationProcessorPathFactory {
                     if (hasExplicitProcessor) {
                         return compileClasspath.getFiles();
                     }
-                    if (!annotationProcessorDetector.detectProcessors(compileClasspath).isEmpty()) {
-                        DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
+                    Map<String, AnnotationProcessorDeclaration> processors = annotationProcessorDetector.detectProcessors(compileClasspath);
+                    if (!processors.isEmpty()) {
+                        DeprecationLogger.nagUserWith(
+                            COMPILE_CLASSPATH_DEPRECATION_MESSAGE +
+                            " '" + Joiner.on("' and '").join(processors.keySet()) + "'. " +
+                            "Detecting annotation processors on the compile classpath is deprecated and Gradle 5.0 will ignore them. " +
+                            "Please add them to the annotation processor path instead. " +
+                            "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them."
+                        );
                         return compileClasspath.getFiles();
                     }
                     return Collections.emptySet();
