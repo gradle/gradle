@@ -190,7 +190,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 }
             }
 
-            apply { plugin("kotlin") }
+            apply(plugin = "kotlin")
 
             tasks.withType<KotlinCompile> {
                 // can configure the Kotlin compiler
@@ -467,7 +467,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         withSettings("""
-            apply { from("common.gradle.kts") }
+            apply(from = "common.gradle.kts")
         """)
 
         assertThat(
@@ -478,7 +478,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         withSettings("")
         withBuildScript("""
-            apply { from("common.gradle.kts") }
+            apply(from = "common.gradle.kts")
         """)
 
         assertThat(
@@ -507,7 +507,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         withSettings("""
-            apply { plugin(my.SettingsPlugin::class.java) }
+            apply<my.SettingsPlugin>()
         """)
 
         assertThat(
@@ -551,7 +551,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         withBuildScript("""
             buildscript {
-              rootProject.apply { from(rootProject.file("gradle/dependencies.gradle.kts")) }
+              rootProject.apply(from = rootProject.file("gradle/dependencies.gradle.kts"))
             }
             buildScan {
                 setLicenseAgreementUrl("https://gradle.com/terms-of-service")
@@ -676,7 +676,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         val remoteScript = """
 
-            apply { from("./gradle/answer.gradle.kts") }
+            apply(from = "./gradle/answer.gradle.kts")
 
         """
 
@@ -694,7 +694,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             val remoteScriptUrl = server.url("/remote.gradle.kts")
 
             withBuildScript("""
-                apply { from("$remoteScriptUrl") }
+                apply(from = "$remoteScriptUrl")
                 val answer: String by extra
                 println("*" + answer + "*")
             """)
@@ -708,7 +708,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         val scriptFromJar = """
 
-            apply { from("./gradle/answer.gradle.kts") }
+            apply(from = "./gradle/answer.gradle.kts")
 
         """
 
@@ -727,9 +727,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 dependencies { classpath(files("fixture.jar")) }
             }
 
-            apply {
-                from(project.buildscript.classLoader.getResource("common.gradle.kts").toURI())
-            }
+            apply(from = project.buildscript.classLoader.getResource("common.gradle.kts").toURI())
 
             val answer: String by extra
             println("*" + answer + "*")
@@ -754,7 +752,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         val main = withBuildScript("""
-            apply { from("other.gradle.kts") }
+            apply(from = "other.gradle.kts")
             println("main: ${'$'}{buildscript.sourceFile}")
         """)
 

@@ -35,7 +35,7 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.PluginManager
+import org.gradle.api.plugins.PluginAware
 
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -68,17 +68,17 @@ fun Project.defaultTasks(vararg tasks: Task) {
 
 
 /**
- * Applies the given plugin. Does nothing if the plugin has already been applied.
+ * Applies the plugin of the given type [T]. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface, and be parameterized for a
  * compatible type of `this`.
  *
  * @param T the plugin type.
- * @see [PluginManager.apply]
+ * @see [PluginAware.apply]
  */
 inline
 fun <reified T : Plugin<Project>> Project.apply() =
-    pluginManager.apply(T::class.java)
+    (this as PluginAware).apply<T>()
 
 
 /**

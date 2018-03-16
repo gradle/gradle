@@ -86,6 +86,9 @@ abstract class KotlinSettingsScript(
      */
     override fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
         host.applyObjectConfigurationAction(Action { it.configuration() })
+
+    override fun apply(action: Action<in ObjectConfigurationAction>) =
+        host.applyObjectConfigurationAction(action)
 }
 
 

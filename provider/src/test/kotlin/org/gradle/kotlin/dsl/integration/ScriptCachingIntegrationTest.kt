@@ -92,7 +92,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
         // given: same init, settings & build files all applying same script
         val same = withFile("same.gradle.kts", """println("Same script on ${'$'}this")""")
-        val sameApply = """apply { from("same.gradle.kts") }"""
+        val sameApply = """apply(from = "same.gradle.kts")"""
         val initScriptFile = withFile("same.init.gradle.kts", sameApply)
 
         val initializationFile = cachedInitializationFile(initScriptFile)
