@@ -27,7 +27,6 @@ class NotificationsIntegrationTest extends AbstractIntegrationSpec {
     def customGradleUserHomeDir = testDirectoryProvider.getTestDirectory().file('user-home')
     def markerFile
     def welcomeMessage
-    def toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
         executer.requireGradleDistribution()
@@ -66,6 +65,7 @@ ${readReleaseFeatures()}
         !markerFile.exists()
 
         when:
+        def toolingApi = new ToolingApi(distribution, temporaryFolder)
         def stdOut1 = new ByteArrayOutputStream()
         def connector = toolingApi.connector()
         connector.useGradleUserHomeDir(customGradleUserHomeDir)
