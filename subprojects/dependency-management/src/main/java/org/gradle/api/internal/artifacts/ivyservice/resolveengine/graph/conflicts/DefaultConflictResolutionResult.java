@@ -25,15 +25,13 @@ import java.util.Collection;
 class DefaultConflictResolutionResult implements ConflictResolutionResult {
     private final Collection<? extends ModuleIdentifier> participatingModules;
     private final ComponentResolutionState selected;
-    private final Collection<? extends ComponentResolutionState> candidates;
 
-    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, ComponentResolutionState selected, Collection<? extends ComponentResolutionState> candidates) {
+    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, ComponentResolutionState selected) {
         this.participatingModules = participatingModules;
         this.selected = selected;
-        this.candidates = candidates;
     }
 
-    public void withParticipatingModules(Action<ModuleIdentifier> action) {
+    public void withParticipatingModules(Action<? super ModuleIdentifier> action) {
         for (ModuleIdentifier module : participatingModules) {
             action.execute(module);
         }
@@ -43,8 +41,4 @@ class DefaultConflictResolutionResult implements ConflictResolutionResult {
         return selected;
     }
 
-    @Override
-    public Collection<? extends ComponentResolutionState> getCandidates() {
-        return candidates;
-    }
 }

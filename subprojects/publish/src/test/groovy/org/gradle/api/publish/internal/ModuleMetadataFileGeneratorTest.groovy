@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.capabilities.CapabilityDescriptor
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -630,6 +631,91 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       "attributes": {
         "usage": "compile"
       }
+    }
+  ]
+}
+"""
+    }
+
+    def "writes file for component with variants with capabilities"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        def c1 = Stub(CapabilityDescriptor) {
+            getGroup() >> 'org.test'
+            getName() >> 'foo'
+            getVersion() >> '1'
+        }
+        def c2 = Stub(CapabilityDescriptor) {
+            getGroup() >> 'org.test'
+            getName() >> 'bar'
+            getVersion() >> '2'
+        }
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        v1.dependencies >> []
+        v1.capabilities >> [c1]
+
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.attributes >> attributes(usage: "runtime")
+        v2.dependencies >> []
+        v2.capabilities >> [c1, c2]
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(publication, [publication], writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "component": {
+    "group": "group",
+    "module": "module",
+    "version": "1.2",
+    "attributes": {}
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "usage": "compile"
+      },
+      "capabilities": [
+        {
+          "group": "org.test",
+          "name": "foo",
+          "version": "1"
+        }
+      ]
+    },
+    {
+      "name": "v2",
+      "attributes": {
+        "usage": "runtime"
+      },
+      "capabilities": [
+        {
+          "group": "org.test",
+          "name": "foo",
+          "version": "1"
+        },
+        {
+          "group": "org.test",
+          "name": "bar",
+          "version": "2"
+        }
+      ]
     }
   ]
 }

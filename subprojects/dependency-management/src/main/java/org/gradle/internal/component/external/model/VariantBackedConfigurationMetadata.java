@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -129,6 +130,11 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
+    public CapabilitiesMetadata getCapabilitiesMetadata() {
+        return variant.getCapabilitiesMetadata();
+    }
+
+    @Override
     public List<? extends ComponentArtifactMetadata> getArtifacts() {
         return ImmutableList.of();
     }
@@ -154,6 +160,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         private final ComponentVariant delegate;
 
         private ImmutableAttributes computedAttributes;
+        private CapabilitiesMetadata computedCapabilities;
 
         private RuleAwareVariant(ComponentVariant delegate) {
             this.delegate = delegate;
@@ -202,6 +209,14 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         @Override
         public ImmutableList<? extends File> getFiles() {
             return delegate.getFiles();
+        }
+
+        @Override
+        public CapabilitiesMetadata getCapabilitiesMetadata() {
+            if (computedCapabilities == null) {
+                computedCapabilities = variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilitiesMetadata());
+            }
+            return computedCapabilities;
         }
     }
 }

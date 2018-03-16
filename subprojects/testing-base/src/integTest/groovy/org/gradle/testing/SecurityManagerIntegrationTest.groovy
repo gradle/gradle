@@ -54,6 +54,9 @@ public class SecurityManagerTest {
 '''
 
         expect:
+        // This test causes the test process to exit ungracefully without closing connections.  This can sometimes
+        // cause connection errors to show up in stderr.
+        executer.withStackTraceChecksDisabled()
         fails('test')
         result.error.contains("Process 'Gradle Test Executor 1' finished with non-zero exit value 1")
         result.error.contains("Please refer to the test execution section in the user guide at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_plugin.html#sec:test_execution")

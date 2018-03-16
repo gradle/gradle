@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -58,11 +59,11 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         this(null);
     }
 
-    public DefaultTaskDependency(TaskResolver resolver) {
+    public DefaultTaskDependency(@Nullable TaskResolver resolver) {
         this(resolver, ImmutableSet.of());
     }
 
-    public DefaultTaskDependency(TaskResolver resolver, ImmutableSet<Object> immutableValues) {
+    public DefaultTaskDependency(@Nullable TaskResolver resolver, ImmutableSet<Object> immutableValues) {
         this.resolver = resolver;
         this.immutableValues = immutableValues;
     }

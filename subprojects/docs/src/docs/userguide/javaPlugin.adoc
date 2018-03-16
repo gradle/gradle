@@ -528,7 +528,7 @@ Main goals for incremental compilations are:
 
 The incremental compilation at a high level:
 
-* The detection of the correct set of stale classes is reliable at some expense of speed. The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc. Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
+* The stale class detection favors reliability over speed. The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc. Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
 * To make incremental compilation fast, we cache class analysis results and jar snapshots. The initial incremental compilation can be slower due to the cold caches.
 
 [[sec:incremental_compilation_known_issues]]
@@ -538,7 +538,69 @@ The incremental compilation at a high level:
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * Because of type erasure, the incremental compiler is not able to recognize when a type is only used in a type parameter, and never actually used in the code. For example, imagine that you have the following code: `List&lt;? extends A&gt; list = Lists.newArrayList();` but that no member of `A` is in practice used in the code, then changes to `A` will not trigger recompilation of the class. In practice, this should very rarely be an issue.
 
+[[sec:incremental_annotation_processing]]
+=== Incremental annotation processing
 
+Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
+Annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
+As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
+
+==== Making an annotation processor incremental
+
+Gradle supports incremental compilation for two common categories of annotation processors: "Isolating" and "Aggregating".
+As a processor author, please consult the information below to decide which category fits your processor.
+You can then register it for incremental compilation in its META-INF folder.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="incrementalAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors">
+     <sourcefile file="processor/src/main/resources/META-INF/gradle/incremental.annotation.processors" snippet="registering-incremental-annotation-processors"/>
+</sample>
+++++
+
+Processors that don't fit these categories will result in full recompilation.
+This includes processors that use `java.io` instead of the `Filer` API and processors that need to read or write resource files.
+
+===== Isolating annotation processors
+These look at each annotated element in isolation, creating generated files or validation messages for it.
+For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="isolatingAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An isolated annotation processor">
+     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="isolating-annotation-processor"/>
+</sample>
+++++
+
+
+Isolating processors have the following limitations:
+
+* Can't read resources
+* Can't write resources
+* Can't have any side effects except for using the `Filer` and `Messager` APIs
+* Must provide exactly one originating element for each file generated with the `Filer` API
+* Must make all decisions about an element based on information reachable from its AST.
+For instance it can query the super class, method return types etc, but can't look at other, unrelated elements.
+
+Gradle will recompile the generated file whenever the source file is affected.
+If the source file is deleted, the generated file is deleted.
+
+===== Aggregating annotation processors
+These aggregate several source files into one ore more output files or validation messages.
+For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="aggregatingAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An aggregating annotation processor">
+     <sourcefile file="processor/src/main/java/ServiceRegistryProcessor.java" snippet="aggregating-annotation-processor"/>
+</sample>
+++++
+
+Aggregating processors have the following limitations:
+
+* Can't read resources (this may change in the future)
+* Can't write resources (this may change in the future)
+* Can't have any side effects except for using the `Filer` and `Messager` APIs
+
+Gradle will always recompile all files that contain annotations which the aggregating processor registered itself for, as well as all files generated by it.
+In other words, aggregating processors create small non-incremental clusters in the code base.
 
 [[sec:java_compile_avoidance]]
 === Compile avoidance
@@ -628,36 +690,68 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`
-* Wildcard '*' is supported for matching any characters
+* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`.
+* Simple class name or simple method name is supported if the pattern starts with an upper-case letter, e.g. `SomeTest`, `SomeTest.someMethod` (Since 4.7).
+* Wildcard '*' is supported for matching any characters.
 * Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
-
-
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testfiltering" dir="testing/filtering" title="Filtering tests in the build script">
-                    <sourcefile file="build.gradle" snippet="test-filtering"/>
-                </sample>
+     <sourcefile file="build.gradle" snippet="test-filtering"/>
+</sample>
 ++++
 
 For more details and examples please see the api:org.gradle.api.tasks.testing.TestFilter[] reference.
 
-Some examples of using the command line option:
+Generally speaking, there're two kinds of pattern:
 
-* `gradle test --tests org.gradle.SomeTest.someSpecificFeature`
-* `gradle test --tests \*SomeTest.someSpecificFeature`
-* `gradle test --tests \*SomeSpecificTest`
-* `gradle test --tests \*SomeSpecificTestSuite`
-* `gradle test --tests all.in.specific.package\*`
-* `gradle test --tests \*IntegTest`
-* `gradle test --tests \\*IntegTest\*ui\*`
-* `gradle test --tests "com.example.MyTestSuite"`
-* `gradle test --tests "com.example.ParameterizedTest"`
-* `gradle test --tests "\*ParameterizedTest.foo*"`
-* `gradle test --tests "\*ParameterizedTest.*[2]"`
-* `gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui`
+[[simple_name_pattern]]
+===== Simple name pattern
+
+Since 4.7, a pattern starting with an upper-case letter matches simple class name:
+
+```
+# can match 'SomeTest' and corresponding method at any package
+gradle test --tests SomeTestClass
+
+gradle test --tests SomeTestClass.someSpecificMethod
+
+gradle test --tests SomeTestClass.*someMethod*
+```
+
+[[full_qualified_name_pattern]]
+===== Full qualified name pattern
+
+Otherwise, the pattern matches full qualified class name.
+
+```
+# specific class
+gradle test --tests org.gradle.SomeTestClass
+
+# specific class and method
+gradle test --tests org.gradle.SomeTestClass.someSpecificMethod
+
+# method name containing spaces
+gradle test --tests "org.gradle.SomeTestClass.some method containing spaces"
+
+# all classes at specific package (recursively)
+gradle test --tests 'all.in.specific.package*'
+
+# specific method at specific package (recursively)
+gradle test --tests 'all.in.specific.package*.someSpecificMethod'
+
+gradle test --tests '*IntegTest'
+
+gradle test --tests '*IntegTest*ui*'
+
+gradle test --tests '*ParameterizedTest.foo*'
+
+# the second iteration of a parameterized test
+gradle test --tests '*ParameterizedTest.*[2]'
+```
+
 
 This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
 

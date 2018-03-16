@@ -105,6 +105,13 @@ class GradleFileModuleAdapter {
                             }
                         }
                     })
+                    capabilities(v.capabilities.collect { c ->
+                        { ->
+                            group c.group
+                            name c.name
+                            version c.version
+                        }
+                    })
                 }
             })
         }

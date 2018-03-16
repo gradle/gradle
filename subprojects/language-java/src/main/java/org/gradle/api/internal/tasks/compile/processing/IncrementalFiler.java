@@ -26,16 +26,15 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.util.Set;
 
 /**
  * A decorator for the {@link Filer} which ensures that incremental
  * annotation processors don't break the incremental processing contract.
  */
 abstract class IncrementalFiler implements Filer {
-    private final Filer delegate;
-    private final AnnotationProcessingResult result;
-    private final Messager messager;
+    protected final Filer delegate;
+    protected final AnnotationProcessingResult result;
+    protected final Messager messager;
 
     IncrementalFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
         this.delegate = delegate;
@@ -45,24 +44,17 @@ abstract class IncrementalFiler implements Filer {
 
     @Override
     public final JavaFileObject createSourceFile(CharSequence name, Element... originatingElements) throws IOException {
-        recordGeneratedType(name, originatingElements, messager);
+        recordGeneratedType(name, originatingElements);
         return delegate.createSourceFile(name, originatingElements);
     }
 
     @Override
     public final JavaFileObject createClassFile(CharSequence name, Element... originatingElements) throws IOException {
-        recordGeneratedType(name, originatingElements, messager);
+        recordGeneratedType(name, originatingElements);
         return delegate.createClassFile(name, originatingElements);
     }
 
-    private void recordGeneratedType(CharSequence name, Element[] originatingElements, Messager messager) {
-        String generatedType = name.toString();
-        Set<String> originatingTypes = ElementUtils.getTopLevelTypeNames(originatingElements);
-        checkGeneratedType(generatedType, originatingTypes, messager);
-        result.addGeneratedType(generatedType, originatingTypes);
-    }
-
-    protected abstract void checkGeneratedType(String generatedType, Set<String> originatingTypes, Messager messager);
+    protected abstract void recordGeneratedType(CharSequence name, Element[] originatingElements);
 
     @Override
     public final FileObject createResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element... originatingElements) throws IOException {

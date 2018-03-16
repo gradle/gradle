@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Transformer;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -81,7 +83,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts, Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata> dependencies) {
         DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(id, componentIdentifier, status, attributesSchema);
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
-            copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.canBeResolved);
+            copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.canBeResolved, configuration.capabilities);
         }
 
         // Artifacts
@@ -100,7 +102,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
                 newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
             }
-            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.asDescribable(), oldVariant.getAttributes(), newArtifacts));
+            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.asDescribable(), oldVariant.getAttributes(), newArtifacts, oldVariant.getCapabilitiesMetadata()));
         }
 
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
@@ -149,13 +151,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
             artifacts = builder.build();
         }
-        allVariants.put(configuration, new DefaultVariantMetadata(variant.asDescribable(), variant.getAttributes().asImmutable(), artifacts));
+        allVariants.put(configuration, new DefaultVariantMetadata(variant.asDescribable(), variant.getAttributes().asImmutable(), artifacts, null));
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         allConfigurations.put(name, conf);
         return conf;
     }
@@ -256,6 +258,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final ImmutableAttributes attributes;
         private final boolean canBeConsumed;
         private final boolean canBeResolved;
+        private final ImmutableCapabilities capabilities;
 
         private ConfigurationInternal backingConfiguration;
         private LocalConfigurationMetadataBuilder configurationMetadataBuilder;
@@ -278,7 +281,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                   Set<String> hierarchy,
                                                   ImmutableAttributes attributes,
                                                   boolean canBeConsumed,
-                                                  boolean canBeResolved) {
+                                                  boolean canBeResolved,
+                                                  ImmutableCapabilities capabilities) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
@@ -288,6 +292,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.attributes = attributes;
             this.canBeConsumed = canBeConsumed;
             this.canBeResolved = canBeResolved;
+            this.capabilities = capabilities;
         }
 
         @Override
@@ -455,6 +460,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
 
             return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
+        }
+
+        @Override
+        public CapabilitiesMetadata getCapabilitiesMetadata() {
+            return capabilities;
         }
 
         private boolean include(DefaultLocalConfigurationMetadata configuration) {

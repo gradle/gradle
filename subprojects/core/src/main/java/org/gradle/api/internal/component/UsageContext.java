@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.CapabilityDescriptor;
 
 import java.util.Set;
 
@@ -31,4 +32,5 @@ public interface UsageContext extends HasAttributes, Named {
     Set<? extends PublishArtifact> getArtifacts();
     Set<? extends ModuleDependency> getDependencies();
     Set<? extends DependencyConstraint> getDependencyConstraints();
+    Set<? extends CapabilityDescriptor> getCapabilities();
 }

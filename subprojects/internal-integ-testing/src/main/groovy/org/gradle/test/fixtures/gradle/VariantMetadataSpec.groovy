@@ -25,18 +25,20 @@ class VariantMetadataSpec {
     List<DependencySpec> dependencies = []
     List<DependencyConstraintSpec> dependencyConstraints = []
     List<FileSpec> artifacts = []
+    List<CapabilitySpec> capabilities = []
 
     VariantMetadataSpec(String name, Map<String, String> attributes = [:]) {
         this.name = name
         this.attributes = attributes
     }
 
-    VariantMetadataSpec(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts) {
+    VariantMetadataSpec(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts, List<CapabilitySpec> capabilities) {
         this.name = name
         this.attributes = attributes
         this.dependencies = dependencies
         this.dependencyConstraints = dependencyConstraints
         this.artifacts = artifacts
+        this.capabilities = capabilities
     }
 
     void attribute(String name, String value) {
