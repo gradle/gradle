@@ -27,9 +27,18 @@ class BuildLogicFunctionalTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
+    File localBuildCacheDirectory
 
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
+        localBuildCacheDirectory = testProjectDir.newFolder('local-cache')
+        testProjectDir.newFile('settings.gradle') << """
+            buildCache {
+                local {
+                    directory '${localBuildCacheDirectory.toURI().toString()}'
+                }
+            }
+        """
     }
 
     // START SNIPPET functional-test-build-cache
