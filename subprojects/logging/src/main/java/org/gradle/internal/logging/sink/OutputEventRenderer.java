@@ -130,7 +130,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return colourMap;
     }
 
-    private void flush() {
+    @Override
+    public void flush() {
         onOutput(new FlushOutputEvent());
     }
 
