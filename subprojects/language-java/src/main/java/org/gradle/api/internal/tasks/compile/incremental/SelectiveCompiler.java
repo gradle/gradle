@@ -61,19 +61,19 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
             return cleaningCompiler.execute(spec);
         }
 
-        Collection<String> classNames = recompilationSpec.getClassNames();
-        incrementalCompilationInitilizer.initializeCompilation(spec, classNames);
-        if (spec.getSource().isEmpty()) {
+        incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec);
+
+        if (spec.getSource().isEmpty() && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary();
         }
 
         try {
-            //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.info("Incremental compilation of {} classes completed in {}.", classNames.size(), clock.getElapsed());
-            LOG.debug("Recompiled classes {}", classNames);
+            Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
+            LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
+            LOG.debug("Recompiled classes {}", classesToCompile);
         }
     }
 }

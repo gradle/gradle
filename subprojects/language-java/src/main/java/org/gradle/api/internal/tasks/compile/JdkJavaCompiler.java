@@ -64,7 +64,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         if (JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options)) {
             fileManager = (StandardJavaFileManager) SourcepathIgnoringProxy.proxy(standardFileManager, StandardJavaFileManager.class);
         }
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, null, compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
 
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         if (annotationProcessors != null) {

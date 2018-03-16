@@ -15,11 +15,12 @@
  */
 
 
-
 package org.gradle.api.internal.tasks.compile.incremental
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 import spock.lang.Subject
@@ -27,7 +28,8 @@ import spock.lang.Subject
 class IncrementalCompilationInitializerTest extends Specification {
 
     def fileOperations = Mock(FileOperations)
-    @Subject initializer = new IncrementalCompilationInitializer(fileOperations)
+    @Subject
+        initializer = new IncrementalCompilationInitializer(fileOperations)
 
     def "prepares patterns"() {
         PatternSet filesToDelete = Mock(PatternSet)
@@ -56,9 +58,36 @@ class IncrementalCompilationInitializerTest extends Specification {
 
     def "configures empty source when stale classes empty"() {
         def compileSpec = Mock(JavaCompileSpec)
-        when: initializer.initializeCompilation(compileSpec, [])
+
+        when:
+        initializer.initializeCompilation(compileSpec, new RecompilationSpec())
+
         then:
         1 * compileSpec.setSource { it.files.empty }
-        0 * _
+    }
+
+    def "configures empty classes when aggregated types empty"() {
+        def compileSpec = Mock(JavaCompileSpec)
+        def spec = new RecompilationSpec()
+
+        when:
+        initializer.initializeCompilation(compileSpec, spec)
+
+        then:
+        1 * compileSpec.setClasses(ImmutableSet.of())
+    }
+
+    def "removes recompiled types from list of reprocessed types"() {
+        def compileSpec = Mock(JavaCompileSpec)
+        def spec = new RecompilationSpec()
+        spec.getClassesToCompile().add('A')
+        spec.getClassesToProcess().add('A')
+        spec.getClassesToProcess().add('B')
+
+        when:
+        initializer.addClassesToProcess(compileSpec, spec)
+
+        then:
+        1 * compileSpec.setClasses(ImmutableSet.of("B"))
     }
 }

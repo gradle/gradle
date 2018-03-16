@@ -51,7 +51,7 @@ class AggregatingFilerTest extends IncrementalFilerTest {
         filer.createSourceFile("Bar", type("B"))
 
         then:
-        result.generatedTypesByOrigin.isEmpty()
-        result.aggregatedTypes == ["Foo", "Bar"] as Set
+        result.generatedTypesWithIsolatedOrigin.isEmpty()
+        result.generatedAggregatingTypes == ["Foo", "Bar"] as Set
     }
 }

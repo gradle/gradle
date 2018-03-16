@@ -63,7 +63,7 @@ public class ClassChangeProcessor {
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
         } else {
-            spec.getClassNames().addAll(actualDependents.getDependentClasses());
+            spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
         }
     }
 }

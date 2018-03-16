@@ -45,6 +45,7 @@ public class RecompilationSpecProvider {
         RecompilationSpec spec = new RecompilationSpec();
         processJarClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec);
+        spec.getClassesToProcess().addAll(previous.getAggregatedTypes().getDependentClasses());
         return spec;
     }
 

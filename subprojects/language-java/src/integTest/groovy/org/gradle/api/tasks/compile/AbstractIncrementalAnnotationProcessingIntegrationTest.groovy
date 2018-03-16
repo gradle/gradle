@@ -25,9 +25,9 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
     protected CompilationOutputsFixture outputs
 
-    private TestFile annotationProjectDir
-    private TestFile libraryProjectDir
-    private TestFile processorProjectDir
+    protected TestFile annotationProjectDir
+    protected TestFile libraryProjectDir
+    protected TestFile processorProjectDir
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()

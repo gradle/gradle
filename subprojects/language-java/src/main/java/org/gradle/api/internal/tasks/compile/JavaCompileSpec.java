@@ -38,4 +38,8 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     void setEffectiveAnnotationProcessors(Set<AnnotationProcessorDeclaration> annotationProcessors);
 
     Set<AnnotationProcessorDeclaration> getEffectiveAnnotationProcessors();
+
+    void setClasses(Set<String> classes);
+
+    Set<String> getClasses();
 }
