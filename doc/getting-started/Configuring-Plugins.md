@@ -118,7 +118,7 @@ This can be worked around by mapping the plugin `id` to the corresponding artifa
 resolution strategy, just like above.
 
 If you can't use the `plugins {}` block, you need to apply the plugin imperatively (using the `buildscript` block and
-`apply { from("") }`) and to know the type of the extension.
+`apply<PluginType>()` or `apply(plugin = "id")`) and to know the type of the extension.
 
 The following groovy block of code:
 
