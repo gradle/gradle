@@ -213,4 +213,12 @@ class CompileOptionsTest extends Specification {
         then:
         compileOptions.bootClasspath == "lib2.jar"
     }
+
+    def "converts GStrings to Strings when getting all compiler arguments"() {
+        given:
+        compileOptions.compilerArgs << "Foo${23}"
+
+        expect:
+        compileOptions.allCompilerArgs.contains('Foo23')
+    }
 }

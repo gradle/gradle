@@ -350,7 +350,9 @@ public class CompileOptions extends AbstractOptions {
     @Internal
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(getCompilerArgs());
+        for (CharSequence arg : getCompilerArgs()) {
+            builder.add(arg.toString());
+        }
         for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
             builder.addAll(compilerArgumentProvider.asArguments());
         }

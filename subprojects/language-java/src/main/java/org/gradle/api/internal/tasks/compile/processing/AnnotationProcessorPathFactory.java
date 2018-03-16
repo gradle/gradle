@@ -30,6 +30,7 @@ import org.gradle.util.DeprecationLogger;
 import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -55,7 +56,7 @@ public class AnnotationProcessorPathFactory {
      * @return An empty collection when annotation processing should not be performed, non-empty when it should.
      */
     public FileCollection getEffectiveAnnotationProcessorClasspath(final CompileOptions compileOptions, final FileCollection compileClasspath) {
-        if (compileOptions.getCompilerArgs().contains("-proc:none")) {
+        if (compileOptions.getAllCompilerArgs().contains("-proc:none")) {
             return fileCollectionFactory.empty("annotation processor path");
         }
         final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
@@ -74,14 +75,15 @@ public class AnnotationProcessorPathFactory {
 
     private FileCollection getProcessorPathFromCompilerArguments(final CompileOptions compileOptions) {
         final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
-        int pos = compileOptions.getCompilerArgs().indexOf("-processorpath");
+        List<String> compilerArgs = compileOptions.getAllCompilerArgs();
+        int pos = compilerArgs.indexOf("-processorpath");
         if (pos < 0) {
             return null;
         }
-        if (pos == compileOptions.getCompilerArgs().size() - 1) {
-            throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
+        if (pos == compilerArgs.size() - 1) {
+            throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
         }
-        final String processorpath = compileOptions.getCompilerArgs().get(pos + 1);
+        final String processorpath = compilerArgs.get(pos + 1);
         if (annotationProcessorPath == null) {
             return fileCollectionFactory.fixed("annotation processor path", extractProcessorPath(processorpath));
         }
@@ -156,10 +158,11 @@ public class AnnotationProcessorPathFactory {
 
     private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
         boolean hasExplicitProcessor = false;
-        int pos = compileOptions.getCompilerArgs().indexOf("-processor");
+        List<String> compilerArgs = compileOptions.getAllCompilerArgs();
+        int pos = compilerArgs.indexOf("-processor");
         if (pos >= 0) {
-            if (pos == compileOptions.getCompilerArgs().size() - 1) {
-                throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
+            if (pos == compilerArgs.size() - 1) {
+                throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
             }
             hasExplicitProcessor = true;
         }
