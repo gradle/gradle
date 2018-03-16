@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -193,7 +192,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, LogLevel.QUIET, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
+            StyledTextOutputEvent header = new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
+            header.setGrouped(true);
+            return header;
         }
 
         private void bufferOutput(RenderableOutputEvent output) {
@@ -213,6 +214,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 }
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
+                    renderableEvent.setGrouped(true);
                     listener.onOutput(renderableEvent);
                 }
 

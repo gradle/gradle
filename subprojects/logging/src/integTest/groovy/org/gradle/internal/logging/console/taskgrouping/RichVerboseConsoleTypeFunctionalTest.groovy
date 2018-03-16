@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console.taskgrouping
 import org.gradle.internal.SystemProperties
 import spock.lang.Unroll
 
+import static org.gradle.api.logging.configuration.ConsoleOutput.Plain
 import static org.gradle.api.logging.configuration.ConsoleOutput.Rich
 import static org.gradle.api.logging.configuration.ConsoleOutput.Verbose
 
@@ -63,9 +64,11 @@ class RichVerboseConsoleTypeFunctionalTest extends AbstractConsoleGroupedTaskFun
         mode    | hasSilenceTaskOutput
         Rich    | false
         Verbose | true
+        Plain   | true
     }
 
-    def 'failed task result can be rendered'() {
+    @Unroll
+    def 'failed task result can be rendered (#consoleType console)'() {
         given:
         buildFile << '''
 task myFailure {
@@ -75,12 +78,17 @@ task myFailure {
 }
 '''
         when:
+        executer.withConsole(consoleType)
         fails('myFailure')
 
         then:
         result.groupedOutput.task(':myFailure').outcome == 'FAILED'
+
+        where:
+        consoleType << [Verbose, Plain]
     }
 
+    @Unroll
     def 'up-to-date task result can be rendered'() {
         given:
         buildFile << '''
@@ -101,6 +109,9 @@ task upToDate{
 
         then:
         result.groupedOutput.task(':upToDate').outcome == 'UP-TO-DATE'
+
+        where:
+        consoleType << [Verbose, Plain]
     }
 
     def 'verbose task header has no blank line above it'() {
