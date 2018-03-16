@@ -33,8 +33,10 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 
 import java.io.BufferedWriter
 import java.io.Closeable
@@ -133,12 +135,14 @@ sealed class InaccessibilityReason {
     data class NonPublic(val type: String) : InaccessibilityReason()
     data class NonAvailable(val type: String) : InaccessibilityReason()
     data class Synthetic(val type: String) : InaccessibilityReason()
+    data class TypeErasure(val type: String) : InaccessibilityReason()
 
     val explanation
         get() = when (this) {
             is NonPublic -> "`$type` is not public"
             is NonAvailable -> "`$type` is not available"
             is Synthetic -> "`$type` is synthetic"
+            is TypeErasure -> "`$type` parameter types are missing"
         }
 }
 
@@ -154,6 +158,13 @@ private
 typealias ClassFileIndex = (String) -> ByteArray?
 
 
+private
+data class TypeAccessibilityInfo(
+    val inaccessibilityReasons: List<InaccessibilityReason>,
+    val hasTypeParameter: Boolean = false
+)
+
+
 internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
@@ -164,31 +175,50 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     val openJars = mutableMapOf<File, JarFile>()
 
     private
-    val inaccessibilityReasonsPerClass = mutableMapOf<String, List<InaccessibilityReason>>()
+    val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
     fun accessibilityForType(type: String): TypeAccessibility =
-        classNamesFrom(type)
-            .flatMap { inaccessibilityReasonsFor(it) }
-            .let { inaccessibilityReasons ->
-                if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
-                else accessible(type)
-            }
+        inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
+            if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
+            else accessible(type)
+        }
+
+    private
+    fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
+        classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
+            if (inaccessibilityReasons.isNotEmpty()) inaccessibilityReasons
+            else classNames.leafs.filter { hasTypeParameter(it) }.map { typeErasure(it) }
+        }
 
     private
     fun inaccessibilityReasonsFor(className: String): List<InaccessibilityReason> =
-        inaccessibilityReasonsPerClass.computeIfAbsent(className) {
-            listOfNotNull(inaccessibilityReasonFor(it))
+        accessibilityInfoFor(className).inaccessibilityReasons
+
+    private
+    fun hasTypeParameter(className: String) =
+        accessibilityInfoFor(className).hasTypeParameter
+
+    private
+    fun accessibilityInfoFor(className: String): TypeAccessibilityInfo =
+        typeAccessibilityInfoPerClass.computeIfAbsent(className) {
+            loadAccessibilityInfoFor(it)
         }
 
     private
-    fun inaccessibilityReasonFor(className: String): InaccessibilityReason? {
-        val classBytes = classBytesFor(className) ?: return nonAvailable(className)
-        val access = classAccessFrom(classBytes)
-        return when {
-            ACC_PUBLIC !in access -> nonPublic(className)
-            ACC_SYNTHETIC in access -> synthetic(className)
-            else -> null
-        }
+    fun loadAccessibilityInfoFor(className: String): TypeAccessibilityInfo {
+        val classBytes = classBytesFor(className) ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
+        val visitor = HasTypeParameterClassVisitor()
+        val classReader = ClassReader(classBytes)
+        val access = classReader.access
+        classReader.accept(visitor, 0)
+        return TypeAccessibilityInfo(
+            listOfNotNull(when {
+                ACC_PUBLIC !in access -> nonPublic(className)
+                ACC_SYNTHETIC in access -> synthetic(className)
+                else -> null
+            }),
+            visitor.hasTypeParameters
+        )
     }
 
     private
@@ -228,17 +258,62 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     fun directoryIndexFor(baseDir: File): ClassFileIndex = { classFilePath ->
         File(baseDir, classFilePath).takeIf { it.isFile }?.readBytes()
     }
+}
 
-    private
-    fun classNamesFrom(typeString: String): List<String> =
-        typeString.split(classNameSeparators).filter { it.isNotBlank() && it !in primitiveKotlinTypeNames }
 
-    private
-    val classNameSeparators = Regex("[<,> ]")
+internal
+class ClassNamesFromTypeString(
+    val all: List<String>,
+    val leafs: List<String>
+)
 
-    private
-    fun classAccessFrom(classBytes: ByteArray): Int =
-        ClassReader(classBytes).access
+
+internal
+fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
+
+    val all = mutableListOf<String>()
+    val leafs = mutableListOf<String>()
+    var buffer = StringBuilder()
+
+    fun nonPrimitiveKotlinType(): String? =
+        if (buffer.isEmpty()) null
+        else buffer.toString().let {
+            if (it in primitiveKotlinTypeNames) null
+            else it
+        }
+
+    typeString.forEach { char ->
+        when (char) {
+            '<' -> {
+                nonPrimitiveKotlinType()?.also { all.add(it) }
+                buffer = StringBuilder()
+            }
+            in " ,>" -> {
+                nonPrimitiveKotlinType()?.also {
+                    all.add(it)
+                    leafs.add(it)
+                }
+                buffer = StringBuilder()
+            }
+            else -> buffer.append(char)
+        }
+    }
+    nonPrimitiveKotlinType()?.also {
+        all.add(it)
+        leafs.add(it)
+    }
+    return ClassNamesFromTypeString(all, leafs)
+}
+
+
+private
+class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
+    var hasTypeParameters = false
+    override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
+        if (signature != null) {
+            hasTypeParameters = true
+        }
+    }
 }
 
 
@@ -260,6 +335,11 @@ fun nonPublic(type: String): InaccessibilityReason =
 internal
 fun synthetic(type: String): InaccessibilityReason =
     InaccessibilityReason.Synthetic(type)
+
+
+internal
+fun typeErasure(type: String): InaccessibilityReason =
+    InaccessibilityReason.TypeErasure(type)
 
 
 internal
