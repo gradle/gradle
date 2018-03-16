@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
-import org.gradle.api.logging.configuration.ConsoleOutput
 
 /**
  * A trait for testing console behavior.
