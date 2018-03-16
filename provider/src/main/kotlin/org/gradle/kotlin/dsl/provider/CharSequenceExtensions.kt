@@ -31,6 +31,21 @@ fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
 }
 
 
+internal
+fun CharSequence.linePreservingBlankRanges(ranges: List<IntRange>): String =
+    ranges
+        .sortedByDescending { it.start }
+        .fold(this, CharSequence::linePreservingBlankRange)
+        .toString()
+
+
+private
+fun CharSequence.linePreservingBlankRange(range: IntRange): String {
+    val lineCount = substring(range).count { it == '\n' }
+    return substring(0, range.start) + "\n".repeat(lineCount) + substring(range.endInclusive + 1)
+}
+
+
 /**
  * Computes the 1-based line and column numbers from the given [range].
  */

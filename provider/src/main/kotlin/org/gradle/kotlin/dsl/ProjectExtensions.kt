@@ -44,11 +44,16 @@ import org.gradle.api.provider.PropertyState
 import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.support.configureWith
 
 import java.io.File
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+
+
+fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
+    project.buildscript.configureWith(action)
 
 
 /**

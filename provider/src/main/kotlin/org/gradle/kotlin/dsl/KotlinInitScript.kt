@@ -36,6 +36,7 @@ import org.gradle.api.tasks.WorkResult
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.process.ExecResult
@@ -95,7 +96,8 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      * Configures the classpath of the init script.
      */
     @Suppress("unused")
-    open fun initscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
+    open fun initscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+        internalError()
 
     /**
      * Logger for init scripts. You can use this in your init script to write log messages.

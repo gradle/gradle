@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
@@ -70,10 +69,4 @@ abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : KotlinIni
     override fun initscript(block: ScriptHandlerScope.() -> Unit) {
         initscript.configureWith(block)
     }
-}
-
-
-private
-fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
-    ScriptHandlerScope(this).block()
 }

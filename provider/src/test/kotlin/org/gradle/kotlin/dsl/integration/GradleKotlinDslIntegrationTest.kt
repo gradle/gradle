@@ -9,6 +9,8 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+import org.gradle.kotlin.dsl.fixtures.LightThought
+import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
@@ -763,6 +765,66 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 settings: ${settings.absolutePath}
                 other: ${other.absolutePath}
                 main: ${main.absolutePath}
+            """))
+    }
+
+    @Test
+    fun `can cross configure buildscript`() {
+
+        withClassJar("zero.jar", ZeroThought::class.java)
+        withClassJar("light.jar", LightThought::class.java)
+        withClassJar("deep.jar", DeepThought::class.java)
+
+        val init = withFile("some.init.gradle.kts", """
+            projectsLoaded {
+                rootProject.buildscript {
+                    dependencies {
+                        classpath(files("zero.jar"))
+                    }
+                }
+            }
+        """)
+
+        withSettings("""
+            include("sub")
+            gradle.projectsLoaded {
+                rootProject.buildscript {
+                    dependencies {
+                        classpath(files("light.jar"))
+                    }
+                }
+            }
+        """)
+
+        withBuildScript("""
+            project(":sub") {
+                buildscript {
+                    dependencies {
+                        classpath(files("../deep.jar"))
+                    }
+                }
+            }
+        """)
+
+        withFile("sub/build.gradle.kts", """
+            task("think") {
+                doLast {
+                    val zero = ${ZeroThought::class.qualifiedName}()
+                    val light = ${LightThought::class.qualifiedName}()
+                    val deep = ${DeepThought::class.qualifiedName}()
+                    println("*" + zero.compute() + "*")
+                    println("*" + light.compute() + "*")
+                    println("*" + deep.compute() + "*")
+                }
+            }
+        """)
+
+        assertThat(
+            build("-I", init.absolutePath, ":sub:think").output,
+            containsMultiLineString("""
+                *0*
+                *23*
+                *42*
             """))
     }
 

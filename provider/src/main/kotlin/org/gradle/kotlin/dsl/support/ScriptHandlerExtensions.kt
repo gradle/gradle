@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.NamedDomainObjectCollection
-
-import kotlin.reflect.KClass
-
-
-fun illegalElementType(container: NamedDomainObjectCollection<*>, name: String, expectedType: KClass<*>, actualType: KClass<*>) =
-    IllegalStateException(
-        "Element '$name' of type '${actualType.java.name}' from container '$container' cannot be cast to '${expectedType.qualifiedName}'.")
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.kotlin.dsl.ScriptHandlerScope
 
 
 internal
-fun internalError(): Nothing =
-    throw InternalError("This should not happen, please report at https://github.com/gradle/kotlin-dsl/issues/new")
+fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
+    ScriptHandlerScope(this).block()
+}
