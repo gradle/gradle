@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     private OperationIdentifier buildOperationId;
+    private boolean isGrouped;
 
     protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
         super(timestamp, category, logLevel);
@@ -42,5 +43,13 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     @Nullable
     public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
+    }
+
+    public boolean isGrouped() {
+        return isGrouped;
+    }
+
+    public void setGrouped(boolean grouped) {
+        isGrouped = grouped;
     }
 }

@@ -255,7 +255,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(new LogEventDispatcher(stdoutChain, stderrChain), clock, new PrettyPrefixedLogHeaderFormatter(true), true)
+                new GroupingProgressLogEventGenerator(new GroupedLogEventDispatcher(stdoutChain, stderrChain), clock, new PrettyPrefixedLogHeaderFormatter(true), true)
             ),
             clock
         );
