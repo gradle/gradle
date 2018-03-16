@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -251,6 +252,38 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         run 'test'
         then:
         executedAndNotSkipped ':test'
+    }
+
+    @ToBeImplemented("Requires https://github.com/gradle/gradle/pull/4665")
+    def "passing providers as system properties retain dependencies"() {
+        buildFile << """         
+            class Producer extends DefaultTask {
+                @OutputDirectory
+                final DirectoryProperty outputDir = newOutputDirectory()
+                
+                @TaskAction
+                void createOutput() {
+                    new File(outputDir.get().asFile, "file.txt").text = "Test"
+                }
+            }
+
+            task producer(type: Producer) {
+                outputDir.set(layout.buildDirectory.dir("output"))
+            }
+            
+            test.systemProperties {
+                add 'input.directory.path', inputDirectory(producer.outputDir)
+            }
+        """
+
+        when:
+        // FIXME: should succeed
+        fails 'test'
+        then:
+        // FIXME: executedAndNotSkipped ':producer', ':test'
+        executedAndNotSkipped ':test'
+        notExecuted ':producer'
+        failure.assertHasCause"Directory '${file('build/output').absolutePath}' specified for property 'jvmArgumentProviders.input.directory.path\$0.value.value' does not exist."
     }
 
     def "can pass callables as system properties"() {
