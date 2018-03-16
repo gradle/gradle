@@ -50,17 +50,20 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint resolvedVersionConstraint, BuildableComponentIdResolveResult result) {
         ComponentSelector componentSelector = dependency.getSelector();
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
-            VersionConstraint raw = module.getVersionConstraint();
-            ResolvedVersionConstraint resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
+            if (resolvedVersionConstraint == null) {
+                // TODO:DAZ This shouldn't be required, but `ExternalResourceResolverDescriptorParseContext` does not provide a resolved constraint
+                VersionConstraint raw = module.getVersionConstraint();
+                resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
+            }
             VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
             if (preferredSelector.isDynamic()) {
                 dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, resolvedVersionConstraint.getRejectedSelector(), result);
             } else {
-                String version = raw.getPreferredVersion();
+                String version = resolvedVersionConstraint.getPreferredVersion();
                 ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
                 ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
                 result.resolved(id, mvId);
@@ -68,9 +71,6 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 if (reason != null) {
                     result.setSelectionDescription(result.getSelectionDescription().withReason(reason));
                 }
-            }
-            if (result.hasResult()) {
-                result.setResolvedVersionConstraint(resolvedVersionConstraint);
             }
         }
     }

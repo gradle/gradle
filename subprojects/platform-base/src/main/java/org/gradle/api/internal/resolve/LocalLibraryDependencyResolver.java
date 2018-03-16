@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -112,7 +113,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             resolveLibraryAndChooseBinary(result, selector);
