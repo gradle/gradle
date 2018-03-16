@@ -138,11 +138,11 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         } else {
             assert result.failure == null
             def md = result.metadata
-            assert md.id.group == selector.projectPath
+            assert md.moduleVersionId.group == selector.projectPath
             if (selector.libraryName) {
-                assert md.id.name == selector.libraryName
+                assert md.moduleVersionId.name == selector.libraryName
             } else {
-                assert md.id.name.length() > 0
+                assert md.moduleVersionId.name.length() > 0
             }
         }
 
@@ -199,7 +199,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def component = Mock(ComponentResolveMetadata)
         def configuration = Mock(ConfigurationMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
-        component.componentId >> Mock(LibraryBinaryIdentifier)
+        component.id >> Mock(LibraryBinaryIdentifier)
         configuration.variants >> ([] as Set)
 
         when:
@@ -220,7 +220,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def component = Mock(ComponentResolveMetadata)
         def configuration = Mock(ConfigurationMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
-        component.componentId >> Mock(ModuleComponentIdentifier)
+        component.id >> Mock(ModuleComponentIdentifier)
 
         when:
         resolver.resolveArtifactsWithType(component, ArtifactType.SOURCES, result)

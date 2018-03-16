@@ -36,7 +36,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         try {
             resolver.resolveArtifactsWithType(component, artifactType, result);
         } catch (Throwable t) {
-            result.failed(new ArtifactResolveException(component.getComponentId(), t));
+            result.failed(new ArtifactResolveException(component.getId(), t));
         }
     }
 

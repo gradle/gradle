@@ -144,7 +144,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
 
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
-            throw new ModuleVersionResolveException(updatedMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getComponentId().getDisplayName(), updatedMetadata.getStatusScheme()));
+            throw new ModuleVersionResolveException(updatedMetadata.getModuleVersionId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().getDisplayName(), updatedMetadata.getStatusScheme()));
         }
         return updatedMetadata;
     }

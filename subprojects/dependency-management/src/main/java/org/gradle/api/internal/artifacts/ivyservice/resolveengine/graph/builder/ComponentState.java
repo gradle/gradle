@@ -130,7 +130,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public ComponentIdentifier getComponentId() {
         // Use the resolved component id if available: this ensures that Maven Snapshot ids are correctly reported
         if (metaData != null) {
-            return metaData.getComponentId();
+            return metaData.getId();
         }
         return componentIdentifier;
     }

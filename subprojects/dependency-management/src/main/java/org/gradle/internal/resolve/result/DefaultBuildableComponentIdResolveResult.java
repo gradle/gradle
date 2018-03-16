@@ -73,7 +73,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     public void resolved(ComponentResolveMetadata metadata) {
-        resolved(metadata.getComponentId(), metadata.getId());
+        resolved(metadata.getId(), metadata.getModuleVersionId());
         this.metadata = metadata;
     }
 

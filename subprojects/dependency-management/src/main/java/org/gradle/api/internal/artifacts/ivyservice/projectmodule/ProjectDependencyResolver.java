@@ -123,7 +123,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(component.getComponentId())) {
+        if (isProjectModule(component.getId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
     }
@@ -131,8 +131,8 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Nullable
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
-        if (isProjectModule(component.getComponentId())) {
-            return DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
+        if (isProjectModule(component.getId())) {
+            return DefaultArtifactSet.multipleVariants(component.getId(), component.getModuleVersionId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
         } else {
             return null;
         }

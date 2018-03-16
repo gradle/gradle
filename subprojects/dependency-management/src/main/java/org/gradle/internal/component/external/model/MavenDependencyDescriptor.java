@@ -103,7 +103,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");
             if (configuration == null) {
-                throw new ConfigurationNotFoundException(fromComponentId, fromConfiguration.getName(), target, targetComponent.getComponentId());
+                throw new ConfigurationNotFoundException(fromComponentId, fromConfiguration.getName(), target, targetComponent.getId());
             }
         }
         return configuration;

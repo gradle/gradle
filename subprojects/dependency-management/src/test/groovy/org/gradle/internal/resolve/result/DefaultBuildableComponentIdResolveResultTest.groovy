@@ -59,8 +59,8 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         def id = Stub(ComponentIdentifier)
         def mvId = Stub(ModuleVersionIdentifier)
         def metaData = Stub(ComponentResolveMetadata) {
-            getId() >> mvId
-            getComponentId() >> id
+            getId() >> id
+            getModuleVersionId() >> mvId
         }
 
         when:

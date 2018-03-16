@@ -44,7 +44,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     public ResolvedModuleVersion getModuleVersion() {
-        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getId());
+        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getModuleVersionId());
     }
 
     public ModuleComponentResolveMetadata getMetadata() {

@@ -32,14 +32,14 @@ public interface ComponentResolveResult extends ResolveResult {
     /**
      * Returns the identifier of the component.
      */
-    ComponentIdentifier getComponentIdentifier();
+    ComponentIdentifier getId();
 
     /**
      * Returns the module version id of the component.
      *
      * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
-    ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
+    ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException;
 
     /**
      * Returns the meta-data for the component.

@@ -59,29 +59,33 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newLinkedHashMap();
     private final Multimap<String, LocalComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
     private final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
-    private final ModuleVersionIdentifier id;
-    private final ComponentIdentifier componentIdentifier;
+    private final ComponentIdentifier componentId;
+    private final ModuleVersionIdentifier moduleVersionId;
     private final String status;
     private final AttributesSchemaInternal attributesSchema;
     private ImmutableList<ConfigurationMetadata> consumableConfigurations;
 
-    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal attributesSchema) {
-        this.id = id;
-        this.componentIdentifier = componentIdentifier;
+    public DefaultLocalComponentMetadata(ModuleVersionIdentifier moduleVersionId, ComponentIdentifier componentId, String status, AttributesSchemaInternal attributesSchema) {
+        this.moduleVersionId = moduleVersionId;
+        this.componentId = componentId;
         this.status = status;
         this.attributesSchema = attributesSchema;
     }
+    @Override
+    public ComponentIdentifier getId() {
+        return componentId;
+    }
 
     @Override
-    public ModuleVersionIdentifier getId() {
-        return id;
+    public ModuleVersionIdentifier getModuleVersionId() {
+        return moduleVersionId;
     }
 
     /**
      * Creates a copy of this metadata, transforming the artifacts and dependencies of this component.
      */
     public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts, Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata> dependencies) {
-        DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(id, componentIdentifier, status, attributesSchema);
+        DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(moduleVersionId, componentIdentifier, status, attributesSchema);
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
             copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.canBeResolved, configuration.capabilities);
         }
@@ -134,7 +138,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
+            LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentId, artifact);
             allArtifacts.put(configuration, artifactMetadata);
         }
     }
@@ -147,7 +151,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         } else {
             ImmutableList.Builder<LocalComponentArtifactMetadata> builder = ImmutableList.builder();
             for (PublishArtifact artifact : variant.getArtifacts()) {
-                builder.add(new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact));
+                builder.add(new PublishArtifactLocalArtifactMetadata(componentId, artifact));
             }
             artifacts = builder.build();
         }
@@ -171,7 +175,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     @Override
     public String toString() {
-        return componentIdentifier.getDisplayName();
+        return componentId.getDisplayName();
     }
 
     @Override
@@ -202,11 +206,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public List<String> getStatusScheme() {
         return DEFAULT_STATUS_SCHEME;
-    }
-
-    @Override
-    public ComponentIdentifier getComponentId() {
-        return componentIdentifier;
     }
 
     @Override
@@ -297,7 +296,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         @Override
         public ComponentIdentifier getComponentId() {
-            return componentIdentifier;
+            return componentId;
         }
 
         public void addDependency(LocalOriginDependencyMetadata dependency) {
@@ -321,7 +320,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         @Override
         public DisplayName asDescribable() {
-            return Describables.of(componentIdentifier, "configuration", name);
+            return Describables.of(componentId, "configuration", name);
         }
 
         public ComponentResolveMetadata getComponent() {
@@ -459,7 +458,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 }
             }
 
-            return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
+            return new MissingLocalArtifactMetadata(componentId, ivyArtifactName);
         }
 
         @Override

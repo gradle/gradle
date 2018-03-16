@@ -49,14 +49,14 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     @Override
-    public ComponentIdentifier getComponentIdentifier() {
-        assertResolved();
-        return metadata.getComponentId();
-    }
-
-    public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+    public ComponentIdentifier getId() {
         assertResolved();
         return metadata.getId();
+    }
+
+    public ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException {
+        assertResolved();
+        return metadata.getModuleVersionId();
     }
 
     public ComponentResolveMetadata getMetadata() throws ModuleVersionResolveException {

@@ -111,8 +111,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ModuleComponentIdentifier getComponentId() {
-            return delegate.getComponentId();
+        public ModuleComponentIdentifier getId() {
+            return delegate.getId();
         }
 
         @Override
@@ -121,8 +121,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ModuleVersionIdentifier getId() {
-            return delegate.getId();
+        public ModuleVersionIdentifier getModuleVersionId() {
+            return delegate.getModuleVersionId();
         }
 
         @Override
@@ -143,7 +143,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         @Override
         @Nullable
         public ConfigurationMetadata getConfiguration(String name) {
-            return new ClientModuleConfigurationMetadata(delegate.getComponentId(), name, clientModuleArtifact, clientModuleDependencies);
+            return new ClientModuleConfigurationMetadata(delegate.getId(), name, clientModuleArtifact, clientModuleDependencies);
         }
 
         @Override

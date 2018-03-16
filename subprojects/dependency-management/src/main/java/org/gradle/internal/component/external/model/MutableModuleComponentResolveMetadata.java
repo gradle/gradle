@@ -30,12 +30,12 @@ public interface MutableModuleComponentResolveMetadata {
     /**
      * The identifier for this component
      */
-    ModuleComponentIdentifier getComponentId();
+    ModuleComponentIdentifier getId();
 
     /**
      * The module version associated with this module.
      */
-    ModuleVersionIdentifier getId();
+    ModuleVersionIdentifier getModuleVersionId();
 
     /**
      * Creates an immutable copy of this meta-data.
@@ -45,7 +45,7 @@ public interface MutableModuleComponentResolveMetadata {
     /**
      * Sets the component id and legacy module version id
      */
-    void setComponentId(ModuleComponentIdentifier componentId);
+    void setId(ModuleComponentIdentifier componentId);
 
     /**
      * Returns the hash of the resource(s) from which this metadata was created.

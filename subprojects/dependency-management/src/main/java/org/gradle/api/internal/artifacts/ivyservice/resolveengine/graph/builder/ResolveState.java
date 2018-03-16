@@ -82,7 +82,7 @@ class ResolveState {
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
-        ComponentState rootVersion = getRevision(rootResult.getComponentIdentifier(), rootResult.getId());
+        ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId());
         rootVersion.setMetaData(rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());

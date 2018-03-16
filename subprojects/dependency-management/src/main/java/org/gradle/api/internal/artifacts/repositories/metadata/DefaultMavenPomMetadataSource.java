@@ -56,7 +56,7 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
             MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
             checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
 
-            metaData.setComponentId(snapshotComponentIdentifier);
+            metaData.setId(snapshotComponentIdentifier);
             metaData.setSnapshotTimestamp(snapshotComponentIdentifier.getTimestamp());
         } else {
             checkMetadataConsistency(moduleComponentIdentifier, metaData);

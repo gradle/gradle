@@ -92,7 +92,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         DefaultLocalComponentMetadata tryCached(ComponentIdentifier id) {
             if (cachedValue != null) {
-                if (cachedValue.getComponentId().equals(id)) {
+                if (cachedValue.getId().equals(id)) {
                     return cachedValue;
                 }
                 cachedValue = null;

@@ -189,7 +189,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

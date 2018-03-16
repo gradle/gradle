@@ -192,7 +192,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     @Nullable
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
-        ComponentIdentifier componentId = component.getComponentId();
+        ComponentIdentifier componentId = component.getId();
         if (isLibrary(componentId)) {
             return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, exclusions);
         }
@@ -201,7 +201,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
     @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        if (isLibrary(component.getComponentId())) {
+        if (isLibrary(component.getId())) {
             result.resolved(Collections.<ComponentArtifactMetadata>emptySet());
         }
     }

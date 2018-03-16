@@ -1021,39 +1021,39 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def traverses(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
-        def dependencyMetaData = dependsOn(args, from, to.id)
-        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        println "Traverse $from to ${to.componentId}"
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
-            println "Called ${to.componentId}"
+        def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
+        selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
+        println "Traverse $from to ${to.id}"
+        1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
+            println "Called ${to.id}"
             result.resolved(to)
         }
     }
 
     def doesNotTraverse(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
-        def dependencyMetaData = dependsOn(args, from, to.id)
-        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        0 * metaDataResolver.resolve(to.componentId, _, _)
+        def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
+        selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
+        0 * metaDataResolver.resolve(to.id, _, _)
     }
 
     def doesNotResolve(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
-        def dependencyMetaData = dependsOn(args, from, to.id)
+        def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
         0 * idResolver.resolve(dependencyMetaData, _)
-        0 * metaDataResolver.resolve(to.componentId, _, _)
+        0 * metaDataResolver.resolve(to.id, _, _)
     }
 
     def traversesMissing(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
-        def dependencyMetaData = dependsOn(args, from, to.id)
-        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
-            result.notFound(to.componentId)
+        def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
+        selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
+        1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
+            result.notFound(to.id)
         }
     }
 
     def traversesBroken(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
-        def dependencyMetaData = dependsOn(args, from, to.id)
-        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
+        def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
+        selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
+        1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", new DefaultMutableVersionConstraint("c")), "broken"))
         }
     }
@@ -1082,9 +1082,9 @@ class DependencyGraphBuilderTest extends Specification {
         List<ExcludeMetadata> excludeRules = []
         if (args.exclude) {
             ComponentResolveMetadata excluded = args.exclude
-            excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.id.group, excluded.id.name))
+            excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
-        def dependencyMetaData = new LocalComponentDependencyMetadata(from.componentId, componentSelector,
+        def dependencyMetaData = new LocalComponentDependencyMetadata(from.id, componentSelector,
             "default", null, "default", [] as List<IvyArtifactName>,
             excludeRules, force, false, transitive, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency))
@@ -1099,7 +1099,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def ids(ComponentResolveMetadata... descriptors) {
-        return descriptors.collect { it.id } as Set
+        return descriptors.collect { it.moduleVersionId } as Set
     }
 
     static class TestGraphVisitor implements DependencyGraphVisitor {

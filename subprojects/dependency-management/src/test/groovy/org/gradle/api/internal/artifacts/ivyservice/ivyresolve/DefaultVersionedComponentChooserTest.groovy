@@ -44,13 +44,13 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses latest version for component meta data"() {
         def one = Stub(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
         def two = Stub(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
         def three = Stub(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
         }
 
         when:
@@ -68,10 +68,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses non-generated descriptor over generated"() {
         def one = Mock(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
         def two = Mock(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 
         when:
