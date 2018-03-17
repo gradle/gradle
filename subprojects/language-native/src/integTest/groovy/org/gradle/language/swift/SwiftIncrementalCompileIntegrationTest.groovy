@@ -106,7 +106,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         expect:
         fails("compileDebugSwift")
-        result.error.contains("error: invalid redeclaration of 'sum(a:b:)'")
+        failure.assertHasErrorOutput("error: invalid redeclaration of 'sum(a:b:)'")
     }
 
     def 'removing a file rebuilds everything'() {

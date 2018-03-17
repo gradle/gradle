@@ -532,7 +532,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b;'
+        failure.assertHasErrorOutput 'Runnable r = b;'
 
         where:
         modifier << ['', 'static']
@@ -557,7 +557,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b[0];'
+        failure.assertHasErrorOutput 'Runnable r = b[0];'
 
         where:
         modifier << ['', 'static']
@@ -582,7 +582,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b[0][0];'
+        failure.assertHasErrorOutput 'Runnable r = b[0][0];'
 
         where:
         modifier << ['', 'static']
@@ -605,7 +605,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = (B) b;'
+        failure.assertHasErrorOutput 'Runnable r = (B) b;'
     }
 
     def "detects changes to class referenced through return type"() {
@@ -627,7 +627,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b();'
+        failure.assertHasErrorOutput 'Runnable r = b();'
     }
 
     def "detects changes to class referenced through method signature"() {
@@ -648,7 +648,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b;'
+        failure.assertHasErrorOutput 'Runnable r = b;'
     }
 
     def "detects changes to class referenced through type argument in field"() {
@@ -671,7 +671,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b;'
+        failure.assertHasErrorOutput 'Runnable r = b;'
     }
 
     def "detects changes to class referenced through type argument in return type"() {
@@ -695,7 +695,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b;'
+        failure.assertHasErrorOutput 'Runnable r = b;'
     }
 
     def "detects changes to class referenced through type argument in parameter"() {
@@ -718,6 +718,6 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails "compileJava"
 
         then:
-        errorOutput.contains 'Runnable r = b;'
+        failure.assertHasErrorOutput 'Runnable r = b;'
     }
 }
