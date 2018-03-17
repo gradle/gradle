@@ -96,10 +96,8 @@ try {
         ExecutionResult result = executer.usingInitScript(initScript).withTasks('doStuff').run()
 
         then:
-        result.output.contains('quiet message')
-        !result.output.contains('error message')
-        result.error.contains('error message')
-        !result.error.contains('quiet message')
+        result.assertOutputContains('quiet message')
+        result.assertHasErrorOutput('error message')
     }
 
     def "each init script has independent ClassLoader"() {

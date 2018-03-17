@@ -23,7 +23,12 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.EOF
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.NO
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToStdInAndClose
 
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
@@ -148,12 +153,12 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFailure()
-        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
-        result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        !result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        result.error.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        result.assertOutputContains(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertOutputContains(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.assertOutputContains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertNotOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
+        result.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     private void withInteractiveConsole() {
