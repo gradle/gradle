@@ -1,7 +1,10 @@
-:compile
+
+> Task :compile
 compiling source
-:compileTest
+
+> Task :compileTest
 compiling unit tests
+
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
