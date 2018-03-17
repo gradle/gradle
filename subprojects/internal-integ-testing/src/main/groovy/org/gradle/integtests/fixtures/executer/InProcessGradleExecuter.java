@@ -348,8 +348,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 }
             } finally {
                 loggingManager.stop();
-                System.setOut(ORIGINAL_STD_OUT);
-                System.setErr(ORIGINAL_STD_ERR);
             }
             return new BuildResult(null, null);
         } catch (ReportedException e) {
