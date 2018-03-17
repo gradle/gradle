@@ -24,18 +24,24 @@ import java.util.List;
 public class TestClassResult {
     private final List<TestMethodResult> methodResults = new ArrayList<TestMethodResult>();
     private final String className;
+    private final String classDisplayName;
     private long startTime;
     private int failuresCount;
     private int skippedCount;
     private long id;
 
     public TestClassResult(long id, String className, long startTime) {
+        this(id, className, className, startTime);
+    }
+
+    public TestClassResult(long id, String className, String classDisplayName, long startTime) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
         this.id = id;
         this.className = className;
         this.startTime = startTime;
+        this.classDisplayName = classDisplayName;
     }
 
     public long getId() {
@@ -44,6 +50,10 @@ public class TestClassResult {
 
     public String getClassName() {
         return className;
+    }
+
+    public String getClassDisplayName() {
+        return classDisplayName;
     }
 
     public TestClassResult add(TestMethodResult methodResult) {

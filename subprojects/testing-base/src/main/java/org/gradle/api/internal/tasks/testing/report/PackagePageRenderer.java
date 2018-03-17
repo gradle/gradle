@@ -48,7 +48,9 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
         for (ClassTestResults testClass : getResults().getClasses()) {
             htmlWriter.startElement("tr");
             htmlWriter.startElement("td").attribute("class", testClass.getStatusClass());
-                htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(testClass))).characters(testClass.getSimpleName()).endElement();
+            htmlWriter.startElement("a")
+                .attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(testClass)))
+                .characters(testClass.getReportName()).endElement();
             htmlWriter.endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();

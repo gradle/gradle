@@ -26,7 +26,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
  * These test cases are all from http://junit.org/junit5/docs/current/user-guide
  */
 class JUnitPlatformUserGuideIntegrationTest extends JUnitPlatformIntegrationSpec {
-    def 'can display test case in @DisplayName'() {
+    def 'can display test case and test class in @DisplayName'() {
         given:
         file('src/test/java/org/gradle/DisplayNameDemo.java') << '''
 package org.gradle; 
@@ -45,7 +45,7 @@ class DisplayNameDemo {
 package org.gradle;
 import org.junit.jupiter.api.*;
 
-@DisplayName("A special test case")
+@DisplayName("A special test case2")
 class DisplayNameDemo2 {
 
     @Test
@@ -60,10 +60,14 @@ class DisplayNameDemo2 {
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('org.gradle.DisplayNameDemo', 'org.gradle.DisplayNameDemo2')
-        result.testClass('org.gradle.DisplayNameDemo').assertTestCount(1, 0, 0)
-            .assertTestPassed('Custom test name containing spaces')
-        result.testClass('org.gradle.DisplayNameDemo2').assertTestCount(1, 0, 0)
-            .assertTestPassed('╯°□°）╯')
+        result.testClass('org.gradle.DisplayNameDemo')
+            .assertDisplayName('A special test case')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('testWithDisplayNameContainingSpaces', 'Custom test name containing spaces')
+        result.testClass('org.gradle.DisplayNameDemo2')
+            .assertDisplayName('A special test case2')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('testWithDisplayNameContainingSpecialCharacters', '╯°□°）╯')
     }
 
     def 'can change test instance lifecycle with #method'() {
@@ -188,12 +192,12 @@ class TestingAStackDemo {
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
-            .assertTestPassed('is instantiated with new Stack()')
+            .assertTestPassed('isInstantiatedWithNew', 'is instantiated with new Stack')
         result.testClass('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
-            .assertTestPassed('is empty')
-            .assertTestPassed('throws EmptyStackException when popped')
+            .assertTestPassed('isEmpty', 'is empty')
+            .assertTestPassed('throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
         result.testClass('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
-            .assertTestPassed('it is no longer empty')
+            .assertTestPassed('isNotEmpty', 'it is no longer empty')
 
         where:
         maxParallelForks << [1, 3]
@@ -240,8 +244,9 @@ class TestInfoDemo {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass('org.gradle.TestInfoDemo').assertTestCount(2, 0, 0)
-            .assertTestPassed('test2')
-            .assertTestPassed('TEST 1')
+            .assertTestPassed('test2', 'test2')
+            .assertTestPassed('test1(TestInfo)', 'TEST 1')
+
     }
 
     def 'can use custom Extension'() {
@@ -312,8 +317,8 @@ public class Test implements TestInterfaceDynamicTestsDemo {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass('org.gradle.Test').assertTestCount(2, 0, 0)
-            .assertTestPassed('1st dynamic test in test interface')
-            .assertTestPassed('2nd dynamic test in test interface')
+            .assertTestPassed('dynamicTestsFromCollection()[1]', '1st dynamic test in test interface')
+            .assertTestPassed('dynamicTestsFromCollection()[2]', '2nd dynamic test in test interface')
             .assertStdout(Matchers.stringContainsInOrder(['Invoked!', 'Invoked!']))
     }
 
@@ -346,9 +351,9 @@ public class Test {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass('org.gradle.Test').assertTestCount(3, 0, 0)
-            .assertTestPassed('[1] a')
-            .assertTestPassed('[2] b')
-            .assertTestPassed('[3] c')
+            .assertTestPassed('ok(String)[1]', '[1] a')
+            .assertTestPassed('ok(String)[2]', '[2] b')
+            .assertTestPassed('ok(String)[3]', '[3] c')
     }
 
     def 'can use test template'() {
@@ -414,39 +419,7 @@ public class TestTemplateTest {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass('org.gradle.TestTemplateTest').assertTestCount(2, 0, 0)
-            .assertTestPassed('foo')
-            .assertTestPassed('bar')
-    }
-
-    def 'can support dynamic tests'() {
-        given:
-        file('src/test/java/org/gradle/DynamicTestsDemo.java') << '''
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
-
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
-
-import org.junit.jupiter.api.*;
-
-class DynamicTestsDemo {
-    // This will result in a JUnitException!
-    @TestFactory
-    List<String> dynamicTestsWithInvalidReturnType() {
-        return Arrays.asList("Hello");
-    }
-
-    @TestFactory
-    Collection<DynamicTest> dynamicTestsFromCollection() {
-        return Arrays.asList(
-            dynamicTest("1st dynamic test", () -> assertTrue(true)),
-            dynamicTest("2nd dynamic test", () -> assertEquals(4, 2 * 2))
-        );
-    }
-}
-'''
-
+            .assertTestPassed('testTemplate(String)[1]', 'foo')
+            .assertTestPassed('testTemplate(String)[2]', 'bar')
     }
 }
