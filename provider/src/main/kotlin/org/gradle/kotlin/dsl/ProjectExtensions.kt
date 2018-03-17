@@ -91,8 +91,11 @@ fun <reified T : Plugin<Project>> Project.apply() =
  */
 inline
 fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
-    convention.findPlugin(T::class.java)?.let(configuration)
-        ?: convention.configure(T::class.java, configuration)
+    typeOf<T>().let { type ->
+        convention.findByType(type)?.let(configuration)
+            ?: convention.findPlugin(T::class.java)?.let(configuration)
+            ?: convention.configure(type, configuration)
+    }
 
 
 /**
@@ -100,11 +103,17 @@ fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
  */
 inline
 fun <reified T : Any> Project.the() =
-    the(T::class)
+    typeOf<T>().let { type ->
+        convention.findByType(type)
+            ?: convention.findPlugin(T::class.java)
+            ?: convention.getByType(type)
+    }
 
 
 fun <T : Any> Project.the(extensionType: KClass<T>) =
-    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)
+    convention.findByType(extensionType.java)
+        ?: convention.findPlugin(extensionType.java)
+        ?: convention.getByType(extensionType.java)
 
 
 /**

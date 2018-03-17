@@ -1,12 +1,15 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
 
+import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
@@ -16,20 +19,80 @@ import org.junit.Test
 class ExtensionAwareExtensionsTest {
 
     @Test
-    fun `can configure task extensions`() {
+    fun `can get task extensions`() {
 
-        val extensionType = JacocoTaskExtension::class.java
-
+        val task = mock<Task>()
         val extensionContainer = mock<ExtensionContainer>()
+        val extension = mock<JacocoTaskExtension>()
+        val extensionType = typeOf<JacocoTaskExtension>()
 
-        val task = mock<Task> {
-            on { extensions } doReturn extensionContainer
-        }
+        whenever(task.extensions)
+            .thenReturn(extensionContainer)
+        whenever(extensionContainer.getByType(eq(extensionType)))
+            .thenReturn(extension)
 
         task.the<JacocoTaskExtension>()
-        verify(extensionContainer).getByType(eq(extensionType))
+
+        inOrder(extensionContainer) {
+            verify(extensionContainer).getByType(eq(extensionType))
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `can configure task extensions`() {
+
+        val task = mock<Task>()
+        val extensionContainer = mock<ExtensionContainer>()
+        val extensionType = typeOf<JacocoTaskExtension>()
+
+        whenever(task.extensions)
+            .thenReturn(extensionContainer)
 
         task.configure<JacocoTaskExtension> {}
-        verify(extensionContainer).configure(eq(extensionType), any())
+
+        inOrder(extensionContainer) {
+            verify(extensionContainer).configure(eq(extensionType), any<Action<JacocoTaskExtension>>())
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `can get generic extension by type`() {
+
+        val extensionAware = mock<ExtensionAware>()
+        val extensions = mock<ExtensionContainer>()
+        val extension = mock<NamedDomainObjectContainer<List<String>>>()
+        val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
+
+        whenever(extensionAware.extensions)
+            .thenReturn(extensions)
+        whenever(extensions.getByType(eq(extensionType)))
+            .thenReturn(extension)
+
+        extensionAware.the<NamedDomainObjectContainer<List<String>>>()
+
+        inOrder(extensions) {
+            verify(extensions).getByType(eq(extensionType))
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `can configure generic extension by type`() {
+
+        val extensionAware = mock<ExtensionAware>()
+        val extensions = mock<ExtensionContainer>()
+        val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
+
+        whenever(extensionAware.extensions)
+            .thenReturn(extensions)
+
+        extensionAware.configure<NamedDomainObjectContainer<List<String>>> {}
+
+        inOrder(extensions) {
+            verify(extensions).configure(eq(extensionType), any<Action<NamedDomainObjectContainer<List<String>>>>())
+            verifyNoMoreInteractions()
+        }
     }
 }
