@@ -22,37 +22,63 @@ import spock.lang.Specification
 
 class PrettyPrefixedLogHeaderFormatterTest extends Specification {
 
-    def "prints header of failing tasks red"() {
+    def "formats header of failed operation that has status"() {
         setup:
-        def formatter = new PrettyPrefixedLogHeaderFormatter(false)
+        def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
         def formattedText = formatter.format(":test", "", null, "XYZ", true)
 
         then:
+        formattedText.size() == 3
         formattedText[0].style == StyledTextOutput.Style.FailureHeader
+        formattedText[0].text == "> :test"
+        formattedText[1].style == StyledTextOutput.Style.Failure
+        formattedText[1].text == " XYZ"
+        formattedText[2] == StyledTextOutputEvent.EOL
     }
 
-    def "prints header of not-failing tasks white"() {
+    def "formats header of failed operation that has empty status"() {
         setup:
-        def formatter = new PrettyPrefixedLogHeaderFormatter(false)
+        def formatter = new PrettyPrefixedLogHeaderFormatter()
+
+        when:
+        def formattedText = formatter.format(":test", "", null, "", true)
+
+        then:
+        formattedText.size() == 2
+        formattedText[0].style == StyledTextOutput.Style.FailureHeader
+        formattedText[0].text == "> :test"
+        formattedText[1] == StyledTextOutputEvent.EOL
+    }
+
+    def "formats header of successful operation that has status"() {
+        setup:
+        def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
         def formattedText = formatter.format(":test", "", null, "XYZ", false)
 
         then:
+        formattedText.size() == 3
         formattedText[0].style == StyledTextOutput.Style.Header
+        formattedText[0].text == "> :test"
+        formattedText[1].style == StyledTextOutput.Style.Info
+        formattedText[1].text == " XYZ"
+        formattedText[2] == StyledTextOutputEvent.EOL
     }
 
-    def "prints empty line before header if requested"() {
+    def "formats header of successful operation that has empty status"() {
         setup:
-        def formatter = new PrettyPrefixedLogHeaderFormatter(true)
+        def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", null, "XYZ", false)
+        def formattedText = formatter.format(":test", "", null, "", false)
 
         then:
-        formattedText[0] == StyledTextOutputEvent.EOL
-        formattedText[1].text == "> :test"
+        formattedText.size() == 2
+        formattedText[0].style == StyledTextOutput.Style.Header
+        formattedText[0].text == "> :test"
+        formattedText[1] == StyledTextOutputEvent.EOL
     }
 }
