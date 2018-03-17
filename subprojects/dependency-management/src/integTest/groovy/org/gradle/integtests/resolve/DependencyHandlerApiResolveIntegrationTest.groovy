@@ -110,7 +110,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.assertTaskNotSkipped(':compileTestJava')
-        result.error.contains('package org.gradle.testkit.runner does not exist')
+        result.assertHasErrorOutput('package org.gradle.testkit.runner does not exist')
     }
 
     def "artifact metadata is available for files added by dependency declarations"() {
