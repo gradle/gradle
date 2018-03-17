@@ -277,7 +277,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+        result.assertHasErrorOutput("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
     @Unroll

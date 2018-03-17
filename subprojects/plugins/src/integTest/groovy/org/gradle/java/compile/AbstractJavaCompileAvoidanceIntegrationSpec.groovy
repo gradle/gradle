@@ -973,7 +973,7 @@ public class ToolImpl {
 
         then:
         fails ':a:compileJava'
-        errorOutput.contains 'String c = c()'
+        failure.assertHasErrorOutput 'String c = c()'
 
         and:
         executedAndNotSkipped ':b:compileJava'
@@ -1022,7 +1022,7 @@ public class ToolImpl {
 
         then:
         fails ':a:compileJava'
-        errorOutput.contains 'String d = d();'
+        failure.assertHasErrorOutput 'String d = d();'
 
         and:
         executedAndNotSkipped ':b:compileJava'

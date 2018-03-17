@@ -225,7 +225,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         fails "compileJava"
 
         and:
-        errorOutput.contains("Generated type 'AThing' must have exactly one originating element, but had 0.")
+        failure.assertHasErrorOutput("Generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
     def "processors can't access resources"() {
@@ -237,8 +237,8 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         fails "compileJava"
 
         and:
-        errorOutput.contains("Incremental annotation processors are not allowed to read resources.")
-        errorOutput.contains("Incremental annotation processors are not allowed to create resources.")
+        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to read resources.")
+        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to create resources.")
     }
 
     def "processors cannot provide multiple originating elements"() {
@@ -251,7 +251,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         fails "compileJava"
 
         and:
-        errorOutput.contains("Generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
+        failure.assertHasErrorOutput("Generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
 
     /**

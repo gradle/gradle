@@ -51,7 +51,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         fails("compileJava")
         output.contains(logStatement())
-        compilerErrorOutput.contains("';' expected")
+        failure.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -65,7 +65,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        compilerErrorOutput.contains("';' expected")
+        result.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -176,13 +176,8 @@ compileJava.options.compilerArgs.addAll(['--release', '7'])
         expect:
         fails 'compileJava'
         output.contains(logStatement())
-        compilerErrorOutput.contains("cannot find symbol")
-        compilerErrorOutput.contains("class Optional")
-
-    }
-
-    def getCompilerErrorOutput() {
-        return errorOutput
+        failure.assertHasErrorOutput("cannot find symbol")
+        failure.assertHasErrorOutput("class Optional")
     }
 
     def buildScript() {
@@ -390,7 +385,7 @@ class Main {
 
         then:
         fails("compileJava")
-        compilerErrorOutput.contains("package ${gradleBaseServicesClass.package.name} does not exist")
+        failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
     }
 
     protected boolean gradleLeaksIntoAnnotationProcessor() {

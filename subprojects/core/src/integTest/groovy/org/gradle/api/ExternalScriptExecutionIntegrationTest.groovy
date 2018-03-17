@@ -27,10 +27,6 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
-import static org.junit.Assert.assertThat
-
 class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final HttpServer server = new HttpServer()
@@ -106,10 +102,8 @@ assert 'value' == doStuff.someProp
 '''
 
         ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
-        assertThat(result.output, containsString('quiet message'))
-        assertThat(result.output, not(containsString('error message')))
-        assertThat(result.error, containsString('error message'))
-        assertThat(result.error, not(containsString('quiet message')))
+        result.assertOutputContains('quiet message')
+        result.assertHasErrorOutput('error message')
     }
 
     @Test

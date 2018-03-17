@@ -330,7 +330,7 @@ apply plugin: 'swift-library'
         file("src/main/swift/combined.swift").replace("sayHello", "sayAloha")
         then:
         fails("test")
-        result.error.contains("value of type 'Greeter' has no member 'sayHello'")
+        failure.assertHasErrorOutput("value of type 'Greeter' has no member 'sayHello'")
 
         when:
         file("src/test/swift/CombinedTests.swift").replace("sayHello", "sayAloha")

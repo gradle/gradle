@@ -248,7 +248,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("compileJava")
-        errorOutput.contains("Annotation processor 'unknown.Processor' not found")
+        failure.assertHasErrorOutput("Annotation processor 'unknown.Processor' not found")
     }
 
 }
