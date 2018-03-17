@@ -1,17 +1,9 @@
-
 > Task :compileJava
-warning: [options] bootstrap class path not set in conjunction with -source 1.7
-1 warning
-
 > Task :processResources
 > Task :classes
 > Task :jar
 > Task :assemble
-
 > Task :compileTestJava
-warning: [options] bootstrap class path not set in conjunction with -source 1.7
-1 warning
-
 > Task :processTestResources
 > Task :testClasses
 > Task :test
