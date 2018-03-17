@@ -340,7 +340,7 @@ Binaries
         when:
         result = executer.withTasks('components').runWithFailure()
         then:
-        result.error.contains(errorMessage)
+        result.assertHasCause(errorMessage)
 
         where:
         template                      | errorMessage
@@ -354,7 +354,7 @@ Binaries
         when:
         fails("compilePlayBinaryScala")
         then:
-        result.error.contains("Twirl compiler could not find a matching template for 'test.scala.custom'.")
+        failure.assertHasCause("Twirl compiler could not find a matching template for 'test.scala.custom'.")
     }
 
     def withTemplateSource(File templateFile) {

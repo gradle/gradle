@@ -35,7 +35,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
         runAndFail 'sample, --hello', 'test'
 
         then:
-        failure.error.contains('Cannot specify duplicate annotation on the same member : org.gradle.api.tasks.options.Option')
+        failure.assertHasErrorOutput('Cannot specify duplicate annotation on the same member : org.gradle.api.tasks.options.Option')
     }
 
     def "different tasks match name but only one accepts the option"() {

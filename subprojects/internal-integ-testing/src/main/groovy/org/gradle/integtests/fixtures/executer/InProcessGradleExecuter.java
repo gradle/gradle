@@ -95,6 +95,7 @@ import static org.gradle.util.Matchers.hasMessage;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
@@ -672,7 +673,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public ExecutionFailure assertHasNoCause(String description) {
-            Matcher<Throwable> matcher = hasMessage(startsWith(description));
+            Matcher<Throwable> matcher = hasMessage(containsString(description));
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
             for (Throwable cause : causes) {

@@ -222,8 +222,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        !result.output.contains('changeit')
-        !result.error.contains('changeit')
+        result.assertNotOutput('changeit')
     }
 
     def "does not leak basic authentication credentials in exception messages"() {
@@ -277,7 +276,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         expect:
         def failure = wrapperExecuter.withTasks('help').withStackTraceChecksDisabled().runWithFailure()
-        failure.error.contains('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
+        failure.assertHasCause('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5")

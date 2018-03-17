@@ -141,6 +141,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
         assertFalse(getOutput().contains(expectedOutput));
+        assertFalse(getError().contains(expectedOutput));
         return this;
     }
 

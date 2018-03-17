@@ -45,6 +45,8 @@ public interface ExecutionResult {
 
     /**
      * Stderr of the Gradle execution, normalized to use new-line char as line separator.
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getError();
 

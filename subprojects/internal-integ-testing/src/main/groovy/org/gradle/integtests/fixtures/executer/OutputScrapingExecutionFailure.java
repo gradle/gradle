@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.isEmpty;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -178,13 +179,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertHasResolution(String resolution) {
-        assertThat(this.resolution, equalTo(resolution));
+        assertThat(this.resolution, containsString(resolution));
         return this;
     }
 
     @Override
     public ExecutionFailure assertHasNoCause(String description) {
-        Matcher<String> matcher = startsWith(description);
+        Matcher<String> matcher = containsString(description);
         for (String cause : causes) {
             if (matcher.matches(cause)) {
                 throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));

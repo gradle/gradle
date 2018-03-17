@@ -153,7 +153,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails "props"
         then:
-        result.error.contains("Property 'someProp' is not allowed to have a null value.")
+        failure.assertHasCause("Property 'someProp' is not allowed to have a null value.")
         where:
         propValue << [ "null", "{ null }" ]
     }
