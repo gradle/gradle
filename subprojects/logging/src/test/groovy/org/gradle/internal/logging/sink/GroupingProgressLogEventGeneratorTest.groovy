@@ -117,7 +117,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
         0 * downstreamListener._
     }
@@ -147,7 +147,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
         0 * downstreamListener._
     }
@@ -212,7 +212,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] a message" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] a message" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
         then:
@@ -224,7 +224,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :d</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] d message" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] d message" })
         then:
         0 * downstreamListener._
     }
@@ -254,7 +254,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Child task log message" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Child task log message" })
         then:
         0 * downstreamListener._
     }
@@ -275,7 +275,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
         1 * downstreamListener.onOutput(endBuildEvent)
         then:
@@ -304,13 +304,13 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :b</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then:
         0 * downstreamListener._
     }
@@ -356,7 +356,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
     }
 
     def "forwards multiple batched groups of events after receiving update now event after flush period"() {
@@ -383,10 +383,10 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :b</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" && it.grouped })
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
     }
 }
