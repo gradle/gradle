@@ -110,7 +110,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin']")
+        failure.assertHasDescription("Plugin [id: 'org.example.plugin'] was not found")
     }
 
     def 'when invalid version is specified, resolution fails'() {
@@ -138,7 +138,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin', version: '+']")
+        failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: '+'] was not found")
     }
 
     def 'when invalid artifact version is specified, resolution fails'() {
@@ -166,7 +166,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:+']")
+        failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:+'] was not found")
     }
 
     def 'can specify an artifact to use'() {
@@ -328,7 +328,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("helloWorld")
 
         then:
-        errorOutput.contains("could not resolve plugin artifact 'foo:bar:1.0'")
+        failureDescriptionContains("could not resolve plugin artifact 'foo:bar:1.0'")
     }
 
     def "succeeds build for resolvable custom artifact"() {

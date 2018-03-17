@@ -276,7 +276,7 @@ task check {
         then:
         args('-I', 'init.gradle')
         fails 'check'
-        errorOutput.contains("Could not get resource '${scriptUri}'")
+        failure.assertHasCause("Could not get resource '${scriptUri}'")
 
         when:
         args('--offline', '-I', 'init.gradle')

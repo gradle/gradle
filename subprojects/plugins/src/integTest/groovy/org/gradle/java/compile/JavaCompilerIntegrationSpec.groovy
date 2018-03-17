@@ -54,7 +54,6 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
 
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
     }
 
@@ -73,7 +72,6 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
         // couldn't find a good way to verify that heap settings take effect
     }
@@ -90,7 +88,6 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         output.contains(new File("src/main/java/compile/test/Person.java").toString())
         output.contains(new File("src/main/java/compile/test/Person2.java").toString())
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
         javaClassFile("compile/test/Person2.class").exists()
     }

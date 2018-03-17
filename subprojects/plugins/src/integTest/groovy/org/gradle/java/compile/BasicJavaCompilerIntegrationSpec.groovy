@@ -40,7 +40,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
     }
 
@@ -83,7 +82,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("run")
         output.contains(logStatement())
-        !errorOutput
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
