@@ -47,8 +47,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
         succeeds(DUMMY_TASK_NAME)
 
         then:
-        !output.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
-        errorOutput.isEmpty()
+        result.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     @Unroll

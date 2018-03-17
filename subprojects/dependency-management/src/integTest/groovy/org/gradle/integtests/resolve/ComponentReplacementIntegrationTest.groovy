@@ -388,8 +388,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         run 'dependencyInsight', '--configuration=conf', '--dependency=a'
 
         then:
-        output.contains(""":dependencyInsight
-org:b:1 (A replaced with B)
+        result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1 (A replaced with B)
    variant "default"
 
 org:a:1 -> org:b:1

@@ -331,7 +331,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         then:
         nonSkippedTasks.contains(':checkstyleMain')
-        errorOutput.contains("[ant:checkstyle] [WARN]") || errorOutput.contains("warning: Name 'class1' must match pattern")
+        result.hasErrorOutput("[ant:checkstyle] [WARN]") || result.hasErrorOutput("warning: Name 'class1' must match pattern")
     }
 
     private goodCode() {
