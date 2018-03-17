@@ -156,7 +156,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     @Override
     public void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
-        addPlainConsole(outputListener, errorListener);
+        // Currently does not write any console content to the error stream
+        addPlainConsole(outputListener);
     }
 
     protected void attachAnsiConsole(OutputStream outputStream, boolean verbose) {
@@ -248,15 +249,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addPlainConsole() {
-        return addPlainConsole(stdOutListener, stdErrListener);
+        return addPlainConsole(stdOutListener);
     }
 
-    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
-        final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
-        final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
-        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
+    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener) {
+        OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
+        OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(new GroupedLogEventDispatcher(stdoutChain, stderrChain), clock, new PrettyPrefixedLogHeaderFormatter(), true)
+                new GroupingProgressLogEventGenerator(stdoutChain, clock, new PrettyPrefixedLogHeaderFormatter(), true)
             ),
             clock
         );

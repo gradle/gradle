@@ -165,9 +165,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private static LogEvent spacerLine(long timestamp, String category) {
-        LogEvent event = new LogEvent(timestamp, category, null, "", null);
-        event.setGrouped(true);
-        return event;
+        return new LogEvent(timestamp, category, null, "", null);
     }
 
     private class OperationGroup {
@@ -197,15 +195,12 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private StyledTextOutputEvent header() {
-            StyledTextOutputEvent header = new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
-            header.setGrouped(true);
-            return header;
+            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
         }
 
         private void bufferOutput(RenderableOutputEvent output) {
             // Forward output immediately when the focus is on this operation group
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
-                output.setGrouped(true);
                 listener.onOutput(output);
                 lastUpdateTime = clock.getCurrentTime();
                 needHeaderSeparator = true;
@@ -226,7 +221,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 }
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
-                    renderableEvent.setGrouped(true);
                     listener.onOutput(renderableEvent);
                 }
                 GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;

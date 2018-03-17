@@ -376,8 +376,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['', '> description status', 'info', 'error']
-        stderrListener.value.readLines() == ['un-grouped error']
+        stdoutListener.value.readLines() == ['un-grouped error', '', '> description status', 'info', 'error']
+        stderrListener.value.readLines() == []
     }
 
     def "renders log events in plain console when log level is debug"() {
@@ -393,8 +393,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['10:00:00.000 [INFO] [category] info']
-        stderrListener.value.readLines() == ['10:00:00.000 [ERROR] [category] error']
+        stdoutListener.value.readLines() == ['10:00:00.000 [INFO] [category] info', '10:00:00.000 [ERROR] [category] error']
+        stderrListener.value.readLines() == []
     }
 
     def "attaches plain console when stdout and stderr are attached"() {
@@ -409,8 +409,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['info']
-        stderrListener.value.readLines() == ['error']
+        stdoutListener.value.readLines() == ['info', 'error']
+        stderrListener.value.readLines() == []
         outputs.stdOut == ''
         outputs.stdErr == ''
     }
