@@ -23,6 +23,8 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
+
 public class StatusPostfixLogHeaderFormatter implements LogHeaderFormatter {
     @Override
     public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failed) {
@@ -38,10 +40,10 @@ public class StatusPostfixLogHeaderFormatter implements LogHeaderFormatter {
         if (GUtil.isTrue(status)) {
             return Lists.newArrayList(new StyledTextOutputEvent.Span(message + ' '),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.ProgressStatus, status),
-                new StyledTextOutputEvent.Span(EOL));
+                EOL);
         } else {
             return Lists.newArrayList(new StyledTextOutputEvent.Span(message),
-                new StyledTextOutputEvent.Span(EOL));
+                EOL);
         }
     }
 }
