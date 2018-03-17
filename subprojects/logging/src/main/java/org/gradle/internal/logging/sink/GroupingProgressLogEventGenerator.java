@@ -59,6 +59,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new HashMap<OperationIdentifier, Object>();
 
     private Object lastRenderedBuildOpId;
+    private boolean needHeaderSeparator;
 
     public GroupingProgressLogEventGenerator(OutputEventListener listener, Clock clock, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
@@ -146,6 +147,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         if (lastRenderedBuildOpId != null) {
             listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
             lastRenderedBuildOpId = null;
+            needHeaderSeparator = true;
         }
         listener.onOutput(event);
     }
@@ -163,7 +165,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private static LogEvent spacerLine(long timestamp, String category) {
-        return new LogEvent(timestamp, category, null, "", null);
+        LogEvent event = new LogEvent(timestamp, category, null, "", null);
+        event.setGrouped(true);
+        return event;
     }
 
     private class OperationGroup {
@@ -203,6 +207,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
                 lastUpdateTime = clock.getCurrentTime();
+                needHeaderSeparator = true;
             } else {
                 bufferedLogs.add(output);
             }
@@ -210,7 +215,11 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private void flushOutput() {
             if (shouldForward()) {
+                boolean hasContent = !bufferedLogs.isEmpty();
                 if (!buildOpIdentifier.equals(lastRenderedBuildOpId)) {
+                    if (needHeaderSeparator || hasContent) {
+                        listener.onOutput(spacerLine(lastUpdateTime, category));
+                    }
                     listener.onOutput(header());
                     headerSent = true;
                 }
@@ -219,6 +228,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                     renderableEvent.setGrouped(true);
                     listener.onOutput(renderableEvent);
                 }
+                GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
 
                 bufferedLogs.clear();
                 lastUpdateTime = clock.getCurrentTime();
