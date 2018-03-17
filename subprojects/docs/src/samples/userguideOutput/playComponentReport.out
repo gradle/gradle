@@ -1,4 +1,5 @@
-:components
+
+> Task :components
 
 ------------------------------------------------------------
 Root project
@@ -36,6 +37,7 @@ Binaries
         JAR file: build/playBinary/lib/basic.jar
 
 Note: currently not all plugins register their components, so some components may not be visible here.
+
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed
