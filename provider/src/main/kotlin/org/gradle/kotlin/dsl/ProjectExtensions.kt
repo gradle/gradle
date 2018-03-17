@@ -110,6 +110,9 @@ fun <reified T : Any> Project.the() =
     }
 
 
+/**
+ * Returns the plugin convention or extension of the specified type.
+ */
 fun <T : Any> Project.the(extensionType: KClass<T>) =
     convention.findByType(extensionType.java)
         ?: convention.findPlugin(extensionType.java)

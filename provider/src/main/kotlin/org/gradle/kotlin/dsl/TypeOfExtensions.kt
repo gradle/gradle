@@ -18,5 +18,11 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.reflect.TypeOf
 
 
+/**
+ * Creates an instance of [TypeOf] for the given parameterized type.
+ *
+ * @param T the type
+ * @return the [TypeOf] that captures the generic type of the given parameterized type
+ */
 inline fun <reified T> typeOf() =
     object : TypeOf<T>() {}
