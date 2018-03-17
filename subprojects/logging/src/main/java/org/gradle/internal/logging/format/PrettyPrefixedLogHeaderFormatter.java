@@ -23,6 +23,8 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
+
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     private final boolean spaceBefore;
 
@@ -46,7 +48,7 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     }
 
     private StyledTextOutputEvent.Span eol() {
-        return new StyledTextOutputEvent.Span(EOL);
+        return EOL;
     }
 
     private StyledTextOutputEvent.Span header(String message, boolean failed) {

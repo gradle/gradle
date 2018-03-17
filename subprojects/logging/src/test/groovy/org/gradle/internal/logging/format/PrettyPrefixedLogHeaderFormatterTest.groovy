@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.format
 
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.logging.text.StyledTextOutput
 import spock.lang.Specification
 
@@ -51,7 +52,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formattedText = formatter.format(":test", "", null, "XYZ", false)
 
         then:
-        formattedText[0].text == LogHeaderFormatter.EOL
+        formattedText[0] == StyledTextOutputEvent.EOL
         formattedText[1].text == "> :test"
     }
 }

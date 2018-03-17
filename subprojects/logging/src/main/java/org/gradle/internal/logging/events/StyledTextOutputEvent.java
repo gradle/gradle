@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -30,6 +31,8 @@ import java.util.List;
 
 @UsedByScanPlugin
 public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails {
+    public static final StyledTextOutputEvent.Span EOL = new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
+
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {

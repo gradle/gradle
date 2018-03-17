@@ -15,14 +15,11 @@
  */
 package org.gradle.internal.logging.format;
 
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
 import java.util.List;
 
 public interface LogHeaderFormatter {
-    String EOL = SystemProperties.getInstance().getLineSeparator();
-
     /**
      * Given a message, return possibly-styled output for displaying message meant to categorize
      * other messages "below" it, if any.
