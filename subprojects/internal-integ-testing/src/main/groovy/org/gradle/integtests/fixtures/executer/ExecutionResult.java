@@ -40,8 +40,6 @@ public interface ExecutionResult {
 
     /**
      * Returns a fixture that parses the output and forms them into the expected groups
-     *
-     * <b>NOTE:</b> this is only supported when using {@link org.gradle.api.logging.configuration.ConsoleOutput#Rich}
      */
     GroupedOutputFixture getGroupedOutput();
 
@@ -50,9 +48,35 @@ public interface ExecutionResult {
      */
     String getError();
 
+    /**
+     * Asserts that this result includes the given error log message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasErrorOutput(String expectedOutput);
+
+    /**
+     * Returns true when this result includes the given error log message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    boolean hasErrorOutput(String expectedOutput);
+
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
 
+    /**
+     * Asserts that this result includes the given non-error log message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
     ExecutionResult assertOutputContains(String expectedOutput);
+
+    /**
+     * Asserts that this result does not include the given log message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertNotOutput(String expectedOutput);
 
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.

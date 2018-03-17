@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import junit.framework.AssertionFailedError;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -90,9 +91,20 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.Matchers.hasMessage;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.normalizedLineSeparators;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -482,8 +494,25 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertNotOutput(String expectedOutput) {
+            outputResult.assertNotOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
         public ExecutionResult assertOutputContains(String expectedOutput) {
             outputResult.assertOutputContains(expectedOutput);
+            return this;
+        }
+
+        @Override
+        public boolean hasErrorOutput(String expectedOutput) {
+            return outputResult.hasErrorOutput(expectedOutput);
+        }
+
+        @Override
+        public ExecutionResult assertHasErrorOutput(String expectedOutput) {
+            outputResult.assertHasErrorOutput(expectedOutput);
             return this;
         }
 
@@ -637,6 +666,20 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             } else {
                 causes.add(failure);
             }
+        }
+
+        @Override
+        public ExecutionFailure assertHasNoCause(String description) {
+            Matcher<Throwable> matcher = hasMessage(startsWith(description));
+            List<Throwable> causes = new ArrayList<Throwable>();
+            extractCauses(failure, causes);
+            for (Throwable cause : causes) {
+                if (matcher.matches(cause)) {
+                    throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+                }
+            }
+            outputFailure.assertHasNoCause(description);
+            return this;
         }
 
         public ExecutionFailure assertHasNoCause() {

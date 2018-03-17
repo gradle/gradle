@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import junit.framework.AssertionFailedError;
 import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
@@ -178,6 +179,17 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     public ExecutionFailure assertHasResolution(String resolution) {
         assertThat(this.resolution, equalTo(resolution));
+        return this;
+    }
+
+    @Override
+    public ExecutionFailure assertHasNoCause(String description) {
+        Matcher<String> matcher = startsWith(description);
+        for (String cause : causes) {
+            if (matcher.matches(cause)) {
+                throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+            }
+        }
         return this;
     }
 

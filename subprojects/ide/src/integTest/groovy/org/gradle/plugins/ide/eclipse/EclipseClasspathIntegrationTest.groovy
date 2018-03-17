@@ -109,16 +109,11 @@ dependencies {
     }
 }
 """
-        String expected = """:eclipseClasspath
-Could not resolve: myGroup:missing-artifact:1.0
+        String expected = """Could not resolve: myGroup:missing-artifact:1.0
 Could not resolve: myGroup:missing-extra-artifact:1.0
-:eclipseJdt
-:eclipseProject
-:eclipse
 """
-        result.assertOutputContains(expected)
+        result.groupedOutput.task(":eclipseClasspath").output == expected
     }
-
 
     @Test
     @Issue("GRADLE-1622")

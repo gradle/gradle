@@ -40,7 +40,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
@@ -136,9 +139,25 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertNotOutput(String expectedOutput) {
+        assertFalse(getOutput().contains(expectedOutput));
+        return this;
+    }
+
+    @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
         assertThat("Substring not found in build output", getOutput(), StringContains.containsString(normaliseLineSeparators(expectedOutput)));
         return this;
+    }
+
+    @Override
+    public boolean hasErrorOutput(String expectedOutput) {
+        return output.contains(expectedOutput);
+    }
+
+    @Override
+    public ExecutionResult assertHasErrorOutput(String expectedOutput) {
+        return assertOutputContains(expectedOutput);
     }
 
     public String getError() {
