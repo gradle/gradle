@@ -15,10 +15,15 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Joiner;
 import junit.framework.AssertionFailedError;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -31,13 +36,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)FAILURE: .+$");
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)^FAILURE: .+$");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private static final Pattern EXCEPTION_PATTERN = Pattern.compile("(?ms)^\\* Exception is:$(.+?):(.+?)$");
     private static final Pattern EXCEPTION_CAUSE_PATTERN = Pattern.compile("(?ms)^Caused by: (.+?):(.+?)$");
+    private static final Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
     private final String description;
     private final String lineNumber;
     private final String fileName;
@@ -53,14 +59,16 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     public OutputScrapingExecutionFailure(String output, String error) {
         super(output, error);
 
-        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(output);
+        String nonDebug = Joiner.on("\n").join(stripDebugPrefix(output));
+
+        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(nonDebug);
         if (matcher.find()) {
             if (matcher.find()) {
                 throw new AssertionError("Found multiple failure sections in build error output.");
             }
         }
 
-        matcher = LOCATION_PATTERN.matcher(output);
+        matcher = LOCATION_PATTERN.matcher(nonDebug);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
             lineNumber = matcher.group(3);
@@ -69,7 +77,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             lineNumber = "";
         }
 
-        matcher = DESCRIPTION_PATTERN.matcher(output);
+        matcher = DESCRIPTION_PATTERN.matcher(nonDebug);
         if (matcher.find()) {
             String problemStr = matcher.group(1);
             Problem problem = extract(problemStr);
@@ -84,21 +92,40 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             description = "";
         }
 
-        matcher = RESOLUTION_PATTERN.matcher(output);
+        matcher = RESOLUTION_PATTERN.matcher(nonDebug);
         if (!matcher.find()) {
             resolution = "";
         } else {
             resolution = matcher.group(1).trim();
         }
 
-        matcher = EXCEPTION_PATTERN.matcher(output);
+        matcher = EXCEPTION_PATTERN.matcher(nonDebug);
         if (!matcher.find()) {
             exception = null;
         } else {
             String exceptionClass = matcher.group(1).trim();
             String exceptionMessage = matcher.group(2).trim();
-            matcher = EXCEPTION_CAUSE_PATTERN.matcher(output);
+            matcher = EXCEPTION_CAUSE_PATTERN.matcher(nonDebug);
             exception = recreateException(exceptionClass, exceptionMessage, matcher);
+        }
+    }
+
+    private List<String> stripDebugPrefix(String output) {
+        try {
+            List<String> result = new ArrayList<String>();
+            BufferedReader reader = new BufferedReader(new StringReader(output));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                java.util.regex.Matcher matcher = DEBUG_PREFIX.matcher(line);
+                if (matcher.lookingAt()) {
+                    result.add(line.substring(matcher.end()));
+                } else {
+                    result.add(line);
+                }
+            }
+            return result;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
