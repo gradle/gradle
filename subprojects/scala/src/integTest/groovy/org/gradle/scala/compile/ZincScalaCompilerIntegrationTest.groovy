@@ -53,7 +53,7 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
 
         expect:
         fails("compileScala")
-        errorOutput.contains("type mismatch")
+        result.assertHasErrorOutput("type mismatch")
         scalaClassFile("").assertHasDescendants()
     }
 
@@ -115,7 +115,7 @@ compileScala.scalaCompileOptions.failOnError = false
 
         expect:
         succeeds("compileScala")
-        errorOutput.contains("type mismatch")
+        result.assertHasErrorOutput("type mismatch")
         scalaClassFile("").assertHasDescendants()
     }
 
