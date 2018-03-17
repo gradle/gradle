@@ -205,6 +205,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private void bufferOutput(RenderableOutputEvent output) {
             // Forward output immediately when the focus is on this operation group
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
+                output.setGrouped(true);
                 listener.onOutput(output);
                 lastUpdateTime = clock.getCurrentTime();
                 needHeaderSeparator = true;
