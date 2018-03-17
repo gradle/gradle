@@ -51,7 +51,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile("Person.class").exists()
         groovyClassFile("Address.class").exists()
 
@@ -74,7 +73,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
@@ -188,7 +186,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
@@ -207,7 +204,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Java.class').exists()
         groovyClassFile('Groovy.class').exists()
         !groovyClassFile('Groovy$$Generated.java').exists()
@@ -264,7 +260,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
         !groovyClassFile('Groovy$$Generated.java').exists()
@@ -321,7 +316,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile("Thing.class").exists()
     }
 
@@ -350,7 +344,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         succeeds("compileGroovy")
         output.contains(new File("src/main/groovy/compile/test/Person.groovy").toString())
         output.contains(new File("src/main/groovy/compile/test/Person2.groovy").toString())
-        !errorOutput
     }
 
     def "configurationScriptNotSupported"() {
