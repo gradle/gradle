@@ -214,7 +214,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
         List<String> expectedTasks = flattenTaskPaths(taskPaths);
-        assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), containsInAnyOrder(expectedTasks.toArray()));
+        assertThat(String.format("Expected tasks %s not found. Output:%n%s%nError:%n%s", expectedTasks, getOutput(), getError()), getExecutedTasks(), containsInAnyOrder(expectedTasks.toArray()));
         return this;
     }
 
@@ -231,13 +231,13 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
         Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
-        assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
+        assertThat(String.format("Expected skipped tasks %s not found. Output:%n%s%nError:%n%s", expectedTasks, getOutput(), getError()), getSkippedTasks(), equalTo(expectedTasks));
         return this;
     }
 
     public ExecutionResult assertTaskSkipped(String taskPath) {
         Set<String> tasks = new HashSet<String>(getSkippedTasks());
-        assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
+        assertThat(String.format("Expected skipped task %s not found. Output:%n%s%nError:%n%s", taskPath, getOutput(), getError()), tasks, hasItem(taskPath));
         return this;
     }
 
@@ -245,7 +245,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
-        assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
+        assertThat(String.format("Expected executed tasks %s not found. Output:%n%s%nError:%n%s", expectedTasks, getOutput(), getError()), tasks, equalTo(expectedTasks));
         return this;
     }
 
@@ -257,7 +257,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
-        assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
+        assertThat(String.format("Expected executed task %s not found. Output:%n%s%nError%n%s", taskPath, getOutput(), getError()), tasks, hasItem(taskPath));
         return this;
     }
 
