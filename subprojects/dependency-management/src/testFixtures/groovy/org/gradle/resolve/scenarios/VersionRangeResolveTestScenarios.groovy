@@ -17,6 +17,10 @@
 package org.gradle.resolve.scenarios
 
 import groovy.transform.Canonical
+import org.gradle.api.artifacts.VersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+
 /**
  * A comprehensive set of test cases for dependency resolution of a single module version, given a set of input selectors.
  */
@@ -226,11 +230,18 @@ class VersionRangeResolveTestScenarios {
     interface RenderableVersion {
         String getVersion()
 
+        VersionConstraint getVersionConstraint()
+
         String render()
     }
 
     static class SimpleVersion implements RenderableVersion {
         String version
+
+        @Override
+        VersionConstraint getVersionConstraint() {
+            DefaultImmutableVersionConstraint.of(version)
+        }
 
         @Override
         String render() {
@@ -247,6 +258,11 @@ class VersionRangeResolveTestScenarios {
         String version
 
         @Override
+        VersionConstraint getVersionConstraint() {
+            new DefaultMutableVersionConstraint(version, true)
+        }
+
+        @Override
         String render() {
             return "('org:foo') { version { strictly '${version}' } }"
         }
@@ -259,6 +275,11 @@ class VersionRangeResolveTestScenarios {
 
     static class RejectVersion implements RenderableVersion {
         String version
+
+        @Override
+        VersionConstraint getVersionConstraint() {
+            DefaultImmutableVersionConstraint.of("", [version])
+        }
 
         @Override
         String render() {

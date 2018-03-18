@@ -128,5 +128,4 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         }
         return true;
     }
-
 }
