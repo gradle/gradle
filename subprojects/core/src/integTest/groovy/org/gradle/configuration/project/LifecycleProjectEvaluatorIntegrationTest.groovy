@@ -37,7 +37,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}. Run with --stacktrace for details of the afterEvaluate {} error.")
-        !failure.hasErrorOutput("after evaluate failure")
+        failure.assertNotOutput("after evaluate failure")
         !failure.hasErrorOutput("configure failure")
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("configure failure")

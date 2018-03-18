@@ -464,7 +464,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final List<String> plannedTasks;
         private final Set<String> skippedTasks;
         private final OutputScrapingExecutionResult outputResult;
-        private GroupedOutputFixture groupedOutputFixture;
 
         public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
             this.plannedTasks = plannedTasks;
@@ -483,10 +482,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public GroupedOutputFixture getGroupedOutput() {
-            if (groupedOutputFixture == null) {
-                this.groupedOutputFixture = new GroupedOutputFixture(getOutput());
-            }
-            return groupedOutputFixture;
+            return outputResult.getGroupedOutput();
         }
 
         public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
