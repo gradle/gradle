@@ -19,13 +19,9 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -44,21 +40,38 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        try {
-            List<String> lines = new ArrayList<String>();
-            BufferedReader reader = new BufferedReader(new StringReader(chars));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
+        List<String> lines = new ArrayList<String>();
+        int pos = 0;
+        while (pos < chars.length()) {
+            int next = chars.indexOf('\n', pos);
+            if (next < 0) {
+                lines.add(chars.substring(pos));
+                pos = chars.length();
+                continue;
             }
-            return new LogContent(ImmutableList.copyOf(lines), false);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            if (next > pos && chars.charAt(next - 1) == '\r') {
+                lines.add(chars.substring(pos, next - 1));
+                pos = next + 1;
+            } else {
+                lines.add(chars.substring(pos, next));
+                pos = next + 1;
+            }
+            if (pos == chars.length()) {
+                // trailing EOL
+                lines.add("");
+            }
         }
+        return new LogContent(ImmutableList.copyOf(lines), false);
     }
 
     public static LogContent empty() {
         return new LogContent(ImmutableList.<String>of(), true);
+    }
+
+    @Override
+    public String toString() {
+        // Intentionally not the text
+        return lines.toString();
     }
 
     /**
@@ -86,7 +99,7 @@ public class LogContent {
      * @return a pair containing (content-before-matching-line, content-from-matching-line)
      */
     public @Nullable
-    Pair<LogContent, LogContent> findFirstLine(Pattern pattern) {
+    Pair<LogContent, LogContent> splitOnFirstMatchingLine(Pattern pattern) {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (pattern.matcher(line).matches()) {
@@ -98,7 +111,10 @@ public class LogContent {
         return null;
     }
 
-    public int countLines(Pattern pattern) {
+    /**
+     * Returns the number of lines that match the given pattern.
+     */
+    public int countMatches(Pattern pattern) {
         int count = 0;
         for (String line : lines) {
             if (pattern.matcher(line).matches()) {
@@ -106,6 +122,13 @@ public class LogContent {
             }
         }
         return count;
+    }
+
+    /**
+     * Drops the first n lines.
+     */
+    public LogContent drop(int i) {
+        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix);
     }
 
     /**

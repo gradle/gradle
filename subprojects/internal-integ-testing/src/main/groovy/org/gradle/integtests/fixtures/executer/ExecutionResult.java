@@ -53,14 +53,14 @@ public interface ExecutionResult {
     String getError();
 
     /**
-     * Asserts that this result includes the given error log message.
+     * Asserts that this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
     ExecutionResult assertHasErrorOutput(String expectedOutput);
 
     /**
-     * Returns true when this result includes the given error log message.
+     * Returns true when this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
@@ -69,18 +69,25 @@ public interface ExecutionResult {
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
 
     /**
-     * Asserts that this result includes the given non-error log message.
+     * Asserts that this result includes the given non-error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
     ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
-     * Asserts that this result does not include the given log message.
+     * Asserts that this result does not include the given log message anywhere in the build output.
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
     ExecutionResult assertNotOutput(String expectedOutput);
+
+    /**
+     * Assert that the given message appears after the build result message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.

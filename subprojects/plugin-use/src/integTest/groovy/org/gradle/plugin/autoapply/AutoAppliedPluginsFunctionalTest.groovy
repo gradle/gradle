@@ -51,10 +51,10 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
         then:
         def result = gradleHandle.waitForFinish()
-        !result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
-        result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_NOTE)
+        result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
     def "can auto-apply build scan plugin and accept license in interactive console"() {
@@ -68,11 +68,11 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFinish()
-        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
-        result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        !result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.assertHasPostBuildOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertNotOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
     }
 
     def "can auto-apply build scan plugin and decline license in interactive console"() {
@@ -86,14 +86,13 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, NO.bytes)
         def result = gradleHandle.waitForFinish()
-        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
-        result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
-        result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        result.output.contains("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
-        result.output.contains("The value given was 'no'.")
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_DECLINATION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
+        result.assertHasPostBuildOutput("The buildScan extension 'termsOfServiceAgree' value must be exactly the string 'yes' (without quotes).")
+        result.assertHasPostBuildOutput("The value given was 'no'.")
     }
 
     def "can auto-apply build scan plugin and cancel license acceptance with ctrl-d in interactive console"() {
@@ -107,12 +106,12 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
-        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
-        !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
-        result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_DECLINATION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_NOTE)
+        result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3341")
@@ -132,13 +131,13 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
-        !result.output.contains(BUILD_SCAN_WARNING)
-        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
-        !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
-        result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
-        result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertNotOutput(BUILD_SCAN_WARNING)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.assertNotOutput(BUILD_SCAN_LICENSE_DECLINATION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_NOTE)
+        result.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3516")
@@ -153,9 +152,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFailure()
-        result.assertOutputContains(BUILD_SCAN_LICENSE_QUESTION)
-        result.assertOutputContains(BUILD_SCAN_LICENSE_ACCEPTANCE)
-        result.assertOutputContains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_QUESTION)
+        result.assertHasPostBuildOutput(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.assertHasPostBuildOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         result.assertNotOutput(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         result.assertNotOutput(BUILD_SCAN_LICENSE_NOTE)
         result.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)

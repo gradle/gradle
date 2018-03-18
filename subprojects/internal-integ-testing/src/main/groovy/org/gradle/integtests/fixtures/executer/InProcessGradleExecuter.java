@@ -503,6 +503,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
+            outputResult.assertHasPostBuildOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
         public boolean hasErrorOutput(String expectedOutput) {
             return outputResult.hasErrorOutput(expectedOutput);
         }

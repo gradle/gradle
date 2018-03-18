@@ -21,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
+import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
@@ -42,11 +43,14 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private final LogContent output;
     private final LogContent error;
+    private final LogContent mainContent;
+    private final LogContent postBuild;
     private GroupedOutputFixture groupedOutputFixture;
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
@@ -55,7 +59,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
     private final Pattern taskPattern = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+[smh])+");
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
@@ -66,8 +70,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      * @param error The raw build stderr chars.
      */
     public OutputScrapingExecutionResult(String output, String error) {
-        this.output = LogContent.of(output);
-        this.error = LogContent.of(error);
+        this(LogContent.of(output), LogContent.of(error));
     }
 
     /**
@@ -77,6 +80,14 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     protected OutputScrapingExecutionResult(LogContent output, LogContent error) {
         this.output = output;
         this.error = error;
+        Pair<LogContent, LogContent> match = this.output.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
+        if (match == null) {
+            this.mainContent = this.output;
+            this.postBuild = LogContent.empty();
+        } else {
+            this.mainContent = match.getLeft();
+            this.postBuild = match.getRight().drop(1);
+        }
     }
 
     public String getOutput() {
@@ -84,7 +95,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public LogContent getMainContent() {
-        return output;
+        return mainContent;
     }
 
     @Override
@@ -146,6 +157,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
         matcher.assertOutputMatches(expectedOutput, getNormalizedOutput(), ignoreExtraLines);
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
+        assertTrue("Substring not found in build output", postBuild.withNormalizedEol().contains(expectedOutput));
         return this;
     }
 
