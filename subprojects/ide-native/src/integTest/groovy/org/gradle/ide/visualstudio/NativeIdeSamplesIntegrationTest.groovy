@@ -67,9 +67,9 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
             .succeeds()
 
         then:
-        resultDebug.size() == 1
+        resultDebug.size() == 2
         resultDebug[0].assertTasksExecuted(':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary')
-        resultDebug[0].assertTasksNotSkipped(':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary')
+        resultDebug[1].assertTasksExecuted()
         installation(visualStudio.dir.file('build/install/main')).assertInstalled()
     }
 }

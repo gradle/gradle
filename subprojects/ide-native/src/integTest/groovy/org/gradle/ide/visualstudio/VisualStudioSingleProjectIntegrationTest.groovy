@@ -274,9 +274,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             .succeeds()
 
         then:
-        resultDebug.size() == 1
+        resultDebug.size() == 2
         resultDebug[0].assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':installDebug')
-        resultDebug[0].assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':installDebug')
+        resultDebug[1].assertTasksExecuted()
         debugBinary.assertExists()
         installation('build/install/main/debug').assertInstalled()
     }
@@ -312,11 +312,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             .succeeds()
 
         then:
-        resultDebug.size() == 2
+        resultDebug.size() == 3
         resultDebug[0].assertTasksExecuted(':compileDebugStaticCpp', ':createDebugStatic')
-        resultDebug[0].assertTasksNotSkipped(':compileDebugStaticCpp', ':createDebugStatic')
         resultDebug[1].assertTasksExecuted(':compileDebugSharedCpp', ':linkDebugShared')
-        resultDebug[1].assertTasksNotSkipped(':compileDebugSharedCpp', ':linkDebugShared')
+        resultDebug[2].assertTasksExecuted()
         debugBinaryLib.assertExists()
         debugBinaryDll.assertExists()
     }
