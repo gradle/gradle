@@ -118,6 +118,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    static boolean isCompatibleVersion(String minCompatibleVersion) {
+        gradleVersion.baseVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
+    }
+
     String getReleasedGradleVersion() {
         return gradleVersion.baseVersion.version
     }

@@ -73,7 +73,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
      */
     public static OutputScrapingExecutionResult from(String output, String error) {
-        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.")) {
+        // Should provide a Gradle version as parameter so this check can be more precise
+        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED")) {
             return new OutputScrapingExecutionFailure(output, error);
         }
         return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error));
