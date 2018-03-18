@@ -327,8 +327,9 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
-        resultDebug.assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
+        resultDebug.size() == 1
+        resultDebug[0].assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
+        resultDebug[0].assertTasksNotSkipped(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
         installation('exe/build/install/main/debug').assertInstalled()
     }
 

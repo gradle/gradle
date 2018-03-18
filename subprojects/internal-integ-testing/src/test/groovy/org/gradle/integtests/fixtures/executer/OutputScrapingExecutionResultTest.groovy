@@ -23,7 +23,7 @@ class OutputScrapingExecutionResultTest extends Specification {
     def "normalizes line ending"() {
         def output = "\n\r\nabc\r\n\n"
         def error = "\r\n\nerror\n\r\n"
-        def result = new OutputScrapingExecutionResult(output, error)
+        def result = OutputScrapingExecutionResult.from(output, error)
 
         expect:
         result.output == "\n\nabc\n\n"
@@ -33,7 +33,7 @@ class OutputScrapingExecutionResultTest extends Specification {
     def "retains trailing line ending"() {
         def output = "\n\nabc\n"
         def error = "\nerror\n"
-        def result = new OutputScrapingExecutionResult(output, error)
+        def result = OutputScrapingExecutionResult.from(output, error)
 
         expect:
         result.output == output
@@ -49,7 +49,7 @@ BUILD SUCCESSFUL in 12s
 post build
 """
         when:
-        def result = new OutputScrapingExecutionResult(output, "")
+        def result = OutputScrapingExecutionResult.from(output, "")
 
         then:
         result.assertOutputContains("message")
@@ -85,7 +85,7 @@ BUILD SUCCESSFUL in 12s
 post build
 """
         when:
-        def result = new OutputScrapingExecutionResult(output, "")
+        def result = OutputScrapingExecutionResult.from(output, "")
 
         then:
         result.assertHasPostBuildOutput("post build")
@@ -110,5 +110,20 @@ post build
         then:
         def e3 = thrown(AssertionError)
         e3.message.startsWith('Substring not found in build output')
+    }
+
+    def "creates failure result"() {
+        def output = """
+message
+
+BUILD FAILED in 12s
+
+post build
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result instanceof OutputScrapingExecutionFailure
     }
 }

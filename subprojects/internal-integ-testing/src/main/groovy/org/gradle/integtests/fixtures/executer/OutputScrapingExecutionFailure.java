@@ -52,7 +52,18 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return FAILURE_PATTERN.matcher(error).find();
     }
 
-    public OutputScrapingExecutionFailure(String output, String error) {
+    /**
+     * Creates a result from the output of a <em>single</em> Gradle invocation.
+     *
+     * @param output The raw build stdout chars.
+     * @param error The raw build stderr chars.
+     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
+     */
+    public static OutputScrapingExecutionFailure from(String output, String error) {
+        return new OutputScrapingExecutionFailure(output, error);
+    }
+
+    protected OutputScrapingExecutionFailure(String output, String error) {
         super(LogContent.of(output), LogContent.of(error));
 
         LogContent withoutDebug = LogContent.of(output).removeDebugPrefix();

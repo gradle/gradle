@@ -374,8 +374,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
-        resultDebug.assertTasksNotSkipped(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
+        resultDebug.size() == 1
+        resultDebug[0].assertTasksExecuted(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
+        resultDebug[0].assertTasksNotSkipped(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
         installation('exe/build/install/main/debug').assertInstalled()
     }
 

@@ -29,7 +29,7 @@ FAILURE: broken
 * What went wrong: something bad
 """
         when:
-        def failure = new OutputScrapingExecutionFailure(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
         failure.assertHasFileName("build file 'build.gradle'")
@@ -57,7 +57,7 @@ FAILURE: broken
 
 * What went wrong: something bad
 """
-        def failure = new OutputScrapingExecutionFailure(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, "")
 
         when:
         failure.assertHasFileName("build.gradle")
@@ -81,7 +81,7 @@ some message.
 
 broken!
 """
-        def failure = new OutputScrapingExecutionFailure(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, "")
 
         when:
         failure.assertHasDescription("broken!")
@@ -117,7 +117,7 @@ FAILURE: broken
 Some.Failure
 """
         when:
-        def failure = new OutputScrapingExecutionFailure(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
         failure.assertOutputContains("Some message")
@@ -150,7 +150,7 @@ FAILURE: broken
 Some.Failure
 """
         when:
-        def failure = new OutputScrapingExecutionFailure(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
         failure.assertNotOutput("missing")
@@ -179,7 +179,7 @@ Caused by: org.gradle.api.UncheckedIOException: Unable to create directory 'meta
     at org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager.initMetaDataStoreDir(DefaultCacheLockingManager.java:59)
 """
         when:
-        def failure = new OutputScrapingExecutionFailure(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
         failure.exception.class.simpleName == 'ServiceCreationException'

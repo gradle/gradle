@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
@@ -82,15 +83,34 @@ public class MSBuildExecutor {
         return this;
     }
 
-    public ExecutionResult succeeds() {
+    public List<ExecutionResult> succeeds() {
         return succeeds(MSBuildAction.BUILD);
     }
 
-    public ExecutionResult succeeds(MSBuildAction action) {
+    public List<ExecutionResult> succeeds(MSBuildAction action) {
         withArgument(toTargetArgument(action));
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(workingDir));
         System.out.println(result.getOut());
-        return new OutputScrapingExecutionResult(trimLines(result.getOut()), trimLines(result.getError()));
+        String output = trimLines(result.getOut());
+        String error = trimLines(result.getError());
+        List<ExecutionResult> results = new ArrayList<ExecutionResult>();
+        int first = output.indexOf("Build:");
+        if (first < 0) {
+            return Collections.emptyList();
+        }
+        output = output.substring(first + 7);
+        while (output.length() > 0) {
+            int next = output.indexOf("Build:");
+            if (next < 0) {
+                results.add(OutputScrapingExecutionResult.from(output, error));
+                output = "";
+            } else {
+                results.add(OutputScrapingExecutionResult.from(output.substring(0, next), error));
+                output = output.substring(first + 7);
+            }
+            error = "";
+        }
+        return results;
     }
 
     public ExecutionFailure fails() {
@@ -102,7 +122,7 @@ public class MSBuildExecutor {
         ExecOutput result = findMSBuild().execWithFailure(args, buildEnvironment(workingDir));
         System.out.println(result.getOut());
         System.out.println(result.getError());
-        return new OutputScrapingExecutionFailure(trimLines(result.getOut()), trimLines(result.getError()));
+        return OutputScrapingExecutionFailure.from(trimLines(result.getOut()), trimLines(result.getError()));
     }
 
     private String trimLines(String s) {

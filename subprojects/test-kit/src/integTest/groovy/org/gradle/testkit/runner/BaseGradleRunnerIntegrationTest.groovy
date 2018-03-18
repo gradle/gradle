@@ -146,11 +146,11 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     ExecutionResult execResult(BuildResult buildResult) {
-        new OutputScrapingExecutionResult(buildResult.output, buildResult.output)
+        OutputScrapingExecutionResult.from(buildResult.output, buildResult.output)
     }
 
     ExecutionFailure execFailure(BuildResult buildResult) {
-        new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
+        OutputScrapingExecutionFailure.from(buildResult.output, buildResult.output)
     }
 
     @Rule
