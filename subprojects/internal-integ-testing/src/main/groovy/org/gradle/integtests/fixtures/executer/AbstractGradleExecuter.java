@@ -1114,7 +1114,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 boolean executionFailure = isExecutionFailure(executionResult);
 
                 // for tests using rich console standard out and error are combined in output of execution result
-                if (executionFailure && isErrorOutEmpty(error)) {
+                if (executionFailure) {
                     normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
                 }
 
