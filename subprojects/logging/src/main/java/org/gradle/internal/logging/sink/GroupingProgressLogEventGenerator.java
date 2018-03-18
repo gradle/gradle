@@ -178,6 +178,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private final BuildOperationCategory buildOperationCategory;
 
         private String status = "";
+        private String lastHeaderStatus = "";
         private boolean failed;
         private boolean headerSent;
 
@@ -212,12 +213,13 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private void flushOutput() {
             if (shouldForward()) {
                 boolean hasContent = !bufferedLogs.isEmpty();
-                if (!buildOpIdentifier.equals(lastRenderedBuildOpId)) {
+                if (!buildOpIdentifier.equals(lastRenderedBuildOpId) || !status.equals(lastHeaderStatus)) {
                     if (needHeaderSeparator || hasContent) {
                         listener.onOutput(spacerLine(lastUpdateTime, category));
                     }
                     listener.onOutput(header());
                     headerSent = true;
+                    lastHeaderStatus = status;
                 }
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
@@ -242,8 +244,12 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             this.failed = failed;
         }
 
+        private boolean shouldPrintHeader() {
+            return !headerSent || !status.equals(lastHeaderStatus);
+        }
+
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK && !headerSent);
+            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK && shouldPrintHeader());
         }
     }
 }
