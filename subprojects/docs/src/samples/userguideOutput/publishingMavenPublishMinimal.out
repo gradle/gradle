@@ -4,6 +4,7 @@
 > Task :classes
 > Task :jar
 
+Could not find metadata org.gradle.sample:quickstart/maven-metadata.xml in remote (file:/home/user/gradle/samples/maven-publish/quickstart/build/repo)
 
 > Task :publishMavenJavaPublicationToMavenRepository
 > Task :publish
