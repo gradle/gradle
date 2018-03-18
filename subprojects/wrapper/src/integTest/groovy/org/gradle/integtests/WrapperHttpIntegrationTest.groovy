@@ -276,7 +276,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         expect:
         def failure = wrapperExecuter.withTasks('help').withStackTraceChecksDisabled().runWithFailure()
-        failure.assertHasCause('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
+        failure.error.contains('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5")
