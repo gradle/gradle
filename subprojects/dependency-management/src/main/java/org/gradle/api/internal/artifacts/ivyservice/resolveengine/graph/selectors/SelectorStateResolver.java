@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -26,6 +24,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
@@ -37,54 +36,60 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         this.componentFactory = componentFactory;
     }
 
-    public T selectBest(List<? extends ResolvableSelectorState> selectors, ResolvableSelectorState selector, T currentSelection) {
-        ComponentIdResolveResult idResolveResult = selector.resolve();
+    public T selectBest(List<? extends ResolvableSelectorState> selectors) {
+        List<T> candidates = resolveSelectors(selectors);
+        assert !candidates.isEmpty();
 
-        if (idResolveResult.getFailure() != null) {
-            throw idResolveResult.getFailure();
+        // If we have a single common resolution, no conflicts to resolve
+        if (candidates.size() == 1) {
+            return maybeMarkRejected(candidates.iterator().next(), selectors);
         }
 
-        T candidate = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
-        selector.select(candidate);
-
-        // If no current selection for module, just use the candidate.
-        if (currentSelection == null) {
-            return candidate;
-        }
-
-        // Handle 'force' on local dependencies
-        if (selector.isForce()) {
-            return candidate;
-        }
-
-        // Choose the best option from the current selection and the new candidate.
-        // This choice is made considering _all_ selectors registered for this module.
-        T selected = chooseBest(selectors, currentSelection, candidate);
-
-        // TODO:DAZ It's wasteful to recheck every reject selector every time
-        maybeMarkRejected(selected, selectors);
-        return selected;
+        // Perform conflict resolution
+        T max = resolveConflicts(candidates);
+        return maybeMarkRejected(max, selectors);
     }
+
+    private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors) {
+        if (selectors.size() == 1) {
+            ResolvableSelectorState selectorState = selectors.get(0);
+            ComponentIdResolveResult resolved = selectorState.resolve();
+            T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
+            return Collections.singletonList(selected);
+        }
+
+        return buildResolveResults(selectors);
+    }
+
     /**
-     * Chooses the best out of 2 components for the module, considering all selectors for the module.
+     * Resolves a set of dependency selectors to component identifiers, making an attempt to find best matches.
+     * If a single version can satisfy all of the selectors, the result will reflect this.
+     * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private T chooseBest(List<? extends ResolvableSelectorState> selectors, final T currentSelection, final T candidate) {
-        if (currentSelection == candidate) {
-            return candidate;
-        }
+    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> dependencies) {
+        SelectorStateResolverResults results = new SelectorStateResolverResults();
+        for (ResolvableSelectorState dep : dependencies) {
 
-        // See if the new selector agrees with the current selection. If so, keep the current selection.
-        if (allSelectorsAgreeWith(selectors, currentSelection.getVersion())) {
-            return currentSelection;
-        }
+            // For a 'reject-only' selector, don't need to resolve
+//            if (isRejectOnly(dep)) {
+//                continue;
+//            }
 
-        // See if all known selectors agree with the candidate selection. If so, use the candidate.
-        if (!currentSelection.isRoot() && allSelectorsAgreeWith(selectors, candidate.getVersion())) {
-            return candidate;
-        }
+            // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
+            if (results.alreadyHaveResolution(dep)) {
+                continue;
+            }
 
+            // Need to perform the actual resolve
+            ComponentIdResolveResult resolved = dep.resolve();
+
+            results.registerResolution(dep, resolved);
+        }
+        return results.getResolved(componentFactory);
+    }
+
+    private T resolveConflicts(Collection<T> candidates) {
         // Do conflict resolution to choose the best out of current selection and candidate.
-        List<T> candidates = ImmutableList.of(currentSelection, candidate);
         ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<T>(candidates);
         conflictResolver.select(details);
         if (details.hasFailure()) {
@@ -93,38 +98,18 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return details.getSelected();
     }
 
-    private void maybeMarkRejected(ComponentResolutionState selected, List<? extends ResolvableSelectorState> selectors) {
+    private T maybeMarkRejected(T selected, List<? extends ResolvableSelectorState> selectors) {
         if (selected.isRejected()) {
-            return;
+            return selected;
         }
 
         String version = selected.getVersion();
         for (ResolvableSelectorState selector : selectors) {
             if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null && selector.getVersionConstraint().getRejectedSelector().accept(version)) {
                 selected.reject();
-                return;
+                break;
             }
         }
-    }
-
-    /**
-     * Check if all of the supplied selectors agree with the version chosen
-     */
-    private static boolean allSelectorsAgreeWith(Collection<? extends ResolvableSelectorState> allSelectors, String version) {
-        for (ResolvableSelectorState selectorState : allSelectors) {
-            ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
-            if (versionConstraint == null) {
-                return false;
-            }
-            VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
-            if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                return false;
-            }
-            candidateSelector = versionConstraint.getRejectedSelector();
-            if (candidateSelector != null && candidateSelector.accept(version)) {
-                return false;
-            }
-        }
-        return true;
+        return selected;
     }
 }

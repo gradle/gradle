@@ -107,7 +107,6 @@ class VersionRangeResolveTestScenarios {
         expectedNoStrict: 13,
         expectedStrict: [-1, -1, 13]
     ).and(
-        ignore: true,
         versions: [FIXED_10, FIXED_12, RANGE_10_14],
         expectedNoStrict: 12,
         expectedStrict: [-1, 12, 12]
@@ -120,7 +119,6 @@ class VersionRangeResolveTestScenarios {
         expectedNoStrict: 13,
         expectedStrict: [-1, -1, 13]
     ).and(
-        ignore: true,
         versions: [FIXED_10, RANGE_11_12, RANGE_10_14],
         expectedNoStrict: 12,
         expectedStrict: [-1, 12, 12]
@@ -133,12 +131,10 @@ class VersionRangeResolveTestScenarios {
         expectedNoStrict: 13,
         expectedStrict: [-1, -1, 13]
     ).and(
-        ignore: true,
         versions: [FIXED_10, FIXED_10, FIXED_12],
         expectedNoStrict: 12,
         expectedStrict: [-1, -1, 12]
     ).and(
-        ignore: true,
         versions: [FIXED_10, FIXED_12, RANGE_12_14],
         expectedNoStrict: 12,
         expectedStrict: [-1, 12, 12]
@@ -191,14 +187,12 @@ class VersionRangeResolveTestScenarios {
         versions: [FIXED_9, FIXED_10, FIXED_11, FIXED_12],
         expectedNoStrict: 12
     ).and(
-        ignore: true,
         versions: [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14],
         expectedNoStrict: 12
     ).and(
         versions: [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14],
         expectedNoStrict: 13
     ).and(
-        ignore: true,
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14],
         expectedNoStrict: 11
     )

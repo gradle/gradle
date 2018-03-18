@@ -38,6 +38,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.Specification
 import spock.lang.Unroll
+
 /**
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
@@ -117,11 +118,10 @@ class SelectorStateResolverTest extends Specification {
         def selectors = []
         def currentSelection = null
         for (VersionRangeResolveTestScenarios.RenderableVersion version : versions) {
-            def selector = new TestSelectorState(componentIdResolver, version.versionConstraint)
-            selectors << selector
+            selectors << new TestSelectorState(componentIdResolver, version.versionConstraint)
 
             try {
-                currentSelection = selectorStateResolver.selectBest(selectors, selector, currentSelection)
+                currentSelection = selectorStateResolver.selectBest(selectors)
             } catch (ModuleVersionResolveException e) {
                 return -1
             }

@@ -74,7 +74,5 @@ public class TestSelectorState implements ResolvableSelectorState {
 
     @Override
     public void select(ComponentResolutionState component) {
-
     }
-
 }
