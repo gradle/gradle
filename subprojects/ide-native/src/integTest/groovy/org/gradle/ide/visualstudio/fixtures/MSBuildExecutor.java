@@ -33,6 +33,8 @@ import java.util.List;
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
 
 public class MSBuildExecutor {
+    private static final String SEPARATOR = "\nBuild:\n";
+
     public enum MSBuildAction {
         BUILD,
         CLEAN;
@@ -94,19 +96,19 @@ public class MSBuildExecutor {
         String output = trimLines(result.getOut());
         String error = trimLines(result.getError());
         List<ExecutionResult> results = new ArrayList<ExecutionResult>();
-        int first = output.indexOf("Build:");
+        int first = output.indexOf(SEPARATOR);
         if (first < 0) {
             return Collections.emptyList();
         }
-        output = output.substring(first + 7);
+        output = output.substring(first + SEPARATOR.length());
         while (output.length() > 0) {
-            int next = output.indexOf("Build:");
+            int next = output.indexOf(SEPARATOR);
             if (next < 0) {
                 results.add(OutputScrapingExecutionResult.from(output, error));
                 output = "";
             } else {
                 results.add(OutputScrapingExecutionResult.from(output.substring(0, next), error));
-                output = output.substring(first + 7);
+                output = output.substring(first + SEPARATOR.length());
             }
             error = "";
         }

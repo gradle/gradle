@@ -327,9 +327,8 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
             .succeeds()
 
         then:
-        resultDebug.size() == 2
+        resultDebug.size() == 1
         resultDebug[0].assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
-        resultDebug[1].assertTasksExecuted()
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
