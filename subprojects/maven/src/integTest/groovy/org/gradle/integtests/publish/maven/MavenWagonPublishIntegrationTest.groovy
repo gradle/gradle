@@ -48,6 +48,6 @@ class MavenWagonPublishIntegrationTest extends AbstractMavenPublishIntegTest {
 
         then:
         failureCauseContains("Reason: java.net.UnknownHostException: iamnotansshserverandidontexistandwontdealwithsftptransfers")
-        failure.assertHasErrorOutput("org.apache.maven.wagon.providers.ssh.jsch.AbstractJschWagon.openConnectionInternal(AbstractJschWagon.java:")
+        failure.assertHasErrorOutput("Reason: java.net.UnknownHostException: iamnotansshserverandidontexistandwontdealwithsftptransfers")
     }
 }

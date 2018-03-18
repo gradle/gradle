@@ -102,8 +102,8 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         fails "libs"
 
         then:
-        failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
-        failure.assertHasErrorOutput("at org.apache.http.conn.ssl.SSLConnectionSocketFactory.createLayeredSocket")
+        failure.assertHasCause("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/")
+        failure.assertHasErrorOutput("javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException")
     }
 
     private void setupBuildFile(String repoType, boolean withCredentials = false) {
