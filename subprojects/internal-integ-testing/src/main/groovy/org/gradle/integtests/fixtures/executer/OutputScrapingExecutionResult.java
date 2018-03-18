@@ -66,11 +66,17 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     /**
+     * Creates a result from the output of a <em>single</em> Gradle invocation.
+     *
      * @param output The raw build stdout chars.
      * @param error The raw build stderr chars.
+     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
      */
-    public OutputScrapingExecutionResult(String output, String error) {
-        this(LogContent.of(output), LogContent.of(error));
+    public static OutputScrapingExecutionResult from(String output, String error) {
+        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.")) {
+            return new OutputScrapingExecutionFailure(output, error);
+        }
+        return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error));
     }
 
     /**

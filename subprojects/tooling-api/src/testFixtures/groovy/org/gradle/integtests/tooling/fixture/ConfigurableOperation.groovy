@@ -52,7 +52,7 @@ class ConfigurableOperation {
     }
 
     ExecutionResult getResult() {
-        return new OutputScrapingExecutionResult(standardOutput, standardError)
+        return OutputScrapingExecutionResult.from(standardOutput, standardError)
     }
 
     ConfigurableOperation setStandardInput(String input) {
