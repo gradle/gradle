@@ -166,7 +166,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     private void waitForBuild() {
         ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
-        result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr);
+        result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr)
     }
 
     private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {
