@@ -19,6 +19,61 @@ package org.gradle.integtests.fixtures.executer
 import spock.lang.Specification
 
 class OutputScrapingExecutionFailureTest extends Specification {
+    def "can assert that failure location is present"() {
+        given:
+        def output = """
+FAILURE: broken
+
+* Where: build file 'build.gradle' line: 123
+
+* What went wrong: something bad
+"""
+        when:
+        def failure = new OutputScrapingExecutionFailure(output, "")
+
+        then:
+        failure.assertHasFileName("build file 'build.gradle'")
+        failure.assertHasLineNumber(123)
+
+        when:
+        failure.assertHasFileName("none")
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.trim().startsWith('Expected: "none"')
+
+        when:
+        failure.assertHasLineNumber(23)
+
+        then:
+        def e2 = thrown(AssertionError)
+        e2.message.trim().startsWith('Expected: "23"')
+    }
+
+    def "cannot assert that failure location is present when missing"() {
+        given:
+        def output = """
+FAILURE: broken
+
+* What went wrong: something bad
+"""
+        def failure = new OutputScrapingExecutionFailure(output, "")
+
+        when:
+        failure.assertHasFileName("build.gradle")
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.trim().startsWith('Expected: "build.gradle"')
+
+        when:
+        failure.assertHasLineNumber(23)
+
+        then:
+        def e2 = thrown(AssertionError)
+        e2.message.trim().startsWith('Expected: "23"')
+    }
+
     def "cannot make assertions about failures when failure section is missing"() {
         given:
         def output = """
@@ -34,6 +89,20 @@ broken!
         then:
         def e = thrown(AssertionError)
         e.message.trim().startsWith('Expected: a string starting with "broken!"')
+
+        when:
+        failure.assertHasFileName("build.gradle")
+
+        then:
+        def e2 = thrown(AssertionError)
+        e2.message.trim().startsWith('Expected: "build.gradle"')
+
+        when:
+        failure.assertHasLineNumber(23)
+
+        then:
+        def e3 = thrown(AssertionError)
+        e3.message.trim().startsWith('Expected: "23"')
     }
 
     def "log output present assertions ignore content after failure section"() {

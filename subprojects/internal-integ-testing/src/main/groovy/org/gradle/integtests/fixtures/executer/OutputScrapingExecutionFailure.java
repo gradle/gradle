@@ -57,11 +57,19 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
         LogContent withoutDebug = LogContent.of(output).removeDebugPrefix();
 
-        Pair<LogContent, LogContent> match = withoutDebug.findFirstLine(FAILURE_PATTERN);
+        // Find failure section
+        Pair<LogContent, LogContent> match = withoutDebug.splitOnFirstMatchingLine(FAILURE_PATTERN);
         if (match == null) {
-            match = Pair.of(withoutDebug, LogContent.empty());
+            // Not present in output, check error output. Currently, some early failures are still written to stderr. This fixture is also used to scrape the output of older Gradle versions (but shouldn't be)
+            match = LogContent.of(error).removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
+            if (match != null) {
+                match = Pair.of(withoutDebug, match.getRight());
+            } else {
+                // Not present, assume no failure details
+                match = Pair.of(withoutDebug, LogContent.empty());
+            }
         } else {
-            if (match.getRight().countLines(FAILURE_PATTERN) != 1) {
+            if (match.getRight().countMatches(FAILURE_PATTERN) != 1) {
                 throw new IllegalArgumentException("Found multiple failure sections in log output: " + output);
             }
         }

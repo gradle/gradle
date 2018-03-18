@@ -53,7 +53,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         expect:
         BROKEN_GRADLE_VERSIONS.each {
             def executionFailure = createGradleExecutor(it, TEST_TASK_NAME).runWithFailure()
-            executionFailure.error.contains("Execution failed for task ':test'.")
+            executionFailure.assertTestsFailed()
             executionFailure.assertOutputContains('Caused by: java.lang.ClassNotFoundException at PluginTest.java:21')
         }
     }
