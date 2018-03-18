@@ -374,9 +374,8 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
             .succeeds()
 
         then:
-        resultDebug.size() == 2
+        resultDebug.size() == 1
         resultDebug[0].assertTasksExecuted(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
-        resultDebug[1].assertTasksExecuted()
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
