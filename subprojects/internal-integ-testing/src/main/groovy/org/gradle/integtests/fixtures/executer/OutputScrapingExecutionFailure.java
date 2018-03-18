@@ -198,7 +198,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 return this;
             }
         }
-        fail(String.format("No matching cause found in %s", causes));
+        fail(String.format("No matching cause found in %s. Output: %s", causes, getOutput()));
         return this;
     }
 
