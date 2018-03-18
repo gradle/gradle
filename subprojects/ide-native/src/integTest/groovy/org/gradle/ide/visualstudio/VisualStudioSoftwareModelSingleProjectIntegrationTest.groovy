@@ -201,10 +201,9 @@ model {
             .succeeds()
 
         then:
-        resultDebug.size() == 3
+        resultDebug.size() == 2
         resultDebug[0].assertTasksExecuted(':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
-//        resultDebug[1].assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary')
-//        resultDebug[2].assertTasksExecuted()
+        resultDebug[1].assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary')
         debugBinaryLib.assertExists()
         debugBinaryDll.assertExists()
     }

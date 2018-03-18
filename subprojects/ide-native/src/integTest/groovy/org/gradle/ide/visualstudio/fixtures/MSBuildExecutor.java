@@ -108,7 +108,7 @@ public class MSBuildExecutor {
                 output = "";
             } else {
                 results.add(OutputScrapingExecutionResult.from(output.substring(0, next), error));
-                output = output.substring(first + SEPARATOR.length());
+                output = output.substring(next + SEPARATOR.length());
             }
             error = "";
         }
