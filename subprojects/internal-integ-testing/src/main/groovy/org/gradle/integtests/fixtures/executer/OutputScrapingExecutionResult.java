@@ -27,12 +27,9 @@ import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.GUtil;
-import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -48,16 +45,15 @@ import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
-    private final String output;
-    private final String error;
-
-    private static final String TASK_LOGGER_DEBUG_PATTERN = "(?:.*\\s+\\[LIFECYCLE\\]\\s+\\[class org\\.gradle\\.TaskExecutionLogger\\]\\s+)?";
+    private final LogContent output;
+    private final LogContent error;
+    private GroupedOutputFixture groupedOutputFixture;
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
+    private final Pattern skippedTaskPattern = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
 
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
+    private final Pattern taskPattern = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
@@ -65,26 +61,41 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
 
+    /**
+     * @param output The raw build stdout chars.
+     * @param error The raw build stderr chars.
+     */
     public OutputScrapingExecutionResult(String output, String error) {
-        this.output = TextUtil.normaliseLineSeparators(output);
-        this.error = TextUtil.normaliseLineSeparators(error);
+        this.output = LogContent.of(output);
+        this.error = LogContent.of(error);
+    }
+
+    /**
+     * @param output The build stdout content.
+     * @param error The build stderr content. Must have normalized line endings.
+     */
+    protected OutputScrapingExecutionResult(LogContent output, LogContent error) {
+        this.output = output;
+        this.error = error;
     }
 
     public String getOutput() {
+        return output.withNormalizedEol();
+    }
+
+    public LogContent getMainContent() {
         return output;
     }
 
     @Override
     public String getNormalizedOutput() {
-        return normalize(output);
+        return normalize(output.withNormalizedEol());
     }
-
-    GroupedOutputFixture groupedOutputFixture;
 
     @Override
     public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new GroupedOutputFixture(getOutput());
+            groupedOutputFixture = new GroupedOutputFixture(getMainContent().withNormalizedEol());
         }
         return groupedOutputFixture;
     }
@@ -140,20 +151,20 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
-        assertFalse(getOutput().contains(expectedOutput));
-        assertFalse(getError().contains(expectedOutput));
+        assertFalse("Substring found in build output", getOutput().contains(expectedOutput));
+        assertFalse("Substring found in build output", getError().contains(expectedOutput));
         return this;
     }
 
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
-        assertThat("Substring not found in build output", getOutput(), StringContains.containsString(normaliseLineSeparators(expectedOutput)));
+        assertThat("Substring not found in build output", getMainContent().withNormalizedEol(), StringContains.containsString(normaliseLineSeparators(expectedOutput)));
         return this;
     }
 
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return output.contains(expectedOutput);
+        return getMainContent().withNormalizedEol().contains(expectedOutput);
     }
 
     @Override
@@ -162,7 +173,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public String getError() {
-        return error;
+        return error.withNormalizedEol();
     }
 
     public List<String> getExecutedTasks() {
@@ -230,7 +241,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> tasks = Lists.newArrayList();
         final List<String> taskStatusLines = Lists.newArrayList();
 
-        eachLine(new Action<String>() {
+        getMainContent().removeDebugPrefix().eachLine(new Action<String>() {
             public void execute(String s) {
                 java.util.regex.Matcher matcher = pattern.matcher(s);
                 if (matcher.matches()) {
@@ -255,17 +266,5 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         });
 
         return tasks;
-    }
-
-    private void eachLine(Action<String> action) {
-        BufferedReader reader = new BufferedReader(new StringReader(getOutput()));
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                action.execute(line);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

@@ -15,15 +15,11 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.base.Joiner;
 import junit.framework.AssertionFailedError;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.Pair;
 import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -36,14 +32,13 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)^FAILURE: .+$");
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("FAILURE: .+");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private static final Pattern EXCEPTION_PATTERN = Pattern.compile("(?ms)^\\* Exception is:$(.+?):(.+?)$");
     private static final Pattern EXCEPTION_CAUSE_PATTERN = Pattern.compile("(?ms)^Caused by: (.+?):(.+?)$");
-    private static final Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
     private final String description;
     private final String lineNumber;
     private final String fileName;
@@ -51,24 +46,32 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private final Exception exception;
     // with normalized line endings
     private final List<String> causes = new ArrayList<String>();
+    private final LogContent mainContent;
 
     static boolean hasFailure(String error) {
         return FAILURE_PATTERN.matcher(error).find();
     }
 
     public OutputScrapingExecutionFailure(String output, String error) {
-        super(output, error);
+        super(LogContent.of(output), LogContent.of(error));
 
-        String nonDebug = Joiner.on("\n").join(stripDebugPrefix(output));
+        LogContent withoutDebug = LogContent.of(output).removeDebugPrefix();
 
-        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(nonDebug);
-        if (matcher.find()) {
-            if (matcher.find()) {
-                throw new AssertionError("Found multiple failure sections in build error output.");
+        Pair<LogContent, LogContent> match = withoutDebug.findFirstLine(FAILURE_PATTERN);
+        if (match == null) {
+            match = Pair.of(withoutDebug, LogContent.empty());
+        } else {
+            if (match.getRight().countLines(FAILURE_PATTERN) != 1) {
+                throw new IllegalArgumentException("Found multiple failure sections in log output: " + output);
             }
         }
 
-        matcher = LOCATION_PATTERN.matcher(nonDebug);
+        LogContent failureContent = match.getRight();
+        this.mainContent = match.getLeft();
+
+        String failureText = failureContent.withNormalizedEol();
+
+        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureText);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
             lineNumber = matcher.group(3);
@@ -77,7 +80,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             lineNumber = "";
         }
 
-        matcher = DESCRIPTION_PATTERN.matcher(nonDebug);
+        matcher = DESCRIPTION_PATTERN.matcher(failureText);
         if (matcher.find()) {
             String problemStr = matcher.group(1);
             Problem problem = extract(problemStr);
@@ -92,41 +95,27 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             description = "";
         }
 
-        matcher = RESOLUTION_PATTERN.matcher(nonDebug);
+        matcher = RESOLUTION_PATTERN.matcher(failureText);
         if (!matcher.find()) {
             resolution = "";
         } else {
             resolution = matcher.group(1).trim();
         }
 
-        matcher = EXCEPTION_PATTERN.matcher(nonDebug);
+        matcher = EXCEPTION_PATTERN.matcher(failureText);
         if (!matcher.find()) {
             exception = null;
         } else {
             String exceptionClass = matcher.group(1).trim();
             String exceptionMessage = matcher.group(2).trim();
-            matcher = EXCEPTION_CAUSE_PATTERN.matcher(nonDebug);
+            matcher = EXCEPTION_CAUSE_PATTERN.matcher(failureText);
             exception = recreateException(exceptionClass, exceptionMessage, matcher);
         }
     }
 
-    private List<String> stripDebugPrefix(String output) {
-        try {
-            List<String> result = new ArrayList<String>();
-            BufferedReader reader = new BufferedReader(new StringReader(output));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                java.util.regex.Matcher matcher = DEBUG_PREFIX.matcher(line);
-                if (matcher.lookingAt()) {
-                    result.add(line.substring(matcher.end()));
-                } else {
-                    result.add(line);
-                }
-            }
-            return result;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    @Override
+    public LogContent getMainContent() {
+        return mainContent;
     }
 
     private Problem extract(String problem) {
