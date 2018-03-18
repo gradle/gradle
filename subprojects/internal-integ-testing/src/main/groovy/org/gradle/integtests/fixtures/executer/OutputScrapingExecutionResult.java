@@ -140,7 +140,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                     i++;
                 }
-            } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
+            } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');
                 i++;

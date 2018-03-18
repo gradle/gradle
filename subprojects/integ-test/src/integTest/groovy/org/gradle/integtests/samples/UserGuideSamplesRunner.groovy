@@ -172,13 +172,6 @@ class UserGuideSamplesRunner extends Runner {
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
 
-                def matcher = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in \\d+s").matcher(result.output)
-                if (matcher.find()) {
-                    String buildSuccessMessage = matcher.group()
-                    expectedResult = expectedResult.replace("BUILD SUCCESSFUL in 0s", buildSuccessMessage)
-                    expectedResult = expectedResult.replace("BUILD FAILED in 0s", buildSuccessMessage)
-                }
-
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
                 } catch (AssertionError e) {
@@ -223,7 +216,7 @@ class UserGuideSamplesRunner extends Runner {
         return text.replace('/home/user/gradle/samples', normalisedSamplesDir)
     }
 
-    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String,GradleRun> samplesByDir){
+    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String, GradleRun> samplesByDir) {
         def java6CrossCompilation = ['groovy', 'scala'].collectMany {
             samplesByDir.get(it + '/crossCompilation')
         }
