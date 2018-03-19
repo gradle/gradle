@@ -13,13 +13,15 @@ class MultiProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-project-wit
         assertThat(
             build("hello").output,
             containsMultiLineString("""
-                :hello
+                > Task :hello
                 I'm ${testName.methodName}
-                :bluewhale:hello
+
+                > Task :bluewhale:hello
                 I'm bluewhale
                 - I depend on water
                 - I'm the largest animal that has ever lived on this planet.
-                :krill:hello
+
+                > Task :krill:hello
                 I'm krill
                 - I depend on water
                 - The weight of my species in summer is twice as heavy as all human beings.
