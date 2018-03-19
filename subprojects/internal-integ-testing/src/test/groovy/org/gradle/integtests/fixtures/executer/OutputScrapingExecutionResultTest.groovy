@@ -346,4 +346,8 @@ BUILD FAILED in 13s
         then:
         result.assertTasksExecutedInOrder(":compileMyTestBinaryMyTestJava", ":myTestBinaryTest")
     }
+
+    def error(String text) {
+        return TextUtil.normaliseLineSeparators(text.stripIndent().trim())
+    }
 }
