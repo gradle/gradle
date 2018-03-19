@@ -37,6 +37,8 @@ public interface ExecutionResult {
      *     <li>Removes notice about starting the daemon.</li>
      *     <li>Normalizes build time to 1 second.
      * </ul>
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getNormalizedOutput();
 
@@ -90,7 +92,9 @@ public interface ExecutionResult {
     ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
-     * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
+     * Returns the tasks have been executed in order started (includes tasks that were skipped). Note: ignores buildSrc tasks.
+     *
+     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
     List<String> getExecutedTasks();
 
@@ -115,6 +119,8 @@ public interface ExecutionResult {
 
     /**
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
+     *
+     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
     Set<String> getSkippedTasks();
 

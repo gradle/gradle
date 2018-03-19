@@ -64,10 +64,20 @@ public class LogContent {
         return new LogContent(ImmutableList.copyOf(lines), false);
     }
 
+    /**
+     * Creates a new instance from a sequence of lines (without the line separators).
+     */
+    public static LogContent of(List<String> lines) {
+        return new LogContent(ImmutableList.copyOf(lines), false);
+    }
+
     public static LogContent empty() {
         return new LogContent(ImmutableList.<String>of(), true);
     }
 
+    /**
+     * Does not return the text of this content.
+     */
     @Override
     public String toString() {
         // Intentionally not the text
@@ -75,13 +85,20 @@ public class LogContent {
     }
 
     /**
-     * Returns this content formatted with new line chars to separate lines.
+     * Returns this content formatted using a new line char to separate lines.
      */
     public String withNormalizedEol() {
         if (lines.isEmpty()) {
             return "";
         }
         return Joiner.on('\n').join(lines);
+    }
+
+    /**
+     * Returns this content separated into lines. The line does not include the line separator.
+     */
+    public ImmutableList<String> getLines() {
+        return lines;
     }
 
     /**

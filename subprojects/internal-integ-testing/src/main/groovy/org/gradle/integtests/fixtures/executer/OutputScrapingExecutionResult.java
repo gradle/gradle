@@ -17,10 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.io.CharSource;
-import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -29,9 +26,8 @@ import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.GUtil;
-import org.hamcrest.core.StringContains;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,28 +35,24 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 public class OutputScrapingExecutionResult implements ExecutionResult {
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private static final String TASK_PREFIX = "> Task ";
+
+    //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
+    private static final Pattern SKIPPED_TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
+
+    //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
+    private static final Pattern TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
+
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+[smh])+");
+
     private final LogContent output;
     private final LogContent error;
     private final LogContent mainContent;
     private final LogContent postBuild;
     private GroupedOutputFixture groupedOutputFixture;
     private Set<String> tasks;
-
-    //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private final Pattern skippedTaskPattern = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
-
-    //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile("(" + TASK_PREFIX + ")?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
-
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+[smh])+");
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
@@ -88,6 +80,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     protected OutputScrapingExecutionResult(LogContent output, LogContent error) {
         this.output = output;
         this.error = error;
+
+        // Split out up the output into main content and post build content
         Pair<LogContent, LogContent> match = this.output.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
         if (match == null) {
             this.mainContent = this.output;
@@ -108,7 +102,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public String getNormalizedOutput() {
-        return normalize(output.withNormalizedEol());
+        return normalize(output);
     }
 
     @Override
@@ -119,14 +113,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return groupedOutputFixture;
     }
 
-    public static String normalize(String output) {
-        StringBuilder result = new StringBuilder();
-        List<String> lines;
-        try {
-            lines = CharSource.wrap(output).readLines();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public static String normalize(LogContent output) {
+        List<String> result = new ArrayList<String>();
+        List<String> lines = output.getLines();
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
@@ -149,17 +138,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                     i++;
                 }
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
-                result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
-                result.append('\n');
+                result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 i++;
             } else {
-                result.append(line);
-                result.append('\n');
+                result.add(line);
                 i++;
             }
         }
 
-        return result.toString();
+        return LogContent.of(result).withNormalizedEol();
     }
 
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
@@ -170,20 +157,30 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
-        assertTrue("Substring not found in build output", postBuild.withNormalizedEol().contains(expectedOutput));
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        String actualText = postBuild.withNormalizedEol();
+        if (!actualText.contains(expectedText)) {
+            failOnMissingOutput("Did not find expected text in post-build output.", "Post-build output", expectedText, actualText);
+        }
         return this;
     }
 
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
-        assertFalse("Substring found in build output", getOutput().contains(expectedOutput));
-        assertFalse("Substring found in build output", getError().contains(expectedOutput));
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
+            throw new AssertionError(String.format("Found unexpected text in build output.%nExpected not present: %s%n%nOutput:%n=======%n%s%nError:%n======%n%s", expectedText, getOutput(), getError()));
+        }
         return this;
     }
 
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
-        assertThat("Substring not found in build output", getMainContent().withNormalizedEol(), StringContains.containsString(normaliseLineSeparators(expectedOutput)));
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        String actualText = getMainContent().withNormalizedEol();
+        if (!actualText.contains(expectedText)) {
+            failOnMissingOutput("Did not find expected text in build output.", "Build output", expectedOutput, actualText);
+        }
         return this;
     }
 
@@ -207,7 +204,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private Set<String> findExecutedTasksInOrderStarted() {
         if (tasks == null) {
-            tasks = new LinkedHashSet<String>(grepTasks(taskPattern));
+            tasks = new LinkedHashSet<String>(grepTasks(TASK_PATTERN));
         }
         return tasks;
     }
@@ -236,7 +233,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public Set<String> getSkippedTasks() {
-        return new TreeSet<String>(grepTasks(skippedTaskPattern));
+        return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
     }
 
     @Override
@@ -258,9 +255,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private Collection<String> getNotSkippedTasks() {
-        List all = getExecutedTasks();
-        Set skipped = getSkippedTasks();
-        return CollectionUtils.subtract(all, skipped);
+        Set<String> all = new TreeSet<String>(getExecutedTasks());
+        Set<String> skipped = getSkippedTasks();
+        all.removeAll(skipped);
+        return all;
     }
 
     @Override
@@ -282,11 +280,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnDifferentSets(String message, Set<String> expected, Set<String> actual) {
-        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n%s%nError%n%s", message, expected, actual, getOutput(), getError()));
+        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, actual, getOutput(), getError()));
     }
 
     private void failOnMissingElement(String message, String expected, Set<String> actual) {
-        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n%s%nError%n%s", message, expected, actual, getOutput(), getError()));
+        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, actual, getOutput(), getError()));
+    }
+
+    private void failOnMissingOutput(String message, String type, String expected, String actual) {
+        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, type, actual, getOutput(), getError()));
     }
 
     private List<String> grepTasks(final Pattern pattern) {
@@ -294,8 +296,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> taskStatusLines = Lists.newArrayList();
 
         getMainContent().removeDebugPrefix().eachLine(new Action<String>() {
-            public void execute(String s) {
-                java.util.regex.Matcher matcher = pattern.matcher(s);
+            public void execute(String line) {
+                java.util.regex.Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {
                     String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
                     String taskName = matcher.group(2);

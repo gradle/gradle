@@ -16,12 +16,14 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalize
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -91,29 +93,16 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         then:
         def t = thrown UnexpectedBuildSuccess
-        def expectedOutput
-        if (isCompatibleVersion("4.7")) {
-            // Plain console output changed
-            expectedOutput = """
-> Task :helloWorld
-Hello world!
-
-
-BUILD SUCCESSFUL"""
-        } else {
-            expectedOutput = """:helloWorld
-Hello world!
-
-BUILD SUCCESSFUL"""
-
-        }
         def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
-$expectedOutput"""
+$t.buildResult.output"""
 
-        normalize(t.message).startsWith(expectedMessage)
-        normalize(t.buildResult.output).startsWith(expectedOutput)
+        def buildOutput = OutputScrapingExecutionResult.from(t.buildResult.output, "")
+        buildOutput.assertTasksExecuted(":helloWorld")
+        buildOutput.groupedOutput.task(":helloWorld").output == "Hello world!"
+
+        normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
     }
 
@@ -153,45 +142,18 @@ $expectedOutput"""
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
-        def expectedOutput
-        if (isCompatibleVersion("4.7")) {
-            // Plain console output changed
-            expectedOutput = """> Task :helloWorld FAILED
-
-
-FAILURE: Build failed with an exception.
-
-* Where:
-Build file '${buildFile.canonicalPath}' line: 4
-
-* What went wrong:
-Execution failed for task ':helloWorld'.
-> Unexpected exception
-
-"""
-        } else {
-            expectedOutput = """:helloWorld FAILED
-
-FAILURE: Build failed with an exception.
-
-* Where:
-Build file '${buildFile.canonicalPath}' line: 4
-
-* What went wrong:
-Execution failed for task ':helloWorld'.
-> Unexpected exception
-
-"""
-        }
         String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
-$expectedOutput"""
+$t.buildResult.output"""
 
-        normalize(t.message).startsWith(expectedMessage)
-        def result = t.buildResult
-        normalize(result.output).startsWith(expectedOutput)
-        result.taskPaths(FAILED) == [':helloWorld']
+        def failure = OutputScrapingExecutionFailure.from(t.buildResult.output, "")
+        failure.assertTasksExecuted(':helloWorld')
+        failure.assertHasDescription("Execution failed for task ':helloWorld'.")
+        failure.assertHasCause('Unexpected exception')
+
+        normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))
+        t.buildResult.taskPaths(FAILED) == [':helloWorld']
     }
 
 }

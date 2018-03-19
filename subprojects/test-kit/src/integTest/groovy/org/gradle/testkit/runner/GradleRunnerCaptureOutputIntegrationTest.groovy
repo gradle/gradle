@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
@@ -23,8 +24,6 @@ import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalize
 
 @InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -66,8 +65,9 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
 
         // isn't empty if version < 2.8 or potentially contains Gradle dist download progress output
         if (isCompatibleVersion('2.8') && !crossVersion) {
-            assert normalize(stdStreams.stdOut).empty
-            assert normalize(stdStreams.stdErr).empty
+            def output = OutputScrapingExecutionResult.from(stdStreams.stdOut, stdStreams.stdErr)
+            output.normalizedOutput.empty
+            output.error.empty
         }
     }
 
