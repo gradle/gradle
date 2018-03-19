@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -23,7 +24,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -44,21 +44,9 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
-            loggingManager.attachAnsiConsole(actionParameters.getStandardOutput());
+            loggingManager.attachConsole(actionParameters.getStandardOutput(), ConsoleOutput.Rich);
         } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null){
-            StandardOutputListener outputListener;
-            if (actionParameters.getStandardOutput() != null) {
-                outputListener = new StreamBackedStandardOutputListener(actionParameters.getStandardOutput());
-            } else {
-                outputListener = new IgnoreOutput();
-            }
-            StandardOutputListener errorListener;
-            if (actionParameters.getStandardError() != null) {
-                errorListener = new StreamBackedStandardOutputListener(actionParameters.getStandardError());
-            } else {
-                errorListener = new IgnoreOutput();
-            }
-            loggingManager.attachPlainConsole(outputListener, errorListener);
+            loggingManager.attachConsole(actionParameters.getStandardOutput(), ConsoleOutput.Plain);
         }
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
