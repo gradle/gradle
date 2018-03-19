@@ -17,18 +17,26 @@
 package org.gradle.integtests
 
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
-    def "wrapper does not output anything when executed in quiet mode"() {
-        given:
-        file("build.gradle") << """
-task emptyTask
-        """
-        prepareWrapper()
+    def setup() {
+        file("build.gradle") << "task emptyTask"
+        prepareWrapper(distribution.binDistribution.toURI())
+    }
 
+    def "wrapper does not output anything when executed in quiet mode"() {
         when:
         args '-q'
         def result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
         result.output.empty
+    }
+
+    def "wrapper prints release information in normal mode"() {
+        when:
+        def result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        result.output.contains("Welcome to Gradle ${distribution.version.version}!")
+        result.output.contains("See what's new at https://gradle.org/releases#${distribution.version.version}")
     }
 }
