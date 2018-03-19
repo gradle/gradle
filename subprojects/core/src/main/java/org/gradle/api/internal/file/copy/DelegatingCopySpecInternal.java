@@ -299,12 +299,12 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public ResolvedCopySpecNode resolveAsRoot() {
+    public ResolvedCopySpec resolveAsRoot() {
         return getDelegateCopySpec().resolveAsRoot();
     }
 
     @Override
-    public ResolvedCopySpecNode resolveAsChild(PatternSet parentPatternSet, Iterable<Action<? super FileCopyDetails>> parentCopyActions, ResolvedCopySpec parent) {
+    public ResolvedCopySpec resolveAsChild(PatternSet parentPatternSet, Iterable<Action<? super FileCopyDetails>> parentCopyActions, ResolvedCopySpec parent) {
         return getDelegateCopySpec().resolveAsChild(parentPatternSet, parentCopyActions, parent);
     }
 

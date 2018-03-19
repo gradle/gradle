@@ -33,6 +33,7 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
     private final Integer dirMode;
     private final String filteringCharset;
     private final Iterable<Action<? super FileCopyDetails>> copyActions;
+    private final Iterable<ResolvedCopySpec> children;
 
     public DefaultResolvedCopySpec(
         RelativePath destPath,
@@ -43,7 +44,8 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
         @Nullable Integer fileMode,
         @Nullable Integer dirMode,
         String filteringCharset,
-        Iterable<Action<? super FileCopyDetails>> copyActions
+        Iterable<Action<? super FileCopyDetails>> copyActions,
+        Iterable<ResolvedCopySpec> children
     ) {
         this.destPath = destPath;
         this.source = source;
@@ -54,6 +56,7 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
         this.dirMode = dirMode;
         this.filteringCharset = filteringCharset;
         this.copyActions = copyActions;
+        this.children = children;
     }
 
     @Override
@@ -104,5 +107,18 @@ public class DefaultResolvedCopySpec implements ResolvedCopySpec {
     @Override
     public Iterable<Action<? super FileCopyDetails>> getCopyActions() {
         return copyActions;
+    }
+
+    @Override
+    public Iterable<ResolvedCopySpec> getChildren() {
+        return children;
+    }
+
+    @Override
+    public void walk(Action<? super ResolvedCopySpec> action) {
+        action.execute(this);
+        for (ResolvedCopySpec child : children) {
+            child.walk(action);
+        }
     }
 }

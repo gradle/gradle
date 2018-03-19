@@ -22,17 +22,17 @@ trait CopySpecTestSpec {
 
     abstract CopySpecInternal getSpec()
 
-    DefaultResolvedCopySpec resolvedSpec() {
-        return spec.resolveAsRoot().spec
+    ResolvedCopySpec resolvedSpec() {
+        return spec.resolveAsRoot()
     }
 
-    DefaultResolvedCopySpec resolvedChild(int index = 0) {
-        return spec.resolveAsRoot().children[index].spec
+    ResolvedCopySpec resolvedChild(int index = 0) {
+        return spec.resolveAsRoot().children[index]
     }
 
     List<RelativePath> resolvedDestPaths() {
         List<RelativePath> paths = []
-        spec.resolveAsRoot().walk { DefaultResolvedCopySpec spec ->
+        spec.resolveAsRoot().walk { ResolvedCopySpec spec ->
             paths.add spec.destPath
         }
         return paths

@@ -34,9 +34,9 @@ public interface CopySpecInternal extends CopySpec {
 
     void descendantAdded(CopySpecInternal descendantSpec);
 
-    ResolvedCopySpecNode resolveAsRoot();
+    ResolvedCopySpec resolveAsRoot();
 
-    ResolvedCopySpecNode resolveAsChild(
+    ResolvedCopySpec resolveAsChild(
         PatternSet parentPatternSet,
         Iterable<Action<? super FileCopyDetails>> parentCopyActions,
         ResolvedCopySpec parent);

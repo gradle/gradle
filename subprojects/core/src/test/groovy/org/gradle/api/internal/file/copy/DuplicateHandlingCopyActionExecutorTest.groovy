@@ -53,10 +53,6 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     def executer = new CopyActionExecuter(instantiator, fileSystem, false)
     def resolvedSpec = Mock(ResolvedCopySpec)
-    def resolvedSpecNode = Mock(ResolvedCopySpecNode) {
-        getSpec() >> resolvedSpec
-        getChildren() >> []
-    }
 
     def duplicatesIncludedByDefault() {
         given:
@@ -188,7 +184,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
             }
             fileTree
         }
-        resolvedSpecNode.walk(_) >> { Action it -> it.execute(resolvedSpec) }
+        resolvedSpec.walk(_) >> { Action it -> it.execute(resolvedSpec) }
     }
 
     void actions(Closure... actions) {
@@ -196,7 +192,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     }
 
     void visit() {
-        executer.execute(resolvedSpecNode, delegate)
+        executer.execute(resolvedSpec, delegate)
     }
 
 }

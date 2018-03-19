@@ -23,6 +23,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -66,4 +67,9 @@ public interface ResolvedCopySpec {
 
     @Internal
     Iterable<Action<? super FileCopyDetails>> getCopyActions();
+
+    @Nested
+    Iterable<ResolvedCopySpec> getChildren();
+
+    void walk(Action<? super ResolvedCopySpec> action);
 }

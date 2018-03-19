@@ -40,7 +40,6 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.ResolvedCopySpec;
-import org.gradle.api.internal.file.copy.ResolvedCopySpecNode;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -60,7 +59,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
-    private ResolvedCopySpecNode resolvedRootSpec;
+    private ResolvedCopySpec resolvedRootSpec;
 
     protected AbstractCopyTask() {
         this.rootSpec = createRootSpec();
@@ -97,7 +96,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     @Nested
-    ResolvedCopySpecNode getResolvedRootSpec() {
+    ResolvedCopySpec getResolvedRootSpec() {
         if (resolvedRootSpec == null) {
             resolvedRootSpec = rootSpec.resolveAsRoot();
         }

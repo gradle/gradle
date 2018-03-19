@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
@@ -498,7 +497,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public ResolvedCopySpecNode resolveAsRoot() {
+    public ResolvedCopySpec resolveAsRoot() {
         boolean caseSensitive = isCaseSensitive();
         PatternSet resolvedPatternSet = copyPatternSetIfNecessary(fileResolver, caseSensitive, patternSet);
         return resolve(
@@ -515,7 +514,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public ResolvedCopySpecNode resolveAsChild(
+    public ResolvedCopySpec resolveAsChild(
         PatternSet parentPatternSet,
         Iterable<Action<? super FileCopyDetails>> parentCopyActions,
         ResolvedCopySpec parent
@@ -547,7 +546,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         return value != null ? value : defaultValue;
     }
 
-    private ResolvedCopySpecNode resolve(
+    private ResolvedCopySpec resolve(
         RelativePath parentPath,
         PatternSet patternSet,
         boolean caseSensitive,
@@ -567,6 +566,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         } else {
             source = tree.matching(patternSet);
         }
+        List<ResolvedCopySpec> children = Lists.newArrayListWithCapacity(childSpecs.size());
         ResolvedCopySpec resolvedSpec = new DefaultResolvedCopySpec(
             resolvedPath,
             source,
@@ -576,13 +576,13 @@ public class DefaultCopySpec implements CopySpecInternal {
             fileMode,
             dirMode,
             filteringCharset,
-            copyActions
+            copyActions,
+            children
         );
-        ImmutableList.Builder<ResolvedCopySpecNode> builder = ImmutableList.builder();
         for (CopySpecInternal childSpec : childSpecs) {
-            builder.add(childSpec.resolveAsChild(patternSet, copyActions, resolvedSpec));
+            children.add(childSpec.resolveAsChild(patternSet, copyActions, resolvedSpec));
         }
-        return new ResolvedCopySpecNode(resolvedSpec, builder.build());
+        return resolvedSpec;
     }
 
     private RelativePath resolveDestPath(RelativePath parentPath) {
