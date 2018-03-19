@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
@@ -32,15 +33,13 @@ import org.hamcrest.core.StringContains;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -53,6 +52,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final LogContent mainContent;
     private final LogContent postBuild;
     private GroupedOutputFixture groupedOutputFixture;
+    private Set<String> tasks;
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
     private final Pattern skippedTaskPattern = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
@@ -202,7 +202,14 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public List<String> getExecutedTasks() {
-        return grepTasks(taskPattern);
+        return ImmutableList.copyOf(findExecutedTasksInOrderStarted());
+    }
+
+    private Set<String> findExecutedTasksInOrderStarted() {
+        if (tasks == null) {
+            tasks = new LinkedHashSet<String>(grepTasks(taskPattern));
+        }
+        return tasks;
     }
 
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
@@ -214,8 +221,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        List<String> expectedTasks = flattenTaskPaths(taskPaths);
-        assertThat(String.format("Expected tasks %s not found. Output:%n%s%nError:%n%s", expectedTasks, getOutput(), getError()), getExecutedTasks(), containsInAnyOrder(expectedTasks.toArray()));
+        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (!expectedTasks.equals(actualTasks)) {
+            failOnDifferentSets("Build output does not contain the expected tasks.", expectedTasks, actualTasks);
+        }
         return this;
     }
 
@@ -226,27 +236,24 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public Set<String> getSkippedTasks() {
-        return new HashSet<String>(grepTasks(skippedTaskPattern));
+        return new TreeSet<String>(grepTasks(skippedTaskPattern));
     }
 
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
-        assertThat(String.format("Expected skipped tasks %s not found. Output:%n%s%nError:%n%s", expectedTasks, getOutput(), getError()), getSkippedTasks(), equalTo(expectedTasks));
+        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> skippedTasks = getSkippedTasks();
+        if (!expectedTasks.equals(skippedTasks)) {
+            failOnDifferentSets("Build output does not contain the expected skipped tasks.", expectedTasks, skippedTasks);
+        }
         return this;
     }
 
     public ExecutionResult assertTaskSkipped(String taskPath) {
-        Set<String> tasks = new HashSet<String>(getSkippedTasks());
-        assertThat(String.format("Expected skipped task %s not found. Output:%n%s%nError:%n%s", taskPath, getOutput(), getError()), tasks, hasItem(taskPath));
-        return this;
-    }
-
-    @Override
-    public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
-        Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
-        assertThat(String.format("Expected executed tasks %s not found. Output:%n%s%nError:%n%s", expectedTasks, getOutput(), getError()), tasks, equalTo(expectedTasks));
+        Set<String> tasks = new TreeSet<String>(getSkippedTasks());
+        if (!tasks.contains(taskPath)) {
+            failOnMissingElement("Build output does not contain the expected skipped task.", taskPath, tasks);
+        }
         return this;
     }
 
@@ -256,10 +263,30 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return CollectionUtils.subtract(all, skipped);
     }
 
-    public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
-        assertThat(String.format("Expected executed task %s not found. Output:%n%s%nError%n%s", taskPath, getOutput(), getError()), tasks, hasItem(taskPath));
+    @Override
+    public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
+        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        if (!expectedTasks.equals(tasks)) {
+            failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, tasks);
+        }
         return this;
+    }
+
+    public ExecutionResult assertTaskNotSkipped(String taskPath) {
+        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        if (!tasks.contains(taskPath)) {
+            failOnMissingElement("Build output does not contain the expected non skipped task.", taskPath, tasks);
+        }
+        return this;
+    }
+
+    private void failOnDifferentSets(String message, Set<String> expected, Set<String> actual) {
+        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n%s%nError%n%s", message, expected, actual, getOutput(), getError()));
+    }
+
+    private void failOnMissingElement(String message, String expected, Set<String> actual) {
+        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n%s%nError%n%s", message, expected, actual, getOutput(), getError()));
     }
 
     private List<String> grepTasks(final Pattern pattern) {
