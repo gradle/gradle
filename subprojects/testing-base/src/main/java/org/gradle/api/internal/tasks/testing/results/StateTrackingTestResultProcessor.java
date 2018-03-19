@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +55,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     }
 
     private void ensureChildrenCompleted(Object testId, long endTime) {
-        List<Object> incompleteChildren = new LinkedList<Object>();
+        List<Object> incompleteChildren = new ArrayList<Object>();
         for (Map.Entry<Object, TestState> entry : executing.entrySet()) {
             if (testId.equals(entry.getValue().startEvent.getParentId())) {
                 incompleteChildren.add(entry.getKey());
