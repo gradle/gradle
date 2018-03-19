@@ -571,7 +571,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         when:
         succeeds("check")
         then:
-        !result.error.contains("Wrong magic bytes")
+        result.assertNotOutput("Wrong magic bytes")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1307")

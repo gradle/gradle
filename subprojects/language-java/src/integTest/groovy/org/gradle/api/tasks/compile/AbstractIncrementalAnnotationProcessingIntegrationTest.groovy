@@ -93,6 +93,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
         expect:
         fails("compileJava")
-        errorOutput.contains("java.lang.ClassNotFoundException: unknown.Processor")
+        failure.assertHasCause("java.lang.ClassNotFoundException: unknown.Processor")
     }
 }

@@ -263,7 +263,7 @@ class LogLevel {
             checkOuts(true, result.output, messages, validator)
         }
         errorMessages.each {List<String> messages ->
-            checkOuts(true, result.error, messages, validator)
+            checkOuts(true, result.output, messages, validator)
         }
         forbiddenMessages.each {List<String> messages ->
             checkOuts(false, result.output, messages) {occurrence -> }

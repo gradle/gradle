@@ -91,10 +91,22 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         then:
         def t = thrown UnexpectedBuildSuccess
-        def expectedOutput = """:helloWorld
+        def expectedOutput
+        if (isCompatibleVersion("4.7")) {
+            // Plain console output changed
+            expectedOutput = """
+> Task :helloWorld
+Hello world!
+
+
+BUILD SUCCESSFUL"""
+        } else {
+            expectedOutput = """:helloWorld
 Hello world!
 
 BUILD SUCCESSFUL"""
+
+        }
         def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
@@ -141,7 +153,11 @@ $expectedOutput"""
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
-        String expectedOutput = """:helloWorld FAILED
+        def expectedOutput
+        if (isCompatibleVersion("4.7")) {
+            // Plain console output changed
+            expectedOutput = """> Task :helloWorld FAILED
+
 
 FAILURE: Build failed with an exception.
 
@@ -153,6 +169,20 @@ Execution failed for task ':helloWorld'.
 > Unexpected exception
 
 """
+        } else {
+            expectedOutput = """:helloWorld FAILED
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '${buildFile.canonicalPath}' line: 4
+
+* What went wrong:
+Execution failed for task ':helloWorld'.
+> Unexpected exception
+
+"""
+        }
         String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:

@@ -314,7 +314,7 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         ":test" in nonSkippedTasks
-        errorOutput.contains("See the report at: ")
+        failure.assertHasCause("There were failing tests. See the report at: ")
 
         when:
         buildFile << "\ntest.reports.html.enabled = false\n"
@@ -322,7 +322,7 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         ":test" in nonSkippedTasks
-        errorOutput.contains("See the results at: ")
+        failure.assertHasCause("There were failing tests. See the results at: ")
 
         when:
         buildFile << "\ntest.reports.junitXml.enabled = false\n"
@@ -330,8 +330,8 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         ":test" in nonSkippedTasks
-        errorOutput.contains("There were failing tests")
-        !errorOutput.contains("See the")
+        failure.assertHasCause("There were failing tests")
+        failure.assertHasNoCause("See the")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

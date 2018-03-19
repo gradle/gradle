@@ -77,6 +77,6 @@ model {
         expect:
         fails("assemble")
         and:
-        errorOutput.contains("Injected routers are only supported in Play 2.4 or newer.")
+        failure.assertHasCause("Injected routers are only supported in Play 2.4 or newer.")
     }
 }

@@ -1,4 +1,5 @@
-:dependentComponents
+
+> Task :dependentComponents
 
 ------------------------------------------------------------
 Root project
@@ -13,6 +14,7 @@ operators - Components that depend on native library 'operators'
      \--- operatorsTest:passingCUnitExe (t)
 
 (t) - Test suite binary
+
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

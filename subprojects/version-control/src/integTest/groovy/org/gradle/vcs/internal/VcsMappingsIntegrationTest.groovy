@@ -344,7 +344,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         expect:
         fails('assemble')
         assertRepoCheckedOut()
-        result.error.contains("Plugin with id 'com.example.DoesNotExist' not found.")
+        failure.assertHasCause("Plugin with id 'com.example.DoesNotExist' not found.")
     }
 
     def 'can build from sub-directory of repository'() {
@@ -382,7 +382,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         fails('assemble')
-        result.error.contains("rootDir should be non-null")
+        failure.assertHasCause("rootDir should be non-null")
     }
 
     void assertRepoCheckedOut(String repoName="dep") {

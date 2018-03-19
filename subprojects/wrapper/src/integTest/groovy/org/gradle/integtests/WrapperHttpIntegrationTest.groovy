@@ -222,8 +222,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        !result.output.contains('changeit')
-        !result.error.contains('changeit')
+        result.assertNotOutput('changeit')
     }
 
     def "does not leak basic authentication credentials in exception messages"() {

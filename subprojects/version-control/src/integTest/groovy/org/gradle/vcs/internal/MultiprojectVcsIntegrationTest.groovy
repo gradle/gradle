@@ -164,7 +164,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         """
         expect:
         fails("resolve")
-        result.error.contains("did not contain a project publishing the specified dependency.")
+        failure.assertHasCause("dir repo ${buildB} did not contain a project publishing the specified dependency.")
     }
 
     void mappingFor(TestFile repo=buildB, String... coords) {

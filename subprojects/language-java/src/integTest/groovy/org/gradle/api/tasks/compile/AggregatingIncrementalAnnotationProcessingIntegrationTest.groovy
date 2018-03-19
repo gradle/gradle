@@ -183,8 +183,8 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         fails "compileJava"
 
         and:
-        errorOutput.contains("Incremental annotation processors are not allowed to read resources.")
-        errorOutput.contains("Incremental annotation processors are not allowed to create resources.")
+        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to read resources.")
+        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to create resources.")
     }
 
     def "an isolating processor is also a valid aggregating processor"() {

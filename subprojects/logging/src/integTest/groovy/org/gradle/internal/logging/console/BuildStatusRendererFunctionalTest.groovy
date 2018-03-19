@@ -16,19 +16,22 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
 
-class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
+class BuildStatusRendererFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     GradleHandle gradle
 
     def setup() {
+        executer.withConsole(ConsoleOutput.Rich)
         settingsFile << """
             // wait for the initialization phase
             new URL('${server.uri}').text

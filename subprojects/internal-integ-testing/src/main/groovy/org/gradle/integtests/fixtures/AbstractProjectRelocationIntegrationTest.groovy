@@ -40,14 +40,14 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
         inDirectory(originalDir)
         run taskName
         then: "it is UP-TO-DATE"
-        skipped taskName
+        result.assertTaskSkipped taskName
 
         when: "it is executed in the new location"
         prepareForRelocation(relocatedDir)
         inDirectory(relocatedDir)
         withBuildCache().run taskName
         then: "it is loaded from cache"
-        skipped taskName
+        result.assertTaskSkipped taskName
 
         when: "it is re-executed with a clean project in the new location"
         removeResults(relocatedDir)

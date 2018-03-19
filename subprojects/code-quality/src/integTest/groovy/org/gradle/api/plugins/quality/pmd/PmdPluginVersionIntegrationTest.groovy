@@ -109,7 +109,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 """
         expect:
         fails("check")
-        errorOutput.contains("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "gets reasonable message when priority level threshold is out of range from task"() {
@@ -121,7 +121,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 """
         expect:
         fails("check")
-        errorOutput.contains("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "can configure reporting"() {

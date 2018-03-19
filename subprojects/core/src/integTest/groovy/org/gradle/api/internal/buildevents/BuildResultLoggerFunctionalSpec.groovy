@@ -17,11 +17,14 @@
 package org.gradle.api.internal.buildevents
 
 import org.fusesource.jansi.Ansi
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class BuildResultLoggerFunctionalSpec extends AbstractConsoleFunctionalSpec {
+class BuildResultLoggerFunctionalSpec extends AbstractIntegrationSpec implements RichConsoleStyling {
 
     def setup() {
+        executer.withConsole(ConsoleOutput.Rich)
         executer.withStackTraceChecksDisabled()
     }
 

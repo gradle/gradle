@@ -1,7 +1,10 @@
-:compile
+
+> Task :compile
 compiling source
-:dist
+
+> Task :dist
 building the distribution
+
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed

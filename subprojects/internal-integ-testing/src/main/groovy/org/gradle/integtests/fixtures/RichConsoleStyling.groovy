@@ -17,27 +17,22 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
-import org.gradle.api.logging.configuration.ConsoleOutput
 
 /**
- * A base class for testing the console in rich mode. Executes with a Gradle distribution and {@code "--console=rich"} command line option.
+ * A trait for testing console behavior.
  * <p>
  * <b>Note:</b> The console output contains formatting characters.
  */
-abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
+trait RichConsoleStyling {
     public final static String CONTROL_SEQUENCE_START = "\u001B["
     public final static String CONTROL_SEQUENCE_SEPARATOR = ";"
     public final static String CONTROL_SEQUENCE_END = "m"
     public final static String DEFAULT_TEXT = "0;39"
 
-    def setup() {
-        executer.withConsole(ConsoleOutput.Rich)
-    }
-
     /**
      * Wraps the text in the proper control characters for styled output in the rich console
      */
-    protected String styled(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
+    static String styled(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
         String styledString = CONTROL_SEQUENCE_START
         if (color) {
             styledString += color.fg()

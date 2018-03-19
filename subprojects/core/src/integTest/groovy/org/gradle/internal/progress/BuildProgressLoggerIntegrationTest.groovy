@@ -15,18 +15,21 @@
  */
 package org.gradle.internal.progress
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class BuildProgressLoggerIntegrationTest extends AbstractConsoleFunctionalSpec {
+class BuildProgressLoggerIntegrationTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     private static final String SERVER_RESOURCE = 'test-resource'
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        executer.withConsole(ConsoleOutput.Rich)
         server.start()
     }
 

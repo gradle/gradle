@@ -39,6 +39,14 @@ Gradle's incremental Java compiler can now also run annotation processing increm
 No user-facing configuration is necessary, but processor authors need to opt in.
 If you are a processor author, have a look at the [user guide](userguide/java_plugin.html#sec:incremental_annotation_processing) to find out how to make your processor compatible.
     
+### Gradle console improvements
+
+Gradle has two basic console modes, which determine how Gradle formats the text output it generates: The 'plain' console mode is used by default when Gradle is running without without an associated console, for example from an IDE or a CI build agent, and the 'rich' console is used by default when Gradle is running with an associated console, for example when running from the command-line.
+
+In previous releases, the rich console had some features that the plain console was missing. These are now available for the plain console as well. In this Gradle release, the plain console groups the output from each task is grouped with a header rather than interleaving the output. This makes diagnosing issues on CI using the log output much easier.
+
+TBD - build scan task output grouping
+    
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -79,6 +87,10 @@ With this release of Gradle, the Checkstyle configuration file is discovered in 
 The Checkstyle configuration file in a sub project takes precedence over the file provided in the root project to support backward compatibility.
 
 ## Potential breaking changes
+
+### Gradle console output changes
+
+The plain console mode now formats output consistently with the rich console, which means that the output format has changed. This may break tools that scrape details from the console output.
 
 ### Changes in the caching of missing versions
 

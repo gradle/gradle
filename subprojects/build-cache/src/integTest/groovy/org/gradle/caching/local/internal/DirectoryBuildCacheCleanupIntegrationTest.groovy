@@ -102,7 +102,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         """
         expect:
         fails("help")
-        result.error.contains("Directory build cache needs to retain entries for at least a day.")
+        failure.assertHasCause("Directory build cache needs to retain entries for at least a day.")
 
         where:
         days << [-1, 0]

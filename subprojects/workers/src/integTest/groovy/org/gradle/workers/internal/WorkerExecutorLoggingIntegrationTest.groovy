@@ -57,26 +57,22 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         """.stripIndent()
 
         when:
-        def gradle = executer.withTasks("runInWorker").start()
+        succeeds("runInWorker")
 
         then:
-        gradle.waitForFinish()
-
-        then:
-        gradle.standardOutput.contains("stdout message")
-        gradle.standardOutput.contains("warn message")
-        gradle.standardOutput.contains("slf4j warn")
-        gradle.standardOutput.contains("jul warn")
+        output.contains("stdout message")
+        output.contains("warn message")
+        output.contains("slf4j warn")
+        output.contains("jul warn")
 
         and:
-        gradle.errorOutput.contains("stderr message")
-        gradle.errorOutput.contains("error message")
-        gradle.errorOutput.contains("slf4j error")
-        gradle.errorOutput.contains("jul error")
+        result.assertHasErrorOutput("stderr message")
+        result.assertHasErrorOutput("error message")
+        result.assertHasErrorOutput("slf4j error")
+        result.assertHasErrorOutput("jul error")
 
         and:
-        !gradle.standardOutput.contains("debug")
-        !gradle.errorOutput.contains("debug")
+        result.assertNotOutput("debug")
 
         where:
         isolationMode << ISOLATION_MODES

@@ -836,7 +836,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withJavaHome jdk8.javaHome
         executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
-        errorOutput.contains "Main.java:8: error: cannot find symbol"
+        failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 
         executer.withJavaHome jdk8.javaHome
         succeeds "-Pjava8", "clean", "compileJava"

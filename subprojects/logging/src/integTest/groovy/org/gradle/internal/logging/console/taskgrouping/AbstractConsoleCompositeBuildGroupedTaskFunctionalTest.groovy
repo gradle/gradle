@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-class ConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
+abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     private static final String PROJECT_A_NAME = 'projectA'
     private static final String PROJECT_B_NAME = 'projectB'
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'

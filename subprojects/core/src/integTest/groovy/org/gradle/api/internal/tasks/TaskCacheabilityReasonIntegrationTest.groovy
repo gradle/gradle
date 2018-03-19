@@ -270,7 +270,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         """
         expect:
         withBuildCache().fails "cacheable"
-        result.error.contains("boom")
+        failure.assertHasCause("boom")
     }
 
     def "cacheability for a failing non-cacheable task is NOT_ENABLED_FOR_TASK"() {
@@ -286,6 +286,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         """
         expect:
         withBuildCache().fails "cacheable"
-        result.error.contains("boom")
+        failure.assertHasCause("boom")
     }
 }
