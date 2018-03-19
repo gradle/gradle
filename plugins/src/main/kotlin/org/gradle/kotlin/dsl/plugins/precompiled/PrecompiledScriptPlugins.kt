@@ -159,7 +159,7 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptS
             outputs.dir(generatedSourcesDir)
             doLast {
                 for (scriptPlugin in scriptPlugins) {
-                    scriptPlugin.writeScriptPluginAdaterTo(generatedSourcesDir.get().asFile)
+                    scriptPlugin.writeScriptPluginAdapterTo(generatedSourcesDir.get().asFile)
                 }
             }
         }
@@ -172,7 +172,7 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptS
 
 
 internal
-fun ScriptPlugin.writeScriptPluginAdaterTo(outputDir: File) =
+fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) =
     File(outputDir, "$implementationClass.kt").writeText(
         """
             import org.gradle.api.Plugin
