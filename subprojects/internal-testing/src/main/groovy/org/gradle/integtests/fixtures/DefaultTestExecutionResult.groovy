@@ -115,6 +115,15 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        int getTestSkippedCount() {
+            List<Integer> counts = testClassResults*.testSkippedCount
+            List<Integer> uniques = counts.unique()
+            if (uniques.size() == 1) {
+                return uniques.first()
+            }
+            throw new IllegalStateException("Multiple different test counts ${counts}")
+        }
+
         TestClassExecutionResult assertTestPassed(String name) {
             testClassResults*.assertTestPassed(removeParentheses(name))
             this
