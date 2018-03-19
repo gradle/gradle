@@ -93,7 +93,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fails("runInDaemon")
 
         then:
-        errorOutput.contains(unrecognizedOptionError)
+        failure.assertHasErrorOutput(unrecognizedOptionError)
 
         and:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")

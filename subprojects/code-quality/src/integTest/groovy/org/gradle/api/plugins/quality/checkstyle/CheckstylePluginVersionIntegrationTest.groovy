@@ -83,7 +83,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
-        failure.error.contains("Name 'class1' must match pattern")
+        failure.assertHasErrorOutput("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 
@@ -92,9 +92,13 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     def "can suppress console output"() {
+        def message = "Name 'class1' must match pattern"
+
         given:
         defaultLanguage('en')
         badCode()
+        fails("check")
+        failure.assertHasErrorOutput(message)
 
         when:
         buildFile << "checkstyle { showViolations = false }"
@@ -103,7 +107,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
-        !failure.error.contains("Name 'class1' must match pattern")
+        failure.assertNotOutput(message)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 
@@ -331,7 +335,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         then:
         nonSkippedTasks.contains(':checkstyleMain')
-        errorOutput.contains("[ant:checkstyle] [WARN]") || errorOutput.contains("warning: Name 'class1' must match pattern")
+        result.hasErrorOutput("[ant:checkstyle] [WARN]") || result.hasErrorOutput("warning: Name 'class1' must match pattern")
     }
 
     private goodCode() {

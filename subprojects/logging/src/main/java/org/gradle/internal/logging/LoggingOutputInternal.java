@@ -17,6 +17,7 @@
 package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LoggingOutput;
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -49,6 +50,13 @@ public interface LoggingOutputInternal extends LoggingOutput {
     void attachAnsiConsole(OutputStream outputStream);
 
     /**
+     * Adds the given {@link StandardOutputListener} objects as logging destinations.  The output will include plain text only, with no color or dynamic text.
+     *
+     * <p>Removes standard output and/or error as a side-effect.
+     */
+    void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener);
+
+    /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and
      * encoded using the system character encoding.
      */
@@ -71,4 +79,9 @@ public interface LoggingOutputInternal extends LoggingOutput {
      */
     @UsedByScanPlugin
     void removeOutputEventListener(OutputEventListener listener);
+
+    /**
+     * Flush any outstanding output.
+     */
+    void flush();
 }

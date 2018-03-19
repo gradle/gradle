@@ -349,9 +349,9 @@ apply plugin: 'swift-library'
 
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
-        resultDebugWithXCTest.assertOutputContains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
-        resultDebugWithXCTest.assertOutputContains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
-        resultDebugWithXCTest.assertOutputContains("** TEST SUCCEEDED **")
+        resultDebugWithXCTest.assertHasPostBuildOutput("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultDebugWithXCTest.assertHasPostBuildOutput("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
+        resultDebugWithXCTest.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -378,9 +378,9 @@ apply plugin: 'xctest'
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
-        resultTestRunner.assertOutputContains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
-        resultTestRunner.assertOutputContains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
-        resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -409,9 +409,9 @@ apply plugin: 'xctest'
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
-        resultTestRunner.assertOutputContains("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
-        resultTestRunner.assertOutputContains("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")
-        resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -477,7 +477,7 @@ apply plugin: 'swift-application'
             .withScheme('App')
             .fails()
         then:
-        result.assertOutputContains("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
+        result.assertHasDescription("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
     }
 
     @Requires(TestPrecondition.XCODE)

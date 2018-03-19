@@ -23,6 +23,8 @@ import java.util.Set;
 public interface ExecutionResult {
     /**
      * Stdout of the Gradle execution, normalized to use new-line char as line separator.
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getOutput();
 
@@ -40,19 +42,52 @@ public interface ExecutionResult {
 
     /**
      * Returns a fixture that parses the output and forms them into the expected groups
-     *
-     * <b>NOTE:</b> this is only supported when using {@link org.gradle.api.logging.configuration.ConsoleOutput#Rich}
      */
     GroupedOutputFixture getGroupedOutput();
 
     /**
      * Stderr of the Gradle execution, normalized to use new-line char as line separator.
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getError();
 
+    /**
+     * Asserts that this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasErrorOutput(String expectedOutput);
+
+    /**
+     * Returns true when this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    boolean hasErrorOutput(String expectedOutput);
+
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
 
+    /**
+     * Asserts that this result includes the given non-error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
     ExecutionResult assertOutputContains(String expectedOutput);
+
+    /**
+     * Asserts that this result does not include the given log message anywhere in the build output.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertNotOutput(String expectedOutput);
+
+    /**
+     * Assert that the given message appears after the build result message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.

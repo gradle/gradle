@@ -138,7 +138,6 @@ apply plugin: "gradlebuild.available-java-installations"
 apply plugin: "gradlebuild.buildscan"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
-apply from: "gradle/dependenciesMetadataRules.gradle.kts"
 apply plugin: "gradlebuild.minify"
 apply from: "gradle/testDependencies.gradle"
 apply plugin: "gradlebuild.wrapper"
@@ -154,6 +153,7 @@ subprojects {
 
     if (project in ProjectGroups.INSTANCE.getJavaProjects(project)) {
         apply plugin: "gradlebuild.java-projects"
+        apply plugin: "gradlebuild.dependencies-metadata-rules"
     }
 
     if (project in ProjectGroups.INSTANCE.getPublishedProjects(project)) {

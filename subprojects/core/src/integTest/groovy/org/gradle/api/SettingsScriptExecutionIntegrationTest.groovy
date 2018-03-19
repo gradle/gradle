@@ -21,10 +21,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
-import static org.junit.Assert.assertThat
-
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesSettingsScriptWithCorrectEnvironment() {
@@ -59,10 +55,8 @@ try {
         testFile('build.gradle') << 'task doStuff'
 
         ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
-        assertThat(result.output, containsString('quiet message'))
-        assertThat(result.output, not(containsString('error message')))
-        assertThat(result.error, containsString('error message'))
-        assertThat(result.error, not(containsString('quiet message')))
+        result.assertOutputContains('quiet message')
+        result.assertHasErrorOutput('error message')
     }
 
     private TestFile createBuildSrc() {

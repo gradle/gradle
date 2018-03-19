@@ -141,7 +141,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         fails "check"
 
         then:
-        errorOutput.contains("There were failing tests. See the report at:")
+        failure.assertHasCause("There were failing tests. See the report at:")
     }
 
     def "lack of tests produce an empty report"() {

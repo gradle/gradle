@@ -1,4 +1,5 @@
-:dependentComponents
+
+> Task :dependentComponents
 
 ------------------------------------------------------------
 Root project
@@ -11,6 +12,7 @@ operators - Components that depend on native library 'operators'
 \--- operators:passingStaticLibrary
 
 Some test suites were not shown, use --test-suites or --all to show them.
+
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

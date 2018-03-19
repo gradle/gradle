@@ -105,7 +105,7 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#building-cpp-projects" aria-expanded="false" aria-controls="building-cpp-projects">C++</a>
                                 <ul id="building-cpp-projects">
                                     <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Executables</a></li>
-                                    <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Libraries</a></li>
+                                    <li><a href="https://guides.gradle.org/building-cpp-libraries/">Building C++ Libraries</a></li>
                                 </ul>
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#building-groovy-projects" aria-expanded="false" aria-controls="building-groovy-projects">Groovy</a>

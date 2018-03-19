@@ -119,7 +119,7 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
-        ComponentResolveMetadata getMetaData() {
+        ComponentResolveMetadata getMetadata() {
             metaData
         }
 

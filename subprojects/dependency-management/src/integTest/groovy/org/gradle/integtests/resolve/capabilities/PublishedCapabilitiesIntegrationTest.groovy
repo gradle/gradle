@@ -29,16 +29,11 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
     def "can consume published capabilities"() {
         given:
         repository {
-            'cglib:cglib:3.2.5' {
-                variant("runtime") {
-                    capability('cglib', 'cglib', '3.2.5')
-                }
-            }
+            'cglib:cglib:3.2.5'()
             'cglib:cglib-nodep:3.2.5' {
                 variant("runtime") {
                     capability('cglib', 'cglib', '3.2.5')
                 }
-
             }
         }
 
@@ -67,11 +62,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
     def "can detect conflict with capability in different versions and upgrade automatically to latest version"() {
         given:
         repository {
-            'cglib:cglib:3.2.5' {
-                variant("runtime") {
-                    capability('cglib', 'cglib', '3.2.5')
-                }
-            }
+            'cglib:cglib:3.2.5'()
             'cglib:cglib-nodep:3.2.4' {
                 variant("runtime") {
                     capability('cglib', 'cglib', '3.2.4')

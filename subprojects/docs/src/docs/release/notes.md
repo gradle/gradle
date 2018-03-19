@@ -32,6 +32,20 @@ This allows for declaring nice names when adding `CommandLineArgumentProviders`,
 ### Rerun failed tests first
 
 Now, in the subsequent test, Gradle will execute the previous failed test class first. With [`--fail-fast`](userguide/java_plugin.html#sec:test_execution) option introduced in `4.6`, this can provide a much faster feedback loop for development.
+
+### Incremental annotation processing
+
+Gradle's incremental Java compiler can now also run annotation processing incrementally. 
+No user-facing configuration is necessary, but processor authors need to opt in.
+If you are a processor author, have a look at the [user guide](userguide/java_plugin.html#sec:incremental_annotation_processing) to find out how to make your processor compatible.
+    
+### Gradle console improvements
+
+Gradle has two basic console modes, which determine how Gradle formats the text output it generates: The 'plain' console mode is used by default when Gradle is running without without an associated console, for example from an IDE or a CI build agent, and the 'rich' console is used by default when Gradle is running with an associated console, for example when running from the command-line.
+
+In previous releases, the rich console had some features that the plain console was missing. These are now available for the plain console as well. In this Gradle release, the plain console groups the output from each task is grouped with a header rather than interleaving the output. This makes diagnosing issues on CI using the log output much easier.
+
+TBD - build scan task output grouping
     
 ## Promoted features
 
@@ -40,9 +54,21 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### De-incubation of Google repository shortcut method
+
+The method `RepositoryHandler.google()` has been promoted.
+
+### De-incubation of Project#findProperty
+
+See [javadocs](https://docs.gradle.org/current/javadoc/org/gradle/api/Project.html#findProperty-java.lang.String-) for details
+
+### De-incubation of several Groovy compile options
+
+The following Groovy compile options have been promoted:
+
+- [configurationScript](https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/compile/GroovyCompileOptions.html#getConfigurationScript--)
+- [javaAnnotationProcessing](https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/compile/GroovyCompileOptions.html#isJavaAnnotationProcessing--)
+- [fileExtensions](https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/compile/GroovyCompileOptions.html#getFileExtensions--)
 
 ## Fixed issues
 
@@ -61,6 +87,10 @@ With this release of Gradle, the Checkstyle configuration file is discovered in 
 The Checkstyle configuration file in a sub project takes precedence over the file provided in the root project to support backward compatibility.
 
 ## Potential breaking changes
+
+### Gradle console output changes
+
+The plain console mode now formats output consistently with the rich console, which means that the output format has changed. This may break tools that scrape details from the console output.
 
 ### Changes in the caching of missing versions
 
@@ -119,6 +149,8 @@ We would like to thank the following community members for making contributions 
 
  - [Piotr Kubowicz](https://github.com/pkubowicz) - Make CheckStyle plugin work by default for multi-project builds (gradle/gradle#2811)
  - [Philippe Agra](https://github.com/philippeagra) - Fix annotation-processors cache (gradle/gradle#4680)
+ - [Jesper Utoft](https://github.com/jutoft) - Improve ear plugin (gradle/gradle#4381)
+ - [Henrik Brautaset Aronsen](https://github.com/henrik242) - Upgrade ASM to `6.1` (gradle/gradle#4696)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

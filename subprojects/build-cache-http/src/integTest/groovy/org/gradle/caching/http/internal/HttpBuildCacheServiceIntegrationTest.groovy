@@ -295,8 +295,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         then:
         output.contains "response status 401: Unauthorized"
         // Make sure we don't log the password
-        !output.contains("incorrect-pass")
-        !errorOutput.contains("incorrect-pass")
+        result.assertNotOutput("incorrect-pass")
     }
 
     def "unknown host causes the build cache to be disabled"() {

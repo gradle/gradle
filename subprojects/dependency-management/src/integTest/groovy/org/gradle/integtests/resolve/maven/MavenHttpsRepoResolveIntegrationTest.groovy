@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTest
 
 class MavenHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
-    protected String setupRepo(boolean useAuth = false) {
+    protected void setupRepo(boolean useAuth = false) {
         def module = mavenRepo().module('my-group', 'my-module').publish()
         if (useAuth) {
             server.allowGetOrHead('/repo1/my-group/my-module/1.0/my-module-1.0.pom', 'user', 'secret', module.pomFile)
@@ -28,6 +28,10 @@ class MavenHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveInteg
             server.allowGetOrHead('/repo1/my-group/my-module/1.0/my-module-1.0.pom', module.pomFile)
             server.allowGetOrHead('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.artifactFile)
         }
-        "maven"
+    }
+
+    @Override
+    protected String getRepoType() {
+        return "maven"
     }
 }

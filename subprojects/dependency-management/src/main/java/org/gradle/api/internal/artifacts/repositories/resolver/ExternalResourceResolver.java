@@ -164,7 +164,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
 
-        // TODO:DAZ Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
+        // TODO: Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
         // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
         ResourceVersionLister versionLister = new ResourceVersionLister(repository);
         List<ResourcePattern> completeIvyPatterns = filterComplete(this.ivyPatterns, module);

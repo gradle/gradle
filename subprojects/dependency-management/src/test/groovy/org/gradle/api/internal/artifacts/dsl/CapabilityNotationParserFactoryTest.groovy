@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.capabilities.CapabilityDescriptor
+import org.gradle.api.capabilities.Capability
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 import spock.lang.Subject
@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 class CapabilityNotationParserFactoryTest extends Specification {
     @Subject
-    private NotationParser<Object, CapabilityDescriptor> parser = new CapabilityNotationParserFactory().create()
+    private NotationParser<Object, Capability> parser = new CapabilityNotationParserFactory().create()
 
     def "can parse string notation"() {
         when:

@@ -111,7 +111,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         file("greeter/src/main/swift/greeter.swift").replace("sayHello", "sayAloha")
         then:
         fails ":app:compileDebugSwift"
-        result.error.contains("value of type 'Greeter' has no member 'sayHello'")
+        failure.assertHasErrorOutput("value of type 'Greeter' has no member 'sayHello'")
 
         when:
         file("app/src/main/swift/main.swift").replace("sayHello", "sayAloha")

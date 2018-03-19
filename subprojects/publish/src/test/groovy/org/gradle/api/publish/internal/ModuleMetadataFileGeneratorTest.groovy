@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.capabilities.CapabilityDescriptor
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -642,12 +642,12 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def component = Stub(TestComponent)
         def publication = publication(component, id)
 
-        def c1 = Stub(CapabilityDescriptor) {
+        def c1 = Stub(Capability) {
             getGroup() >> 'org.test'
             getName() >> 'foo'
             getVersion() >> '1'
         }
-        def c2 = Stub(CapabilityDescriptor) {
+        def c2 = Stub(Capability) {
             getGroup() >> 'org.test'
             getName() >> 'bar'
             getVersion() >> '2'

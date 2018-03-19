@@ -20,7 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec;
+import org.gradle.integtests.fixtures.RichConsoleStyling;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -423,7 +423,7 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Executes the build with {@code "--console=rich, auto, verbose"} argument.
      *
-     * @see AbstractConsoleFunctionalSpec
+     * @see RichConsoleStyling
      */
     GradleExecuter withConsole(ConsoleOutput consoleOutput);
 

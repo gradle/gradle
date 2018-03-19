@@ -23,7 +23,7 @@ public interface ConflictHandler<CANDIDATE, RESULT, RESOLVER> {
     /**
      * Registers new module and returns information about any potential conflict
      */
-    PotentialConflict registerModule(CANDIDATE newModule);
+    PotentialConflict registerCandidate(CANDIDATE candidate);
 
     /**
      * Informs whether there is any conflict at present

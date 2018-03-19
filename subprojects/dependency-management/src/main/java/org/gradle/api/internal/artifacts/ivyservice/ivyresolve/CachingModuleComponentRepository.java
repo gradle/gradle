@@ -295,36 +295,32 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            if (isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier)) {
-                return MetadataFetchingCost.FAST;
-            }
-            return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
-        }
-
-        private boolean isMetadataAvailableInCacheAndUpToDate(ModuleComponentIdentifier moduleComponentIdentifier) {
             ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetadata == null) {
-                return false;
+                return estimateCostViaRemoteAccess(moduleComponentIdentifier);
             }
             if (cachedMetadata.isMissing()) {
                 if (cachePolicy.mustRefreshMissingModule(moduleComponentIdentifier, cachedMetadata.getAgeMillis())) {
-                    return false;
+                    return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
-                return true;
+                return MetadataFetchingCost.CHEAP;
             }
             ModuleComponentResolveMetadata metaData = getProcessedMetadata(cachedMetadata);
             if (metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
-                    return false;
+                    return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
             } else {
                 if (cachePolicy.mustRefreshModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
-                    return false;
+                    return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
             }
-            return true;
+            return MetadataFetchingCost.FAST;
         }
 
+        private MetadataFetchingCost estimateCostViaRemoteAccess(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
+        }
 
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
             CachedArtifact cached = moduleArtifactCache.lookup(artifactCacheKey(artifact.getId()));

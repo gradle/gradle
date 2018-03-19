@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
@@ -220,7 +221,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     void doDaemonContext(gradleHandle, Closure assertions) {
-        DaemonContextParser.parseFromString(gradleHandle.standardOutput).with(assertions)
+        // poll here since even though the daemon has been marked as busy in the registry, the context may not have been
+        // flushed to the log yet.
+        DaemonContext context
+        poll(5) {
+            context = DaemonContextParser.parseFromString(gradleHandle.standardOutput)
+        }
+        context.with(assertions)
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {

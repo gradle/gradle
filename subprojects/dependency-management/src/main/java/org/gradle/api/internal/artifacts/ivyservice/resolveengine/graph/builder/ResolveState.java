@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -81,7 +82,7 @@ class ResolveState {
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
-        ComponentState rootVersion = getRevision(rootResult.getId());
+        ComponentState rootVersion = getRevision(rootResult.getComponentIdentifier(), rootResult.getId());
         rootVersion.setMetaData(rootResult.getMetaData());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
@@ -113,8 +114,8 @@ class ResolveState {
         return module;
     }
 
-    public ComponentState getRevision(ModuleVersionIdentifier id) {
-        return getModule(id.getModule()).getVersion(id);
+    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id) {
+        return getModule(id.getModule()).getVersion(id, componentIdentifier);
     }
 
     public Collection<NodeState> getNodes() {

@@ -173,6 +173,6 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.error.contains('Could not find any version that matches org.test:parent:[2.0,3.0)')
+        failure.assertHasCause('Could not find any version that matches org.test:parent:[2.0,3.0)')
     }
 }

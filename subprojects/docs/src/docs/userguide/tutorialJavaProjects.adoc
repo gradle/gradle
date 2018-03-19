@@ -96,7 +96,7 @@ You can find out more in <<dependency_management_for_java_projects>>.
 [[sec:customizing_the_project]]
 ==== Customizing the project
 
-The Java plugin adds a number of properties to your project. These properties have default values which are usually sufficient to get started. It's easy to change these values if they don't suit. Let's look at this for our sample. Here we will specify the version number for our Java project, along with the Java version our source is written in. We also add some attributes to the JAR manifest.
+The Java plugin adds a number of properties to your project. These properties have default values which are usually sufficient to get started. It's easy to change these values if they don't suit. Let's look at this for our sample. Here we will specify the version number for our Java project, along with some attributes to the JAR manifest.
 
 ++++
 <sample id="javaQuickstart" dir="java/quickstart" title="Customization of MANIFEST.MF">

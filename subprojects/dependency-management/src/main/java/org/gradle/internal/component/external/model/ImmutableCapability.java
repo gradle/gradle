@@ -16,17 +16,33 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.capabilities.CapabilityDescriptor;
 
-public class ImmutableCapability implements CapabilityDescriptor {
+public class ImmutableCapability implements CapabilityInternal {
+
     private final String group;
     private final String name;
     private final String version;
+    private final int hashCode;
+    private final String cachedId;
 
     public ImmutableCapability(String group, String name, String version) {
         this.group = group;
         this.name = name;
         this.version = version;
+
+        // Pre-compute and cache hashCode, which is going to be computed in any case
+        this.hashCode = Objects.hashCode(group, name, version);
+
+        // Using a string instead of a plain ID here might look strange, but this turned out to be
+        // the fastest of several experiments, including:
+        //
+        //    using ModuleIdentifier (initial implementation)
+        //    using ModuleIdentifier through ImmutableModuleIdentifierFactory (for interning)
+        //    using a 2-level map (by group, then by name)
+        //    using an interned string for the cachedId (interning turned out to cost as much as what we gain from faster checks in maps)
+        //
+        // And none of them reached the performance of just using a good old string
+        this.cachedId = group + ":" + name;
     }
 
     @Override
@@ -60,7 +76,7 @@ public class ImmutableCapability implements CapabilityDescriptor {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(group, name, version);
+        return hashCode;
     }
 
     @Override
@@ -69,5 +85,10 @@ public class ImmutableCapability implements CapabilityDescriptor {
             + "group='" + group + '\''
             + ", name='" + name + '\''
             + ", version='" + version + '\'';
+    }
+
+    @Override
+    public String getCapabilityId() {
+        return cachedId;
     }
 }

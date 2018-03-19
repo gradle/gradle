@@ -91,9 +91,8 @@ public class CommandLineActionFactory {
             buildLayoutFactory,
             args,
             loggingConfiguration,
-            new ExceptionReportingAction(
-                new ParseAndBuildAction(loggingServices, args),
-                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
+            new ParseAndBuildAction(loggingServices, args),
+            new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
@@ -258,13 +257,15 @@ public class CommandLineActionFactory {
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
+        private final Action<Throwable> reporter;
 
-        WithLogging(ServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
+        WithLogging(ServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, Action<Throwable> reporter) {
             this.loggingServices = loggingServices;
             this.buildLayoutFactory = buildLayoutFactory;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
             this.action = action;
+            this.reporter = reporter;
         }
 
         public void execute(ExecutionListener executionListener) {
@@ -315,11 +316,12 @@ public class CommandLineActionFactory {
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
+            Action<ExecutionListener> exceptionReportingAction = new ExceptionReportingAction(action, reporter, loggingManager);
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
                 new WelcomeMessageAction(buildLayout).execute(System.out);
-                action.execute(executionListener);
+                exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
             }
