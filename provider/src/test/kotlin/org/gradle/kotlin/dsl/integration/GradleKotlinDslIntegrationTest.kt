@@ -851,7 +851,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.kotlin.dsl.*
 
-            open class Book(val name: String)
+            class Book(val name: String)
 
             open class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
