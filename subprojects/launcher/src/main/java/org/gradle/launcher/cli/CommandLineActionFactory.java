@@ -19,7 +19,6 @@ import groovy.lang.GroovySystem;
 import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.Main;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
@@ -127,9 +126,7 @@ public class CommandLineActionFactory {
         @Override
         public void execute(PrintStream out) {
             GradleVersion currentVersion = GradleVersion.current();
-            File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
-            File notificationsDir = new File(gradleUserHomeDir, "notifications/" + currentVersion.getVersion());
-            File markerFile = new File(notificationsDir, "release-features.rendered");
+            File markerFile = getMarkerFile(currentVersion);
 
             if (!markerFile.exists()) {
                 out.println();
@@ -155,6 +152,13 @@ public class CommandLineActionFactory {
 
                 writeMarkerFile(markerFile);
             }
+        }
+
+        private File getMarkerFile(GradleVersion currentVersion) {
+            File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
+            File notificationsDir = new File(gradleUserHomeDir, "notifications");
+            File versionedNotificationsDir = new File(notificationsDir, currentVersion.getVersion());
+            return new File(versionedNotificationsDir, "release-features.rendered");
         }
 
         private String readReleaseFeatures() {
