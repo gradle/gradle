@@ -20,7 +20,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -32,7 +31,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = [objects.named(OperatingSystemFamily, '${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}')]
+                operatingSystems = [objects.named(OperatingSystemFamily, '${currentOsFamilyName}')]
             }
         """
 

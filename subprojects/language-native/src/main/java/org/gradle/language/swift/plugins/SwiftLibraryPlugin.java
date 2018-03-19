@@ -152,8 +152,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
                             NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
-                                new DefaultUsageContext(variantName + "-link", linkUsage, linkAttributes),
-                                new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+                                new DefaultUsageContext(variantName + "Link", linkUsage, linkAttributes),
+                                new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes));
                             // TODO: publish Swift libraries
                             // library.getMainPublication().addVariant(variantIdentity);
 

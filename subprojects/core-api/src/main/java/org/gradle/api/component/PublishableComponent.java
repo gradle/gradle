@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 
 /**
- * Represents a component that can be built.
+ * Represents a component that can be published.
  *
  * @since 4.7
  */
 @Incubating
-public interface BuildableComponent extends SoftwareComponent {
-
+public interface PublishableComponent extends SoftwareComponent, ComponentWithCoordinates {
 }

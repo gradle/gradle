@@ -122,7 +122,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
                         NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getBaseName(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
                             null,
-                            new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+                            new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes));
 
                         if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
