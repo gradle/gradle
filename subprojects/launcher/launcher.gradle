@@ -18,6 +18,7 @@ dependencies {
     compile project(':toolingApi')
     compile project(':native')
     compile project(':logging')
+    compile project(':docs')
 
     compile libraries.asm.coordinates
     compile libraries.commons_io.coordinates
@@ -28,8 +29,6 @@ dependencies {
     integTestCompile files(rootProject.availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7).toolsJar ?: [])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
-    integTestRuntime project(':docs')
-    integTestRuntime project(path: ':docs', configuration: 'releaseFeatures')
 
     testFixturesCompile project(':internalIntegTesting')
 }
@@ -58,9 +57,8 @@ task configureJar {
 }
 
 jar {
-    dependsOn configureJar, project(':docs').releaseFeaturesJar
+    dependsOn configureJar
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
-    from { zipTree(project(':docs').releaseFeaturesJar.outputs.files.singleFile) }
 }
 
 task startScripts(type: GradleStartScriptGenerator) {

@@ -490,7 +490,12 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
     }
 }
 
-sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
+task copyReleaseFeatures(type: Copy) {
+    from 'src/docs/release/release-features.txt'
+    into generatedResourcesDir
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
 
 test {
     dependsOn releaseNotes
@@ -509,18 +514,4 @@ task docs {
 
 task docsZip(type: Zip) {
     from project.outputs.docs
-}
-
-configurations {
-    releaseFeatures
-}
-
-task releaseFeaturesJar(type: Jar) {
-    description = 'Builds a JAR file containing release information needed at runtime.'
-    baseName = 'gradle-release-features'
-    from 'src/docs/release/release-features.txt'
-}
-
-artifacts {
-    releaseFeatures releaseFeaturesJar
 }
