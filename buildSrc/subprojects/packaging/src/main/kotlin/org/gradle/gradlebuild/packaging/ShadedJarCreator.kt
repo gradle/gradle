@@ -1,6 +1,10 @@
 package org.gradle.gradlebuild.packaging
 
-import org.gradle.internal.exceptions.Contextual
+import org.gradle.gradlebuild.packaging.shading.ClassAnalysisException
+import org.gradle.gradlebuild.packaging.shading.ClassDetails
+import org.gradle.gradlebuild.packaging.shading.ClassGraph
+import org.gradle.gradlebuild.packaging.shading.PackagePatterns
+import org.gradle.gradlebuild.packaging.shading.ResourceDetails
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -26,7 +30,6 @@ import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
 
-private
 val ignoredPackagePatterns = PackagePatterns(setOf("java"))
 
 
@@ -209,81 +212,3 @@ open class ShadedJarCreator(
 }
 
 
-private
-class ClassGraph(
-    private val keepPackages: PackagePatterns,
-    val unshadedPackages: PackagePatterns,
-    private val ignorePackages: PackagePatterns,
-    shadowPackage: String) {
-
-    private
-    val classes: MutableMap<String, ClassDetails> = linkedMapOf()
-
-    val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
-    val resources: MutableSet<ResourceDetails> = linkedSetOf()
-    var manifest: ResourceDetails? = null
-
-    internal
-    val shadowPackagePrefix =
-        if (shadowPackage.isEmpty()) ""
-        else shadowPackage.replace('.', '/') + "/"
-
-    fun addResource(resource: ResourceDetails) {
-        resources.add(resource)
-    }
-
-    operator fun get(className: String) =
-        classes.computeIfAbsent(className) {
-            val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
-            ClassDetails(className, outputClassName).also { classDetails ->
-                classes[className] = classDetails
-                if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
-                    entryPoints.add(classDetails)
-                }
-            }
-        }
-}
-
-private
-class ResourceDetails(val resourceName: String, val sourceFile: File)
-
-private
-class ClassDetails(val className: String, val outputClassName: String) {
-    var visited: Boolean = false
-    val dependencies: MutableSet<ClassDetails> = linkedSetOf()
-    val outputClassFilename
-        get() = "$outputClassName.class"
-}
-
-private
-class PackagePatterns(givenPrefixes: Set<String>) {
-
-    private
-    val prefixes: MutableSet<String> = hashSetOf()
-
-    private
-    val names: MutableSet<String> = hashSetOf()
-
-    init {
-        givenPrefixes.map { it.replace('.', '/') }.forEach { internalName ->
-            names.add(internalName)
-            prefixes.add("$internalName/")
-        }
-    }
-
-    fun matches(packageName: String): Boolean {
-        if (names.contains(packageName)) {
-            return true
-        }
-        for (prefix in prefixes) {
-            if (packageName.startsWith(prefix)) {
-                names.add(packageName)
-                return true
-            }
-        }
-        return false
-    }
-}
-
-@Contextual
-class ClassAnalysisException(message: String, cause: Throwable) : RuntimeException(message, cause)
