@@ -1,0 +1,10 @@
+eclipse {
+    classpath {
+        file.whenMerged { classpath ->
+            //**TODO
+            classpath.entries.removeAll { it.path.contains('src/test/groovy') }
+            classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
+        }
+    }
+}
+
