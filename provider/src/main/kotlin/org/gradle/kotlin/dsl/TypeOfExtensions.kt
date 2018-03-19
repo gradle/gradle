@@ -24,5 +24,5 @@ import org.gradle.api.reflect.TypeOf
  * @param T the type
  * @return the [TypeOf] that captures the generic type of the given parameterized type
  */
-inline fun <reified T : Any> typeOf() =
+inline fun <reified T> typeOf() =
     object : TypeOf<T>() {}
