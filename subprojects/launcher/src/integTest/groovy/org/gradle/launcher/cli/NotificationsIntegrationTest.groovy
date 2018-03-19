@@ -19,6 +19,7 @@ package org.gradle.launcher.cli
 import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.util.GradleVersion
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 
@@ -37,6 +38,10 @@ class NotificationsIntegrationTest extends AbstractIntegrationSpec {
 Here are the highlights of this release:
 ${readReleaseFeatures()}
 """
+        if (!distribution.version.isSnapshot()) {
+            welcomeMessage += """${getReleaseNotesDetailsMessage(distribution.version)}
+"""
+        }
     }
 
     def "renders welcome message only once when executed with Gradle executable"() {
@@ -94,5 +99,9 @@ ${readReleaseFeatures()}
         StringWriter writer = new StringWriter()
         IOUtils.copy(inputStream, writer, 'UTF-8')
         writer.toString()
+    }
+
+    static String getReleaseNotesDetailsMessage(GradleVersion gradleVersion) {
+        "For more details see https://gradle.org/releases/#$gradleVersion.version"
     }
 }
