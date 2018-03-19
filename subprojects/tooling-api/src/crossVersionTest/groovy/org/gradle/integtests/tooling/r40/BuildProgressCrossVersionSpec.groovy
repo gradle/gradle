@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -382,6 +383,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    @Ignore("Temporarily disable - SLG")
     @TargetGradleVersion("<4.7")
     @Issue("gradle/gradle#1641")
     def "generates download events during maven publish"() {
