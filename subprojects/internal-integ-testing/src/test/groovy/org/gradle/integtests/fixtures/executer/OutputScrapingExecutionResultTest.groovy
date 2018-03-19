@@ -557,7 +557,7 @@ post build
         result instanceof OutputScrapingExecutionFailure
     }
 
-    def "can capture tasks with multiple headers"() {
+    def "can assert task is present when task failure output is split into several groups"() {
         def output = """
 > Task :compileMyTestBinaryMyTestJava
 > Task :myTestBinaryTest
@@ -581,5 +581,7 @@ BUILD FAILED in 13s
 
         then:
         result.assertTasksExecutedInOrder(":compileMyTestBinaryMyTestJava", ":myTestBinaryTest")
+        result.assertTasksExecuted(":myTestBinaryTest", ":compileMyTestBinaryMyTestJava")
+        result.assertTasksNotSkipped(":myTestBinaryTest", ":compileMyTestBinaryMyTestJava")
     }
 }
