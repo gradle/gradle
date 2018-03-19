@@ -167,7 +167,7 @@ public class CommandLineActionFactory {
                     IOUtils.copy(inputStream, writer, "UTF-8");
                     return writer.toString();
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    // do not fail the build as feature is non-critical
                 }
             }
 
