@@ -48,7 +48,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = executeTask()
 
         then:
-        result.output.empty
+        !result.output.contains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
     }
 
     static String taskWithoutAction() {
