@@ -126,4 +126,30 @@ post build
         then:
         result instanceof OutputScrapingExecutionFailure
     }
+
+    def "can capture tasks with multiple headers"() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertTasksExecutedInOrder(":compileMyTestBinaryMyTestJava", ":myTestBinaryTest")
+    }
 }
