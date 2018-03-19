@@ -146,10 +146,6 @@ public enum JavaVersion {
 
     @Override
     public String toString() {
-        return getName();
-    }
-
-    private String getName() {
         return versionName;
     }
 
