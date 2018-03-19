@@ -16,73 +16,97 @@
 
 package org.gradle.gradlebuild.packaging
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.file.Path
+import java.util.*
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
 
 
-@CacheableTask
 open class ShadedJar : DefaultTask() {
+    @InputFiles
+    lateinit var relocatedClassesConfiguration: FileCollection
+    @InputFiles
+    lateinit var classTreesConfiguration: FileCollection
+    @InputFiles
+    lateinit var entryPointsConfiguration: FileCollection
+    @InputFiles
+    lateinit var manifests: FileCollection
+    @InputFile
+    val buildReceiptFile: RegularFileProperty = project.layout.fileProperty()
 
-    /**
-     * The source files to generate the jar from.
-     */
-    @Classpath
-    lateinit var sourceFiles: FileCollection
-
-    /**
-     * The directory to write temporary class files to.
-     */
-    @OutputDirectory
-    lateinit var classesDir: File
-
-    /**
-     * The output Jar file.
-     */
     @OutputFile
-    lateinit var jarFile: File
-
-    /**
-     * File to write the text analysis report to.
-     */
-    @OutputFile
-    lateinit var analysisFile: File
-
-    /**
-     * The package name to prefix all shaded class names with.
-     */
-    @Input
-    lateinit var shadowPackage: String
-
-    /**
-     * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.
-     */
-    @Input
-    var keepPackages: Set<String> = emptySet()
-
-    /**
-     * Do not rename classes in the unshaded package hierarchies. Always includes 'java'.
-     */
-    @Input
-    var unshadedPackages: Set<String> = emptySet()
-
-    /**
-     * Do not retain classes in the ignore packages hierarchies, unless reachable from some other retained class.
-     */
-    @Input
-    var ignorePackages: Set<String> = emptySet()
+    val jarFile = newOutputFile()
 
     @TaskAction
-    fun run() {
-        ShadedJarCreator(
-            sourceFiles, jarFile, analysisFile, classesDir,
-            shadowPackage, keepPackages, unshadedPackages, ignorePackages).createJar()
+    fun shade() {
+        val entryPoints = entryPointsConfiguration.files.flatMap { readJson<List<String>>(it) }
+        val classTrees = classTreesConfiguration.files.flatMap { readJson<Map<String, List<String>>>(it).entries }
+            .groupingBy { it.key }
+            .aggregate<Map.Entry<String, List<String>>, String, Set<String>> { _, accumulator: Set<String>?, element: Map.Entry<String, List<String>>, first ->
+                if (first) {
+                    element.value.toSet()
+                } else {
+                    accumulator!!.union(element.value)
+                }
+            }
+
+        val classesToInclude = mutableSetOf<String>()
+
+        val queue: Queue<String> = ArrayDeque<String>()
+        queue.addAll(entryPoints)
+        while (!queue.isEmpty()) {
+            val className = queue.remove()
+            if (classesToInclude.add(className)) {
+                queue.addAll(classTrees.getOrDefault(className, emptySet()))
+            }
+        }
+
+        JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile.get().asFile))).use { jarOutputStream ->
+            if (!manifests.isEmpty) {
+                addJarEntry(JarFile.MANIFEST_NAME, manifests.first(), jarOutputStream)
+            }
+            addJarEntry("org/gradle/build-receipt.properties", buildReceiptFile.get().asFile, jarOutputStream)
+            relocatedClassesConfiguration.files.forEach { classesDir ->
+                val classesDirPath = classesDir.toPath()
+                classesDir.walk().filter {
+                    val relativePath = classesDirPath.relativePath(it)
+                    classesToInclude.contains(relativePath)
+                }.forEach {
+                    val relativePath = classesDirPath.relativePath(it)
+                    addJarEntry(relativePath, it, jarOutputStream)
+                }
+            }
+        }
     }
+
+    private
+    fun Path.relativePath(other: File) = relativize(other.toPath()).toString().replace(File.separatorChar, '/')
+
+    private
+    fun addJarEntry(entryName: String, sourceFile: File, jarOutputStream: JarOutputStream) {
+        jarOutputStream.putNextEntry(ZipEntry(entryName))
+        BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(jarOutputStream) }
+        jarOutputStream.closeEntry()
+    }
+
+    private
+    inline fun <reified T> readJson(file: File) =
+        file.bufferedReader().use { reader ->
+            Gson().fromJson<T>(reader, object : TypeToken<T>() {}.type)
+        }
 }

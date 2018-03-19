@@ -40,7 +40,7 @@ import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
 
-private
+internal
 val ignoredPackagePatterns = PackagePatterns(setOf("java"))
 
 
