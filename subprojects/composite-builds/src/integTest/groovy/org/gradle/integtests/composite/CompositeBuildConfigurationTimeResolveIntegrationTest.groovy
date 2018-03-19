@@ -182,7 +182,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         def executedTasks = result.executedTasks
         def beforeTask
         for (String task : tasks) {
-            containsOnce(executedTasks, task)
+            result.assertTaskExecuted(task)
 
             if (beforeTask != null) {
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"

@@ -86,6 +86,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
@@ -99,6 +100,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
@@ -535,9 +537,23 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            List<String> flattenedTasks = flattenTaskPaths(taskPaths);
+            Set<String> flattenedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
             assertThat(plannedTasks, containsInAnyOrder(flattenedTasks.toArray()));
             outputResult.assertTasksExecuted(flattenedTasks);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertTaskExecuted(String taskPath) {
+            assertThat(plannedTasks, hasItem(taskPath));
+            outputResult.assertTaskExecuted(taskPath);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertTaskNotExecuted(String taskPath) {
+            assertThat(plannedTasks, not(hasItem(taskPath)));
+            outputResult.assertTaskNotExecuted(taskPath);
             return this;
         }
 
@@ -550,12 +566,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public Set<String> getSkippedTasks() {
-            return new HashSet<String>(skippedTasks);
+            return new TreeSet<String>(skippedTasks);
         }
 
         @Override
         public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-            Set<String> expected = new HashSet<String>(flattenTaskPaths(taskPaths));
+            Set<String> expected = new TreeSet<String>(flattenTaskPaths(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             outputResult.assertTasksSkipped(expected);
             return this;
@@ -569,7 +585,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-            Set<String> expected = new HashSet<String>(flattenTaskPaths(taskPaths));
+            Set<String> expected = new TreeSet<String>(flattenTaskPaths(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
             outputResult.assertTasksNotSkipped(expected);
@@ -583,7 +599,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         private Set<String> getNotSkippedTasks() {
-            Set<String> notSkipped = new HashSet<String>(plannedTasks);
+            Set<String> notSkipped = new TreeSet<String>(plannedTasks);
             notSkipped.removeAll(skippedTasks);
             return notSkipped;
         }
@@ -597,8 +613,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final String lineNumber;
         private final String description;
 
-        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure,
-                                         GradleException failure) {
+        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, GradleException failure) {
             super(tasks, skippedTasks, outputFailure);
             this.outputFailure = outputFailure;
             this.failure = failure;
@@ -641,7 +656,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(normalizedLineSeparators(matcher))));
+            assertThat(causes, Matchers.hasItem(hasMessage(normalizedLineSeparators(matcher))));
             outputFailure.assertThatCause(matcher);
             return this;
         }

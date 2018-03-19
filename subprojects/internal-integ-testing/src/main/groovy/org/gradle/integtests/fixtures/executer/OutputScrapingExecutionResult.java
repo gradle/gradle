@@ -113,7 +113,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return groupedOutputFixture;
     }
 
-    public static String normalize(LogContent output) {
+    private String normalize(LogContent output) {
         List<String> result = new ArrayList<String>();
         List<String> lines = output.getLines();
         int i = 0;
@@ -222,6 +222,24 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!expectedTasks.equals(actualTasks)) {
             failOnDifferentSets("Build output does not contain the expected tasks.", expectedTasks, actualTasks);
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskExecuted(String taskPath) {
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (!actualTasks.contains(taskPath)) {
+            failOnMissingElement("Build output does not contain the expected task.", taskPath, actualTasks);
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskNotExecuted(String taskPath) {
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (actualTasks.contains(taskPath)) {
+            failOnMissingElement("Build output does contains unexpected task.", taskPath, actualTasks);
         }
         return this;
     }

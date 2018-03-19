@@ -356,6 +356,11 @@ post build
         result.assertTasksExecutedInOrder([":a", ":b"])
 
         and:
+        result.assertTaskExecuted(':a')
+        result.assertTaskExecuted(':b')
+        result.assertTaskNotExecuted(':c')
+
+        and:
         result.executedTasks == [":a", ":b"]
         result.skippedTasks == [":b"] as Set
 
@@ -425,11 +430,35 @@ post build
         '''))
 
         when:
-        result.assertTasksSkipped()
+        result.assertTaskExecuted(':c')
 
         then:
         def e6 = thrown(AssertionError)
         error(e6).startsWith(error('''
+            Build output does not contain the expected task.
+            Expected: :c
+            Actual: [:a, :b]
+            Output:
+        '''))
+
+        when:
+        result.assertTaskNotExecuted(':b')
+
+        then:
+        def e7 = thrown(AssertionError)
+        error(e7).startsWith(error('''
+            Build output does contains unexpected task.
+            Expected: :b
+            Actual: [:a, :b]
+            Output:
+        '''))
+
+        when:
+        result.assertTasksSkipped()
+
+        then:
+        def e8 = thrown(AssertionError)
+        error(e8).startsWith(error('''
             Build output does not contain the expected skipped tasks.
             Expected: []
             Actual: [:b]
@@ -439,8 +468,8 @@ post build
         result.assertTasksSkipped(":a")
 
         then:
-        def e7 = thrown(AssertionError)
-        error(e7).startsWith(error('''
+        def e9 = thrown(AssertionError)
+        error(e9).startsWith(error('''
             Build output does not contain the expected skipped tasks.
             Expected: [:a]
             Actual: [:b]
@@ -450,8 +479,8 @@ post build
         result.assertTasksSkipped(":b", ":c")
 
         then:
-        def e8 = thrown(AssertionError)
-        error(e8).startsWith(error('''
+        def e10 = thrown(AssertionError)
+        error(e10).startsWith(error('''
             Build output does not contain the expected skipped tasks.
             Expected: [:b, :c]
             Actual: [:b]
@@ -461,8 +490,8 @@ post build
         result.assertTaskSkipped(":a")
 
         then:
-        def e9 = thrown(AssertionError)
-        error(e9).startsWith(error('''
+        def e11 = thrown(AssertionError)
+        error(e11).startsWith(error('''
             Build output does not contain the expected skipped task.
             Expected: :a
             Actual: [:b]
@@ -472,8 +501,8 @@ post build
         result.assertTasksNotSkipped()
 
         then:
-        def e10 = thrown(AssertionError)
-        error(e10).startsWith(error('''
+        def e12 = thrown(AssertionError)
+        error(e12).startsWith(error('''
             Build output does not contain the expected non skipped tasks.
             Expected: []
             Actual: [:a]
@@ -483,8 +512,8 @@ post build
         result.assertTasksNotSkipped(":b")
 
         then:
-        def e11 = thrown(AssertionError)
-        error(e11).startsWith(error('''
+        def e13 = thrown(AssertionError)
+        error(e13).startsWith(error('''
             Build output does not contain the expected non skipped tasks.
             Expected: [:b]
             Actual: [:a]
@@ -494,8 +523,8 @@ post build
         result.assertTasksNotSkipped(":a", ":c")
 
         then:
-        def e12 = thrown(AssertionError)
-        error(e12).startsWith(error('''
+        def e14 = thrown(AssertionError)
+        error(e14).startsWith(error('''
             Build output does not contain the expected non skipped tasks.
             Expected: [:a, :c]
             Actual: [:a]
@@ -505,8 +534,8 @@ post build
         result.assertTaskNotSkipped(":b")
 
         then:
-        def e13 = thrown(AssertionError)
-        error(e13).startsWith(error('''
+        def e15 = thrown(AssertionError)
+        error(e15).startsWith(error('''
             Build output does not contain the expected non skipped task.
             Expected: :b
             Actual: [:a]

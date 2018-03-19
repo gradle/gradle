@@ -98,15 +98,9 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     protected void executed(String... tasks) {
-        def executedTasks = result.executedTasks
         for (String task : tasks) {
-            containsOnce(executedTasks, task)
+            result.assertTaskExecuted(task)
         }
-    }
-
-    protected static void containsOnce(List<String> tasks, String task) {
-        assert tasks.contains(task)
-        assert tasks.findAll({ it == task }).size() == 1
     }
 
     void assertTaskExecuted(String build, String taskPath) {

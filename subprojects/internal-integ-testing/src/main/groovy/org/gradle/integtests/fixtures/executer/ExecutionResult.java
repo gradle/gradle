@@ -92,7 +92,7 @@ public interface ExecutionResult {
     ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
-     * Returns the tasks have been executed in order started (includes tasks that were skipped). Note: ignores buildSrc tasks.
+     * Returns the tasks have been executed in order started (includes tasks that were skipped). Asserts that each task appears once only. Note: ignores buildSrc tasks.
      *
      * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
@@ -109,6 +109,16 @@ public interface ExecutionResult {
      * Asserts that exactly the given set of tasks have been executed in any order. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksExecuted(Object... taskPaths);
+
+    /**
+     * Asserts that the given task has been executed. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskExecuted(String taskPath);
+
+    /**
+     * Asserts that the given task has not been executed. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskNotExecuted(String taskPath);
 
     /**
      * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
