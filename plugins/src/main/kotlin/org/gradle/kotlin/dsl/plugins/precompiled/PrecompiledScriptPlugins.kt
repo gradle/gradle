@@ -17,7 +17,7 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
@@ -105,8 +105,7 @@ fun Project.implicitImports(): List<String> =
 private
 fun Project.exposeScriptsAsGradlePlugins() {
 
-    // TODO: script plugins from custom source-set dirs
-    val scriptSourceFiles = fileTree("src/main/kotlin") {
+    val scriptSourceFiles = pluginSourceSet.allSource.matching {
         it.include("**/*.gradle.kts")
     }
 
@@ -118,6 +117,16 @@ fun Project.exposeScriptsAsGradlePlugins() {
 
     generatePluginAdaptersFor(scriptPlugins, scriptSourceFiles)
 }
+
+
+private
+val Project.pluginSourceSet
+    get() = gradlePlugin.pluginSourceSet
+
+
+private
+val Project.gradlePlugin
+    get() = the<GradlePluginDevelopmentExtension>()
 
 
 private
@@ -146,7 +155,7 @@ fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 
 
 private
-fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: ConfigurableFileTree) {
+fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: FileTree) {
 
     tasks {
 
