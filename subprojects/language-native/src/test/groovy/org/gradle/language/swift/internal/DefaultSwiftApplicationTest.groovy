@@ -16,7 +16,9 @@
 
 package org.gradle.language.swift.internal
 
+import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,7 +49,7 @@ class DefaultSwiftApplicationTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = app.addExecutable("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = app.addExecutable(identity, true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
@@ -70,5 +72,12 @@ class DefaultSwiftApplicationTest extends Specification {
         then:
         def ex = thrown(IllegalStateException)
         ex.message == "No value has been specified for this provider."
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return Stub(NativeVariantIdentity) {
+            getName() >> "debug"
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.MAC_OS)
+        }
     }
 }

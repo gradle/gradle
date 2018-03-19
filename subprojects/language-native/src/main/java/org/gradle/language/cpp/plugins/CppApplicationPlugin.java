@@ -35,12 +35,12 @@ import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -156,34 +156,5 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
     private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
         return multivalueProperty.size() > 1;
-    }
-
-    private static final class BuildType implements Named {
-        private static final BuildType DEBUG = new BuildType("debug", true, false);
-        private static final BuildType RELEASE = new BuildType("release", true, true);
-        public static final Collection<BuildType> DEFAULT_BUILD_TYPES = Arrays.asList(DEBUG, RELEASE);
-
-        private final boolean debuggable;
-        private final boolean optimized;
-        private final String name;
-
-        private BuildType(String name, boolean debuggable, boolean optimized) {
-            this.debuggable = debuggable;
-            this.optimized = optimized;
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        public boolean isDebuggable() {
-            return debuggable;
-        }
-
-        public boolean isOptimized() {
-            return optimized;
-        }
     }
 }
