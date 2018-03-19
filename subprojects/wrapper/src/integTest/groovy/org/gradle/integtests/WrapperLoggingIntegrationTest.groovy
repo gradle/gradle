@@ -16,26 +16,48 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
-    def "wrapper only renders welcome message when executed in quiet mode"() {
+
+    def "wrapper does not output anything when executed in quiet mode"() {
         given:
-        file("build.gradle") << """
-task emptyTask
-        """
+        file("build.gradle") << taskWithoutAction()
         prepareWrapper()
 
         when:
         args '-q'
-        def result = wrapperExecuter.withTasks("emptyTask").run()
+        def result = executeTask()
+
+        then:
+        result.output.empty
+    }
+
+    def "wrapper renders welcome message when executed in lifecycle mode"() {
+        given:
+        file("build.gradle") << taskWithoutAction()
+        prepareWrapper()
+
+        when:
+        def result = executeTask()
 
         then:
         result.output.contains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
 
         when:
-        args '-q'
-        result = wrapperExecuter.withTasks("emptyTask").run()
+        result = executeTask()
 
         then:
         result.output.empty
+    }
+
+    static String taskWithoutAction() {
+        """
+            task emptyTask
+        """
+    }
+
+    private ExecutionResult executeTask() {
+        wrapperExecuter.withTasks("emptyTask").run()
     }
 }
