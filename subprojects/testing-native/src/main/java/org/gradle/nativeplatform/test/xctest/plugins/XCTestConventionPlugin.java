@@ -152,8 +152,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     testComponent.getTestedComponent().set(mainComponent);
 
                     // Test configuration extends main configuration
-//                    testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
-//                    project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
+                    testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
+                    project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
                 }
 
                 testComponent.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
