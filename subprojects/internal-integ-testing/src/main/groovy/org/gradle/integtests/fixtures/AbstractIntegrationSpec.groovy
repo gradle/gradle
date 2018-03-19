@@ -206,33 +206,26 @@ class AbstractIntegrationSpec extends Specification {
 
     protected void executedAndNotSkipped(String... tasks) {
         tasks.each {
-            assert it in executedTasks
-            assert !skippedTasks.contains(it)
+            result.assertTaskNotSkipped(it)
         }
     }
 
     protected void skipped(String... tasks) {
         tasks.each {
-            assert it in executedTasks
-            assert skippedTasks.contains(it)
+            result.assertTaskSkipped(it)
         }
     }
 
     protected void notExecuted(String... tasks) {
         tasks.each {
-            assert !(it in executedTasks)
+            result.assertTaskNotExecuted(it)
         }
     }
 
     protected void executed(String... tasks) {
         tasks.each {
-            assert (it in executedTasks)
+            result.assertTaskExecuted(it)
         }
-    }
-
-    protected void assertTaskOrder(Object... tasks) {
-        assertHasResult()
-        result.assertTaskOrder(tasks)
     }
 
     protected void failureHasCause(String cause) {
