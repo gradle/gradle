@@ -150,22 +150,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     @Override
-    public void attachAnsiConsole(OutputStream outputStream) {
-        attachAnsiConsole(outputStream, false);
-    }
-
-    @Override
-    public void attachPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
-        // Currently does not write any console content to the error stream
-        addPlainConsole(outputListener);
-    }
-
-    protected void attachAnsiConsole(OutputStream outputStream, boolean verbose) {
+    public void attachConsole(OutputStream outputStream, ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
-            OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-            Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-            addRichConsole(console, true, true, consoleMetaData, verbose);
+            if (consoleOutput == ConsoleOutput.Plain) {
+                addPlainConsole(new StreamBackedStandardOutputListener(outputStream));
+            } else {
+                ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
+                OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+                Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
+                addRichConsole(console, true, true, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
+            }
         }
     }
 

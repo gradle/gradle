@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import junit.framework.AssertionFailedError;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -51,7 +52,6 @@ import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
@@ -266,42 +266,28 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         SetSystemProperties.resetTempDirLocation();
     }
 
-    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener, final StandardOutputListener errorListener) {
+    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener) {
         LoggingManagerInternal loggingManager =
             GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
 
-        if (startParameter.getConsoleOutput() == ConsoleOutput.Rich || startParameter.getConsoleOutput() == ConsoleOutput.Verbose) {
-            // Explicitly enabling rich console forces everything into the stdout listener
-            loggingManager.attachAnsiConsole(new VerboseAwareAnsiOutputStream(new LineBufferingOutputStream(new TextStream() {
-                @Override
-                public void text(String text) {
-                    outputListener.onOutput(text);
-                }
-
-                @Override
-                public void endOfStream(@Nullable Throwable failure) {
-
-                }
-            }), startParameter.getConsoleOutput() == ConsoleOutput.Verbose));
-        } else {
-            // Mirror the output sent to our plain console to the original standard output/error so we can see what's happening
-            StandardOutputListener realStdout = new StreamBackedStandardOutputListener((Appendable) ORIGINAL_STD_OUT);
-            StandardOutputListener realStderr = new StreamBackedStandardOutputListener((Appendable) ORIGINAL_STD_ERR);
-            loggingManager.attachPlainConsole(mirroredOutputListener(realStdout, outputListener), mirroredOutputListener(realStderr, errorListener));
+        ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
+        if (consoleOutput == ConsoleOutput.Auto) {
+            // IDEA runs tests attached to a console, use plain so test can assume never attached to a console
+            // Should really run all tests against a plain and a rich console to make these assumptions explicit
+            consoleOutput = ConsoleOutput.Plain;
         }
+        loggingManager.attachConsole(new TeeOutputStream(ORIGINAL_STD_OUT, new LineBufferingOutputStream(new TextStream() {
+            @Override
+            public void text(String text) {
+                outputListener.onOutput(text);
+            }
+
+            @Override
+            public void endOfStream(@Nullable Throwable failure) {
+            }
+        })), consoleOutput);
 
         return loggingManager;
-    }
-
-    private static StandardOutputListener mirroredOutputListener(final StandardOutputListener... listeners) {
-        return new StandardOutputListener() {
-            @Override
-            public void onOutput(CharSequence output) {
-                for (StandardOutputListener listener : listeners) {
-                    listener.onOutput(output);
-                }
-            }
-        };
     }
 
     private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, final StandardOutputListener errorListener, BuildListenerImpl listener) {
@@ -338,7 +324,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext();
 
-            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputListener, errorListener);
+            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputListener);
             loggingManager.start();
 
             try {
