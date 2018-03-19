@@ -34,7 +34,7 @@ class NotificationsIntegrationTest extends AbstractIntegrationSpec {
         markerFile = new File(executer.gradleUserHomeDir, "notifications/$distribution.version.version/release-features.rendered")
         welcomeMessage = """Welcome to Gradle $distribution.version.version!
 
-Here is what's new:
+Here are the highlights of this release:
 ${readReleaseFeatures()}
 """
     }

@@ -140,7 +140,7 @@ public class CommandLineActionFactory {
                 if (featureList != null) {
                     out.println();
                     out.println();
-                    out.print("Here is what's new:");
+                    out.print("Here are the highlights of this release:");
                     out.println();
                     out.print(featureList);
                 }
