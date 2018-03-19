@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -67,7 +66,6 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
 
     def "logging is associated to task"() {
         when:
-        executer.withConsole(ConsoleOutput.Rich)
         succeeds 'publish', "-i"
 
         then:
