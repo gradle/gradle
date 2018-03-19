@@ -36,7 +36,6 @@ task upToDate{
 
         when:
         succeeds('upToDate')
-        executer.withConsole(Verbose)
         succeeds('upToDate')
 
         then:

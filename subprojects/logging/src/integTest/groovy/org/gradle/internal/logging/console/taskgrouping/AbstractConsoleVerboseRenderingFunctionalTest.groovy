@@ -28,7 +28,6 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
         '''
 
         when:
-        executer.withConsole(consoleType)
         fails('myFailure')
 
         then:
