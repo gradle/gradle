@@ -85,14 +85,7 @@ public enum JavaVersion {
     }
 
     public static JavaVersion forClassVersion(int classVersion) {
-        int index = classVersion - 45; //class file versions: 1.1 == 45, 1.2 == 46...
-        if (index >= values().length - 1) {
-            return VERSION_UNKNOWN;
-        }
-        if (index >= 0) {
-            return values()[index];
-        }
-        throw new IllegalArgumentException(String.format("Could not determine java version from '%d'.", classVersion));
+        return getVersionForMajor(classVersion - 44); //class file versions: 1.1 == 45, 1.2 == 46...
     }
 
     public static JavaVersion forClass(byte[] classData) {
