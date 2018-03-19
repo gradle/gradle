@@ -30,5 +30,12 @@ task emptyTask
 
         then:
         result.output.contains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+
+        when:
+        args '-q'
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        result.output.empty
     }
 }
