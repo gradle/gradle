@@ -35,7 +35,7 @@ fun <reified T : Any> ExtensionAware.the(): T =
  * @param T the extension type.
  * @param extensionType the reified extension type.
  */
-fun <T : Any> ExtensionAware.the(extensionType: KClass<T>) =
+fun <T : Any> ExtensionAware.the(extensionType: KClass<T>): T =
     extensions.getByType(extensionType.java)
 
 
@@ -47,5 +47,5 @@ fun <T : Any> ExtensionAware.the(extensionType: KClass<T>) =
  * @see [ExtensionAware]
  */
 inline
-fun <reified T : Any> ExtensionAware.configure(noinline configuration: T.() -> Unit) =
+fun <reified T : Any> ExtensionAware.configure(noinline configuration: T.() -> Unit): Unit =
     extensions.configure(typeOf<T>(), configuration)

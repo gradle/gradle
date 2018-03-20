@@ -90,7 +90,7 @@ fun <reified T : Plugin<Project>> Project.apply() =
  * @see [Convention.getPlugin]
  */
 inline
-fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
+fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     typeOf<T>().let { type ->
         convention.findByType(type)?.let(configuration)
             ?: convention.findPlugin(T::class.java)?.let(configuration)
@@ -102,7 +102,7 @@ fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
  * Returns the plugin convention or extension of the specified type.
  */
 inline
-fun <reified T : Any> Project.the() =
+fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type ->
         convention.findByType(type)
             ?: convention.findPlugin(T::class.java)
@@ -113,7 +113,7 @@ fun <reified T : Any> Project.the() =
 /**
  * Returns the plugin convention or extension of the specified type.
  */
-fun <T : Any> Project.the(extensionType: KClass<T>) =
+fun <T : Any> Project.the(extensionType: KClass<T>): T =
     convention.findByType(extensionType.java)
         ?: convention.findPlugin(extensionType.java)
         ?: convention.getByType(extensionType.java)
