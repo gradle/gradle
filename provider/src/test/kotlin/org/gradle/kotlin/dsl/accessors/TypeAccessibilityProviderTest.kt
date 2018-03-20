@@ -2,6 +2,8 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.internal.classpath.ClassPath
 
+import org.gradle.kotlin.dsl.typeOf
+
 import org.hamcrest.CoreMatchers.*
 
 import org.junit.Assert.*

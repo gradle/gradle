@@ -25,8 +25,8 @@ import kotlin.reflect.KClass
  * @param T the extension type.
  */
 inline
-fun <reified T : Any> ExtensionAware.the() =
-    the(T::class)
+fun <reified T : Any> ExtensionAware.the(): T =
+    extensions.getByType(typeOf<T>())
 
 
 /**
@@ -35,8 +35,8 @@ fun <reified T : Any> ExtensionAware.the() =
  * @param T the extension type.
  * @param extensionType the reified extension type.
  */
-fun <T : Any> ExtensionAware.the(extensionType: KClass<T>) =
-    extensions.findByType(extensionType.java) ?: extensions.getByType(extensionType.java)
+fun <T : Any> ExtensionAware.the(extensionType: KClass<T>): T =
+    extensions.getByType(extensionType.java)
 
 
 /**
@@ -47,6 +47,5 @@ fun <T : Any> ExtensionAware.the(extensionType: KClass<T>) =
  * @see [ExtensionAware]
  */
 inline
-fun <reified T : Any> ExtensionAware.configure(noinline configuration: T.() -> Unit) =
-    extensions.findByType(T::class.java)?.let(configuration)
-        ?: extensions.configure(T::class.java, configuration)
+fun <reified T : Any> ExtensionAware.configure(noinline configuration: T.() -> Unit): Unit =
+    extensions.configure(typeOf<T>(), configuration)

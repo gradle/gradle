@@ -826,6 +826,68 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             """))
     }
 
+    @Test
+    fun `given generic extension types they can be accessed and configured`() {
+
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+
+            gradlePlugin {
+                (plugins) {
+                    "my" {
+                        id = "my"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/my/MyPlugin.kt", """
+            package my
+
+            import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
+
+            class Book(val name: String)
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    extensions.add(typeOf<MutableMap<String, String>>(), "mapOfString", mutableMapOf("foo" to "bar"))
+                    extensions.add(typeOf<MutableMap<String, Int>>(), "mapOfInt", mutableMapOf("deep" to 42))
+                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class.java))
+                }
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my")
+            }
+
+            configure<MutableMap<String, String>> {
+                put("bazar", "cathedral")
+            }
+            require(the<MutableMap<String, String>>() == mapOf("foo" to "bar", "bazar" to "cathedral"))
+
+            configure<MutableMap<String, Int>> {
+                put("zero", 0)
+            }
+            require(the<MutableMap<String, Int>>() == mapOf("deep" to 42, "zero" to 0))
+
+            require(the<MutableMap<*, *>>() == mapOf("foo" to "bar", "bazar" to "cathedral"))
+
+            configure<NamedDomainObjectContainer<my.Book>> {
+                create("The Dosadi experiment")
+            }
+            require(the<NamedDomainObjectContainer<my.Book>>().size == 1)
+        """)
+
+        build("help")
+    }
+
     private
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
