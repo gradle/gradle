@@ -23,6 +23,8 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -46,7 +48,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.Set;
 
 /**
@@ -107,9 +108,7 @@ public class HttpBuildCacheService implements BuildCacheService {
                 }
             }
         } catch (IOException e) {
-            // TODO: We should consider different types of exceptions as fatal/recoverable.
-            // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Unable to load entry from '%s': %s", safeUri(uri), e.getMessage()), e);
+            throw wrap(e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -146,7 +145,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         httpPut.setEntity(new AbstractHttpEntity() {
             @Override
             public boolean isRepeatable() {
-                return true;
+                return false;
             }
 
             @Override
@@ -185,15 +184,26 @@ public class HttpBuildCacheService implements BuildCacheService {
                     throwHttpStatusCodeException(statusCode, defaultMessage);
                 }
             }
-        } catch (UnknownHostException e) {
-            throw new UncheckedException(e);
+        } catch (ClientProtocolException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof NonRepeatableRequestException) {
+                throw wrap(cause.getCause());
+            } else {
+                throw wrap(cause);
+            }
         } catch (IOException e) {
-            // TODO: We should consider different types of exceptions as fatal/recoverable.
-            // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Unable to store entry at '%s': %s", safeUri(uri), e.getMessage()), e);
+            throw wrap(e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
+    }
+
+    private static BuildCacheException wrap(Throwable e) {
+        if (e instanceof Error) {
+            throw (Error) e;
+        }
+
+        throw new BuildCacheException(e.getMessage(), e);
     }
 
     private boolean isHttpSuccess(int statusCode) {
