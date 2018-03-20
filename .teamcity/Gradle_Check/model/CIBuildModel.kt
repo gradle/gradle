@@ -83,7 +83,7 @@ data class CIBuildModel (
             GradleSubproject("ideNative"),
             GradleSubproject("idePlay"),
             GradleSubproject("integTest", crossVersionTests = true),
-            GradleSubproject("internalIntegTesting", functionalTests = false),
+            GradleSubproject("internalIntegTesting"),
             GradleSubproject("internalPerformanceTesting"),
             GradleSubproject("internalTesting", functionalTests = false),
             GradleSubproject("ivy", crossVersionTests = true),
