@@ -51,7 +51,7 @@ class ClassChangeProcessorTest extends Specification {
         classChangeProcessor.processChange(inputFileDetails, recompilationSpec)
 
         then:
-        recompilationSpec.getClassNames() == asSet('org/gradle/OtherClass', 'org/gradle/MainClass')
+        recompilationSpec.getClassesToCompile() == asSet('org/gradle/OtherClass', 'org/gradle/MainClass')
     }
 
     def "marks full rebuild given a class that is dependency to all"() {

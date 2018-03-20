@@ -58,8 +58,8 @@ class IsolatingFilerTest extends IncrementalFilerTest {
         filer.createSourceFile("Foo", pkg("fizz"))
 
         then:
-        result.generatedTypesByOrigin.size() == 1
-        result.generatedTypesByOrigin["fizz.package-info"] == ["Foo"] as Set
+        result.generatedTypesWithIsolatedOrigin.size() == 1
+        result.generatedTypesWithIsolatedOrigin["fizz.package-info"] == ["Foo"] as Set
     }
 
     def "adds originating types to the processing result"() {
@@ -68,9 +68,9 @@ class IsolatingFilerTest extends IncrementalFilerTest {
         filer.createSourceFile("Bar", type("B"))
 
         then:
-        result.generatedTypesByOrigin.size() == 3
-        result.generatedTypesByOrigin["A"] == ["Foo"] as Set
-        result.generatedTypesByOrigin["pkg.package-info"] == ["Foo"] as Set
-        result.generatedTypesByOrigin["B"] == ["Foo", "Bar"] as Set
+        result.generatedTypesWithIsolatedOrigin.size() == 3
+        result.generatedTypesWithIsolatedOrigin["A"] == ["Foo"] as Set
+        result.generatedTypesWithIsolatedOrigin["pkg.package-info"] == ["Foo"] as Set
+        result.generatedTypesWithIsolatedOrigin["B"] == ["Foo", "Bar"] as Set
     }
 }

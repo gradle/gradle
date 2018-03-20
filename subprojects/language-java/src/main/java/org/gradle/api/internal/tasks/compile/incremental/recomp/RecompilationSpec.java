@@ -23,10 +23,19 @@ import java.util.LinkedHashSet;
 public class RecompilationSpec {
 
     private final Collection<String> classesToCompile = new NormalizingClassNamesSet();
+    private final Collection<String> classesToProcess = new NormalizingClassNamesSet();
     private String fullRebuildCause;
 
-    public Collection<String> getClassNames() {
+    public Collection<String> getClassesToCompile() {
         return classesToCompile;
+    }
+
+    public Collection<String> getClassesToProcess() {
+        return classesToProcess;
+    }
+
+    public boolean isBuildNeeded() {
+        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty();
     }
 
     public boolean isFullRebuildNeeded() {
@@ -38,14 +47,14 @@ public class RecompilationSpec {
     }
 
     public void setFullRebuildCause(String description, File file) {
-        fullRebuildCause = description != null? description : "'" + file.getName() + "' was changed";
+        fullRebuildCause = description != null ? description : "'" + file.getName() + "' was changed";
     }
 
     private static class NormalizingClassNamesSet extends LinkedHashSet<String> {
         @Override
         public boolean add(String className) {
             int idx = className.indexOf('$');
-            if (idx>0) {
+            if (idx > 0) {
                 className = className.substring(0, idx);
             }
             return super.add(className);

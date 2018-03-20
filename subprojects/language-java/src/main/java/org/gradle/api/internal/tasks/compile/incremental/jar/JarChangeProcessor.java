@@ -38,6 +38,6 @@ public class JarChangeProcessor {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
-        spec.getClassNames().addAll(actualDependents.getDependentClasses());
+        spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
     }
 }

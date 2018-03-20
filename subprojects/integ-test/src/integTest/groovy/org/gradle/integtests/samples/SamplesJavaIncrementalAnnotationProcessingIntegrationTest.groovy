@@ -39,7 +39,7 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
         compile()
 
         then:
-        outputs.recompiledClasses("Entity1", "Entity1Repository", "Service1", "Service2", "ServiceRegistry", "Main")
+        outputs.recompiledClasses("Entity1", "Entity1Repository", "ServiceRegistry", "Main")
     }
 
     def "aggregating annotation processors are incremental"() {
@@ -57,7 +57,7 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
         compile()
 
         then:
-        outputs.recompiledClasses("Service1", "Service2", "ServiceRegistry", "Main")
+        outputs.recompiledClasses("Service1", "ServiceRegistry", "Main")
     }
 
     def compile() {

@@ -34,12 +34,12 @@ class JavaChangeProcessor {
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
         String className = sourceToNameConverter.getClassName(input.getFile());
-        spec.getClassNames().add(className);
+        spec.getClassesToCompile().add(className);
         DependentsSet actualDependents = previousCompilation.getDependents(className, IntSets.EMPTY_SET);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
-        spec.getClassNames().addAll(actualDependents.getDependentClasses());
+        spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
     }
 }
