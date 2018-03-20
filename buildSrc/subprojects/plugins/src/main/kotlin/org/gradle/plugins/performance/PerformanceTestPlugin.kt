@@ -2,31 +2,24 @@ package org.gradle.plugins.performance
 
 import accessors.groovy
 import accessors.java
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
-
 import org.gradle.internal.hash.HashUtil
-
 import org.gradle.kotlin.dsl.*
-
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
-
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.RebaselinePerformanceTests
 import org.gradle.testing.performance.generator.tasks.*
-
 import org.w3c.dom.Document
-
 import java.io.File
-
 import javax.xml.parsers.DocumentBuilderFactory
 
 
@@ -94,7 +87,15 @@ class PerformanceTestPlugin : Plugin<Project> {
         createLocalPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask, performanceReportTask)
         createDistributedPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask, performanceReportTask)
 
+        createRebaselineTask(performanceTestSourceSet)
+
         configureIdePlugins(performanceTestSourceSet)
+    }
+
+    private fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
+        project.tasks.create<RebaselinePerformanceTests>("rebaselinePerformanceTests") {
+            source(performanceTestSourceSet.allSource)
+        }
     }
 
     private
