@@ -73,7 +73,6 @@ import org.hamcrest.Matchers;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -114,9 +113,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
 
-    private final static PrintStream ORIGINAL_STD_OUT = System.out;
-    private final static PrintStream ORIGINAL_STD_ERR = System.err;
-
     static {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
         loggingManager.start();
@@ -143,16 +139,15 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         StandardOutputListener outputListener = new OutputListenerImpl();
-        StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
-        BuildResult result = doRun(outputListener, errorListener, buildListener);
+        BuildResult result = doRun(outputListener, buildListener);
         try {
             result.rethrowFailure();
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            OutputScrapingExecutionResult.from(outputListener.toString(), errorListener.toString())));
+            OutputScrapingExecutionResult.from(outputListener.toString(), "")));
     }
 
     @Override
@@ -162,14 +157,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         StandardOutputListener outputListener = new OutputListenerImpl();
-        StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         try {
-            doRun(outputListener, errorListener, buildListener).rethrowFailure();
+            doRun(outputListener, buildListener).rethrowFailure();
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionFailure.from(outputListener.toString(), errorListener.toString()), e));
+                OutputScrapingExecutionFailure.from(outputListener.toString(), ""), e));
         }
     }
 
@@ -231,7 +225,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return result;
     }
 
-    private BuildResult doRun(StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
+    private BuildResult doRun(StandardOutputListener outputListener, BuildListenerImpl listener) {
         // Capture the current state of things that we will change during execution
         InputStream originalStdIn = System.in;
         Properties originalSysProperties = new Properties();
@@ -243,7 +237,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
 
         try {
-            return executeBuild(invocation, outputListener, errorListener, listener);
+            return executeBuild(invocation, outputListener, listener);
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
@@ -267,8 +261,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener) {
-        LoggingManagerInternal loggingManager =
-            GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+        LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+        loggingManager.captureSystemSources();
 
         ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
         if (consoleOutput == ConsoleOutput.Auto) {
@@ -276,7 +270,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(ORIGINAL_STD_OUT, new LineBufferingOutputStream(new TextStream() {
+        loggingManager.attachConsole(new TeeOutputStream(System.out, new LineBufferingOutputStream(new TextStream() {
             @Override
             public void text(String text) {
                 outputListener.onOutput(text);
@@ -290,7 +284,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return loggingManager;
     }
 
-    private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, final StandardOutputListener errorListener, BuildListenerImpl listener) {
+    private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
