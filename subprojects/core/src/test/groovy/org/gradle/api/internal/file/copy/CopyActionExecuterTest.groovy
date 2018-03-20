@@ -59,7 +59,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
         def executer = new CopyActionExecuter(DirectInstantiator.INSTANCE, TestFiles.fileSystem(), false)
 
         when:
-        executer.execute(copySpec, copyAction)
+        executer.execute(copySpec.resolveAsRoot(), copyAction)
 
         then:
         1 * action.processFile({ it.relativePath.pathString == "a" })

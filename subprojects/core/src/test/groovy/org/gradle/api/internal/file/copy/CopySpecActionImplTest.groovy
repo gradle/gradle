@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -23,23 +22,21 @@ import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class CopySpecActionImplTest extends Specification {
-    CopyActionProcessingStreamAction action = Mock()
-    Instantiator instantiator = Mock()
-    FileSystem fileSystem = Mock()
-    CopySpecResolver copySpecResolver = Mock()
-    FileTree source = Mock()
-    Action<CopySpecInternal> copySpecInternalAction
-
-    def setup() {
-        copySpecInternalAction = new CopySpecActionImpl(action, instantiator, fileSystem, false)
-    }
-
     def "can visit spec source"() {
+        given:
+        def action = Mock(CopyActionProcessingStreamAction)
+        def instantiator = Mock(Instantiator)
+        def fileSystem = Mock(FileSystem)
+        def source = Mock(FileTree)
+        def resolvedSpec = Mock(ResolvedCopySpec)
+
+        def copySpecInternalAction = new CopySpecActionImpl(action, instantiator, fileSystem, false)
+
         when:
-        copySpecInternalAction.execute(copySpecResolver)
+        copySpecInternalAction.execute(resolvedSpec)
 
         then:
-        1 * copySpecResolver.getSource() >> source
+        1 * resolvedSpec.getSource() >> source
         1 * source.visit(_ as CopyFileVisitorImpl)
     }
 }

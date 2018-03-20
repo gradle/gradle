@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Shared
@@ -38,14 +37,14 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-class DefaultCopySpecTest extends Specification {
+class DefaultCopySpecTest extends Specification implements CopySpecTestSpec {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     @Shared
-    private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    @Shared
-    private Instantiator instantiator = DirectInstantiator.INSTANCE
-    private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, instantiator)
+    def fileResolver = Mock(FileResolver) {
+        getPatternSetFactory() >> TestFiles.getPatternSetFactory()
+    }
+    final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -85,7 +84,7 @@ class DefaultCopySpecTest extends Specification {
 
     def "default destination path for root spec"() {
         expect:
-        spec.buildRootResolver().destPath == relativeDirectory()
+        resolvedSpec().destPath == relativeDirectory()
     }
 
     def "into"() {
@@ -93,7 +92,7 @@ class DefaultCopySpecTest extends Specification {
         spec.into destDir
 
         then:
-        spec.buildRootResolver().destPath == relativeDirectory(*destPath)
+        resolvedSpec().destPath == relativeDirectory(*destPath)
 
         where:
         destDir              | destPath
@@ -105,8 +104,8 @@ class DefaultCopySpecTest extends Specification {
 
     def 'with Spec'() {
         given:
-        DefaultCopySpec other1 = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec other2 = new DefaultCopySpec(fileResolver, instantiator)
+        DefaultCopySpec other1 = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
+        DefaultCopySpec other2 = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
 
         when:
         spec.with other1, other2
@@ -122,7 +121,7 @@ class DefaultCopySpecTest extends Specification {
 
         then:
         !child.is(spec)
-        unpackWrapper(child).buildRootResolver().destPath == relativeDirectory('target')
+        resolvedChild().destPath == relativeDirectory('target')
     }
 
     def 'into with Action'() {
@@ -134,7 +133,7 @@ class DefaultCopySpecTest extends Specification {
 
         then:
         !child.is(spec)
-        unpackWrapper(child).buildRootResolver().destPath == relativeDirectory('target')
+        resolvedChild().destPath == relativeDirectory('target')
     }
 
     def 'filter with Closure'() {
@@ -210,13 +209,12 @@ class DefaultCopySpecTest extends Specification {
         spec.rename {}
 
         then:
-        spec.copyActions.size() == 1
-        spec.copyActions[0] instanceof RenamingCopyAction
+        spec.copyActions*.class == [RenamingCopyAction]
     }
 
     def 'add action'() {
         given:
-        Action<CopySpec> action = Mock()
+        def action = Mock(Action)
 
         when:
         spec.eachFile(action)
@@ -313,14 +311,14 @@ class DefaultCopySpecTest extends Specification {
 
     def 'add Spec as first child'() {
         when:
-        DefaultCopySpec child1 = spec.addFirst()
+        def child1 = spec.addFirst()
 
         then:
         child1
         spec.children == [child1]
 
         when:
-        DefaultCopySpec child2 = spec.addFirst()
+        def child2 = spec.addFirst()
 
         then:
         child2
@@ -329,8 +327,8 @@ class DefaultCopySpecTest extends Specification {
 
     def 'add Spec in between two child Specs if given child exists'() {
         when:
-        DefaultCopySpec child1 = spec.addChild()
-        DefaultCopySpec child2 = spec.addChild()
+        def child1 = spec.addChild()
+        def child2 = spec.addChild()
 
         then:
         child1
@@ -338,7 +336,7 @@ class DefaultCopySpecTest extends Specification {
         spec.children == [child1, child2]
 
         when:
-        DefaultCopySpec child3 = spec.addChildBeforeSpec(child2)
+        def child3 = spec.addChildBeforeSpec(child2)
 
         then:
         child3
@@ -347,8 +345,8 @@ class DefaultCopySpecTest extends Specification {
 
     def 'append Spec after two child Specs if given child does not exist or is null'() {
         when:
-        DefaultCopySpec child1 = spec.addChild()
-        DefaultCopySpec child2 = spec.addChild()
+        def child1 = spec.addChild()
+        def child2 = spec.addChild()
 
         then:
         child1
@@ -356,14 +354,14 @@ class DefaultCopySpecTest extends Specification {
         spec.children == [child1, child2]
 
         when:
-        DefaultCopySpec child3 = spec.addChildBeforeSpec(notContainedChild)
+        def child3 = spec.addChildBeforeSpec(notContainedChild)
 
         then:
         child3
         spec.children == [child1, child2, child3]
 
         where:
-        notContainedChild << [null, new DefaultCopySpec(fileResolver, instantiator)]
+        notContainedChild << [null, new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)]
     }
 
     def 'properties accessed directly have defaults'() {
@@ -402,7 +400,7 @@ class DefaultCopySpecTest extends Specification {
         spec.dirMode = 2
         spec.filteringCharset = "ISO_8859_1"
 
-        DefaultCopySpec child = unpackWrapper(spec."${method}"("child") {})
+        def child = unpackWrapper(spec."${method}"("child") {})
 
         then: //children still have these non defaults
         !child.caseSensitive;
@@ -433,44 +431,42 @@ class DefaultCopySpecTest extends Specification {
     }
 
     def 'can add spec hierarchy as child'() {
-        CopySpec otherSpec = new DefaultCopySpec(fileResolver, instantiator)
-        otherSpec.addChild()
-        def added = []
-
-        spec.addChildSpecListener { CopySpecInternal.CopySpecAddress path, CopySpecInternal spec ->
-            added.add path.toString()
-        }
-
         when:
-        spec.addChild()
+        spec.addChild().into "first"
 
         then:
-        added == ['$1']
+        resolvedDestPaths() == [
+            RelativePath.EMPTY_ROOT,
+            relativeDirectory("first"),
+        ]
 
         when:
-        added.clear()
+        CopySpec otherSpec = new DefaultCopySpec(fileResolver, DirectInstantiator.INSTANCE)
+        otherSpec.into "other"
+        otherSpec.addChild().into "other-grand"
+
         spec.with otherSpec
 
         then:
-        added == ['$2', '$2$1']
+        resolvedDestPaths() == [
+            RelativePath.EMPTY_ROOT,
+            relativeDirectory("first"),
+            relativeDirectory("other"),
+            relativeDirectory("other", "other-grand"),
+        ]
 
         when:
-        added.clear()
-        otherSpec.addChild().addChild()
+        def secondChild = otherSpec.addChild().into("second")
+        secondChild.addChild().into("second-grand")
 
         then:
-        added == ['$2$2', '$2$2$1']
-    }
-
-    private static DefaultCopySpec unpackWrapper(CopySpec copySpec) {
-        (copySpec as CopySpecWrapper).delegate as DefaultCopySpec
-    }
-
-    private static RelativePath relativeDirectory(String... segments) {
-        new RelativePath(false, segments)
-    }
-
-    private static RelativePath relativeFile(String segments) {
-        RelativePath.parse(true, segments)
+        resolvedDestPaths() == [
+            RelativePath.EMPTY_ROOT,
+            relativeDirectory("first"),
+            relativeDirectory("other"),
+            relativeDirectory("other", "other-grand"),
+            relativeDirectory("other", "second"),
+            relativeDirectory("other", "second", "second-grand"),
+        ]
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
-public class CopySpecActionImpl implements Action<CopySpecResolver> {
+public class CopySpecActionImpl implements Action<ResolvedCopySpec> {
     private final CopyActionProcessingStreamAction action;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
@@ -34,8 +34,9 @@ public class CopySpecActionImpl implements Action<CopySpecResolver> {
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
-    public void execute(final CopySpecResolver specResolver) {
-        FileTree source = specResolver.getSource();
-        source.visit(new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem, reproducibleFileOrder));
+    @Override
+    public void execute(ResolvedCopySpec spec) {
+        FileTree source = spec.getSource();
+        source.visit(new CopyFileVisitorImpl(spec, action, instantiator, fileSystem, reproducibleFileOrder));
     }
 }

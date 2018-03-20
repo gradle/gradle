@@ -21,54 +21,40 @@ import org.gradle.internal.reflect.Instantiator;
 
 public class SingleParentCopySpec extends DefaultCopySpec {
 
-    private final CopySpecResolver parentResolver;
+    private final DefaultCopySpec parent;
 
-    public SingleParentCopySpec(FileResolver resolver, Instantiator instantiator, CopySpecResolver parentResolver) {
+    public SingleParentCopySpec(FileResolver resolver, Instantiator instantiator, DefaultCopySpec parent) {
         super(resolver, instantiator);
-        this.parentResolver = parentResolver;
-    }
-
-    @Override
-    public CopySpecInternal addChild() {
-        DefaultCopySpec child = new SingleParentCopySpec(fileResolver, instantiator, buildResolverRelativeToParent(parentResolver));
-        addChildSpec(child);
-        return child;
-    }
-
-    @Override
-    protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, instantiator, buildResolverRelativeToParent(parentResolver));
-        addChildSpec(position, child);
-        return child;
+        this.parent = parent;
     }
 
     @Override
     public boolean isCaseSensitive() {
-        return buildResolverRelativeToParent(parentResolver).isCaseSensitive();
+        return withDefault(caseSensitive, parent.isCaseSensitive());
     }
 
     @Override
     public boolean getIncludeEmptyDirs() {
-        return buildResolverRelativeToParent(parentResolver).getIncludeEmptyDirs();
+        return withDefault(includeEmptyDirs, parent.getIncludeEmptyDirs());
     }
 
     @Override
     public DuplicatesStrategy getDuplicatesStrategy() {
-        return buildResolverRelativeToParent(parentResolver).getDuplicatesStrategy();
+        return withDefault(duplicatesStrategy, parent.getDuplicatesStrategy());
     }
 
     @Override
     public Integer getDirMode() {
-        return buildResolverRelativeToParent(parentResolver).getDirMode();
+        return withDefault(dirMode, parent.getDirMode());
     }
 
     @Override
     public Integer getFileMode() {
-        return buildResolverRelativeToParent(parentResolver).getFileMode();
+        return withDefault(fileMode, parent.getFileMode());
     }
 
     @Override
     public String getFilteringCharset() {
-        return buildResolverRelativeToParent(parentResolver).getFilteringCharset();
+        return withDefault(filteringCharset, parent.getFilteringCharset());
     }
 }

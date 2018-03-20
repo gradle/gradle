@@ -39,7 +39,7 @@ public class FileCopier {
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
-        DefaultCopySpec copySpec = new DefaultCopySpec(this.fileResolver, instantiator);
+        DefaultCopySpec copySpec = new DefaultCopySpec(fileResolver, instantiator);
         DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
         CopySpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);
@@ -64,7 +64,7 @@ public class FileCopier {
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
         CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem(), false);
-        return visitorDriver.execute(copySpec, visitor);
+        return visitorDriver.execute(copySpec.resolveAsRoot(), visitor);
     }
 
 }

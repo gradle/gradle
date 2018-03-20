@@ -47,6 +47,4 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
     public File getDestinationDir() {
         return destinationDir == null ? null : fileResolver.resolve(destinationDir);
     }
-
-
 }

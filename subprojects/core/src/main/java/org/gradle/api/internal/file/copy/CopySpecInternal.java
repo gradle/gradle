@@ -18,8 +18,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
-
-import javax.annotation.Nullable;
+import org.gradle.api.tasks.util.PatternSet;
 
 public interface CopySpecInternal extends CopySpec {
 
@@ -31,15 +30,16 @@ public interface CopySpecInternal extends CopySpec {
 
     CopySpecInternal addFirst();
 
-    void walk(Action<? super CopySpecResolver> action);
+    void addedToParent(CopySpecInternal parent);
 
-    CopySpecResolver buildRootResolver();
+    void descendantAdded(CopySpecInternal descendantSpec);
 
-    CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent);
+    ResolvedCopySpec resolveAsRoot();
 
-    void addChildSpecListener(CopySpecListener listener);
-
-    void visit(CopySpecAddress parentPath, CopySpecVisitor visitor);
+    ResolvedCopySpec resolveAsChild(
+        PatternSet parentPatternSet,
+        Iterable<Action<? super FileCopyDetails>> parentCopyActions,
+        ResolvedCopySpec parent);
 
     /**
      * Returns whether the spec, or any of its children have custom copy actions.
@@ -47,36 +47,4 @@ public interface CopySpecInternal extends CopySpec {
     boolean hasCustomActions();
 
     void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action);
-
-    /**
-     * Listener triggered when a spec is added to the hierarchy.
-     */
-    interface CopySpecListener {
-        void childSpecAdded(CopySpecAddress path, CopySpecInternal spec);
-    }
-
-    /**
-     * A visitor to traverse the spec hierarchy.
-     */
-    interface CopySpecVisitor {
-        void visit(CopySpecAddress address, CopySpecInternal spec);
-    }
-
-    /**
-     * The address of a spec relative to its parent.
-     */
-    interface CopySpecAddress {
-        @Nullable
-        CopySpecAddress getParent();
-
-        CopySpecInternal getSpec();
-
-        int getAdditionIndex();
-
-        CopySpecAddress append(CopySpecInternal spec, int additionIndex);
-
-        CopySpecAddress append(CopySpecAddress relativeAddress);
-
-        CopySpecResolver unroll(StringBuilder path);
-    }
 }

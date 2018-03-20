@@ -16,13 +16,14 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.api.tasks.AbstractCopyTaskContractTest
 
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     abstract AbstractArchiveTask getArchiveTask()
 
     @Override
-    AbstractArchiveTask getTask() {
+    AbstractCopyTask getTask() {
         archiveTask
     }
 

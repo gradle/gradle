@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 
 import javax.annotation.Nullable;
 import java.io.FilterReader;
@@ -278,21 +279,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void walk(Action<? super CopySpecResolver> action) {
-        getDelegateCopySpec().walk(action);
-    }
-
-    @Override
-    public CopySpecResolver buildRootResolver() {
-        return getDelegateCopySpec().buildRootResolver();
-    }
-
-    @Override
-    public CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent) {
-        return getDelegateCopySpec().buildResolverRelativeToParent(parent);
-    }
-
-    @Override
     public String getFilteringCharset() {
         return getDelegateCopySpec().getFilteringCharset();
     }
@@ -303,16 +289,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void addChildSpecListener(CopySpecListener listener) {
-        getDelegateCopySpec().addChildSpecListener(listener);
-    }
-
-    @Override
-    public void visit(CopySpecAddress parentPath, CopySpecVisitor visitor) {
-        getDelegateCopySpec().visit(parentPath, visitor);
-    }
-
-    @Override
     public boolean hasCustomActions() {
         return getDelegateCopySpec().hasCustomActions();
     }
@@ -320,5 +296,25 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public void appendCachingSafeCopyAction(Action<? super FileCopyDetails> action) {
         getDelegateCopySpec().appendCachingSafeCopyAction(action);
+    }
+
+    @Override
+    public ResolvedCopySpec resolveAsRoot() {
+        return getDelegateCopySpec().resolveAsRoot();
+    }
+
+    @Override
+    public ResolvedCopySpec resolveAsChild(PatternSet parentPatternSet, Iterable<Action<? super FileCopyDetails>> parentCopyActions, ResolvedCopySpec parent) {
+        return getDelegateCopySpec().resolveAsChild(parentPatternSet, parentCopyActions, parent);
+    }
+
+    @Override
+    public void addedToParent(CopySpecInternal parent) {
+        getDelegateCopySpec().addedToParent(parent);
+    }
+
+    @Override
+    public void descendantAdded(CopySpecInternal childSpec) {
+        getDelegateCopySpec().descendantAdded(childSpec);
     }
 }
