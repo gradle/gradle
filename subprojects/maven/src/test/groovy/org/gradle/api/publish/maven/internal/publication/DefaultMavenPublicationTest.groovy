@@ -393,11 +393,23 @@ class DefaultMavenPublicationTest extends Specification {
         publication.artifacts == [mavenArtifact1, mavenArtifact2] as Set
     }
 
+    def "resolving the publishabe files does not throw if gradle metadata is not activated"() {
+        given:
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
+        publication.setPomFile(new SimpleFileCollection(pomFile))
+
+        when:
+        publication.publishableFiles.files
+
+        then:
+        noExceptionThrown()
+    }
+
     def createPublication() {
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
         publication.setPomFile(new SimpleFileCollection(pomFile))
         publication.setGradleModuleMetadataFile(new SimpleFileCollection(gradleMetadataFile))
-        return publication;
+        return publication
     }
 
     def createArtifact() {

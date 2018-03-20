@@ -292,6 +292,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
+        if (moduleMetadataFile == null) {
+            // possible if the gradle metadata feature is disabled
+            return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile);
+        }
         return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile, moduleMetadataFile);
     }
 
@@ -330,7 +334,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private File getGradleMetadataFile() {
         if (moduleMetadataFile == null) {
-            // possible if experimental features are disabled
+            // possible if the gradle metadata feature is disabled
             return null;
         }
         return moduleMetadataFile.getSingleFile();
