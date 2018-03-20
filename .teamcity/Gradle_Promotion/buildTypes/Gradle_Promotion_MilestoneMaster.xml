@@ -35,6 +35,7 @@
     </vcs-settings>
     <requirements>
       <equals id="RQ_251" name="teamcity.agent.name" value="ubuntu8-agent1" />
+      <contains id="RQ_30" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers />
     <artifact-dependencies>
