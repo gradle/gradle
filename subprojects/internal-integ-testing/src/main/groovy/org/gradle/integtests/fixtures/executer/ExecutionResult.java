@@ -37,6 +37,8 @@ public interface ExecutionResult {
      *     <li>Removes notice about starting the daemon.</li>
      *     <li>Normalizes build time to 1 second.
      * </ul>
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getNormalizedOutput();
 
@@ -90,7 +92,9 @@ public interface ExecutionResult {
     ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
-     * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
+     * Returns the tasks have been executed in order started (includes tasks that were skipped). Asserts that each task appears once only. Note: ignores buildSrc tasks.
+     *
+     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
     List<String> getExecutedTasks();
 
@@ -107,6 +111,16 @@ public interface ExecutionResult {
     ExecutionResult assertTasksExecuted(Object... taskPaths);
 
     /**
+     * Asserts that the given task has been executed. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskExecuted(String taskPath);
+
+    /**
+     * Asserts that the given task has not been executed. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskNotExecuted(String taskPath);
+
+    /**
      * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
      * or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions and an explanation of their usage.
      * Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
@@ -115,6 +129,8 @@ public interface ExecutionResult {
 
     /**
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
+     *
+     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
     Set<String> getSkippedTasks();
 

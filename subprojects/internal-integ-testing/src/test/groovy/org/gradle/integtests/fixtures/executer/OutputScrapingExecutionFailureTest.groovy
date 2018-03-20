@@ -16,9 +16,16 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import spock.lang.Specification
+class OutputScrapingExecutionFailureTest extends AbstractExecutionResultTest {
+    def "can have empty output"() {
+        def result = OutputScrapingExecutionFailure.from("", "")
 
-class OutputScrapingExecutionFailureTest extends Specification {
+        expect:
+        result.output.empty
+        result.normalizedOutput.empty
+        result.error.empty
+    }
+
     def "can assert that failure location is present"() {
         given:
         def output = """
@@ -128,14 +135,36 @@ Some.Failure
 
         then:
         def e = thrown(AssertionError)
-        e.message.startsWith("Substring not found in build output")
+        error(e).startsWith(error('''
+            Did not find expected text in build output.
+            Expected: broken
+             
+            Build output:
+            =======
+             
+            Some message
+            Some error
+             
+            Output:
+        '''))
 
         when:
         failure.assertHasErrorOutput("broken")
 
         then:
         def e2 = thrown(AssertionError)
-        e2.message.startsWith("Substring not found in build output")
+        error(e2).startsWith(error('''
+            Did not find expected text in build output.
+            Expected: broken
+             
+            Build output:
+            =======
+             
+            Some message
+            Some error
+             
+            Output:
+        '''))
     }
 
     def "log output missing assertions do not ignore content after failure section"() {
@@ -160,7 +189,12 @@ Some.Failure
 
         then:
         def e = thrown(AssertionError)
-        e.message.startsWith("Substring found in build output")
+        error(e).startsWith(error('''
+            Found unexpected text in build output.
+            Expected not present: broken
+             
+            Output:
+        '''))
     }
 
     def "recreates exception stack trace"() {

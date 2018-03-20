@@ -40,7 +40,7 @@ class ProjectDependencyForcingResolver implements ModuleConflictResolver {
         // fine one or more project dependencies among conflicting modules
         for (T candidate : details.getCandidates()) {
             ComponentResolveMetadata metaData = candidate.getMetadata();
-            if (metaData != null && metaData.getComponentId() instanceof ProjectComponentIdentifier) {
+            if (metaData != null && metaData.getId() instanceof ProjectComponentIdentifier) {
                 if (foundProjectCandidate == null) {
                     // found the first project dependency
                     foundProjectCandidate = candidate;

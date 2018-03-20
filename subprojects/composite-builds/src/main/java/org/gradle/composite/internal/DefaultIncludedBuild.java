@@ -125,7 +125,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
         ProjectComponentIdentifier componentIdentifier = newProjectId(this, project.getPath());
-        ModuleVersionIdentifier moduleId = originalComponent.getId();
+        ModuleVersionIdentifier moduleId = originalComponent.getModuleVersionId();
         LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         availableModules.add(Pair.of(moduleId, componentIdentifier));
     }

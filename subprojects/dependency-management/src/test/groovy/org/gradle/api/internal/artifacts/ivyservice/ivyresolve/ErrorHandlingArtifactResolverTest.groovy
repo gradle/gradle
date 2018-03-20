@@ -61,7 +61,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
             getDisplayName() >> "<component>"
         }
         def component = Stub(ComponentResolveMetadata) {
-            getComponentId() >> componentId
+            getId() >> componentId
         }
         def result = Mock(BuildableArtifactSetResolveResult)
         def failure = new RuntimeException("foo")

@@ -130,9 +130,10 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     attributesDebug.attribute(DEBUGGABLE_ATTRIBUTE, true);
                     attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
 
+                    // TODO: Fix this naming convention to follow C++ executable/library
                     NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, testComponent.getBaseName(), group, version, true, false, operatingSystem,
                         null,
-                        new DefaultUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
+                        new DefaultUsageContext("debug" + operatingSystemSuffix + "Runtime", runtimeUsage, attributesDebug));
 
                     ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
                     testComponent.addExecutable("executable", debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());

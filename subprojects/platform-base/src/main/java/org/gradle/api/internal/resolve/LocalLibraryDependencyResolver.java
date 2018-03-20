@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -112,7 +113,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             resolveLibraryAndChooseBinary(result, selector);
@@ -192,7 +193,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     @Nullable
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
-        ComponentIdentifier componentId = component.getComponentId();
+        ComponentIdentifier componentId = component.getId();
         if (isLibrary(componentId)) {
             return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, exclusions);
         }
@@ -201,7 +202,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
     @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        if (isLibrary(component.getComponentId())) {
+        if (isLibrary(component.getId())) {
             result.resolved(Collections.<ComponentArtifactMetadata>emptySet());
         }
     }

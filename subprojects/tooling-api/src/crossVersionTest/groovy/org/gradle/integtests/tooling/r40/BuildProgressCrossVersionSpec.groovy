@@ -382,7 +382,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @TargetGradleVersion("<4.7")
+    @TargetGradleVersion(">=4.0 <4.7")
     @Issue("gradle/gradle#1641")
     def "generates download events during maven publish"() {
         given:

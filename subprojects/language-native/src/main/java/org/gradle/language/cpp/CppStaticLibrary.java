@@ -18,7 +18,7 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.ComponentWithOutputs;
-import org.gradle.language.PublishableComponent;
+import org.gradle.api.component.PublishableComponent;
 import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.ComponentWithStaticLibrary;

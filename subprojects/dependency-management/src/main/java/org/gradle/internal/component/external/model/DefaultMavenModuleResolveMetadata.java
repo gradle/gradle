@@ -110,7 +110,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getId(), new DefaultIvyArtifactName(getId().getModule(), "jar", "jar")));
         } else {
             artifacts = ImmutableList.of();
         }
@@ -123,9 +123,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
-                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getComponentId(), dependency));
+                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getId(), dependency));
             } else if (include(dependency, config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getComponentId(), dependency));
+                filteredDependencies.add(contextualize(config, getId(), dependency));
             }
         }
         return filteredDependencies.build();

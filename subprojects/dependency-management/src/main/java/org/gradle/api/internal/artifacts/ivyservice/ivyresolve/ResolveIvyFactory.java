@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -145,8 +146,8 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolve(final DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
-            delegate.getComponentIdResolver().resolve(dependency, result);
+        public void resolve(final DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, final BuildableComponentIdResolveResult result) {
+            delegate.getComponentIdResolver().resolve(dependency, versionConstraint, result);
         }
 
         @Override

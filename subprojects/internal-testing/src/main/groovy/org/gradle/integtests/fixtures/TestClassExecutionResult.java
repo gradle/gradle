@@ -33,6 +33,8 @@ public interface TestClassExecutionResult {
      */
     TestClassExecutionResult assertTestsSkipped(String... testNames);
 
+    int getTestSkippedCount();
+
     /**
      * Asserts that the given test passed.
      */

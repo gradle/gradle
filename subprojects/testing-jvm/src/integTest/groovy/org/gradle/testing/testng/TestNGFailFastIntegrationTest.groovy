@@ -65,8 +65,11 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', Matchers.anything()) }
-        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount != 0 }
-        assert 5 >= resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount == 0 }
+        assert 5 == resourceForTest.keySet().with {
+            count { !result.testClassExists(it) } +
+                count { result.testClassExists(it) && result.testClass(it).testCount == 0 } +
+                count { result.testClassExists(it) && result.testClass(it).testSkippedCount == 1 }
+        }
 
         where:
         parallel    | threadCount | maxWorkers

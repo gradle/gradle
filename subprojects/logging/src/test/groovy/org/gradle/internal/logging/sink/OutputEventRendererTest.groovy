@@ -19,6 +19,7 @@ package org.gradle.internal.logging.sink
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
 import org.gradle.internal.logging.events.FlushOutputEvent
@@ -363,9 +364,8 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def "renders log events when plain console is attached"() {
         def snapshot = renderer.snapshot()
-        def stdoutListener = new TestListener()
-        def stderrListener = new TestListener()
-        renderer.attachPlainConsole(stdoutListener, stderrListener)
+        def output = new ByteArrayOutputStream()
+        renderer.attachConsole(output, ConsoleOutput.Plain)
 
         when:
         renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -376,16 +376,14 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['un-grouped error', '', '> description status', 'info', 'error']
-        stderrListener.value.readLines() == []
+        output.toString().readLines() == ['un-grouped error', '', '> description status', 'info', 'error']
     }
 
     def "renders log events in plain console when log level is debug"() {
         renderer.configure(LogLevel.DEBUG)
         def snapshot = renderer.snapshot()
-        def stdoutListener = new TestListener()
-        def stderrListener = new TestListener()
-        renderer.attachPlainConsole(stdoutListener, stderrListener)
+        def output = new ByteArrayOutputStream()
+        renderer.attachConsole(output, ConsoleOutput.Plain)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -393,24 +391,21 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['10:00:00.000 [INFO] [category] info', '10:00:00.000 [ERROR] [category] error']
-        stderrListener.value.readLines() == []
+        output.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '10:00:00.000 [ERROR] [category] error']
     }
 
     def "attaches plain console when stdout and stderr are attached"() {
         when:
-        def stdoutListener = new TestListener()
-        def stderrListener = new TestListener()
+        def output = new ByteArrayOutputStream()
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.attachPlainConsole(stdoutListener, stderrListener)
+        renderer.attachConsole(output, ConsoleOutput.Plain)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
 
         then:
-        stdoutListener.value.readLines() == ['info', 'error']
-        stderrListener.value.readLines() == []
+        output.toString().readLines() == ['info', 'error']
         outputs.stdOut == ''
         outputs.stdErr == ''
     }

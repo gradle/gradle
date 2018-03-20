@@ -135,7 +135,7 @@ You can go ahead and <<sec:using_wrapper,execute the build with the Wrapper>> wi
 [[sec:using_wrapper]]
 === Using the Gradle Wrapper
 
-It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operation system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
+It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operating system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperBatchFileExecution" title="Executing the build with the Wrapper batch file">

@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import junit.framework.AssertionFailedError;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -51,7 +52,6 @@ import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
@@ -73,7 +73,6 @@ import org.hamcrest.Matchers;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -86,6 +85,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
@@ -99,6 +99,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
@@ -111,9 +112,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
-
-    private final static PrintStream ORIGINAL_STD_OUT = System.out;
-    private final static PrintStream ORIGINAL_STD_ERR = System.err;
 
     static {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
@@ -141,16 +139,15 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         StandardOutputListener outputListener = new OutputListenerImpl();
-        StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
-        BuildResult result = doRun(outputListener, errorListener, buildListener);
+        BuildResult result = doRun(outputListener, buildListener);
         try {
             result.rethrowFailure();
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            OutputScrapingExecutionResult.from(outputListener.toString(), errorListener.toString())));
+            OutputScrapingExecutionResult.from(outputListener.toString(), "")));
     }
 
     @Override
@@ -160,14 +157,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         StandardOutputListener outputListener = new OutputListenerImpl();
-        StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         try {
-            doRun(outputListener, errorListener, buildListener).rethrowFailure();
+            doRun(outputListener, buildListener).rethrowFailure();
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionFailure.from(outputListener.toString(), errorListener.toString()), e));
+                OutputScrapingExecutionFailure.from(outputListener.toString(), ""), e));
         }
     }
 
@@ -229,7 +225,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return result;
     }
 
-    private BuildResult doRun(StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
+    private BuildResult doRun(StandardOutputListener outputListener, BuildListenerImpl listener) {
         // Capture the current state of things that we will change during execution
         InputStream originalStdIn = System.in;
         Properties originalSysProperties = new Properties();
@@ -241,7 +237,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
 
         try {
-            return executeBuild(invocation, outputListener, errorListener, listener);
+            return executeBuild(invocation, outputListener, listener);
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
@@ -264,45 +260,31 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         SetSystemProperties.resetTempDirLocation();
     }
 
-    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener, final StandardOutputListener errorListener) {
-        LoggingManagerInternal loggingManager =
-            GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener) {
+        LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+        loggingManager.captureSystemSources();
 
-        if (startParameter.getConsoleOutput() == ConsoleOutput.Rich || startParameter.getConsoleOutput() == ConsoleOutput.Verbose) {
-            // Explicitly enabling rich console forces everything into the stdout listener
-            loggingManager.attachAnsiConsole(new VerboseAwareAnsiOutputStream(new LineBufferingOutputStream(new TextStream() {
-                @Override
-                public void text(String text) {
-                    outputListener.onOutput(text);
-                }
-
-                @Override
-                public void endOfStream(@Nullable Throwable failure) {
-
-                }
-            }), startParameter.getConsoleOutput() == ConsoleOutput.Verbose));
-        } else {
-            // Mirror the output sent to our plain console to the original standard output/error so we can see what's happening
-            StandardOutputListener realStdout = new StreamBackedStandardOutputListener((Appendable) ORIGINAL_STD_OUT);
-            StandardOutputListener realStderr = new StreamBackedStandardOutputListener((Appendable) ORIGINAL_STD_ERR);
-            loggingManager.attachPlainConsole(mirroredOutputListener(realStdout, outputListener), mirroredOutputListener(realStderr, errorListener));
+        ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
+        if (consoleOutput == ConsoleOutput.Auto) {
+            // IDEA runs tests attached to a console, use plain so test can assume never attached to a console
+            // Should really run all tests against a plain and a rich console to make these assumptions explicit
+            consoleOutput = ConsoleOutput.Plain;
         }
+        loggingManager.attachConsole(new TeeOutputStream(System.out, new LineBufferingOutputStream(new TextStream() {
+            @Override
+            public void text(String text) {
+                outputListener.onOutput(text);
+            }
+
+            @Override
+            public void endOfStream(@Nullable Throwable failure) {
+            }
+        })), consoleOutput);
 
         return loggingManager;
     }
 
-    private static StandardOutputListener mirroredOutputListener(final StandardOutputListener... listeners) {
-        return new StandardOutputListener() {
-            @Override
-            public void onOutput(CharSequence output) {
-                for (StandardOutputListener listener : listeners) {
-                    listener.onOutput(output);
-                }
-            }
-        };
-    }
-
-    private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, final StandardOutputListener errorListener, BuildListenerImpl listener) {
+    private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
@@ -336,7 +318,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext();
 
-            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputListener, errorListener);
+            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputListener);
             loggingManager.start();
 
             try {
@@ -535,9 +517,23 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            List<String> flattenedTasks = flattenTaskPaths(taskPaths);
+            Set<String> flattenedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
             assertThat(plannedTasks, containsInAnyOrder(flattenedTasks.toArray()));
             outputResult.assertTasksExecuted(flattenedTasks);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertTaskExecuted(String taskPath) {
+            assertThat(plannedTasks, hasItem(taskPath));
+            outputResult.assertTaskExecuted(taskPath);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertTaskNotExecuted(String taskPath) {
+            assertThat(plannedTasks, not(hasItem(taskPath)));
+            outputResult.assertTaskNotExecuted(taskPath);
             return this;
         }
 
@@ -550,24 +546,18 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public Set<String> getSkippedTasks() {
-            return new HashSet<String>(skippedTasks);
+            return new TreeSet<String>(skippedTasks);
         }
 
         @Override
         public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-            if (GradleContextualExecuter.isParallel()) {
-                return this;
-            }
-            Set<String> expected = new HashSet<String>(flattenTaskPaths(taskPaths));
+            Set<String> expected = new TreeSet<String>(flattenTaskPaths(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             outputResult.assertTasksSkipped(expected);
             return this;
         }
 
         public ExecutionResult assertTaskSkipped(String taskPath) {
-            if (GradleContextualExecuter.isParallel()) {
-                return this;
-            }
             assertThat(skippedTasks, hasItem(taskPath));
             outputResult.assertTaskSkipped(taskPath);
             return this;
@@ -575,10 +565,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-            if (GradleContextualExecuter.isParallel()) {
-                return this;
-            }
-            Set<String> expected = new HashSet<String>(flattenTaskPaths(taskPaths));
+            Set<String> expected = new TreeSet<String>(flattenTaskPaths(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
             outputResult.assertTasksNotSkipped(expected);
@@ -586,16 +573,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTaskNotSkipped(String taskPath) {
-            if (GradleContextualExecuter.isParallel()) {
-                return this;
-            }
             assertThat(getNotSkippedTasks(), hasItem(taskPath));
             outputResult.assertTaskNotSkipped(taskPath);
             return this;
         }
 
         private Set<String> getNotSkippedTasks() {
-            Set<String> notSkipped = new HashSet<String>(plannedTasks);
+            Set<String> notSkipped = new TreeSet<String>(plannedTasks);
             notSkipped.removeAll(skippedTasks);
             return notSkipped;
         }
@@ -609,8 +593,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final String lineNumber;
         private final String description;
 
-        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure,
-                                         GradleException failure) {
+        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, GradleException failure) {
             super(tasks, skippedTasks, outputFailure);
             this.outputFailure = outputFailure;
             this.failure = failure;
@@ -653,7 +636,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(normalizedLineSeparators(matcher))));
+            assertThat(causes, Matchers.hasItem(hasMessage(normalizedLineSeparators(matcher))));
             outputFailure.assertThatCause(matcher);
             return this;
         }

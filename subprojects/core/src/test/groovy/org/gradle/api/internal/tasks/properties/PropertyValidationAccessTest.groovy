@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -80,13 +81,13 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithNestedIterable extends DefaultTask {
         @Nested
-        Iterable<NestedBean> beans
+        Iterable<NestedBeanWithNonAnnotatedProperty> beans
 
         @Nested
-        List<NestedBean> beanList
+        List<NestedBeanWithNonAnnotatedProperty> beanList
     }
 
-    static class NestedBean {
+    static class NestedBeanWithNonAnnotatedProperty {
         @Input
         String input
 
@@ -128,10 +129,10 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithNestedMap extends DefaultTask {
         @Nested
-        Map<String, NestedBean> beans
+        Map<String, NestedBeanWithNonAnnotatedProperty> beans
 
         @Nested
-        ImmutableMap<Object, NestedBean> beanMap
+        ImmutableMap<Object, NestedBeanWithNonAnnotatedProperty> beanMap
     }
 
     def "analyzes type arguments of Maps"() {
@@ -139,6 +140,18 @@ class PropertyValidationAccessTest extends Specification {
         assertHasValidationProblems(TaskWithNestedMap, [
                 "property 'beans.<key>.nonAnnotated' is not annotated with an input or output annotation",
                 "property 'beanMap.<key>.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    static class TaskWithNestedProvider extends DefaultTask {
+        @Nested
+        Provider<NestedBeanWithNonAnnotatedProperty> nested
+    }
+
+    def "analyzes type arguments of Providers"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedProvider, [
+                "property 'nested.nonAnnotated' is not annotated with an input or output annotation"
         ])
     }
 
@@ -152,10 +165,10 @@ class PropertyValidationAccessTest extends Specification {
 
     static class TaskWithIterableInIterable extends DefaultTask {
         @Nested
-        List<Set<NestedBean>> beans
+        List<Set<NestedBeanWithNonAnnotatedProperty>> beans
 
         @Nested
-        List<Map<String, List<NestedBean>>> nestedBeans
+        List<Map<String, List<NestedBeanWithNonAnnotatedProperty>>> nestedBeans
     }
 
     def "for Iterables of Iterables the right type is selected"() {
@@ -166,7 +179,7 @@ class PropertyValidationAccessTest extends Specification {
         ])
     }
 
-    static class AnnotatedIterable extends ArrayList<NestedBean> {
+    static class AnnotatedIterable extends ArrayList<NestedBeanWithNonAnnotatedProperty> {
         @Input
         String someProperty = "annotated"
 
@@ -220,12 +233,12 @@ class PropertyValidationAccessTest extends Specification {
 
     static class BeanWithNonAnnotatedType {
         @Nested
-        NestedBean bean
+        NestedBeanWithNonAnnotatedProperty bean
     }
 
     static class TaskWithNestedTree extends DefaultTask {
         @Nested Tree tree
-        @Nested NestedBean bean
+        @Nested NestedBeanWithNonAnnotatedProperty bean
         @Nested BeanWithNonAnnotatedType nestedBean
     }
 

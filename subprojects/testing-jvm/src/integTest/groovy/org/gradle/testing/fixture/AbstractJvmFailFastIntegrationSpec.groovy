@@ -85,7 +85,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        result.testClass('pkg.OtherTest').assertTestCount(0, 0, 0)
+        result.testClass('pkg.OtherTest').assertTestSkipped('passingTest')
 
         where:
         description       | taskList                   | buildConfig
@@ -109,8 +109,11 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', Matchers.anything()) }
-        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount != 0 }
-        assert testOmitted >= resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testCount == 0 }
+        assert testOmitted == resourceForTest.keySet().with {
+            count { !result.testClassExists(it) } +
+                count { result.testClassExists(it) && result.testClass(it).testCount == 0 } +
+                count { result.testClassExists(it) && result.testClass(it).testSkippedCount == 1 }
+        }
 
         where:
         forkEvery | maxWorkers | testOmitted
@@ -161,6 +164,23 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
         testExecution.release(FAILED_RESOURCE)
         gradleHandle.waitForFailure()
+    }
+
+    def "fail fast works with --tests filter"() {
+        given:
+        buildFile.text = generator.initBuildFile()
+        def resourceForTest = generator.withFailingTests(5)
+        def testExecution = server.expectOptionalAndBlock(DEFAULT_MAX_WORKERS, resourceForTest.values() as String[])
+
+        when:
+        def gradleHandle = executer.withTasks('test', '--fail-fast', '--tests=*OtherTest_*').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        testExecution.release(DEFAULT_MAX_WORKERS)
+        gradleHandle.waitForFailure()
+
+        assert !gradleHandle.errorOutput.contains('No tests found for given includes:')
     }
 
     abstract String testAnnotationClass()

@@ -133,7 +133,7 @@ public class GroupedOutputFixture {
         boolean foundTask = hasTask(taskName);
 
         if (!foundTask) {
-            throw new AssertionError(String.format("The grouped output for task '%s' could not be found", taskName));
+            throw new AssertionError(String.format("The grouped output for task '%s' could not be found.%nOutput:%n%s", taskName, originalOutput));
         }
 
         return tasks.get(taskName);

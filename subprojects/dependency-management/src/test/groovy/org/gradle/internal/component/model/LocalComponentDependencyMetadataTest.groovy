@@ -130,7 +130,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getAttributesSchema() >> attributesSchema
-            getComponentId() >> Stub(ComponentIdentifier) {
+            getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
             }
         }
@@ -164,7 +164,7 @@ Configuration 'default': Required key 'other' and found incompatible value 'noth
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
-            getComponentId() >> Stub(ComponentIdentifier) {
+            getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
             }
             getAttributesSchema() >> EmptySchema.INSTANCE
@@ -205,7 +205,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def toComponent = Stub(ComponentResolveMetadata) {
             getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> attributesSchema
-            getComponentId() >> Stub(ComponentIdentifier) {
+            getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
             }
         }
@@ -275,7 +275,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def toComponent = Stub(ComponentResolveMetadata) {
             getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> attributesSchema
-            getComponentId() >> Stub(ComponentIdentifier) {
+            getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
             }
         }
@@ -330,7 +330,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def fromId = Stub(ComponentIdentifier) { getDisplayName() >> "thing a" }
         def dep = new LocalComponentDependencyMetadata(fromId, Stub(ComponentSelector), "from", null, "to", [] as List, [], false, false, true, false, null)
         def toComponent = Stub(ComponentResolveMetadata)
-        toComponent.componentId >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
+        toComponent.id >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
 
         given:
         toComponent.getConfiguration("to") >> null

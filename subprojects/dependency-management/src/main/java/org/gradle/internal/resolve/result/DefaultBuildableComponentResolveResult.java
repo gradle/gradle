@@ -25,11 +25,11 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
-    private ComponentResolveMetadata metaData;
+    private ComponentResolveMetadata metadata;
     private ModuleVersionResolveException failure;
 
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
-        metaData = null;
+        metadata = null;
         this.failure = failure;
         return this;
     }
@@ -40,28 +40,28 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     public void resolved(ComponentResolveMetadata metaData) {
-        this.metaData = metaData;
+        this.metadata = metaData;
     }
 
-    public void setMetaData(ComponentResolveMetadata metaData) {
+    public void setMetadata(ComponentResolveMetadata metadata) {
         assertResolved();
-        this.metaData = metaData;
+        this.metadata = metadata;
     }
 
     @Override
-    public ComponentIdentifier getComponentIdentifier() {
+    public ComponentIdentifier getId() {
         assertResolved();
-        return metaData.getComponentId();
+        return metadata.getId();
     }
 
-    public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+    public ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException {
         assertResolved();
-        return metaData.getId();
+        return metadata.getModuleVersionId();
     }
 
-    public ComponentResolveMetadata getMetaData() throws ModuleVersionResolveException {
+    public ComponentResolveMetadata getMetadata() throws ModuleVersionResolveException {
         assertResolved();
-        return metaData;
+        return metadata;
     }
 
     public ModuleVersionResolveException getFailure() {
@@ -83,7 +83,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     public boolean hasResult() {
-        return failure != null || metaData != null;
+        return failure != null || metadata != null;
     }
 
     public void applyTo(BuildableComponentIdResolveResult idResolve) {
@@ -91,8 +91,8 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         if (failure != null) {
             idResolve.failed(failure);
         }
-        if (metaData != null) {
-            idResolve.resolved(metaData);
+        if (metadata != null) {
+            idResolve.resolved(metadata);
         }
     }
 }

@@ -263,7 +263,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         and:
         succeeds "checkstyleMain"
         then:
-        result.executedTasks.contains(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
     }
 
     def "can change built-in config_loc"() {
@@ -282,7 +282,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         then:
         suppressionsXml.assertDoesNotExist()
-        result.executedTasks.contains(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
 
         when:
         file("config/checkstyle/newFile.xml") << "<!-- This is a new file -->"
@@ -311,7 +311,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         then:
         result.assertOutputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated and is scheduled to be removed in Gradle 5.0. Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
-        result.executedTasks.contains(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")

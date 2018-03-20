@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+package org.gradle.integtests.fixtures.executer
 
-import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.util.TextUtil
+import spock.lang.Specification
 
-/**
- * Represents a component that can be built.
- *
- * @since 4.7
- */
-@Incubating
-public interface BuildableComponent extends SoftwareComponent {
 
+abstract class AbstractExecutionResultTest extends Specification {
+    String error(String text) {
+        return TextUtil.normaliseLineSeparators(text.stripIndent().trim())
+    }
+
+    String error(Throwable failure) {
+        return TextUtil.normaliseLineSeparators(failure.message)
+    }
 }

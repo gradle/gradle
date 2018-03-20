@@ -273,6 +273,27 @@ class DefaultIvyPublicationTest extends Specification {
         publication.artifacts == [ivyArtifact1, ivyArtifact2] as Set
     }
 
+    def "resolving the publishabe files does not throw if gradle metadata is not activated"() {
+        given:
+        def publication = instantiator.newInstance(DefaultIvyPublication,
+            "pub-name",
+            instantiator,
+            projectIdentity,
+            notationParser,
+            projectDependencyResolver,
+            TestFiles.fileCollectionFactory(),
+            attributesFactory,
+            featurePreviews
+        )
+        publication.setIvyDescriptorFile(new SimpleFileCollection(ivyDescriptorFile))
+
+        when:
+        publication.publishableFiles.files
+
+        then:
+        noExceptionThrown()
+    }
+
     def createPublication() {
         def publication = instantiator.newInstance(DefaultIvyPublication,
             "pub-name",
@@ -286,7 +307,7 @@ class DefaultIvyPublicationTest extends Specification {
         )
         publication.setIvyDescriptorFile(new SimpleFileCollection(ivyDescriptorFile))
         publication.setGradleModuleDescriptorFile(new SimpleFileCollection(moduleDescriptorFile))
-        return publication;
+        return publication
     }
 
     def createArtifact() {

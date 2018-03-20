@@ -204,7 +204,7 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeInfoSection(ModuleComponentResolveMetadata metadata) throws IOException {
-            writeId(metadata.getComponentId());
+            writeId(metadata.getId());
             writeAttributes(metadata.getAttributes());
         }
 

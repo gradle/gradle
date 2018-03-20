@@ -356,7 +356,7 @@ project(':api') {
         run(":b:buildNeeded")
 
         then:
-        result.executedTasks.containsAll ':b:buildNeeded', ':a:buildNeeded'
+        executed ':b:buildNeeded', ':a:buildNeeded'
         fixture.assertProjectsConfigured(":", ":b", ":a")
     }
 
@@ -374,7 +374,7 @@ project(':api') {
         run(":a:buildDependents")
 
         then:
-        result.executedTasks.containsAll ':b:buildDependents', ':a:buildDependents'
+        executed ':b:buildDependents', ':a:buildDependents'
         //unfortunately buildDependents requires all projects to be configured
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
     }
