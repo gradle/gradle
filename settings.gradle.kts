@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-apply {
-    from("gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
-}
+apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
 
 try {
     settings.withGroovyBuilder {

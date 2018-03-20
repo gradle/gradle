@@ -61,7 +61,7 @@ enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        apply { plugin("groovy") }
+        apply(plugin = "groovy")
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 

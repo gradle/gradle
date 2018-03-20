@@ -25,9 +25,7 @@ import org.gradle.kotlin.dsl.*
 open class JmhPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        apply {
-            plugin("me.champeau.gradle.jmh")
-        }
+        apply(plugin = "me.champeau.gradle.jmh")
 
         configurations.getByName("jmhImplementation").extendsFrom(configurations["implementation"])
 

@@ -49,7 +49,7 @@ open class TestFixturesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        apply { plugin("java") }
+        apply(plugin = "java")
 
         extensions.create<TestFixturesExtension>("testFixtures")
 

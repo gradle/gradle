@@ -34,9 +34,7 @@ import java.util.*
 open class PublishPublicLibrariesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        apply {
-            plugin("maven")
-        }
+        apply(plugin = "maven")
 
         val generatePom by tasks.creating(GeneratePom::class)
 

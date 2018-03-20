@@ -2,8 +2,6 @@ plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
-
 dependencies {
     implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.5")
     implementation("org.jsoup:jsoup:1.11.2")

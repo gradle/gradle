@@ -39,9 +39,7 @@ import org.gradle.kotlin.dsl.*
 open class BuildScanPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        apply {
-            plugin("com.gradle.build-scan")
-        }
+        apply(plugin = "com.gradle.build-scan")
 
         extractCiOrLocalData()
         extractVcsData()

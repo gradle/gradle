@@ -2,12 +2,10 @@ plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
-
 dependencies {
+    api(project(":kotlinDsl"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
     implementation(project(":versioning"))
     implementation(project(":build"))
     testCompile("junit:junit:4.12")
