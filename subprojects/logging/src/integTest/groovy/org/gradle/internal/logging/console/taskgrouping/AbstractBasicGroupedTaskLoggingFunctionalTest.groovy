@@ -16,12 +16,14 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     @Rule
@@ -106,6 +108,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
         def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
@@ -153,6 +156,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         """
 
         when:
+        executer.withArguments("--parallel")
         fails('run')
 
         then:
