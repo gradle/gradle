@@ -192,8 +192,8 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         gradle?.waitForFinish()
     }
 
-    private void assertOutputContains(GradleHandle gradle, String str) {
-        ConcurrentTestUtil.poll {
+    private static void assertOutputContains(GradleHandle gradle, String str) {
+        ConcurrentTestUtil.poll(GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT/2 * 3 as long) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }
     }
