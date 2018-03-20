@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.buildevents
 
-import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class BuildResultLoggerFunctionalSpec extends AbstractIntegrationSpec implements RichConsoleStyling {
-
+abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractIntegrationSpec {
     def setup() {
-        executer.withConsole(ConsoleOutput.Rich)
         executer.withStackTraceChecksDisabled()
     }
 
@@ -33,32 +29,41 @@ class BuildResultLoggerFunctionalSpec extends AbstractIntegrationSpec implements
         buildFile << "task fail { doFirst { assert false } }"
 
         when:
+        executer.withConsole(consoleType)
         executer.withQuietLogging()
         fails('fail')
 
         then:
-        result.output.contains("BUILD FAILED")
+        result.output.contains(failureMessage)
     }
 
-    def "Failure message is logged bold and red"() {
+    def "Failure message is logged with appropriate styling"() {
         given:
         buildFile << "task fail { doFirst { assert false } }"
 
         when:
+        executer.withConsole(consoleType)
         fails('fail')
 
         then:
-        result.output.contains(styled("BUILD FAILED", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.output.contains(failureMessage)
     }
 
-    def "Success message is logged bold and green in the rich console"() {
+    def "Success message is logged with appropriate styling"() {
         given:
         buildFile << "task success"
 
         when:
+        executer.withConsole(consoleType)
         succeeds('success')
 
         then:
-        result.output.contains(styled('BUILD SUCCESSFUL', Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD))
+        result.output.contains(successMessage)
     }
+
+    abstract ConsoleOutput getConsoleType()
+
+    abstract String getFailureMessage()
+
+    abstract String getSuccessMessage()
 }
