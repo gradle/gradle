@@ -45,6 +45,7 @@ open class ShadeClassesTransform @Inject constructor(
             shadowPackage
         )
 
+        println(input.name)
         val jarUri = URI.create("jar:${input.toPath().toUri()}")
         FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
             jarFileSystem.rootDirectories.forEach {

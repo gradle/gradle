@@ -4,17 +4,26 @@ import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.gradlebuild.packaging.ShadeClassesTransform
-
-val artifactType: Attribute<String> = Attribute.of("artifactType", String::class.java)
+import org.gradle.gradlebuild.packaging.shading.ShadeClassesTransform
+import org.gradle.gradlebuild.packaging.shading.FindRelocatedClasses
+import org.gradle.gradlebuild.packaging.shading.FindClassTrees
+import org.gradle.gradlebuild.packaging.shading.FindEntryPoints
+import org.gradle.gradlebuild.packaging.shading.CreateShadedJar
 
 val testPublishRuntime by configurations.creating
-val relocatedClasses by configurations.creating
-relocatedClasses.apply {
+
+val jar: Jar by tasks
+
+val artifactType: Attribute<String> = Attribute.of("artifactType", String::class.java)
+val minified: Attribute<Boolean> = Attribute.of("minified", Boolean::class.javaObjectType)
+
+val jarsToShade by configurations.creating
+jarsToShade.apply {
     exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
-    extendsFrom(configurations.runtimeClasspath)
-    attributes.attribute(artifactType, "relocated_classes")
+    jarsToShade.extendsFrom(configurations.runtimeClasspath)
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    isCanBeResolved = true
+    isCanBeConsumed = false
 }
 
 dependencies {
@@ -37,8 +46,8 @@ dependencies {
     crossVersionTestRuntime(project(":maven"))
 
     registerTransform {
-        from.attribute(artifactType, "jar")
-        to.attribute(artifactType, "relocated_classes")
+        from.attribute(artifactType, "jar").attribute(minified, true)
+        to.attribute(artifactType, "relocatedClassesAndAnalysis")
         artifactTransform(ShadeClassesTransform::class.java) {
             params(
                 "org.gradle.internal.impldep",
@@ -47,6 +56,21 @@ dependencies {
                 setOf("org.gradle.tooling.provider.model")
             )
         }
+    }
+    registerTransform {
+        from.attribute(artifactType, "relocatedClassesAndAnalysis")
+        to.attribute(artifactType, "relocatedClasses")
+        artifactTransform(FindRelocatedClasses::class.java)
+    }
+    registerTransform {
+        from.attribute(artifactType, "relocatedClassesAndAnalysis")
+        to.attribute(artifactType, "entryPoints")
+        artifactTransform(FindEntryPoints::class.java)
+    }
+    registerTransform {
+        from.attribute(artifactType, "relocatedClassesAndAnalysis")
+        to.attribute(artifactType, "classTrees")
+        artifactTransform(FindClassTrees::class.java)
     }
 }
 
@@ -60,8 +84,6 @@ testFixtures {
     from(":dependencyManagement")
     from(":ide")
 }
-
-val jar: Jar by tasks
 
 val baseVersion: String by rootProject.extra
 
@@ -149,11 +171,21 @@ integTestTasks.all {
 
 testFilesCleanup.isErrorWhenNotEmpty = false
 
-tasks.create("testResolution") {
-    inputs.files(relocatedClasses)
-    doLast {
-        relocatedClasses.files.forEach {
-            println(it)
-        }
+afterEvaluate {
+    dependencies {
+        add(jarsToShade.name, project)
     }
 }
+
+tasks.create<CreateShadedJar>("combineShaded") {
+    val configToShade = jarsToShade
+    dependsOn(jar)
+    classTreesConfiguration = configToShade.artifactViewForType("classTrees")
+    entryPointsConfiguration = configToShade.artifactViewForType("entryPoints")
+    relocatedClassesConfiguration = configToShade.artifactViewForType("relocatedClasses")
+}
+
+
+fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artifactView {
+    attributes.attribute(artifactType, artifactTypeName)
+}.files
