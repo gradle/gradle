@@ -37,6 +37,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -350,7 +351,7 @@ public class CompileOptions extends AbstractOptions {
     @Internal
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(getCompilerArgs());
+        builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
         for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
             builder.addAll(compilerArgumentProvider.asArguments());
         }
