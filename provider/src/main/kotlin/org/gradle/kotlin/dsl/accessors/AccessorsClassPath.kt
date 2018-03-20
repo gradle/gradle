@@ -37,6 +37,8 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
+import org.jetbrains.org.objectweb.asm.signature.SignatureReader
+import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
 import java.io.BufferedWriter
 import java.io.Closeable
@@ -311,7 +313,11 @@ class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
     var hasTypeParameters = false
     override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
         if (signature != null) {
-            hasTypeParameters = true
+            SignatureReader(signature).accept(object : SignatureVisitor(ASM6) {
+                override fun visitFormalTypeParameter(name: String) {
+                    hasTypeParameters = true
+                }
+            })
         }
     }
 }
