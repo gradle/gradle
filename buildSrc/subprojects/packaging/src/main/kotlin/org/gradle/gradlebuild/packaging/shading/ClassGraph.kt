@@ -34,6 +34,8 @@ class ClassGraph(
                 }
             }
         }
+
+    fun getDependencies() = classes.map { it.value.outputClassFilename to it.value.dependencies.map { it.outputClassFilename } }.toMap()
 }
 
 class ResourceDetails(val resourceName: String, val sourceFile: File)

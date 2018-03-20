@@ -1,10 +1,8 @@
-package org.gradle.gradlebuild.packaging
+package org.gradle.gradlebuild.packaging.shading
 
+import com.google.gson.Gson
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.gradlebuild.packaging.shading.ClassAnalysisException
-import org.gradle.gradlebuild.packaging.shading.ClassGraph
-import org.gradle.gradlebuild.packaging.shading.PackagePatterns
-import org.gradle.gradlebuild.packaging.shading.ResourceDetails
+import org.gradle.gradlebuild.packaging.ignoredPackagePatterns
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
@@ -21,6 +19,14 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.jar.JarFile
 import javax.inject.Inject
 
+private
+const val classTreeFileName = "classTree.json"
+
+private
+const val entryPointsFileName = "entryPoints.json"
+
+private
+const val relocatedClassesDirName = "classes"
 
 open class ShadeClassesTransform @Inject constructor(
     private val shadowPackage: String,
@@ -29,10 +35,8 @@ open class ShadeClassesTransform @Inject constructor(
     private val ignorePackages: Set<String>) : ArtifactTransform() {
 
     override fun transform(input: File): List<File> {
-        val classesDir = outputDirectory.resolve("classes")
-        val analysisDir = outputDirectory.resolve("analysis")
+        val classesDir = outputDirectory.resolve(relocatedClassesDirName)
         classesDir.mkdir()
-        analysisDir.mkdir()
 
         val classGraph = ClassGraph(
             PackagePatterns(keepPackages),
@@ -41,7 +45,6 @@ open class ShadeClassesTransform @Inject constructor(
             shadowPackage
         )
 
-
         val jarUri = URI.create("jar:${input.toPath().toUri()}")
         FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
             jarFileSystem.rootDirectories.forEach {
@@ -49,8 +52,14 @@ open class ShadeClassesTransform @Inject constructor(
             }
         }
 
+        outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
+            Gson().toJson(classGraph.getDependencies(), it)
+        }
+        outputDirectory.resolve(entryPointsFileName).bufferedWriter().use {
+            Gson().toJson(classGraph.entryPoints.map { it.outputClassFilename }, it)
+        }
 
-        return listOf(classesDir, analysisDir)
+        return listOf(outputDirectory)
     }
 
     private
@@ -133,4 +142,25 @@ open class ShadeClassesTransform @Inject constructor(
             }
         })
     }
+}
+
+open class FindClassTrees : ArtifactTransform() {
+    override fun transform(input: File): List<File> {
+        return listOf(input.resolve(classTreeFileName))
+    }
+
+}
+
+open class FindEntryPoints : ArtifactTransform() {
+    override fun transform(input: File): List<File> {
+        return listOf(input.resolve(entryPointsFileName))
+    }
+
+}
+
+open class FindRelocatedClasses : ArtifactTransform() {
+    override fun transform(input: File): List<File> {
+        return listOf(input.resolve(relocatedClassesDirName))
+    }
+
 }
