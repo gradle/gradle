@@ -46,8 +46,9 @@ import java.util.concurrent.TimeUnit;
  * progress of operations.
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-
-    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = Long.getLong("org.gradle.console.flush-timeout", TimeUnit.SECONDS.toMillis(30));
+    // Configurability is temporary until we can settle on a good timeout
+    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = Long.getLong("org.gradle.console.flush-timeout", TimeUnit.SECONDS.toMillis(30));
+    private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
     private final OutputEventListener listener;
     private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
@@ -124,6 +125,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         if (group != null) {
             group.setStatus(completeEvent.getStatus(), completeEvent.isFailed());
             group.flushOutput();
+            lastRenderedBuildOpId = null;
         }
     }
 
@@ -234,9 +236,17 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private void maybeFlushOutput(long eventTimestamp) {
-            if ((eventTimestamp - lastUpdateTime) > LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT) {
+            if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
                 flushOutput();
             }
+        }
+
+        private boolean timeoutExpired(long eventTimestamp, long timeout) {
+            return (eventTimestamp - lastUpdateTime) > timeout;
+        }
+
+        private boolean canClaimForeground() {
+            return buildOpIdentifier.equals(lastRenderedBuildOpId) || (!bufferedLogs.isEmpty() && lastRenderedBuildOpId == null);
         }
 
         private void setStatus(String status, boolean failed) {
