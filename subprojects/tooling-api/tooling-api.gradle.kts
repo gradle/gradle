@@ -4,7 +4,9 @@ import org.gradle.gradlebuild.buildquality.testfiles.TestFileCleanUpExtension
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
+import org.gradle.plugins.ide.eclipse.model.Classpath
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 val testPublishRuntime by configurations.creating
 
@@ -67,13 +69,10 @@ val toolingApiShadedJar by tasks.creating(Zip::class) {
         into("/org/gradle")
     }
     extension = "jar"
-    version  = baseVersion
+    version = baseVersion
 }
 
-apply {
-    from("buildship.gradle")
-    from("eclipse.gradle")
-}
+apply { from("buildship.gradle") }
 
 val sourceJar: Jar by tasks
 
@@ -81,6 +80,16 @@ sourceJar.run {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
+    }
+}
+
+eclipse {
+    classpath {
+        file.whenMerged(Action<Classpath> {
+            //**TODO
+            entries.removeAll { path.contains("src/test/groovy") }
+            entries.removeAll { path.contains("src/integTest/groovy") }
+        })
     }
 }
 
@@ -118,4 +127,4 @@ integTestTasks.all {
     libsRepository.required = true
 }
 
-the<TestFileCleanUpExtension>().isErrorWhenNotEmpty = false
+testFilesCleanup.isErrorWhenNotEmpty = false
