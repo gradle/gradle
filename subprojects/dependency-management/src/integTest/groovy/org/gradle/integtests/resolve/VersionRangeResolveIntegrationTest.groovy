@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 /**
@@ -369,10 +368,10 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 //        FIXED_10    | RANGE_10_11 | RANGE_10_14 | 10     | 10            | 10            | 10
 
 //        FIXED_10    | RANGE_11_12 | RANGE_10_14 | 12     | -1            | 12            | 12
-//        FIXED_10    | RANGE_10_11 | RANGE_13_14 | 13     | -1            | -1            | 13
+        FIXED_10    | RANGE_10_11 | RANGE_13_14 | 13     | -1            | -1            | 13
 //        RANGE_10_11 | RANGE_10_12 | RANGE_10_14 | 11     | 11            | 11            | 11
-//        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
-//        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
+        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
+        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
 
 //         gradle/gradle#4608
 //        FIXED_10    | FIXED_10    | FIXED_12    | 12     | -1            | -1            | 12
@@ -392,7 +391,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         one     | two      | three    | four     | resolved
         FIXED_9 | FIXED_10 | FIXED_11 | FIXED_12 | 12
 //        FIXED_10 | RANGE_10_11 | FIXED_12 | RANGE_12_14 | 12
-//        FIXED_10 | RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13
+        FIXED_10 | RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13
 //        FIXED_9  | RANGE_10_11 | RANGE_10_12 | RANGE_10_14 | 11
     }
 
@@ -411,7 +410,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         FIXED_12 | REJECT_13 | 12       | 12
     }
 
-    @Ignore // TODO:DAZ None of these pass with current resolution
     @Unroll
     def "resolve #deps & reject 11/12/13"() {
         expect:
@@ -430,7 +428,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         [FIXED_10, FIXED_11, FIXED_12]                    | 12       | -1       | 12
 //        [RANGE_10_14, RANGE_10_12, FIXED_12]              | 12       | 13       | 12
 //        [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14]    | 12       | 13       | 12
-//        [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14] | 13       | 13       | -1
+        [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14] | 13       | 13       | -1
 //        [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14]  | 10       | 11       | 11
     }
 
