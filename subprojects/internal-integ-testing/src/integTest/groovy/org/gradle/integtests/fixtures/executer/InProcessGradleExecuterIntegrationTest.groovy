@@ -23,6 +23,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -71,14 +73,14 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
 
         and:
         outputs.stdOut.contains("BEFORE OUT")
-        outputs.stdOut.contains(result1.output)
-        outputs.stdOut.contains(result2.output)
+        normaliseLineSeparators(outputs.stdOut).contains(result1.output)
+        normaliseLineSeparators(outputs.stdOut).contains(result2.output)
         outputs.stdOut.contains("AFTER OUT")
 
         and:
         outputs.stdErr.contains("BEFORE ERR")
-        outputs.stdOut.contains(result1.error)
-        outputs.stdOut.contains(result2.error)
+        normaliseLineSeparators(outputs.stdOut).contains(result1.error)
+        normaliseLineSeparators(outputs.stdOut).contains(result2.error)
         outputs.stdErr.contains("AFTER ERR")
 
         where:
