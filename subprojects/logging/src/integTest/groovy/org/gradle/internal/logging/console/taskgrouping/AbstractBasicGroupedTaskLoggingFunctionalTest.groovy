@@ -108,7 +108,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
-        def sleepTime = GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT / 2 * 3
+        def sleepTime = GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT / 2 * 3
         buildFile << """import java.util.concurrent.Semaphore
             project(":a") {
                 ext.lock = new Semaphore(0)
@@ -193,7 +193,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     }
 
     private static void assertOutputContains(GradleHandle gradle, String str) {
-        ConcurrentTestUtil.poll(GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT/2 * 3 as long) {
+        ConcurrentTestUtil.poll(GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT/2 * 3 as long) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }
     }
