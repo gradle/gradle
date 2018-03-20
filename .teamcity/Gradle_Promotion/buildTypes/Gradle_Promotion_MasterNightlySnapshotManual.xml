@@ -27,7 +27,9 @@
     <vcs-settings>
       <vcs-entry-ref root-id="Gradle_Promotion__master_" />
     </vcs-settings>
-    <requirements />
+    <requirements>
+      <contains id="RQ_27" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
     <build-triggers />
     <artifact-dependencies>
       <dependency id="ARTIFACT_DEPENDENCY_110" sourceBuildTypeId="Gradle_Check_Stage_QuickFeedback_Trigger" cleanDestination="false">
