@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
-    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = Long.getLong("org.gradle.console.flush-timeout", TimeUnit.SECONDS.toMillis(30));
     private final OutputEventListener listener;
     private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
