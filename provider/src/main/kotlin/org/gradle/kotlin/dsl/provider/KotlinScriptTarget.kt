@@ -77,7 +77,8 @@ fun settingsScriptTarget(
     KotlinScriptTarget(
         host = KotlinScriptHost(settings, scriptSource, serviceRegistryOf(settings), baseScope, scriptHandler),
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript })
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript },
+        extraSingleOrNoneBlockNames = listOf("pluginManagement"))
 
 
 private
@@ -139,6 +140,7 @@ data class KotlinScriptTarget<out T : Any>(
     val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val buildscriptBlockName: String = "buildscript",
+    val extraSingleOrNoneBlockNames: List<String> = emptyList(),
     private val onPrepare: T.() -> Unit = {}
 ) {
 

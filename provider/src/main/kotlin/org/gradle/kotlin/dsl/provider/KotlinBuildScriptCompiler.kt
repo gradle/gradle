@@ -114,6 +114,7 @@ class KotlinBuildScriptCompiler(
     fun compile() =
         asKotlinScript {
             withUnexpectedBlockHandling {
+                prepareForCompilation()
                 executeBuildscriptBlock()
                 executePluginsBlock()
                 executeScriptBody()
@@ -122,6 +123,7 @@ class KotlinBuildScriptCompiler(
 
     fun compileForClassPath() =
         asKotlinScript {
+            ignoringErrors { prepareForCompilation() }
             ignoringErrors { executeBuildscriptBlock() }
             ignoringErrors { executePluginsBlock() }
             ignoringErrors { executeScriptBody() }
@@ -129,9 +131,20 @@ class KotlinBuildScriptCompiler(
 
     private
     fun asKotlinScript(script: () -> Unit): KotlinScript = {
-        scriptTarget.prepare()
         script()
     }
+
+    private
+    fun prepareForCompilation() {
+        validateExtraSingleOrNoneBlockNames()
+        scriptTarget.prepare()
+    }
+
+    private
+    fun validateExtraSingleOrNoneBlockNames() =
+        scriptTarget.extraSingleOrNoneBlockNames.forEach {
+            extractTopLevelSectionFrom(script, it)
+        }
 
     private
     fun executeScriptBody() =

@@ -36,4 +36,17 @@ class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
             build().output,
             containsString("*42*"))
     }
+
+    @Test
+    fun `pluginManagement block cannot appear twice in settings scripts`() {
+
+        withSettings("""
+            pluginManagement {}
+            pluginManagement {}
+        """)
+
+        assertThat(
+            buildAndFail("help").output,
+            containsString("settings.gradle.kts:3:13: Unexpected `pluginManagement` block found. Only one `pluginManagement` block is allowed per script."))
+    }
 }
