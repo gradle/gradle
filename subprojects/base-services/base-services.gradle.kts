@@ -20,7 +20,7 @@ java {
 }
 
 dependencies {
-    compile(project(":distributionsDependencies"))
+    api(project(":distributionsDependencies"))
 
     api(library("guava"))
     api(library("jsr305"))
