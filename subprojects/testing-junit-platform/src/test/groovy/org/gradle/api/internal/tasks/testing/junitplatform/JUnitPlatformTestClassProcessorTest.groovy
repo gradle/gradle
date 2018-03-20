@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
+import org.junit.Ignore
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
 import spock.lang.Specification
@@ -50,7 +51,7 @@ class JUnitPlatformTestClassProcessorTest extends Specification {
         executor.execute(NestedClass.name)
 
         then:
-        executor.testClasses == [NestedClass.name]
+        executor.testClasses == [NestedClass]
     }
 
     def 'can exclude nested class in Enclosed runner'() {
@@ -66,6 +67,7 @@ class JUnitPlatformTestClassProcessorTest extends Specification {
 }
 
 @RunWith(Enclosed.class)
+@Ignore
 class EnclosedTest {
     static class NestedClass {
     }
