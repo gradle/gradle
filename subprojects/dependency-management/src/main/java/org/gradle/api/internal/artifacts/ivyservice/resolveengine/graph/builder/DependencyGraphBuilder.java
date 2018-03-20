@@ -51,6 +51,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
+import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,23 +196,45 @@ public class DependencyGraphBuilder {
 
     private void performSelectionSerially(List<EdgeState> dependencies, ResolveState resolveState) {
         for (EdgeState dependency : dependencies) {
-            ComponentState moduleRevision = dependency.resolveModuleRevisionId();
-            if (moduleRevision != null) {
-                performSelection(resolveState, moduleRevision);
-            }
+            assert dependency.getTargetComponent() == null;
+            SelectorState selector = dependency.getSelector();
+
+            performSelection(resolveState, dependency, selector);
+
+            selector.getTargetModule().addUnattachedDependency(dependency);
         }
     }
 
-    private void performSelection(final ResolveState resolveState, ComponentState moduleRevision) {
-        ModuleIdentifier moduleId = moduleRevision.getId().getModule();
+    /**
+     * Attempts to resolve a target `ComponentState` for the given dependency.
+     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link SelectorState#selected},
+     * and added to the graph.
+     * On resolve failure, the failure is recorded and no `ComponentState` is selected.
+     */
+    private void performSelection(ResolveState resolveState, EdgeState dependency, SelectorState selector) {
+        // Selector already resolved: just attach the edge.
+        if (selector.selected != null) {
+            dependency.start(selector.selected);
+            return;
+        }
 
-        ModuleResolveState module = resolveState.getModule(moduleId);
+        ComponentIdResolveResult idResolveResult = selector.resolve();
+        if (idResolveResult.getFailure() != null) {
+            // Resolve failure, nothing more to do.
+            return;
+        }
+
+        ComponentState moduleRevision = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        dependency.start(moduleRevision);
+        selector.select(moduleRevision);
+
+        ModuleResolveState module = selector.getTargetModule();
+        if (tryCompatibleSelection(resolveState, moduleRevision, module)) {
+            return;
+        }
+
         // Check for a new conflict
         if (moduleRevision.isSelectable()) {
-
-            if (tryCompatibleSelection(resolveState, moduleRevision, moduleId, module)) {
-                return;
-            }
 
             // A new module revision. Check for conflict
             PotentialConflict c = moduleConflictHandler.registerCandidate(module);
@@ -233,8 +256,8 @@ public class DependencyGraphBuilder {
 
     private static boolean tryCompatibleSelection(final ResolveState resolveState,
                                                   final ComponentState candidate,
-                                                  final ModuleIdentifier moduleId,
                                                   final ModuleResolveState module) {
+        final ModuleIdentifier moduleId = module.getId();
         final ComponentState currentlySelected = module.getSelected();
         String version = candidate.getId().getVersion();
         List<SelectorState> moduleSelectors = module.getSelectors();

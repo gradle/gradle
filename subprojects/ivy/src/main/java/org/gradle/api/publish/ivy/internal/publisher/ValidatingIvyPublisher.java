@@ -68,7 +68,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .validInFileName();
 
         MutableIvyModuleResolveMetadata metadata = parseIvyFile(publication);
-        ModuleVersionIdentifier moduleId = metadata.getId();
+        ModuleVersionIdentifier moduleId = metadata.getModuleVersionId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());

@@ -87,7 +87,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
             componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
                 @Override
                 public DisplayName asDescribable() {
-                    return Describables.of(componentMetadata.getComponentId());
+                    return Describables.of(componentMetadata.getId());
                 }
 
                 @Override

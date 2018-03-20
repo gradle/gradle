@@ -30,7 +30,7 @@ public interface BuildableLocalComponentMetadata {
     /**
      * Returns the identifier for this component.
      */
-    ComponentIdentifier getComponentId();
+    ComponentIdentifier getId();
 
     /**
      * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children. These are used only for publishing.

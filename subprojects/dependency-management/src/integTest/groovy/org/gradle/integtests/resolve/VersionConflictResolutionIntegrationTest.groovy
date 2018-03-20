@@ -283,7 +283,7 @@ task checkDeps(dependsOn: configurations.compile) {
     void "resolves dynamic dependency before resolving conflict"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "external", "1.4").publish()
-        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.+").publish()
+        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "[1.3,)").publish()
 
         def buildFile = file("build.gradle")
         buildFile << """

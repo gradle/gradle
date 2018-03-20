@@ -19,20 +19,28 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentIdResolveResult extends ComponentIdResolveResult, ResourceAwareResolveResult {
+    /**
+     * Marks the component selector as resolved to the specified id.
+     */
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
+    /**
+     * Marks the component selector as resolved, with the provided metadata. The id is taken from the metadata.
+     */
     void resolved(ComponentResolveMetadata metaData);
 
-    void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
-
+    /**
+     * Marks the component selection as failed.
+     */
     void failed(ModuleVersionResolveException failure);
 
-    ResolvedVersionConstraint getResolvedVersionConstraint();
+    /**
+     * Sets the description for this component selection.
+     */
+    void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
 
-    void setResolvedVersionConstraint(ResolvedVersionConstraint versionConstraint);
 }

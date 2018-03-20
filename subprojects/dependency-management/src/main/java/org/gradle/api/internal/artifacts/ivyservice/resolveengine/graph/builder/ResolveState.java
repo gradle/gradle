@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -82,8 +83,7 @@ class ResolveState {
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
-        ComponentState rootVersion = getRevision(rootResult.getComponentIdentifier(), rootResult.getId());
-        rootVersion.setMetaData(rootResult.getMetaData());
+        ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
         root = new RootNode(idGenerator.generateId(), rootVersion, id, this, configurationMetadata);
@@ -114,8 +114,12 @@ class ResolveState {
         return module;
     }
 
-    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id) {
-        return getModule(id.getModule()).getVersion(id, componentIdentifier);
+    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentResolveMetadata metadata) {
+        ComponentState componentState = getModule(id.getModule()).getVersion(id, componentIdentifier);
+        if (!componentState.alreadyResolved()) {
+            componentState.setMetadata(metadata);
+        }
+        return componentState;
     }
 
     public Collection<NodeState> getNodes() {

@@ -369,7 +369,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         @Override
         protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
-            ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(module.getComponentId());
+            ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(module.getId());
             result.resolved(Collections.singleton(artifact));
         }
 
@@ -414,7 +414,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         private void checkArtifactsResolved(ComponentResolveMetadata component, Object context, BuildableTypedResolveResult<?, ? super ArtifactResolveException> result) {
             if (!result.hasResult()) {
-                result.failed(new ArtifactResolveException(component.getComponentId(),
+                result.failed(new ArtifactResolveException(component.getId(),
                     String.format("Cannot locate %s for '%s' in repository '%s'", context, component, name)));
             }
         }

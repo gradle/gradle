@@ -203,7 +203,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {
-        if (isNonUniqueSnapshot(metaData.getComponentId())) {
+        if (isNonUniqueSnapshot(metaData.getId())) {
             metaData.setChanging(true);
         }
         return metaData;

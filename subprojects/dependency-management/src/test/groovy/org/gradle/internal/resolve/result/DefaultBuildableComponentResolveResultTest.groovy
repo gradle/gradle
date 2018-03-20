@@ -34,20 +34,20 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
     def "can query id and meta-data when resolved"() {
         ModuleVersionIdentifier id = Stub()
         ModuleComponentResolveMetadata metaData = Stub() {
-            getId() >> id
+            getModuleVersionId() >> id
         }
 
         when:
         result.resolved(metaData)
 
         then:
-        result.id == id
-        result.metaData == metaData
+        result.moduleVersionId == id
+        result.metadata == metaData
     }
 
     def "cannot get id when no result has been specified"() {
         when:
-        result.id
+        result.moduleVersionId
 
         then:
         IllegalStateException e = thrown()
@@ -56,7 +56,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get meta-data when no result has been specified"() {
         when:
-        result.metaData
+        result.metadata
 
         then:
         IllegalStateException e = thrown()
@@ -77,7 +77,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.id
+        result.moduleVersionId
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -89,7 +89,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.metaData
+        result.metadata
 
         then:
         ModuleVersionResolveException e = thrown()
