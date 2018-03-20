@@ -20,8 +20,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.Main;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
@@ -119,7 +117,6 @@ public class CommandLineActionFactory {
     }
 
     private static class WelcomeMessageAction implements Action<PrintStream> {
-        private final static Logger LOGGER = Logging.getLogger(WelcomeMessageAction.class);
         private final BuildLayoutParameters buildLayoutParameters;
 
         public WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
@@ -132,17 +129,26 @@ public class CommandLineActionFactory {
             File markerFile = getMarkerFile(currentVersion);
 
             if (!markerFile.exists()) {
-                LOGGER.lifecycle("\nWelcome to Gradle {}!", currentVersion.getVersion());
+                out.println();
+                out.print("Welcome to Gradle " + currentVersion.getVersion() + "!");
+
                 String featureList = readReleaseFeatures();
 
                 if (featureList != null) {
-                    LOGGER.lifecycle("\nHere are the highlights of this release:");
-                    LOGGER.lifecycle(featureList.trim());
+                    out.println();
+                    out.println();
+                    out.print("Here are the highlights of this release:");
+                    out.println();
+                    out.print(featureList);
                 }
 
                 if (!currentVersion.isSnapshot()) {
-                    LOGGER.lifecycle("\nFor more details see https://gradle.org/releases/#{}", currentVersion.getVersion());
+                    out.println();
+                    out.print("For more details see https://gradle.org/releases/#" + currentVersion.getVersion());
+                    out.println();
                 }
+
+                out.println();
 
                 writeMarkerFile(markerFile);
             }
