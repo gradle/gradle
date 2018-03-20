@@ -100,25 +100,29 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(PomDependencyData dep) {
-        doAddDependency(dep, dep.isOptional());
+        doAddDependency(dep, dep.isOptional(), false);
     }
 
     public void addOptionalDependency(PomDependencyMgt dep) {
-        doAddDependency(dep, true);
+        doAddDependency(dep, true, true);
     }
 
-    private void doAddDependency(PomDependencyMgt dep, boolean optional) {
-        String scopeString = dep.getScope();
-        if (scopeString == null || scopeString.length() == 0) {
-            scopeString = getDefaultScope(dep);
-        }
-
+    private void doAddDependency(PomDependencyMgt dep, boolean optional, boolean useCompileScope) {
         MavenScope scope;
-        if (SCOPES.containsKey(scopeString)) {
-            scope = SCOPES.get(scopeString);
-        } else {
-            // unknown scope, defaulting to 'compile'
+        if (useCompileScope) {
             scope = MavenScope.Compile;
+        } else {
+            String scopeString = dep.getScope();
+            if (scopeString == null || scopeString.length() == 0) {
+                scopeString = getDefaultScope(dep);
+            }
+
+            if (SCOPES.containsKey(scopeString)) {
+                scope = SCOPES.get(scopeString);
+            } else {
+                // unknown scope, defaulting to 'compile'
+                scope = MavenScope.Compile;
+            }
         }
 
         String version = determineVersion(dep);
