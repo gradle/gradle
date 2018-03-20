@@ -37,18 +37,6 @@ class JUnitPlatformTestClassProcessorTest extends Specification {
     @Subject
     JUnitPlatformTestClassProcessor processor = new JUnitPlatformTestClassProcessor(spec, idGenerator, actorFactory, clock)
 
-    def 'can exclude anonymous class'() {
-        given:
-        def anonymousInstance = new Object() {}
-        def executor = processor.createTestExecutor(resultProcessor, listener)
-
-        when:
-        executor.execute(anonymousInstance.class.name)
-
-        then:
-        executor.testClasses.isEmpty()
-    }
-
     class InnerClass {}
 
     static class NestedClass {}

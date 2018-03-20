@@ -42,7 +42,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
@@ -53,7 +52,6 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
-    private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private TestResultProcessor resultProcessor;
     private TestClassExecutionListener executionListener;
     private CollectAllTestClassesExecutor testClassExecutor;
@@ -76,15 +74,16 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         super.stop();
     }
 
-
     private class CollectAllTestClassesExecutor implements Action<String> {
-        private final List<String> testClasses = new ArrayList<>();
+        private final List<Class<?>> testClasses = new ArrayList<>();
 
         @Override
         public void execute(String testClassName) {
-            if (shouldIncludeClass(testClassName)) {
-                testClasses.add(testClassName);
+            Class<?> klass = loadClass(testClassName);
+            if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
+                return;
             }
+            testClasses.add(klass);
         }
 
         private void processAllTestClasses() {
@@ -92,18 +91,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, executionListener));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
         }
-    }
-
-    private boolean shouldIncludeClass(String testClassName) {
-        if (isAnonymousClass(testClassName)) {
-            return false;
-        }
-        Class<?> klass = loadClass(testClassName);
-        return !isInnerClass(klass) && !isNestedClassInsideEnclosedRunner(klass);
-    }
-
-    private boolean isAnonymousClass(String testClassName) {
-        return ANONYMOUS_CLASS_NAME.matcher(testClassName).matches();
     }
 
     private boolean isInnerClass(Class<?> klass) {
@@ -119,7 +106,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<String> testClasses) {
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());
