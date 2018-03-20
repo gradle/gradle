@@ -13,11 +13,13 @@ class TaskDependenciesSampleTest : AbstractSampleTest("task-dependencies") {
         assertThat(
             build().output,
             containsMultiLineString("""
-                :hello
+                > Task :hello
                 Hello!
-                :goodbye
+
+                > Task :goodbye
                 Goodbye!
-                :chat
+
+                > Task :chat
             """))
     }
 
@@ -26,11 +28,13 @@ class TaskDependenciesSampleTest : AbstractSampleTest("task-dependencies") {
         assertThat(
             build("mixItUp").output,
             containsMultiLineString("""
-                :hello
+                > Task :hello
                 Hello!
-                :goodbye
+
+                > Task :goodbye
                 Goodbye!
-                :mixItUp
+
+                > Task :mixItUp
             """))
     }
 }

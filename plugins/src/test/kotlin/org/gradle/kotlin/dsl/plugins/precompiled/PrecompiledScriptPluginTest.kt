@@ -12,6 +12,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
@@ -19,7 +20,10 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
 import org.gradle.testkit.runner.TaskOutcome
 
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
+
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -105,9 +109,59 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         verify(tasks).create("jar", org.gradle.api.tasks.bundling.Jar::class.java)
     }
 
+    @Test
+    fun `plugin ids for precompiled scripts are automatically registered with the java-gradle-plugin extension`() {
+
+        projectRoot.withFolders {
+
+            "buildSrc" {
+
+                "src/main/kotlin" {
+
+                    // plugin id for script with no package declaration is simply
+                    // the file name minus the `.gradle.kts` suffix
+                    withFile("my-plugin.gradle.kts", """
+                        println("my-plugin applied!")
+                    """)
+
+                    // plugin id for script with package declaration is the
+                    // package name dot the file name minus the `.gradle.kts` suffix
+                    withFile("org/acme/my-other-plugin.gradle.kts", """
+                        package org.acme
+
+                        println("my-other-plugin applied!")
+                    """)
+                }
+
+                withFile("settings.gradle.kts", testPluginRepositorySettings)
+
+                withFile(
+                    "build.gradle.kts",
+                    scriptWithPrecompiledScriptPluginsPlus(
+                        "kotlin-dsl",
+                        "java-gradle-plugin"))
+            }
+        }
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+                id("org.acme.my-other-plugin")
+            }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("my-plugin applied!"),
+                containsString("my-other-plugin applied!")
+            )
+        )
+    }
+
     private
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withPrecompiledScriptPlugins()
+        withPrecompiledScriptPluginsPlus("kotlin-dsl")
         withFile("src/main/kotlin/$fileName", code)
         compileKotlin()
     }
@@ -124,16 +178,18 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             .loadClass(className)
 
     private
-    fun withPrecompiledScriptPlugins() =
-        withBuildScript("""
+    fun withPrecompiledScriptPluginsPlus(vararg additionalPlugins: String) =
+        withBuildScript(scriptWithPrecompiledScriptPluginsPlus(*additionalPlugins))
 
+    private
+    fun scriptWithPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): String =
+        """
             plugins {
-                `kotlin-dsl`
+                ${additionalPlugins.joinToString(separator = "\n") { "`$it`" }}
             }
 
             apply<${PrecompiledScriptPlugins::class.qualifiedName}>()
-
-        """)
+        """
 
     private
     fun compileKotlin() {
