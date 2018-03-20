@@ -757,7 +757,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            build("-I", init.absolutePath, "help").output,
+            build("-I", init.absolutePath, "help", "-q").output,
             containsMultiLineString("""
                 init: ${init.absolutePath}
                 settings: ${settings.absolutePath}

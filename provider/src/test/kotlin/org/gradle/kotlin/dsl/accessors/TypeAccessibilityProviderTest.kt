@@ -23,6 +23,30 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
             equalTo(accessible(genericTypeWithPrimitiveComponent)))
     }
 
+    @Test
+    fun `class names from type strings`() {
+
+        classNamesFromTypeString("String").apply {
+            assertTrue(all.isEmpty())
+            assertTrue(leafs.isEmpty())
+        }
+
+        classNamesFromTypeString("java.util.List<String>").apply {
+            assertThat(all, hasItems("java.util.List"))
+            assertTrue(leafs.isEmpty())
+        }
+
+        classNamesFromTypeString("java.lang.String").apply {
+            assertThat(all, hasItems("java.lang.String"))
+            assertThat(leafs, hasItems("java.lang.String"))
+        }
+
+        classNamesFromTypeString("java.util.Map<java.util.List, java.util.Set>").apply {
+            assertThat(all, hasItems("java.util.Map", "java.util.List", "java.util.Set"))
+            assertThat(leafs, hasItems("java.util.List", "java.util.Set"))
+        }
+    }
+
     private
     fun accessibilityFor(type: String, classPath: ClassPath) =
         TypeAccessibilityProvider(classPath).use {

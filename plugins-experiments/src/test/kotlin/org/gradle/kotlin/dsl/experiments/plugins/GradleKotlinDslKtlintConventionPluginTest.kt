@@ -31,21 +31,35 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
     @Test
     fun `ktlint check tasks are cacheable`() {
 
+        withFile("gradle.properties", "org.gradle.caching=true")
+        existing("settings.gradle.kts").run {
+            writeText(readText() + """
+                buildCache {
+                    local { isEnabled = false }
+                    remote(DirectoryBuildCache::class.java) {
+                        directory = file("local-build-cache")
+                        isEnabled = true
+                        isPush = true
+                    }
+                }
+            """)
+        }
+
         withSource("""val foo = "bar"""")
 
-        build("ktlintMainCheck", "--build-cache").apply {
+        build("ktlintMainCheck").apply {
 
             assertThat(outcomeOf(":ktlintMainCheck"), equalTo(TaskOutcome.SUCCESS))
         }
 
-        build("ktlintMainCheck", "--build-cache").apply {
+        build("ktlintMainCheck").apply {
 
             assertThat(outcomeOf(":ktlintMainCheck"), equalTo(TaskOutcome.UP_TO_DATE))
         }
 
         build("clean")
 
-        build("ktlintMainCheck", "--build-cache").apply {
+        build("ktlintMainCheck").apply {
 
             assertThat(outcomeOf(":ktlintMainCheck"), equalTo(TaskOutcome.FROM_CACHE))
         }

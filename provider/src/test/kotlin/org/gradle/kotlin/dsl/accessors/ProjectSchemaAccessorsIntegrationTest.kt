@@ -280,6 +280,56 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(result.output, containsString("Type of `buildScan` receiver is Any"))
     }
 
+    @Test
+    fun `given extension with erased generic type parameters, its accessor is typed Any`() {
+
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+
+            gradlePlugin {
+                (plugins) {
+                    "mine" {
+                        id = "mine"
+                        implementationClass = "foo.FooPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/foo/FooPlugin.kt", """
+            package foo
+
+            import org.gradle.api.*
+
+            open class MyExtension<T>
+
+            open class FooPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    // Using add() without specifying the public type causes type erasure
+                    extensions.add("mine", MyExtension<String>())
+                }
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("mine")
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            mine {
+                println("Type of `mine` receiver is " + typeOf(this@mine))
+            }
+        """)
+
+        val result = build("help")
+        assertThat(result.output, containsString("Type of `mine` receiver is Any"))
+    }
+
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
