@@ -1,12 +1,12 @@
 buildCache {
     local {
-        isEnabled = true
+        isEnabled = false
     }
-    remote(DirectoryBuildCache::class.java) {
+    local(DirectoryBuildCache::class.java) {
         directory = file("path/to/some/local-cache")
         isEnabled = true
-        isPush = false
-        targetSizeInMB = 1024
+        isPush = true
+        removeUnusedEntriesAfterDays = 2
     }
     remote(HttpBuildCache::class.java) {
         url = uri("http://example.com/cache")
