@@ -108,7 +108,7 @@ tasks.create<Upload>("publishLocalArchives") {
     isUploadDescriptor = false
     repositories {
         ivy {
-            artifactPattern("$repoBaseDir/${project.group.toString().replace("\\.", "/")}/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
+            artifactPattern("$repoBaseDir/${project.group.toString().replace(".", "/")}/${base.archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]")
         }
     }
 
