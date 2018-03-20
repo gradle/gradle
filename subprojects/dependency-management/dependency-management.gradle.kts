@@ -39,8 +39,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    // TODO Source Compatibility was set to 1.6. Why? Is this worker code?
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
