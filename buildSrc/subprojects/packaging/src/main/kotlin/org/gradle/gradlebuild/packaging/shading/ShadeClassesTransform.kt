@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.gradlebuild.packaging.shading
 
 import com.google.gson.Gson
@@ -28,6 +44,9 @@ const val entryPointsFileName = "entryPoints.json"
 private
 const val relocatedClassesDirName = "classes"
 
+private
+const val manifestFileName = "MANIFEST.MF"
+
 open class ShadeClassesTransform @Inject constructor(
     private val shadowPackage: String,
     private val keepPackages: Set<String>,
@@ -45,11 +64,10 @@ open class ShadeClassesTransform @Inject constructor(
             shadowPackage
         )
 
-        println(input.name)
         val jarUri = URI.create("jar:${input.toPath().toUri()}")
         FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
             jarFileSystem.rootDirectories.forEach {
-                visitClassDirectory(it, classGraph, ignoredPackagePatterns, classesDir)
+                visitClassDirectory(it, classGraph, ignoredPackagePatterns, classesDir, outputDirectory.resolve(manifestFileName).toPath())
             }
         }
 
@@ -64,7 +82,7 @@ open class ShadeClassesTransform @Inject constructor(
     }
 
     private
-    fun visitClassDirectory(dir: Path, classes: ClassGraph, ignored: PackagePatterns, classesDir: File) {
+    fun visitClassDirectory(dir: Path, classes: ClassGraph, ignored: PackagePatterns, classesDir: File, manifest: Path) {
         Files.walkFileTree(dir, object : FileVisitor<Path> {
 
             private
@@ -74,22 +92,14 @@ open class ShadeClassesTransform @Inject constructor(
                 FileVisitResult.CONTINUE
 
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-//                writer.print("${file.fileName}: ")
                 when {
                     file.isClassFilePath()              -> {
                         visitClassFile(file)
                     }
-                    file.isUnshadedPropertiesFilePath() -> {
-//                        writer.println("include")
-                        classes.addResource(ResourceDetails(file.toString(), file.toFile()))
-                    }
                     file.isUnseenManifestFilePath()     -> {
                         seenManifest = true
-                        classes.manifest = ResourceDetails(file.toString(), file.toFile())
+                        Files.copy(file, manifest)
                     }
-//                    else                                -> {
-//                        writer.println("skipped")
-//                    }
                 }
                 return FileVisitResult.CONTINUE
             }
@@ -110,7 +120,7 @@ open class ShadeClassesTransform @Inject constructor(
 
             private
             fun Path.isUnseenManifestFilePath() =
-                toString() == JarFile.MANIFEST_NAME && !seenManifest
+                toString() == "/${JarFile.MANIFEST_NAME}" && !seenManifest
 
             private
             fun visitClassFile(file: Path) {
@@ -132,7 +142,6 @@ open class ShadeClassesTransform @Inject constructor(
                         }
                     }), ClassReader.EXPAND_FRAMES)
 
-//                    writer.println("mapped class name: ${details.outputClassName}")
                     classesDir.resolve(details.outputClassFilename).apply {
                         parentFile.mkdirs()
                         writeBytes(classWriter.toByteArray())
@@ -164,4 +173,11 @@ open class FindRelocatedClasses : ArtifactTransform() {
         return listOf(input.resolve(relocatedClassesDirName))
     }
 
+}
+
+open class FindManifests : ArtifactTransform() {
+    override fun transform(input: File): List<File> {
+        val manifest = input.resolve(manifestFileName)
+        return listOf(manifest).filter { it.exists() }
+    }
 }

@@ -1,6 +1,6 @@
 import accessors.*
+import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -8,6 +8,7 @@ import org.gradle.gradlebuild.packaging.shading.ShadeClassesTransform
 import org.gradle.gradlebuild.packaging.shading.FindRelocatedClasses
 import org.gradle.gradlebuild.packaging.shading.FindClassTrees
 import org.gradle.gradlebuild.packaging.shading.FindEntryPoints
+import org.gradle.gradlebuild.packaging.shading.FindManifests
 import org.gradle.gradlebuild.packaging.shading.CreateShadedJar
 
 val testPublishRuntime by configurations.creating
@@ -72,6 +73,11 @@ dependencies {
         to.attribute(artifactType, "classTrees")
         artifactTransform(FindClassTrees::class.java)
     }
+    registerTransform {
+        from.attribute(artifactType, "relocatedClassesAndAnalysis")
+        to.attribute(artifactType, "manifests")
+        artifactTransform(FindManifests::class.java)
+    }
 }
 
 gradlebuildJava {
@@ -87,32 +93,23 @@ testFixtures {
 
 val baseVersion: String by rootProject.extra
 
-val shadedJarWithoutVersion by tasks.creating(ShadedJar::class) {
-    val outputDir = file("$buildDir/shaded-jar-without-version")
-    sourceFiles = jar.outputs.files +
-        files(deferred { configurations.runtimeClasspath - configurations.publishCompile })
-    analysisFile = file("$outputDir/analysis.txt")
-    classesDir = file("$outputDir/classes")
-    jarFile = file("$outputDir/gradle-tooling-api-shaded-$baseVersion.jar")
-    keepPackages = setOf("org.gradle.tooling")
-    unshadedPackages = setOf("org.gradle", "org.slf4j", "sun.misc")
-    ignorePackages = setOf("org.gradle.tooling.provider.model")
-    shadowPackage = "org.gradle.internal.impldep"
+val buildReceipt: BuildReceipt = tasks.getByPath(":createBuildReceipt") as BuildReceipt
+
+val toolingApiShadedJar by tasks.creating(CreateShadedJar::class.java) {
+    val configToShade = jarsToShade
+    dependsOn(jar)
+    jarFile.set(layout.buildDirectory.file("shaded-jar/gradle-tooling-api-shaded-$baseVersion.jar"))
+    classTreesConfiguration = configToShade.artifactViewForType("classTrees")
+    entryPointsConfiguration = configToShade.artifactViewForType("entryPoints")
+    relocatedClassesConfiguration = configToShade.artifactViewForType("relocatedClasses")
+    manifests = configToShade.artifactViewForType("manifests")
+    buildReceiptFile.set(buildReceipt.receiptFile)
 }
 
-val buildReceipt = tasks.getByPath(":createBuildReceipt")
 
-val toolingApiShadedJar by tasks.creating(Zip::class) {
-    destinationDir = file("$buildDir/shaded-jar")
-    dependsOn(shadedJarWithoutVersion, buildReceipt)
-    from(zipTree(shadedJarWithoutVersion.jarFile))
-    baseName = "gradle-tooling-api-shaded"
-    from(buildReceipt) {
-        into("/org/gradle")
-    }
-    extension = "jar"
-    version = baseVersion
-}
+fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artifactView {
+    attributes.attribute(artifactType, artifactTypeName)
+}.files
 
 apply { from("buildship.gradle") }
 
@@ -137,7 +134,7 @@ eclipse {
 
 artifacts {
     add("publishRuntime", mapOf(
-        "file" to toolingApiShadedJar.archivePath,
+        "file" to toolingApiShadedJar.jarFile.get().asFile,
         "name" to base.archivesBaseName,
         "type" to "jar",
         "builtBy" to toolingApiShadedJar
@@ -176,16 +173,3 @@ afterEvaluate {
         add(jarsToShade.name, project)
     }
 }
-
-tasks.create<CreateShadedJar>("combineShaded") {
-    val configToShade = jarsToShade
-    dependsOn(jar)
-    classTreesConfiguration = configToShade.artifactViewForType("classTrees")
-    entryPointsConfiguration = configToShade.artifactViewForType("entryPoints")
-    relocatedClassesConfiguration = configToShade.artifactViewForType("relocatedClasses")
-}
-
-
-fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artifactView {
-    attributes.attribute(artifactType, artifactTypeName)
-}.files

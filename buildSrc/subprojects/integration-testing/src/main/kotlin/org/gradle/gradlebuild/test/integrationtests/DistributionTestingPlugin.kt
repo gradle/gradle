@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.java
+import accessors.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -23,7 +24,7 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.gradlebuild.packaging.shading.CreateShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -78,11 +79,11 @@ class DistributionTestingPlugin : Plugin<Project> {
     private fun Project.configureGradleTestEnvironment(distributionTest: DistributionTest): Unit = distributionTest.run {
         gradleInstallationForTest.run {
             val intTestImage: Sync by tasks
-            val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
+            val toolingApiShadedJar: CreateShadedJar by rootProject.project(":toolingApi").tasks
             gradleHomeDir.set(dir { intTestImage.destinationDir })
             gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
             daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-            toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
+            toolingApiShadedJarDir.set(dir { toolingApiShadedJar.jarFile.get().asFile })
         }
 
         libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
