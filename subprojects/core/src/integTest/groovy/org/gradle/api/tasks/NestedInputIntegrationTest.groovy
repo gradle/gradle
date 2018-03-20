@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec {
@@ -109,7 +109,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':generator', ':consumer')
     }
 
-    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/3811")
     def "nested input using output file property of different task adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
@@ -144,10 +144,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'consumer'
         then:
-        // FIXME: Should have been executed
-        notExecuted(':generator')
-        // FIXME: Should have been executed
-        skipped(':consumer')
+        executedAndNotSkipped(':generator')
+        executedAndNotSkipped(':consumer')
     }
 
     @Unroll
@@ -663,6 +661,31 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "myTask"
+    }
+
+    def "nested Provider is unpacked"() {
+        buildFile << taskWithNestedInput()
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """
+            myTask.nested = provider { new NestedBean(project.property('input')) }
+        """
+
+        def myTask = ':myTask'
+        when:
+        run myTask, '-Pinput=original'
+        then:
+        executedAndNotSkipped myTask
+
+        when:
+        run myTask, '-Pinput=original'
+        then:
+        skipped myTask
+
+        when:
+        run myTask, '-Pinput=changed', '--info'
+        then:
+        executedAndNotSkipped myTask
+        output.contains "Value of input property 'nested.input' has changed for task ':myTask'"
     }
 
     def "input changes for task with named nested beans"() {

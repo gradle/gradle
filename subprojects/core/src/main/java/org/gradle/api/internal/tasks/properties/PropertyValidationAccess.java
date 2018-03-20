@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -38,6 +39,7 @@ import org.gradle.internal.Cast;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
@@ -86,14 +88,14 @@ public class PropertyValidationAccess {
 
         public void createAndAddToQueue(BeanTypeNode<?> parentNode, String propertyName, TypeToken<?> beanType, Queue<BeanTypeNode<?>> queue) {
             if (!parentNode.nodeCreatesCycle(beanType)) {
-                queue.add(create(parentNode, propertyName, beanType));
+                queue.add(createChild(parentNode, propertyName, beanType));
             }
         }
 
-        private BeanTypeNode<?> create(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<?> beanType) {
+        private BeanTypeNode<?> createChild(BeanTypeNode<?> parentNode, String propertyName, TypeToken<?> beanType) {
             Class<?> rawType = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
-            if (propertyName != null && !typeMetadata.hasAnnotatedProperties()) {
+            if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
                     return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedCast(beanType), typeMetadata);
                 }
@@ -120,8 +122,7 @@ public class PropertyValidationAccess {
         private final TypeToken<? extends T> beanType;
 
         protected TypeToken<?> extractNestedType(Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
-            ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
-            return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
+            return PropertyValidationAccess.extractNestedType(beanType, parameterizedSuperClass, typeParameterIndex);
         }
 
         @Override
@@ -158,9 +159,19 @@ public class PropertyValidationAccess {
                     }
                 }
                 if (metadata.isAnnotationPresent(Nested.class)) {
-                    nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType()), queue);
+                    TypeToken<?> beanType = unpackProvider(metadata.getMethod());
+                    nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, beanType, queue);
                 }
             }
+        }
+
+        private static TypeToken<?> unpackProvider(Method method) {
+            Class<?> rawType = method.getReturnType();
+            TypeToken<?> genericReturnType = TypeToken.of(method.getGenericReturnType());
+            if (Provider.class.isAssignableFrom(rawType)) {
+                    return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedCast(genericReturnType), Provider.class, 0);
+            }
+            return genericReturnType;
         }
 
         private static String propertyValidationMessage(Class<?> task, String qualifiedPropertyName, String validationMessage) {
@@ -231,5 +242,10 @@ public class PropertyValidationAccess {
             }
             return null;
         }
+    }
+
+    private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
+        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
+        return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
     }
 }
