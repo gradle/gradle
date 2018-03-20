@@ -40,6 +40,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 import java.util.List;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED;
 
 /**
  * Resolution state for a given module version selector.
@@ -121,25 +122,22 @@ class SelectorState implements DependencyGraphSelector {
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
-            if (dependencyMetadata.isPending()) {
-                idResolveResult.setSelectionDescription(CONSTRAINT);
-            }
             resolver.resolve(dependencyMetadata, versionConstraint, idResolveResult);
         }
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
-            failureSelectionReason = createFailureReason(idResolveResult);
+            failureSelectionReason = createFailureReason();
         }
 
         this.idResolveResult = idResolveResult;
         return idResolveResult;
-
     }
 
     public void select(ComponentState selected) {
         selected.selectedBy(this);
-        selected.addCause(idResolveResult.getSelectionDescription());
+        ComponentSelectionDescriptorInternal selectionDescriptor = selectionDescriptionForDependency(dependencyMetadata);
+        selected.addCause(selectionDescriptor);
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());
         }
@@ -149,6 +147,14 @@ class SelectorState implements DependencyGraphSelector {
 //        assert selected.getModule() == targetModule;
 
         this.selected = selected;
+    }
+
+    private ComponentSelectionDescriptorInternal selectionDescriptionForDependency(DependencyMetadata dependencyMetadata) {
+        ComponentSelectionDescriptorInternal selectionDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
+        if (dependencyMetadata.getReason() != null) {
+            selectionDescriptor = selectionDescriptor.withReason(dependencyMetadata.getReason());
+        }
+        return selectionDescriptor;
     }
 
     public ComponentSelectionReason getSelectionReason() {
@@ -162,17 +168,10 @@ class SelectorState implements DependencyGraphSelector {
         return failureSelectionReason;
     }
 
-    private ComponentSelectionReasonInternal createFailureReason(BuildableComponentIdResolveResult idResolveResult) {
-        // TODO:DAZ This duplicates logic in `resolveModuleRevisionId`, and could be simplified
-        boolean hasRuleDescriptor = dependencyState.getRuleDescriptor() != null;
-        boolean isConstraint = dependencyMetadata.isPending();
-        ComponentSelectionDescriptorInternal description = idResolveResult.getSelectionDescription();
-        if (!hasRuleDescriptor && !isConstraint) {
-            return VersionSelectionReasons.of(description);
-        }
-        List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(isConstraint && hasRuleDescriptor ? 3 : 2);
-        descriptors.add(description);
-        if (hasRuleDescriptor) {
+    private ComponentSelectionReasonInternal createFailureReason() {
+        List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(2);
+        descriptors.add(selectionDescriptionForDependency(dependencyMetadata));
+        if (dependencyState.getRuleDescriptor() != null) {
             descriptors.add(dependencyState.getRuleDescriptor());
         }
         return VersionSelectionReasons.of(descriptors);

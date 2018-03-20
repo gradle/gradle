@@ -67,10 +67,6 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
                 ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
                 result.resolved(id, mvId);
-                String reason = dependency.getReason();
-                if (reason != null) {
-                    result.setSelectionDescription(result.getSelectionDescription().withReason(reason));
-                }
             }
         }
     }
