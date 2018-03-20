@@ -30,6 +30,7 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Path
 import java.util.*
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -82,15 +83,18 @@ open class CreateShadedJar : DefaultTask() {
             relocatedClassesConfiguration.files.forEach { classesDir ->
                 val classesDirPath = classesDir.toPath()
                 classesDir.walk().filter {
-                    val relativePath = classesDirPath.relativize(it.toPath()).toString()
+                    val relativePath = classesDirPath.relativePath(it)
                     classesToInclude.contains(relativePath)
                 }.forEach {
-                    val relativePath = classesDirPath.relativize(it.toPath()).toString()
+                    val relativePath = classesDirPath.relativePath(it)
                     addJarEntry(relativePath, it, jarOutputStream)
                 }
             }
         }
     }
+
+    private
+    fun Path.relativePath(other: File) = relativize(other.toPath()).toString().replace(File.separatorChar, '/')
 
     private
     fun addJarEntry(entryName: String, sourceFile: File, jarOutputStream: JarOutputStream) {
