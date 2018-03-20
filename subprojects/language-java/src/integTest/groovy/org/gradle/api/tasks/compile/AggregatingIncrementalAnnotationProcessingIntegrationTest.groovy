@@ -225,7 +225,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         fails "compileJava"
 
         then:
-        errorOutput.contains("'@Service' has source retention")
+        result.assertHasErrorOutput("'@Service' has source retention")
     }
 
     private boolean serviceRegistryReferences(String... services) {
