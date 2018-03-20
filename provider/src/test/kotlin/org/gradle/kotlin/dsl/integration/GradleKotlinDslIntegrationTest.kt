@@ -369,24 +369,28 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `optional null extra property requested as a non nullable type throws NPE`() {
+    fun `optional null extra property can be requested as nullable type otherwise throws NPE`() {
 
         withBuildScript("""
             val myTask = task("myTask") {
 
                 val foo: Int? by extra { null }
+                val bar: Int? by extra { null }
 
                 doLast {
-                    println("Optional extra property value: ${'$'}foo")
+                    println("Optional 'foo' extra property value: ${'$'}foo")
+                    println("Optional 'bar' extra property value: ${'$'}bar")
                 }
             }
 
-            val foo: Int by myTask.extra
+            val foo: Int? by myTask.extra
+            val bar: Int by myTask.extra
 
             afterEvaluate {
                 try {
                     println("myTask.foo = ${'$'}foo")
-                    require(false, { "Should not happen as `foo`, requested as a Int is effectively null" })
+                    println("myTask.bar = ${'$'}bar")
+                    require(false, { "Should not happen as `bar`, requested as a Int is effectively null" })
                 } catch (ex: NullPointerException) {
                     // expected
                 }
@@ -396,8 +400,10 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             build("myTask").output,
             allOf(
-                containsString("Optional extra property value: null"),
-                not(containsString("myTask.foo"))))
+                containsString("Optional 'foo' extra property value: null"),
+                containsString("Optional 'bar' extra property value: null"),
+                containsString("myTask.foo = null"),
+                not(containsString("myTask.bar"))))
     }
 
     @Test

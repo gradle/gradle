@@ -1,11 +1,15 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
+import org.hamcrest.CoreMatchers.nullValue
+
+import org.junit.Assert.assertThat
 import org.junit.Test
 
 
@@ -50,13 +54,24 @@ class ExtraPropertiesExtensionsTest {
             on { get("property") } doReturn (null as Int?)
         }
 
-        val property by extra<Int?>(null)
+        run {
+            val property by extra<Int?>(null)
 
-        // property is set eagerly
-        verify(extra).set("property", null)
+            // property is set eagerly
+            verify(extra).set("property", null)
 
-        // And to prove the type is inferred correctly
-        use(property)
+            // And to prove the type is inferred correctly
+            use(property)
+        }
+
+        run {
+            val property: Int? by extra
+            inOrder(extra) {
+                verify(extra).get("property")
+                verifyNoMoreInteractions()
+            }
+            assertThat(property, nullValue())
+        }
     }
 
     @Test
@@ -64,13 +79,24 @@ class ExtraPropertiesExtensionsTest {
 
         val extra = mock<ExtraPropertiesExtension>()
 
-        val property by extra { null as Int? }
+        run {
+            val property by extra { null as Int? }
 
-        // property is set eagerly
-        verify(extra).set("property", null)
+            // property is set eagerly
+            verify(extra).set("property", null)
 
-        // And to prove the type is inferred correctly
-        use(property)
+            // And to prove the type is inferred correctly
+            use(property)
+        }
+
+        run {
+            val property: Int? by extra
+            inOrder(extra) {
+                verify(extra).get("property")
+                verifyNoMoreInteractions()
+            }
+            assertThat(property, nullValue())
+        }
     }
 
     private
