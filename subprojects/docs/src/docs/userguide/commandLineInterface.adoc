@@ -446,9 +446,9 @@ image::img/rich-cli.png[alt="Gradle Rich Console"]
 
 Features:
 
- * Logs above grouped by task that generated them
  * Progress bar and timer visually describe overall status
  * Parallel work-in-progress lines below describe what is happening now
+ * Colors and fonts are used to highlight important output and errors
 
 [[sec:command_line_execution_options]]
 === Execution options
