@@ -60,6 +60,26 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream == originalStream
     }
 
+    def originalStreamCanBeReplacedBetweenCapture() {
+        def stream2 = new PrintStream(new ByteArrayOutputStream())
+
+        given:
+        loggingSystem.restore(loggingSystem.startCapture())
+        stream = stream2
+
+        when:
+        def snapshot = loggingSystem.startCapture()
+
+        then:
+        stream != stream2
+
+        when:
+        loggingSystem.restore(snapshot)
+
+        then:
+        stream == stream2
+    }
+
     def onStartsCapturingWhenNotAlreadyCapturing() {
         when:
         loggingSystem.setLevel(LogLevel.INFO)
