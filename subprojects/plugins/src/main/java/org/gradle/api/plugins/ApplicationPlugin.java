@@ -33,7 +33,6 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
@@ -99,16 +98,6 @@ public class ApplicationPlugin implements Plugin<Project> {
                         }
                     }
                 }
-            }
-        });
-        installTask.doLast(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                Sync sync = (Sync) task;
-                HashMap<String, Object> args = new HashMap<String, Object>();
-                args.put("file", "" + sync.getDestinationDir().getAbsolutePath() + "/" + pluginConvention.getExecutableDir() + "/" + pluginConvention.getApplicationName());
-                args.put("perm", "ugo+x");
-                project.getAnt().invokeMethod("chmod", args);
             }
         });
     }
