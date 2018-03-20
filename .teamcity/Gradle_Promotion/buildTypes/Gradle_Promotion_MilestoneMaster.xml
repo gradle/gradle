@@ -8,9 +8,6 @@
       <option name="checkoutMode" value="ON_SERVER" />
       <option name="showDependenciesChanges" value="true" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="RQ_251" />
-    </disabled-settings>
     <parameters>
       <param name="confirmationCode" value="" />
       <param name="gitUserEmail" value="" spec="text description='Enter the git |'user.email|' configuration to commit change under' label='Git user.email Configuration' validationMode='any' display='prompt'" />
@@ -34,7 +31,6 @@
       <vcs-entry-ref root-id="Gradle_Promotion__master_" />
     </vcs-settings>
     <requirements>
-      <equals id="RQ_251" name="teamcity.agent.name" value="ubuntu8-agent1" />
       <contains id="RQ_30" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers />
