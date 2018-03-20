@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
@@ -73,7 +75,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 TaskArtifactState taskState = context.getTaskArtifactState();
                 // TODO: This is really something we should do at an earlier/higher level so that the input and output
                 // property values are locked in at this point.
-                outputProperties = TaskPropertyUtils.resolveFileProperties(taskProperties.getOutputFileProperties());
+                outputProperties = resolveProperties(taskProperties.getOutputFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
                         OriginTaskExecutionMetadata originMetadata = buildCache.load(
@@ -119,5 +121,20 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 LOGGER.info("Not pushing results from {} to cache because no valid cache key was generated", task);
             }
         }
+    }
+
+    private static SortedSet<ResolvedTaskOutputFilePropertySpec> resolveProperties(ImmutableSortedSet<? extends TaskOutputFilePropertySpec> properties) {
+        ImmutableSortedSet.Builder<ResolvedTaskOutputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+        for (TaskOutputFilePropertySpec property : properties) {
+            // At this point we assume that the task only has cacheable properties,
+            // otherwise caching would have been disabled by now
+            CacheableTaskOutputFilePropertySpec cacheableProperty = (CacheableTaskOutputFilePropertySpec) property;
+            builder.add(new ResolvedTaskOutputFilePropertySpec(
+                cacheableProperty.getPropertyName(),
+                cacheableProperty.getOutputType(),
+                cacheableProperty.getOutputFile()
+            ));
+        }
+        return builder.build();
     }
 }
