@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project.taskfactory
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
@@ -39,35 +38,18 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         _ * instantiator.newInstance(_) >> { args -> args[0].newInstance() }
     }
 
-    public void testUsesADefaultTaskTypeWhenNoneSpecified() {
-        when:
-        Task task = taskFactory.create("task");
-
-        then:
-        task instanceof DefaultTask
-    }
-
     public void injectsProjectAndNameIntoTask() {
         when:
-        Task task = taskFactory.createTask([name: "task"]);
+        Task task = taskFactory.create("task", DefaultTask)
 
         then:
         task.project == project
         task.name == 'task'
     }
 
-    public void testCannotCreateTaskWithNoName() {
-        when:
-        taskFactory.createTask([:])
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "The task name must be provided."
-    }
-
     public void testCreateTaskOfTypeWithNoArgsConstructor() {
         when:
-        Task task = taskFactory.createTask([name: 'task', type: TestDefaultTask.class])
+        Task task = taskFactory.create('task', TestDefaultTask.class)
 
         then:
         task instanceof TestDefaultTask
@@ -75,7 +57,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     public void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
         when:
-        Task task = taskFactory.createTask([name: 'task', type: type])
+        Task task = taskFactory.create('task', type)
 
         then:
         task instanceof DefaultTask
@@ -86,7 +68,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     public void instantiatesAnInstanceOfTheDecoratedTaskType() {
         when:
-        Task task = taskFactory.createTask([name: 'task', type: TestDefaultTask.class])
+        Task task = taskFactory.create('task', TestDefaultTask.class)
 
         then:
         task instanceof DecoratedTask
@@ -97,55 +79,9 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         0 * _._
     }
 
-    public void testCreateTaskWithDependencies() {
-        when:
-        Task task = taskFactory.createTask([name: 'task', dependsOn: "/path1"])
-
-        then:
-        task.dependsOn == ["/path1"] as Set
-    }
-
-    public void taskCreationFailsWithUnknownArguments() {
-        when:
-        taskFactory.createTask([name: 'task', dependson: 'anotherTask'])
-
-        then:
-        InvalidUserDataException exception = thrown()
-        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [dependson]"
-
-        when:
-        taskFactory.createTask([name: 'task', Type: NotATask])
-
-        then:
-        exception = thrown()
-        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [Type]"
-    }
-
-    public void testCreateTaskWithAction() {
-        Action<Task> action = Mock()
-
-        when:
-        Task task = taskFactory.createTask([name: 'task', action: action])
-
-        then:
-        task.actions.size() == 1
-        task.actions[0].action == action
-    }
-
-    public void testCreateTaskWithActionClosure() {
-        Closure cl = Mock()
-
-        when:
-        Task task = taskFactory.createTask([name: 'task', action: cl])
-
-        then:
-        task.actions.size() == 1
-        task.actions[0].closure == cl
-    }
-
     public void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
-        taskFactory.createTask([name: 'task', type: NotATask])
+        taskFactory.create('task', NotATask)
 
         then:
         InvalidUserDataException e = thrown()
@@ -156,7 +92,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         def failure = new RuntimeException()
 
         when:
-        taskFactory.createTask([name: 'task', type: TestDefaultTask])
+        taskFactory.create('task', TestDefaultTask)
 
         then:
         TaskInstantiationException e = thrown()
@@ -165,22 +101,6 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
         and:
         _ * instantiator.newInstance(TestDefaultTask) >> { throw new ObjectInstantiationException(TestDefaultTask, failure) }
-    }
-
-    public void createTaskWithDescription() {
-        when:
-        Task task = taskFactory.createTask([name: 'task', description: "some task"])
-
-        then:
-        task.description == "some task"
-    }
-
-    public void createTaskWithGroup() {
-        when:
-        Task task = taskFactory.createTask([name: 'task', group: "some group"])
-
-        then:
-        task.group == "some group"
     }
 
     public static class TestDefaultTask extends DefaultTask {

@@ -44,6 +44,96 @@ public class DefaultTaskContainerTest extends Specification {
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
 
+    void testCannotCreateTaskWithNoName() {
+        when:
+        container.create([:])
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "The task name must be provided."
+    }
+
+    void testCreateTaskWithDependencies() {
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        def added = container.create([name: 'task', dependsOn: "/path1"])
+
+        then:
+        added == task
+        1 * task.dependsOn("/path1")
+    }
+
+    void taskCreationFailsWithUnknownArguments() {
+        when:
+        container.create([name: 'task', dependson: 'anotherTask'])
+
+        then:
+        InvalidUserDataException exception = thrown()
+        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [dependson]"
+
+        when:
+        container.create([name: 'task', Type: NotATask])
+
+        then:
+        exception = thrown()
+        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [Type]"
+    }
+
+    static class NotATask {
+    }
+
+    void testCreateTaskWithAction() {
+        Action<Task> action = Mock()
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', action: action])
+
+        then:
+        added == task
+        1 * task.doFirst(action)
+    }
+
+    void testCreateTaskWithActionClosure() {
+        Closure action = Mock()
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', action: action])
+
+        then:
+        added == task
+        1 * task.doFirst(action)
+    }
+
+    void createTaskWithDescription() {
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', description: "some task"])
+
+        then:
+        added == task
+        1 * task.setDescription("some task")
+    }
+
+    void createTaskWithGroup() {
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', group: "some group"])
+
+        then:
+        added == task
+        1 * task.setGroup("some group")
+    }
+
     void "creates by Map"() {
         def options = singletonMap("name", "task")
         def task = task("task")
