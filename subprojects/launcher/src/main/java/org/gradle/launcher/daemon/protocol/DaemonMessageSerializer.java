@@ -17,8 +17,11 @@
 package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionSerializer;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -47,9 +50,15 @@ import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.DefaultBuildActionParameters;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
 
 public class DaemonMessageSerializer {
     public static Serializer<Message> create() {
@@ -189,7 +198,8 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildSerializer implements Serializer<Build> {
-        private final Serializer<Object[]> payloadSerializer = new DefaultSerializer<Object[]>();
+        private final Serializer<BuildAction> buildActionSerializer = BuildActionSerializer.create();
+        private final Serializer<BuildActionParameters> buildActionParametersSerializer = new BuildActionParametersSerializer();
 
         @Override
         public void write(Encoder encoder, Build build) throws Exception {
@@ -197,8 +207,10 @@ public class DaemonMessageSerializer {
             encoder.writeLong(build.getIdentifier().getLeastSignificantBits());
             encoder.writeBinary(build.getToken());
             encoder.writeLong(build.getStartTime());
-            // Use Java serialization for these pieces, pending some serializers for these types
-            payloadSerializer.write(encoder, new Object[]{build.getAction(), build.getBuildClientMetaData(), build.getParameters()});
+            buildActionSerializer.write(encoder, build.getAction());
+            GradleLauncherMetaData metaData = (GradleLauncherMetaData) build.getBuildClientMetaData();
+            encoder.writeString(metaData.getAppName());
+            buildActionParametersSerializer.write(encoder, build.getParameters());
         }
 
         @Override
@@ -206,8 +218,45 @@ public class DaemonMessageSerializer {
             UUID uuid = new UUID(decoder.readLong(), decoder.readLong());
             byte[] token = decoder.readBinary();
             long timestamp = decoder.readLong();
-            Object[] payload = payloadSerializer.read(decoder);
-            return new Build(uuid, token, (BuildAction) payload[0], (BuildClientMetaData) payload[1], timestamp, (BuildActionParameters) payload[2]);
+            BuildAction buildAction = buildActionSerializer.read(decoder);
+            GradleLauncherMetaData metaData = new GradleLauncherMetaData(decoder.readString());
+            BuildActionParameters buildActionParameters = buildActionParametersSerializer.read(decoder);
+            return new Build(uuid, token, buildAction, metaData, timestamp, buildActionParameters);
+        }
+    }
+
+    private static class BuildActionParametersSerializer implements Serializer<BuildActionParameters> {
+        private final Serializer<LogLevel> logLevelSerializer;
+        private final Serializer<List<File>> classPathSerializer;
+
+        BuildActionParametersSerializer() {
+            logLevelSerializer = new BaseSerializerFactory().getSerializerFor(LogLevel.class);
+            classPathSerializer = new ListSerializer<File>(FILE_SERIALIZER);
+        }
+
+        @Override
+        public void write(Encoder encoder, BuildActionParameters parameters) throws Exception {
+            FILE_SERIALIZER.write(encoder, parameters.getCurrentDir());
+            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, parameters.getSystemProperties());
+            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, parameters.getEnvVariables());
+            logLevelSerializer.write(encoder, parameters.getLogLevel());
+            encoder.writeBoolean(parameters.isUseDaemon()); // Can probably skip this
+            encoder.writeBoolean(parameters.isContinuous());
+            encoder.writeBoolean(parameters.isInteractive());
+            classPathSerializer.write(encoder, parameters.getInjectedPluginClasspath().getAsFiles());
+        }
+
+        @Override
+        public BuildActionParameters read(Decoder decoder) throws Exception {
+            File currentDir = FILE_SERIALIZER.read(decoder);
+            Map<String, String> sysProperties = NO_NULL_STRING_MAP_SERIALIZER.read(decoder);
+            Map<String, String> envVariables = NO_NULL_STRING_MAP_SERIALIZER.read(decoder);
+            LogLevel logLevel = logLevelSerializer.read(decoder);
+            boolean useDaemon = decoder.readBoolean();
+            boolean continuous = decoder.readBoolean();
+            boolean interactive = decoder.readBoolean();
+            ClassPath classPath = DefaultClassPath.of(classPathSerializer.read(decoder));
+            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, continuous, interactive, classPath);
         }
     }
 
@@ -237,7 +286,7 @@ public class DaemonMessageSerializer {
     private static class BuildStartedSerializer implements Serializer<BuildStarted> {
         @Override
         public void write(Encoder encoder, BuildStarted buildStarted) throws Exception {
-            encoder.writeString(buildStarted.getDiagnostics().getDaemonLog().getPath());
+            FILE_SERIALIZER.write(encoder, buildStarted.getDiagnostics().getDaemonLog());
             if (buildStarted.getDiagnostics().getPid() == null) {
                 encoder.writeBoolean(false);
             } else {
@@ -248,7 +297,7 @@ public class DaemonMessageSerializer {
 
         @Override
         public BuildStarted read(Decoder decoder) throws Exception {
-            File log = new File(decoder.readString());
+            File log = FILE_SERIALIZER.read(decoder);
             boolean nonNull = decoder.readBoolean();
             Long pid = null;
             if (nonNull) {
