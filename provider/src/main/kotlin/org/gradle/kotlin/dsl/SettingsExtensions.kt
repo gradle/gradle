@@ -19,6 +19,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
 
+import org.gradle.kotlin.dsl.support.dynamicObjectFor
+import org.gradle.kotlin.dsl.support.getPropertyValue
+
+import kotlin.reflect.KProperty
+
 
 /**
  * Applies the plugin of the given type [T]. Does nothing if the plugin has already been applied.
@@ -32,3 +37,10 @@ import org.gradle.api.plugins.PluginAware
 inline
 fun <reified T : Plugin<Settings>> Settings.apply() =
     (this as PluginAware).apply<T>()
+
+
+/**
+ * Locates a property on [Settings].
+ */
+operator fun <T> Settings.getValue(any: Any?, property: KProperty<*>): T =
+    dynamicObjectFor(this).getPropertyValue(property.name, property.returnType.isMarkedNullable) { "${this@getValue}" }

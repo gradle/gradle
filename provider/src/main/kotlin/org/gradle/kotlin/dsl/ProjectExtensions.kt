@@ -45,6 +45,8 @@ import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.configureWith
+import org.gradle.kotlin.dsl.support.dynamicObjectFor
+import org.gradle.kotlin.dsl.support.getPropertyValue
 
 import java.io.File
 
@@ -185,10 +187,10 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
 
 
 /**
- * Locates a [Project] property using [Project.findProperty].
+ * Locates a property on [Project].
  */
-operator fun Project.getValue(any: Any?, property: KProperty<*>): Any? =
-    findProperty(property.name)
+operator fun <T> Project.getValue(any: Any?, property: KProperty<*>): T =
+    dynamicObjectFor(this).getPropertyValue(property.name, property.returnType.isMarkedNullable) { "${this@getValue}" }
 
 
 /**

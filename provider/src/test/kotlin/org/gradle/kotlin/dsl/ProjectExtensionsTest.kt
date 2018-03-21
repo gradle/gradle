@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
@@ -16,9 +15,6 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.reflect.TypeOf
-
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.fail
 import org.junit.Test
@@ -41,17 +37,6 @@ class ProjectExtensionsTest {
         }
 
         verify(convention).configure(eq(extensionType), any())
-    }
-
-    @Test
-    fun `can use project as property delegate`() {
-
-        val project = mock<Project> {
-            on { findProperty("p") } doReturn 42
-        }
-
-        val p by project
-        assertThat(p, equalTo<Any>(42))
     }
 
     @Test

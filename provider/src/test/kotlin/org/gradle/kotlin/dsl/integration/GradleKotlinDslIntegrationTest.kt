@@ -586,23 +586,6 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `can get project property via delegation within buildscript block`() {
-
-        withBuildScript("""
-            buildscript {
-                dependencies {
-                    val projectProperty by project
-                    println("*" + projectProperty + "*")
-                }
-            }
-        """)
-
-        assertThat(
-            build("-PprojectProperty=42").output,
-            containsString("*42*"))
-    }
-
-    @Test
     fun `script compilation error message`() {
 
         val buildFile =
