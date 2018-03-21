@@ -17,7 +17,6 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
-import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.TaskFactory
@@ -25,7 +24,6 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
 import static org.junit.Assert.assertTrue
