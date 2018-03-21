@@ -65,7 +65,6 @@ open class MinifyTransform @Inject constructor(
         }
     }
 
-
     private
     fun visitTree(
         classDetails: ClassDetails,

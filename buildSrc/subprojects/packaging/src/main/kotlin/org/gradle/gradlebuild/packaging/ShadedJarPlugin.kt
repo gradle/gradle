@@ -159,8 +159,26 @@ open class ShadedJarPlugin : Plugin<Project> {
 
 
 open class ShadedJarExtension(layout: ProjectLayout, objects: ObjectFactory, val shadedConfiguration: Configuration) {
+
+    /**
+     * The build receipt properties file.
+     *
+     * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
+     */
     val buildReceiptFile = layout.fileProperty()
+
+    /**
+     * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.
+     */
     val keepPackages = objects.setProperty(String::class.java)!!
+
+    /**
+     * Do not rename classes in the unshaded package hierarchies. Always includes 'java'.
+     */
     val unshadedPackages = objects.setProperty(String::class.java)!!
+
+    /**
+     * Do not retain classes in the ignore packages hierarchies, unless reachable from some other retained class.
+     */
     val ignoredPackages = objects.setProperty(String::class.java)!!
 }

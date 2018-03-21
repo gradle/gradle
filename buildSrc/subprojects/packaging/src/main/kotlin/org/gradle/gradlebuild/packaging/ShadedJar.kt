@@ -43,9 +43,18 @@ open class ShadedJar : DefaultTask() {
     lateinit var entryPointsConfiguration: FileCollection
     @InputFiles
     lateinit var manifests: FileCollection
+
+    /**
+     * The build receipt properties file.
+     *
+     * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
+     */
     @InputFile
     val buildReceiptFile: RegularFileProperty = project.layout.fileProperty()
 
+    /**
+      * The output Jar file.
+      */
     @OutputFile
     val jarFile = newOutputFile()
 
