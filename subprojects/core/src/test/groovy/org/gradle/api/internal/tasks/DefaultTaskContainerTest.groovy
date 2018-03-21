@@ -45,9 +45,9 @@ public class DefaultTaskContainerTest extends Specification {
     private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
 
     void "creates by Map"() {
-        def options = singletonMap("option", "value")
+        def options = singletonMap("name", "task")
         def task = task("task")
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.create(options)
@@ -60,7 +60,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "creates by name"() {
         given:
         def task = task("task")
-        taskFactory.create("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         expect:
         container.create("task") == task
@@ -69,7 +69,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "creates by name and type"() {
         given:
         def task = task("task", CustomTask)
-        taskFactory.create("task", CustomTask, null) >> task
+        taskFactory.create("task", CustomTask) >> task
 
         expect:
         container.create("task", CustomTask.class) == task
@@ -80,7 +80,7 @@ public class DefaultTaskContainerTest extends Specification {
         final Closure action = {}
         def task = task("task")
 
-        taskFactory.create("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.create("task", action)
@@ -95,7 +95,7 @@ public class DefaultTaskContainerTest extends Specification {
         def action = Mock(Action)
         def task = task("task")
 
-        taskFactory.create("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.create("task", action)
@@ -132,7 +132,7 @@ public class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         container.addRule(rule)
-        taskFactory.create("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         container.create("task")
@@ -144,7 +144,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "prevents duplicate tasks"() {
         given:
         def task = addTask("task")
-        taskFactory.create("task", DefaultTask, null) >> { this.task("task") }
+        1 * taskFactory.create("task", DefaultTask) >> { this.task("task") }
 
         when:
         container.create("task")
@@ -352,7 +352,7 @@ public class DefaultTaskContainerTest extends Specification {
         given:
         def task = task("task")
 
-        taskFactory.create("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.maybeCreate("task")
@@ -373,7 +373,7 @@ public class DefaultTaskContainerTest extends Specification {
         given:
         def task = task("task", CustomTask)
 
-        taskFactory.create("task", CustomTask, null) >> task
+        taskFactory.create("task", CustomTask) >> task
 
         when:
         def added = container.maybeCreate("task", CustomTask)
@@ -422,17 +422,17 @@ public class DefaultTaskContainerTest extends Specification {
     private Task addTask(String name) {
         def task = task(name)
         def options = singletonMap(Task.TASK_NAME, name)
-        taskFactory.createTask(options) >> task
+        1 * taskFactory.create(name, DefaultTask) >> task
         container.create(options)
-        return task;
+        return task
     }
 
     private <U extends Task> U addTask(String name, Class<U> type) {
         def task = task(name, type)
         def options = [name: name, type: type]
-        taskFactory.createTask(options) >> task
+        1 * taskFactory.create(name, type) >> task
         container.create(options)
-        return task;
+        return task
     }
 
     interface CustomTask extends TaskInternal {}

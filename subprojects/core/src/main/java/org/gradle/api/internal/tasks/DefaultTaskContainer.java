@@ -101,9 +101,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Object[] constructorArgs = getConstructorArgs(actualArgs);
         TaskInternal task;
         if (constructorArgs != null) {
-            task = create(name, type, constructorArgs);
+            task = createTask(name, type, constructorArgs);
         } else {
-            task = create(name, type);
+            task = createTask(name, type);
         }
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
@@ -208,13 +208,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
-        return create(name, type, (Object[]) null);
+        return create(name, type, new Object[0]);
     }
 
     @Override
     public <T extends Task> T create(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
-        T task = taskFactory.create(name, type, constructorArgs);
+        T task = createTask(name, type, constructorArgs);
         return addTask(task, false);
+    }
+
+    private <T extends Task> T createTask(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+        return taskFactory.create(name, type, constructorArgs);
     }
 
     public Task create(String name) {
