@@ -19,6 +19,10 @@ gradlePlugin {
             id = "gradlebuild.minify"
             implementationClass = "org.gradle.gradlebuild.packaging.MinifyPlugin"
         }
+        "shadedJar" {
+            id = "gradlebuild.shaded-jar"
+            implementationClass = "org.gradle.gradlebuild.packaging.ShadedJarPlugin"
+        }
     }
 }
 
