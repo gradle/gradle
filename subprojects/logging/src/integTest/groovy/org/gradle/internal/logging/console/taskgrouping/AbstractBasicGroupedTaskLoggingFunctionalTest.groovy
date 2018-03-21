@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
+    private static long sleepTimeout = GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT / 2 * 3
+
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -108,14 +110,13 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
-        def sleepTime = GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT / 2 * 3
         buildFile << """import java.util.concurrent.Semaphore
             project(":a") {
                 ext.lock = new Semaphore(0)
                 task log {
                     doLast {
                         logger.quiet 'Before'
-                        sleep($sleepTime)
+                        sleep($sleepTimeout)
                         lock.release()
                         project(':b').lock.acquire()
                         logger.quiet 'After'
@@ -193,7 +194,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     }
 
     private static void assertOutputContains(GradleHandle gradle, String str) {
-        ConcurrentTestUtil.poll(GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT/2 * 3 as long) {
+        ConcurrentTestUtil.poll(sleepTimeout/1000 as double) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }
     }
