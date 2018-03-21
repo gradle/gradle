@@ -475,7 +475,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             }
 """
 
-        println buildFile.text
         try {
             run 'resolve'
         } catch (Exception e) {
