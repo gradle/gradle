@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -39,7 +40,12 @@ operator fun <T> ExtraPropertiesExtension.setValue(receiver: Any?, property: KPr
 
 
 operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
-    uncheckedCast(get(property.name))
+    property.run {
+        val isFound = has(name)
+        val foundValue = if (isFound) get(name) else null
+        if (returnType.isMarkedNullable || (isFound && foundValue != null)) return uncheckedCast(foundValue)
+        else throw InvalidUserCodeException("Cannot get non-null extra property '$name' as it ${if (isFound) "is null" else "does not exist"}")
+    }
 
 
 /**
