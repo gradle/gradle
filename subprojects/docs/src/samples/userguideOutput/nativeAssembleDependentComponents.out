@@ -10,6 +10,5 @@
 > Task :operatorsPassingStaticLibrary
 > Task :assembleDependentsOperatorsPassingStaticLibrary
 
-
 BUILD SUCCESSFUL in 0s
 7 actionable tasks: 7 executed
