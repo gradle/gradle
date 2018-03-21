@@ -101,8 +101,13 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());
         testNg.setDefaultTestName(options.getDefaultTestName());
-        testNg.setParallel(options.getParallel());
-        testNg.setThreadCount(options.getThreadCount());
+
+        if (options.getParallel() != null) {
+            testNg.setParallel(options.getParallel());
+        }
+        if (options.getThreadCount() >= 1) {
+            testNg.setThreadCount(options.getThreadCount());
+        }
         invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY);
         invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
         invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
