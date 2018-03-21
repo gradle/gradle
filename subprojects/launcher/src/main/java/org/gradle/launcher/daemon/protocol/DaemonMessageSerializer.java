@@ -17,23 +17,25 @@
 package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.serializer.LogEventSerializer;
 import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
-import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
+import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
 import org.gradle.internal.logging.serializer.UserInputResumeEventSerializer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -43,6 +45,9 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.launcher.exec.BuildActionParameters;
+
+import java.util.UUID;
 
 public class DaemonMessageSerializer {
     public static Serializer<Message> create() {
@@ -51,8 +56,12 @@ public class DaemonMessageSerializer {
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
-        registry.register(BuildEvent.class, new BuildEventSerializer());
+        // Lifecycle messages
+        registry.register(Build.class, new BuildSerializer());
         registry.register(Failure.class, new FailureSerializer(throwableSerializer));
+
+        // Build events
+        registry.register(BuildEvent.class, new BuildEventSerializer());
 
         // Input events
         registry.register(ForwardInput.class, new ForwardInputSerializer());
@@ -145,6 +154,29 @@ public class DaemonMessageSerializer {
         @Override
         public OutputMessage read(Decoder decoder) throws Exception {
             return new OutputMessage(eventSerializer.read(decoder));
+        }
+    }
+
+    private static class BuildSerializer implements Serializer<Build> {
+        private final Serializer<Object[]> payloadSerializer = new DefaultSerializer<Object[]>();
+
+        @Override
+        public void write(Encoder encoder, Build build) throws Exception {
+            encoder.writeLong(build.getIdentifier().getMostSignificantBits());
+            encoder.writeLong(build.getIdentifier().getLeastSignificantBits());
+            encoder.writeBinary(build.getToken());
+            encoder.writeLong(build.getStartTime());
+            // Use Java serialization for these pieces, pending some serializers for these types
+            payloadSerializer.write(encoder, new Object[]{build.getAction(), build.getBuildClientMetaData(), build.getParameters()});
+        }
+
+        @Override
+        public Build read(Decoder decoder) throws Exception {
+            UUID uuid = new UUID(decoder.readLong(), decoder.readLong());
+            byte[] token = decoder.readBinary();
+            long timestamp = decoder.readLong();
+            Object[] payload = payloadSerializer.read(decoder);
+            return new Build(uuid, token, (BuildAction) payload[0], (BuildClientMetaData) payload[1], timestamp, (BuildActionParameters) payload[2]);
         }
     }
 }

@@ -15,14 +15,16 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+import java.util.UUID;
+
 /**
  * Represents the initial message sent to the daemon, requesting that the daemon do some work.
  */
 public class Command extends Message {
-    private final Object identifier;
+    private final UUID identifier;
     private final byte[] token;
 
-    public Command(Object identifier, byte[] token) {
+    public Command(UUID identifier, byte[] token) {
         this.identifier = identifier;
         this.token = token;
     }
@@ -37,7 +39,7 @@ public class Command extends Message {
     /**
      * @return an id that is guaranteed to be unique in the same process
      */
-    public Object getIdentifier() {
+    public UUID getIdentifier() {
         return identifier;
     }
 
