@@ -24,7 +24,7 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
-import org.gradle.gradlebuild.packaging.CreateShadedJar
+import org.gradle.gradlebuild.packaging.ToolingApiShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -79,7 +79,7 @@ class DistributionTestingPlugin : Plugin<Project> {
     private fun Project.configureGradleTestEnvironment(distributionTest: DistributionTest): Unit = distributionTest.run {
         gradleInstallationForTest.run {
             val intTestImage: Sync by tasks
-            val toolingApiShadedJar: CreateShadedJar by rootProject.project(":toolingApi").tasks
+            val toolingApiShadedJar: ToolingApiShadedJar by rootProject.project(":toolingApi").tasks
             gradleHomeDir.set(dir { intTestImage.destinationDir })
             gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
             daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))

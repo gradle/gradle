@@ -16,8 +16,6 @@
 
 package org.gradle.gradlebuild.packaging
 
-import java.io.File
-
 class ClassGraph(
     private val keepPackages: PackagePatterns,
     val unshadedPackages: PackagePatterns,
@@ -28,17 +26,11 @@ class ClassGraph(
     val classes: MutableMap<String, ClassDetails> = linkedMapOf()
 
     val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
-    val resources: MutableSet<ResourceDetails> = linkedSetOf()
-    var manifest: ResourceDetails? = null
 
     internal
     val shadowPackagePrefix =
         if (shadowPackage.isEmpty()) ""
         else shadowPackage.replace('.', '/') + "/"
-
-    fun addResource(resource: ResourceDetails) {
-        resources.add(resource)
-    }
 
     operator fun get(className: String) =
         classes.computeIfAbsent(className) {
@@ -54,7 +46,6 @@ class ClassGraph(
     fun getDependencies() = classes.map { it.value.outputClassFilename to it.value.dependencies.map { it.outputClassFilename } }.toMap()
 }
 
-class ResourceDetails(val resourceName: String, val sourceFile: File)
 class PackagePatterns(givenPrefixes: Set<String>) {
 
     private

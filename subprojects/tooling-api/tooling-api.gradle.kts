@@ -9,7 +9,7 @@ import org.gradle.gradlebuild.packaging.FindRelocatedClasses
 import org.gradle.gradlebuild.packaging.FindClassTrees
 import org.gradle.gradlebuild.packaging.FindEntryPoints
 import org.gradle.gradlebuild.packaging.FindManifests
-import org.gradle.gradlebuild.packaging.CreateShadedJar
+import org.gradle.gradlebuild.packaging.ToolingApiShadedJar
 
 val testPublishRuntime by configurations.creating
 
@@ -95,7 +95,7 @@ val baseVersion: String by rootProject.extra
 
 val buildReceipt: BuildReceipt = tasks.getByPath(":createBuildReceipt") as BuildReceipt
 
-val toolingApiShadedJar by tasks.creating(CreateShadedJar::class.java) {
+val toolingApiShadedJar by tasks.creating(ToolingApiShadedJar::class.java) {
     val configToShade = jarsToShade
     dependsOn(jar)
     jarFile.set(layout.buildDirectory.file("shaded-jar/gradle-tooling-api-shaded-$baseVersion.jar"))
