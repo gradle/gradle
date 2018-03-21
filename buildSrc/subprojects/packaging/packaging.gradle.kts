@@ -20,8 +20,8 @@ gradlePlugin {
             implementationClass = "org.gradle.gradlebuild.packaging.MinifyPlugin"
         }
         "toolingApiShadedJar" {
-            id = "gradlebuild.tooling-api-shaded-jar"
-            implementationClass = "org.gradle.gradlebuild.packaging.ToolingApiShadedJarPlugin"
+            id = "gradlebuild.shaded-jar"
+            implementationClass = "org.gradle.gradlebuild.packaging.ShadedJarPlugin"
         }
     }
 }

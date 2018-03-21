@@ -7,7 +7,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
 
 plugins {
-    id("gradlebuild.tooling-api-shaded-jar")
+    id("gradlebuild.shaded-jar")
 }
 
 val testPublishRuntime by configurations.creating

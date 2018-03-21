@@ -33,7 +33,7 @@ import java.util.*
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
-open class ToolingApiShadedJar : DefaultTask() {
+open class ShadedJar : DefaultTask() {
     @InputFiles
     lateinit var relocatedClassesConfiguration: FileCollection
     @InputFiles
