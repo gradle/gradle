@@ -45,8 +45,10 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 
+import java.io.File;
 import java.util.UUID;
 
 public class DaemonMessageSerializer {
@@ -58,7 +60,12 @@ public class DaemonMessageSerializer {
 
         // Lifecycle messages
         registry.register(Build.class, new BuildSerializer());
+        registry.register(Cancel.class, new CancelSerializer());
+        registry.register(DaemonUnavailable.class, new DaemonUnavailableSerializer());
+        registry.register(BuildStarted.class, new BuildStartedSerializer());
         registry.register(Failure.class, new FailureSerializer(throwableSerializer));
+        registry.register(Success.class, new SuccessSerializer());
+        registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
         registry.register(BuildEvent.class, new BuildEventSerializer());
@@ -84,10 +91,34 @@ public class DaemonMessageSerializer {
         return registry.build(Message.class);
     }
 
+    private static class SuccessSerializer implements Serializer<Success> {
+        private final Serializer<Object> payloadSerializer = new DefaultSerializer<Object>();
+
+        @Override
+        public void write(Encoder encoder, Success success) throws Exception {
+            if (success.getValue() == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                payloadSerializer.write(encoder, success.getValue());
+            }
+        }
+
+        @Override
+        public Success read(Decoder decoder) throws Exception {
+            boolean notNull = decoder.readBoolean();
+            if (notNull) {
+                return new Success(payloadSerializer.read(decoder));
+            } else {
+                return new Success(null);
+            }
+        }
+    }
+
     private static class FailureSerializer implements Serializer<Failure> {
         private final Serializer<Throwable> throwableSerializer;
 
-        public FailureSerializer(Serializer<Throwable> throwableSerializer) {
+        FailureSerializer(Serializer<Throwable> throwableSerializer) {
             this.throwableSerializer = throwableSerializer;
         }
 
@@ -142,7 +173,7 @@ public class DaemonMessageSerializer {
     private static class OutputMessageSerializer implements Serializer<OutputMessage> {
         private final Serializer<OutputEvent> eventSerializer;
 
-        public OutputMessageSerializer(Serializer<OutputEvent> eventSerializer) {
+        OutputMessageSerializer(Serializer<OutputEvent> eventSerializer) {
             this.eventSerializer = eventSerializer;
         }
 
@@ -177,6 +208,64 @@ public class DaemonMessageSerializer {
             long timestamp = decoder.readLong();
             Object[] payload = payloadSerializer.read(decoder);
             return new Build(uuid, token, (BuildAction) payload[0], (BuildClientMetaData) payload[1], timestamp, (BuildActionParameters) payload[2]);
+        }
+    }
+
+    private static class DaemonUnavailableSerializer implements Serializer<DaemonUnavailable> {
+        @Override
+        public void write(Encoder encoder, DaemonUnavailable value) throws Exception {
+            encoder.writeNullableString(value.getReason());
+        }
+
+        @Override
+        public DaemonUnavailable read(Decoder decoder) throws Exception {
+            return new DaemonUnavailable(decoder.readNullableString());
+        }
+    }
+
+    private static class CancelSerializer implements Serializer<Cancel> {
+        @Override
+        public void write(Encoder encoder, Cancel value) {
+        }
+
+        @Override
+        public Cancel read(Decoder decoder) {
+            return new Cancel();
+        }
+    }
+
+    private static class BuildStartedSerializer implements Serializer<BuildStarted> {
+        @Override
+        public void write(Encoder encoder, BuildStarted buildStarted) throws Exception {
+            encoder.writeString(buildStarted.getDiagnostics().getDaemonLog().getPath());
+            if (buildStarted.getDiagnostics().getPid() == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeLong(buildStarted.getDiagnostics().getPid());
+            }
+        }
+
+        @Override
+        public BuildStarted read(Decoder decoder) throws Exception {
+            File log = new File(decoder.readString());
+            boolean nonNull = decoder.readBoolean();
+            Long pid = null;
+            if (nonNull) {
+                pid = decoder.readLong();
+            }
+            return new BuildStarted(new DaemonDiagnostics(log, pid));
+        }
+    }
+
+    private static class FinishedSerializer implements Serializer<Finished> {
+        @Override
+        public Finished read(Decoder decoder) {
+            return new Finished();
+        }
+
+        @Override
+        public void write(Encoder encoder, Finished value) {
         }
     }
 }
