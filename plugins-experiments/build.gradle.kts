@@ -18,7 +18,7 @@ repositories {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.1.0")
+    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.2.0")
     implementation(futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":test-fixtures"))
@@ -38,7 +38,7 @@ kotlinDslPlugins {
 
 // default versions ---------------------------------------------------
 
-val ktlintVersion = "0.19.0"
+val ktlintVersion = "0.20.0"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
 val processResources: ProcessResources by tasks
