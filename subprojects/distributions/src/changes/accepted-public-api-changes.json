@@ -118,6 +118,26 @@
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setTargetPlatform(org.gradle.nativeplatform.platform.NativePlatform)",
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.setToolChain(org.gradle.nativeplatform.toolchain.NativeToolChain)"
             ]
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Field VERSION_11",
+            "acceptation": "Support JDK 11"
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Field VERSION_HIGHER",
+            "acceptation": "Support JDK 11"
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.isJava11()",
+            "acceptation": "Support JDK 11"
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.isJava11Compatible()",
+            "acceptation": "Support JDK 11"
         }
     ]
 }
