@@ -49,9 +49,9 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     private Set<String> listeners = new LinkedHashSet<String>();
 
-    private String parallel;
+    private String parallel = null;
 
-    private int threadCount = 1;
+    private int threadCount = -1;
 
     private boolean useDefaultListeners;
 
