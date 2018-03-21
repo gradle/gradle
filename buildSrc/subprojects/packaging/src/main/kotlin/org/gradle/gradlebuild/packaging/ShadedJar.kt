@@ -19,7 +19,6 @@ package org.gradle.gradlebuild.packaging
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -36,13 +35,13 @@ import java.util.jar.JarOutputStream
 
 open class ShadedJar : DefaultTask() {
     @InputFiles
-    lateinit var relocatedClassesConfiguration: FileCollection
+    val relocatedClassesConfiguration = project.files()
     @InputFiles
-    lateinit var classTreesConfiguration: FileCollection
+    val classTreesConfiguration = project.files()
     @InputFiles
-    lateinit var entryPointsConfiguration: FileCollection
+    val entryPointsConfiguration = project.files()
     @InputFiles
-    lateinit var manifests: FileCollection
+    val manifests = project.files()
 
     /**
      * The build receipt properties file.
