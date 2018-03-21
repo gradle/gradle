@@ -1,0 +1,8 @@
+if (Boolean.getBoolean('release.engineer')) {
+    task release {
+        doLast {
+            // release the artifact to production
+            logger.quiet 'Releasing to production...'
+        }
+    }
+}
