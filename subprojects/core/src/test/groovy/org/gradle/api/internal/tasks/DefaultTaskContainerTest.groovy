@@ -60,7 +60,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "creates by name"() {
         given:
         def task = task("task")
-        taskFactory.createTask("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask, null) >> task
 
         expect:
         container.create("task") == task
@@ -69,7 +69,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "creates by name and type"() {
         given:
         def task = task("task", CustomTask)
-        taskFactory.createTask("task", CustomTask, null) >> task
+        taskFactory.create("task", CustomTask, null) >> task
 
         expect:
         container.create("task", CustomTask.class) == task
@@ -80,7 +80,7 @@ public class DefaultTaskContainerTest extends Specification {
         final Closure action = {}
         def task = task("task")
 
-        taskFactory.createTask("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask, null) >> task
 
         when:
         def added = container.create("task", action)
@@ -95,7 +95,7 @@ public class DefaultTaskContainerTest extends Specification {
         def action = Mock(Action)
         def task = task("task")
 
-        taskFactory.createTask("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask, null) >> task
 
         when:
         def added = container.create("task", action)
@@ -108,7 +108,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "replaces task by name"() {
         given:
         def task = task("task")
-        taskFactory.createTask("task", DefaultTask) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def replaced = container.replace("task")
@@ -121,7 +121,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "replaces by name and type"() {
         given:
         def task = task("task", CustomTask)
-        taskFactory.createTask("task", CustomTask) >> task
+        taskFactory.create("task", CustomTask) >> task
 
         expect:
         container.replace("task", CustomTask.class) == task
@@ -132,7 +132,7 @@ public class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         container.addRule(rule)
-        taskFactory.createTask("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask, null) >> task
 
         when:
         container.create("task")
@@ -144,7 +144,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "prevents duplicate tasks"() {
         given:
         def task = addTask("task")
-        taskFactory.createTask("task", DefaultTask, null) >> { this.task("task") }
+        taskFactory.create("task", DefaultTask, null) >> { this.task("task") }
 
         when:
         container.create("task")
@@ -159,7 +159,7 @@ public class DefaultTaskContainerTest extends Specification {
         given:
         addTask("task")
         def newTask = task("task")
-        taskFactory.createTask("task", DefaultTask) >> newTask
+        taskFactory.create("task", DefaultTask) >> newTask
 
         when:
         container.replace("task")
@@ -352,7 +352,7 @@ public class DefaultTaskContainerTest extends Specification {
         given:
         def task = task("task")
 
-        taskFactory.createTask("task", DefaultTask, null) >> task
+        taskFactory.create("task", DefaultTask, null) >> task
 
         when:
         def added = container.maybeCreate("task")
@@ -373,7 +373,7 @@ public class DefaultTaskContainerTest extends Specification {
         given:
         def task = task("task", CustomTask)
 
-        taskFactory.createTask("task", CustomTask, null) >> task
+        taskFactory.create("task", CustomTask, null) >> task
 
         when:
         def added = container.maybeCreate("task", CustomTask)
