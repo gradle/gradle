@@ -119,10 +119,10 @@ open class ShadedJarPlugin : Plugin<Project> {
         return tasks.create<ShadedJar>("${project.name}ShadedJar") {
             dependsOn(jar)
             jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
-            classTreesConfiguration = configurationToShade.artifactViewForType(classTreesType)
-            entryPointsConfiguration = configurationToShade.artifactViewForType(entryPointsType)
-            relocatedClassesConfiguration = configurationToShade.artifactViewForType(relocatedClassesType)
-            manifests = configurationToShade.artifactViewForType(manifestsType)
+            classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
+            entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
+            relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
+            manifests.from(configurationToShade.artifactViewForType(manifestsType))
             buildReceiptFile.set(shadedJarExtension.buildReceiptFile)
         }
     }
