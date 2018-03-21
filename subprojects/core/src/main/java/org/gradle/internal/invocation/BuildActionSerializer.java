@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.invocation;
 
-import org.gradle.StartParameter;
+import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.Serializer;
 
-/**
- * An object that describes the top level build action to perform, e.g. run some tasks, build a tooling model, run some tests, etc.
- */
-public interface BuildAction {
-    StartParameter getStartParameter();
+public class BuildActionSerializer {
+    public static Serializer<BuildAction> create() {
+        DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
+        registry.useJavaSerialization(BuildAction.class);
+        return registry.build(BuildAction.class);
+    }
 }
