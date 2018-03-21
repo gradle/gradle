@@ -23,7 +23,7 @@ import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.2" apply false
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.4" apply false
 }
 
 subprojects {
