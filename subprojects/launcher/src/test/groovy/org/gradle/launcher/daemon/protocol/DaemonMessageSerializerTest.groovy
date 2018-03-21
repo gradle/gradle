@@ -16,7 +16,10 @@
 
 package org.gradle.launcher.daemon.protocol
 
+import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
+import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
@@ -24,6 +27,8 @@ import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.launcher.cli.ExecuteBuildAction
+import org.gradle.launcher.exec.DefaultBuildActionParameters
 
 class DaemonMessageSerializerTest extends SerializerSpec {
     def serializer = DaemonMessageSerializer.create()
@@ -76,13 +81,6 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         messageResult.bytes == message.bytes
     }
 
-    def "can serialize other messages"() {
-        expect:
-        def message = new Cancel()
-        def messageResult = serialize(message, serializer)
-        messageResult instanceof Cancel
-    }
-
     def "can serialize user input request event"() {
         expect:
         def event = new UserInputRequestEvent('prompt')
@@ -98,6 +96,31 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(event, serializer)
         result instanceof UserInputResumeEvent
         result.logLevel == LogLevel.QUIET
+    }
+
+    def "can serialize Build message"() {
+        expect:
+        def action = new ExecuteBuildAction(new StartParameter())
+        def clientMetadata = new GradleLauncherMetaData()
+        def params = new DefaultBuildActionParameters([:], [:], new File("some-dir"), LogLevel.ERROR, true, false, false, ClassPath.EMPTY)
+        def message = new Build(UUID.randomUUID(), [1, 2, 3] as byte[], action, clientMetadata, 1234L, params)
+        Build result = serialize(message, serializer)
+        result.identifier == message.identifier
+        result.token == message.token
+        result.startTime == message.startTime
+        result.action
+        result.buildRequestMetaData
+        result.parameters
+    }
+
+    def "can serialize other messages"() {
+        expect:
+        def messageResult = serialize(message, serializer)
+        messageResult.class == message.class
+
+        where:
+        message      | _
+        new Cancel() | _
     }
 
     OutputEvent serialize(OutputEvent event, Serializer<Object> serializer) {
