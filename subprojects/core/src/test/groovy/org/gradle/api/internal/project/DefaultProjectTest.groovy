@@ -684,6 +684,15 @@ def scriptMethod(Closure closure) {
         assertNull(project.findProperty("someNonExistingProp"))
     }
 
+    @Test
+    void testSetPropertyNullValue() {
+        project.ext.someProp = "somePropValue"
+        project.setProperty("someProp", null)
+        assert project.hasProperty("someProp")
+        assertNull(project.findProperty("someProp"))
+        assertNull(project.someProp)
+    }
+
     @Test(expected = MissingPropertyException)
     public void testPropertyMissingWithUnknownProperty() {
         project.unknownProperty
