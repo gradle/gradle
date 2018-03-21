@@ -25,16 +25,13 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.file.Path
 import java.util.*
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
 
 
 open class ShadedJar : DefaultTask() {
@@ -78,9 +75,9 @@ open class ShadedJar : DefaultTask() {
 
         JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile.get().asFile))).use { jarOutputStream ->
             if (!manifests.isEmpty) {
-                addJarEntry(JarFile.MANIFEST_NAME, manifests.first(), jarOutputStream)
+                jarOutputStream.addJarEntry(JarFile.MANIFEST_NAME, manifests.first())
             }
-            addJarEntry("org/gradle/build-receipt.properties", buildReceiptFile.get().asFile, jarOutputStream)
+            jarOutputStream.addJarEntry("org/gradle/build-receipt.properties", buildReceiptFile.get().asFile)
             relocatedClassesConfiguration.files.forEach { classesDir ->
                 val classesDirPath = classesDir.toPath()
                 classesDir.walk().filter {
@@ -88,7 +85,7 @@ open class ShadedJar : DefaultTask() {
                     classesToInclude.contains(relativePath)
                 }.forEach {
                     val relativePath = classesDirPath.relativePath(it)
-                    addJarEntry(relativePath, it, jarOutputStream)
+                    jarOutputStream.addJarEntry(relativePath, it)
                 }
             }
         }
@@ -96,13 +93,6 @@ open class ShadedJar : DefaultTask() {
 
     private
     fun Path.relativePath(other: File) = relativize(other.toPath()).toString().replace(File.separatorChar, '/')
-
-    private
-    fun addJarEntry(entryName: String, sourceFile: File, jarOutputStream: JarOutputStream) {
-        jarOutputStream.putNextEntry(ZipEntry(entryName))
-        BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(jarOutputStream) }
-        jarOutputStream.closeEntry()
-    }
 
     private
     inline fun <reified T> readJson(file: File) =
