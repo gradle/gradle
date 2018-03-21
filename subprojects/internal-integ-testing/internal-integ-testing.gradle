@@ -22,11 +22,7 @@ dependencies {
     compile project(':launcher')
     compile project(':native')
     compile testLibraries.jetty
-    compile module("org.littleshoot:littleproxy:1.1.0-beta1") {
-        dependency libraries.slf4j_api.coordinates
-        dependency "io.netty:netty-all:4.0.23.Final"
-        dependency "org.apache.commons:commons-lang3:3.4"
-    }
+    compile "org.littleshoot:littleproxy:1.1.0-beta1"
     compile libraries.gcs.coordinates, libraries.commons_httpclient.coordinates, libraries.joda.coordinates
     compile libraries.jackson_core.coordinates, libraries.jackson_annotations.coordinates, libraries.jackson_databind.coordinates
     compile libraries.ivy.coordinates
@@ -42,6 +38,17 @@ dependencies {
     implementation project(':dependencyManagement')
 
     runtime project(':logging')
+
+    components {
+        withModule("org.littleshoot:littleproxy") {
+            allVariants {
+                withDependencies {
+                    removeAll { it.name == "barchart-udt-bundle" || it.name == "guava" || it.name == "commons-cli" }
+                }
+            }
+
+        }
+    }
 }
 
 gradlebuildJava {
