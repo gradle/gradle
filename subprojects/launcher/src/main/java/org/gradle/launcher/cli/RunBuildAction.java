@@ -23,6 +23,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 

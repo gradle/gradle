@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.cli;
+package org.gradle.launcher.cli.action;
 
 import org.gradle.StartParameter;
 import org.gradle.internal.invocation.BuildAction;
 
-import java.io.Serializable;
-
-public class ExecuteBuildAction implements BuildAction, Serializable {
+public class ExecuteBuildAction implements BuildAction {
     private final StartParameter startParameter;
 
     public ExecuteBuildAction(StartParameter startParameter) {
