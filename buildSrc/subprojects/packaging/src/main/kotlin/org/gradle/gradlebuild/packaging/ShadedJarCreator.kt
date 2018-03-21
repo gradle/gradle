@@ -16,12 +16,6 @@
 
 package org.gradle.gradlebuild.packaging
 
-import org.gradle.gradlebuild.packaging.shading.ClassAnalysisException
-import org.gradle.gradlebuild.packaging.shading.ClassDetails
-import org.gradle.gradlebuild.packaging.shading.ClassGraph
-import org.gradle.gradlebuild.packaging.shading.PackagePatterns
-import org.gradle.gradlebuild.packaging.shading.ResourceDetails
-
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper

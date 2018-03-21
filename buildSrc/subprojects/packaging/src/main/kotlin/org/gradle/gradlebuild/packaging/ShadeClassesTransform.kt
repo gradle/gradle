@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging.shading
+package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.gradlebuild.packaging.ignoredPackagePatterns
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper

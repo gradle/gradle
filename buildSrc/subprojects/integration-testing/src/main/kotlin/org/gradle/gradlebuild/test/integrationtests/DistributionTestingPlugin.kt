@@ -24,7 +24,7 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
-import org.gradle.gradlebuild.packaging.shading.CreateShadedJar
+import org.gradle.gradlebuild.packaging.CreateShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.kotlin.dsl.*
 import java.io.File

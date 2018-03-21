@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging.shading
+package org.gradle.gradlebuild.packaging
 
 import org.gradle.internal.exceptions.Contextual
 

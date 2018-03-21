@@ -4,12 +4,12 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.gradlebuild.packaging.shading.ShadeClassesTransform
-import org.gradle.gradlebuild.packaging.shading.FindRelocatedClasses
-import org.gradle.gradlebuild.packaging.shading.FindClassTrees
-import org.gradle.gradlebuild.packaging.shading.FindEntryPoints
-import org.gradle.gradlebuild.packaging.shading.FindManifests
-import org.gradle.gradlebuild.packaging.shading.CreateShadedJar
+import org.gradle.gradlebuild.packaging.ShadeClassesTransform
+import org.gradle.gradlebuild.packaging.FindRelocatedClasses
+import org.gradle.gradlebuild.packaging.FindClassTrees
+import org.gradle.gradlebuild.packaging.FindEntryPoints
+import org.gradle.gradlebuild.packaging.FindManifests
+import org.gradle.gradlebuild.packaging.CreateShadedJar
 
 val testPublishRuntime by configurations.creating
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging.shading
+package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
