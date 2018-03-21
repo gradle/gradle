@@ -86,6 +86,11 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 downgradeXmlApis("jdom:jdom")
                 downgradeXmlApis("xalan:xalan")
                 downgradeXmlApis("jaxen:jaxen")
+
+                // Test dependencies - minify: remove unused transitive dependencies
+                withLibraryDependencies("org.littleshoot:littleproxy") {
+                    removeAll { it.name == "barchart-udt-bundle" || it.name == "guava" || it.name == "commons-cli" }
+                }
             }
         }
     }

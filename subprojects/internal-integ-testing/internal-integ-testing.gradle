@@ -38,17 +38,6 @@ dependencies {
     implementation project(':dependencyManagement')
 
     runtime project(':logging')
-
-    components {
-        withModule("org.littleshoot:littleproxy") {
-            allVariants {
-                withDependencies {
-                    removeAll { it.name == "barchart-udt-bundle" || it.name == "guava" || it.name == "commons-cli" }
-                }
-            }
-
-        }
-    }
 }
 
 gradlebuildJava {
