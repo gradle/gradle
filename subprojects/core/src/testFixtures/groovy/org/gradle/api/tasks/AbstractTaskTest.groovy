@@ -29,7 +29,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
 import java.util.concurrent.atomic.AtomicBoolean
