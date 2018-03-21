@@ -33,6 +33,8 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
             targetVersions = ["4.7-20180330212523+0000"]
+            invocationCount = iterations
+            warmUpCount = iterations
             action {
                 def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
@@ -80,9 +82,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                   | iterations
+        LARGE_MONOLITHIC_JAVA_PROJECT | 200
+        LARGE_JAVA_MULTI_PROJECT      | 40
     }
 
     @Unroll
@@ -91,6 +93,8 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
             targetVersions = ["4.7-20180330212523+0000"]
+            invocationCount = iterations
+            warmUpCount = iterations
             action {
                 def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
@@ -135,9 +139,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                   | iterations
+        LARGE_MONOLITHIC_JAVA_PROJECT | 200
+        LARGE_JAVA_MULTI_PROJECT      | 40
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

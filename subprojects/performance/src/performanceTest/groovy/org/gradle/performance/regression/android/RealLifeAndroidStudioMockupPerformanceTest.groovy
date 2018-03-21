@@ -31,6 +31,8 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
             action('org.gradle.performance.android.SyncAction') {
                 jvmArguments = customizeJvmOptions(["-Xms4g", "-Xmx4g"])
             }
+            invocationCount = iterations
+            warmUpCount = iterations
         }
 
         when:
@@ -40,7 +42,9 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["k9AndroidBuild", "largeAndroidBuild"]
+        testProject         | iterations
+        "k9AndroidBuild"    | 200
+        "largeAndroidBuild" | 40
     }
 
 }
