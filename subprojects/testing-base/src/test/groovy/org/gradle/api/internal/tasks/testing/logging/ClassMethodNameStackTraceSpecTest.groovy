@@ -25,6 +25,8 @@ class ClassMethodNameStackTraceSpecTest extends Specification {
         expect:
         spec.isSatisfiedBy(new StackTraceElement("ClassName", "methodName", "SomeFile.java", 42))
         spec.isSatisfiedBy(new StackTraceElement("ClassName", "methodName", "OtherFile.java", 21))
+        spec.isSatisfiedBy(new StackTraceElement('ClassName$1', "methodName", "ClassName.java", 21))
+        spec.isSatisfiedBy(new StackTraceElement('ClassName$1$22', "methodName", "ClassName.kt", 21))
     }
 
     def "rejects elements whose class or method name does not match"() {
@@ -33,6 +35,7 @@ class ClassMethodNameStackTraceSpecTest extends Specification {
         expect:
         !spec.isSatisfiedBy(new StackTraceElement("ClassName", "otherMethodName", "SomeFile.java", 42))
         !spec.isSatisfiedBy(new StackTraceElement("OtherClassName", "methodName", "OtherFile.java", 21))
+        !spec.isSatisfiedBy(new StackTraceElement('ClassName$Inner', "otherMethodName", "SomeFile.kt", 42))
     }
 
     def "allows to only match class name (by setting method name to null)"() {
@@ -40,16 +43,9 @@ class ClassMethodNameStackTraceSpecTest extends Specification {
 
         expect:
         spec.isSatisfiedBy(new StackTraceElement("ClassName", "methodName", "SomeFile.java", 42))
+        spec.isSatisfiedBy(new StackTraceElement('ClassName$1$1$1', "methodName", "SomeFile.kt", 42))
         spec.isSatisfiedBy(new StackTraceElement("ClassName", "otherMethodName", "SomeFile.java", 42))
         !spec.isSatisfiedBy(new StackTraceElement("OtherClassName", "methodName", "OtherFile.java", 21))
-    }
-
-    def "allows to only match method name (by setting class name to null)"() {
-        def spec = new ClassMethodNameStackTraceSpec(null, "methodName")
-
-        expect:
-        spec.isSatisfiedBy(new StackTraceElement("ClassName", "methodName", "SomeFile.java", 42))
-        spec.isSatisfiedBy(new StackTraceElement("OtherClassName", "methodName", "SomeFile.java", 42))
-        !spec.isSatisfiedBy(new StackTraceElement("ClassName", "otherMethodName", "OtherFile.java", 21))
+        !spec.isSatisfiedBy(new StackTraceElement('ClassName$Inner$1', "methodName", "OtherFile.kt", 21))
     }
 }
