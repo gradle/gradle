@@ -49,7 +49,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.create("nativeLinkDebug") >> link
         _ * configurations.create("nativeRuntimeDebug") >> runtime
 
-        binary = new DefaultSwiftBinary("mainDebug", project.layout, project.objects, Stub(Provider), true, false,false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
+        binary = new DefaultSwiftBinary("mainDebug", project.layout, project.objects, Stub(Provider), false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "compileModules is a transformed view of compile"() {

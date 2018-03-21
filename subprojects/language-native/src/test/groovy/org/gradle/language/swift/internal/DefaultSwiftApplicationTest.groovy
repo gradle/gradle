@@ -49,7 +49,7 @@ class DefaultSwiftApplicationTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = app.addExecutable(identity, true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = app.addExecutable(identity, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
@@ -77,6 +77,7 @@ class DefaultSwiftApplicationTest extends Specification {
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
+            isDebuggable() >> true
             getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.MAC_OS)
         }
     }
