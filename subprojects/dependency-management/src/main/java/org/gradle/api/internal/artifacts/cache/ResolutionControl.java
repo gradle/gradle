@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.cache;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.internal.artifacts.cache;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  * @param <A> The type of the request object for this resolution
  * @param <B> The type of the result of this resolution
  */
-@Incubating
 public interface ResolutionControl<A, B> {
     /**
      * Returns the query object that was requested in this resolution.
@@ -39,7 +36,7 @@ public interface ResolutionControl<A, B> {
      */
     @Nullable
     B getCachedResult();
-    
+
     /**
      * States that the cached value should be used if it is no older than the specified duration.
      * @param value The number of units

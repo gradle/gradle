@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.cache;
+package org.gradle.api.internal.artifacts.cache;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 
 import java.io.File;
@@ -23,7 +22,6 @@ import java.io.File;
 /**
  * Command methods for controlling artifact resolution via the DSL.
  */
-@Incubating
 public interface ArtifactResolutionControl extends ResolutionControl<ArtifactIdentifier, File> {
     boolean belongsToChangingModule();
 }

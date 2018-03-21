@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
-import org.gradle.api.artifacts.cache.DependencyResolutionControl;
-import org.gradle.api.artifacts.cache.ModuleResolutionControl;
-import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl;
+import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
+import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
+import org.gradle.api.internal.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
