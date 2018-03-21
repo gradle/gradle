@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaContentRoot
@@ -115,8 +114,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.compilerOutput.outputDir == file('someDir')
         module.compilerOutput.testOutputDir == file('someTestDir')
     }
-    @ToolingApiVersion("<4.7")
-    @TargetGradleVersion("<4.7")
+
     def "provides source dir information"() {
 
         file('build.gradle').text = "apply plugin: 'java'"

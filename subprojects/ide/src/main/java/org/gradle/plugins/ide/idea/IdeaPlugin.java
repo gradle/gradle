@@ -341,14 +341,14 @@ public class IdeaPlugin extends IdePlugin {
                     @Override
                     public Set<File> call() {
                         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("main").getAllJava().getSrcDirs();
+                        return sourceSets.getByName("main").getAllSource().getSrcDirs();
                     }
                 });
                 convention.map("testSourceDirs", new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() {
                         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("test").getAllJava().getSrcDirs();
+                        return sourceSets.getByName("test").getAllSource().getSrcDirs();
                     }
                 });
                 convention.map("resourceDirs", new Callable<Set<File>>() {

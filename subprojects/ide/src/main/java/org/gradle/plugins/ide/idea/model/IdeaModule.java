@@ -219,6 +219,9 @@ public class IdeaModule {
     /**
      * The directories containing the production sources.
      * <p>
+     * For backward-compatibility it is set of directories containing the production sources from <tt>project.sourceSets.main.allSource</tt>.
+     * <p>
+     * Starting with Gradle 5.0 it is set of directories containing the production sources from <tt>project.sourceSets.main.allJava</tt>.
      * For example see docs for {@link IdeaModule}
      */
     public Set<File> getSourceDirs() {
@@ -311,8 +314,14 @@ public class IdeaModule {
         this.contentRoot = contentRoot;
     }
 
+
     /**
-     * The directories containing the test sources. <p> For example see docs for {@link IdeaModule}
+     * The directories containing the test sources.
+     * <p>
+     * For backward-compatibility it is set of directories containing the test sources from <tt>project.sourceSets.test.allSource</tt>.
+     * <p>
+     * Starting with Gradle 5.0 it is set of directories containing the test sources from <tt>project.sourceSets.test.allJava</tt>.
+     * For example see docs for {@link IdeaModule}
      */
     public Set<File> getTestSourceDirs() {
         return testSourceDirs;

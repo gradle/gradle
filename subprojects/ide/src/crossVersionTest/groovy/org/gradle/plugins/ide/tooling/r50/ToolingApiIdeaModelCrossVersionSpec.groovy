@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r47
+package org.gradle.plugins.ide.tooling.r50
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion(">=4.7 <5.0")
-@TargetGradleVersion(">=4.7 <5.0")
+/**
+ * NOTE: Starting with Gradle 5.0 the contract of IdeaModule#sourceDirs and IdeaModule#testSourceDirs changes in
+ * a way that the resource directories are excluded.
+ */
+@ToolingApiVersion(">=5.0")
+@TargetGradleVersion(">=5.0")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=4.7")
-    @TargetGradleVersion(">=4.7")
-    def "has empty source dirs for project without java plugin"() {
+
+    def "provides source dir information"() {
+
+        buildFile.text = "apply plugin: 'java'"
 
         projectDir.create {
             src {
@@ -51,10 +55,15 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         IdeaContentRoot root = module.contentRoots[0]
 
         then:
-        root.sourceDirectories.empty
-        root.resourceDirectories.empty
-        root.testDirectories.empty
-        root.testResourceDirectories.empty
+        root.sourceDirectories.size() == 1
+        root.sourceDirectories.first().directory == file('src/main/java')
+        root.resourceDirectories.size() == 1
+        root.resourceDirectories.first().directory == file('src/main/resources')
+
+        root.testDirectories.size() == 1
+        root.testDirectories.first().directory == file('src/test/java')
+        root.testResourceDirectories.size() == 1
+        root.testResourceDirectories.first().directory == file('src/test/resources')
     }
 
     def "custom source sets are not added as source directories by default"() {
@@ -96,14 +105,12 @@ sourceSets {
         IdeaContentRoot root = module.contentRoots[0]
 
         then:
-        root.sourceDirectories.size() == 2
-        root.sourceDirectories.any { it.directory == file('mainSources')}
-        root.sourceDirectories.any { it.directory == file('mainResources')}
+        root.sourceDirectories.size() == 1
+        root.sourceDirectories[0].directory == file('mainSources')
         root.resourceDirectories.size() == 1
         root.resourceDirectories[0].directory == file('mainResources')
-        root.testDirectories.size() == 2
-        root.testDirectories.any { it.directory == file('testSources')}
-        root.testDirectories.any { it.directory == file('testResources')}
+        root.testDirectories.size() == 1
+        root.testDirectories[0].directory == file('testSources')
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories[0].directory == file('testResources')
     }
@@ -153,49 +160,15 @@ idea.module {
         IdeaContentRoot root = module.contentRoots[0]
 
         then:
-        root.sourceDirectories.size() == 3
+        root.sourceDirectories.size() == 2
         root.sourceDirectories.any { it.directory == file('mainSources')}
         root.sourceDirectories.any { it.directory == file('fooSources')}
-        root.sourceDirectories.any { it.directory == file('mainResources')}
         root.resourceDirectories.size() == 2
         root.resourceDirectories.any { it.directory == file('mainResources')}
         root.resourceDirectories.any { it.directory == file('fooResources')}
-        root.testDirectories.size() == 2
-        root.testDirectories.any { it.directory == file('testSources')}
-        root.testDirectories.any { it.directory == file('testResources')}
+        root.testDirectories.size() == 1
+        root.testDirectories[0].directory == file('testSources')
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories[0].directory == file('testResources')
-    }
-
-    @TargetGradleVersion("<4.7")
-    def "older Gradle version throw UnsupportedMethodException when querying resources and test resources"() {
-        given:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-        IdeaModule module = project.children[0]
-        IdeaContentRoot root = module.contentRoots[0]
-
-        when:
-        root.getResourceDirectories()
-
-        then:
-        thrown(UnsupportedMethodException)
-
-        when:
-        root.getTestResourceDirectories()
-
-        then:
-        thrown(UnsupportedMethodException)
-
-        when:
-        root.getGeneratedResourceDirectories()
-
-        then:
-        thrown(UnsupportedMethodException)
-
-        when:
-        root.getGeneratedTestResourceDirectories()
-
-        then:
-        thrown(UnsupportedMethodException)
     }
 }
