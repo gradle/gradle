@@ -108,7 +108,8 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     @Override
     public Set<? extends UsageContext> getUsages() {
         Configuration linkElements = getLinkElements().get();
-        Configuration runtimeElements = this.runtimeElements.get();
+        Configuration runtimeElements = getRuntimeElements().get();
+        // TODO: Does a static library really have any runtime elements?
         return Sets.newHashSet(
             new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
             new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)

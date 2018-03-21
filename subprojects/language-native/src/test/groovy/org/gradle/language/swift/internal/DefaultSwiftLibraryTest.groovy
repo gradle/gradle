@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.internal.DefaultUsageContext
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -105,7 +106,7 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     private NativeVariantIdentity getIdentity() {
-        return new NativeVariantIdentity("test", null, null, null, true, false, null,
+        return new NativeVariantIdentity("test", null, null, null, true, false, TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS),
             new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable()),
             new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable())
         )
