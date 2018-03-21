@@ -101,6 +101,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());
         testNg.setDefaultTestName(options.getDefaultTestName());
+
         if (options.getParallel() != null) {
             testNg.setParallel(options.getParallel());
         }
