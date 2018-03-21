@@ -150,6 +150,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             selectedBy = Lists.newLinkedList();
         }
         selectedBy.add(resolver);
+        mergedVersionConstraint = null;
     }
 
     public List<SelectorState> getSelectedBy() {
