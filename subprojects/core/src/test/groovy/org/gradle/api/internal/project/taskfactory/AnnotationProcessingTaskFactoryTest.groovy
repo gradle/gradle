@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
@@ -42,8 +43,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private ITaskFactory delegate
     private TaskClassInfoStore taskClassInfoStore
     def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
-
-    private Map args = new HashMap()
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -743,7 +742,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
         final Class decorated = project.getServices().get(ClassGenerator).generate(type)
-        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<TaskInternal>() {
+        final String name = "task"
+        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, name, type, new Callable<TaskInternal>() {
             TaskInternal call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
@@ -752,13 +752,13 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
                 }
             }
         })
-        return expectTaskCreated(task)
+        return expectTaskCreated(name, type, task)
     }
 
-    private TaskInternal expectTaskCreated(final TaskInternal task) {
+    private TaskInternal expectTaskCreated(final String name, final Class<? extends Task> type, final TaskInternal task) {
         // We cannot just stub here as we want to return a different task each time.
-        1 * delegate.createTask(args) >> task
-        assert factory.createTask(args).is(task)
+        1 * delegate.create(name, type) >> task
+        assert factory.create(name, type).is(task)
         return task
     }
 

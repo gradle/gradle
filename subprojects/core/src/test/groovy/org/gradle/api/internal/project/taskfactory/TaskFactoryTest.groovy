@@ -41,7 +41,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     public void testUsesADefaultTaskTypeWhenNoneSpecified() {
         when:
-        Task task = taskFactory.createTask([name: "task"]);
+        Task task = taskFactory.create("task");
 
         then:
         task instanceof DefaultTask
