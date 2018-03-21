@@ -16,10 +16,8 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import java.io.Serializable;
-
 /**
  * A message sent between daemon client and daemon server.
  */
-public class Message implements Serializable {
+public class Message {
 }

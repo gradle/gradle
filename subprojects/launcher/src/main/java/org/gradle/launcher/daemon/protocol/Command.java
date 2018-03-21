@@ -15,12 +15,13 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  * Represents the initial message sent to the daemon, requesting that the daemon do some work.
  */
-public class Command extends Message {
+public class Command extends Message implements Serializable {
     private final UUID identifier;
     private final byte[] token;
 
