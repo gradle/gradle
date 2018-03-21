@@ -18,7 +18,7 @@ package org.gradle.gradlebuild.packaging
 
 class ClassGraph(
     private val keepPackages: PackagePatterns,
-    val unshadedPackages: PackagePatterns,
+    private val unshadedPackages: PackagePatterns,
     private val ignorePackages: PackagePatterns,
     shadowPackage: String) {
 
