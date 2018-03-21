@@ -31,7 +31,8 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
         toolingApi.requireIsolatedToolingApi()
 
         // Create marker file to prevent creation of "welcome message"
-        def markerDir = new File(toolingApi.gradleUserHomeDir, "notifications/$buildContext.version.version")
+        def notificationsDir = new File(toolingApi.gradleUserHomeDir, "notifications")
+        def markerDir = new File(notificationsDir, buildContext.version.version)
         new File(markerDir, 'release-features.rendered').createNewFile()
     }
 
