@@ -69,6 +69,7 @@ import java.util.Map;
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
 public class CommandLineActionFactory {
+    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "welcome.message.enabled";
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
@@ -125,33 +126,49 @@ public class CommandLineActionFactory {
 
         @Override
         public void execute(PrintStream out) {
-            GradleVersion currentVersion = GradleVersion.current();
-            File markerFile = getMarkerFile(currentVersion);
+            if (isWelcomeMessageEnabled()) {
+                GradleVersion currentVersion = GradleVersion.current();
+                File markerFile = getMarkerFile(currentVersion);
 
-            if (!markerFile.exists()) {
-                out.println();
-                out.print("Welcome to Gradle " + currentVersion.getVersion() + "!");
+                if (!markerFile.exists()) {
+                    out.println();
+                    out.print("Welcome to Gradle " + currentVersion.getVersion() + "!");
 
-                String featureList = readReleaseFeatures();
+                    String featureList = readReleaseFeatures();
 
-                if (featureList != null) {
+                    if (featureList != null) {
+                        out.println();
+                        out.println();
+                        out.print("Here are the highlights of this release:");
+                        out.println();
+                        out.print(featureList);
+                    }
+
+                    if (!currentVersion.isSnapshot()) {
+                        out.println();
+                        out.print("For more details see https://gradle.org/releases/#" + currentVersion.getVersion());
+                        out.println();
+                    }
+
                     out.println();
-                    out.println();
-                    out.print("Here are the highlights of this release:");
-                    out.println();
-                    out.print(featureList);
+
+                    writeMarkerFile(markerFile);
                 }
-
-                if (!currentVersion.isSnapshot()) {
-                    out.println();
-                    out.print("For more details see https://gradle.org/releases/#" + currentVersion.getVersion());
-                    out.println();
-                }
-
-                out.println();
-
-                writeMarkerFile(markerFile);
             }
+        }
+
+        /**
+         * The system property is set for the purpose of internal testing.
+         * In user environment the system property will never be available.
+         */
+        private boolean isWelcomeMessageEnabled() {
+            String messageEnabled = System.getProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
+
+            if (messageEnabled == null) {
+                return true;
+            }
+
+            return Boolean.parseBoolean(messageEnabled);
         }
 
         private File getMarkerFile(GradleVersion currentVersion) {
