@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.test.fixtures.ivy.IvyModule
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -776,7 +775,6 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
      * applies with a 3rd constraint.
      */
     @Issue("gradle/gradle#4608")
-    @ToBeImplemented
     def "conflict resolution should consider all constraints for each candidate"() {
         repository {
             'org:foo:2' {
@@ -804,25 +802,17 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             'org:bar:1' {
                 expectGetMetadata()
             }
-            'org:bar:2' {
-                expectResolve()
-            }
             'org:foo:2' {
-                expectResolve()
+                expectGetMetadata()
             }
         }
-        run ":checkDeps"
+
+        fails ":checkDeps"
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org:foo:2') {
-                    module('org:bar:2')
-                }
-                edge("org:bar:1", "org:bar:2") // Violates the 'strictly' constraint
-                edge("org:bar:1", "org:bar:2")
-            }
-        }
+        failure.assertHasCause("""Cannot find a version of 'org:bar' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:bar' prefers '1', rejects ']1,)'
+   Dependency path ':test:unspecified' --> 'org:foo:2' --> 'org:bar' prefers '2'""")
     }
 
 }

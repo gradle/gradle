@@ -96,10 +96,6 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
                 result.failed(new ModuleVersionResolveException(selector, project + " not found."));
             } else {
                 result.resolved(componentMetaData);
-                String reason = dependency.getReason();
-                if (reason != null) {
-                    result.setSelectionDescription(result.getSelectionDescription().withReason(reason));
-                }
             }
         }
     }
