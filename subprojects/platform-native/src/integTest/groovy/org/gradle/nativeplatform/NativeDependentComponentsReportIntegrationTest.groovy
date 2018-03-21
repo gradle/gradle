@@ -560,7 +560,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
             No components.
 
-
             BUILD SUCCESSFUL
         """.stripIndent().trim()
     }

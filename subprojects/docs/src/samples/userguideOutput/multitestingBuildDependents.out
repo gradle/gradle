@@ -27,6 +27,5 @@
 > Task :services:personService:buildDependents
 > Task :api:buildDependents
 
-
 BUILD SUCCESSFUL in 0s
 17 actionable tasks: 17 executed
