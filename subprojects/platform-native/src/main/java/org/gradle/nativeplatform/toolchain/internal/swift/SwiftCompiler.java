@@ -119,8 +119,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add(spec.getModuleFile().getAbsolutePath());
                 }
 
-                genericArgs.add("-v");
-
 
                 boolean canSafelyCompileIncrementally = swiftDepsHandler.adjustTimestampsFor(moduleSwiftDeps, spec.getChangedFiles());
                 if (canSafelyCompileIncrementally) {
