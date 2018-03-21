@@ -36,7 +36,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final Set<String> classNames;
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
 
-    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameter startParameter, ImmutableSet<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests) {
+    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameter startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;

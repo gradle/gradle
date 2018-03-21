@@ -27,12 +27,13 @@ import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.launcher.cli.ExecuteBuildAction
+import org.gradle.launcher.cli.action.BuildActionSerializer
+import org.gradle.launcher.cli.action.ExecuteBuildAction
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 
 class DaemonMessageSerializerTest extends SerializerSpec {
-    def serializer = DaemonMessageSerializer.create()
+    def serializer = DaemonMessageSerializer.create(BuildActionSerializer.create())
 
     def "can serialize BuildEvent messages"() {
         expect:

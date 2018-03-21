@@ -21,17 +21,21 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.launcher.cli.action.BuildActionSerializer;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
+import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
@@ -148,11 +152,16 @@ public class DaemonServices extends DefaultServiceRegistry {
 
     }
 
-    protected Daemon createDaemon(ImmutableList<DaemonCommandAction> actions) {
+    Serializer<BuildAction> createBuildActionSerializer() {
+        return BuildActionSerializer.create();
+    }
+
+    protected Daemon createDaemon(ImmutableList<DaemonCommandAction> actions, Serializer<BuildAction> buildActionSerializer) {
         return new Daemon(
             new DaemonTcpServerConnector(
                 get(ExecutorFactory.class),
-                get(InetAddressFactory.class)
+                get(InetAddressFactory.class),
+                DaemonMessageSerializer.create(buildActionSerializer)
             ),
             get(DaemonRegistry.class),
             get(DaemonContext.class),
@@ -161,5 +170,4 @@ public class DaemonServices extends DefaultServiceRegistry {
             get(ListenerManager.class)
         );
     }
-
 }

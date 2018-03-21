@@ -54,7 +54,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
-import org.gradle.launcher.cli.ExecuteBuildAction;
+import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.exec.BuildActionExecuter;

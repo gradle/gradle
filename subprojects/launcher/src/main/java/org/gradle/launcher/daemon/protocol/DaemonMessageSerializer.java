@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionSerializer;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -61,14 +60,14 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZE
 import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
 
 public class DaemonMessageSerializer {
-    public static Serializer<Message> create() {
+    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer) {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         // Lifecycle messages
-        registry.register(Build.class, new BuildSerializer());
+        registry.register(Build.class, new BuildSerializer(buildActionSerializer));
         registry.register(Cancel.class, new CancelSerializer());
         registry.register(DaemonUnavailable.class, new DaemonUnavailableSerializer());
         registry.register(BuildStarted.class, new BuildStartedSerializer());
@@ -198,8 +197,12 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildSerializer implements Serializer<Build> {
-        private final Serializer<BuildAction> buildActionSerializer = BuildActionSerializer.create();
+        private final Serializer<BuildAction> buildActionSerializer;
         private final Serializer<BuildActionParameters> buildActionParametersSerializer = new BuildActionParametersSerializer();
+
+        private BuildSerializer(Serializer<BuildAction> buildActionSerializer) {
+            this.buildActionSerializer = buildActionSerializer;
+        }
 
         @Override
         public void write(Encoder encoder, Build build) throws Exception {
