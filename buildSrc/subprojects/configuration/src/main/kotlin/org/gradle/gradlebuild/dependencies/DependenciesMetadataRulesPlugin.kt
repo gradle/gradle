@@ -18,11 +18,11 @@ package org.gradle.gradlebuild.dependencies
 import library
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DirectDependenciesMetadata
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
-
-import org.gradle.kotlin.dsl.*
-
+import org.gradle.kotlin.dsl.dependencies
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
@@ -59,26 +59,37 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 }
 
                 // Gradle distribution - replace similar library with different coordinates
-                replaceGoogleCollectionsWithGuava("org.codehaus.plexus:plexus-container-default")
+                capability("guava")
+                    .providedBy("com.google.collections:google-collections")
+                    .select("com.google.guava:guava-jdk5")
 
-                replaceJunitDepWithJunit("org.jmock:jmock-junit4")
+                capability("junit")
+                    .providedBy("junit:junit-dep")
+                    .select("junit:junit")
 
-                replaceBeanshellWithApacheBeanshell("org.testng:testng")
+                capability("beanshell")
+                    .providedBy("org.beanshell:bsh")
+                    .providedBy("org.beanshell:beanshell")
+                    .select("org.apache-extras.beanshell:bsh")
 
-                replaceLog4JWithAdapter("org.apache.xbean:xbean-reflect")
+                capability("commons-logging")
+                    .providedBy("commons-logging:commons-logging")
+                    .providedBy("commons-logging:commons-logging-api")
+                    .select("org.slf4j:jcl-over-slf4j")
 
-                replaceJCLWithAdapter("org.apache.xbean:xbean-reflect")
-                replaceJCLWithAdapter("org.apache.httpcomponents:httpclient")
-                replaceJCLWithAdapter("com.amazonaws:aws-java-sdk-core")
-                replaceJCLWithAdapter("org.apache.httpcomponents:httpmime")
-                replaceJCLWithAdapter("net.sourceforge.htmlunit:htmlunit")
-                replaceJCLWithAdapter("org.apache.maven.wagon:wagon-http")
-                replaceJCLWithAdapter("org.apache.maven.wagon:wagon-http-shared4")
+                capability("log4j")
+                    .providedBy("log4j:log4j")
+                    .select("org.slf4j:log4j-over-slf4j")
 
-                replaceJCLConstraintWithAdapter("org.codehaus.groovy:groovy-all")
+                val asmModuleSet = listOf("asm", "asm-analysis", "asm-commons", "asm-tree", "asm-util")
 
-                replaceAsmWithOW2Asm("com.google.code.findbugs:findbugs")
-                replaceAsmWithOW2Asm("org.parboiled:parboiled-java")
+                asmModuleSet.forEach { asmModule ->
+                    capability(asmModule)
+                        .providedBy("asm:${asmModule}")
+                        .providedBy("org.ow2.asm:asm-all")
+                        .providedBy("org.ow2.asm:asm-debug-all")
+                        .forceUpgrade("org.ow2.asm:${asmModule}")
+                }
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
                 downgradeIvy("org.codehaus.groovy:groovy-all")
@@ -98,6 +109,81 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     }
 }
 
+private
+fun Project.capability(name: String) = CapabilityBuilder(dependencies.components, configurations, name)
+
+private
+class CapabilityBuilder(val components: ComponentMetadataHandler,
+                        val configurations: ConfigurationContainer,
+                        val name: String) {
+    val providedBy : MutableList<String> = mutableListOf()
+
+    fun providedBy(vararg modules: String) : CapabilityBuilder {
+        providedBy.addAll(modules)
+        return this
+    }
+
+    /**
+     * Whenever a conflict is found, that is to say that two modules providing the same capability are
+     * found in the dependency graph, prefer one module over the others. The preferred module is the
+     * one passed as an argument.
+     * @param module the preferred module
+     */
+    fun select(module: String) {
+        providedBy.forEachIndexed { idx, provider ->
+            if (!provider.equals(module)) {
+                declareSyntheticCapability(provider, idx)
+            }
+        }
+
+        declarePreference(module)
+    }
+
+    /**
+     * For all modules providing a capability, always use the preferred module, even if there's no conflict.
+     * In other words, will forcefully upgrade all modules providing a capability to a selected module.
+     *
+     * @param to the preferred module
+     */
+    fun forceUpgrade(to: String) {
+        configurations.all {
+            resolutionStrategy.dependencySubstitution {
+                all {
+                    if (requested is ModuleComponentSelector) {
+                        val requestedModule = requested as ModuleComponentSelector
+                        val module = "${requestedModule.group}:${requestedModule.module}"
+                        if (providedBy.contains(module)) {
+                            useTarget("${to}:${requestedModule.version}", "Forceful upgrade of capability ${name}")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun declarePreference(module: String) {
+        components.withModule(module) {
+            allVariants {
+                withCapabilities {
+                    addCapability("org.gradle.internal.capability", name, "${providedBy.size + 1}")
+                }
+            }
+        }
+    }
+
+    private
+    fun declareSyntheticCapability(provider: String, idx: Int) {
+        components.withModule(provider) {
+            allVariants {
+                withCapabilities {
+                    val version = "${idx}"
+                    addCapability("org.gradle.internal.capability", name, version)
+                }
+            }
+        }
+    }
+}
 
 fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
     withModule(module) {
@@ -108,105 +194,6 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: Dir
         }
     }
 }
-
-
-fun ComponentMetadataHandler.replaceJCLWithAdapter(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                removeAll { it.group == "commons-logging" }
-                add("org.slf4j:jcl-over-slf4j:1.7.10") {
-                    because("We do not want non-slf4j logging implementations on the classpath")
-                }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceJCLConstraintWithAdapter(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencyConstraints {
-                removeAll { it.group == "commons-logging" }
-                add("org.slf4j:jcl-over-slf4j:1.7.10") {
-                    because("We do not want non-slf4j logging implementations on the classpath")
-                }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceLog4JWithAdapter(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                removeAll { it.group == "log4j" }
-                add("org.slf4j:log4j-over-slf4j:1.7.16") {
-                    because("We do not want non-slf4j logging implementations on the classpath")
-                }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceGoogleCollectionsWithGuava(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                removeAll { it.group == "com.google.collections" }
-                add("com.google.guava:guava-jdk5:17.0") {
-                    because("Guava replaces google collections")
-                }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceJunitDepWithJunit(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                removeAll { it.group == "junit" }
-                add("junit:junit:4.12") {
-                    because("junit:junit replaced junit:junit-dep")
-                }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceAsmWithOW2Asm(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                filter { it.group == "asm" }.forEach {
-                    add("org.ow2.asm:${it.name}")
-                }
-                removeAll { it.group == "asm" }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceBeanshellWithApacheBeanshell(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                removeAll { it.group == "org.beanshell" }
-                add("org.apache-extras.beanshell:bsh:2.0b6") {
-                    because("org.apache-extras.beanshell:bsh replaced junit:junit-dep")
-                }
-            }
-        }
-    }
-}
-
 
 fun ComponentMetadataHandler.downgradeIvy(module: String) {
     withModule(module) {
@@ -221,7 +208,6 @@ fun ComponentMetadataHandler.downgradeIvy(module: String) {
     }
 }
 
-
 fun ComponentMetadataHandler.downgradeTestNG(module: String) {
     withModule(module) {
         allVariants {
@@ -235,7 +221,6 @@ fun ComponentMetadataHandler.downgradeTestNG(module: String) {
     }
 }
 
-
 fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
     withModule(module) {
         allVariants {
@@ -248,3 +233,4 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
         }
     }
 }
+
