@@ -92,7 +92,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('cglib:cglib-nodep:3.2.4', 'cglib:cglib:3.2.5')
-                    .byConflictResolution()
+                    .byReason('latest version of capability cglib:cglib')
                 module('cglib:cglib:3.2.5')
             }
         }
@@ -175,6 +175,80 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause("Cannot choose between org:testA:1.0 and org:testB:1.0 because they provide the same capability: org.test:cap:1.0")
+    }
+
+    def "considers all candidates for conflict resolution"() {
+        given:
+        repository {
+            'org:testA:1.0' {
+                variant('runtime') {
+                    capability('org', 'cap', '1')
+                }
+            }
+            'org:testB:1.0' {
+                variant('runtime') {
+                    capability('org', 'cap', '4')
+                }
+            }
+            'org:testC:1.0' {
+                dependsOn('org:testCC:1.0')
+            }
+            'org:testD:1.0' {
+                dependsOn('org:testA:1.0') // must have a dependency on an evicted edge
+            }
+            'org:testCC:1.0' {
+                variant('runtime') {
+                    capability('org', 'cap', '2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:testA:1.0'
+                conf 'org:testB:1.0'
+                conf 'org:testC:1.0'
+                conf 'org:testD:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:testA:1.0' {
+                expectGetMetadata()
+            }
+            'org:testB:1.0' {
+                expectResolve() // has the highest capability version
+            }
+            'org:testC:1.0' {
+                expectResolve()
+            }
+            'org:testD:1.0' {
+                expectResolve()
+            }
+            'org:testCC:1.0' {
+                expectGetMetadata()
+            }
+        }
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:testA:1.0', 'org:testB:1.0')
+                    .byReason('latest version of capability org:cap')
+                module('org:testB:1.0')
+                module('org:testC:1.0') {
+                    edge('org:testCC:1.0', 'org:testB:1.0')
+                        .byReason('latest version of capability org:cap')
+                }
+                module('org:testD:1.0') {
+                    edge('org:testA:1.0', 'org:testB:1.0')
+                        .byReason('latest version of capability org:cap')
+                }
+            }
+        }
+
     }
 
 }

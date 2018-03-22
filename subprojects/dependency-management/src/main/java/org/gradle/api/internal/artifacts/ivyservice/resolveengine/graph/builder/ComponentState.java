@@ -322,7 +322,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return state.isSelectable();
     }
 
-    boolean isCandidateForConflictResolution() {
+    public boolean isCandidateForConflictResolution() {
         return state.isCandidateForConflictResolution();
     }
 
