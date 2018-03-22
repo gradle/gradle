@@ -44,7 +44,7 @@ public class DefaultTaskContainerTest extends Specification {
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
 
-    void testCannotCreateTaskWithNoName() {
+    void 'cannot create task with no name'() {
         when:
         container.create([:])
 
@@ -53,7 +53,7 @@ public class DefaultTaskContainerTest extends Specification {
         e.message == "The task name must be provided."
     }
 
-    void testCreateTaskWithDependencies() {
+    void 'can create task with dependencies'() {
         def task = task("task")
         taskFactory.create("task", DefaultTask) >> task
 
@@ -65,7 +65,7 @@ public class DefaultTaskContainerTest extends Specification {
         1 * task.dependsOn("/path1")
     }
 
-    void taskCreationFailsWithUnknownArguments() {
+    void 'create fails with unknown arguments'() {
         when:
         container.create([name: 'task', dependson: 'anotherTask'])
 
@@ -84,7 +84,7 @@ public class DefaultTaskContainerTest extends Specification {
     static class NotATask {
     }
 
-    void testCreateTaskWithAction() {
+    void 'can create task with Action'() {
         Action<Task> action = Mock()
         def task = task("task")
         taskFactory.create("task", DefaultTask) >> task
@@ -97,7 +97,7 @@ public class DefaultTaskContainerTest extends Specification {
         1 * task.doFirst(action)
     }
 
-    void testCreateTaskWithActionClosure() {
+    void 'can create task with Action closure'() {
         Closure action = Mock()
         def task = task("task")
         taskFactory.create("task", DefaultTask) >> task
@@ -110,7 +110,7 @@ public class DefaultTaskContainerTest extends Specification {
         1 * task.doFirst(action)
     }
 
-    void createTaskWithDescription() {
+    void 'can create task with description'() {
         def task = task("task")
         taskFactory.create("task", DefaultTask) >> task
 
@@ -122,7 +122,7 @@ public class DefaultTaskContainerTest extends Specification {
         1 * task.setDescription("some task")
     }
 
-    void createTaskWithGroup() {
+    void 'can create task with group'() {
         def task = task("task")
         taskFactory.create("task", DefaultTask) >> task
 
