@@ -15,12 +15,26 @@
 [[build_script_dos_and_donts]]
 == Build Script Do's and Don'ts
 
-[[sec:avoid_use_of_conditional_logic]]
-=== Avoid the use of conditional logic
+Gradle build scripts combine the qualities of declarative build logic, expressiveness as well as flexibility and rigidity if needed. As a build script author it is easy to fall into the trap of striking the wrong balance or applying poor coding habits. This chapter describes best practices for structuring your build in a meaningful, yet flexible and efficient way.
 
-The Gradle runtime does not enforce a specific style for build logic. For that very reason, it's easy to end up with a build script that mixes declarative DSL elements (e.g. `dependencies` or `repositories`) with imperative code (e.g. `if`/`else` blocks or very complex task action implementations). The end goal should be that a build script only contains declarative language elements which makes the code easier to understand and maintain. The imperative logic should live in binary plugins.
+[NOTE]
+====
+The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in build script if you are looking for appropriate automation.
+====
 
-The following sample build shows a negative example of using conditional logic.
+[[sec:avoid_use_of_imperative_logic]]
+=== Avoid the use of imperative logic
+
+The Gradle runtime does not enforce a specific style for build logic. For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code.
+
+Let's talk about some specific examples:
+
+* _Declarative code:_ Built-in, language-agnostic DSL elements (e.g. `dependencies` or `repositories`) or DSLs exposed by plugins
+* _Imperative code:_ Conditional logic or very complex task action implementations
+
+The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain. Imperative logic should live in binary plugins and is applied to the build script. As a side product, you automatically enable your team to link:https://guides.gradle.org/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects].
+
+The following sample build shows a negative example of using conditional logic in a build script directly. While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it has on readability and maintainability. By moving the code into a class link:https://guides.gradle.org/testing-gradle-plugins/[testability] also becomes a possibility.
 
 ++++
 <sample id="conditionalLogicDont" dir="userguide/bestPractices/conditionalLogic/dont" title="A build script using conditional logic to create a task">
@@ -28,15 +42,20 @@ The following sample build shows a negative example of using conditional logic.
 </sample>
 ++++
 
+The same logic can be encapsulated in a binary plugin. This particular plugin class lives in the <<sec:build_sources,`buildSrc` directory>> which makes it available to the build script automatically.
+
+++++
+<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do/buildSrc/src/main/java/com/enterprise" title="A binary plugin implementing imperative logic">
+    <sourcefile file="ReleasePlugin.java"/>
+</sample>
+++++
+
+Now that the build logic has been translated into a plugin, you can apply it in the build script. The build script has been shrunk from 8 lines of code to a one liner.
+
 ++++
 <sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do" title="A build script applying a plugin that encapsulates imperative logic">
     <sourcefile file="build.gradle"/>
 </sample>
 ++++
-
-[NOTE]
-====
-The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in build script if you are looking for appropriate automation.
-====
 
 

@@ -17,8 +17,9 @@ public class ReleasePlugin implements Plugin<Project> {
             task.doLast(new Action<Task>() {
                 @Override
                 public void execute(Task task) {
-                    // release the artifact to production
                     task.getLogger().quiet("Releasing to production...");
+
+                    // release the artifact to production
                 }
             });
         }
