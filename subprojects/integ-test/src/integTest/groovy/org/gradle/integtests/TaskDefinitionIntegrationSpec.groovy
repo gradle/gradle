@@ -162,27 +162,8 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
     @Unroll
     def "fails when constructorArgs not list or Object[], but #description"() {
         given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
-        """
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "task myTask(type: CustomTask, constructorArgs: ${constructorArgs})"
 
         when:
         fails 'myTask'
