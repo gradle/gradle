@@ -42,7 +42,9 @@ public interface IdeaContentRoot {
      * The set of generated source directories. This is a subset of those directories returned by {@link #getSourceDirectories()}.
      *
      * @since 2.2
+     * @deprecated Use {@link IdeaContentRoot#getSourceDirectories()} in combination with  {@link IdeaSourceDirectory#isGenerated()} instead.
      */
+    @Deprecated
     @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories();
 
@@ -55,7 +57,9 @@ public interface IdeaContentRoot {
      * The set of generated test directories. This is a subset of those directories returned by {@link #getTestDirectories()}.
      *
      * @since 2.2
+     * @deprecated Use {@link IdeaContentRoot#getTestDirectories()} in combination with  {@link IdeaSourceDirectory#isGenerated()} instead.
      */
+    @Deprecated
     @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories();
 
