@@ -38,8 +38,6 @@ import org.gradle.process.CommandLineArgumentProvider
 import testLibraries
 import testLibrary
 import java.util.jar.Attributes
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
-import org.gradle.gradlebuild.java.DefaultJavaInstallation
 
 enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
     UNDEFINED(VERSION_1_1, VERSION_1_1),
@@ -152,9 +150,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         tasks.withType<Test>().all {
             maxParallelForks = project.maxParallelForks
             jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-            if(project.acceptTestJavaInstallation(javaInstallationForTest)) {
-                executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
-            }
+            executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
             environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
             if (javaInstallationForTest.javaVersion.isJava7) {
                 // enable class unloading
@@ -168,13 +164,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 }
             }
         }
-    }
-
-    private fun Project.acceptTestJavaInstallation(javaInstallation: DefaultJavaInstallation): Boolean {
-        if(javaInstallation.javaVersion.isJava8Compatible) {
-            return true;
-        }
-        return !(this in projectsRequiringJava8)
     }
 
     private fun createCiEnvironmentProvider(test: Test): CommandLineArgumentProvider {

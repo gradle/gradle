@@ -26,13 +26,13 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.junit.Test
 import spock.lang.Specification
 
-class DefaultTestClassScannerTest extends Specification {
+public class DefaultTestClassScannerTest extends Specification {
     private final TestFrameworkDetector detector = Mock()
     private final TestClassProcessor processor = Mock()
     private final FileTree files = Mock()
 
     @Test
-    void passesEachClassFileToTestClassDetector() {
+    public void passesEachClassFileToTestClassDetector() {
         DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor)
 
         when:
@@ -50,26 +50,6 @@ class DefaultTestClassScannerTest extends Specification {
             assert visitor
             visitor.visitFile(mockFileVisitDetails('class1'))
             visitor.visitFile(mockFileVisitDetails('class2'))
-        }
-
-        0 * _._
-    }
-
-    @Test
-    void skipAnonymousClass() {
-        DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor)
-
-        when:
-        scanner.run()
-
-        then:
-        1 * detector.startDetection(processor)
-        then:
-        1 * files.visit(_) >> { args ->
-            FileVisitor visitor = args[0]
-            assert visitor
-            visitor.visitFile(mockFileVisitDetails('AnonymousClass$1'))
-            visitor.visitFile(mockFileVisitDetails('AnonymousClass$1$22'))
         }
 
         0 * _._
