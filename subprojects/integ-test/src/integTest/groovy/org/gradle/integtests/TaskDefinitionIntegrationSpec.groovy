@@ -24,6 +24,25 @@ import spock.lang.Unroll
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
+    private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                final String message
+                final int number
+
+                @Inject
+                CustomTask(String message, int number) {
+                    this.message = message
+                    this.number = number
+                }
+
+                @TaskAction
+                void printIt() {
+                    println("\$message \$number")
+                }
+            }
+        """
 
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
@@ -73,30 +92,23 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains('hello world')
     }
 
+    def "can construct a custom task with constructor arguments"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.create('myTask', CustomTask, 'hello', 42)"
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("hello 42")
+    }
+
     @Unroll
     def "can construct a custom task with constructor arguments as #description via Map"() {
         given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
-        """
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "task myTask(type: CustomTask, constructorArgs: ${constructorArgs})"
 
         when:
         run 'myTask'
@@ -107,69 +119,44 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         where:
         description | constructorArgs
         'List'      | "['hello', 42]"
-        'Object[]'  | "['hello', 42] as Object[]"
+        'Object[]'  | "(['hello', 42] as Object[])"
     }
 
-    def "can construct a custom task with constructor arguments via API"() {
+    @Unroll
+    def "fails to build custom task if some constructor arguments missing using #description"() {
         given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            tasks.create('myTask', CustomTask, 'hello', 42)
-        """
-
-        when:
-        run 'myTask'
-
-        then:
-        result.output.contains("hello 42")
-    }
-
-    def "fails to build custom task if constructor arguments missing"() {
-        given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            task myTask(type: CustomTask, constructorArgs: ['hello'])
-        """
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << script
 
         when:
         fails 'myTask'
 
         then:
         result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type int available")
+
+        where:
+        description   | script
+        'Map'         | "task myTask(type: CustomTask, constructorArgs: ['hello'])"
+        'direct call' | "tasks.create('myTask', CustomTask, 'hello')"
+    }
+
+    @Unroll
+    def "fails to build custom task if all constructor arguments missing using #description"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << script
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+
+        where:
+        description   | script
+        'Map'         | "task myTask(type: CustomTask)"
+        'Map (null)'  | "task myTask(type: CustomTask, constructorArgs: null)"
+        'direct call' | "tasks.create('myTask', CustomTask)"
     }
 
     @Unroll
@@ -241,8 +228,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains("got it")
     }
 
-    @Unroll
-    def "can construct a task with @Inject services and constructor args as #description"() {
+    def "can construct a task with @Inject services and constructor args"() {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
@@ -264,7 +250,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
+            tasks.create('myTask', CustomTask, 15)
         """
 
         when:
@@ -272,11 +258,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("got it 15")
-
-        where:
-        description | constructorArgs
-        'List'      | '[ 15 ]'
-        'Object[]'  | '[ 15 ] as Object[]'
     }
 
     @Requires([KOTLIN_SCRIPT])
