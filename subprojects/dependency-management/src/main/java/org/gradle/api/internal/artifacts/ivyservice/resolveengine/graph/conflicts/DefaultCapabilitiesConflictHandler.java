@@ -53,17 +53,17 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             // The registered components may contain components which are no longer selected.
             // We don't remove them from the list in the first place because it proved to be
             // slower than filtering as needed.
-            final List<ComponentState> currentlySelected = Lists.newArrayListWithCapacity(components.size());
+            final List<ComponentState> candidatesForConflict = Lists.newArrayListWithCapacity(components.size());
             for (ComponentState component : components) {
-                if (component.isSelected()) {
-                    currentlySelected.add(component);
+                if (component.isCandidateForConflictResolution()) {
+                    candidatesForConflict.add(component);
                 }
             }
-            if (currentlySelected.size() > 1) {
+            if (candidatesForConflict.size() > 1) {
                 PotentialConflict conflict = new PotentialConflict() {
                     @Override
                     public void withParticipatingModules(Action<ModuleIdentifier> action) {
-                        for (ComponentState component : currentlySelected) {
+                        for (ComponentState component : candidatesForConflict) {
                             action.execute(component.getId().getModule());
                         }
                     }
@@ -73,7 +73,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                         return true;
                     }
                 };
-                conflicts.add(new CapabilityConflict(group, name, currentlySelected));
+                conflicts.add(new CapabilityConflict(group, name, candidatesForConflict));
                 return conflict;
             }
         }
@@ -104,7 +104,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             resolver.resolve(details);
             if (details.hasResult()) {
                 resolutionAction.execute(details);
-                details.getSelected().addCause(VersionSelectionReasons.CONFLICT_RESOLUTION);
+                CapabilityInternal capability = (CapabilityInternal) conflict.descriptors.iterator().next();
+                details.getSelected().addCause(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason("latest version of capability " + capability.getCapabilityId()));
                 return;
             }
         }

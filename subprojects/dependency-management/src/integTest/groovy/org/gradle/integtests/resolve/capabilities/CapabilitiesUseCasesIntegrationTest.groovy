@@ -375,7 +375,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
-                        .byConflictResolution()
+                        .byReason('latest version of capability asm:asm')
                     module('org.ow2.asm:asm:4.0')
                 }
             }
