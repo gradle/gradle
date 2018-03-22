@@ -159,7 +159,7 @@ public class CommandLineActionFactory {
 
         /**
          * The system property is set for the purpose of internal testing.
-         * In user environment the system property will never be available.
+         * In user environments the system property will never be available.
          */
         private boolean isWelcomeMessageEnabled() {
             String messageEnabled = System.getProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
