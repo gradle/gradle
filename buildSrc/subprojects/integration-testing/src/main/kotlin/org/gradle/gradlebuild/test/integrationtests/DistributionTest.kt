@@ -107,7 +107,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
             "integTest.gradleHomeDir" to gradleHomeDir.asFile.get().absolutePath,
             "integTest.gradleUserHomeDir" to gradleUserHomeDir.asFile.get().absolutePath,
             "org.gradle.integtest.daemon.registry" to daemonRegistry.asFile.get().absolutePath,
-            "integTest.toolingApiShadedJarDir" to toolingApiShadedJarDir.asFile.get().parentFile.absolutePath
+            "integTest.toolingApiShadedJarDir" to toolingApiShadedJarDir.asFile.get().absolutePath
         ).asSystemPropertyJvmArguments()
 
     override fun getName() =

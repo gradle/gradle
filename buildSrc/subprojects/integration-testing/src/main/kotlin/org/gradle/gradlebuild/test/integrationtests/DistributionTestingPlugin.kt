@@ -86,7 +86,7 @@ class DistributionTestingPlugin : Plugin<Project> {
             gradleHomeDir.set(dir { intTestImage.destinationDir })
             gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
             daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-            toolingApiShadedJarDir.set(dir { toolingApiShadedJar.jarFile.get().asFile })
+            toolingApiShadedJarDir.set(dir { toolingApiShadedJar.jarFile.get().asFile.parentFile })
         }
 
         libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
