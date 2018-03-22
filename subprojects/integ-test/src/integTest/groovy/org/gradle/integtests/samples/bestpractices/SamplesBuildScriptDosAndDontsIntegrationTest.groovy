@@ -20,15 +20,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Unroll
 
 class SamplesBuildScriptDosAndDontsIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample('userguide/bestPractices/conditionalLogic/dont')
-    def "can execute conditional logic negative example"() {
-        executer.inDirectory(sample.dir)
+    @Unroll
+    @UsesSample('userguide/bestPractices/conditionalLogic')
+    def "can execute conditional logic for #exampleName"() {
+        executer.inDirectory(new File(sample.dir, subDirName))
         executer.withArgument('-PreleaseEngineer=true')
 
         when:
@@ -36,17 +38,10 @@ class SamplesBuildScriptDosAndDontsIntegrationTest extends AbstractIntegrationSp
 
         then:
         outputContains('Releasing to production...')
-    }
 
-    @UsesSample('userguide/bestPractices/conditionalLogic/do')
-    def "can execute conditional logic positive example"() {
-        executer.inDirectory(sample.dir)
-        executer.withArgument('-PreleaseEngineer=true')
-
-        when:
-        succeeds 'release'
-
-        then:
-        outputContains('Releasing to production...')
+        where:
+        subDirName | exampleName
+        'dont'     | 'negative example'
+        'do'       | 'positive example'
     }
 }
