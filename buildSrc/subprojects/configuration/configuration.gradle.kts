@@ -6,6 +6,7 @@ apply { plugin("org.gradle.kotlin.kotlin-dsl") }
 
 dependencies {
     implementation(project(":kotlinDsl"))
+    implementation("com.google.code.gson:gson:2.7")
 }
 
 gradlePlugin {
