@@ -29,7 +29,7 @@ class SamplesBuildScriptDosAndDontsIntegrationTest extends AbstractIntegrationSp
     @UsesSample('userguide/bestPractices/conditionalLogic/dont')
     def "can execute conditional logic negative example"() {
         executer.inDirectory(sample.dir)
-        executer.withBuildJvmOpts('-Drelease.manager=true')
+        executer.withArgument('-PreleaseEngineer=true')
 
         when:
         succeeds 'release'
@@ -41,7 +41,7 @@ class SamplesBuildScriptDosAndDontsIntegrationTest extends AbstractIntegrationSp
     @UsesSample('userguide/bestPractices/conditionalLogic/do')
     def "can execute conditional logic positive example"() {
         executer.inDirectory(sample.dir)
-        executer.withBuildJvmOpts('-Drelease.manager=true')
+        executer.withArgument('-PreleaseEngineer=true')
 
         when:
         succeeds 'release'

@@ -1,4 +1,4 @@
-if (Boolean.getBoolean('release.engineer')) {
+if (project.findProperty('releaseEngineer')) {
     task release {
         doLast {
             // release the artifact to production
