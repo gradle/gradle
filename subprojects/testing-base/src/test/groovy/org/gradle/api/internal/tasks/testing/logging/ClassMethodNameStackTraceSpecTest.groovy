@@ -45,6 +45,7 @@ class ClassMethodNameStackTraceSpecTest extends Specification {
         spec.isSatisfiedBy(new StackTraceElement("ClassName", "methodName", "SomeFile.java", 42))
         spec.isSatisfiedBy(new StackTraceElement('ClassName$1$1$1', "methodName", "SomeFile.kt", 42))
         spec.isSatisfiedBy(new StackTraceElement("ClassName", "otherMethodName", "SomeFile.java", 42))
+        !spec.isSatisfiedBy(new StackTraceElement('ClassName1$1', "otherMethodName", "SomeFile.java", 42))
         !spec.isSatisfiedBy(new StackTraceElement("OtherClassName", "methodName", "OtherFile.java", 21))
         !spec.isSatisfiedBy(new StackTraceElement('ClassName$Inner$1', "methodName", "OtherFile.kt", 21))
     }

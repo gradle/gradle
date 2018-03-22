@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
-    private static final Pattern ANONYMOUS_CLASS_NAME_SUFFIX = Pattern.compile("[\\d$]+");
+    private static final Pattern ANONYMOUS_CLASS_NAME_SUFFIX = Pattern.compile("\\$[\\d$]+");
     private final String className;
     private final String methodName;
 
