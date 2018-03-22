@@ -86,6 +86,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 With this release of Gradle, the Checkstyle configuration file is discovered in the directory `config/checkstyle` of the root project and automatically applies to all sub projects without having to set a new location for the `configDir` property.
 The Checkstyle configuration file in a sub project takes precedence over the file provided in the root project to support backward compatibility.
 
+### Special casts for `FileCollection` using the Groovy `as` operator
+
+Previously it was possible to cast a `FileCollection` instance to some special types using the Groovy `as` keyword.
+This is now discontinued.
+
+- the `FileCollection.asType(Class)` method is deprecated
+- casting `fileCollection as File` is deprecated, use `FileCollection.getSingleFile()` instead
+- casting `fileCollection as File[]` is deprecated
+- casting `fileCollection as FileTree` is deprecated, use `FileCollection.getAsFileTree()` instead
+
+Using the `as` operator to cast `FileCollection` to `Object[]`, `Collection`, `Set` and `List` is still supported.
+
 ## Potential breaking changes
 
 ### Gradle console output changes

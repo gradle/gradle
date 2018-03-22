@@ -13,28 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file
 
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitorUtil;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.GUtil;
+import org.codehaus.groovy.runtime.typehandling.GroovyCastException
+import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitorUtil
+import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices;
-import org.junit.Rule;
-import spock.lang.Specification;
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContains
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileSet
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForMatchingTask
+import static org.gradle.util.Matchers.isEmpty
+import static org.gradle.util.WrapUtil.toArray
+import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.WrapUtil.toSet
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.notNullValue
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
+import static org.junit.Assert.fail;
 
 @UsesNativeServices
 public class AbstractFileCollectionTest extends Specification {
@@ -298,7 +310,7 @@ public class AbstractFileCollectionTest extends Specification {
         TestFileCollection collection = new TestFileCollection(file);
 
         expect:
-        assertThat(collection.asType(Collection.class), equalTo((Object) toLinkedSet(file)));
+        assertThat(collection.asType(Collection.class), equalTo((Object) toList(file)));
         assertThat(collection.asType(Set.class), equalTo((Object) toLinkedSet(file)));
         assertThat(collection.asType(List.class), equalTo((Object) toList(file)));
     }
@@ -331,8 +343,8 @@ public class AbstractFileCollectionTest extends Specification {
         try {
             new TestFileCollection().asType(Integer.class);
             fail();
-        } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer, as this type is not supported."));
+        } catch (GroovyCastException e) {
+            assertThat(e.getMessage(), equalTo("Cannot cast object 'collection-display-name' with class 'org.gradle.api.internal.file.AbstractFileCollectionTest\$TestFileCollection' to class 'java.lang.Integer'"));
         }
     }
 

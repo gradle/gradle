@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -30,6 +31,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -155,27 +157,29 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return this;
     }
 
+    @Deprecated
+    @Override
     public Object asType(Class<?> type) throws UnsupportedOperationException {
-        if (type.isAssignableFrom(Set.class)) {
-            return getFiles();
-        }
-        if (type.isAssignableFrom(List.class)) {
-            return new ArrayList<File>(getFiles());
+        if (type.isAssignableFrom(Object[].class)) {
+            return getFiles().toArray();
         }
         if (type.isAssignableFrom(File[].class)) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not cast FileCollection to File[]");
             Set<File> files = getFiles();
             return files.toArray(new File[0]);
         }
         if (type.isAssignableFrom(File.class)) {
+            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File", "Call getSingleFile() instead");
             return getSingleFile();
         }
         if (type.isAssignableFrom(FileCollection.class)) {
             return this;
         }
         if (type.isAssignableFrom(FileTree.class)) {
+            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to FileTree", "Call getAsFileTree() instead");
             return getAsFileTree();
         }
-        throw new UnsupportedOperationException(String.format("Cannot convert %s to type %s, as this type is not supported.", getDisplayName(), type.getSimpleName()));
+        return DefaultGroovyMethods.asType(this, type);
     }
 
     public TaskDependency getBuildDependencies() {
