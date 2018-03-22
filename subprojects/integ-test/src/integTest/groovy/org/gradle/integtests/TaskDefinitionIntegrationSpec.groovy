@@ -178,6 +178,18 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         'primitive' | '123'
     }
 
+    def "fails when constructor argument is wrong type"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.create('myTask', CustomTask, 123)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+    }
+
     def "can construct a task with @Inject services"() {
         given:
         buildFile << """
