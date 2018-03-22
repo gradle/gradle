@@ -185,17 +185,5 @@ idea.module {
 
         then:
         thrown(UnsupportedMethodException)
-
-        when:
-        root.getGeneratedResourceDirectories()
-
-        then:
-        thrown(UnsupportedMethodException)
-
-        when:
-        root.getGeneratedTestResourceDirectories()
-
-        then:
-        thrown(UnsupportedMethodException)
     }
 }

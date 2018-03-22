@@ -68,13 +68,6 @@ public interface IdeaContentRoot {
     @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getResourceDirectories() throws UnsupportedMethodException;
 
-    /**
-     * The set of generated resource directories. This is a subset of those directories returned by {@link #getResourceDirectories()}.
-     * @throws UnsupportedMethodException For Gradle versions older than 4.7 where this method is not supported.
-     * @since 4.7
-     */
-    @Incubating
-    DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedResourceDirectories() throws UnsupportedMethodException;
 
     /**
      * The set of test resource directories.
@@ -84,14 +77,6 @@ public interface IdeaContentRoot {
      */
     @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getTestResourceDirectories() throws UnsupportedMethodException;
-
-    /**
-     * The set of generated test resource directories. This is a subset of those directories returned by {@link #getTestResourceDirectories()}.
-     * @throws UnsupportedMethodException For Gradle versions older than 4.7 where this method is not supported.
-     * @since 4.7
-     */
-    @Incubating
-    DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestResourceDirectories() throws UnsupportedMethodException;;
 
     /**
      * The set of excluded directories.

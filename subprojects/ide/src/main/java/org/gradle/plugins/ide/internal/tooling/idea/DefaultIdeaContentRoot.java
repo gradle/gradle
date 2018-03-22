@@ -74,12 +74,6 @@ public class DefaultIdeaContentRoot implements Serializable {
     public Set<DefaultIdeaSourceDirectory> getGeneratedTestDirectories() {
         return generated(testDirectories);
     }
-    public Set<DefaultIdeaSourceDirectory> getGeneratedResourceDirectories() {
-        return generated(resourceDirectories);
-    }
-    public Set<DefaultIdeaSourceDirectory> getGeneratedTestResourceDirectories() {
-        return generated(testResourceDirectories);
-    }
     public Set<DefaultIdeaSourceDirectory> getResourceDirectories() {
         return resourceDirectories;
     }
