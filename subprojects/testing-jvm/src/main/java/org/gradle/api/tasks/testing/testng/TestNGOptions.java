@@ -38,6 +38,8 @@ import java.util.Set;
  */
 public class TestNGOptions extends TestFrameworkOptions {
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
+    private static final String DEFAULT_PARALLEL_MODE = null;
+    private static final int DEFAULT_THREAD_COUNT = -1;
 
     private File outputDirectory;
 
@@ -49,9 +51,9 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     private Set<String> listeners = new LinkedHashSet<String>();
 
-    private String parallel = null;
+    private String parallel = DEFAULT_PARALLEL_MODE;
 
-    private int threadCount = -1;
+    private int threadCount = DEFAULT_THREAD_COUNT;
 
     private boolean useDefaultListeners;
 

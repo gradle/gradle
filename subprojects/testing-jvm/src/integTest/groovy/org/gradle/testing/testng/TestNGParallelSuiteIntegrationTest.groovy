@@ -24,10 +24,8 @@ import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
 @TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
-public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
-
-    @Issue("GRADLE-3190")
-    def "runs with multiple parallel threads"() {
+class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
+    def setup(){
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -40,9 +38,11 @@ public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationS
               }
             }
         """
+    }
 
+    def createTests(int testCount, int threadCount) {
         String suiteXml = ""
-        200.times { x ->
+        testCount.times { x ->
             file("src/test/java/Foo${x}Test.java") << """
                 public class Foo${x}Test {
                     @org.testng.annotations.Test public void test() {
@@ -57,10 +57,15 @@ public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationS
 
         file("suite.xml") << """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="AwesomeSuite" parallel="tests" thread-count="20">
+<suite name="AwesomeSuite" parallel="tests" thread-count="${threadCount}">
   $suiteXml
 </suite>"""
+    }
 
+    @Issue("GRADLE-3190")
+    def "runs with multiple parallel threads"() {
+        given:
+        createTests(200, 20)
 
         when:
         run("test")
@@ -69,5 +74,22 @@ public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationS
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass("Foo0Test").assertTestsExecuted("test")
         result.testClass("Foo199Test").assertTestsExecuted("test")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4457")
+    def "can persist configurations in xml" (){
+        given:
+        createTests(3, 3)
+
+        when:
+        run('test', '--info')
+
+        then:
+        actualThreadIds(output).size() == 3
+    }
+
+    private static actualThreadIds(String stdout){
+        String pattern = /.*\d+ - foo \d+ - (\d+)/
+        return stdout.readLines().grep(~pattern).collect { (it =~ pattern)[0][1] }.toSet()
     }
 }
