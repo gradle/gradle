@@ -48,6 +48,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.launcher.cli.CommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -156,6 +157,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
+    private boolean renderWelcomeMessage;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -228,6 +230,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         useOnlyRequestedJvmOpts = false;
         expectedDeprecationWarnings = 0;
         stackTraceChecksOn = true;
+        renderWelcomeMessage = false;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
@@ -391,6 +394,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!showStacktrace) {
             executer.withStacktraceDisabled();
         }
+
+        if (renderWelcomeMessage) {
+            executer.withWelcomeMessageEnabled();
+        }
+
         return executer;
     }
 
@@ -757,6 +765,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter withWelcomeMessageEnabled() {
+        renderWelcomeMessage = true;
+        return this;
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
@@ -944,6 +958,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 properties.put(BuildLayoutParameters.NO_SEARCH_UPWARDS_PROPERTY_KEY, "true");
             }
         }
+
+        properties.put(CommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         return properties;
     }

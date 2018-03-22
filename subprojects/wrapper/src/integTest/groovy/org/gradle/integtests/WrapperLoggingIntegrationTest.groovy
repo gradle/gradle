@@ -17,6 +17,11 @@
 package org.gradle.integtests
 
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
+
+    def setup() {
+        executer.withWelcomeMessageEnabled()
+    }
+
     def "wrapper only renders welcome message when executed in quiet mode"() {
         given:
         file("build.gradle") << """
