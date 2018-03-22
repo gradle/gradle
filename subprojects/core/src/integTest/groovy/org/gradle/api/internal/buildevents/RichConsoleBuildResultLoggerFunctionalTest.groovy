@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.taskgrouping
+package org.gradle.api.internal.buildevents
 
+import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RichConsoleStyling
 
-/**
- * A base class for testing task grouping in the console. Executes with a Gradle distribution and {@code "--parallel"} command line option.
- */
-abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
-    def setup() {
-        executer.beforeExecute {
-            it.withConsole(consoleType)
-        }
-    }
-
-    abstract ConsoleOutput getConsoleType()
+class RichConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest implements RichConsoleStyling {
+    ConsoleOutput consoleType = ConsoleOutput.Rich
+    String failureMessage = styled("BUILD FAILED", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
+    String successMessage = styled('BUILD SUCCESSFUL', Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD)
 }
