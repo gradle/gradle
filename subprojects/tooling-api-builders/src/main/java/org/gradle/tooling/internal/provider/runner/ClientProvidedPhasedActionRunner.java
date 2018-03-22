@@ -29,6 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
+import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
@@ -70,7 +71,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             public void projectsLoaded(Gradle gradle) {
                 // If build controller has a result at this point, it is a failure.
                 if (!buildController.hasResult()) {
-                    run(phasedAction.getAfterLoadingAction(), PhasedBuildActionResult.Type.AFTER_LOADING);
+                    run(phasedAction.getProjectsLoadedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
                 }
             }
 
@@ -78,7 +79,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             public void projectsEvaluated(Gradle gradle) {
                 // If build controller has a result at this point, it is a failure.
                 if (!buildController.hasResult()) {
-                    run(phasedAction.getAfterConfigurationAction(), PhasedBuildActionResult.Type.AFTER_CONFIGURATION);
+                    run(phasedAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_EVALUATED);
                 }
             }
 
@@ -86,23 +87,25 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             public void buildFinished(BuildResult result) {
                 // If build controller has a result at this point, it is a failure.
                 if (result.getFailure() == null && !buildController.hasResult()) {
-                    run(phasedAction.getAfterBuildAction(), PhasedBuildActionResult.Type.AFTER_BUILD);
+                    run(phasedAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
                 }
             }
 
-            private void run(@Nullable InternalBuildActionVersion2<?> action, PhasedBuildActionResult.Type type) {
+            private void run(@Nullable InternalBuildActionVersion2<?> action, PhasedActionResult.Phase phase) {
                 if (action != null) {
-                    PhasedBuildActionResult result = runAction(action, gradleInternal, type);
+                    BuildActionResult result = runAction(action, gradleInternal);
                     if (result.failure != null) {
-                        buildController.setResult(new BuildActionResult(result.result, result.failure));
+                        buildController.setResult(result);
+                    } else {
+                        PhasedBuildActionResult res = new PhasedBuildActionResult(result.result, phase);
+                        getBuildEventConsumer(gradleInternal).dispatch(res);
                     }
-                    getBuildEventConsumer(gradleInternal).dispatch(result);
                 }
             }
         });
     }
 
-    private <T> PhasedBuildActionResult runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle, PhasedBuildActionResult.Type type) {
+    private <T> BuildActionResult runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
         DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
         T model = null;
         Throwable failure = null;
@@ -116,9 +119,9 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
         if (failure != null) {
-            return new PhasedBuildActionResult(null, payloadSerializer.serialize(failure), type);
+            return new BuildActionResult(null, payloadSerializer.serialize(failure));
         } else {
-            return new PhasedBuildActionResult(payloadSerializer.serialize(model), null, type);
+            return new BuildActionResult(payloadSerializer.serialize(model), null);
         }
     }
 

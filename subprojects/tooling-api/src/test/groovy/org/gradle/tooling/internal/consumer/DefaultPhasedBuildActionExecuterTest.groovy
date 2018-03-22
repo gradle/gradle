@@ -32,8 +32,8 @@ class DefaultPhasedBuildActionExecuterTest extends ConcurrentSpec {
         getDisplayName() >> 'testConnection'
     }
     def connection = Mock(ConsumerConnection)
-    def parameters = Mock(ConnectionParameters)
-    def phasedAction = Mock(PhasedBuildAction)
+    def parameters = Stub(ConnectionParameters)
+    def phasedAction = Stub(PhasedBuildAction)
     def executer = new DefaultPhasedBuildActionExecuter(phasedAction, asyncConnection, parameters)
 
     def "delegates to connection to run phased action"() {
@@ -153,7 +153,7 @@ class DefaultPhasedBuildActionExecuterTest extends ConcurrentSpec {
     }
 
     def "can define tasks to be run"() {
-        def handler = Mock(ResultHandler)
+        def handler = Stub(ResultHandler)
 
         when:
         executer.forTasks('a', 'b').run(handler)

@@ -28,6 +28,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
+import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.provider.BuildActionResult
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.ClientProvidedPhasedAction
@@ -38,21 +39,21 @@ import spock.lang.Specification
 
 class ClientProvidedPhasedActionRunnerTest extends Specification {
 
-    def startParameter = Mock(StartParameterInternal)
-    def serializedAction = Mock(SerializedPayload)
-    def clientSubscriptions = Mock(BuildClientSubscriptions)
+    def startParameter = Stub(StartParameterInternal)
+    def serializedAction = Stub(SerializedPayload)
+    def clientSubscriptions = Stub(BuildClientSubscriptions)
     def clientProvidedPhasedAction = new ClientProvidedPhasedAction(startParameter, serializedAction, clientSubscriptions)
 
-    def afterLoadingAction = Mock(InternalBuildActionVersion2)
-    def afterConfigurationAction = Mock(InternalBuildActionVersion2)
-    def afterBuildAction = Mock(InternalBuildActionVersion2)
+    def projectsLoadedAction = Mock(InternalBuildActionVersion2)
+    def projectsEvaluatedAction = Mock(InternalBuildActionVersion2)
+    def buildFinishedAction = Mock(InternalBuildActionVersion2)
     def phasedAction = Mock(InternalPhasedAction) {
-        getAfterLoadingAction() >> afterLoadingAction
-        getAfterConfigurationAction() >> afterConfigurationAction
-        getAfterBuildAction() >> afterBuildAction
+        getProjectsLoadedAction() >> projectsLoadedAction
+        getProjectsEvaluatedAction() >> projectsEvaluatedAction
+        getBuildFinishedAction() >> buildFinishedAction
     }
 
-    def nullSerialized = Mock(SerializedPayload)
+    def nullSerialized = Stub(SerializedPayload)
     def buildEventConsumer = Mock(BuildEventConsumer)
     def payloadSerializer = Mock(PayloadSerializer) {
         deserialize(serializedAction) >> phasedAction
@@ -100,9 +101,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        1 * afterLoadingAction.execute(_) >> result1
-        1 * afterConfigurationAction.execute(_) >> result2
-        1 * afterBuildAction.execute(_) >> result3
+        1 * projectsLoadedAction.execute(_) >> result1
+        1 * projectsEvaluatedAction.execute(_) >> result2
+        1 * buildFinishedAction.execute(_) >> result3
         1 * buildController.setResult({
             it instanceof BuildActionResult &&
                 it.failure == null &&
@@ -110,20 +111,17 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         })
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.type == PhasedBuildActionResult.Type.AFTER_LOADING &&
-                it.failure == null &&
+                it.phase == PhasedActionResult.Phase.PROJECTS_LOADED &&
                 it.result == serializedResult1
         })
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.type == PhasedBuildActionResult.Type.AFTER_CONFIGURATION &&
-                it.failure == null &&
+                it.phase == PhasedActionResult.Phase.PROJECTS_EVALUATED &&
                 it.result == serializedResult2
         })
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.type == PhasedBuildActionResult.Type.AFTER_BUILD &&
-                it.failure == null &&
+                it.phase == PhasedActionResult.Phase.BUILD_FINISHED &&
                 it.result == serializedResult3
         })
     }
@@ -138,9 +136,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        1 * afterLoadingAction.execute(_) >> { throw new RuntimeException() }
-        0 * afterConfigurationAction.execute(_)
-        0 * afterBuildAction.execute(_)
+        1 * projectsLoadedAction.execute(_) >> { throw new RuntimeException() }
+        0 * projectsEvaluatedAction.execute(_)
+        0 * buildFinishedAction.execute(_)
         1 * buildController.setResult(_) >> { args ->
             def it = args[0]
             assert it instanceof BuildActionResult
@@ -148,19 +146,17 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
             assert it.result == null
             buildController.hasResult() >> true
         }
-        1 * buildEventConsumer.dispatch({
+        0 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.type == PhasedBuildActionResult.Type.AFTER_LOADING &&
-                it.failure == serializedFailure &&
-                it.result == null
+                it.phase == PhasedActionResult.Phase.PROJECTS_LOADED
         })
         0 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.type == PhasedBuildActionResult.Type.AFTER_CONFIGURATION
+                it.phase == PhasedActionResult.Phase.PROJECTS_EVALUATED
         })
         0 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.type == PhasedBuildActionResult.Type.AFTER_BUILD
+                it.phase == PhasedActionResult.Phase.BUILD_FINISHED
         })
     }
 
@@ -169,14 +165,14 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        1 * afterLoadingAction.execute(_) >> { throw new RuntimeException() }
+        1 * projectsLoadedAction.execute(_) >> { throw new RuntimeException() }
         1 * payloadSerializer.serialize({ it instanceof InternalBuildActionFailureException })
 
         when:
         runner.run(clientProvidedPhasedAction, buildController)
 
         then:
-        1 * afterLoadingAction.execute(_) >> { throw new BuildCancelledException() }
+        1 * projectsLoadedAction.execute(_) >> { throw new BuildCancelledException() }
         1 * payloadSerializer.serialize({ it instanceof InternalBuildCancelledException })
     }
 
@@ -186,9 +182,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
         then:
         noExceptionThrown()
-        1 * phasedAction.getAfterLoadingAction() >> null
-        1 * phasedAction.getAfterConfigurationAction() >> null
-        1 * phasedAction.getAfterBuildAction() >> null
+        1 * phasedAction.getProjectsLoadedAction() >> null
+        1 * phasedAction.getProjectsEvaluatedAction() >> null
+        1 * phasedAction.getBuildFinishedAction() >> null
         1 * buildController.setResult({
             it instanceof BuildActionResult &&
                 it.failure == null &&

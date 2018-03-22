@@ -75,7 +75,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
             
             class CustomBuilder implements ParameterizedToolingModelBuilder<CustomParameter> {
                 boolean canBuild(String modelName) {
-                    return modelName == '${CustomAfterConfigurationModel.name}' || modelName == '${CustomAfterBuildModel.name}'
+                    return modelName == '${CustomProjectsEvaluatedModel.name}' || modelName == '${CustomBuildFinishedModel.name}'
                 }
                 
                 Class<CustomParameter> getParameterType() {
@@ -83,17 +83,17 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 }
                 
                 Object buildAll(String modelName, Project project) {
-                    if (modelName == '${CustomAfterConfigurationModel.name}') {
+                    if (modelName == '${CustomProjectsEvaluatedModel.name}') {
                         return new DefaultCustomModel('configuration');
                     }
-                    if (modelName == '${CustomAfterBuildModel.name}') {
+                    if (modelName == '${CustomBuildFinishedModel.name}') {
                         return new DefaultCustomModel('build');
                     }
                     return null
                 }
                 
                 Object buildAll(String modelName, CustomParameter parameter, Project project) {
-                    if (modelName == '${CustomAfterConfigurationModel.name}') {
+                    if (modelName == '${CustomProjectsEvaluatedModel.name}') {
                         project.setDefaultTasks(parameter.getTasks());
                         return new DefaultCustomModel('configurationWithTasks');
                     }
@@ -105,39 +105,36 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.7")
     def "can run phased action"() {
-        ResultHandlerCollector afterLoadingHandler = new ResultHandlerCollector()
-        ResultHandlerCollector afterConfigurationHandler = new ResultHandlerCollector()
-        ResultHandlerCollector afterBuildHandler = new ResultHandlerCollector()
+        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
+        PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
+        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().addAfterLoadingAction(new CustomAfterLoadingAction(), afterLoadingHandler)
-                .addAfterConfigurationAction(new CustomAfterConfiguringAction(null), afterConfigurationHandler)
-                .addAfterBuildAction(new CustomAfterBuildAction(), afterBuildHandler)
+            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .projectsEvaluated(new CustomProjectsEvaluatedAction(null), projectsEvaluatedHandler)
+                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
         }
 
         then:
-        afterLoadingHandler.getResult() == "loading"
-        afterLoadingHandler.getFailure() == null
-        afterConfigurationHandler.getResult() == "configuration"
-        afterConfigurationHandler.getFailure() == null
-        afterBuildHandler.getResult() == "build"
-        afterBuildHandler.getFailure() == null
+        projectsLoadedHandler.getResult() == "loading"
+        projectsEvaluatedHandler.getResult() == "configuration"
+        buildFinishedHandler.getResult() == "build"
     }
 
     @TargetGradleVersion(">=4.7")
     def "failures are received and future actions not run"() {
-        ResultHandlerCollector afterLoadingHandler = new ResultHandlerCollector()
-        ResultHandlerCollector afterConfigurationHandler = new ResultHandlerCollector()
-        ResultHandlerCollector afterBuildHandler = new ResultHandlerCollector()
+        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
+        PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
+        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().addAfterLoadingAction(new CustomAfterLoadingAction(), afterLoadingHandler)
-                .addAfterConfigurationAction(new FailAction(), afterConfigurationHandler)
-                .addAfterBuildAction(new CustomAfterBuildAction(), afterBuildHandler)
+            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .projectsEvaluated(new FailAction(), projectsEvaluatedHandler)
+                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
         }
@@ -147,43 +144,37 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.message == "The supplied phased action failed with an exception."
         e.cause instanceof RuntimeException
         e.cause.message == "actionFailure"
-        afterLoadingHandler.getResult() == "loading"
-        afterLoadingHandler.getFailure() == null
-        afterConfigurationHandler.getResult() == null
-        afterConfigurationHandler.getFailure() instanceof BuildActionFailureException
-        afterConfigurationHandler.getFailure().message == "The supplied build action failed with an exception."
-        afterConfigurationHandler.getFailure().cause instanceof RuntimeException
-        afterConfigurationHandler.getFailure().cause.message == "actionFailure"
-        afterBuildHandler.getResult() == null
-        afterBuildHandler.getFailure() == null
+        projectsLoadedHandler.getResult() == "loading"
+        projectsEvaluatedHandler.getResult() == null
+        buildFinishedHandler.getResult() == null
     }
 
     @TargetGradleVersion(">=4.7")
     def "can modify task graph in after configuration action"() {
-        ResultHandlerCollector afterConfigurationHandler = new ResultHandlerCollector()
+        PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().addAfterConfigurationAction(new CustomAfterConfiguringAction(["hello"]), afterConfigurationHandler)
+            connection.phasedAction().projectsEvaluated(new CustomProjectsEvaluatedAction(["hello"]), projectsEvaluatedHandler)
                 .build()
                 .setStandardOutput(stdOut)
                 .run()
         }
 
         then:
-        afterConfigurationHandler.getResult() == "configurationWithTasks"
+        projectsEvaluatedHandler.getResult() == "configurationWithTasks"
         stdOut.toString().contains("hello")
     }
 
     @TargetGradleVersion(">=4.7")
-    def "can run pre-defined tasks and after build action is run after tasks are executed"() {
-        ResultHandlerCollector afterBuildHandler = new ResultHandlerCollector()
+    def "can run pre-defined tasks and build finished action is run after tasks are executed"() {
+        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().addAfterBuildAction(new CustomAfterBuildAction(), afterBuildHandler)
+            connection.phasedAction().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .forTasks("bye")
                 .setStandardOutput(stdOut)
@@ -193,7 +184,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         Pattern regex = Pattern.compile(".*hello.*bye.*afterBuildAction.*", Pattern.DOTALL)
         assert stdOut.toString().matches(regex)
-        afterBuildHandler.getResult() == "build"
+        buildFinishedHandler.getResult() == "build"
         stdOut.toString().contains("hello")
         stdOut.toString().contains("bye")
     }
@@ -201,11 +192,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion("<4.7")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
-        ResultHandlerCollector afterBuildHandler = new ResultHandlerCollector()
+        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().addAfterBuildAction(new CustomAfterBuildAction(), afterBuildHandler)
+            connection.phasedAction().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
         }

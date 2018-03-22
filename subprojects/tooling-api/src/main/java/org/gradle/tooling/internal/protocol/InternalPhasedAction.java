@@ -35,15 +35,15 @@ public interface InternalPhasedAction extends InternalProtocolInterface, Seriali
      * @since 4.7
      */
     @Nullable
-    InternalBuildActionVersion2<?> getAfterLoadingAction();
+    InternalBuildActionVersion2<?> getProjectsLoadedAction();
 
     /**
-     * Internal version of the action to be run after projects are configured.
+     * Internal version of the action to be run after projects are evaluated.
      *
      * @since 4.7
      */
     @Nullable
-    InternalBuildActionVersion2<?> getAfterConfigurationAction();
+    InternalBuildActionVersion2<?> getProjectsEvaluatedAction();
 
     /**
      * Internal version of the action to be run after tasks are run.
@@ -51,5 +51,5 @@ public interface InternalPhasedAction extends InternalProtocolInterface, Seriali
      * @since 4.7
      */
     @Nullable
-    InternalBuildActionVersion2<?> getAfterBuildAction();
+    InternalBuildActionVersion2<?> getBuildFinishedAction();
 }

@@ -16,28 +16,8 @@
 
 package org.gradle.integtests.tooling.r47;
 
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ResultHandler;
+import java.io.Serializable;
 
-public class ResultHandlerCollector implements ResultHandler<String> {
-    private String result = null;
-    private GradleConnectionException failure = null;
-
-    @Override
-    public void onComplete(String result) {
-        this.result = result;
-    }
-
-    @Override
-    public void onFailure(GradleConnectionException failure) {
-        this.failure = failure;
-    }
-
-    public String getResult() {
-        return result;
-    }
-
-    public GradleConnectionException getFailure() {
-        return failure;
-    }
+public interface CustomProjectsEvaluatedModel extends Serializable {
+    String getValue();
 }

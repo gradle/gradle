@@ -22,7 +22,7 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.io.Serializable;
 
-public class CustomAfterLoadingAction implements BuildAction<String>, Serializable {
+public class CustomProjectsLoadedAction implements BuildAction<String>, Serializable {
     // Plugins are not applied yet, cannot have access to custom model builders. However, basic models provided by Gradle are already available.
 
     @Override

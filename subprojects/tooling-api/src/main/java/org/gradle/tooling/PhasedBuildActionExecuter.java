@@ -17,7 +17,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.exceptions.MultipleBuildActionsException;
 
 /**
  * Used to execute multiple {@link BuildAction}s in different phases of the build process.
@@ -38,55 +37,51 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
     interface Builder {
 
         /**
-         * Adds the given action and its result handler to be executed after projects are loaded.
+         * Executes the given action after projects are loaded and sends its result to the given result handler.
          *
-         * <p>The action or model builders invoked by it are run when plugins have not yet be applied, and so it should try to get only gradle default models.
+         * <p>Models contributed by project plugins won't be available at this point.
          *
-         * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
+         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
          *
          * @param buildAction The action to run in the specified build phase.
          * @param handler The handler to supply the result of the given action to.
          * @param <T> The returning type of the action.
          * @return The builder.
-         * @throws MultipleBuildActionsException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          *
          * @since 4.7
          */
-        <T> Builder addAfterLoadingAction(BuildAction<T> buildAction, ResultHandler<? super T> handler) throws MultipleBuildActionsException;
+        <T> Builder projectsLoaded(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
         /**
-         * Adds the given action and its result handler to be executed after projects are configured and before tasks are run.
+         * Executes the given action after projects are evaluated and sends its result to the given result handler.
          *
-         * <p>The action has already access to plugins' model builders. These model builders can modify the task graph, since tasks have not yet been run.
-         *
-         * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
+         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
          *
          * @param buildAction The action to run in the specified build phase.
          * @param handler The handler to supply the result of the given action to.
          * @param <T> The returning type of the action.
          * @return The builder.
-         * @throws MultipleBuildActionsException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          *
          * @since 4.7
          */
-        <T> Builder addAfterConfigurationAction(BuildAction<T> buildAction, ResultHandler<? super T> handler) throws MultipleBuildActionsException;
+        <T> Builder projectsEvaluated(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
         /**
-         * Adds the given action and its result handler to be executed after tasks are run.
+         * Executes the given action after tasks are run and sends its result to the given result handler.
          *
-         * <p>The action should not invoke task graph modifiers, since tasks have already been run.
-         *
-         * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
+         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
          *
          * @param buildAction The action to run in the specified build phase.
          * @param handler The handler to supply the result of the given action to.
          * @param <T> The returning type of the action.
          * @return The builder.
-         * @throws MultipleBuildActionsException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          *
          * @since 4.7
          */
-        <T> Builder addAfterBuildAction(BuildAction<T> buildAction, ResultHandler<? super T> handler) throws MultipleBuildActionsException;
+        <T> Builder buildFinished(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
         /**
          * Builds the executer from the added actions.

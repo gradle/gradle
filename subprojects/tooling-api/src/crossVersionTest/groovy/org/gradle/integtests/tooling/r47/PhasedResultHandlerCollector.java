@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.exceptions;
+package org.gradle.integtests.tooling.r47;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.PhasedResultHandler;
 
-/**
- * Thrown when the {@link org.gradle.tooling.PhasedBuildActionExecuter.Builder} has been configured
- * with more than one {@link org.gradle.tooling.BuildAction} per phase.
- *
- * @since 4.7
- */
-@Incubating
-public class MultipleBuildActionsException extends RuntimeException {
+public class PhasedResultHandlerCollector implements PhasedResultHandler<String> {
+    private String result = null;
 
-    public MultipleBuildActionsException(String message) {
-        super(message);
+    @Override
+    public void onComplete(String result) {
+        this.result = result;
+    }
+
+    public String getResult() {
+        return result;
     }
 }

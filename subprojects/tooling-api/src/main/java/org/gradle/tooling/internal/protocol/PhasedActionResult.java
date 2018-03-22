@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
@@ -36,16 +35,25 @@ public interface PhasedActionResult<T> extends InternalProtocolInterface, Serial
      *
      * @since 4.7
      */
-    @Nullable
     T getResult();
 
     /**
-     * Gets the action failure if it did not completed successfully.
+     * Gets the phase of the build when the action was run.
      *
-     * @return The failure. {@code null} if action completed successfully.
+     * @return The phase.
      *
      * @since 4.7
      */
-    @Nullable
-    Throwable getFailure();
+    Phase getPhase();
+
+    /**
+     * Phases of the build when it is possible to run an action provided by the client.
+     *
+     * @since 4.7
+     */
+    enum Phase {
+        PROJECTS_LOADED,
+        PROJECTS_EVALUATED,
+        BUILD_FINISHED
+    }
 }

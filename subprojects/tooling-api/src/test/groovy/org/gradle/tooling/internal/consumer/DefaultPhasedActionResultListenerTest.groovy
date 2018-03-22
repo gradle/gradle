@@ -17,84 +17,47 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.testing.internal.util.Specification
-import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
-import org.gradle.tooling.internal.protocol.AfterBuildResult
-import org.gradle.tooling.internal.protocol.AfterConfigurationResult
-import org.gradle.tooling.internal.protocol.AfterLoadingResult
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
+import org.gradle.tooling.PhasedResultHandler
 import org.gradle.tooling.internal.protocol.PhasedActionResult
-import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
 
 class DefaultPhasedActionResultListenerTest extends Specification {
 
-    def afterLoadingHandler = Mock(ResultHandler)
-    def afterConfigurationHandler = Mock(ResultHandler)
-    def afterBuildHandler = Mock(ResultHandler)
-    def listener = new DefaultPhasedActionResultListener(afterLoadingHandler, afterConfigurationHandler, afterBuildHandler)
+    def projectsLoadedHandler = Mock(PhasedResultHandler)
+    def projectsEvaluatedHandler = Mock(PhasedResultHandler)
+    def buildFinishedHandler = Mock(PhasedResultHandler)
+    def listener = new DefaultPhasedActionResultListener(projectsLoadedHandler, projectsEvaluatedHandler, buildFinishedHandler)
 
     def "right handler is called"() {
         when:
-        listener.onResult(new AfterLoading<String>('result1', null))
-        listener.onResult(new AfterConfiguration<String>('result2', null))
-        listener.onResult(new AfterBuild<String>('result3', null))
+        listener.onResult(new ProjectsLoadedResult<String>('result1'))
+        listener.onResult(new ProjectsEvaluatedResult<String>('result2'))
+        listener.onResult(new BuildFinishedResult<String>('result3'))
 
         then:
-        1 * afterLoadingHandler.onComplete('result1')
-        1 * afterConfigurationHandler.onComplete('result2')
-        1 * afterBuildHandler.onComplete('result3')
-        0 * afterLoadingHandler.onFailure(_)
-        0 * afterConfigurationHandler.onFailure(_)
-        0 * afterBuildHandler.onFailure(_)
-    }
-
-    def "failures are adapted and sent to correct handlers"() {
-        when:
-        listener.onResult(new AfterLoading<Object>(null, new InternalUnsupportedBuildArgumentException('failure1')))
-        listener.onResult(new AfterConfiguration<Object>(null, new InternalBuildActionFailureException(new RuntimeException('failure2'))))
-        listener.onResult(new AfterBuild<Object>(null, new RuntimeException('failure3')))
-
-        then:
-        0 * afterLoadingHandler.onComplete(_)
-        0 * afterConfigurationHandler.onComplete(_)
-        0 * afterBuildHandler.onComplete(_)
-        1 * afterLoadingHandler.onFailure({
-            it instanceof UnsupportedBuildArgumentException &&
-                it.message == 'Could not execute build action in phased action build.\nfailure1'
-        })
-        1 * afterConfigurationHandler.onFailure({
-            it instanceof BuildActionFailureException &&
-                it.message == 'The supplied build action failed with an exception.' &&
-                it.cause instanceof RuntimeException &&
-                it.cause.message == 'failure2'
-        })
-        1 * afterBuildHandler.onFailure({
-            it instanceof GradleConnectionException &&
-                it.message == 'Could not execute build action in phased action build.' &&
-                it.cause instanceof RuntimeException &&
-                it.cause.message == 'failure3'
-        })
+        1 * projectsLoadedHandler.onComplete('result1')
+        1 * projectsEvaluatedHandler.onComplete('result2')
+        1 * buildFinishedHandler.onComplete('result3')
     }
 
     def "null handler is not called"() {
         def emptyListener = new DefaultPhasedActionResultListener(null, null, null)
 
         when:
-        listener.onResult(new AfterLoading<String>('result', null))
+        emptyListener.onResult(new ProjectsLoadedResult<String>('result1'))
+        emptyListener.onResult(new ProjectsEvaluatedResult<String>('result2'))
+        emptyListener.onResult(new BuildFinishedResult<String>('result3'))
 
         then:
         noExceptionThrown()
     }
 
-    class Result<T> implements PhasedActionResult<T> {
+    abstract class Result<T> implements PhasedActionResult<T> {
         T result
-        Throwable failure
+        PhasedActionResult.Phase phase
 
-        Result(T result, Throwable failure) {
+        Result(T result, PhasedActionResult.Phase phase) {
             this.result = result
-            this.failure = failure
+            this.phase = phase
         }
 
         @Override
@@ -103,26 +66,26 @@ class DefaultPhasedActionResultListenerTest extends Specification {
         }
 
         @Override
-        Throwable getFailure() {
-            return failure
+        PhasedActionResult.Phase getPhase() {
+            return phase
         }
     }
 
-    class AfterLoading<T> extends Result<T> implements AfterLoadingResult<T> {
-        AfterLoading(T result, Throwable failure) {
-            super(result, failure)
+    class ProjectsLoadedResult<T> extends Result<T> {
+        ProjectsLoadedResult(T result) {
+            super(result, PhasedActionResult.Phase.PROJECTS_LOADED)
         }
     }
 
-    class AfterConfiguration<T> extends Result<T> implements AfterConfigurationResult<T> {
-        AfterConfiguration(T result, Throwable failure) {
-            super(result, failure)
+    class ProjectsEvaluatedResult<T> extends Result<T> {
+        ProjectsEvaluatedResult(T result) {
+            super(result, PhasedActionResult.Phase.PROJECTS_EVALUATED)
         }
     }
 
-    class AfterBuild<T> extends Result<T> implements AfterBuildResult<T> {
-        AfterBuild(T result, Throwable failure) {
-            super(result, failure)
+    class BuildFinishedResult<T> extends Result<T> {
+        BuildFinishedResult(T result) {
+            super(result, PhasedActionResult.Phase.BUILD_FINISHED)
         }
     }
 }

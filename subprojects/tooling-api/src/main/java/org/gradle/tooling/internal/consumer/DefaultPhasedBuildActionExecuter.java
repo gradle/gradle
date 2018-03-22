@@ -20,8 +20,8 @@ import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.PhasedBuildActionExecuter;
+import org.gradle.tooling.PhasedResultHandler;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.exceptions.MultipleBuildActionsException;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -85,9 +85,9 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
     }
 
     static class Builder implements PhasedBuildActionExecuter.Builder {
-        @Nullable private PhasedBuildAction.BuildActionWrapper<?> afterLoadingAction = null;
-        @Nullable private PhasedBuildAction.BuildActionWrapper<?> afterConfigurationAction = null;
-        @Nullable private PhasedBuildAction.BuildActionWrapper<?> afterBuildAction = null;
+        @Nullable private PhasedBuildAction.BuildActionWrapper<?> projectsLoadedAction = null;
+        @Nullable private PhasedBuildAction.BuildActionWrapper<?> projectsEvaluatedAction = null;
+        @Nullable private PhasedBuildAction.BuildActionWrapper<?> buildFinishedAction = null;
 
         private final AsyncConsumerActionExecutor connection;
         private final ConnectionParameters parameters;
@@ -98,39 +98,39 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
         }
 
         @Override
-        public <T> Builder addAfterLoadingAction(BuildAction<T> action, ResultHandler<? super T> handler) throws MultipleBuildActionsException {
-            if (afterLoadingAction != null) {
-                throw getException("AfterLoadingAction");
+        public <T> Builder projectsLoaded(BuildAction<T> action, PhasedResultHandler<? super T> handler) throws IllegalArgumentException {
+            if (projectsLoadedAction != null) {
+                throw getException("ProjectsLoadedAction");
             }
-            afterLoadingAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
+            projectsLoadedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
             return Builder.this;
         }
 
         @Override
-        public <T> Builder addAfterConfigurationAction(BuildAction<T> action, ResultHandler<? super T> handler) throws MultipleBuildActionsException {
-            if (afterConfigurationAction != null) {
-                throw getException("AfterConfigurationAction");
+        public <T> Builder projectsEvaluated(BuildAction<T> action, PhasedResultHandler<? super T> handler) throws IllegalArgumentException {
+            if (projectsEvaluatedAction != null) {
+                throw getException("ProjectsEvaluatedAction");
             }
-            afterConfigurationAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
+            projectsEvaluatedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
             return Builder.this;
         }
 
         @Override
-        public <T> Builder addAfterBuildAction(BuildAction<T> action, ResultHandler<? super T> handler) throws MultipleBuildActionsException {
-            if (afterBuildAction != null) {
-                throw getException("AfterBuildAction");
+        public <T> Builder buildFinished(BuildAction<T> action, PhasedResultHandler<? super T> handler) throws IllegalArgumentException {
+            if (buildFinishedAction != null) {
+                throw getException("BuildFinishedAction");
             }
-            afterBuildAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
+            buildFinishedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
             return Builder.this;
         }
 
         @Override
         public PhasedBuildActionExecuter build() {
-            return new DefaultPhasedBuildActionExecuter(new DefaultPhasedBuildAction(afterLoadingAction, afterConfigurationAction, afterBuildAction), connection, parameters);
+            return new DefaultPhasedBuildActionExecuter(new DefaultPhasedBuildAction(projectsLoadedAction, projectsEvaluatedAction, buildFinishedAction), connection, parameters);
         }
 
-        private static MultipleBuildActionsException getException(String phase) {
-            return new MultipleBuildActionsException(String.format("%s has already been added. Only one action per phase is allowed.", phase));
+        private static IllegalArgumentException getException(String phase) {
+            return new IllegalArgumentException(String.format("%s has already been added. Only one action per phase is allowed.", phase));
         }
     }
 }

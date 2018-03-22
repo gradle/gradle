@@ -18,15 +18,11 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.PhasedResultHandler
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.PhasedBuildAction
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.AfterBuildResult
-import org.gradle.tooling.internal.protocol.AfterConfigurationResult
-import org.gradle.tooling.internal.protocol.AfterLoadingResult
 import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.ConfigurableConnection
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
@@ -37,6 +33,7 @@ import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection
+import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener
 import org.gradle.tooling.internal.protocol.StoppableConnection
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection
@@ -58,8 +55,8 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
             getVersion() >> "4.7"
         }
     }
-    final adapter = Mock(ProtocolToModelAdapter)
-    final modelMapping = Mock(ModelMapping)
+    final adapter = Stub(ProtocolToModelAdapter)
+    final modelMapping = Stub(ModelMapping)
     final connection = new PhasedActionAwareConsumerConnection(target, modelMapping, adapter)
 
     def "describes capabilities of provider"() {
@@ -88,24 +85,24 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
     }
 
     def "delegates to connection to run phased action"() {
-        def afterLoadingAction = Mock(BuildAction)
-        def afterLoadingHandler = Mock(ResultHandler)
-        def afterConfigurationAction = Mock(BuildAction)
-        def afterConfigurationHandler = Mock(ResultHandler)
-        def afterBuildAction = Mock(BuildAction)
-        def afterBuildHandler = Mock(ResultHandler)
+        def projectsLoadedAction = Mock(BuildAction)
+        def projectsLoadedHandler = Mock(PhasedResultHandler)
+        def projectsEvaluatedAction = Mock(BuildAction)
+        def projectsEvaluatedHandler = Mock(PhasedResultHandler)
+        def buildFinishedAction = Mock(BuildAction)
+        def buildFinishedHandler = Mock(PhasedResultHandler)
         def phasedAction = Stub(PhasedBuildAction) {
-            getAfterLoadingAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
-                getAction() >> afterLoadingAction
-                getHandler() >> afterLoadingHandler
+            getProjectsLoadedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
+                getAction() >> projectsLoadedAction
+                getHandler() >> projectsLoadedHandler
             }
-            getAfterConfigurationAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
-                getAction() >> afterConfigurationAction
-                getHandler() >> afterConfigurationHandler
+            getProjectsEvaluatedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
+                getAction() >> projectsEvaluatedAction
+                getHandler() >> projectsEvaluatedHandler
             }
-            getAfterBuildAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
-                getAction() >> afterBuildAction
-                getHandler() >> afterBuildHandler
+            getBuildFinishedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
+                getAction() >> buildFinishedAction
+                getHandler() >> buildFinishedHandler
             }
         }
         def parameters = Stub(ConsumerOperationParameters)
@@ -121,59 +118,56 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
         1 * target.run(_, _, _, parameters) >> { InternalPhasedAction protocolAction, PhasedActionResultListener listener, def cancel, def params ->
             assert params == parameters
 
-            def actionResult1 = protocolAction.getAfterLoadingAction().execute(buildController)
-            def actionResult2 = protocolAction.getAfterConfigurationAction().execute(buildController)
-            def actionResult3 = protocolAction.getAfterBuildAction().execute(buildController)
-            listener.onResult(new AfterLoadingResult<Object>() {
+            def actionResult1 = protocolAction.getProjectsLoadedAction().execute(buildController)
+            def actionResult2 = protocolAction.getProjectsEvaluatedAction().execute(buildController)
+            def actionResult3 = protocolAction.getBuildFinishedAction().execute(buildController)
+            listener.onResult(new PhasedActionResult<Object>() {
                 @Override
                 Object getResult() {
                     return actionResult1
                 }
 
                 @Override
-                Throwable getFailure() {
-                    return null
+                PhasedActionResult.Phase getPhase() {
+                    return PhasedActionResult.Phase.PROJECTS_LOADED
                 }
             })
-            listener.onResult(new AfterConfigurationResult<Object>() {
+            listener.onResult(new PhasedActionResult<Object>() {
                 @Override
                 Object getResult() {
                     return actionResult2
                 }
 
                 @Override
-                Throwable getFailure() {
-                    return null
+                PhasedActionResult.Phase getPhase() {
+                    return PhasedActionResult.Phase.PROJECTS_EVALUATED
                 }
             })
-            listener.onResult(new AfterBuildResult<Object>() {
+            listener.onResult(new PhasedActionResult<Object>() {
                 @Override
                 Object getResult() {
                     return actionResult3
                 }
 
                 @Override
-                Throwable getFailure() {
-                    return null
+                PhasedActionResult.Phase getPhase() {
+                    return PhasedActionResult.Phase.BUILD_FINISHED
                 }
             })
             return Stub(BuildResult) {
                 getModel() >> null
             }
         }
-        1 * afterLoadingAction.execute(_) >> 'result1'
-        1 * afterConfigurationAction.execute(_) >> 'result2'
-        1 * afterBuildAction.execute(_) >> 'result3'
-        1 * afterLoadingHandler.onComplete('result1')
-        1 * afterConfigurationHandler.onComplete('result2')
-        1 * afterBuildHandler.onComplete('result3')
-        0 * afterLoadingHandler.onFailure(_)
-        0 * afterConfigurationHandler.onFailure(_)
-        0 * afterBuildHandler.onFailure(_)
+        1 * projectsLoadedAction.execute(_) >> 'result1'
+        1 * projectsEvaluatedAction.execute(_) >> 'result2'
+        1 * buildFinishedAction.execute(_) >> 'result3'
+        1 * projectsLoadedHandler.onComplete('result1')
+        1 * projectsEvaluatedHandler.onComplete('result2')
+        1 * buildFinishedHandler.onComplete('result3')
     }
 
-    def "adapts phased action build action final failure"() {
-        def phasedAction = Mock(PhasedBuildAction)
+    def "adapts phased action build action failure"() {
+        def phasedAction = Stub(PhasedBuildAction)
         def parameters = Stub(ConsumerOperationParameters)
         def failure = new RuntimeException()
 
@@ -187,43 +181,6 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
 
         and:
         1 * target.run(_, _, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
-    }
-
-    def "adapts phased action partial failure"() {
-        def afterConfigurationHandler = Mock(ResultHandler)
-        def phasedAction = Stub(PhasedBuildAction) {
-            getAfterLoadingAction() >> null
-            getAfterConfigurationAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
-                getAction() >> Mock(BuildAction)
-                getHandler() >> afterConfigurationHandler
-            }
-            getAfterBuildAction() >> null
-        }
-        def parameters = Stub(ConsumerOperationParameters)
-        def failure = new RuntimeException()
-
-        when:
-        connection.run(phasedAction, parameters)
-
-        then:
-        1 * target.run(_, _, _, parameters) >> { def protocolAction, PhasedActionResultListener listener, def cancel, def params ->
-            listener.onResult(new AfterConfigurationResult<Object>() {
-                @Override
-                Object getResult() {
-                    return null
-                }
-
-                @Override
-                Throwable getFailure() {
-                    return new InternalBuildActionFailureException(failure)
-                }
-            })
-        }
-        1 * afterConfigurationHandler.onFailure(_) >> { GradleConnectionException exception ->
-            assert exception instanceof BuildActionFailureException
-            assert exception.message == 'The supplied build action failed with an exception.'
-            assert exception.cause == failure
-        }
     }
 
     interface TestConnection extends ConnectionVersion4, ConfigurableConnection, InternalParameterAcceptingConnection, InternalTestExecutionConnection, StoppableConnection,

@@ -17,14 +17,9 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.tooling.internal.protocol.AfterBuildResult;
-import org.gradle.tooling.internal.protocol.AfterConfigurationResult;
-import org.gradle.tooling.internal.protocol.AfterLoadingResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-
-import javax.annotation.Nullable;
 
 /**
  * Consumer of events from phased actions. This consumer deserializes the results and forward them to the correct listener.
@@ -43,55 +38,20 @@ public class PhasedActionEventConsumer implements BuildEventConsumer {
     @Override
     public void dispatch(final Object event) {
         if (event instanceof PhasedBuildActionResult) {
-            PhasedBuildActionResult resultEvent = (PhasedBuildActionResult) event;
-            final Object deserializedResult = resultEvent.result == null ? null : payloadSerializer.deserialize(resultEvent.result);
-            final Throwable deserializedFailure = resultEvent.failure == null ? null : (Throwable) payloadSerializer.deserialize(resultEvent.failure);
+            final PhasedBuildActionResult resultEvent = (PhasedBuildActionResult) event;
+            final Object deserializedResult = payloadSerializer.deserialize(resultEvent.result);
 
-            PhasedActionResult<?> phasedActionResult = null;
-            if (resultEvent.type == PhasedBuildActionResult.Type.AFTER_LOADING) {
-                phasedActionResult = new AfterLoadingResult<Object>() {
-                    @Nullable
-                    @Override
-                    public Object getResult() {
-                        return deserializedResult;
-                    }
+            phasedActionResultListener.onResult(new PhasedActionResult<Object>() {
+                @Override
+                public Object getResult() {
+                    return deserializedResult;
+                }
 
-                    @Nullable
-                    @Override
-                    public Throwable getFailure() {
-                        return deserializedFailure;
-                    }
-                };
-            } else if (resultEvent.type == PhasedBuildActionResult.Type.AFTER_CONFIGURATION) {
-                phasedActionResult = new AfterConfigurationResult<Object>() {
-                    @Nullable
-                    @Override
-                    public Object getResult() {
-                        return deserializedResult;
-                    }
-
-                    @Nullable
-                    @Override
-                    public Throwable getFailure() {
-                        return deserializedFailure;
-                    }
-                };
-            } else if (resultEvent.type == PhasedBuildActionResult.Type.AFTER_BUILD) {
-                phasedActionResult = new AfterBuildResult<Object>() {
-                    @Nullable
-                    @Override
-                    public Object getResult() {
-                        return deserializedResult;
-                    }
-
-                    @Nullable
-                    @Override
-                    public Throwable getFailure() {
-                        return deserializedFailure;
-                    }
-                };
-            }
-            phasedActionResultListener.onResult(phasedActionResult);
+                @Override
+                public PhasedActionResult.Phase getPhase() {
+                    return resultEvent.phase;
+                }
+            });
         } else {
             delegate.dispatch(event);
         }

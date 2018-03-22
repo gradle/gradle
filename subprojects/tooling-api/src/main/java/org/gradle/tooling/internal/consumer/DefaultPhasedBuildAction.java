@@ -17,46 +17,46 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.PhasedResultHandler;
 
 import javax.annotation.Nullable;
 
 public class DefaultPhasedBuildAction implements PhasedBuildAction {
-    @Nullable private final BuildActionWrapper<?> afterLoadingAction;
-    @Nullable private final BuildActionWrapper<?> afterConfigurationAction;
-    @Nullable private final BuildActionWrapper<?> afterBuildAction;
+    @Nullable private final BuildActionWrapper<?> projectsLoadedAction;
+    @Nullable private final BuildActionWrapper<?> projectsEvaluatedAction;
+    @Nullable private final BuildActionWrapper<?> buildFinishedAction;
 
-    DefaultPhasedBuildAction(@Nullable BuildActionWrapper<?> afterLoadingAction,
-                             @Nullable BuildActionWrapper<?> afterConfigurationAction,
-                             @Nullable BuildActionWrapper<?> afterBuildAction) {
-        this.afterLoadingAction = afterLoadingAction;
-        this.afterConfigurationAction = afterConfigurationAction;
-        this.afterBuildAction = afterBuildAction;
+    DefaultPhasedBuildAction(@Nullable BuildActionWrapper<?> projectsLoadedAction,
+                             @Nullable BuildActionWrapper<?> projectsEvaluatedAction,
+                             @Nullable BuildActionWrapper<?> buildFinishedAction) {
+        this.projectsLoadedAction = projectsLoadedAction;
+        this.projectsEvaluatedAction = projectsEvaluatedAction;
+        this.buildFinishedAction = buildFinishedAction;
     }
 
     @Nullable
     @Override
-    public BuildActionWrapper<?> getAfterLoadingAction() {
-        return afterLoadingAction;
+    public BuildActionWrapper<?> getProjectsLoadedAction() {
+        return projectsLoadedAction;
     }
 
     @Nullable
     @Override
-    public BuildActionWrapper<?> getAfterConfigurationAction() {
-        return afterConfigurationAction;
+    public BuildActionWrapper<?> getProjectsEvaluatedAction() {
+        return projectsEvaluatedAction;
     }
 
     @Nullable
     @Override
-    public BuildActionWrapper<?> getAfterBuildAction() {
-        return afterBuildAction;
+    public BuildActionWrapper<?> getBuildFinishedAction() {
+        return buildFinishedAction;
     }
 
     static class DefaultBuildActionWrapper<T> implements BuildActionWrapper<T> {
         private final BuildAction<T> buildAction;
-        private final ResultHandler<? super T> resultHandler;
+        private final PhasedResultHandler<? super T> resultHandler;
 
-        DefaultBuildActionWrapper(BuildAction<T> buildAction, ResultHandler<? super T> resultHandler) {
+        DefaultBuildActionWrapper(BuildAction<T> buildAction, PhasedResultHandler<? super T> resultHandler) {
             this.buildAction = buildAction;
             this.resultHandler = resultHandler;
         }
@@ -67,7 +67,7 @@ public class DefaultPhasedBuildAction implements PhasedBuildAction {
         }
 
         @Override
-        public ResultHandler<? super T> getHandler() {
+        public PhasedResultHandler<? super T> getHandler() {
             return resultHandler;
         }
     }

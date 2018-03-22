@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling;
 
-package org.gradle.tooling.internal.protocol;
+import org.gradle.api.Incubating;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * A handler for an intermediate result obtained by a {@link PhasedBuildActionExecuter}.
  *
- * An {@link InternalPhasedAction} of an action executed after tasks are run.
- * This result will be supplied to {@link PhasedActionResultListener}.
- *
+ * @param <T> The result type.
  * @since 4.7
  */
-public interface AfterBuildResult<T> extends PhasedActionResult<T> {
+@Incubating
+public interface PhasedResultHandler<T> {
+
+    /**
+     * Handles successful completion of the action.
+     *
+     * @param result the result
+     * @since 4.7
+     */
+    void onComplete(T result);
 }
