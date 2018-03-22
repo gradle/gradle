@@ -18,6 +18,6 @@ package org.gradle.integtests.tooling.r47;
 
 import java.io.Serializable;
 
-public interface CustomAfterBuildModel extends Serializable {
+public interface CustomBuildFinishedModel extends Serializable {
     String getValue();
 }

@@ -141,7 +141,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
     }
 
     def "cannot run phased action"() {
-        def phasedAction = Mock(PhasedBuildAction)
+        def phasedAction = Stub(PhasedBuildAction)
         def parameters = Stub(ConsumerOperationParameters) {
             getEntryPointName() >> 'PhasedBuildActionExecuter API'
         }

@@ -18,9 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.testing.internal.util.Specification
-import org.gradle.tooling.internal.protocol.AfterBuildResult
-import org.gradle.tooling.internal.protocol.AfterConfigurationResult
-import org.gradle.tooling.internal.protocol.AfterLoadingResult
+import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
@@ -28,7 +26,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 class PhasedActionEventConsumerTest extends Specification {
     def phasedActionResultListener = Mock(PhasedActionResultListener)
     def delegateEventConsumer = Mock(BuildEventConsumer)
-    def payloadSerializer = Mock(PayloadSerializer)
+    def payloadSerializer = Stub(PayloadSerializer)
 
     def eventConsumer = new PhasedActionEventConsumer(phasedActionResultListener, payloadSerializer, delegateEventConsumer)
 
@@ -45,11 +43,11 @@ class PhasedActionEventConsumerTest extends Specification {
 
     def "deserialize and correctly map results"() {
         def result1 = 'result1'
-        def serializedResult1 = Mock(SerializedPayload)
+        def serializedResult1 = Stub(SerializedPayload)
         def result2 = 'result2'
-        def serializedResult2 = Mock(SerializedPayload)
+        def serializedResult2 = Stub(SerializedPayload)
         def result3 = 'result3'
-        def serializedResult3 = Mock(SerializedPayload)
+        def serializedResult3 = Stub(SerializedPayload)
 
         given:
         payloadSerializer.deserialize(serializedResult1) >> result1
@@ -57,61 +55,23 @@ class PhasedActionEventConsumerTest extends Specification {
         payloadSerializer.deserialize(serializedResult3) >> result3
 
         when:
-        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult1, null, PhasedBuildActionResult.Type.AFTER_LOADING))
-        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult2, null, PhasedBuildActionResult.Type.AFTER_CONFIGURATION))
-        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult3, null, PhasedBuildActionResult.Type.AFTER_BUILD))
+        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult1, PhasedActionResult.Phase.PROJECTS_LOADED))
+        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult2, PhasedActionResult.Phase.PROJECTS_EVALUATED))
+        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult3, PhasedActionResult.Phase.BUILD_FINISHED))
 
         then:
         1 * phasedActionResultListener.onResult({
-            it instanceof AfterLoadingResult &&
+            it.getPhase() == PhasedActionResult.Phase.PROJECTS_LOADED &&
                 it.getResult() == result1
         })
         1 * phasedActionResultListener.onResult({
-            it instanceof AfterConfigurationResult &&
+            it.getPhase() == PhasedActionResult.Phase.PROJECTS_EVALUATED &&
                 it.getResult() == result2
         })
         1 * phasedActionResultListener.onResult({
-            it instanceof AfterBuildResult &&
+            it.getPhase() == PhasedActionResult.Phase.BUILD_FINISHED &&
                 it.getResult() == result3
         })
-        0 * phasedActionResultListener.onResult({
-            it.getFailure() != null
-        })
-    }
-
-    def "deserialize and correctly map failures"() {
-        def failure1 = new RuntimeException()
-        def serializedFailure1 = Mock(SerializedPayload)
-        def failure2 = new RuntimeException()
-        def serializedFailure2 = Mock(SerializedPayload)
-        def failure3 = new RuntimeException()
-        def serializedFailure3 = Mock(SerializedPayload)
-
-        given:
-        payloadSerializer.deserialize(serializedFailure1) >> failure1
-        payloadSerializer.deserialize(serializedFailure2) >> failure2
-        payloadSerializer.deserialize(serializedFailure3) >> failure3
-
-        when:
-        eventConsumer.dispatch(new PhasedBuildActionResult(null, serializedFailure1, PhasedBuildActionResult.Type.AFTER_LOADING))
-        eventConsumer.dispatch(new PhasedBuildActionResult(null, serializedFailure2, PhasedBuildActionResult.Type.AFTER_CONFIGURATION))
-        eventConsumer.dispatch(new PhasedBuildActionResult(null, serializedFailure3, PhasedBuildActionResult.Type.AFTER_BUILD))
-
-        then:
-        1 * phasedActionResultListener.onResult({
-            it instanceof AfterLoadingResult &&
-                it.getFailure() == failure1
-        })
-        1 * phasedActionResultListener.onResult({
-            it instanceof AfterConfigurationResult &&
-                it.getFailure() == failure2
-        })
-        1 * phasedActionResultListener.onResult({
-            it instanceof AfterBuildResult &&
-                it.getFailure() == failure3
-        })
-        0 * phasedActionResultListener.onResult({
-            it.getResult() != null
-        })
+        0 * delegateEventConsumer.dispatch(_)
     }
 }

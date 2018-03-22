@@ -16,8 +16,18 @@
 
 package org.gradle.integtests.tooling.r47;
 
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+
 import java.io.Serializable;
 
-public interface CustomAfterConfigurationModel extends Serializable {
-    String getValue();
+public class CustomBuildFinishedAction implements BuildAction<String>, Serializable {
+    // Tasks graph is already calculated and tasks executed. Action or model builders can access tasks results.
+
+    @Override
+    public String execute(BuildController controller) {
+        // Print something to verify it is after task execution
+        System.out.println("afterBuildAction");
+        return controller.getModel(CustomBuildFinishedModel.class).getValue();
+    }
 }

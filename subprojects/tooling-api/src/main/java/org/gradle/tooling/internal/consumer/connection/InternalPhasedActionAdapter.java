@@ -22,33 +22,33 @@ import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import javax.annotation.Nullable;
 
 public class InternalPhasedActionAdapter implements InternalPhasedAction {
-    @Nullable private final InternalBuildActionVersion2<?> afterLoadingAction;
-    @Nullable private final InternalBuildActionVersion2<?> afterConfigurationAction;
-    @Nullable private final InternalBuildActionVersion2<?> afterBuildAction;
+    @Nullable private final InternalBuildActionVersion2<?> projectsLoadedAction;
+    @Nullable private final InternalBuildActionVersion2<?> projectsEvaluatedAction;
+    @Nullable private final InternalBuildActionVersion2<?> buildFinishedAction;
 
-    InternalPhasedActionAdapter(@Nullable InternalBuildActionVersion2<?> afterLoadingAction,
-                                @Nullable InternalBuildActionVersion2<?> afterConfigurationAction,
+    InternalPhasedActionAdapter(@Nullable InternalBuildActionVersion2<?> projectsLoadedAction,
+                                @Nullable InternalBuildActionVersion2<?> projectsEvaluatedAction,
                                 @Nullable InternalBuildActionVersion2<?> afterBuildAction) {
-        this.afterLoadingAction = afterLoadingAction;
-        this.afterConfigurationAction = afterConfigurationAction;
-        this.afterBuildAction = afterBuildAction;
+        this.projectsLoadedAction = projectsLoadedAction;
+        this.projectsEvaluatedAction = projectsEvaluatedAction;
+        this.buildFinishedAction = afterBuildAction;
     }
 
     @Nullable
     @Override
-    public InternalBuildActionVersion2<?> getAfterLoadingAction() {
-        return afterLoadingAction;
+    public InternalBuildActionVersion2<?> getProjectsLoadedAction() {
+        return projectsLoadedAction;
     }
 
     @Nullable
     @Override
-    public InternalBuildActionVersion2<?> getAfterConfigurationAction() {
-        return afterConfigurationAction;
+    public InternalBuildActionVersion2<?> getProjectsEvaluatedAction() {
+        return projectsEvaluatedAction;
     }
 
     @Nullable
     @Override
-    public InternalBuildActionVersion2<?> getAfterBuildAction() {
-        return afterBuildAction;
+    public InternalBuildActionVersion2<?> getBuildFinishedAction() {
+        return buildFinishedAction;
     }
 }

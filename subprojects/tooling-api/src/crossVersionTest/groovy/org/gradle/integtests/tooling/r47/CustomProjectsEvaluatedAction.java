@@ -24,22 +24,22 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
-public class CustomAfterConfiguringAction implements BuildAction<String>, Serializable {
+public class CustomProjectsEvaluatedAction implements BuildAction<String>, Serializable {
     // Task graph is not calculated yet. Plugins can add tasks to it.
 
     @Nullable private final List<String> tasks;
 
-    public CustomAfterConfiguringAction(@Nullable List<String> tasks) {
+    public CustomProjectsEvaluatedAction(@Nullable List<String> tasks) {
         this.tasks = tasks;
     }
 
     @Override
     public String execute(BuildController controller) {
-        CustomAfterConfigurationModel model;
+        CustomProjectsEvaluatedModel model;
         if (tasks == null || tasks.isEmpty()) {
-            model = controller.getModel(CustomAfterConfigurationModel.class);
+            model = controller.getModel(CustomProjectsEvaluatedModel.class);
         } else {
-            model = controller.getModel(CustomAfterConfigurationModel.class, CustomParameter.class, new Action<CustomParameter>() {
+            model = controller.getModel(CustomProjectsEvaluatedModel.class, CustomParameter.class, new Action<CustomParameter>() {
                 @Override
                 public void execute(CustomParameter customParameter) {
                     customParameter.setTasks(tasks);

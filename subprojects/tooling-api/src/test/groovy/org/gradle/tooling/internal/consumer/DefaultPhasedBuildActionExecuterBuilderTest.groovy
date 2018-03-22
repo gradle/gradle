@@ -18,63 +18,62 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.testing.internal.util.Specification
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.exceptions.MultipleBuildActionsException
+import org.gradle.tooling.PhasedResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 
 class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
-    def connection = Mock(AsyncConsumerActionExecutor)
-    def parameters = Mock(ConnectionParameters)
+    def connection = Stub(AsyncConsumerActionExecutor)
+    def parameters = Stub(ConnectionParameters)
     def builder = new DefaultPhasedBuildActionExecuter.Builder(connection, parameters)
 
     def "phased build action built correctly"() {
-        def afterLoadingAction = Mock(BuildAction)
-        def afterLoadingHandler = Mock(ResultHandler)
-        def afterConfigurationAction = Mock(BuildAction)
-        def afterConfigurationHandler = Mock(ResultHandler)
-        def afterBuildAction = Mock(BuildAction)
-        def afterBuildHandler = Mock(ResultHandler)
+        def projectsLoadedAction = Mock(BuildAction)
+        def projectsLoadedHandler = Mock(PhasedResultHandler)
+        def projectsEvaluatedAction = Mock(BuildAction)
+        def projectsEvaluatedHandler = Mock(PhasedResultHandler)
+        def buildFinishedAction = Mock(BuildAction)
+        def buildFinishedHandler = Mock(PhasedResultHandler)
 
         when:
-        def executer = builder.addAfterLoadingAction(afterLoadingAction, afterLoadingHandler)
-            .addAfterConfigurationAction(afterConfigurationAction, afterConfigurationHandler)
-            .addAfterBuildAction(afterBuildAction, afterBuildHandler)
+        def executer = builder.projectsLoaded(projectsLoadedAction, projectsLoadedHandler)
+            .projectsEvaluated(projectsEvaluatedAction, projectsEvaluatedHandler)
+            .buildFinished(buildFinishedAction, buildFinishedHandler)
             .build()
 
         then:
         executer.connection == connection
         executer.connectionParameters == parameters
-        executer.phasedBuildAction.getAfterLoadingAction().getAction() == afterLoadingAction
-        executer.phasedBuildAction.getAfterLoadingAction().getHandler() == afterLoadingHandler
-        executer.phasedBuildAction.getAfterConfigurationAction().getAction() == afterConfigurationAction
-        executer.phasedBuildAction.getAfterConfigurationAction().getHandler() == afterConfigurationHandler
-        executer.phasedBuildAction.getAfterBuildAction().getAction() == afterBuildAction
-        executer.phasedBuildAction.getAfterBuildAction().getHandler() == afterBuildHandler
+        executer.phasedBuildAction.getProjectsLoadedAction().getAction() == projectsLoadedAction
+        executer.phasedBuildAction.getProjectsLoadedAction().getHandler() == projectsLoadedHandler
+        executer.phasedBuildAction.getProjectsEvaluatedAction().getAction() == projectsEvaluatedAction
+        executer.phasedBuildAction.getProjectsEvaluatedAction().getHandler() == projectsEvaluatedHandler
+        executer.phasedBuildAction.getBuildFinishedAction().getAction() == buildFinishedAction
+        executer.phasedBuildAction.getBuildFinishedAction().getHandler() == buildFinishedHandler
     }
 
     def "exception when multiple actions per phase"() {
         when:
-        builder.addAfterLoadingAction(Mock(BuildAction), Mock(ResultHandler))
-        builder.addAfterLoadingAction(Mock(BuildAction), Mock(ResultHandler))
+        builder.projectsLoaded(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.projectsLoaded(Stub(BuildAction), Stub(PhasedResultHandler))
 
         then:
-        MultipleBuildActionsException e1 = thrown()
-        e1.message == 'AfterLoadingAction has already been added. Only one action per phase is allowed.'
+        IllegalArgumentException e1 = thrown()
+        e1.message == 'ProjectsLoadedAction has already been added. Only one action per phase is allowed.'
 
         when:
-        builder.addAfterConfigurationAction(Mock(BuildAction), Mock(ResultHandler))
-        builder.addAfterConfigurationAction(Mock(BuildAction), Mock(ResultHandler))
+        builder.projectsEvaluated(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.projectsEvaluated(Stub(BuildAction), Stub(PhasedResultHandler))
 
         then:
-        MultipleBuildActionsException e2 = thrown()
-        e2.message == 'AfterConfigurationAction has already been added. Only one action per phase is allowed.'
+        IllegalArgumentException e2 = thrown()
+        e2.message == 'ProjectsEvaluatedAction has already been added. Only one action per phase is allowed.'
 
         when:
-        builder.addAfterBuildAction(Mock(BuildAction), Mock(ResultHandler))
-        builder.addAfterBuildAction(Mock(BuildAction), Mock(ResultHandler))
+        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
 
         then:
-        MultipleBuildActionsException e3 = thrown()
-        e3.message == 'AfterBuildAction has already been added. Only one action per phase is allowed.'
+        IllegalArgumentException e3 = thrown()
+        e3.message == 'BuildFinishedAction has already been added. Only one action per phase is allowed.'
     }
 }

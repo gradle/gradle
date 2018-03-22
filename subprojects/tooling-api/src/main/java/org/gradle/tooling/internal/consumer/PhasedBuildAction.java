@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.PhasedResultHandler;
 
 import javax.annotation.Nullable;
 
@@ -28,18 +28,18 @@ import javax.annotation.Nullable;
 public interface PhasedBuildAction {
 
     @Nullable
-    BuildActionWrapper<?> getAfterLoadingAction();
+    BuildActionWrapper<?> getProjectsLoadedAction();
 
     @Nullable
-    BuildActionWrapper<?> getAfterConfigurationAction();
+    BuildActionWrapper<?> getProjectsEvaluatedAction();
 
     @Nullable
-    BuildActionWrapper<?> getAfterBuildAction();
+    BuildActionWrapper<?> getBuildFinishedAction();
 
     interface BuildActionWrapper<T> {
 
         BuildAction<T> getAction();
 
-        ResultHandler<? super T> getHandler();
+        PhasedResultHandler<? super T> getHandler();
     }
 }

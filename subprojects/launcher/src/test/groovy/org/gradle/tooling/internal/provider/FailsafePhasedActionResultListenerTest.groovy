@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.protocol.PhasedActionResultListener
 
 class FailsafePhasedActionResultListenerTest extends Specification {
     def delegateListener = Mock(PhasedActionResultListener)
-    def event = Mock(PhasedActionResult)
+    def event = Stub(PhasedActionResult)
     def failsafeListener = new FailsafePhasedActionResultListener(delegateListener)
 
     def "delegate to listener"() {

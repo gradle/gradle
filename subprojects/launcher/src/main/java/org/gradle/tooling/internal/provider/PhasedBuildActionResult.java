@@ -16,32 +16,20 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
  * Result of one of the actions of a phased action. Must be serializable since will be dispatched to client.
  */
 public class PhasedBuildActionResult implements Serializable {
-    @Nullable public final SerializedPayload result;
-    @Nullable public final SerializedPayload failure;
+    public final SerializedPayload result;
+    public final PhasedActionResult.Phase phase;
 
-    public final Type type;
-
-    public PhasedBuildActionResult(@Nullable SerializedPayload result, @Nullable SerializedPayload failure, Type type) {
+    public PhasedBuildActionResult(SerializedPayload result, PhasedActionResult.Phase phase) {
         this.result = result;
-        this.failure = failure;
-        this.type = type;
-    }
-
-    /**
-     * Phases of the build when it is possible to run an action provided by the client.
-     */
-    public enum Type {
-        AFTER_LOADING,
-        AFTER_CONFIGURATION,
-        AFTER_BUILD
+        this.phase = phase;
     }
 }
