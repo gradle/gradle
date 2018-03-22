@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -68,7 +69,8 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains('hello world')
     }
 
-    def "can construct a custom task with constructor arguments via Map"() {
+    @Unroll
+    def "can construct a custom task with constructor arguments as #description via Map"() {
         given:
         buildFile << """
             import javax.inject.Inject
@@ -89,7 +91,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            task myTask(type: CustomTask, constructorArgs: ['hello', 42])
+            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
         """
 
         when:
@@ -97,6 +99,11 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("hello 42")
+
+        where:
+        description | constructorArgs
+        'List'      | "['hello', 42]"
+        'Object[]'  | "['hello', 42] as Object[]"
     }
 
     def "can construct a custom task with constructor arguments via API"() {
@@ -161,6 +168,45 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type int available")
     }
 
+    @Unroll
+    def "fails when constructorArgs not list or Object[], but #description"() {
+        given:
+        buildFile << """
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                final String message
+                final int number
+
+                @Inject
+                CustomTask(String message, int number) {
+                    this.message = message
+                    this.number = number
+                }
+
+                @TaskAction
+                void printIt() {
+                    println("\$message \$number")
+                }
+            }
+
+            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
+        """
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("constructorArgs must be a List or Object[]")
+
+        where:
+        description | constructorArgs
+        'Set'       | '[1, 2, 1] as Set'
+        'Map'       | '[a: 1, b: 2]'
+        'String'    | '"abc"'
+        'primitive' | '123'
+    }
+
     def "can construct a task with @Inject services"() {
         given:
         buildFile << """
@@ -191,7 +237,8 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains("got it")
     }
 
-    def "can construct a task with @Inject services and constructor args"() {
+    @Unroll
+    def "can construct a task with @Inject services and constructor args as #description"() {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
@@ -213,7 +260,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            task myTask(type: CustomTask, constructorArgs: [15])
+            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
         """
 
         when:
@@ -221,6 +268,11 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("got it 15")
+
+        where:
+        description | constructorArgs
+        'List'      | '[ 15 ]'
+        'Object[]'  | '[ 15 ] as Object[]'
     }
 
     def "can construct a custom task without constructor arguments from plugin"() {
