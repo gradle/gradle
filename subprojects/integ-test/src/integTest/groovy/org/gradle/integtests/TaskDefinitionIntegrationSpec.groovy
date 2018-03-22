@@ -17,7 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import spock.lang.Ignore
 import spock.lang.Unroll
+
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -471,6 +475,85 @@ public class CustomPlugin implements Plugin<Project> {
         file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << 'implementation-class=CustomPlugin'
 
         buildFile << "apply plugin: 'custom'"
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("got it 15")
+    }
+
+    @Requires([KOTLIN_SCRIPT])
+    def 'can run custom task with constructor arguments via Project extension function'() {
+        given:
+        settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("build.gradle.kts") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import javax.inject.Inject
+
+            inline
+            fun <reified T : Task> Project.task(name: String, vararg arguments: Any?) =
+                tasks.create(name, T::class.java, *arguments)
+
+            open class CustomTask @Inject constructor(private val message: String, private val number: Int) : DefaultTask() {
+                @TaskAction fun run() = println("\$message \$number")
+            }
+
+            task<CustomTask>("myTask", "hello", 42)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains('hello 42')
+    }
+
+    @Requires([KOTLIN_SCRIPT])
+    def "can construct a task in Kotlin with @Inject services"() {
+        given:
+        settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("build.gradle.kts") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            open class CustomTask @Inject constructor(private val executor: WorkerExecutor) : DefaultTask() {
+                @TaskAction fun run() = println(if (executor != null) "got it" else "NOT IT")
+            }
+
+            task<CustomTask>("myTask")
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("got it")
+    }
+
+    @Requires([KOTLIN_SCRIPT])
+    def "can construct a task with @Inject services and constructor args via Project extension function"() {
+        given:
+        settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("build.gradle.kts") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            inline
+            fun <reified T : Task> Project.task(name: String, vararg arguments: Any?) =
+                tasks.create(name, T::class.java, *arguments)
+
+            open class CustomTask @Inject constructor(private val number: Int, private val executor: WorkerExecutor) : DefaultTask() {
+                @TaskAction fun run() = println(if (executor != null) "got it \$number" else "\$number NOT IT")
+            }
+
+            task<CustomTask>("myTask", 15)
+        """
 
         when:
         run 'myTask'
