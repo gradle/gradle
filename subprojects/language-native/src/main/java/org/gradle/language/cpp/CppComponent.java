@@ -97,7 +97,7 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
     BinaryCollection<? extends CppBinary> getBinaries();
 
     /**
-     * Specifies the operation systems for the target machine.
+     * Specifies the operating systems for the target machine.
      *
      * @since 4.7
      */

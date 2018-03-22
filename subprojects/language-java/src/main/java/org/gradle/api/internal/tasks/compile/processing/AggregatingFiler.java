@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
-import java.util.Collections;
 
 /**
  * Decorates the filer to validate the correct behavior for {@link AggregatingProcessor}s.
@@ -34,6 +33,6 @@ class AggregatingFiler extends IncrementalFiler {
 
     @Override
     protected void recordGeneratedType(CharSequence name, Element[] originatingElements) {
-        result.addAggregatedTypes(Collections.singleton(name.toString()));
+        result.getGeneratedAggregatingTypes().add(name.toString());
     }
 }

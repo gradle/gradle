@@ -323,9 +323,8 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)' because of the following reason: Not following semantic versioning
    Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
 
-        and: // assertHasCause is a "contains" so we need to make sure there's not an additional line
-        !failure.error.contains("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
-
+        and:
+        failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
     }
 
     def "handles dependency cycles"() {
@@ -380,8 +379,8 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)' because of the following reason: Not following semantic versioning
    Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
 
-        and: // assertHasCause is a "contains" so we need to make sure there's not an additional line
-        !failure.error.contains("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
+        and:
+        failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
     }
 
 }

@@ -271,6 +271,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
+        if (gradleModuleDescriptorFile == null) {
+            // possible if the gradle metadata feature is disabled
+            return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile);
+        }
         return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile, gradleModuleDescriptorFile);
     }
 
@@ -288,7 +292,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private File maybeGradleDescriptorFile() {
         if (gradleModuleDescriptorFile == null) {
-            // possible if experimental features are disabled
+            // possible if the gradle metadata feature is disable
             return null;
         }
         return gradleModuleDescriptorFile.getSingleFile();

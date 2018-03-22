@@ -83,7 +83,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
-        failure.error.contains("Name 'class1' must match pattern")
+        failure.assertHasErrorOutput("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 
@@ -92,9 +92,13 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     def "can suppress console output"() {
+        def message = "Name 'class1' must match pattern"
+
         given:
         defaultLanguage('en')
         badCode()
+        fails("check")
+        failure.assertHasErrorOutput(message)
 
         when:
         buildFile << "checkstyle { showViolations = false }"
@@ -103,7 +107,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
-        !failure.error.contains("Name 'class1' must match pattern")
+        failure.assertNotOutput(message)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 
@@ -259,7 +263,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         and:
         succeeds "checkstyleMain"
         then:
-        result.executedTasks.contains(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
     }
 
     def "can change built-in config_loc"() {
@@ -278,7 +282,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         then:
         suppressionsXml.assertDoesNotExist()
-        result.executedTasks.contains(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
 
         when:
         file("config/checkstyle/newFile.xml") << "<!-- This is a new file -->"
@@ -307,7 +311,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         then:
         result.assertOutputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated and is scheduled to be removed in Gradle 5.0. Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
-        result.executedTasks.contains(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
@@ -331,7 +335,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         then:
         nonSkippedTasks.contains(':checkstyleMain')
-        errorOutput.contains("[ant:checkstyle] [WARN]") || errorOutput.contains("warning: Name 'class1' must match pattern")
+        result.hasErrorOutput("[ant:checkstyle] [WARN]") || result.hasErrorOutput("warning: Name 'class1' must match pattern")
     }
 
     private goodCode() {

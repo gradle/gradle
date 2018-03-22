@@ -51,7 +51,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile("Person.class").exists()
         groovyClassFile("Address.class").exists()
 
@@ -74,7 +73,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
@@ -188,7 +186,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
         groovyClassFile('Groovy$$Generated.java').exists()
@@ -207,7 +204,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Java.class').exists()
         groovyClassFile('Groovy.class').exists()
         !groovyClassFile('Groovy$$Generated.java').exists()
@@ -264,7 +260,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile('Groovy.class').exists()
         groovyClassFile('Java.class').exists()
         !groovyClassFile('Groovy$$Generated.java').exists()
@@ -314,33 +309,28 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         fails("compileGroovy")
-        errorOutput.contains('unable to resolve class AntBuilder')
+        failure.assertHasErrorOutput('unable to resolve class AntBuilder')
 
         when:
         buildFile << "dependencies { compile 'org.codehaus.groovy:groovy-ant:${version}' }"
 
         then:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile("Thing.class").exists()
     }
 
     def "compileBadCode"() {
         expect:
         fails("compileGroovy")
-        // for some reasons, line breaks occur in different places when running this
-        // test in different environments; hence we only check for short snippets
-        compileErrorOutput.contains 'unable'
-        compileErrorOutput.contains 'resolve'
-        compileErrorOutput.contains 'Unknown1'
-        compileErrorOutput.contains 'Unknown2'
+        failure.assertHasErrorOutput 'unable to resolve class Unknown1'
+        failure.assertHasErrorOutput 'unable to resolve class Unknown2'
         failure.assertHasCause(compilationFailureMessage)
     }
 
     def "compileBadJavaCode"() {
         expect:
         fails("compileGroovy")
-        compileErrorOutput.contains 'illegal start of type'
+        failure.assertHasErrorOutput 'illegal start of type'
         failure.assertHasCause(compilationFailureMessage)
     }
 
@@ -354,7 +344,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         succeeds("compileGroovy")
         output.contains(new File("src/main/groovy/compile/test/Person.groovy").toString())
         output.contains(new File("src/main/groovy/compile/test/Person2.groovy").toString())
-        !errorOutput
     }
 
     def "configurationScriptNotSupported"() {
@@ -562,10 +551,6 @@ ${compilerConfiguration()}
         return "Compilation failed; see the compiler error output for details."
     }
 
-    String getCompileErrorOutput() {
-        return errorOutput
-    }
-
     boolean versionLowerThan(String other) {
         compareToVersion(other) < 0
     }
@@ -675,7 +660,7 @@ ${compilerConfiguration()}
     }
 
     String checkCompileOutput(String errorMessage) {
-        compileErrorOutput.contains(errorMessage)
+        failure.assertHasErrorOutput(errorMessage)
     }
 
     protected boolean gradleLeaksIntoAnnotationProcessor() {

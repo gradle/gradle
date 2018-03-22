@@ -1407,16 +1407,15 @@ org:leaf3:1.0
         run "dependencyInsight", "--dependency", "foo", "--configuration", "compile"
 
         then:
-        output.contains """:dependencyInsight
-foo:bar:2.0
+        result.groupedOutput.task(":dependencyInsight").output.contains("""foo:bar:2.0
    variant "default"
 \\--- compile
 
 foo:foo:1.0
    variant "default"
-\\--- compile"""
+\\--- compile
+""")
     }
-
 
     @Unroll
     def "renders dependency constraint differently"() {

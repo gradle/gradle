@@ -40,7 +40,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
     }
 
@@ -51,7 +50,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         fails("compileJava")
         output.contains(logStatement())
-        compilerErrorOutput.contains("';' expected")
+        failure.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -65,7 +64,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        compilerErrorOutput.contains("';' expected")
+        result.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -83,7 +82,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("run")
         output.contains(logStatement())
-        !errorOutput
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
@@ -176,13 +174,8 @@ compileJava.options.compilerArgs.addAll(['--release', '7'])
         expect:
         fails 'compileJava'
         output.contains(logStatement())
-        compilerErrorOutput.contains("cannot find symbol")
-        compilerErrorOutput.contains("class Optional")
-
-    }
-
-    def getCompilerErrorOutput() {
-        return errorOutput
+        failure.assertHasErrorOutput("cannot find symbol")
+        failure.assertHasErrorOutput("class Optional")
     }
 
     def buildScript() {
@@ -390,7 +383,7 @@ class Main {
 
         then:
         fails("compileJava")
-        compilerErrorOutput.contains("package ${gradleBaseServicesClass.package.name} does not exist")
+        failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
     }
 
     protected boolean gradleLeaksIntoAnnotationProcessor() {

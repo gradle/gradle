@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
@@ -86,7 +87,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
             ProjectComponentIdentifier project = componentIdentifierFactory.createProjectComponentIdentifier(selector);
@@ -95,10 +96,6 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
                 result.failed(new ModuleVersionResolveException(selector, project + " not found."));
             } else {
                 result.resolved(componentMetaData);
-                String reason = dependency.getReason();
-                if (reason != null) {
-                    result.setSelectionDescription(result.getSelectionDescription().withReason(reason));
-                }
             }
         }
     }
@@ -123,7 +120,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(component.getComponentId())) {
+        if (isProjectModule(component.getId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
     }
@@ -131,8 +128,8 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Nullable
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
-        if (isProjectModule(component.getComponentId())) {
-            return DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
+        if (isProjectModule(component.getId())) {
+            return DefaultArtifactSet.multipleVariants(component.getId(), component.getModuleVersionId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
         } else {
             return null;
         }

@@ -490,7 +490,12 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
     }
 }
 
-sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
+task copyReleaseFeatures(type: Copy) {
+    from 'src/docs/release/release-features.txt'
+    into generatedResourcesDir
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
 
 test {
     dependsOn releaseNotes

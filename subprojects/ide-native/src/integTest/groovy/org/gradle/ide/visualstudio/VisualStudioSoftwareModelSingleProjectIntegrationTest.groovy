@@ -168,8 +168,8 @@ model {
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
-        resultDebug.assertTasksNotSkipped(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
+        resultDebug.size() == 1
+        resultDebug[0].assertTasksExecuted(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
         debugBinary.assertExists()
         installation('build/install/main/win32/debug').assertInstalled()
     }
@@ -201,8 +201,9 @@ model {
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary', ':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
-        resultDebug.assertTasksNotSkipped(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary', ':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
+        resultDebug.size() == 2
+        resultDebug[0].assertTasksExecuted(':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
+        resultDebug[1].assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary')
         debugBinaryLib.assertExists()
         debugBinaryDll.assertExists()
     }

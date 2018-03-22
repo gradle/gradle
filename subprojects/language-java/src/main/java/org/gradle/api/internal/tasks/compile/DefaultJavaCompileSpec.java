@@ -27,6 +27,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private MinimalJavaCompileOptions compileOptions;
     private List<File> annotationProcessorPath;
     private Set<AnnotationProcessorDeclaration> effectiveAnnotationProcessors;
+    private Set<String> classes;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -55,5 +56,15 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setEffectiveAnnotationProcessors(Set<AnnotationProcessorDeclaration> annotationProcessors) {
         this.effectiveAnnotationProcessors = annotationProcessors;
+    }
+
+    @Override
+    public Set<String> getClasses() {
+        return classes;
+    }
+
+    @Override
+    public void setClasses(Set<String> classes) {
+        this.classes = classes;
     }
 }

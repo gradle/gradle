@@ -65,6 +65,10 @@ public class PreviousCompilation {
         return analysis.getRelevantDependents(className, constants);
     }
 
+    public DependentsSet getAggregatedTypes() {
+        return analysis.getAggregatedTypes();
+    }
+
     public Map<File, JarSnapshot> getJarSnapshots() {
         if (jarSnapshots == null) {
             JarClasspathSnapshotData data = classpathSnapshotStore.get();

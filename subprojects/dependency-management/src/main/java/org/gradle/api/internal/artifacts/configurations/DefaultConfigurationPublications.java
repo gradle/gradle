@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -52,12 +52,12 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final AttributeContainerInternal attributes;
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
-    private final NotationParser<Object, CapabilityDescriptor> capabilityNotationParser;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
-    private List<CapabilityDescriptor> capabilities;
+    private List<Capability> capabilities;
     private boolean canCreate = true;
 
     public DefaultConfigurationPublications(DisplayName displayName,
@@ -66,7 +66,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
                                             AttributeContainerInternal parentAttributes,
                                             Instantiator instantiator,
                                             NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-                                            NotationParser<Object, CapabilityDescriptor> capabilityNotationParser,
+                                            NotationParser<Object, Capability> capabilityNotationParser,
                                             FileCollectionFactory fileCollectionFactory,
                                             ImmutableAttributesFactory attributesFactory) {
         this.displayName = displayName;
@@ -161,7 +161,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public void capability(Object notation) {
         if (canCreate) {
-            CapabilityDescriptor descriptor = capabilityNotationParser.parseNotation(notation);
+            Capability descriptor = capabilityNotationParser.parseNotation(notation);
             if (capabilities == null) {
                 capabilities = Lists.newArrayListWithExpectedSize(1); // it's rare that a component would declare more than 1 capability
             }
@@ -172,8 +172,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     }
 
     @Override
-    public Collection<? extends CapabilityDescriptor> getCapabilities() {
-        return capabilities == null ? Collections.<CapabilityDescriptor>emptyList() : ImmutableList.copyOf(capabilities);
+    public Collection<? extends Capability> getCapabilities() {
+        return capabilities == null ? Collections.<Capability>emptyList() : ImmutableList.copyOf(capabilities);
     }
 
     void preventFromFurtherMutation() {

@@ -1,6 +1,8 @@
-:hello
+
+> Task :hello
 [ant:echo] Hello, from Ant
-:intro
+
+> Task :intro
 Hello, from Gradle
 
 BUILD SUCCESSFUL in 0s

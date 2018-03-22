@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Collections;
@@ -98,7 +98,7 @@ public class DefaultUsageContext implements UsageContext, Named {
     }
 
     @Override
-    public Set<? extends CapabilityDescriptor> getCapabilities() {
+    public Set<? extends Capability> getCapabilities() {
         return Collections.emptySet();
     }
 }

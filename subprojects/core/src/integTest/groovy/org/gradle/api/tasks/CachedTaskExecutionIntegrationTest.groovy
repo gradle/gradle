@@ -263,7 +263,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().fails 'adHocTask'
 
         then:
-        errorOutput.contains("Could not evaluate spec for 'on CI'.")
+        failure.assertHasCause("Could not evaluate spec for 'on CI'.")
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })

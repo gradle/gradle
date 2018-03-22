@@ -111,7 +111,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def componentId = Mock(ComponentIdentifier)
         def artifactType = ArtifactType.MAVEN_POM
         def result = Mock(BuildableArtifactSetResolveResult)
-        component.getComponentId() >> componentId
+        component.getId() >> componentId
 
         when: 'repo is not blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
@@ -142,7 +142,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def component = Mock(ComponentResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
         def result = Mock(BuildableComponentArtifactsResolveResult)
-        component.getComponentId() >> componentId
+        component.getId() >> componentId
 
         when: 'repo is not blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false

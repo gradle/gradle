@@ -16,16 +16,14 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.*
 
 @InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -55,12 +53,21 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         result.output.findAll(OUT).size() == 1
         result.output.findAll(ERR).size() == 1
         standardOutput.toString().findAll(OUT).size() == 1
-        standardError.toString().findAll(ERR).size() == 1
+        standardError.toString().findAll(OUT).size() == 0
+        if (isCompatibleVersion('4.7')) {
+            // Handling of error log messages changed
+            standardOutput.toString().findAll(ERR).size() == 1
+            standardError.toString().findAll(ERR).size() == 0
+        } else {
+            standardError.toString().findAll(ERR).size() == 1
+            standardOutput.toString().findAll(ERR).size() == 0
+        }
 
         // isn't empty if version < 2.8 or potentially contains Gradle dist download progress output
         if (isCompatibleVersion('2.8') && !crossVersion) {
-            assert normalize(stdStreams.stdOut).empty
-            assert normalize(stdStreams.stdErr).empty
+            def output = OutputScrapingExecutionResult.from(stdStreams.stdOut, stdStreams.stdErr)
+            output.normalizedOutput.empty
+            output.error.empty
         }
     }
 
@@ -106,7 +113,15 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         result.output.findAll(OUT).size() == 1
         result.output.findAll(ERR).size() == 1
         standardOutput.toString().findAll(OUT).size() == 1
-        standardError.toString().findAll(ERR).size() == 1
+        standardError.toString().findAll(OUT).size() == 0
+        if (isCompatibleVersion('4.7')) {
+            // Handling of error log messages changed
+            standardOutput.toString().findAll(ERR).size() == 1
+            standardError.toString().findAll(ERR).size() == 0
+        } else {
+            standardError.toString().findAll(ERR).size() == 1
+            standardOutput.toString().findAll(ERR).size() == 0
+        }
     }
 
     @NoDebug
@@ -165,7 +180,12 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         t.cause instanceof GradleConnectionException
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
         standardOutput.toString().findAll(OUT).size() == 1
-        standardError.toString().findAll(ERR).size() == 1
+        if (isCompatibleVersion('4.7')) {
+            // Handling of error log messages changed
+            standardOutput.toString().findAll(ERR).size() == 1
+        } else {
+            standardError.toString().findAll(ERR).size() == 1
+        }
     }
 
     static String helloWorldWithStandardOutputAndError() {
@@ -177,9 +197,5 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
                 }
             }
         """
-    }
-
-    static boolean isCompatibleVersion(String minCompatibleVersion) {
-        gradleVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
     }
 }

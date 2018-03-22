@@ -402,7 +402,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the property
      * @param value The value of the property
      */
-    void setProperty(String name, Object value) throws MissingPropertyException;
+    void setProperty(String name, @Nullable Object value) throws MissingPropertyException;
 
     /**
      * <p>Returns this project. This method is useful in build files to explicitly access project properties and

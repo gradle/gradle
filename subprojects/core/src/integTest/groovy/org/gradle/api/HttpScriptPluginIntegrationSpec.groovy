@@ -154,7 +154,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         server.stop()
         expect:
         fails("--offline")
-        result.error.contains("Could not read script '$url'")
+        failure.assertHasCause("Could not read script '$url'")
     }
 
     def "uses encoding specified by http server"() {
@@ -276,7 +276,7 @@ task check {
         then:
         args('-I', 'init.gradle')
         fails 'check'
-        errorOutput.contains("Could not get resource '${scriptUri}'")
+        failure.assertHasCause("Could not get resource '${scriptUri}'")
 
         when:
         args('--offline', '-I', 'init.gradle')

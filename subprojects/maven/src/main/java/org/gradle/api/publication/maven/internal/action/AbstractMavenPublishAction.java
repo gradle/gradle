@@ -30,6 +30,8 @@ import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.sonatype.aether.RepositoryException;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -62,7 +64,10 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
     protected AbstractMavenPublishAction(File pomFile, File metadataFile, List<File> wagonJars) {
         container = newPlexusContainer(wagonJars);
         session = new MavenRepositorySystemSession();
-        session.setTransferListener(new LoggingMavenTransferListener());
+
+        CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+        BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
+        session.setTransferListener(new LoggingMavenTransferListener(currentBuildOperationRef, currentBuildOperation));
 
         Model pom = parsePom(pomFile);
         pomArtifact = new DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), "pom", pom.getVersion()).setFile(pomFile);

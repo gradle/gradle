@@ -85,8 +85,8 @@ allprojects {
         fails ':a:pingServer'
 
         then:
-        failure.error =~ 'b failed'
-        failure.error =~ 'c failed'
+        failure.assertHasCause('b failed')
+        failure.assertHasCause('c failed')
     }
 
     def "tasks are executed when they are ready and not necessarily alphabetically"() {

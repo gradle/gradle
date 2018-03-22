@@ -23,15 +23,17 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.internal.Cast;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.SortedSet;
 
 @NonNullApi
 public class TaskPropertyUtils {
 
+    /**
+     * Visits both properties declared via annotations on the properties of the task type as well as
+     * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
+     */
     public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
         final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, ((ProjectInternal) task.getProject()).getFileResolver());
         propertyWalker.visitProperties(specFactory, visitor, task);
@@ -47,7 +49,11 @@ public class TaskPropertyUtils {
         }
     }
 
-    // Note: sorted set used to keep order of properties consistent
+    /**
+     * Collects property specs in a sorted set to ensure consistent ordering.
+     *
+     * @throws IllegalArgumentException if there are multiple properties declared with the same name.
+     */
     public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
         Set<String> names = Sets.newHashSet();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
@@ -62,15 +68,11 @@ public class TaskPropertyUtils {
         return builder.build();
     }
 
-    public static <T extends TaskFilePropertySpec> SortedSet<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {
-        ImmutableSortedSet.Builder<ResolvedTaskOutputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
-        for (T property : properties) {
-            CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(property);
-            builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile()));
-        }
-        return builder.build();
-    }
-
+    /**
+     * Checks if the given string can be used as a property name.
+     *
+     * @throws IllegalArgumentException if given name is an empty string.
+     */
     public static String checkPropertyName(String propertyName) {
         if (propertyName.isEmpty()) {
             throw new IllegalArgumentException("Property name must not be empty string");

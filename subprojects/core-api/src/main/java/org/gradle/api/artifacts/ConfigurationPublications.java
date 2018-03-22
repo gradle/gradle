@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 
 import java.util.Collection;
 
@@ -84,5 +84,5 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      *
      * @since 4.7
      */
-    Collection<? extends CapabilityDescriptor> getCapabilities();
+    Collection<? extends Capability> getCapabilities();
 }

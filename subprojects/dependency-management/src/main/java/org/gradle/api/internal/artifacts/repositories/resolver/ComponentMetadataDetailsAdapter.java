@@ -49,7 +49,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public ModuleVersionIdentifier getId() {
-        return metadata.getId();
+        return metadata.getModuleVersionId();
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public String toString() {
-        return metadata.getId().toString();
+        return metadata.getModuleVersionId().toString();
     }
 
 

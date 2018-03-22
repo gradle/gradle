@@ -36,17 +36,10 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib') {
+                  withModule('cglib:cglib-nodep') { details ->
                      allVariants {
                          withCapabilities {
-                             addCapability('cglib', 'cglib', '3.2.5')
-                         }
-                     }
-                  }
-                  withModule('cglib:cglib-nodep') {
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', '3.2.5')
+                             addCapability('cglib', 'cglib', details.id.version)
                          }
                      }
                   }
@@ -82,17 +75,10 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib') {
+                  withModule('cglib:cglib-nodep') { details ->
                      allVariants {
                          withCapabilities {
-                             addCapability('cglib', 'cglib', '3.2.5')
-                         }
-                     }
-                  }
-                  withModule('cglib:cglib-nodep') {
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', '3.2.4')
+                             addCapability('cglib', 'cglib', details.id.version)
                          }
                      }
                   }

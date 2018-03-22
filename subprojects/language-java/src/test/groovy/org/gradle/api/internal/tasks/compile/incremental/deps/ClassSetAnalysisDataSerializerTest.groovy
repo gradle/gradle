@@ -37,7 +37,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
             ["A": dependents("B", "C"), "B": dependents("C"), "C": dependents(), "D": dependencyToAll(),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,
-            ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set], dependents("Aggregate"), "Because"
+            ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set], dependents("Aggregated"), dependents("Aggregate"), "Because"
         )
         def os = new ByteArrayOutputStream()
         def e = new OutputStreamBackedEncoder(os)
@@ -57,6 +57,8 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
         read.dependents["D"].dependencyToAll
         read.dependentsOnAll.dependentClasses == ["Aggregate"] as Set
         !read.dependentsOnAll.dependencyToAll
+        read.aggregatedTypes.dependentClasses == ["Aggregated"] as Set
+        !read.aggregatedTypes.dependencyToAll
         read.filePathToClassName == ["A.class": "A", "B.class": "B"]
         read.classesToConstants == [C: [1,2] as Set, D: [] as Set]
         read.classesToChildren == ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set]

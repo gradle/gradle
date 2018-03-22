@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.Lists
 import org.gradle.language.nativeplatform.internal.Expression
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
@@ -25,7 +26,6 @@ import org.gradle.language.nativeplatform.internal.MacroFunction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.testng.collections.Lists
 import spock.lang.Specification
 import spock.lang.Unroll
 

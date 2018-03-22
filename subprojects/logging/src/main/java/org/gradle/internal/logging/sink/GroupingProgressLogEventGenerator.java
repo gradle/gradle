@@ -46,8 +46,9 @@ import java.util.concurrent.TimeUnit;
  * progress of operations.
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-
-    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+    // Configurability is temporary until we can settle on a good timeout
+    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = Long.getLong("org.gradle.console.flush-timeout", TimeUnit.SECONDS.toMillis(30));
+    private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
     private final OutputEventListener listener;
     private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
@@ -59,6 +60,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new HashMap<OperationIdentifier, Object>();
 
     private Object lastRenderedBuildOpId;
+    private boolean needHeaderSeparator;
 
     public GroupingProgressLogEventGenerator(OutputEventListener listener, Clock clock, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
@@ -123,6 +125,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         if (group != null) {
             group.setStatus(completeEvent.getStatus(), completeEvent.isFailed());
             group.flushOutput();
+            lastRenderedBuildOpId = null;
         }
     }
 
@@ -146,6 +149,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         if (lastRenderedBuildOpId != null) {
             listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
             lastRenderedBuildOpId = null;
+            needHeaderSeparator = true;
         }
         listener.onOutput(event);
     }
@@ -176,7 +180,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private final BuildOperationCategory buildOperationCategory;
 
         private String status = "";
+        private String lastHeaderStatus = "";
         private boolean failed;
+        private boolean headerSent;
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
@@ -200,6 +206,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
                 lastUpdateTime = clock.getCurrentTime();
+                needHeaderSeparator = true;
             } else {
                 bufferedLogs.add(output);
             }
@@ -207,13 +214,20 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private void flushOutput() {
             if (shouldForward()) {
-                if (!buildOpIdentifier.equals(lastRenderedBuildOpId)) {
+                boolean hasContent = !bufferedLogs.isEmpty();
+                if (!buildOpIdentifier.equals(lastRenderedBuildOpId) || !status.equals(lastHeaderStatus)) {
+                    if (needHeaderSeparator || hasContent) {
+                        listener.onOutput(spacerLine(lastUpdateTime, category));
+                    }
                     listener.onOutput(header());
+                    headerSent = true;
+                    lastHeaderStatus = status;
                 }
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
                     listener.onOutput(renderableEvent);
                 }
+                GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
 
                 bufferedLogs.clear();
                 lastUpdateTime = clock.getCurrentTime();
@@ -222,9 +236,17 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private void maybeFlushOutput(long eventTimestamp) {
-            if ((eventTimestamp - lastUpdateTime) > LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT) {
+            if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
                 flushOutput();
             }
+        }
+
+        private boolean timeoutExpired(long eventTimestamp, long timeout) {
+            return (eventTimestamp - lastUpdateTime) > timeout;
+        }
+
+        private boolean canClaimForeground() {
+            return buildOpIdentifier.equals(lastRenderedBuildOpId) || (!bufferedLogs.isEmpty() && lastRenderedBuildOpId == null);
         }
 
         private void setStatus(String status, boolean failed) {
@@ -232,8 +254,12 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             this.failed = failed;
         }
 
+        private boolean shouldPrintHeader() {
+            return !headerSent || !status.equals(lastHeaderStatus);
+        }
+
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK);
+            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK && shouldPrintHeader());
         }
     }
 }

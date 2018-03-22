@@ -68,6 +68,10 @@ public class ClassSetAnalysis {
         return DependentsSet.dependents(result);
     }
 
+    public DependentsSet getAggregatedTypes() {
+        return data.getAggregatedTypes();
+    }
+
     public boolean isDependencyToAll(String className) {
         return data.getDependents(className).isDependencyToAll();
     }

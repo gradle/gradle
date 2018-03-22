@@ -44,7 +44,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         }
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot choose between the following configurations of ");
-        formatter.append(targetComponent.getComponentId().getDisplayName());
+        formatter.append(targetComponent.getId().getDisplayName());
         formatter.startChildren();
         for (String configuration : ambiguousConfigurations.keySet()) {
             formatter.node(configuration);

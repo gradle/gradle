@@ -1,0 +1,4 @@
+🚀  JUnit 5 support
+🕊  Initial BOM & optional dependencies compatibility
+⚡️  --fail-fast for tests
+🔨  Custom command-line flags for tasks

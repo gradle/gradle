@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -148,6 +149,7 @@ class UserGuideSamplesRunner extends Runner {
             def m2 = new M2Installation(temporaryFolder)
             m2.execute(executer)
             executer.noExtraLogging()
+                .withStacktraceDisabled()
                 .inDirectory(run.executionDir)
                 .withArguments(run.args as String[])
                 .withEnvironmentVars(run.envs)
@@ -169,12 +171,6 @@ class UserGuideSamplesRunner extends Runner {
                 }
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
-
-                def matcher = Pattern.compile("BUILD SUCCESSFUL in \\d+s").matcher(result.output)
-                if (matcher.find()) {
-                    String buildSuccessMessage = matcher.group()
-                    expectedResult = expectedResult.replace("BUILD SUCCESSFUL in 0s", buildSuccessMessage)
-                }
 
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
@@ -212,11 +208,15 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private String replaceWithRealSamplesDir(String text) {
+        def url = new ConsoleRenderer().asClickableFileUrl(baseExecutionDir)
+        text = text.replace("file:///home/user/gradle/samples/", url)
+        def uri = baseExecutionDir.toURI().toASCIIString()
+        text = text.replace("file:/home/user/gradle/samples/", uri)
         def normalisedSamplesDir = TextUtil.normaliseFileSeparators(baseExecutionDir.absolutePath)
-        return text.replaceAll(Pattern.quote('/home/user/gradle/samples'), normalisedSamplesDir)
+        return text.replace('/home/user/gradle/samples', normalisedSamplesDir)
     }
 
-    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String,GradleRun> samplesByDir){
+    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String, GradleRun> samplesByDir) {
         def java6CrossCompilation = ['groovy', 'scala'].collectMany {
             samplesByDir.get(it + '/crossCompilation')
         }

@@ -15,60 +15,89 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.io.CharSource;
-import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
+import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.GUtil;
-import org.gradle.util.TextUtil;
-import org.hamcrest.core.StringContains;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
-
-import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
-    private final String output;
-    private final String error;
-
-    private static final String TASK_LOGGER_DEBUG_PATTERN = "(?:.*\\s+\\[LIFECYCLE\\]\\s+\\[class org\\.gradle\\.TaskExecutionLogger\\]\\s+)?";
+    private static final String TASK_PREFIX = "> Task ";
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
+    private static final Pattern SKIPPED_TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
 
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
+    private static final Pattern TASK_PATTERN = Pattern.compile("(> Task )?(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
 
-    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED) in( \\d+[smh])+");
+
+    private final LogContent output;
+    private final LogContent error;
+    private final LogContent mainContent;
+    private final LogContent postBuild;
+    private GroupedOutputFixture groupedOutputFixture;
+    private Set<String> tasks;
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
 
-    public OutputScrapingExecutionResult(String output, String error) {
-        this.output = TextUtil.normaliseLineSeparators(output);
-        this.error = TextUtil.normaliseLineSeparators(error);
+    /**
+     * Creates a result from the output of a <em>single</em> Gradle invocation.
+     *
+     * @param output The raw build stdout chars.
+     * @param error The raw build stderr chars.
+     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
+     */
+    public static OutputScrapingExecutionResult from(String output, String error) {
+        // Should provide a Gradle version as parameter so this check can be more precise
+        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED")) {
+            return new OutputScrapingExecutionFailure(output, error);
+        }
+        return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error));
+    }
+
+    /**
+     * @param output The build stdout content.
+     * @param error The build stderr content. Must have normalized line endings.
+     */
+    protected OutputScrapingExecutionResult(LogContent output, LogContent error) {
+        this.output = output;
+        this.error = error;
+
+        // Split out up the output into main content and post build content
+        Pair<LogContent, LogContent> match = this.output.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
+        if (match == null) {
+            this.mainContent = this.output;
+            this.postBuild = LogContent.empty();
+        } else {
+            this.mainContent = match.getLeft();
+            this.postBuild = match.getRight().drop(1);
+        }
     }
 
     public String getOutput() {
-        return output;
+        return output.withNormalizedEol();
+    }
+
+    public LogContent getMainContent() {
+        return mainContent;
     }
 
     @Override
@@ -76,24 +105,17 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return normalize(output);
     }
 
-    GroupedOutputFixture groupedOutputFixture;
-
     @Override
     public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new GroupedOutputFixture(getOutput());
+            groupedOutputFixture = new GroupedOutputFixture(getMainContent().withNormalizedEol());
         }
         return groupedOutputFixture;
     }
 
-    public static String normalize(String output) {
-        StringBuilder result = new StringBuilder();
-        List<String> lines;
-        try {
-            lines = CharSource.wrap(output).readLines();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private String normalize(LogContent output) {
+        List<String> result = new ArrayList<String>();
+        List<String> lines = output.getLines();
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
@@ -115,18 +137,16 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                     i++;
                 }
-            } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
-                result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
-                result.append('\n');
+            } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
+                result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 i++;
             } else {
-                result.append(line);
-                result.append('\n');
+                result.add(line);
                 i++;
             }
         }
 
-        return result.toString();
+        return LogContent.of(result).withNormalizedEol();
     }
 
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
@@ -136,17 +156,57 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertOutputContains(String expectedOutput) {
-        assertThat("Substring not found in build output", getOutput(), StringContains.containsString(normaliseLineSeparators(expectedOutput)));
+    public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        String actualText = postBuild.withNormalizedEol();
+        if (!actualText.contains(expectedText)) {
+            failOnMissingOutput("Did not find expected text in post-build output.", "Post-build output", expectedText, actualText);
+        }
         return this;
     }
 
+    @Override
+    public ExecutionResult assertNotOutput(String expectedOutput) {
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
+            throw new AssertionError(String.format("Found unexpected text in build output.%nExpected not present: %s%n%nOutput:%n=======%n%s%nError:%n======%n%s", expectedText, getOutput(), getError()));
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertOutputContains(String expectedOutput) {
+        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
+        String actualText = getMainContent().withNormalizedEol();
+        if (!actualText.contains(expectedText)) {
+            failOnMissingOutput("Did not find expected text in build output.", "Build output", expectedOutput, actualText);
+        }
+        return this;
+    }
+
+    @Override
+    public boolean hasErrorOutput(String expectedOutput) {
+        return getMainContent().withNormalizedEol().contains(expectedOutput);
+    }
+
+    @Override
+    public ExecutionResult assertHasErrorOutput(String expectedOutput) {
+        return assertOutputContains(expectedOutput);
+    }
+
     public String getError() {
-        return error;
+        return error.withNormalizedEol();
     }
 
     public List<String> getExecutedTasks() {
-        return grepTasks(taskPattern);
+        return ImmutableList.copyOf(findExecutedTasksInOrderStarted());
+    }
+
+    private Set<String> findExecutedTasksInOrderStarted() {
+        if (tasks == null) {
+            tasks = new LinkedHashSet<String>(grepTasks(TASK_PATTERN));
+        }
+        return tasks;
     }
 
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
@@ -158,8 +218,29 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        List<String> expectedTasks = flattenTaskPaths(taskPaths);
-        assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), containsInAnyOrder(expectedTasks.toArray()));
+        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (!expectedTasks.equals(actualTasks)) {
+            failOnDifferentSets("Build output does not contain the expected tasks.", expectedTasks, actualTasks);
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskExecuted(String taskPath) {
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (!actualTasks.contains(taskPath)) {
+            failOnMissingElement("Build output does not contain the expected task.", taskPath, actualTasks);
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskNotExecuted(String taskPath) {
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (actualTasks.contains(taskPath)) {
+            failOnMissingElement("Build output does contains unexpected task.", taskPath, actualTasks);
+        }
         return this;
     }
 
@@ -170,52 +251,74 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public Set<String> getSkippedTasks() {
-        return new HashSet<String>(grepTasks(skippedTaskPattern));
+        return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
     }
 
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
-        assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
+        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> skippedTasks = getSkippedTasks();
+        if (!expectedTasks.equals(skippedTasks)) {
+            failOnDifferentSets("Build output does not contain the expected skipped tasks.", expectedTasks, skippedTasks);
+        }
         return this;
     }
 
     public ExecutionResult assertTaskSkipped(String taskPath) {
-        Set<String> tasks = new HashSet<String>(getSkippedTasks());
-        assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
-        return this;
-    }
-
-    @Override
-    public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
-        Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
-        assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
+        Set<String> tasks = new TreeSet<String>(getSkippedTasks());
+        if (!tasks.contains(taskPath)) {
+            failOnMissingElement("Build output does not contain the expected skipped task.", taskPath, tasks);
+        }
         return this;
     }
 
     private Collection<String> getNotSkippedTasks() {
-        List all = getExecutedTasks();
-        Set skipped = getSkippedTasks();
-        return CollectionUtils.subtract(all, skipped);
+        Set<String> all = new TreeSet<String>(getExecutedTasks());
+        Set<String> skipped = getSkippedTasks();
+        all.removeAll(skipped);
+        return all;
+    }
+
+    @Override
+    public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
+        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        if (!expectedTasks.equals(tasks)) {
+            failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, tasks);
+        }
+        return this;
     }
 
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
-        assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
+        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        if (!tasks.contains(taskPath)) {
+            failOnMissingElement("Build output does not contain the expected non skipped task.", taskPath, tasks);
+        }
         return this;
+    }
+
+    private void failOnDifferentSets(String message, Set<String> expected, Set<String> actual) {
+        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, actual, getOutput(), getError()));
+    }
+
+    private void failOnMissingElement(String message, String expected, Set<String> actual) {
+        throw new AssertionError(String.format("%s%nExpected: %s%nActual: %s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, actual, getOutput(), getError()));
+    }
+
+    private void failOnMissingOutput(String message, String type, String expected, String actual) {
+        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, expected, type, actual, getOutput(), getError()));
     }
 
     private List<String> grepTasks(final Pattern pattern) {
         final List<String> tasks = Lists.newArrayList();
         final List<String> taskStatusLines = Lists.newArrayList();
 
-        eachLine(new Action<String>() {
-            public void execute(String s) {
-                java.util.regex.Matcher matcher = pattern.matcher(s);
+        getMainContent().removeDebugPrefix().eachLine(new Action<String>() {
+            public void execute(String line) {
+                java.util.regex.Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {
-                    String taskStatusLine = matcher.group();
-                    String taskName = matcher.group(1);
+                    String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
+                    String taskName = matcher.group(2);
                     if (!taskName.contains(":buildSrc:")) {
                         // The task status line may appear twice - once for the execution, once for the UP-TO-DATE/SKIPPED/etc
                         // So don't add to the task list if this is an update to a previously added task.
@@ -235,17 +338,5 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         });
 
         return tasks;
-    }
-
-    private void eachLine(Action<String> action) {
-        BufferedReader reader = new BufferedReader(new StringReader(getOutput()));
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                action.execute(line);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

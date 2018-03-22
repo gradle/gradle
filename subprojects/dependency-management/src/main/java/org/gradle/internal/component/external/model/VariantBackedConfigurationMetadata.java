@@ -130,8 +130,8 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilitiesMetadata() {
-        return variant.getCapabilitiesMetadata();
+    public CapabilitiesMetadata getCapabilities() {
+        return variant.getCapabilities();
     }
 
     @Override
@@ -212,9 +212,9 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilitiesMetadata() {
+        public CapabilitiesMetadata getCapabilities() {
             if (computedCapabilities == null) {
-                computedCapabilities = variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilitiesMetadata());
+                computedCapabilities = variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilities());
             }
             return computedCapabilities;
         }

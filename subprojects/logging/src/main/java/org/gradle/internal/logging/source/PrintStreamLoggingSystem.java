@@ -110,6 +110,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
             outstr.flush();
             destination.set(original);
             set(original.originalStream);
+            original = null;
         }
     }
 

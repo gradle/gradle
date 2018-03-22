@@ -114,7 +114,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(componentId, moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(componentId, moduleConfiguration, targetConfiguration, targetComponent.getId());
         }
         if (!toConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());

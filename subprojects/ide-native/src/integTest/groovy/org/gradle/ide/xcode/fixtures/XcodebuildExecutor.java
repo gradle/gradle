@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 public class XcodebuildExecutor {
     public enum XcodeAction {
@@ -93,7 +93,7 @@ public class XcodebuildExecutor {
         withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execute(args, buildEnvironment(testDirectory));
         System.out.println(result.getOut());
-        return new OutputScrapingExecutionResult(result.getOut(), result.getError());
+        return OutputScrapingExecutionResult.from(result.getOut(), result.getError());
     }
 
     public ExecutionFailure fails() {
@@ -107,12 +107,12 @@ public class XcodebuildExecutor {
         // the error output only if xcodebuild failed most likely due to Gradle.
         System.out.println(result.getOut());
         System.out.println(result.getError());
-        return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
+        return OutputScrapingExecutionFailure.from(result.getOut(), result.getError());
     }
 
     private TestFile findXcodeBuild() {
         TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
-        assertTrue(xcodebuild.exists(), "This test requires xcode to be installed in " + xcodebuild.getAbsolutePath());
+        assertTrue("This test requires xcode to be installed in " + xcodebuild.getAbsolutePath(), xcodebuild.exists());
         return xcodebuild;
     }
 }

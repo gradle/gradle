@@ -19,7 +19,6 @@ package org.gradle.internal.resolve.result
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -38,29 +37,16 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.hasResult()
         result.id == id
         result.moduleVersionId == mvId
-        result.selectionDescription == VersionSelectionReasons.REQUESTED
-        result.metaData == null
+        result.metadata == null
         result.failure == null
-    }
-
-    def "can override selection reason"() {
-        def id = Stub(ComponentIdentifier)
-        def mvId = Stub(ModuleVersionIdentifier)
-
-        when:
-        result.resolved(id, mvId)
-        result.selectionDescription = VersionSelectionReasons.CONFLICT_RESOLUTION
-
-        then:
-        result.selectionDescription == VersionSelectionReasons.CONFLICT_RESOLUTION
     }
 
     def "can resolve using meta-data"() {
         def id = Stub(ComponentIdentifier)
         def mvId = Stub(ModuleVersionIdentifier)
         def metaData = Stub(ComponentResolveMetadata) {
-            getId() >> mvId
-            getComponentId() >> id
+            getId() >> id
+            getModuleVersionId() >> mvId
         }
 
         when:
@@ -70,8 +56,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.hasResult()
         result.id == id
         result.moduleVersionId == mvId
-        result.metaData == metaData
-        result.selectionDescription == VersionSelectionReasons.REQUESTED
+        result.metadata == metaData
         result.failure == null
     }
 
@@ -91,6 +76,5 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
-        result.selectionDescription == VersionSelectionReasons.REQUESTED
     }
 }

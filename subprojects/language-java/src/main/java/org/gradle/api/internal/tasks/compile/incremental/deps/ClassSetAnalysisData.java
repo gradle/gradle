@@ -36,14 +36,16 @@ public class ClassSetAnalysisData {
     final Map<String, DependentsSet> dependents;
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
+    private final DependentsSet aggregatedTypes;
     final DependentsSet dependentsOnAll;
     final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, DependentsSet dependentsOnAll, String fullRebuildCause) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, DependentsSet aggregatedTypes, DependentsSet dependentsOnAll, String fullRebuildCause) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
+        this.aggregatedTypes = aggregatedTypes;
         this.dependentsOnAll = dependentsOnAll;
         this.fullRebuildCause = fullRebuildCause;
     }
@@ -62,6 +64,10 @@ public class ClassSetAnalysisData {
 
     public DependentsSet getDependentsOnAll() {
         return dependentsOnAll;
+    }
+
+    public DependentsSet getAggregatedTypes() {
+        return aggregatedTypes;
     }
 
     public IntSet getConstants(String className) {
@@ -120,11 +126,13 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
+            DependentsSet aggregatedTypes = readDependentsSet(decoder, classNameMap);
+
             DependentsSet dependentsOnAll = readDependentsSet(decoder, classNameMap);
 
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), dependentsOnAll, fullRebuildCause);
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), aggregatedTypes, dependentsOnAll, fullRebuildCause);
         }
 
         @Override
@@ -159,6 +167,8 @@ public class ClassSetAnalysisData {
                     writeClassName(className, classNameMap, encoder);
                 }
             }
+
+            writeDependentSet(value.aggregatedTypes, classNameMap, encoder);
 
             writeDependentSet(value.dependentsOnAll, classNameMap, encoder);
 

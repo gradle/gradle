@@ -151,7 +151,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilitiesMetadata() {
+    public CapabilitiesMetadata getCapabilities() {
         if (computedCapabilities == null) {
             computedCapabilities = componentMetadataRules.applyCapabilitiesRules(this, capabilities);
         }
@@ -160,7 +160,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
 
     @Override
     public Set<? extends VariantResolveMetadata> getVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts(), getCapabilitiesMetadata()));
+        return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

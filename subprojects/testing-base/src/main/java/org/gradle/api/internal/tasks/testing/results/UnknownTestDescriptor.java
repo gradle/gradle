@@ -51,4 +51,14 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     public Object getOwnerBuildOperationId() {
         return null;
     }
+
+    @Override
+    public String getDisplayName() {
+        return getName();
+    }
+
+    @Override
+    public String getClassDisplayName() {
+        return getClassName();
+    }
 }

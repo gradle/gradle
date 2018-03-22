@@ -215,7 +215,7 @@ Output from 2
 
         then:
         def t = thrown(AssertionError)
-        t.message == "The grouped output for task ':doesNotExist' could not be found"
+        t.message.startsWith("The grouped output for task ':doesNotExist' could not be found.")
     }
 
     def "handles output right before end of failed build"() {

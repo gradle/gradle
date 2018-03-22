@@ -40,13 +40,13 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("antTest")
 
         then:
-        result.output.contains("[ant:echo] WARN message")
-        result.error.contains("[ant:echo] ERROR message")
+        result.assertOutputContains("[ant:echo] WARN message")
+        result.assertHasErrorOutput("[ant:echo] ERROR message")
 
         and:
-        ! result.output.contains("[ant:echo] INFO message")
-        ! result.output.contains("[ant:echo] DEBUG message")
-        ! result.output.contains("[ant:echo] VERBOSE message")
+        result.assertNotOutput("INFO message")
+        result.assertNotOutput("DEBUG message")
+        result.assertNotOutput("VERBOSE message")
     }
 
     def "can increase verbosity of Ant logging" () {
@@ -58,13 +58,13 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("antTest")
 
         then:
-        result.output.contains("[ant:echo] INFO message")
-        result.output.contains("[ant:echo] WARN message")
-        result.error.contains("[ant:echo] ERROR message")
+        result.assertOutputContains("[ant:echo] INFO message")
+        result.assertOutputContains("[ant:echo] WARN message")
+        result.assertHasErrorOutput("[ant:echo] ERROR message")
 
         and:
-        ! result.output.contains("[ant:echo] DEBUG message")
-        ! result.output.contains("[ant:echo] VERBOSE message")
+        result.assertNotOutput("DEBUG message")
+        result.assertNotOutput("VERBOSE message")
     }
 
     def "can decrease verbosity of Ant logging" () {
@@ -76,12 +76,12 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("antTest")
 
         then:
-        result.error.contains("[ant:echo] ERROR message")
+        result.assertHasErrorOutput("[ant:echo] ERROR message")
 
         and:
-        ! result.output.contains("[ant:echo] INFO message")
-        ! result.output.contains("[ant:echo] WARN message")
-        ! result.output.contains("[ant:echo] DEBUG message")
-        ! result.output.contains("[ant:echo] VERBOSE message")
+        result.assertNotOutput("WARN message")
+        result.assertNotOutput("INFO message")
+        result.assertNotOutput("DEBUG message")
+        result.assertNotOutput("VERBOSE message")
     }
 }

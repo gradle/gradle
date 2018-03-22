@@ -416,7 +416,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
             getDisplayName() >> "thing b"
         }
         def toComponent = Stub(ComponentResolveMetadata)
-        toComponent.componentId >> toId
+        toComponent.id >> toId
         def fromConfig = Stub(ConfigurationMetadata)
         fromConfig.hierarchy >> ["from"]
         fromConfig.name >> "from"

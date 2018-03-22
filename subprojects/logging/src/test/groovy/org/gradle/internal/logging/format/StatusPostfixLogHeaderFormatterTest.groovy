@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.logging.format
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,7 +31,7 @@ class StatusPostfixLogHeaderFormatterTest extends Specification {
         def output = statusPostfixLogHeaderFormatter.format(null, DESCRIPTION, null, null, false)
 
         then:
-        rendered(output) == """<Normal>DESCRIPTION</Normal><Normal>${LogHeaderFormatter.EOL}</Normal>"""
+        rendered(output) == """<Normal>DESCRIPTION</Normal><Normal>${SystemProperties.instance.lineSeparator}</Normal>"""
     }
 
     def "prefers header for rendering"() {
@@ -41,7 +42,7 @@ class StatusPostfixLogHeaderFormatterTest extends Specification {
         def output = statusPostfixLogHeaderFormatter.format(HEADER, DESCRIPTION, SHORT_DESCRIPTION, status, false)
 
         then:
-        rendered(output) == """<Normal>HEADER </Normal><ProgressStatus>STATUS</ProgressStatus><Normal>${LogHeaderFormatter.EOL}</Normal>"""
+        rendered(output) == """<Normal>HEADER </Normal><ProgressStatus>STATUS</ProgressStatus><Normal>${SystemProperties.instance.lineSeparator}</Normal>"""
     }
 
     def "prefers short description over description"() {
@@ -49,7 +50,7 @@ class StatusPostfixLogHeaderFormatterTest extends Specification {
         def output = statusPostfixLogHeaderFormatter.format(null, DESCRIPTION, SHORT_DESCRIPTION, null, false)
 
         then:
-        rendered(output) == """<Normal>SHORT</Normal><Normal>${LogHeaderFormatter.EOL}</Normal>"""
+        rendered(output) == """<Normal>SHORT</Normal><Normal>${SystemProperties.instance.lineSeparator}</Normal>"""
     }
 
     private static String rendered(List<StyledTextOutputEvent.Span> spans) {

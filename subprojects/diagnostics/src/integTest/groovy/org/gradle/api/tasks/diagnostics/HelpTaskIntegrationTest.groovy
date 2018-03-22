@@ -33,7 +33,8 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.contains """:help
+        output.contains """
+> Task :help
 
 Welcome to Gradle ${GradleVersion.current().version}.
 

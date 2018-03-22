@@ -43,7 +43,7 @@ public class LogEventDispatcher implements OutputEventListener {
         }
     }
 
-    private void dispatch(OutputEvent event, OutputEventListener listener) {
+    protected void dispatch(OutputEvent event, OutputEventListener listener) {
         if (listener != null) {
             listener.onOutput(event);
         }

@@ -153,7 +153,7 @@ model {
         succeeds "components"
 
         then:
-        output.contains """:components
+        output.contains """> Task :components
 
 ------------------------------------------------------------
 Root project

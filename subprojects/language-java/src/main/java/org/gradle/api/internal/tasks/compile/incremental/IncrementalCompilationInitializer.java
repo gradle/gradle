@@ -17,16 +17,20 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 class IncrementalCompilationInitializer {
     private final FileOperations fileOperations;
@@ -35,19 +39,20 @@ class IncrementalCompilationInitializer {
         this.fileOperations = fileOperations;
     }
 
-    public void initializeCompilation(JavaCompileSpec spec, Collection<String> staleClasses) {
-        if (staleClasses.isEmpty()) {
+    public void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+        if (!recompilationSpec.isBuildNeeded()) {
             spec.setSource(new SimpleFileCollection());
+            spec.setClasses(Collections.<String>emptySet());
             return;
         }
-
         Factory<PatternSet> patternSetFactory = fileOperations.getFileResolver().getPatternSetFactory();
         PatternSet classesToDelete = patternSetFactory.create();
         PatternSet sourceToCompile = patternSetFactory.create();
 
-        preparePatterns(staleClasses, classesToDelete, sourceToCompile);
+        preparePatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile);
         narrowDownSourcesToCompile(spec, sourceToCompile);
         includePreviousCompilationOutputOnClasspath(spec);
+        addClassesToProcess(spec, recompilationSpec);
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
         deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
     }
@@ -61,6 +66,12 @@ class IncrementalCompilationInitializer {
         File destinationDir = spec.getDestinationDir();
         classpath.add(destinationDir);
         spec.setCompileClasspath(classpath);
+    }
+
+    private void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+        Set<String> classesToProcess = Sets.newHashSet(recompilationSpec.getClassesToProcess());
+        classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
+        spec.setClasses(classesToProcess);
     }
 
     private void deleteStaleFilesIn(PatternSet classesToDelete, File destinationDir) {

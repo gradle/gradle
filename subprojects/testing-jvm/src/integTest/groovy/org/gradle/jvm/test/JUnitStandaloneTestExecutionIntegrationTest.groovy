@@ -395,7 +395,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         fails ':compileMyTestBinaryMyTestJava'
 
         then:
-        errorOutput.contains 'package utils.internal does not exist'
+        failure.assertHasErrorOutput 'package utils.internal does not exist'
     }
 
     def "test should access test resources"() {
@@ -630,8 +630,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
         then:
         failure.assertHasCause 'Compilation failed; see the compiler error output for details'
-        errorOutput.contains 'variable Utils'
-
+        failure.assertHasErrorOutput 'variable Utils'
     }
 
     @Ignore

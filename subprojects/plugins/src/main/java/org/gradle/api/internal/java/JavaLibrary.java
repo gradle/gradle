@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -135,7 +135,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private class RuntimeUsageContext extends AbstractUsageContext {
         private DomainObjectSet<ModuleDependency> dependencies;
         private DomainObjectSet<DependencyConstraint> dependencyConstraints;
-        private Set<? extends CapabilityDescriptor> capabilities;
+        private Set<? extends Capability> capabilities;
 
         RuntimeUsageContext(String usageName) {
             super(usageName);
@@ -163,10 +163,10 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
 
         @Override
-        public Set<? extends CapabilityDescriptor> getCapabilities() {
+        public Set<? extends Capability> getCapabilities() {
             if (capabilities == null) {
                 this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME),
-                    Sets.<CapabilityDescriptor>newHashSet(),
+                    Sets.<Capability>newHashSet(),
                     Sets.<Configuration>newHashSet()));
             }
             return capabilities;
@@ -176,7 +176,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private class CompileUsageContext extends AbstractUsageContext {
         private DomainObjectSet<ModuleDependency> dependencies;
         private DomainObjectSet<DependencyConstraint> dependencyConstraints;
-        private Set<? extends CapabilityDescriptor> capabilities;
+        private Set<? extends Capability> capabilities;
 
         CompileUsageContext(String usageName) {
             super(usageName);
@@ -204,10 +204,10 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
 
         @Override
-        public Set<? extends CapabilityDescriptor> getCapabilities() {
+        public Set<? extends Capability> getCapabilities() {
             if (capabilities == null) {
                 this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME),
-                    Sets.<CapabilityDescriptor>newHashSet(),
+                    Sets.<Capability>newHashSet(),
                     Sets.<Configuration>newHashSet()));
             }
             return capabilities;
@@ -238,7 +238,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
 
         @Override
-        public Set<? extends CapabilityDescriptor> getCapabilities() {
+        public Set<? extends Capability> getCapabilities() {
             return Collections.emptySet();
         }
     }

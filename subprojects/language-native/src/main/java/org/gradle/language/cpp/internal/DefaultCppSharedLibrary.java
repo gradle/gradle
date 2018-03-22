@@ -108,7 +108,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     @Override
     public Set<? extends UsageContext> getUsages() {
         Configuration linkElements = getLinkElements().get();
-        Configuration runtimeElements = this.runtimeElements.get();
+        Configuration runtimeElements = getRuntimeElements().get();
         return Sets.newHashSet(
             new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
             new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)

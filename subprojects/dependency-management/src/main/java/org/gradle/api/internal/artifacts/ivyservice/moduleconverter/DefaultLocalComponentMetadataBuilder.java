@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
@@ -60,7 +60,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
         ImmutableCapabilities capabilities =
-            asImmutable(Configurations.collectCapabilities(configuration, Sets.<CapabilityDescriptor>newHashSet(), Sets.<Configuration>newHashSet()));
+            asImmutable(Configurations.collectCapabilities(configuration, Sets.<Capability>newHashSet(), Sets.<Configuration>newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
@@ -73,12 +73,12 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             capabilities);
     }
 
-    private static ImmutableCapabilities asImmutable(Collection<? extends CapabilityDescriptor> descriptors) {
+    private static ImmutableCapabilities asImmutable(Collection<? extends Capability> descriptors) {
         if (descriptors.isEmpty()) {
             return ImmutableCapabilities.EMPTY;
         }
         ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<ImmutableCapability>();
-        for (CapabilityDescriptor descriptor : descriptors) {
+        for (Capability descriptor : descriptors) {
             builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
         }
         return new ImmutableCapabilities(builder.build());

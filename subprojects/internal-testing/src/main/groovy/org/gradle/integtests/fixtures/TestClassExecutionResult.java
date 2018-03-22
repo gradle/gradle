@@ -33,16 +33,21 @@ public interface TestClassExecutionResult {
      */
     TestClassExecutionResult assertTestsSkipped(String... testNames);
 
+    int getTestSkippedCount();
+
     /**
      * Asserts that the given test passed.
      */
+    TestClassExecutionResult assertTestPassed(String name, String displayName);
+
     TestClassExecutionResult assertTestPassed(String name);
 
     /**
      * Asserts that the given test failed.
      */
-    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
+    TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers);
 
+    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
     /**
      *
      */
@@ -51,6 +56,8 @@ public interface TestClassExecutionResult {
     /**
      * Asserts that the given test was skipped.
      */
+    TestClassExecutionResult assertTestSkipped(String name, String displayName);
+
     TestClassExecutionResult assertTestSkipped(String name);
 
     /**
@@ -72,4 +79,6 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher);
 
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher);
+
+    TestClassExecutionResult assertDisplayName(String classDisplayName);
 }

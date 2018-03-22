@@ -19,7 +19,9 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 
 class SimpleTestDescriptor implements TestDescriptorInternal {
     String name = "testName"
+    String displayName = "testName"
     String className = "ClassName"
+    String classDisplayName = "ClassName"
     boolean composite = false
     TestDescriptorInternal parent = null
     Object ownerBuildOperationId = null

@@ -593,14 +593,10 @@ dependencies {
     }
 }
 """
-        String expected = """:ideaModule
-Could not resolve: myGroup:missing-extra-artifact:1.0
+        String expected = """Could not resolve: myGroup:missing-extra-artifact:1.0
 Could not resolve: myGroup:missing-artifact:1.0
-:ideaProject
-:ideaWorkspace
-:idea
 """
-        result.assertOutputContains(expected)
+        result.groupedOutput.task(":ideaModule").output == expected
     }
 
     @Test

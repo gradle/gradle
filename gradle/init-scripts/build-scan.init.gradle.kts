@@ -4,9 +4,10 @@
 initscript {
     repositories {
         gradlePluginPortal()
+        maven(url = "https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local/")
     }
     dependencies {
-        classpath("com.gradle:build-scan-plugin:1.12.1")
+        classpath("com.gradle:build-scan-plugin:1.13-rc-1-20180316150839-master")
     }
 }
 

@@ -131,12 +131,12 @@ public class StartParameterResolutionOverride {
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
+            result.failed(new ArtifactResolveException(component.getId(), "No cached version available for offline mode"));
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
+            result.failed(new ArtifactResolveException(component.getId(), "No cached version available for offline mode"));
         }
 
         @Override

@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeatur
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 import static org.gradle.util.Matchers.containsText
 
@@ -443,13 +442,13 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     dependencies {
                         implementation project(':hello')
                     }
-                    operatingSystems = [objects.named(OperatingSystemFamily, '${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}')]
+                    operatingSystems = [objects.named(OperatingSystemFamily, '${currentOsFamilyName}')]
                 }
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library {
-                    operatingSystems = [objects.named(OperatingSystemFamily, '${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}')]
+                    operatingSystems = [objects.named(OperatingSystemFamily, '${currentOsFamilyName}')]
                 }
             }
         """
@@ -472,7 +471,6 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         def app = new CppAppWithLibrary()
 
         given:
-        def currentOperatingSystemFamily = DefaultNativePlatform.currentOperatingSystem.toFamilyName()
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
@@ -480,7 +478,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     dependencies {
                         implementation project(':hello')
                     }
-                    operatingSystems = [objects.named(OperatingSystemFamily, '${currentOperatingSystemFamily}')]
+                    operatingSystems = [objects.named(OperatingSystemFamily, '${currentOsFamilyName}')]
                 }
             }
             project(':hello') {
@@ -498,7 +496,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         failure.assertHasCause """Unable to find a matching configuration of project :hello: Configuration 'cppApiElements':
   - Required org.gradle.native.debuggable 'true' but no value provided.
-  - Required org.gradle.native.operatingSystem '${currentOperatingSystemFamily}' but no value provided.
+  - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
   - Required org.gradle.native.optimized 'false' but no value provided.
   - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'."""
     }

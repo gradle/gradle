@@ -18,10 +18,10 @@ package org.gradle.integtests.fixtures.executer;
 public abstract class OutputScrapingGradleHandle implements GradleHandle {
 
     protected ExecutionResult toExecutionResult(String output, String error) {
-        return new OutputScrapingExecutionResult(output, error);
+        return OutputScrapingExecutionResult.from(output, error);
     }
 
     protected ExecutionResult toExecutionFailure(String output, String error) {
-        return new OutputScrapingExecutionFailure(output, error);
+        return OutputScrapingExecutionFailure.from(output, error);
     }
 }

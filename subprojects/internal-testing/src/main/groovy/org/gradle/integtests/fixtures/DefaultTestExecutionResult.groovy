@@ -109,8 +109,29 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        @Override
+        TestClassExecutionResult assertTestPassed(String name, String displayName) {
+            testClassResults*.assertTestPassed(removeParentheses(name), removeParentheses(displayName))
+            this
+        }
+
+        int getTestSkippedCount() {
+            List<Integer> counts = testClassResults*.testSkippedCount
+            List<Integer> uniques = counts.unique()
+            if (uniques.size() == 1) {
+                return uniques.first()
+            }
+            throw new IllegalStateException("Multiple different test counts ${counts}")
+        }
+
         TestClassExecutionResult assertTestPassed(String name) {
             testClassResults*.assertTestPassed(removeParentheses(name))
+            this
+        }
+
+        @Override
+        TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
+            testClassResults*.assertTestFailed(removeParentheses(name), removeParentheses(displayName), messageMatchers)
             this
         }
 
@@ -122,6 +143,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
             List<Boolean> results = testClassResults*.testFailed(name, messageMatchers)
             return results.inject { a, b -> a && b }
+        }
+
+        @Override
+        TestClassExecutionResult assertTestSkipped(String name, String displayName) {
+            testClassResults*.assertTestSkipped(removeParentheses(name), removeParentheses(displayName))
+            this
         }
 
         TestClassExecutionResult assertTestSkipped(String name) {
@@ -161,6 +188,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
             testClassResults*.assertExecutionFailedWithCause(causeMatcher)
+            this
+        }
+
+        @Override
+        TestClassExecutionResult assertDisplayName(String classDisplayName) {
+            testClassResults*.assertDisplayName(classDisplayName)
             this
         }
     }

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.CapabilityDescriptor;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
 import java.util.Collection;
@@ -24,12 +24,13 @@ import java.util.Collection;
 public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult, CapabilitiesConflictHandler.Resolver> {
     interface Candidate {
         ComponentState getComponent();
-        CapabilityDescriptor getCapabilityDescriptor();
+        Capability getCapability();
+        Collection<ComponentState> getImplicitCapabilityProviders();
     }
 
     interface ResolutionDetails extends ConflictResolutionResult {
-        Collection<? extends CapabilityDescriptor> getCapabilityVersions();
-        Collection<? extends CandidateDetails> getCandidates(CapabilityDescriptor capability);
+        Collection<? extends Capability> getCapabilityVersions();
+        Collection<? extends CandidateDetails> getCandidates(Capability capability);
         boolean hasResult();
     }
 

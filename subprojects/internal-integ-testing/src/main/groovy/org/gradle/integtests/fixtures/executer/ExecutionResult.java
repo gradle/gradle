@@ -23,6 +23,8 @@ import java.util.Set;
 public interface ExecutionResult {
     /**
      * Stdout of the Gradle execution, normalized to use new-line char as line separator.
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getOutput();
 
@@ -35,27 +37,64 @@ public interface ExecutionResult {
      *     <li>Removes notice about starting the daemon.</li>
      *     <li>Normalizes build time to 1 second.
      * </ul>
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getNormalizedOutput();
 
     /**
      * Returns a fixture that parses the output and forms them into the expected groups
-     *
-     * <b>NOTE:</b> this is only supported when using {@link org.gradle.api.logging.configuration.ConsoleOutput#Rich}
      */
     GroupedOutputFixture getGroupedOutput();
 
     /**
      * Stderr of the Gradle execution, normalized to use new-line char as line separator.
+     *
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
      */
     String getError();
 
+    /**
+     * Asserts that this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasErrorOutput(String expectedOutput);
+
+    /**
+     * Returns true when this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    boolean hasErrorOutput(String expectedOutput);
+
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
 
+    /**
+     * Asserts that this result includes the given non-error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
     ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
-     * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
+     * Asserts that this result does not include the given log message anywhere in the build output.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertNotOutput(String expectedOutput);
+
+    /**
+     * Assert that the given message appears after the build result message.
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasPostBuildOutput(String expectedOutput);
+
+    /**
+     * Returns the tasks have been executed in order started (includes tasks that were skipped). Asserts that each task appears once only. Note: ignores buildSrc tasks.
+     *
+     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
     List<String> getExecutedTasks();
 
@@ -72,6 +111,16 @@ public interface ExecutionResult {
     ExecutionResult assertTasksExecuted(Object... taskPaths);
 
     /**
+     * Asserts that the given task has been executed. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskExecuted(String taskPath);
+
+    /**
+     * Asserts that the given task has not been executed. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskNotExecuted(String taskPath);
+
+    /**
      * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
      * or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions and an explanation of their usage.
      * Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
@@ -80,6 +129,8 @@ public interface ExecutionResult {
 
     /**
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
+     *
+     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
      */
     Set<String> getSkippedTasks();
 

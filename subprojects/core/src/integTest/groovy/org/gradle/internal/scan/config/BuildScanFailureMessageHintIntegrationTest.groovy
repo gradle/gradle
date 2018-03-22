@@ -47,8 +47,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
         succeeds(DUMMY_TASK_NAME)
 
         then:
-        !output.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
-        errorOutput.isEmpty()
+        result.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     @Unroll
@@ -60,8 +59,8 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
         fails(DUMMY_TASK_ONLY + options as String[])
 
         then:
-        !output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         options                                             | description
@@ -85,7 +84,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -104,7 +103,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -125,7 +124,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -148,7 +147,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -168,7 +167,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     static String failingBuildFile() {

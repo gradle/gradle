@@ -53,6 +53,16 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public String getDisplayName() {
+        return descriptor.getDisplayName();
+    }
+
+    @Override
+    public String getClassDisplayName() {
+        return descriptor.getClassDisplayName();
+    }
+
+    @Override
     public String getClassName() {
         return descriptor.getClassName();
     }

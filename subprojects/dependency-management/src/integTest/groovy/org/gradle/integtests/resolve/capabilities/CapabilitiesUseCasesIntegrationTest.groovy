@@ -51,13 +51,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib') { details -> 
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
-                         }
-                     }
-                  }
                   withModule('cglib:cglib-nodep') { details ->
                      allVariants {
                          withCapabilities {
@@ -149,20 +142,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy', details.id.version)
-                        }
-                     }
-                  }
-                  withModule('org.apache:groovy-json') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy-json', details.id.version)
-                        }
-                     }
-                  }
                   withModule('org.apache:groovy-all') { details ->
                      allVariants {
                         withCapabilities {
@@ -269,20 +248,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy', details.id.version)
-                        }
-                     }
-                  }
-                  withModule('org.apache:groovy-json') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy-json', details.id.version)
-                        }
-                     }
-                  }
                   withModule('org.apache:groovy-all') { details ->
                      allVariants {
                         withCapabilities {
@@ -319,7 +284,9 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org.apache:groovy-all:1.0' {
-                if (!fixConflict)  { expectGetMetadata() }
+                if (!fixConflict) {
+                    expectGetMetadata()
+                }
             }
         }
 
@@ -363,18 +330,14 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll
-    def "published module can declare relocation (first in graph = #first, second in graph = #second)"() {
+    def "published module can declare relocation (first in graph = #first, second in graph = #second, failOnVersionConflict=#failOnVersionConflict)"() {
         given:
         repository {
-            'asm:asm:3.0' {
-                variant('runtime') {
-                    capability('asm', 'asm', '3.0')
-                }
-            }
+            // // there's an implicit capability for every component, corresponding to the component coordinates
+            'asm:asm:3.0'()
             'org.ow2.asm:asm:4.0' {
                 variant('runtime') {
                     capability('asm', 'asm', '4.0') // upgrades the asm capability
-                    capability('org.ow2.asm', 'asm', '4.0') // self capability
                 }
             }
         }
@@ -384,6 +347,10 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                conf "$first"
                conf "$second"
             }
+            
+            if ($failOnVersionConflict) {
+               configurations.conf.resolutionStrategy.failOnVersionConflict()
+            }
         """
 
         when:
@@ -392,23 +359,34 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 expectGetMetadata()
             }
             'org.ow2.asm:asm:4.0' {
-                expectResolve()
+                failOnVersionConflict ? expectGetMetadata() : expectResolve()
             }
         }
-        run ":checkDeps"
+        if (failOnVersionConflict) {
+            fails ':checkDeps'
+        } else {
+            run ":checkDeps"
+        }
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
-                    .byConflictResolution()
-                module('org.ow2.asm:asm:4.0')
+        if (failOnVersionConflict) {
+            failure.assertHasCause("Cannot choose between asm:asm:3.0 and org.ow2.asm:asm:4.0 because they provide the same capability: asm:asm:3.0, asm:asm:4.0")
+        } else {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
+                        .byConflictResolution()
+                    module('org.ow2.asm:asm:4.0')
+                }
             }
         }
 
         where:
-        first << ['asm:asm:3.0', 'org.ow2.asm:asm:4.0']
-        second << ['org.ow2.asm:asm:4.0', 'asm:asm:3.0']
+        first                 | second                | failOnVersionConflict
+        'asm:asm:3.0'         | 'org.ow2.asm:asm:4.0' | false
+        'org.ow2.asm:asm:4.0' | 'asm:asm:3.0'         | false
+        'asm:asm:3.0'         | 'org.ow2.asm:asm:4.0' | true
+        'org.ow2.asm:asm:4.0' | 'asm:asm:3.0'         | true
     }
 
     /**
@@ -457,7 +435,9 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 fixConflict ? expectResolve() : expectGetMetadata()
             }
             'org:testA:1.0' {
-                if (!fixConflict) { expectGetMetadata() }
+                if (!fixConflict) {
+                    expectGetMetadata()
+                }
             }
         }
         if (fixConflict) {

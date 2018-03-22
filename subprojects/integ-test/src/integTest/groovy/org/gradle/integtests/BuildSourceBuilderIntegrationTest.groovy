@@ -67,8 +67,6 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         def releaseResult = runReleaseHandle.waitForFinish()
         def blockingResult = runBlockingHandle.waitForFinish()
         then:
-        blockingResult.error.isEmpty()
-        releaseResult.error.isEmpty()
         blockingResult.assertTasksExecuted(":blocking")
         releaseResult.assertTasksExecuted(":releasing")
 

@@ -175,13 +175,12 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     void logged(String message, int count = 1) {
-        result.assertOutputContains(message)
+        assert result.output.contains(message)
         assert result.output.count(message) == count
     }
 
-
     void loggedAtLeast(String message, int count = 1) {
-        result.assertOutputContains(message)
+        assert result.output.contains(message)
         assert result.output.count(message) >= count
     }
 

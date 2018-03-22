@@ -685,7 +685,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "consumer"
         then:
-        skippedTasks.sort() == [":consumer", ":producer"]
+        result.assertTasksSkipped(":consumer", ":producer")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3043")

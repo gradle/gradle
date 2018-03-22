@@ -55,6 +55,11 @@ public interface ExecutionFailure extends ExecutionResult {
      */
     ExecutionFailure assertHasResolution(String resolution);
 
+    /**
+     * Asserts that there is no exception that <em>contains</em> the given description.
+     */
+    ExecutionFailure assertHasNoCause(String description);
+
     ExecutionFailure assertHasNoCause();
 
     ExecutionFailure assertTestsFailed();

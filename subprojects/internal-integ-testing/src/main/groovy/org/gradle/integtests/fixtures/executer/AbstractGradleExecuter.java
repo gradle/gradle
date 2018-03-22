@@ -44,13 +44,10 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.sink.ConsoleStateUtil;
-import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -63,7 +60,6 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
@@ -78,7 +74,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
@@ -1114,7 +1113,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 boolean executionFailure = isExecutionFailure(executionResult);
 
                 // for tests using rich console standard out and error are combined in output of execution result
-                if (executionFailure && isErrorOutEmpty(error)) {
+                if (executionFailure) {
                     normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
                 }
 
@@ -1356,49 +1355,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private static LoggingServiceRegistry newCommandLineProcessLogging() {
-        LoggingServiceRegistry loggingServices = new LoggingServiceRegistry() {
-            @Override
-            protected OutputEventRenderer makeOutputEventRenderer() {
-                return new VerboseAwareOutputEventRenderer(Time.clock());
-            }
-        };
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
-        rootLoggingManager.captureSystemSources();
+//        rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
-    }
-
-    private static class VerboseAwareOutputEventRenderer extends OutputEventRenderer {
-        VerboseAwareOutputEventRenderer(Clock clock) {
-            super(clock);
-        }
-
-        @Override
-        public void attachAnsiConsole(OutputStream outputStream) {
-            if (outputStream instanceof VerboseAwareAnsiOutputStream) {
-                attachAnsiConsole(outputStream, VerboseAwareAnsiOutputStream.class.cast(outputStream).isVerbose());
-            } else {
-                super.attachAnsiConsole(outputStream);
-            }
-        }
-    }
-
-    protected static class VerboseAwareAnsiOutputStream extends OutputStream {
-        private final OutputStream delegate;
-        private boolean verbose;
-
-        VerboseAwareAnsiOutputStream(OutputStream delegate, boolean verbose) {
-            this.delegate = delegate;
-            this.verbose = verbose;
-        }
-
-        public boolean isVerbose() {
-            return verbose;
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            delegate.write(b);
-        }
     }
 }

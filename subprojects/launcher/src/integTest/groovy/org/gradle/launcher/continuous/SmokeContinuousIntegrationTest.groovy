@@ -120,7 +120,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         fails()
-        errorOutput.contains "file does not exist"
+        failure.assertHasCause "java.lang.Exception: file does not exist"
 
         when:
         waitBeforeModification(markerFile)
