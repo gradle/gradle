@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.gradlebuild.packaging
 
 import org.gradle.api.Plugin
@@ -37,8 +38,6 @@ open class MinifyPlugin : Plugin<Project> {
                 "it.unimi.dsi.fastutil.ints.IntSets"
             )
         )
-        val artifactType = Attribute.of("artifactType", String::class.java)
-        val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 
         allprojects {
             plugins.withId("java-base") {
