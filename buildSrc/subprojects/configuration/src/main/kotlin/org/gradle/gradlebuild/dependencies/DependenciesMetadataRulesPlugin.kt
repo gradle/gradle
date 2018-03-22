@@ -15,14 +15,17 @@
  */
 package org.gradle.gradlebuild.dependencies
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonReader
 import library
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DirectDependenciesMetadata
-import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
+import java.io.File
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
@@ -58,38 +61,8 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                     removeAll { it.group == "org.sonatype.sisu" }
                 }
 
-                // Gradle distribution - replace similar library with different coordinates
-                capability("guava")
-                    .providedBy("com.google.collections:google-collections")
-                    .select("com.google.guava:guava-jdk5")
-
-                capability("junit")
-                    .providedBy("junit:junit-dep")
-                    .select("junit:junit")
-
-                capability("beanshell")
-                    .providedBy("org.beanshell:bsh")
-                    .providedBy("org.beanshell:beanshell")
-                    .select("org.apache-extras.beanshell:bsh")
-
-                capability("commons-logging")
-                    .providedBy("commons-logging:commons-logging")
-                    .providedBy("commons-logging:commons-logging-api")
-                    .select("org.slf4j:jcl-over-slf4j")
-
-                capability("log4j")
-                    .providedBy("log4j:log4j")
-                    .select("org.slf4j:log4j-over-slf4j")
-
-                val asmModuleSet = listOf("asm", "asm-analysis", "asm-commons", "asm-tree", "asm-util")
-
-                asmModuleSet.forEach { asmModule ->
-                    capability(asmModule)
-                        .providedBy("asm:${asmModule}")
-                        .providedBy("org.ow2.asm:asm-all")
-                        .providedBy("org.ow2.asm:asm-debug-all")
-                        .forceUpgrade("org.ow2.asm:${asmModule}")
-                }
+                // Read capabilities declared in capabilities.json
+                readCapabilitiesFromJson()
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
                 downgradeIvy("org.codehaus.groovy:groovy-all")
@@ -107,63 +80,63 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
             }
         }
     }
-}
 
-private
-fun Project.capability(name: String) = CapabilityBuilder(dependencies.components, configurations, name)
-
-private
-class CapabilityBuilder(val components: ComponentMetadataHandler,
-                        val configurations: ConfigurationContainer,
-                        val name: String) {
-    val providedBy : MutableList<String> = mutableListOf()
-
-    fun providedBy(vararg modules: String) : CapabilityBuilder {
-        providedBy.addAll(modules)
-        return this
-    }
-
-    /**
-     * Whenever a conflict is found, that is to say that two modules providing the same capability are
-     * found in the dependency graph, prefer one module over the others. The preferred module is the
-     * one passed as an argument.
-     * @param module the preferred module
-     */
-    fun select(module: String) {
-        providedBy.forEachIndexed { idx, provider ->
-            if (!provider.equals(module)) {
-                declareSyntheticCapability(provider, idx)
+    private
+    fun Project.readCapabilitiesFromJson() {
+        val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
+        if (capabilitiesFile.exists()) {
+            readCapabilities(capabilitiesFile).forEach {
+                it.configure(dependencies.components, configurations)
             }
         }
-
-        declarePreference(module)
     }
 
-    /**
-     * For all modules providing a capability, always use the preferred module, even if there's no conflict.
-     * In other words, will forcefully upgrade all modules providing a capability to a selected module.
-     *
-     * @param to the preferred module
-     */
-    fun forceUpgrade(to: String) {
-        configurations.all {
-            resolutionStrategy.dependencySubstitution {
-                all {
-                    if (requested is ModuleComponentSelector) {
-                        val requestedModule = requested as ModuleComponentSelector
-                        val module = "${requestedModule.group}:${requestedModule.module}"
-                        if (providedBy.contains(module)) {
-                            useTarget("${to}:${requestedModule.version}", "Forceful upgrade of capability ${name}")
-                        }
-                    }
+    private
+    fun readCapabilities(source: File): List<CapabilitySpec> {
+        val gson = Gson()
+        val reader = JsonReader(source.reader(Charsets.UTF_8))
+        reader.isLenient = true
+        return gson.fromJson<List<CapabilitySpec>>(reader)
+    }
+}
+
+inline
+fun <reified T> Gson.fromJson(json: JsonReader) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)
+
+class CapabilitySpec {
+    lateinit var name: String
+    lateinit var providedBy: List<String>
+    lateinit var selected: String
+    var upgrade: String? = null
+
+    internal
+    fun configure(components: ComponentMetadataHandler, configurations: ConfigurationContainer) {
+        if (upgrade != null) {
+            configurations.forceUpgrade(selected, upgrade!!)
+        } else {
+            providedBy.forEachIndexed { idx, provider ->
+                if (provider != selected) {
+                    components.declareSyntheticCapability(provider, idx.toString())
+                }
+            }
+            components.declareCapabilityPreference(selected)
+        }
+    }
+
+    private
+    fun ComponentMetadataHandler.declareSyntheticCapability(provider: String, version: String) {
+        withModule(provider) {
+            allVariants {
+                withCapabilities {
+                    addCapability("org.gradle.internal.capability", name, version)
                 }
             }
         }
     }
 
     private
-    fun declarePreference(module: String) {
-        components.withModule(module) {
+    fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
+        withModule(module) {
             allVariants {
                 withCapabilities {
                     addCapability("org.gradle.internal.capability", name, "${providedBy.size + 1}")
@@ -172,14 +145,19 @@ class CapabilityBuilder(val components: ComponentMetadataHandler,
         }
     }
 
+    /**
+     * For all modules providing a capability, always use the preferred module, even if there's no conflict.
+     * In other words, will forcefully upgrade all modules providing a capability to a selected module.
+     *
+     * @param to the preferred module
+     */
     private
-    fun declareSyntheticCapability(provider: String, idx: Int) {
-        components.withModule(provider) {
-            allVariants {
-                withCapabilities {
-                    val version = "${idx}"
-                    addCapability("org.gradle.internal.capability", name, version)
-                }
+    fun ConfigurationContainer.forceUpgrade(to: String, version: String) = all {
+        resolutionStrategy.dependencySubstitution {
+            providedBy.forEach { source ->
+                substitute(module(source))
+                    .because("Forceful upgrade of capability ${name}")
+                    .with(module("${to}:${version}"))
             }
         }
     }
