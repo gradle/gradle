@@ -91,6 +91,7 @@ class SwiftBasePluginTest extends Specification {
         executable.targetPlatform >> Stub(SwiftPlatformInternal)
         executable.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
         executable.platformToolProvider >> new TestPlatformToolProvider()
+        executable.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)

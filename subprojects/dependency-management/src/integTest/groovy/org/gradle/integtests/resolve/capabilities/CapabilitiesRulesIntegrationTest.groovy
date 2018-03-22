@@ -101,7 +101,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('cglib:cglib-nodep:3.2.4', 'cglib:cglib:3.2.5')
-                    .byConflictResolution()
+                    .byReason('latest version of capability cglib:cglib')
                 module('cglib:cglib:3.2.5')
             }
         }

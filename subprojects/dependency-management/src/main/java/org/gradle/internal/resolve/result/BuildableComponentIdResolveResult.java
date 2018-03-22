@@ -18,7 +18,6 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -37,10 +36,5 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
      * Marks the component selection as failed.
      */
     void failed(ModuleVersionResolveException failure);
-
-    /**
-     * Sets the description for this component selection.
-     */
-    void setSelectionDescription(ComponentSelectionDescriptorInternal reason);
 
 }

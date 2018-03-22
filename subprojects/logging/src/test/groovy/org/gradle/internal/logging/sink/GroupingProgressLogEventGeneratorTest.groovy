@@ -338,7 +338,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "forwards a batched group of events after receiving update now event after flush period"() {
         given:
-        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT
+        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT
         def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
@@ -361,7 +361,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "forwards multiple batched groups of events after receiving update now event after flush period"() {
         given:
-        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT
+        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT
         def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-13L), new OperationIdentifier(-14L), olderTimestamp, CATEGORY, "Execute :b", ":b", null, null, 0, true, new OperationIdentifier(12L), null, BuildOperationCategory.TASK)

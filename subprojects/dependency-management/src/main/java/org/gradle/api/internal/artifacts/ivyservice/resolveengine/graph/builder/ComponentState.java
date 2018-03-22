@@ -24,6 +24,9 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -62,6 +65,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     // The first selector that resolved this component
     private SelectorState firstSelectedBy;
     private List<SelectorState> selectedBy;
+    private ResolvedVersionConstraint mergedVersionConstraint;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
@@ -146,6 +150,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             selectedBy = Lists.newLinkedList();
         }
         selectedBy.add(resolver);
+        mergedVersionConstraint = null;
     }
 
     public List<SelectorState> getSelectedBy() {
@@ -176,7 +181,33 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public ResolvedVersionConstraint getVersionConstraint() {
-        return firstSelectedBy == null ? null : firstSelectedBy.getVersionConstraint();
+        if (mergedVersionConstraint == null) {
+            mergedVersionConstraint = buildVersionConstraint();
+        }
+        return mergedVersionConstraint;
+    }
+
+    private ResolvedVersionConstraint buildVersionConstraint() {
+        if (selectedBy == null) {
+            return null;
+        }
+        if (selectedBy.size() == 1) {
+            return firstSelectedBy.getVersionConstraint();
+        }
+
+        List<VersionSelector> combinedRejectSelectors = Lists.newArrayListWithCapacity(selectedBy.size());
+        for (SelectorState selectorState : selectedBy) {
+            if (selectorState.getVersionConstraint() != null && selectorState.getVersionConstraint().getRejectedSelector() != null) {
+                combinedRejectSelectors.add(selectorState.getVersionConstraint().getRejectedSelector());
+            }
+        }
+
+        if (combinedRejectSelectors.isEmpty()) {
+            return firstSelectedBy.getVersionConstraint();
+        }
+
+        VersionSelector mergedRejectSelector = combinedRejectSelectors.size() == 1 ? combinedRejectSelectors.get(0) : new UnionVersionSelector(combinedRejectSelectors);
+        return new DefaultResolvedVersionConstraint(firstSelectedBy.getVersionConstraint().getPreferredSelector(), mergedRejectSelector);
     }
 
     @Override
@@ -291,7 +322,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return state.isSelectable();
     }
 
-    boolean isCandidateForConflictResolution() {
+    public boolean isCandidateForConflictResolution() {
         return state.isCandidateForConflictResolution();
     }
 

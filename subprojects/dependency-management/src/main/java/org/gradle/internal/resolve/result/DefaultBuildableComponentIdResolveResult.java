@@ -18,9 +18,6 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -29,7 +26,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentResolveMetadata metadata;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
-    private ComponentSelectionDescriptorInternal selectionDescription;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -47,16 +43,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     public ModuleVersionIdentifier getModuleVersionId() {
         assertResolved();
         return moduleVersionId;
-    }
-
-    @Override
-    public void setSelectionDescription(ComponentSelectionDescriptorInternal reason) {
-        this.selectionDescription = reason;
-    }
-
-    @Override
-    public ComponentSelectionDescriptorInternal getSelectionDescription() {
-        return selectionDescription;
     }
 
     public ComponentResolveMetadata getMetadata() {
@@ -94,6 +80,5 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         metadata = null;
         id = null;
         moduleVersionId = null;
-        selectionDescription = selectionDescription == null || selectionDescription.getCause() != ComponentSelectionCause.CONSTRAINT ? VersionSelectionReasons.REQUESTED : VersionSelectionReasons.CONSTRAINT;
     }
 }

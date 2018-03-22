@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
+import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
@@ -253,6 +255,19 @@ project(':api') {
 
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
+    }
+
+    @Issue("gradle/gradle#4799")
+    @ToBeImplemented("This should succeed")
+    def "evaluationDependsOn nephew"() {
+        settingsFile << "include ':z', ':b:c'"
+        file("z/build.gradle") << "evaluationDependsOn(':b:c')"
+
+        when:
+        fails(':z:tasks')
+
+        then:
+        failureHasCause("Attempt to define scope class loader before scope is locked")
     }
 
     def "respects buildProjectDependencies setting"() {

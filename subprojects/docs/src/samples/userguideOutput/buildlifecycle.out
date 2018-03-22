@@ -12,6 +12,5 @@ This is executed during the execution phase.
 This is executed first during the execution phase.
 This is executed last during the execution phase.
 
-
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed

@@ -19,19 +19,16 @@ package org.gradle.api.tasks
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 import spock.util.environment.OperatingSystem
 
-import static org.gradle.api.logging.configuration.ConsoleOutput.*
-
 @Issue("https://github.com/gradle/gradle/issues/2009")
-class ExecOutputIntegrationTest extends AbstractIntegrationSpec {
-    private static final List<ConsoleOutput> CONSOLE_TYPES = [Rich, Plain]
+abstract class AbstractExecOutputIntegrationTest extends AbstractIntegrationSpec {
     private static final String EXPECTED_OUTPUT = "Hello, World!"
     private static final String EXPECTED_ERROR = "Goodbye, World!"
 
-    @Unroll
-    def "Project#javaexec output is grouped with its task output (#consoleType console)"() {
+    abstract ConsoleOutput getConsoleType()
+
+    def "Project.javaexec output is grouped with its task output"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
@@ -56,13 +53,9 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec {
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
         output.contains(EXPECTED_ERROR)
-
-        where:
-        consoleType << CONSOLE_TYPES
     }
 
-    @Unroll
-    def "JavaExec task output is grouped with its task output (#consoleType console)"() {
+    def "JavaExec task output is grouped with its task output"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
@@ -83,13 +76,9 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec {
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
         output.contains(EXPECTED_ERROR)
-
-        where:
-        consoleType << CONSOLE_TYPES
     }
 
-    @Unroll
-    def "Project#exec output is grouped with its task output (#consoleType console)"() {
+    def "Project.exec output is grouped with its task output"() {
         given:
         buildFile << """
             task run {
@@ -107,12 +96,9 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
-
-        where:
-        consoleType << CONSOLE_TYPES
     }
 
-    def "Exec task output is grouped with its task output (#consoleType console)"() {
+    def "Exec task output is grouped with its task output"() {
         given:
         buildFile << """
             task run(type: Exec) {
@@ -126,9 +112,6 @@ class ExecOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
-
-        where:
-        consoleType << CONSOLE_TYPES
     }
 
     private static String echo(String s) {
