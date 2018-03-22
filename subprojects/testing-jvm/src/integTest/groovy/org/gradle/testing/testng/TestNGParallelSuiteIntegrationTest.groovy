@@ -23,9 +23,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
+@TargetCoverage({ TestNGCoverage.STANDARD_COVERAGE })
 class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
-    def setup(){
+    def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -77,7 +77,7 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4457")
-    def "can persist configurations in xml" (){
+    def "can persist configurations in xml"() {
         given:
         createTests(3, 3)
 
@@ -88,7 +88,7 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
         actualThreadIds(output).size() == 3
     }
 
-    private static actualThreadIds(String stdout){
+    private static actualThreadIds(String stdout) {
         String pattern = /.*\d+ - foo \d+ - (\d+)/
         return stdout.readLines().grep(~pattern).collect { (it =~ pattern)[0][1] }.toSet()
     }
