@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
@@ -33,6 +36,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
@@ -46,26 +50,35 @@ import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+@NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
+    private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
+        Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
+    );
+    private static final Set<String> MANDATORY_TASK_ARGUMENTS = ImmutableSet.of(
+        Task.TASK_NAME, Task.TASK_TYPE
+    );
+
     private final MutableModelNode modelNode;
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
-    private final NamedEntityInstantiator<Task> instantiator;
 
     public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
         this.modelNode = modelNode;
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
-        this.instantiator = new TaskInstantiator(taskFactory);
     }
 
     public Task create(Map<String, ?> options) {
@@ -77,8 +90,86 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             replace = "true".equals(replaceStr.toString());
         }
 
-        Task task = taskFactory.createTask(factoryOptions);
+        Map<String, ?> actualArgs = checkTaskArgsAndCreateDefaultValues(factoryOptions);
+
+        String name = actualArgs.get(Task.TASK_NAME).toString();
+        if (!GUtil.isTrue(name)) {
+            throw new InvalidUserDataException("The task name must be provided.");
+        }
+
+        Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
+        Object[] constructorArgs = getConstructorArgs(actualArgs);
+        TaskInternal task;
+        if (constructorArgs != null) {
+            task = createTask(name, type, constructorArgs);
+        } else {
+            task = createTask(name, type);
+        }
+
+        Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
+        if (dependsOnTasks != null) {
+            task.dependsOn(dependsOnTasks);
+        }
+        Object description = actualArgs.get(Task.TASK_DESCRIPTION);
+        if (description != null) {
+            task.setDescription(description.toString());
+        }
+        Object group = actualArgs.get(Task.TASK_GROUP);
+        if (group != null) {
+            task.setGroup(group.toString());
+        }
+        Object action = actualArgs.get(Task.TASK_ACTION);
+        if (action instanceof Action) {
+            Action<? super Task> taskAction = Cast.uncheckedCast(action);
+            task.doFirst(taskAction);
+        } else if (action != null) {
+            Closure closure = (Closure) action;
+            task.doFirst(closure);
+        }
+
         return addTask(task, replace);
+    }
+
+    @Nullable
+    private static Object[] getConstructorArgs(Map<String, ?> args) {
+        Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
+        if (constructorArgs instanceof List) {
+            List<?> asList = (List<?>) constructorArgs;
+            return asList.toArray(new Object[asList.size()]);
+        }
+        if (constructorArgs instanceof Object[]) {
+            return (Object[]) constructorArgs;
+        }
+        if (constructorArgs != null) {
+            throw new IllegalArgumentException(String.format("%s must be a List or Object[].  Received %s", Task.TASK_CONSTRUCTOR_ARGS, constructorArgs.getClass()));
+        }
+        return null;
+    }
+
+    private static Map<String, ?> checkTaskArgsAndCreateDefaultValues(Map<String, ?> args) {
+        validateArgs(args);
+        if (!args.keySet().containsAll(MANDATORY_TASK_ARGUMENTS)) {
+            Map<String, Object> argsWithDefaults = Maps.newHashMap(args);
+            setIfNull(argsWithDefaults, Task.TASK_NAME, "");
+            setIfNull(argsWithDefaults, Task.TASK_TYPE, DefaultTask.class);
+            return argsWithDefaults;
+        }
+        return args;
+    }
+
+    private static void validateArgs(Map<String, ?> args) {
+        if (!VALID_TASK_ARGUMENTS.containsAll(args.keySet())) {
+            Map<String, Object> unknownArguments = new HashMap<String, Object>(args);
+            unknownArguments.keySet().removeAll(VALID_TASK_ARGUMENTS);
+            throw new InvalidUserDataException(String.format("Could not create task '%s': Unknown argument(s) in task definition: %s",
+                args.get(Task.TASK_NAME), unknownArguments.keySet()));
+        }
+    }
+
+    private static void setIfNull(Map<String, Object> map, String key, Object defaultValue) {
+        if (map.get(key) == null) {
+            map.put(key, defaultValue);
+        }
     }
 
     private <T extends Task> T addTask(T task, boolean replaceExisting) {
@@ -115,9 +206,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return create(options).configure(configureClosure);
     }
 
+    @Override
     public <T extends Task> T create(String name, Class<T> type) {
-        T task = instantiator.create(name, type);
+        return create(name, type, new Object[0]);
+    }
+
+    @Override
+    public <T extends Task> T create(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+        T task = createTask(name, type, constructorArgs);
         return addTask(task, false);
+    }
+
+    private <T extends Task> T createTask(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+        return taskFactory.create(name, type, constructorArgs);
     }
 
     public Task create(String name) {
@@ -153,7 +254,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
-        T task = instantiator.create(name, type);
+        T task = taskFactory.create(name, type);
         return addTask(task, true);
     }
 
@@ -208,7 +309,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public NamedEntityInstantiator<Task> getEntityInstantiator() {
-        return instantiator;
+        return taskFactory;
     }
 
     public DynamicObject getTasksAsDynamicObject() {
@@ -287,22 +388,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public Set<? extends Class<? extends Task>> getCreateableTypes() {
         return Collections.singleton(getType());
-    }
-
-    private static class TaskInstantiator implements NamedEntityInstantiator<Task> {
-        private final ITaskFactory taskFactory;
-
-        public TaskInstantiator(ITaskFactory taskFactory) {
-            this.taskFactory = taskFactory;
-        }
-
-        @Override
-        public <S extends Task> S create(String name, Class<S> type) {
-            if (type.isAssignableFrom(TaskInternal.class)) {
-                return type.cast(taskFactory.create(name, TaskInternal.class));
-            }
-            return type.cast(taskFactory.create(name, type.asSubclass(TaskInternal.class)));
-        }
     }
 
     private static class TaskCreator<T extends TaskInternal> implements Action<MutableModelNode> {

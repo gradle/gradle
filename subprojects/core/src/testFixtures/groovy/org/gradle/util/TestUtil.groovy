@@ -136,7 +136,7 @@ class TestUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-        return project.services.get(ITaskFactory).createTask([name: name, type: type])
+        return project.services.get(ITaskFactory).create(name, type)
     }
 
     static ProjectBuilder builder(File rootDir) {

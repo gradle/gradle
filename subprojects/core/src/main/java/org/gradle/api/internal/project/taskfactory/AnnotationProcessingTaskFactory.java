@@ -22,8 +22,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Map;
-
 /**
  * A {@link ITaskFactory} which determines task actions, inputs and outputs based on annotation attached to the task properties. Also provides some validation based on these annotations.
  */
@@ -36,20 +34,22 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         this.taskFactory = taskFactory;
     }
 
+    @Override
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
         return new AnnotationProcessingTaskFactory(taskClassInfoStore, taskFactory.createChild(project, instantiator));
     }
 
-    public TaskInternal createTask(Map<String, ?> args) {
-        return process(taskFactory.createTask(args));
-    }
-
     @Override
-    public <S extends TaskInternal> S create(String name, Class<S> type) {
+    public <S extends Task> S create(String name, Class<S> type) {
         return process(taskFactory.create(name, type));
     }
 
-    private <S extends TaskInternal> S process(S task) {
+    @Override
+    public <S extends Task> S create(String name, Class<S> type, Object... args) {
+        return process(taskFactory.create(name, type, args));
+    }
+
+    private <S extends Task> S process(S task) {
         TaskClassInfo taskClassInfo = taskClassInfoStore.getTaskClassInfo(task.getClass());
 
         if (taskClassInfo.isIncremental()) {
@@ -62,7 +62,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         for (TaskActionFactory actionFactory : taskClassInfo.getTaskActionFactories()) {
-            task.prependParallelSafeAction(actionFactory.create());
+            ((TaskInternal) task).prependParallelSafeAction(actionFactory.create());
         }
 
         // Enabled caching if task type is annotated with @CacheableTask

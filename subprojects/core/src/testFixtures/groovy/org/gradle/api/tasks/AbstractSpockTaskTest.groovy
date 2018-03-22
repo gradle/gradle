@@ -34,7 +34,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -58,9 +57,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = taskFactory.createChild(project, DirectInstantiator.INSTANCE).createTask(
-                GUtil.map(Task.TASK_TYPE, type,
-                        Task.TASK_NAME, name))
+        Task task = taskFactory.createChild(project, DirectInstantiator.INSTANCE).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
     }
