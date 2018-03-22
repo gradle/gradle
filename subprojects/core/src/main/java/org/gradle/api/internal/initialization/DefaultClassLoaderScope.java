@@ -115,7 +115,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                 }
             } else { // creating before locking, have to create the most flexible setup
                 if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
-                    throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
+                    throw new IllegalStateException("Attempt to define scope class loader before scope is locked " + id);
                 }
 
                 exportingClassLoader = buildMultiLoader(id.exportId(), export, exportLoaders);
@@ -219,7 +219,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     private void assertNotLocked() {
         if (locked) {
-            throw new IllegalStateException("class loader scope is locked");
+            throw new IllegalStateException("class loader scope is locked " + id);
         }
     }
 
