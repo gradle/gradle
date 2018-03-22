@@ -69,7 +69,7 @@ import java.util.Map;
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
 public class CommandLineActionFactory {
-    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "welcome.message.enabled";
+    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
