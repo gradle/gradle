@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve
 
+import groovy.transform.Canonical
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
@@ -318,120 +319,225 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         "1.+"        | "1.2"        | "FAIL"        | "FAIL"       | "1.1"          | "1.1"
     }
 
-
     @Unroll
-    def "resolve #one & #two"() {
-        expect:
-        resolve(one, two) == lenientResult
-        resolve(strict(one), two) == strict1Result
-        resolve(one, strict(two)) == strict2Result
-        resolve(strict(one), strict(two)) == strictBothResult
+    def "resolve pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
 
-        resolve(two, one) == lenientResult
-        resolve(two, strict(one)) == strict1Result
-        resolve(strict(two), one) == strict2Result
-        resolve(strict(two), strict(one)) == strictBothResult
+        expect:
+        resolve(candidates) == expected
 
         where:
-        one         | two         | lenientResult | strict1Result | strict2Result | strictBothResult
-        FIXED_7     | FIXED_13    | 13            | -1            | 13            | -1
-        FIXED_12    | FIXED_13    | 13            | -1            | 13            | -1
-        FIXED_12    | RANGE_10_11 | 12            | 12            | -1            | -1
-        FIXED_12    | RANGE_10_14 | 12            | 12            | 12            | 12
-        FIXED_12    | RANGE_13_14 | 13            | -1            | 13            | -1
-        FIXED_12    | RANGE_7_8   | -1            | -1            | -1            | -1
-        FIXED_12    | RANGE_14_16 | -1            | -1            | -1            | -1
-        RANGE_10_11 | FIXED_10    | 10            | 10            | 10            | 10
-        RANGE_10_14 | FIXED_13    | 13            | 13            | 13            | 13
-        RANGE_10_14 | RANGE_10_11 | 11            | 11            | 11            | 11
-        RANGE_10_14 | RANGE_10_16 | 13            | 13            | 13            | 13
+        permutation << StrictPermutationsProvider.check(
+            versions: [FIXED_7, FIXED_13],
+            expectedNoStrict: 13,
+            expectedStrict: [-1, 13]
+        ).and(
+            versions: [FIXED_12, FIXED_13],
+            expectedNoStrict: 13,
+            expectedStrict: [-1, 13]
+        ).and(
+            versions: [FIXED_12, RANGE_10_11],
+            expectedNoStrict: 12,
+            expectedStrict: [12, -1]
+        ).and(
+            versions: [FIXED_12, RANGE_10_14],
+            expectedNoStrict: 12,
+            expectedStrict: [12, 12]
+        ).and(
+            versions: [FIXED_12, RANGE_13_14],
+            expectedNoStrict: 13,
+            expectedStrict: [-1, 13]
+        ).and(
+            versions: [FIXED_12, RANGE_7_8],
+            expectedNoStrict: -1,
+            expectedStrict: [-1, -1]
+        ).and(
+            versions: [FIXED_12, RANGE_14_16],
+            expectedNoStrict: -1,
+            expectedStrict: [-1, -1]
+        ).and(
+            versions: [RANGE_10_11, FIXED_10],
+            expectedNoStrict: 10,
+            expectedStrict: [10, 10]
+        ).and(
+            versions: [RANGE_10_14, FIXED_13],
+            expectedNoStrict: 13,
+            expectedStrict: [13, 13]
+        ).and(
+            versions: [RANGE_10_14, RANGE_10_11],
+            expectedNoStrict: 11,
+            expectedStrict: [11, 11]
+        ).and(
+            versions: [RANGE_10_14, RANGE_10_16],
+            expectedNoStrict: 13,
+            expectedStrict: [13, 13]
+        )
     }
 
     @Unroll
-    def "resolve #one & #two & #three"() {
+    def "resolve reject pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        [one, two, three].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == rst
-        }
-        [strict(one), two, three].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == strict1Result
-        }
-        [one, strict(two), three].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == strict2Result
-        }
-        [one, two, strict(three)].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == strict3Result
-        }
+        resolve(candidates) == expected
 
         where:
-        one      | two      | three    | rst | strict1Result | strict2Result | strict3Result
-        FIXED_12 | FIXED_13 | FIXED_10 | 13  | -1            | 13            | -1
-//        FIXED_10    | FIXED_12    | RANGE_10_14 | 12     | -1            | 12            | 12
-//        FIXED_10    | RANGE_10_11 | RANGE_10_14 | 10     | 10            | 10            | 10
-
-//        FIXED_10    | RANGE_11_12 | RANGE_10_14 | 12     | -1            | 12            | 12
-        FIXED_10    | RANGE_10_11 | RANGE_13_14 | 13     | -1            | -1            | 13
-//        RANGE_10_11 | RANGE_10_12 | RANGE_10_14 | 11     | 11            | 11            | 11
-        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
-        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
-
-//         gradle/gradle#4608
-//        FIXED_10    | FIXED_10    | FIXED_12    | 12     | -1            | -1            | 12
-
-//        FIXED_12    | RANGE_12_14 | RANGE_10_11 | 12     | 12            | 12            | -1
-//        FIXED_12    | RANGE_12_14 | FIXED_10    | 12     | 12            | 12            | -1
+        permutation << StrictPermutationsProvider.check(
+            ignore: true,
+            versions: [FIXED_12, REJECT_11],
+            expectedNoStrict: 12
+        ).and(
+            versions: [FIXED_12, REJECT_12],
+            expectedNoStrict: -1
+        ).and(
+            ignore: true,
+            versions: [FIXED_12, REJECT_13],
+            expectedNoStrict: 12
+        )
     }
 
     @Unroll
-    def "resolve #one & #two & #three & #four"() {
+    def "resolve three #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        [one, two, three, four].permutations().each {
-            assert resolve(it[0], it[1], it[2], it[3]) == resolved
-        }
+        resolve(candidates) == expected
 
         where:
-        one     | two      | three    | four     | resolved
-        FIXED_9 | FIXED_10 | FIXED_11 | FIXED_12 | 12
-//        FIXED_10 | RANGE_10_11 | FIXED_12 | RANGE_12_14 | 12
-        FIXED_10 | RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13
-//        FIXED_9  | RANGE_10_11 | RANGE_10_12 | RANGE_10_14 | 11
+        permutation << StrictPermutationsProvider.check(
+            versions: [FIXED_10, FIXED_12, FIXED_13],
+            expectedNoStrict: 13,
+            expectedStrict: [-1, -1, 13]
+        ).and(
+            ignore: true,
+            versions: [FIXED_10, FIXED_12, RANGE_10_14],
+            expectedNoStrict: 12,
+            expectedStrict: [-1, 12, 12]
+        ).and(
+            ignore: true,
+            versions: [FIXED_10, RANGE_10_11, RANGE_10_14],
+            expectedNoStrict: 10,
+            expectedStrict: [10, 10, 10]
+        ).and(
+            versions: [FIXED_10, RANGE_10_11, RANGE_13_14],
+            expectedNoStrict: 13,
+            expectedStrict: [-1, -1, 13]
+        ).and(
+            ignore: true,
+            versions: [FIXED_10, RANGE_11_12, RANGE_10_14],
+            expectedNoStrict: 12,
+            expectedStrict: [-1, 12, 12]
+        ).and(
+            ignore: true,
+            versions: [RANGE_10_11, RANGE_10_12, RANGE_10_14],
+            expectedNoStrict: 11,
+            expectedStrict: [11, 11, 11]
+        ).and(
+            versions: [RANGE_10_11, RANGE_10_12, RANGE_13_14],
+            expectedNoStrict: 13,
+            expectedStrict: [-1, -1, 13]
+        ).and(
+            ignore: true,
+            versions: [FIXED_10, FIXED_10, FIXED_12],
+            expectedNoStrict: 12,
+            expectedStrict: [-1, -1, 12]
+        ).and(
+            ignore: true,
+            versions: [FIXED_10, FIXED_12, RANGE_12_14],
+            expectedNoStrict: 12,
+            expectedStrict: [-1, 12, 12]
+        )
     }
 
     @Unroll
-    def "resolve #dep and #reject"() {
+    def "resolve deps with reject #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        resolve(dep, reject) == resolved
-        resolve(reject, dep) == resolved
-        resolve(strict(dep), reject) == strictResult
-        resolve(reject, strict(dep)) == strictResult
+        resolve(candidates) == expected
 
         where:
-        dep      | reject    | resolved | strictResult
-//        FIXED_12 | REJECT_11 | 12       | 12
-        FIXED_12 | REJECT_12 | -1       | -1
-//        FIXED_12 | REJECT_13 | 12       | 12
+        permutation << StrictPermutationsProvider.check(
+            versions: [FIXED_11, FIXED_12, REJECT_11],
+            expectedNoStrict: 12,
+        ).and(
+            versions: [FIXED_11, FIXED_12, REJECT_12],
+            expectedNoStrict: -1,
+        ).and(
+            versions: [FIXED_11, FIXED_12, REJECT_13],
+            expectedNoStrict: 12,
+
+        ).and(
+            ignore: true,
+            versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_11],
+            expectedNoStrict: 12,
+        ).and(
+            ignore: true, // This will require resolving RANGE_10_14 with the knowledge that FIXED_12 rejects < 12.
+            versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_12],
+            expectedNoStrict: 13,
+        ).and(
+            ignore: true,
+            versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_13],
+            expectedNoStrict: 12,
+
+        ).and(
+            versions: [RANGE_10_12, RANGE_13_14, REJECT_11],
+            expectedNoStrict: 13,
+        ).and(
+            versions: [RANGE_10_12, RANGE_13_14, REJECT_12],
+            expectedNoStrict: 13,
+        ).and(
+            versions: [RANGE_10_12, RANGE_13_14, REJECT_13],
+            expectedNoStrict: -1,
+
+        ).and(
+            ignore: true,
+            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_11],
+            expectedNoStrict: 10,
+        ).and(
+            ignore: true,
+            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_12],
+            expectedNoStrict: 11,
+        ).and(
+            ignore: true,
+            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_13],
+            expectedNoStrict: 11,
+        )
     }
 
     @Unroll
-    def "resolve #deps & reject 11/12/13"() {
+    def "resolve four #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        deps.permutations().each {
-            it
-            assert resolve(it + REJECT_11) == reject11
-            assert resolve(it + REJECT_12) == reject12
-            assert resolve(it + REJECT_13) == reject13
-            assert resolve([] + REJECT_11 + it) == reject11
-            assert resolve([] + REJECT_12 + it) == reject12
-            assert resolve([] + REJECT_13 + it) == reject13
-        }
+        resolve(candidates) == expected
 
         where:
-        deps                                              | reject11 | reject12 | reject13
-        [FIXED_10, FIXED_11, FIXED_12]                    | 12       | -1       | 12
-//        [RANGE_10_14, RANGE_10_12, FIXED_12]              | 12       | 13       | 12
-//        [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14]    | 12       | 13       | 12
-        [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14] | 13       | 13       | -1
-//        [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14]  | 10       | 11       | 11
+        permutation << StrictPermutationsProvider.check(
+            versions: [FIXED_9, FIXED_10, FIXED_11, FIXED_12],
+            expectedNoStrict: 12
+        ).and(
+            ignore: true,
+            versions: [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14],
+            expectedNoStrict: 12
+        ).and(
+            versions: [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14],
+            expectedNoStrict: 13
+        ).and(
+            ignore: true,
+            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14],
+            expectedNoStrict: 11
+        )
     }
 
     private static RenderableVersion fixed(int version) {
@@ -497,7 +603,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 """
         for (int i = 1; i <= versions.size(); i++) {
             RenderableVersion version = versions.get(i - 1);
-            def nextProjectDependency = i < versions.size() ? "conf project(path: ':p${i+1}', configuration: 'conf')" : ""
+            def nextProjectDependency = i < versions.size() ? "conf project(path: ':p${i + 1}', configuration: 'conf')" : ""
             buildFile << """
                 project('p${i}') {
                     dependencies {
@@ -585,6 +691,92 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         @Override
         String toString() {
             return "reject " + version
+        }
+    }
+
+    static class StrictPermutationsProvider implements Iterable<Candidate> {
+        private final List<Batch> batches = []
+        private int batchCount
+
+        static StrictPermutationsProvider check(Map config) {
+            new StrictPermutationsProvider().and(config)
+        }
+
+        StrictPermutationsProvider and(Map config) {
+            assert config.versions
+            assert config.expectedNoStrict
+
+            ++batchCount
+            if (!config.ignore) {
+                List<RenderableVersion> versions = config.versions
+                List<Integer> expectedStrict = config.expectedStrict
+                List<Batch> iterations = []
+                String batchName = config.description ?: "#${batchCount} (${versions})"
+                iterations.add(new Batch(batchName, versions, config.expectedNoStrict))
+                if (expectedStrict) {
+                    versions.size().times { idx ->
+                        iterations.add(new Batch(batchName, versions.withIndex().collect { RenderableVersion version, idx2 ->
+                            if (idx == idx2) {
+                                def v = new StrictVersion()
+                                v.version = version.version
+                                v
+                            } else {
+                                version
+                            }
+                        }, expectedStrict[idx]))
+                    }
+                }
+                batches.addAll(iterations)
+            }
+
+            this
+        }
+
+        @Override
+        Iterator<Candidate> iterator() {
+            new PermutationIterator()
+        }
+
+        @Canonical
+        static class Batch {
+            String batchName
+            List<RenderableVersion> versions
+            int expected
+        }
+
+        class PermutationIterator implements Iterator<Candidate> {
+            Iterator<Batch> batchesIterator = batches.iterator()
+            String currentBatch
+            Iterator<List<RenderableVersion>> current
+            int expected
+
+            @Override
+            boolean hasNext() {
+                batchesIterator.hasNext() || current?.hasNext()
+            }
+
+            @Override
+            Candidate next() {
+                if (current?.hasNext()) {
+                    return new Candidate(batch: currentBatch, candidates: current.next() as RenderableVersion[], expected: expected)
+                }
+                Batch nextBatch = batchesIterator.next()
+                expected = nextBatch.expected
+                current = nextBatch.versions.permutations().iterator()
+                currentBatch = nextBatch.batchName
+                return next()
+            }
+        }
+
+        static class Candidate {
+            String batch
+            RenderableVersion[] candidates
+            int expected
+
+            @Override
+            String toString() {
+                batch + ": " + candidates.collect { it.toString() }.join(' & ') + " -> ${expected < 0 ? 'FAIL' : expected}"
+            }
         }
     }
 }
