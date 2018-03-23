@@ -112,6 +112,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
                         buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
                     } catch (Exception e) {
+                        // TODO: Fail if missing link
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
                     }
                 } else {
