@@ -85,4 +85,11 @@ Now that the build logic has been translated into a plugin, you can apply it in 
 </sample>
 ++++
 
+[[sec:avoid_use_of_passwords_in_plain_text]]
+=== Avoid the use of passwords in plain text
+
+Most builds need to consume one or many passwords. The reasons for this need may vary. Some builds need a password for publishing artifacts to a secured binary repository, other builds need a password for downloading binary files. Passwords should always kept safe to prevent fraud. Under no circumstance should you add the password to the build script as property in plain text or declare it in a `gradle.properties`. Those files usually live in a version control repository and can be viewed by anyone that has access to it.
+
+Passwords should be stored in encrypted fashion. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords. A good solution for solving this problem is the link:https://github.com/etiennestuder/gradle-credentials-plugin[Gradle Credentials plugin].
+
 
