@@ -187,7 +187,7 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
 /**
  * Locates a property on [Project].
  */
-operator fun Project.provideDelegate(any: Any?, property: KProperty<*>) =
+operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
     propertyDelegateFor(this, property)
 
 

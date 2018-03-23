@@ -39,5 +39,5 @@ fun <reified T : Plugin<Settings>> Settings.apply() =
 /**
  * Locates a property on [Settings].
  */
-operator fun Settings.provideDelegate(any: Any?, property: KProperty<*>) =
+operator fun Settings.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
     propertyDelegateFor(this, property)

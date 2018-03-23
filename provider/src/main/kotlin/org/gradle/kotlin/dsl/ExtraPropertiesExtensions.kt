@@ -35,7 +35,7 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
-operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: KProperty<*>) =
+operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: KProperty<*>): MutablePropertyDelegate =
     if (property.returnType.isMarkedNullable) NullableExtraPropertyDelegate(this, property.name)
     else NonNullExtraPropertyDelegate(this, property.name)
 
