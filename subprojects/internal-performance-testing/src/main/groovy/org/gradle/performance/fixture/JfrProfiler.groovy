@@ -21,6 +21,9 @@ import groovy.transform.PackageScope
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.util.JCmd
 
+import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
+import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
+
 /**
  * Profiles performance test scenarios using the Java Flight Recorder.
  *
@@ -65,16 +68,20 @@ class JfrProfiler extends Profiler {
 
     @Override
     void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
-        if (invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == BuildExperimentRunner.Phase.WARMUP && useDaemon) {
+        if (isEndOf(invocationInfo, WARMUP) && useDaemon) {
             start()
         }
-        if (invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
+        if (isEndOf(invocationInfo, MEASUREMENT)) {
             scenarioBaseDir.mkdirs()
             if (useDaemon) {
                 stop()
             }
             flameGraphGenerator.generateGraphs(jfrFile)
         }
+    }
+
+    private boolean isEndOf(BuildExperimentInvocationInfo invocationInfo, BuildExperimentRunner.Phase phase) {
+        invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == phase
     }
 
     private File getScenarioBaseDir() {
