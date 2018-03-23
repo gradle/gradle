@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
 import java.io.File
 
+
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         dependencies {
@@ -100,8 +101,10 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     }
 }
 
+
 inline
 fun <reified T> Gson.fromJson(json: JsonReader) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)
+
 
 class CapabilitySpec {
     lateinit var name: String
@@ -156,12 +159,13 @@ class CapabilitySpec {
         resolutionStrategy.dependencySubstitution {
             providedBy.forEach { source ->
                 substitute(module(source))
-                    .because("Forceful upgrade of capability ${name}")
-                    .with(module("${to}:${version}"))
+                    .because("Forceful upgrade of capability $name")
+                    .with(module("$to:$version"))
             }
         }
     }
 }
+
 
 fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
     withModule(module) {
@@ -172,6 +176,7 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: Dir
         }
     }
 }
+
 
 fun ComponentMetadataHandler.downgradeIvy(module: String) {
     withModule(module) {
@@ -186,6 +191,7 @@ fun ComponentMetadataHandler.downgradeIvy(module: String) {
     }
 }
 
+
 fun ComponentMetadataHandler.downgradeTestNG(module: String) {
     withModule(module) {
         allVariants {
@@ -199,6 +205,7 @@ fun ComponentMetadataHandler.downgradeTestNG(module: String) {
     }
 }
 
+
 fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
     withModule(module) {
         allVariants {
@@ -211,4 +218,3 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
         }
     }
 }
-
