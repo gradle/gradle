@@ -16,171 +16,203 @@
 
 package org.gradle.performance.fixture
 
+import com.github.chrishantha.jfr.flamegraph.output.Application
+import com.google.common.base.Charsets
+import com.google.common.io.Files
+import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log
-import org.apache.commons.io.FileUtils
-import org.apache.mina.util.AvailablePortFinder
-import org.gradle.internal.UncheckedException
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
 
+/**
+ * Profiles performance test scenarios using the Java Flight Recorder.
+ *
+ * TODO create memory, IO, locking flame graphs
+ * TODO generate icicle graphs
+ * TODO create flame graph diffs
+ * TODO support pause/resume so we can exclude clean tasks from measurement
+ * TODO refactor out helpers (pid instrumentation, flame graphs, jcmd, profile directory structure)
+ * TODO simplify flame graphs more, e.g. collapse task executor chain, build operation handling etc
+ * TODO maybe create "raw" flame graphs too, for cases when above mentioned things actually regress
+ * TODO remove setters for useDaemon/versionUnderTest/scenarioUnderTest, this should all be available from BuildExperimentInvocationInfo
+ * TODO move flamegraph generation to buildSrc and offer it as a task so it can be used when people send us .jfr files
+ */
 @CompileStatic
 @Log
-class HonestProfilerCollector implements DataCollector {
-    // if set, this system property must point to the directory where log files will be copied
-    // and flame graphs generated
-    public static final String HONESTPROFILER_KEY = "org.gradle.performance.honestprofiler"
-    public static final String SAMPLING_INTERVAL_KEY = "org.gradle.performance.samplinginterval"
+class JfrProfiler implements Profiler {
+    private static final String TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir"
 
-    boolean enabled = System.getProperty(HONESTPROFILER_KEY) != null
-    int honestProfilerPort = AvailablePortFinder.getNextAvailable(18080)
-    String honestProfilerHost = '127.0.0.1'
-    int maxFrames = 1024
-    int interval = Integer.getInteger(SAMPLING_INTERVAL_KEY, 7)
-    boolean initiallyStopped = true
-    boolean autoStartStop = true
-    private File logFile
-    private boolean profilerJvmOptionAdded
-    File logDirectory
-    FlameGraphSanitizer flameGraphSanitizer
-    String sessionId
+    final boolean enabled
 
-    HonestProfilerCollector() {
-        logDirectory = enabled ? new File(System.getProperty(HONESTPROFILER_KEY)) : null
+    private final File logDirectory
+    private final File jcmdExecutable
+    private final File pidFile
+    private final File pidFileInitScript
+    private final File flamegraphScript
+
+    boolean useDaemon
+    String versionUnderTest
+    String scenarioUnderTest
+
+    JfrProfiler() {
+        enabled = System.getProperty(TARGET_DIR_KEY) != null
+        logDirectory = enabled ? new File(System.getProperty(TARGET_DIR_KEY)) : null
+        jcmdExecutable = findJcmd()
+        pidFile = createPidFile()
+        pidFileInitScript = createPidFileInitScript(pidFile)
+        flamegraphScript = createFlamegraphScript()
     }
 
-    File getLogFile() {
-        logFile
+    private static File findJcmd() {
+        File javaHome = new File(System.getProperty("java.home"));
+        def jcmdPath = "bin/" + OperatingSystem.current().getExecutableName("jcmd")
+        def jcmd = new File(javaHome, jcmdPath);
+        if (!jcmd.isFile() && javaHome.getName().equals("jre")) {
+            jcmd = new File(javaHome.getParentFile(), jcmdPath);
+        }
+        if (!jcmd.isFile()) {
+            throw new RuntimeException("Could not find 'jcmd' executable for Java home directory " + javaHome);
+        }
+        jcmd
     }
 
-    @Override
-    public List<String> getAdditionalJvmOpts(File workingDir) {
-        if (enabled) {
-            def honestProfilerDir = locateHonestProfilerInstallation()
-            def honestProfilerLibFile = new File(honestProfilerDir, OperatingSystem.current().getSharedLibraryName('lagent'))
-            if (honestProfilerLibFile.exists()) {
-                logFile = new File(workingDir, "honestprofiler.hpl").absoluteFile
-                profilerJvmOptionAdded = true
-                File flameGraphHomeDir = locateFlameGraphInstallation()
-                if (flameGraphHomeDir.exists()) {
-                    flameGraphSanitizer = new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
-                        (~'build_([a-z0-9]+)'): 'build_',
-                        (~'settings_([a-z0-9]+)'): 'settings_',
-                        (~'org[.]gradle[.]'): '',
-                        (~'sun[.]reflect[.]GeneratedMethodAccessor[0-9]+'): 'GeneratedMethodAccessor'
-                    ))
-                }
-                return [buildJvmOption(logFile, honestProfilerLibFile)]
+    private static File createFlamegraphScript() {
+        URL flamegraphResource = JfrProfiler.classLoader.getResource("org/gradle/reporting/flamegraph.pl")
+        def flamegraphScript = File.createTempFile("flamegraph", ".pl")
+        flamegraphScript.deleteOnExit()
+        Resources.asCharSource(flamegraphResource, Charsets.UTF_8).copyTo(Files.asCharSink(flamegraphScript, Charsets.UTF_8))
+        flamegraphScript.setExecutable(true)
+        flamegraphScript
+    }
+
+    private static File createPidFile() {
+        def pidFile = File.createTempFile("build-under-test", ".pid")
+        pidFile.deleteOnExit()
+        pidFile
+    }
+
+    private static File createPidFileInitScript(File pidFile) {
+        def pidFileInitScript = File.createTempFile("pid-instrumentation", ".gradle")
+        pidFileInitScript.deleteOnExit()
+        pidFileInitScript.text = """
+            def e
+            if (gradleVersion == '2.0') {
+              e = services.get(org.gradle.internal.nativeplatform.ProcessEnvironment)
             } else {
-                System.err.println("Could not find Honest Profiler agent library at ${honestProfilerLibFile.absolutePath}")
+              e = services.get(org.gradle.internal.nativeintegration.ProcessEnvironment)
             }
-        }
-        return Collections.emptyList()
-    }
-
-    private static File locateHonestProfilerInstallation() {
-        new File(System.getenv("HP_HOME_DIR") ?: "${System.getProperty('user.home')}/tools/honest-profiler".toString())
-    }
-
-    private static File locateFlameGraphInstallation() {
-        new File(System.getenv("FG_HOME_DIR") ?: "${System.getProperty('user.home')}/tools/FlameGraph".toString())
-    }
-
-    private String buildJvmOption(File logFile, File honestProfilerLibFile) {
-
-        def hpProperties = [
-            interval: interval,
-            logPath: logFile.path,
-            port: honestProfilerPort,
-            host: honestProfilerHost,
-            start: initiallyStopped?0:1,
-            maxFrames: maxFrames, // keep maxFrames last because older versions of HP didn't have this
-        ]
-        def propertiesString = hpProperties.collect { k, v -> "$k=$v".toString() }.join(',')
-        "-agentpath:${honestProfilerLibFile.absolutePath}=${propertiesString}".toString()
+            new File(new URI('${pidFile.toURI()}')).text = e.pid
+        """
+        pidFileInitScript
     }
 
     @Override
-    public List<String> getAdditionalArgs(File workingDir) {
-        return Collections.emptyList();
+    List<String> getAdditionalJvmOpts(File workingDir) {
+        if (!enabled) {
+            return Collections.emptyList()
+        }
+        String flightRecordOptions = "stackdepth=1024"
+        if (!useDaemon) {
+            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=$jfrFile,settings=profile"
+        }
+        ["-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:FlightRecorderOptions=$flightRecordOptions", "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"] as List<String>
+    }
+
+
+    @Override
+    List<String> getAdditionalArgs(File workingDir) {
+        if (!enabled) {
+            return Collections.emptyList()
+        }
+        return ["--init-script", pidFileInitScript.absolutePath] as List<String>
     }
 
     @Override
-    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
-        if (autoStartStop && profilerJvmOptionAdded) {
-            if (invocationInfo.iterationNumber == invocationInfo.iterationMax) {
-                switch (invocationInfo.phase) {
-                    case BuildExperimentRunner.Phase.WARMUP:
-                        // enable honest-profiler after warmup
-                        if (initiallyStopped) {
-                            start()
-                        }
-                        break
-                    case BuildExperimentRunner.Phase.MEASUREMENT:
-                        stop()
-                        // copy file after last measurement
-                        if (logFile.exists() && logDirectory!=null) {
-                            logDirectory.mkdirs()
-                            def destFile = new File(logDirectory, "honestprofiler_${sessionId}.hpl")
-                            def fgDestFile = new File(logDirectory, "honestprofiler_${sessionId}.txt")
-                            def svgDestFile = new File(logDirectory, "honestprofiler_${sessionId}.svg")
-                            FileUtils.copyFile(logFile, destFile)
-                            if (flameGraphSanitizer) {
-                                def sanitizedOutput = new File(destFile.parentFile, "${fgDestFile.name}.sanitized")
-                                try {
-                                    invokeHonestProfilerConverter(destFile, fgDestFile)
-                                    flameGraphSanitizer.sanitize(fgDestFile, sanitizedOutput)
-                                    invokeFlameGraphGenerator(sanitizedOutput, svgDestFile)
-                                } catch (e) {
-                                    // make errors non fatal at this point
-                                    UncheckedException.throwAsUncheckedException(e)
-                                }
-                            }
-                        }
-                        break
-                }
+    void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
+        if (!enabled) {
+            return
+        }
+        if (invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == BuildExperimentRunner.Phase.WARMUP && useDaemon) {
+            start()
+        }
+        if (invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
+            baseDir.mkdirs()
+            if (useDaemon) {
+                stop()
             }
+            collapseStacks()
+            sanitizeStacks()
+            generateFlameGraph()
         }
     }
 
-    private static void invokeFlameGraphGenerator(File sanitizedOutput, File svgDestFile) {
-        File flameGraphHomeDir = locateFlameGraphInstallation()
-        def process = ["$flameGraphHomeDir/flamegraph.pl", "--minwidth", "0.5", sanitizedOutput].execute()
-        def fos = svgDestFile.newOutputStream()
+    private void collapseStacks() {
+        Application.main("-f", jfrFile.absolutePath, "-o", stacksFile.absolutePath, "-ha", "-i")
+    }
+
+    private void sanitizeStacks() {
+        FlameGraphSanitizer flameGraphSanitizer = new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
+            (~'build_([a-z0-9]+)'): 'build script',
+            (~'settings_([a-z0-9]+)'): 'settings script',
+            (~'org[.]gradle[.]'): '',
+            (~'sun[.]reflect[.]GeneratedMethodAccessor[0-9]+'): 'GeneratedMethodAccessor',
+            (~'com[.]sun[.]proxy[.][$]Proxy[0-9]+'): 'Proxy'
+        ))
+        flameGraphSanitizer.sanitize(stacksFile, sanitizedStacksFile)
+    }
+
+    private void generateFlameGraph() {
+        invokeFlamegraphScript(sanitizedStacksFile, flamesFile, "--minwidth", "1")
+    }
+
+    private void invokeFlamegraphScript(File input, File output, String... args) {
+        def process = ([flamegraphScript.absolutePath, input.absolutePath] + args.toList()).execute()
+        def fos = output.newOutputStream()
         process.waitForProcessOutput(fos, System.err)
         fos.close()
     }
 
-    private static void invokeHonestProfilerConverter(File hpLogFile, File fgLogFile) {
-        File hpHome = locateHonestProfilerInstallation()
-        [Jvm.current().getExecutable('java').absolutePath,
-         '-cp', "${Jvm.current().getToolsJar().absolutePath}:${hpHome}/honest-profiler.jar",
-         'com.insightfullogic.honest_profiler.ports.console.FlameGraphDumperApplication',
-         hpLogFile.absolutePath,
-         fgLogFile.absolutePath].execute().waitFor()
+    private File file(String name) {
+        new File(baseDir, name)
     }
 
-    void start() {
-        sendCommand('start')
+    private File getBaseDir() {
+        def fileSafeScenarioName = scenarioUnderTest.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
+        new File(logDirectory, fileSafeScenarioName + "/" + versionUnderTest)
     }
 
-    void stop() {
-        try {
-            sendCommand('stop')
-        } catch (ConnectException ex) {
-            log.warning("Unable to stop Honest Profiler : $ex")
-        }
+    private File getJfrFile() {
+        file("profile.jfr")
     }
 
-    private void sendCommand(String command) {
-        def socket = new Socket(honestProfilerHost, honestProfilerPort)
-        try {
-            socket.outputStream.withStream { output ->
-                output.write("${command}\r\n".bytes)
-            }
-        } finally {
-            socket.close()
-        }
+    private File getStacksFile() {
+        file("stacks.txt")
+    }
+
+    private File getSanitizedStacksFile() {
+        file("sanitized-stacks.txt")
+    }
+
+    private File getFlamesFile() {
+        file("flames.svg")
+    }
+
+    private void start() {
+        jcmd(pid, "JFR.start", "name=profile", "settings=profile")
+    }
+
+    private void stop() {
+        jcmd(pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
+    }
+
+    private void jcmd(String... args) {
+        def processArguments = [jcmdExecutable.absolutePath] + args.toList()
+        def process = processArguments.execute()
+        process.waitForProcessOutput(System.out as Appendable, System.err as Appendable)
+    }
+
+    private String getPid() {
+        pidFile.text
     }
 }

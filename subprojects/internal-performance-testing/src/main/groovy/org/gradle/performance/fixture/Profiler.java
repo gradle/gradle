@@ -16,11 +16,11 @@
 
 package org.gradle.performance.fixture;
 
-import java.util.List;
-import java.util.Map;
+public interface Profiler extends DataCollector {
 
-public interface Profiler {
-    void addProfilerDefaults(GradleInvocationSpec.InvocationBuilder invocation);
+    void setVersionUnderTest(String versionUnderTest);
 
-    List<String> profilerArguments(Map<String, Object> yourkitOptions);
+    void setScenarioUnderTest(String scenarioUnderTest);
+
+    void setUseDaemon(boolean useDaemon);
 }

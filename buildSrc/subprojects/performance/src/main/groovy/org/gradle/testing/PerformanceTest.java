@@ -111,12 +111,12 @@ public class PerformanceTest extends DistributionTest {
     public void setFlamegraphs(String flamegraphs) {
         if ("true".equals(flamegraphs)) {
             File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
-            systemProperty("org.gradle.performance.honestprofiler", artifactsDirectory.getAbsolutePath());
+            systemProperty("org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath());
         }
     }
 
     @Option(option = "sampling-interval", description = "How many ms to wait between two samples when profiling")
     public void setSamplingInterval(String samplingInterval) {
-        systemProperty("org.gradle.performance.samplinginterval", samplingInterval);
+        //no-op, remove once build configurations have been adjusted to no longer call this
     }
 }
