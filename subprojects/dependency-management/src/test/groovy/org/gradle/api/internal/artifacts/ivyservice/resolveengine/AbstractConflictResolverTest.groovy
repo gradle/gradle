@@ -144,6 +144,16 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
+        void reject(String message) {
+
+        }
+
+        @Override
+        String getRejectionReason() {
+            return null
+        }
+
+        @Override
         String getVersion() {
             id.version
         }

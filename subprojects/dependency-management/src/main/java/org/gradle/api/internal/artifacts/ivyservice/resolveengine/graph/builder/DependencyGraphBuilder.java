@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -115,6 +116,8 @@ public class DependencyGraphBuilder {
         moduleConflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.getRoot().getComponent()));
 
         traverseGraph(resolveState);
+
+        validateGraph(resolveState);
 
         resolveState.getRoot().getComponent().setRoot();
 
@@ -339,6 +342,16 @@ public class DependencyGraphBuilder {
         for (EdgeState dependency : dependencies) {
             if (dependency.getTargetComponent() != null) {
                 dependency.attachToTargetConfigurations();
+            }
+        }
+    }
+
+    private void validateGraph(ResolveState resolveState) {
+        // TODO:DAZ This should probably be done as a DependencyGraphVisitor inside `assembleResult`
+        for (ModuleResolveState module : resolveState.getModules()) {
+            // TODO:DAZ Need a better way to signal rejection
+            if (module.getSelected() != null && module.getSelected().getRejectionReason() != null) {
+                throw new GradleException(module.getSelected().getRejectionReason());
             }
         }
     }

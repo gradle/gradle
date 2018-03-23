@@ -24,7 +24,7 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
     def messageBuilder = Mock(ModuleResolutionMessageBuilder)
 
     def setup() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator().asVersionComparator(), messageBuilder)
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator())
     }
 
     @Unroll
@@ -45,32 +45,6 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         ['1.1', '1.2', '1.0']        | '1.2'
         ['1.0', '1.0-beta-1']        | '1.0'
         ['1.0-beta-1', '1.0-beta-2'] | '1.0-beta-2'
-    }
-
-    def "rejections can fail conflict resolution"() {
-        given:
-        prefer('1.2')
-        strictly('1.1')
-
-        when:
-        resolveConflicts()
-
-        then:
-        1 * messageBuilder.buildFailureMessage(participants) >> "FAILURE MESSAGE"
-        resolutionFailedWith "FAILURE MESSAGE"
-    }
-
-    def "rejectAll can fail conflict resolution"() {
-        given:
-        prefer('1.2', module('org', 'bar', '1.0', module('org', 'baz', '1.0')))
-        participants << module('org', 'foo', '', module('com', 'other', '15')).rejectAll()
-
-        when:
-        resolveConflicts()
-
-        then:
-        1 * messageBuilder.buildFailureMessage(participants) >> "FAILURE MESSAGE"
-        resolutionFailedWith "FAILURE MESSAGE"
     }
 
     def "can upgrade non strict version"() {

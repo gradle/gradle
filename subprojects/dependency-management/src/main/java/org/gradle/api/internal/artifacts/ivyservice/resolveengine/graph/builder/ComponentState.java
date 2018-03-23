@@ -68,6 +68,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private ResolvedVersionConstraint mergedVersionConstraint;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
+    // TODO:DAZ Should model this better
+    private String rejectMessage;
+
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
         this.resultId = resultId;
         this.module = module;
@@ -337,6 +340,18 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     void makeSelectable() {
         state = ComponentSelectionState.Selectable;
     }
+
+    @Override
+    public void reject(String message) {
+        this.rejectMessage = message;
+
+    }
+
+    @Override
+    public String getRejectionReason() {
+        return rejectMessage;
+    }
+
 
     /**
      * Describes the possible states of a component in the graph.

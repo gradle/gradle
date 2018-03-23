@@ -15,16 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -33,15 +29,9 @@ import java.util.Map;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     private final Comparator<Version> versionComparator;
-    private final ModuleResolutionMessageBuilder messageBuilder;
 
     LatestModuleConflictResolver(VersionComparator versionComparator) {
-        this(versionComparator.asVersionComparator(), new RejectedComponentMessageBuilder());
-    }
-
-    LatestModuleConflictResolver(Comparator<Version> versionComparator, ModuleResolutionMessageBuilder messageBuilder) {
-        this.versionComparator = versionComparator;
-        this.messageBuilder = messageBuilder;
+        this.versionComparator = versionComparator.asVersionComparator();
     }
 
     @Override
@@ -49,35 +39,15 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         // Find the candidates with the highest base version
         Version baseVersion = null;
         Map<Version, T> matches = new LinkedHashMap<Version, T>();
-        Collection<? extends T> candidates = details.getCandidates();
-        for (T candidate : candidates) {
+        for (T candidate : details.getCandidates()) {
             Version version = VersionParser.INSTANCE.transform(candidate.getVersion());
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
-                boolean accept = true;
-                for (T t : candidates) {
-                    ResolvedVersionConstraint candidateConstraints = t.getVersionConstraint();
-                    if (t != candidate && candidateConstraints != null) { // may be null for local components
-                        VersionSelector rejectedVersionSelector = candidateConstraints.getRejectedSelector();
-                        if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
-                            accept = false;
-                            break;
-                        }
-                    }
-                }
+                matches.clear();
                 baseVersion = version.getBaseVersion();
-                if (accept) {
-                    matches.put(version, candidate);
-                } else {
-                    matches.clear();
-                }
+                matches.put(version, candidate);
             } else if (version.getBaseVersion().equals(baseVersion)) {
                 matches.put(version, candidate);
             }
-        }
-        if (matches.isEmpty()) {
-            String message = messageBuilder.buildFailureMessage(candidates);
-            details.fail(new GradleException(message));
-            return;
         }
 
         if (matches.size() == 1) {

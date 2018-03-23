@@ -48,4 +48,8 @@ public interface ComponentResolutionState extends StringVersioned {
 
     void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription);
 
+    void reject(String message);
+
+    String getRejectionReason();
+
 }

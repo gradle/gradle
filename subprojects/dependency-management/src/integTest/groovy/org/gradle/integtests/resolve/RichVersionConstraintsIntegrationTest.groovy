@@ -83,6 +83,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                 '1.0' {
                     expectGetMetadata()
                 }
+                '1.1' {
+                    expectGetMetadata()
+                }
             }
             'org:bar:1.0' {
                 expectGetMetadata()
@@ -589,8 +592,13 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            'org:foo:1.0' {
-                expectGetMetadata()
+            'org:foo' {
+                '1.0' {
+                    expectGetMetadata()
+                }
+                '1.1' {
+                    expectGetMetadata()
+                }
             }
             'org:bar:1.0' {
                 expectGetMetadata()
@@ -799,8 +807,13 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 """
         when:
         repositoryInteractions {
-            'org:bar:1' {
-                expectGetMetadata()
+            'org:bar' {
+                '1' {
+                    expectGetMetadata()
+                }
+                '2' {
+                    expectGetMetadata()
+                }
             }
             'org:foo:2' {
                 expectGetMetadata()

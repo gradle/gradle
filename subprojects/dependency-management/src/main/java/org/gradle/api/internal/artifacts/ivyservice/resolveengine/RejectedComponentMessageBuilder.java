@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-class RejectedComponentMessageBuilder implements ModuleResolutionMessageBuilder {
+public class RejectedComponentMessageBuilder implements ModuleResolutionMessageBuilder {
     @Override
     public String buildFailureMessage(Collection<? extends ComponentResolutionState> candidates) {
         boolean hasRejectAll = false;

@@ -101,6 +101,7 @@ class ModuleResolveState implements CandidateModule {
         for (ComponentState version : versions.values()) {
             version.evict();
         }
+
         selected.select();
     }
 
