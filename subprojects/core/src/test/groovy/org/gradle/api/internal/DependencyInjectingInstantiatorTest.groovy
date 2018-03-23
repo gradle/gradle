@@ -275,6 +275,19 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause.message == "The constructor for class $HasPrivateArgsConstructor.name should be annotated with @Inject."
     }
 
+    def "fails when null passed as constructor argument value"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+        services.get(String) >> { throw new UnknownServiceException(String, "message") }
+
+        when:
+        instantiator.newInstance(HasInjectConstructor, null, null)
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof UnknownServiceException
+    }
+
     static class TestCache implements CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> {
         @Override
         DependencyInjectingInstantiator.CachedConstructor get(Class<?> key) {

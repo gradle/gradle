@@ -202,6 +202,18 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         'last'      | '"abc", "def"'  | 'int'
     }
 
+    def "fails when null passed as a constructor argument value"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.create('myTask', CustomTask, null, 1)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+    }
+
     def "can construct a task with @Inject services"() {
         given:
         buildFile << """
