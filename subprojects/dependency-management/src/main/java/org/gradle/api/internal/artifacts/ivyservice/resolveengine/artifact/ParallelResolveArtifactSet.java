@@ -45,7 +45,7 @@ public abstract class ParallelResolveArtifactSet {
         }
     }
 
-    private static class VisitingSet extends ParallelResolveArtifactSet {
+    public static class VisitingSet extends ParallelResolveArtifactSet {
         private final ResolvedArtifactSet artifacts;
         private final BuildOperationExecutor buildOperationProcessor;
 
@@ -63,10 +63,10 @@ public abstract class ParallelResolveArtifactSet {
             visitAction.result.visit(visitor);
         }
 
-        private static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
+        public static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
             private final ArtifactVisitor visitor;
 
-            AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
+            public AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
                 this.visitor = visitor;
             }
 

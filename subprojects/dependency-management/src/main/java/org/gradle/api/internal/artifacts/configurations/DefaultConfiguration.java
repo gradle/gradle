@@ -70,6 +70,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependency;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformTask;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -79,6 +81,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -1371,7 +1374,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                     @Override
                     public void visitDependency(Object dep) {
-                        context.add(dep);
+                        if (dep instanceof ArtifactTransformDependency) {
+                            ITaskFactory taskFactory = projectFinder.findProject(":").getServices().get(ITaskFactory.class);
+                            ArtifactTransformDependency transformDependency = (ArtifactTransformDependency) dep;
+                            ArtifactTransformTask transformTask = taskFactory.create(getName() + transformDependency.getName() + System.nanoTime(), ArtifactTransformTask.class);
+                            transformTask.setArtifactTransformDependency(transformDependency);
+                            transformDependency.setTransformTask(transformTask);
+                            context.add(transformTask);
+                        } else {
+                            context.add(dep);
+                        }
                     }
                 });
                 if (!lenient) {

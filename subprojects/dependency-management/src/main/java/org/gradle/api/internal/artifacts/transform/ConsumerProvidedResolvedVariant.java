@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -26,41 +27,52 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
+    private final Map<AttributeMatchingVariantSelector.VariantTaskKey, ArtifactTransformTask> transformTasks;
 
-    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform) {
+    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, Map<AttributeMatchingVariantSelector.VariantTaskKey, ArtifactTransformTask> transformTasks) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;
+        this.transformTasks = transformTasks;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
-        Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
-        return new TransformingResult(result, artifactResults, fileResults);
+        return transformTasks.get(new AttributeMatchingVariantSelector.VariantTaskKey(delegate, attributes, transform)).getResult();
+//        Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
+//        Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
+//        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
+//        return new TransformingResult(result, artifactResults, fileResults, attributes);
     }
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        delegate.collectBuildDependencies(visitor);
+        System.out.println(delegate.getClass());
+        if (delegate instanceof ArtifactBackedResolvedVariant.SingleArtifactSet) {
+            System.out.println(((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).artifact.getId().getDisplayName());
+            System.out.println(((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).artifact.getId().getComponentIdentifier());
+        }
+        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate, attributes, transformTasks));
+        // FIXME: Task needs to collect the delegate dependencies and create tranforms for them.
+//        delegate.collectBuildDependencies(visitor);
     }
 
-    private class TransformingResult implements Completion {
+    public static class TransformingResult implements Completion {
         private final Completion result;
         private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
         private final Map<File, TransformFileOperation> fileResults;
+        private final AttributeContainerInternal attributes;
 
-        TransformingResult(Completion result, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+        public TransformingResult(Completion result, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults, AttributeContainerInternal attributes) {
             this.result = result;
             this.artifactResults = artifactResults;
             this.fileResults = fileResults;
+            this.attributes = attributes;
         }
 
         @Override

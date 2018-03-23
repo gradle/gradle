@@ -23,9 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +33,7 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
-class ArtifactBackedResolvedVariant implements ResolvedVariant {
+public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet artifacts;
@@ -78,10 +78,10 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return attributes;
     }
 
-    private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
+    public static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
-        private final ResolvableArtifact artifact;
+        public final ResolvableArtifact artifact;
         private volatile Throwable failure;
 
         SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
