@@ -33,8 +33,9 @@ java.sourceSets["main"].kotlin {
     srcDir(apiExtensionsOutputDir)
 }
 
+val publishedPluginsVersion: String by rootProject.extra
+
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
-    val publishedPluginsVersion: String by rootProject.extra
     outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     kotlinDslPluginsVersion = publishedPluginsVersion
