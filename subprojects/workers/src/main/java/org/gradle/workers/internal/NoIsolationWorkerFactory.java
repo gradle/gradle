@@ -33,6 +33,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     private final AsyncWorkTracker workTracker;
     private final InstantiatorFactory instantiatorFactory;
     private Instantiator actionInstantiator;
+    private WorkerExecutor workerExecutor;
 
     public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker workTracker, InstantiatorFactory instantiatorFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -42,6 +43,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
 
     // Attaches the owning WorkerExecutor to this factory
     public void setWorkerExecutor(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor;
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(WorkerExecutor.class, workerExecutor);
         actionInstantiator = instantiatorFactory.inject(services);
@@ -49,6 +51,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
 
     @Override
     public Worker getWorker(final DaemonForkOptions forkOptions) {
+        final WorkerExecutor workerExecutor = this.workerExecutor;
         return new Worker() {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec) {
@@ -67,7 +70,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.
                             //It should not be necessary to call it here.
-                            workTracker.waitForCompletion(buildOperationExecutor.getCurrentOperation(), false);
+                            workerExecutor.await();
                         }
                         return result;
                     }

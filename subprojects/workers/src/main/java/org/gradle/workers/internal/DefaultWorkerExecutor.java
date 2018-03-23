@@ -141,6 +141,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
     public void await() throws WorkerExecutionException {
         BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
+            executionQueue.expand();
             asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
@@ -293,7 +294,13 @@ public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
 
         @Override
         public boolean tryLock() {
-            return getChild().tryLock();
+            child = parentWorkerLease.createChild();
+            if (child.tryLock()) {
+                return true;
+            } else {
+                child = null;
+                return false;
+            }
         }
 
         @Override
@@ -308,7 +315,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
 
         private WorkerLease getChild() {
             if (child == null) {
-                child = parentWorkerLease.createChild();
+                throw new IllegalStateException("Detected attempt to access LazyChildWorkerLeaseLock before tryLock() has succeeded.  tryLock must be succeed before other methods are called.");
             }
             return child;
         }

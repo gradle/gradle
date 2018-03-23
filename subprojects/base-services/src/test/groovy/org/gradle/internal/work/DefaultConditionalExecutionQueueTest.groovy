@@ -229,7 +229,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
         queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, 4, factory, coordinationService)
 
         then:
-        1 * factory.create(_, 4) >> executor
+        1 * factory.create(_) >> executor
 
         when:
         queue.stop()

@@ -53,10 +53,11 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
 
     public DefaultConditionalExecutionQueue(String displayName, int maxWorkers, ExecutorFactory executorFactory, ResourceLockCoordinationService coordinationService) {
         this.maxWorkers = maxWorkers;
-        this.executor = executorFactory.create(displayName, maxWorkers);
+        this.executor = executorFactory.create(displayName);
         this.coordinationService = coordinationService;
     }
 
+    @Override
     public void submit(ConditionalExecution<T> execution) {
         if (queueState == QueueState.Stopped) {
             throw new IllegalStateException("DefaultConditionalExecutionQueue cannot be reused once it has been stopped.");
@@ -65,12 +66,22 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         lock.lock();
         try {
             if (workerCount < maxWorkers) {
-                executor.submit(new ExecutionRunner());
-                workerCount++;
+                expand();
             }
 
             queue.add(execution);
             workAvailable.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void expand() {
+        lock.lock();
+        try {
+            executor.submit(new ExecutionRunner());
+            workerCount++;
         } finally {
             lock.unlock();
         }
