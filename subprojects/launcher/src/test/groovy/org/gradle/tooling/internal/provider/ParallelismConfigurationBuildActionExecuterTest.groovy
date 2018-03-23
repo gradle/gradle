@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
@@ -25,7 +25,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import spock.lang.Specification
-
 
 class ParallelismConfigurationBuildActionExecuterTest extends Specification {
     def delegate = Mock(BuildActionExecuter)
@@ -41,7 +40,7 @@ class ParallelismConfigurationBuildActionExecuterTest extends Specification {
         parallelismConfigurationBuildActionExecuter.execute(action, buildRequestContext, buildActionParameters, contextServices)
 
         then:
-        1 * action.startParameter >> Mock(StartParameter) {
+        1 * action.startParameter >> Mock(StartParameterInternal) {
             1 * getMaxWorkerCount() >> 4
             1 * isParallelProjectExecutionEnabled() >> true
         }

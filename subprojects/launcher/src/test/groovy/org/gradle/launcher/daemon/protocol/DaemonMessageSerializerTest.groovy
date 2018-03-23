@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.internal.classpath.ClassPath
@@ -122,7 +122,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize Build message"() {
         expect:
-        def action = new ExecuteBuildAction(new StartParameter())
+        def action = new ExecuteBuildAction(new StartParameterInternal())
         def clientMetadata = new GradleLauncherMetaData()
         def params = new DefaultBuildActionParameters([:], [:], new File("some-dir"), LogLevel.ERROR, true, false, false, ClassPath.EMPTY)
         def message = new Build(UUID.randomUUID(), [1, 2, 3] as byte[], action, clientMetadata, 1234L, params)

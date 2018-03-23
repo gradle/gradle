@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.cli
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.launcher.cli.action.BuildActionSerializer
 import org.gradle.launcher.cli.action.ExecuteBuildAction
@@ -28,21 +28,25 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 
 class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with all defaults"() {
-        def action = new ExecuteBuildAction(new StartParameter())
+        def action = new ExecuteBuildAction(new StartParameterInternal())
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ExecuteBuildAction
     }
 
-    def "serializes ExecuteBuildAction with requested tasks"() {
-        def startParameter = new StartParameter()
+    def "serializes ExecuteBuildAction with non-defaults"() {
+        def startParameter = new StartParameterInternal()
         startParameter.taskNames = ['a', 'b']
+        startParameter.addDeprecation('warning 1')
+        startParameter.addDeprecation('warning 2')
         def action = new ExecuteBuildAction(startParameter)
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ExecuteBuildAction
+        result.startParameter.taskNames == ['a', 'b']
+        result.startParameter.deprecations == ['warning 1', 'warning 2'] as Set
     }
 
     def "serializes other actions"() {
@@ -52,9 +56,9 @@ class BuildActionSerializerTest extends SerializerSpec {
 
         where:
         action << [
-            new ClientProvidedBuildAction(new StartParameter(), new SerializedPayload(null, []), true, new BuildClientSubscriptions(true, true, true)),
-            new TestExecutionRequestAction(new BuildClientSubscriptions(true, true, true), new StartParameter(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet()),
-            new BuildModelAction(new StartParameter(), "model", false, new BuildClientSubscriptions(true, true, true))
+            new ClientProvidedBuildAction(new StartParameterInternal(), new SerializedPayload(null, []), true, new BuildClientSubscriptions(true, true, true)),
+            new TestExecutionRequestAction(new BuildClientSubscriptions(true, true, true), new StartParameterInternal(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet()),
+            new BuildModelAction(new StartParameterInternal(), "model", false, new BuildClientSubscriptions(true, true, true))
         ]
     }
 }

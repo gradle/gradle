@@ -54,9 +54,9 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
-import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
+import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -296,7 +296,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         resetTempDirLocation();
 
         // TODO: Fix tests that rely on this being set before we process arguments like this...
-        StartParameter startParameter = new StartParameterInternal();
+        StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setCurrentDir(getWorkingDir());
 
         // TODO: Reuse more of CommandlineActionFactory

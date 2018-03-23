@@ -17,8 +17,8 @@
 package org.gradle.launcher.exec
 
 import org.gradle.BuildResult
-import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultGradleLauncher
@@ -43,7 +43,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     final BuildResult buildResult = Mock()
     final GradleInternal gradle = Mock()
     final BuildActionRunner actionRunner = Mock()
-    final StartParameter startParameter = Mock()
+    final StartParameterInternal startParameter = Mock()
     final ListenerManager listenerManager = Mock()
     final BuildOperationExecutor buildOperationExecutor = Mock()
     final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()

@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest;
@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Set;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction {
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final Set<InternalTestDescriptor> testDescriptors;
     private final Set<String> classNames;
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
 
-    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameter startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests) {
+    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
@@ -46,7 +46,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
 
     // Unpacks the request to serialize across to the daemon and craetes instance of
     // TestExecutionRequestAction
-    public static TestExecutionRequestAction create(BuildClientSubscriptions clientSubscriptions, StartParameter startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
+    public static TestExecutionRequestAction create(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
         final Collection<String> testClassNames = testExecutionRequest.getTestClassNames();
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
         Set<InternalJvmTestRequest> providerInternalJvmTestRequests = ImmutableSet.copyOf(toProviderInternalJvmTestRequest(internalJvmTestRequests, testClassNames));
@@ -76,7 +76,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     }
 
     @Override
-    public StartParameter getStartParameter() {
+    public StartParameterInternal getStartParameter() {
         return startParameter;
     }
 
