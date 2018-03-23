@@ -20,28 +20,30 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
     Provides generally useful test utilities, used for unit and integration testing.
 */
 plugins {
-    id 'gradlebuild.classycle'
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
-    compile project(":baseServices")
-    compile project(":native")
-    compile libraries.slf4j_api.coordinates
-    compile libraries.guava.coordinates
-    compile libraries.commons_lang.coordinates
-    compile libraries.commons_io.coordinates
-    compile libraries.ant.coordinates
-    compile libraries.asm.coordinates
-    compile libraries.asm_tree.coordinates
-    compile libraries.junit.coordinates
-    compile testLibraries.jmock
-    compile testLibraries.spock
-    compile testLibraries.jsoup
+    compile(project(":baseServices"))
+    compile(project(":native"))
+    compile(library("slf4j_api"))
+    compile(library("guava"))
+    compile(library("commons_lang"))
+    compile(library("commons_io"))
+    compile(library("ant"))
+    compile(library("asm"))
+    compile(library("asm_tree"))
+    compile(library("junit"))
+    testLibraries("jmock").forEach { compile(it) }
+    compile(testLibrary("spock"))
+    compile(testLibrary("jsoup"))
 
     constraints {
-        compile("cglib:cglib-nodep:3.2.6") { because "required to work with Java 9"}
+        add(configurations.compile.name, "cglib:cglib-nodep:3.2.6") {
+            because("required to work with Java 9")
+        }
     }
 }
 
