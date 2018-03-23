@@ -12,7 +12,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.testing.junit.JUnitOptions
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
@@ -242,11 +242,11 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("performanceTest") {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            (options as JUnitPlatformOptions).excludeTags(performanceExperimentCategory)
         }
 
         create("performanceExperiment") {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            (options as JUnitPlatformOptions).includeTags(performanceExperimentCategory)
         }
 
         create("fullPerformanceTest")
@@ -270,11 +270,11 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("distributedPerformanceTest") {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            (options as JUnitPlatformOptions).excludeTags(performanceExperimentCategory)
             channel = "commits"
         }
         create("distributedPerformanceExperiment") {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            (options as JUnitPlatformOptions).includeTags(performanceExperimentCategory)
             channel = "experiments"
         }
         create("distributedFullPerformanceTest") {

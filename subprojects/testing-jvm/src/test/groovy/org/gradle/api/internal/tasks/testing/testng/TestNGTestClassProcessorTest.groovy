@@ -404,7 +404,7 @@ public class ATestNGClassWithGroups {
 
 public class ATestNGFactoryClass {
     @Factory
-    public Object[] suite() {
+    public Object[] produce() {
         return [new ATestNGClass()] as Object[]
     }
 }

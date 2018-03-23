@@ -131,6 +131,10 @@ allprojects {
             ignore 'org/gradle/build-receipt.properties'
         }
     }
+
+    tasks.withType(Test) {
+        useJUnitPlatform()
+    }
 }
 
 apply plugin: "gradlebuild.cleanup"

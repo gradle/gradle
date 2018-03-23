@@ -18,7 +18,7 @@ testFixtures {
 
 tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
     options {
-        excludeCategories 'org.gradle.soak.categories.SoakTest'
+        excludeTags 'org.gradle.soak.categories.SoakTest'
     }
 }
 
@@ -27,6 +27,6 @@ task('soakTest', type: org.gradle.gradlebuild.test.integrationtests.SoakTest) {
     classpath = sourceSets.integTest.runtimeClasspath
     systemProperties['org.gradle.soaktest'] = 'true'
     options {
-        includeCategories 'org.gradle.soak.categories.SoakTest'
+        includeTags 'org.gradle.soak.categories.SoakTest'
     }
 }

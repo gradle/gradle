@@ -84,6 +84,7 @@ subprojects {
 
     dependencies {
         compile(gradleApi())
+        testCompile("org.junit.vintage:junit-vintage-engine:5.1.0")
     }
 
     afterEvaluate {
@@ -99,6 +100,10 @@ subprojects {
                 project.tasks["check"].dependsOn(this)
             }
         }
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
     }
 }
 
