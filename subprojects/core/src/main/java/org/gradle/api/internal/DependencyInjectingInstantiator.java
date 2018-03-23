@@ -22,11 +22,13 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.UnknownServiceException;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,7 +109,18 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 resolvedParameters[i] = parameters[pos];
                 pos++;
             } else {
-                resolvedParameters[i] = services.get(constructor.getGenericParameterTypes()[i]);
+                Type serviceType = constructor.getGenericParameterTypes()[i];
+                try {
+                    resolvedParameters[i] = services.get(serviceType);
+                } catch (UnknownServiceException use) {
+                    StringBuilder builder = new StringBuilder(String.format("Unable to determine argument #%s: no service of type %s", i, serviceType));
+                    if (pos < parameters.length) {
+                        builder.append(String.format(", or value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
+                    } else {
+                        builder.append(String.format(", or missing parameter value of type %s", parameterTypes[i]));
+                    }
+                    throw new IllegalArgumentException(builder.toString());
+                }
             }
         }
         if (pos != parameters.length) {

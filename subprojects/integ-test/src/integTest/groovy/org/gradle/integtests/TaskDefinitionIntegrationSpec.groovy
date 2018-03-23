@@ -137,7 +137,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type int available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #1: no service of type int, or missing parameter value of type int")
 
         where:
         description   | script
@@ -155,7 +155,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #0: no service of type class java.lang.String, or missing parameter value of type class java.lang.String")
 
         where:
         description   | script
@@ -194,12 +194,12 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type $outputType available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #$argumentNumber: no service of type $outputType, or value 123 not assignable to type $outputType")
 
         where:
-        description | constructorArgs | outputType
-        'first'     | '123, 234'      | 'String'
-        'last'      | '"abc", "def"'  | 'int'
+        description | constructorArgs | argumentNumber | outputType
+        'first'     | '123, 234'      | 0              | 'class java.lang.String'
+        'last'      | '"abc", "123"'  | 1              | 'int'
     }
 
     def "fails when null passed as a constructor argument value"() {
@@ -211,7 +211,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #0: no service of type class java.lang.String, or value null not assignable to type class java.lang.String")
     }
 
     def "can construct a task with @Inject services"() {

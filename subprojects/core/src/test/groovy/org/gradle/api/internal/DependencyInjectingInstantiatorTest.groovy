@@ -188,7 +188,8 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause == failure
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == 'Unable to determine argument #0: no service of type class java.lang.String, or value 12 not assignable to type class java.lang.String'
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
@@ -285,7 +286,8 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause instanceof UnknownServiceException
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == 'Unable to determine argument #0: no service of type class java.lang.String, or value null not assignable to type class java.lang.String'
     }
 
     static class TestCache implements CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> {
