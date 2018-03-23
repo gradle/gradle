@@ -16,6 +16,7 @@
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
@@ -80,6 +81,10 @@ subprojects {
     apply {
         plugin("idea")
         plugin("eclipse")
+    }
+
+    the<IdeaModel>().apply {
+        module.name = "buildSrc-${this@subprojects.name}"
     }
 
     dependencies {
