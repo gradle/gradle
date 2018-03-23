@@ -24,10 +24,12 @@ import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.internal.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl;
+import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
+import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -92,6 +94,43 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         dependencySubstitutions.setMutationValidator(validator);
     }
 
+    @Override
+    public void setResolveMode(ResolveMode resolveMode) {
+        if (resolveMode == ResolveMode.OFFLINE) {
+            cachePolicy.eachDependency(new Action<DependencyResolutionControl>() {
+                public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                    dependencyResolutionControl.useCachedResult();
+                }
+            });
+            cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
+                public void execute(ModuleResolutionControl moduleResolutionControl) {
+                    moduleResolutionControl.useCachedResult();
+                }
+            });
+            cachePolicy.eachArtifact(new Action<ArtifactResolutionControl>() {
+                public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                    artifactResolutionControl.useCachedResult();
+                }
+            });
+        } else if (resolveMode == ResolveMode.REFRESH_DEPENDENCIES) {
+            cachePolicy.eachDependency(new Action<DependencyResolutionControl>() {
+                public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                    dependencyResolutionControl.cacheFor(0, TimeUnit.SECONDS);
+                }
+            });
+            cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
+                public void execute(ModuleResolutionControl moduleResolutionControl) {
+                    moduleResolutionControl.cacheFor(0, TimeUnit.SECONDS);
+                }
+            });
+            cachePolicy.eachArtifact(new Action<ArtifactResolutionControl>() {
+                public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                    artifactResolutionControl.cacheFor(0, TimeUnit.SECONDS);
+                }
+            });
+        }
+    }
+
     public Set<ModuleVersionSelector> getForcedModules() {
         return Collections.unmodifiableSet(forcedModules);
     }
@@ -118,10 +157,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public ConflictResolution getConflictResolution() {
         return this.conflictResolution;
-    }
-
-    public ResolutionRules getResolutionRules() {
-        return cachePolicy;
     }
 
     public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {

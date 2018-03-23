@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.internal.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -38,12 +37,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return conflict resolution
      */
     ConflictResolution getConflictResolution();
-
-    /**
-     * The nascent DSL for cache control, and possibly other per-module resolution overrides
-     * @return the resolution rules
-     */
-    ResolutionRules getResolutionRules();
 
     /**
      * @return the dependency substitution rule (may aggregate multiple rules)
@@ -79,4 +72,12 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * Sets the validator to invoke before mutation. Any exception thrown by the action will veto the mutation.
      */
     void setMutationValidator(MutationValidator action);
+
+    void setResolveMode(ResolveMode resolveMode);
+
+    enum ResolveMode {
+        DEFAULT,
+        OFFLINE,
+        REFRESH_DEPENDENCIES
+    }
 }

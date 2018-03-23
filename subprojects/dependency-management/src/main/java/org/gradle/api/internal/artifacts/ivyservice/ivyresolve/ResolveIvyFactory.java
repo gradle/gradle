@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -75,10 +74,8 @@ public class ResolveIvyFactory {
             return new NoRepositoriesResolver();
         }
 
-        ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
+        resolutionStrategy.setResolveMode(startParameterResolutionOverride.getResolveMode());
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
-
-        startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
         UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory);
