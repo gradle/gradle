@@ -62,4 +62,4 @@ fun Project.eclipse(configure: EclipseModel.() -> Unit): Unit =
 
 
 val RepositoryHandler.javaScript
-    get() = (this as ExtensionAware).extensions.getByType(JavaScriptRepositoriesExtension::class.java)
+    get() = (this as ExtensionAware).the<JavaScriptRepositoriesExtension>()
