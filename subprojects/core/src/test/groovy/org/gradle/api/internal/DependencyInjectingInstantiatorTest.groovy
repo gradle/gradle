@@ -290,6 +290,18 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause.message == 'Unable to determine argument #0: no service of type class java.lang.String, or value null not assignable to type class java.lang.String'
     }
 
+    def "selects @Inject constructor over no-args constructor"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        def result = instantiator.newInstance(HasDefaultAndInjectConstructors, "ignored")
+
+        then:
+        result != null
+        result.message == "injected"
+    }
+
     static class TestCache implements CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> {
         @Override
         DependencyInjectingInstantiator.CachedConstructor get(Class<?> key) {
@@ -457,4 +469,16 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
+    public static class HasDefaultAndInjectConstructors {
+        final String message
+
+        @Inject
+        public HasDefaultAndInjectConstructors(String ignored) {
+            message = "injected"
+        }
+
+        public HasDefaultAndInjectConstructors() {
+            message = "default"
+        }
+    }
 }
