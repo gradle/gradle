@@ -155,6 +155,11 @@ We would like to thank the following community members for making contributions 
  - [Philippe Agra](https://github.com/philippeagra) - Fix annotation-processors cache (gradle/gradle#4680)
  - [Jesper Utoft](https://github.com/jutoft) - Improve ear plugin (gradle/gradle#4381)
  - [Henrik Brautaset Aronsen](https://github.com/henrik242) - Upgrade ASM to `6.1` (gradle/gradle#4696)
+ - [Evgeny Mandrikov](https://github.com/Godin) - Upgrade JaCoCo to `0.8.1` (gradle/gradle#4807)
+ - [Oleksandr Kulychok](https://github.com/kool79) - Don't set parallel mode and threadCount for testng unless explicitly defined (gradle/gradle#4794)
+ - [Peter Ledbrook](https://github.com/pledbrook) - Fix typo (gradle/gradle#4801)
+ - [Brett Randall](https://github.com/javabrett) - Always report Checkstyle violations-summary (gradle/gradle#3901)
+ 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
