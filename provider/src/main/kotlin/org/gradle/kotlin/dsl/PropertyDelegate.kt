@@ -30,7 +30,7 @@ import kotlin.reflect.KProperty
  * Provides efficient access to a dynamic property.
  */
 interface PropertyDelegate {
-    operator fun <T> getValue(any: Any?, property: KProperty<*>): T
+    operator fun <T> getValue(receiver: Any?, property: KProperty<*>): T
 }
 
 
@@ -58,7 +58,7 @@ class NullablePropertyDelegate(
 
 ) : PropertyDelegate {
 
-    override fun <T> getValue(any: Any?, property: KProperty<*>): T =
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
         owner.tryGetProperty(name).run {
             uncheckedCast(if (isFound) value else null)
         }
@@ -79,7 +79,7 @@ class NonNullPropertyDelegate(
 
 ) : PropertyDelegate {
 
-    override fun <T> getValue(any: Any?, property: KProperty<*>): T =
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
         owner.tryGetProperty(name).run {
             if (isFound && value != null) uncheckedCast(value)
             else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
