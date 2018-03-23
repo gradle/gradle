@@ -161,7 +161,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         fails('run')
 
         then:
-        result.groupedOutput.task(':a:log').outputs == ['Before', 'After']
+        result.groupedOutput.task(':a:log').outputs.findAll { !it.isAllWhitespace() } == ['Before', 'After']
         result.groupedOutput.task(':a:log').outcome == 'FAILED'
         result.groupedOutput.task(':b:log').output == 'Interrupting output'
         result.groupedOutput.task(':b:log').outcome == null
