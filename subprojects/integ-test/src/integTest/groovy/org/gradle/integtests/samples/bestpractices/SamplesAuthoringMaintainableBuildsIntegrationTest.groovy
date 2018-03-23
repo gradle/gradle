@@ -27,6 +27,36 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @UsesSample('userguide/bestPractices/taskGroupDescription')
+    def "can render a task's group and description in tasks report"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds 'tasks'
+
+        then:
+        outputContains("""Documentation tasks
+-------------------
+generateDocs - Generates the HTML documentation for this project.""")
+    }
+
+    @Unroll
+    @UsesSample('userguide/bestPractices/logicDuringConfiguration')
+    def "can execute logic during #lifecyclePhase"() {
+        executer.inDirectory(new File(sample.dir, subDirName))
+
+        when:
+        succeeds 'printArtifactNames'
+
+        then:
+        outputContains('log4j-1.2.17.jar')
+
+        where:
+        subDirName | lifecyclePhase
+        'dont'     | 'configuration phase'
+        'do'       | 'execution phase'
+    }
+
     @Unroll
     @UsesSample('userguide/bestPractices/conditionalLogic')
     def "can execute conditional logic for #exampleName"() {
@@ -43,18 +73,5 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractIntegrat
         subDirName | exampleName
         'dont'     | 'negative example'
         'do'       | 'positive example'
-    }
-
-    @UsesSample('userguide/bestPractices/taskGroupDescription')
-    def "can render a task's group and description in tasks report"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds 'tasks'
-
-        then:
-        outputContains("""Documentation tasks
--------------------
-generateDocs - Generates the HTML documentation for this project.""")
     }
 }

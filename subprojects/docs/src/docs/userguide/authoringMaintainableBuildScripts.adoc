@@ -51,6 +51,27 @@ generateDocs - Generates the HTML documentation for this project.
 ...
 ----
 
+[[sec:minimize_logic_executed_configuration_phase]]
+=== Minimize logic executed during the configuration phase
+
+It's important for every build script developer to understand the different phases of the <<build_lifecycle,build lifecycle>> and their implications on performance and evaluation order. During the configuration phase the project and its domain objects should be _configured_, whereas the execution phase only executes the actions of the task(s) requested on the command line plus their dependencies. Be aware that any code that is not part of a task action will be executed with _every single run_ of the build. A link:https://scans.gradle.com/get-started[build scan] can help you with identifying the time spent during each of the lifecycle phases. It's a invaluable tool for diagnosing common performance issues.
+
+Let's consider the following incantation of the anti-pattern described above. In the script you can see that the dependencies assigned to the configuration `printArtifactNames` are resolved outside of the task action.
+
+++++
+<sample id="logicDuringConfigurationPhase" dir="userguide/bestPractices/logicDuringConfiguration/dont" title="Executing logic during configuration should be avoided">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+The code for resolving the dependencies should be moved to the task action to avoid the performance impact of resolving the dependencies before they are actually needed.
+
+++++
+<sample id="logicDuringExecutionPhase" dir="userguide/bestPractices/logicDuringConfiguration/do" title="Executing logic during execution phase is preferred">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
 [[sec:avoid_use_of_imperative_logic]]
 === Avoid the use of imperative logic
 
