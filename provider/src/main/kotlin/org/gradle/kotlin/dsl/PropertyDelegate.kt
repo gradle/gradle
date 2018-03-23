@@ -43,11 +43,11 @@ interface MutablePropertyDelegate : PropertyDelegate {
 
 
 internal
-fun propertyDelegateFor(target: Any, property: KProperty<*>): PropertyDelegate {
-    val owner = dynamicObjectFor(target)
-    return if (property.returnType.isMarkedNullable) NullablePropertyDelegate(owner, property.name)
-    else NonNullPropertyDelegate(owner, property.name, { target.toString() })
-}
+fun propertyDelegateFor(target: Any, property: KProperty<*>): PropertyDelegate =
+    dynamicObjectFor(target).let { owner ->
+        return if (property.returnType.isMarkedNullable) NullableDynamicPropertyDelegate(owner, property.name)
+        else NonNullDynamicPropertyDelegate(owner, property.name, { target.toString() })
+    }
 
 
 private
@@ -56,7 +56,7 @@ fun dynamicObjectFor(target: Any): DynamicObject =
 
 
 private
-class NullablePropertyDelegate(
+class NullableDynamicPropertyDelegate(
 
     private
     val owner: DynamicObject,
@@ -74,7 +74,7 @@ class NullablePropertyDelegate(
 
 
 private
-class NonNullPropertyDelegate(
+class NonNullDynamicPropertyDelegate(
 
     private
     val owner: DynamicObject,
