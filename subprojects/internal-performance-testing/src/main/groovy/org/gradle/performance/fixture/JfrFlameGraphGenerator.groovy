@@ -25,7 +25,6 @@ import groovy.transform.PackageScope
  * TODO simplify flame graphs more, e.g. collapse task executor chain, build operation handling etc
  * TODO maybe create "raw" flame graphs too, for cases when above mentioned things actually regress
  * TODO create memory, IO, locking flame graphs
- * TODO generate icicle graphs
  * TODO create flame graph diffs
  */
 @CompileStatic
@@ -46,6 +45,7 @@ class JfrFlameGraphGenerator {
         def stacks = collapseStacks(jfrRecording);
         def sanitizedStacks = sanitizeStacks(stacks)
         generateFlameGraph(sanitizedStacks)
+        generateIcicleGraph(sanitizedStacks)
     }
 
     private File collapseStacks(File jfrRecording) {
@@ -64,6 +64,12 @@ class JfrFlameGraphGenerator {
         File flames = new File(sanitizedStacks.parentFile, "flames.svg")
         flameGraphGenerator.generate(sanitizedStacks, flames, "--minwidth", "1")
         flames
+    }
+
+    private void generateIcicleGraph(File sanitizedStacks) {
+        File icicles = new File(sanitizedStacks.parentFile, "icicles.svg")
+        flameGraphGenerator.generate(sanitizedStacks, icicles, "--minwidth", "2", "--reverse", "--invert", "--colors", "blue")
+        icicles
     }
 
 }
