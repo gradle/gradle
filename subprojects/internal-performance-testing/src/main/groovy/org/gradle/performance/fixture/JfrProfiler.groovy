@@ -33,7 +33,7 @@ import org.gradle.performance.util.JCmd
  * TODO generate icicle graphs
  * TODO create flame graph diffs
  * TODO support pause/resume so we can exclude clean tasks from measurement
- * TODO refactor out helpers (pid instrumentation, flame graphs, jcmd, profile directory structure)
+ * TODO refactor out helpers (pid instrumentation, flame graphs, profile directory structure)
  * TODO simplify flame graphs more, e.g. collapse task executor chain, build operation handling etc
  * TODO maybe create "raw" flame graphs too, for cases when above mentioned things actually regress
  * TODO remove setters for useDaemon/versionUnderTest/scenarioUnderTest, this should all be available from BuildExperimentInvocationInfo
@@ -46,9 +46,8 @@ class JfrProfiler extends Profiler {
 
     private final File logDirectory
     private final JCmd jCmd
-    private final File pidFile
-    private final File pidFileInitScript
     private final File flamegraphScript
+    private final PidInstrumentation pid
 
     boolean useDaemon
     String versionUnderTest
@@ -57,8 +56,7 @@ class JfrProfiler extends Profiler {
     JfrProfiler(File targetDir) {
         logDirectory = targetDir
         jCmd = new JCmd()
-        pidFile = createPidFile()
-        pidFileInitScript = createPidFileInitScript(pidFile)
+        pid = new PidInstrumentation()
         flamegraphScript = createFlamegraphScript()
     }
 
@@ -69,27 +67,6 @@ class JfrProfiler extends Profiler {
         Resources.asCharSource(flamegraphResource, Charsets.UTF_8).copyTo(Files.asCharSink(flamegraphScript, Charsets.UTF_8))
         flamegraphScript.setExecutable(true)
         flamegraphScript
-    }
-
-    private static File createPidFile() {
-        def pidFile = File.createTempFile("build-under-test", ".pid")
-        pidFile.deleteOnExit()
-        pidFile
-    }
-
-    private static File createPidFileInitScript(File pidFile) {
-        def pidFileInitScript = File.createTempFile("pid-instrumentation", ".gradle")
-        pidFileInitScript.deleteOnExit()
-        pidFileInitScript.text = """
-            def e
-            if (gradleVersion == '2.0') {
-              e = services.get(org.gradle.internal.nativeplatform.ProcessEnvironment)
-            } else {
-              e = services.get(org.gradle.internal.nativeintegration.ProcessEnvironment)
-            }
-            new File(new URI('${pidFile.toURI()}')).text = e.pid
-        """
-        pidFileInitScript
     }
 
     @Override
@@ -104,7 +81,7 @@ class JfrProfiler extends Profiler {
 
     @Override
     List<String> getAdditionalArgs(File workingDir) {
-        return ["--init-script", pidFileInitScript.absolutePath] as List<String>
+        pid.gradleArgs
     }
 
     @Override
@@ -175,14 +152,10 @@ class JfrProfiler extends Profiler {
     }
 
     private void start() {
-        jCmd.execute(pid, "JFR.start", "name=profile", "settings=profile")
+        jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=profile")
     }
 
     private void stop() {
-        jCmd.execute(pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
-    }
-
-    private String getPid() {
-        pidFile.text
+        jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
     }
 }
