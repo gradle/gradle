@@ -23,8 +23,8 @@ import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.util.logging.Log
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.util.JCmd
 
 /**
  * Profiles performance test scenarios using the Java Flight Recorder.
@@ -45,7 +45,7 @@ import org.gradle.performance.measure.MeasuredOperation
 class JfrProfiler extends Profiler {
 
     private final File logDirectory
-    private final File jcmdExecutable
+    private final JCmd jCmd
     private final File pidFile
     private final File pidFileInitScript
     private final File flamegraphScript
@@ -56,23 +56,10 @@ class JfrProfiler extends Profiler {
 
     JfrProfiler(File targetDir) {
         logDirectory = targetDir
-        jcmdExecutable = findJcmd()
+        jCmd = new JCmd()
         pidFile = createPidFile()
         pidFileInitScript = createPidFileInitScript(pidFile)
         flamegraphScript = createFlamegraphScript()
-    }
-
-    private static File findJcmd() {
-        File javaHome = new File(System.getProperty("java.home"));
-        def jcmdPath = "bin/" + OperatingSystem.current().getExecutableName("jcmd")
-        def jcmd = new File(javaHome, jcmdPath);
-        if (!jcmd.isFile() && javaHome.getName().equals("jre")) {
-            jcmd = new File(javaHome.getParentFile(), jcmdPath);
-        }
-        if (!jcmd.isFile()) {
-            throw new RuntimeException("Could not find 'jcmd' executable for Java home directory " + javaHome);
-        }
-        jcmd
     }
 
     private static File createFlamegraphScript() {
@@ -188,17 +175,11 @@ class JfrProfiler extends Profiler {
     }
 
     private void start() {
-        jcmd(pid, "JFR.start", "name=profile", "settings=profile")
+        jCmd.execute(pid, "JFR.start", "name=profile", "settings=profile")
     }
 
     private void stop() {
-        jcmd(pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
-    }
-
-    private void jcmd(String... args) {
-        def processArguments = [jcmdExecutable.absolutePath] + args.toList()
-        def process = processArguments.execute()
-        process.waitForProcessOutput(System.out as Appendable, System.err as Appendable)
+        jCmd.execute(pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
     }
 
     private String getPid() {
