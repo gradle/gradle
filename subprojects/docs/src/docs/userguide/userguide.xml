@@ -119,7 +119,7 @@
     </part>
     <part>
         <title>Best practices</title>
-        <xi:include href='../../../build/asciidoc/userguide/buildScriptDosAndDonts.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/authoringMaintainableBuildScripts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/organizingBuildLogic.xml'/>
     </part>
     <part>

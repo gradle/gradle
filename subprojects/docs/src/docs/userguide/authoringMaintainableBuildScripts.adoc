@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[build_script_dos_and_donts]]
-== Build Script Do's and Don'ts
+[[authoring_maintainable_build_scripts]]
+== Authoring Maintainable Build Scripts
 
-Gradle build scripts combine the qualities of declarative build logic, expressiveness as well as flexibility and rigidity as needed. As a build script author it is easy to fall into the trap of striking the wrong balance or applying poor coding habits. This chapter describes best practices for structuring your build script in a meaningful, yet flexible and efficient way.
+Gradle build scripts combine the qualities of declarative build logic, expressiveness as well as flexibility and rigidity as needed. As a build script author it is easy to fall into the trap of striking the wrong balance or applying poor coding habits. This chapter describes best practices for writing your build script in a meaningful, yet flexible and efficient way.
 
 [NOTE]
 ====

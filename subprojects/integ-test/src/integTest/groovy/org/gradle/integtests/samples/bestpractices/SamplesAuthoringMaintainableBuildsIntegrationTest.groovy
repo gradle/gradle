@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Unroll
 
-class SamplesBuildScriptDosAndDontsIntegrationTest extends AbstractIntegrationSpec {
+class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
