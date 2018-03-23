@@ -35,7 +35,7 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
-operator fun ExtraPropertiesExtension.provideDelegate(any: Any?, property: KProperty<*>) =
+operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: KProperty<*>) =
     if (property.returnType.isMarkedNullable) NullableExtraPropertyDelegate(this, property.name)
     else NonNullExtraPropertyDelegate(this, property.name)
 
@@ -44,7 +44,7 @@ operator fun ExtraPropertiesExtension.provideDelegate(any: Any?, property: KProp
  * Enables typed access to extra properties.
  */
 interface ExtraPropertyDelegate {
-    operator fun <T> getValue(any: Any?, property: KProperty<*>): T
+    operator fun <T> getValue(receiver: Any?, property: KProperty<*>): T
     operator fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T)
 }
 
@@ -55,7 +55,7 @@ class NonNullExtraPropertyDelegate(
     private val name: String
 ) : ExtraPropertyDelegate {
 
-    override fun <T> getValue(any: Any?, property: KProperty<*>): T {
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T {
         val isFound = extra.has(name)
         val foundValue = if (isFound) extra.get(name) else null
         return if (isFound && foundValue != null) uncheckedCast(foundValue)
@@ -73,7 +73,7 @@ class NullableExtraPropertyDelegate(
     private val name: String
 ) : ExtraPropertyDelegate {
 
-    override fun <T> getValue(any: Any?, property: KProperty<*>): T =
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
         uncheckedCast(if (extra.has(name)) extra.get(name) else null)
 
     override fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T) =
