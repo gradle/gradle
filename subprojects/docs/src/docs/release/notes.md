@@ -47,6 +47,10 @@ In previous releases, the rich console had some features that the plain console 
 
 TBD - build scan task output grouping
     
+### Default JaCoCo version upgraded to 0.8.1
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.1](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
