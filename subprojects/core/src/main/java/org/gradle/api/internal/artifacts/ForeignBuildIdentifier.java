@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.component;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.internal.artifacts;
 
 /**
- * Identifies a Gradle build.
+ * A build that is not the current build. This type exists only to provide an answer to {@link #isCurrentBuild()}, which should not exist.
  */
-@Incubating
-public interface BuildIdentifier {
-    /**
-     * The name of the build.
-     */
-    String getName();
+public class ForeignBuildIdentifier extends DefaultBuildIdentifier {
+    public ForeignBuildIdentifier(String name) {
+        super(name);
+    }
 
-    /**
-     * Is this build the one that's currently executing?
-     */
-    boolean isCurrentBuild();
+    @Override
+    public boolean isCurrentBuild() {
+        return false;
+    }
 }

@@ -86,9 +86,11 @@ Required by:
                 assert components.size() == 2
                 // TODO - should encode 'buildB' somewhere
                 assert components[0].build.name == 'buildSrc'
+                assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == 'buildSrc'
                 assert components[1].build.name == 'buildSrc'
+                assert components[1].build.currentBuild
                 assert components[1].projectPath == ':a'
                 assert components[1].projectName == 'a'
             }
