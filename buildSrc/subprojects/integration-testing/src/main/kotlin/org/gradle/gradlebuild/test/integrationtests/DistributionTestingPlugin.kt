@@ -31,6 +31,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
+
 class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -48,7 +49,8 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.addSetUpAndTearDownActions(distributionTest: DistributionTest) {
+    private
+    fun Project.addSetUpAndTearDownActions(distributionTest: DistributionTest) {
         lateinit var daemonListener: Any
 
         // TODO Why don't we register with the test listener of the test task
@@ -67,7 +69,8 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.setDedicatedTestOutputDirectoryPerTask(distributionTest: DistributionTest) {
+    private
+    fun Project.setDedicatedTestOutputDirectoryPerTask(distributionTest: DistributionTest) {
         distributionTest.reports.junitXml.destination = File(java.testResultsDir, distributionTest.name)
         // TODO Confirm that this is not needed
         afterEvaluate {
@@ -75,7 +78,8 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureGradleTestEnvironment(distributionTest: DistributionTest): Unit = distributionTest.run {
+    private
+    fun Project.configureGradleTestEnvironment(distributionTest: DistributionTest): Unit = distributionTest.run {
         gradleInstallationForTest.run {
             val intTestImage: Sync by tasks
             val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
@@ -93,14 +97,16 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
     }
 
-    private fun DistributionTest.setJvmArgsOfTestJvm() {
+    private
+    fun DistributionTest.setJvmArgsOfTestJvm() {
         jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
         if (!javaVersion.isJava8Compatible) {
             jvmArgs("-XX:MaxPermSize=768m")
         }
     }
 
-    private fun DistributionTest.setSystemPropertiesOfTestJVM(project: Project) {
+    private
+    fun DistributionTest.setSystemPropertiesOfTestJVM(project: Project) {
         // use -PtestVersions=all or -PtestVersions=1.2,1.3…
         val integTestVersionsSysProp = "org.gradle.integtest.versions"
         if (project.hasProperty("testVersions")) {

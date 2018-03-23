@@ -12,10 +12,12 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
+
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel"),  false),
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel"), false),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"), true)
 }
+
 
 internal
 fun Project.addDependenciesAndConfigurations(testType: TestType) {
@@ -39,6 +41,7 @@ fun Project.addDependenciesAndConfigurations(testType: TestType) {
     }
 }
 
+
 internal
 fun Project.addSourceSet(testType: TestType): SourceSet {
     val prefix = testType.prefix
@@ -48,6 +51,7 @@ fun Project.addSourceSet(testType: TestType): SourceSet {
         runtimeClasspath += main.output
     }
 }
+
 
 internal
 fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
@@ -64,6 +68,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     tasks["check"].dependsOn("${prefix}Test")
 }
 
+
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType): IntegrationTest {
 
@@ -78,13 +83,16 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
     }
 }
 
+
 private
 fun IntegrationTest.addBaseConfigurationForIntegrationAndCrossVersionTestTasks(currentTestJavaVersion: JavaVersion) {
     group = "verification"
     exclude(testExcluder.excludesForJavaVersion(currentTestJavaVersion))
 }
 
-private fun IntegrationTest.addDebugProperties() {
+
+private
+fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
     if (project.hasProperty("org.gradle.integtest.debug")) {
         systemProperties["org.gradle.integtest.debug"] = "true"
@@ -99,6 +107,7 @@ private fun IntegrationTest.addDebugProperties() {
         systemProperties["org.gradle.integtest.launcher.debug"] = "true"
     }
 }
+
 
 internal
 fun Project.configureIde(testType: TestType) {
@@ -130,8 +139,10 @@ fun Project.configureIde(testType: TestType) {
     }
 }
 
+
 internal
 val testExcluder = TestExcluder(excludedTests)
+
 
 internal
 val Project.currentTestJavaVersion
@@ -157,4 +168,3 @@ class TestExcluder(excludeInputs: List<Pair<String, List<JavaVersion>>>) {
 
     fun excludesForJavaVersion(version: JavaVersion) = excludeRules[version] ?: emptySet()
 }
-

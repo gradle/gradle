@@ -18,6 +18,7 @@ package org.gradle.plugins.publish
 import org.junit.Assert
 import org.junit.Test
 
+
 class ArtifactPatternTest {
     @Test
     fun `given snapshot library and typical other values it returns a correct URL`() {
@@ -63,5 +64,4 @@ class ArtifactPatternTest {
         // given:
         createArtifactPattern(false, "foo", "")
     }
-
 }

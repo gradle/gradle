@@ -5,11 +5,15 @@ import accessors.java
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.internal.hash.HashUtil
-import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
@@ -17,10 +21,18 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
-import org.gradle.testing.performance.generator.tasks.*
+import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.RemoteProject
+import org.gradle.testing.performance.generator.tasks.TemplateProjectGeneratorTask
+
 import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+
+import org.gradle.kotlin.dsl.*
 
 
 private
@@ -92,7 +104,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         configureIdePlugins(performanceTestSourceSet)
     }
 
-    private fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
+    private
+    fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
         project.tasks.create<RebaselinePerformanceTests>("rebaselinePerformanceTests") {
             source(performanceTestSourceSet.allSource)
         }
@@ -220,7 +233,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createLocalPerformanceTestTasks(
         performanceSourceSet: SourceSet,
         prepareSamplesTask: Task,
-        performanceReportTask: PerformanceReport) {
+        performanceReportTask: PerformanceReport
+    ) {
 
         fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
             createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask)
@@ -247,7 +261,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createDistributedPerformanceTestTasks(
         performanceSourceSet: SourceSet,
         prepareSamplesTask: Task,
-        performanceReportTask: PerformanceReport) {
+        performanceReportTask: PerformanceReport
+    ) {
 
         fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
             createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask)
@@ -303,7 +318,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         name: String,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: Task,
-        performanceReportTask: PerformanceReport): DistributedPerformanceTest =
+        performanceReportTask: PerformanceReport
+    ): DistributedPerformanceTest =
 
         tasks.create<DistributedPerformanceTest>(name) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
@@ -328,7 +344,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         name: String,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: Task,
-        performanceReportTask: PerformanceReport): PerformanceTest {
+        performanceReportTask: PerformanceReport
+    ): PerformanceTest {
 
         val cleanTaskName = "clean${name.capitalize()}"
 
@@ -395,7 +412,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         task: PerformanceTest,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: Task,
-        performanceReportTask: PerformanceReport) {
+        performanceReportTask: PerformanceReport
+    ) {
 
         task.apply {
             group = "verification"
@@ -467,4 +485,3 @@ fun parseXmlFile(file: File): Document =
 private
 fun sha1StringFor(file: File) =
     HashUtil.createHash(file, "sha1").asHexString()
-

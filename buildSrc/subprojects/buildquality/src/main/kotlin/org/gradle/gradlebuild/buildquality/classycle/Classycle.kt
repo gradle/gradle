@@ -140,6 +140,7 @@ fun GroovyBuilderScope.withFilesetOf(classesDirs: FileCollection, excludePattern
         }
     }
 
+
 private
 fun clickableUrl(file: File) =
     URI("file", "", file.toURI().path, null, null).toString()

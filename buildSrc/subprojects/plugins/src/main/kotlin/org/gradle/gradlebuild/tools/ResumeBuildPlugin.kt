@@ -19,14 +19,16 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-class ResumeBuildPlugin: Plugin<Project> {
-    override fun apply(project: Project): Unit = project.run {
-        val resumeTask = project.property("resume")
 
+class ResumeBuildPlugin : Plugin<Project> {
+
+    override fun apply(project: Project): Unit = project.run {
+
+        val resumeTask = project.property("resume")
         if (resumeTask != null) {
             gradle.taskGraph.whenReady {
                 val allTasks = allTasks
-                    val resumeIndex = allTasks.indexOfFirst { it.path == resumeTask }
+                val resumeIndex = allTasks.indexOfFirst { it.path == resumeTask }
                 if (resumeIndex < 0) throw GradleException("Can't resume from $resumeTask because no such task is scheduled for execution")
                 allTasks.subList(0, resumeIndex).forEach { it.enabled = false }
             }

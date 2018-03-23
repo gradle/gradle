@@ -18,7 +18,6 @@ import org.gradle.api.Project
 import org.gradle.build.ReleasedVersionsFromVersionControl
 import java.io.File
 
+
 val Project.releasedVersions
     get() = ReleasedVersionsFromVersionControl(File(rootDir, "released-versions.json"))
-
-

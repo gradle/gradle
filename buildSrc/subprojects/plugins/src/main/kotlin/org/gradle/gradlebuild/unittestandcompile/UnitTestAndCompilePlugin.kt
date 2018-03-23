@@ -20,8 +20,16 @@ import accessors.java
 import availableJavaInstallations
 import library
 import maxParallelForks
-import org.gradle.api.*
-import org.gradle.api.JavaVersion.*
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.JavaVersion
+import org.gradle.api.JavaVersion.VERSION_1_1
+import org.gradle.api.JavaVersion.VERSION_1_5
+import org.gradle.api.JavaVersion.VERSION_1_6
+import org.gradle.api.JavaVersion.VERSION_1_7
+import org.gradle.api.JavaVersion.VERSION_1_8
+import org.gradle.api.Named
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -39,6 +47,7 @@ import testLibraries
 import testLibrary
 import java.util.jar.Attributes
 
+
 enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
     UNDEFINED(VERSION_1_1, VERSION_1_1),
     ENTRY_POINT(VERSION_1_5, VERSION_1_5),
@@ -48,6 +57,7 @@ enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
     INTERNAL(VERSION_1_7, VERSION_1_7),
     REQUIRES_JAVA_8(VERSION_1_8, VERSION_1_8)
 }
+
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
@@ -126,7 +136,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.addCompileAllTask() {
+    private
+    fun Project.addCompileAllTask() {
         tasks.create("compileAll") {
             val compileTasks = project.tasks.matching {
                 it is JavaCompile || it is GroovyCompile
@@ -135,7 +146,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureJarTasks() {
+    private
+    fun Project.configureJarTasks() {
         tasks.withType<Jar>().all {
             version = rootProject.extra["baseVersion"] as String
             manifest.attributes(mapOf(
@@ -144,7 +156,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureTests() {
+    private
+    fun Project.configureTests() {
         val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
 
         tasks.withType<Test>().all {
@@ -166,7 +179,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         }
     }
 
-    private fun createCiEnvironmentProvider(test: Test): CommandLineArgumentProvider {
+    private
+    fun createCiEnvironmentProvider(test: Test): CommandLineArgumentProvider {
         return object : CommandLineArgumentProvider, Named {
             override fun getName() = "ciEnvironment"
 
@@ -186,6 +200,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         }
     }
 }
+
 
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
@@ -208,7 +223,7 @@ open class UnitTestAndCompileExtension(val project: Project) {
     init {
         project.afterEvaluate {
             if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
-                throw InvalidUserDataException("gradlebuild.moduletype must be set for project ${project}")
+                throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
         }
     }

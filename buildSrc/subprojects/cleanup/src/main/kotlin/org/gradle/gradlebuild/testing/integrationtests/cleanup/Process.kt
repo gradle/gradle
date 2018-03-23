@@ -109,4 +109,3 @@ fun forEachLineIn(s: String, action: (String) -> Unit) =
 
 fun Project.isMe(process: String) =
     process.contains(gradle.gradleHomeDir!!.path)
-

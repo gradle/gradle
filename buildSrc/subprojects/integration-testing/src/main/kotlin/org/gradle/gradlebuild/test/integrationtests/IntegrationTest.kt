@@ -86,4 +86,3 @@ class UserguideIntegrationTestEnvironmentProvider(private val samplesInternal: U
     override fun getName() =
         "userguide"
 }
-

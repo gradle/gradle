@@ -15,11 +15,15 @@
  */
 package org.gradle.gradlebuild.test.integrationtests
 
-import org.gradle.api.JavaVersion.*
+import org.gradle.api.JavaVersion.VERSION_1_6
+import org.gradle.api.JavaVersion.VERSION_1_8
+import org.gradle.api.JavaVersion.VERSION_1_9
+import org.gradle.api.JavaVersion.VERSION_1_10
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Test
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
+
 
 class ExcludedTestsTest {
     internal

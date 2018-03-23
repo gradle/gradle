@@ -198,9 +198,10 @@ open class BuildScanPlugin : Plugin<Project> {
         }
 }
 
+
 fun Project.buildScan(configure: BuildScanExtension.() -> Unit): Unit =
     configure(configure)
 
+
 val Project.buildScan
     get() = the<BuildScanExtension>()
-

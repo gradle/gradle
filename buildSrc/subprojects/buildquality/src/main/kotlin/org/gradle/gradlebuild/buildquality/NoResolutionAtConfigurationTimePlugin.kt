@@ -38,7 +38,5 @@ open class NoResolutionAtConfigurationTimePlugin : Plugin<Project> {
                 }
             }
         }
-
     }
 }
-

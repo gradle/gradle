@@ -1,12 +1,8 @@
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
-import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.ContentFilterable
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.provider.ListProperty
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskContainer
 
@@ -24,6 +20,7 @@ import java.io.FilterReader
 inline
 fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any?): T =
     create(name, T::class.java, *constructionArguments)
+
 
 /**
  * Looks for the task of a given name and casts it to the expected type [T].

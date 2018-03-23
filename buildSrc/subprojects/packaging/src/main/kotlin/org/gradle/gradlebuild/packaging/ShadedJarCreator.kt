@@ -38,7 +38,8 @@ open class ShadedJarCreator(
     private val shadowPackage: String,
     private val keepPackages: Set<String>,
     private val unshadedPackages: Set<String>,
-    private val ignorePackages: Set<String>) {
+    private val ignorePackages: Set<String>
+) {
 
     fun createJar() {
         val start = System.currentTimeMillis()
@@ -83,18 +84,18 @@ open class ShadedJarCreator(
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                 writer.print("${file.fileName}: ")
                 when {
-                    file.isClassFilePath()              -> {
+                    file.isClassFilePath() -> {
                         visitClassFile(file)
                     }
                     file.isUnshadedPropertiesFilePath() -> {
                         writer.println("include")
                         classes.addResource(ResourceDetails(file.toString(), file.toFile()))
                     }
-                    file.isUnseenManifestFilePath()     -> {
+                    file.isUnseenManifestFilePath() -> {
                         seenManifest = true
                         classes.manifest = ResourceDetails(file.toString(), file.toFile())
                     }
-                    else                                -> {
+                    else -> {
                         writer.println("skipped")
                     }
                 }
@@ -181,7 +182,8 @@ open class ShadedJarCreator(
         jarOutputStream: JarOutputStream,
         writer: PrintWriter,
         prefix: String,
-        visited: MutableSet<ClassDetails>) {
+        visited: MutableSet<ClassDetails>
+    ) {
 
         if (!visited.add(classDetails)) {
             return
@@ -214,7 +216,8 @@ class ClassGraph(
     private val keepPackages: PackagePatterns,
     val unshadedPackages: PackagePatterns,
     private val ignorePackages: PackagePatterns,
-    shadowPackage: String) {
+    shadowPackage: String
+) {
 
     private
     val classes: MutableMap<String, ClassDetails> = linkedMapOf()
@@ -244,8 +247,10 @@ class ClassGraph(
         }
 }
 
+
 private
 class ResourceDetails(val resourceName: String, val sourceFile: File)
+
 
 private
 class ClassDetails(val className: String, val outputClassName: String) {
@@ -254,6 +259,7 @@ class ClassDetails(val className: String, val outputClassName: String) {
     val outputClassFilename
         get() = "$outputClassName.class"
 }
+
 
 private
 class PackagePatterns(givenPrefixes: Set<String>) {
@@ -284,6 +290,7 @@ class PackagePatterns(givenPrefixes: Set<String>) {
         return false
     }
 }
+
 
 @Contextual
 class ClassAnalysisException(message: String, cause: Throwable) : RuntimeException(message, cause)

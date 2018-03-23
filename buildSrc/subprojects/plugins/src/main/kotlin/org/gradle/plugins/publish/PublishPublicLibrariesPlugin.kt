@@ -30,6 +30,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.*
 import java.util.*
 
+
 open class PublishPublicLibrariesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -59,7 +60,8 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureUploadArchivesTask(generatePom: GeneratePom) {
+    private
+    fun Project.configureUploadArchivesTask(generatePom: GeneratePom) {
         tasks.getByName<Upload>("uploadArchives") {
             // TODO Add magic property to upcoming configuration interface
             onlyIf { !project.hasProperty("noUpload") }
@@ -111,7 +113,9 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
         get() = java.sourceSets["main"]
 }
 
+
 const val GRADLE_REPO = "https://gradle.artifactoryonline.com/gradle"
+
 
 fun createArtifactPattern(isSnapshot: Boolean, group: String, artifactName: String): String {
     assert(group.isNotEmpty())
@@ -122,6 +126,3 @@ fun createArtifactPattern(isSnapshot: Boolean, group: String, artifactName: Stri
     val groupId = group.toString().replace(".", "/")
     return "$repoUrl/$groupId/$artifactName/[revision]/[artifact]-[revision](-[classifier]).[ext]"
 }
-
-
-

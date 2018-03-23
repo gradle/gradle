@@ -24,7 +24,8 @@ import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.tasks.testing.Test
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 
-import accessors.*
+import accessors.java
+import accessors.reporting
 
 import org.gradle.kotlin.dsl.*
 
@@ -58,7 +59,7 @@ fun Project.validateTaskPropertiesForConfiguration(configuration: Configuration)
         // TODO Add a comment on why those projects.
         when (this) {
             coreProject -> addValidateTask()
-            else        -> {
+            else -> {
                 configuration.dependencies.withType<ProjectDependency>()
                     .matching { it.dependencyProject == coreProject }
                     .all {

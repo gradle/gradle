@@ -65,4 +65,3 @@ class DeferringReader(private val source: Reader) : Reader() {
 
     override fun close() = Unit
 }
-

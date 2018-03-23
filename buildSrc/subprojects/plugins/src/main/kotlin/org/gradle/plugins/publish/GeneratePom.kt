@@ -9,13 +9,17 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention
 import org.gradle.api.specs.Specs
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.Upload
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.withConvention
 import org.gradle.kotlin.dsl.withType
 import org.gradle.kotlin.dsl.*
 import java.io.File
+
 
 open class GeneratePom : DefaultTask() {
     @OutputFile
@@ -30,7 +34,7 @@ open class GeneratePom : DefaultTask() {
     init {
         // Subprojects assign dependencies to publishCompile to indicate that they should be part of the published pom.
         // Therefore compile needs to contain those dependencies and extend publishCompile
-        project.configurations.getByName("compile")  {
+        project.configurations.getByName("compile") {
             extendsFrom(publishCompile)
         }
         // Never up to date; we don't understand the data structures.

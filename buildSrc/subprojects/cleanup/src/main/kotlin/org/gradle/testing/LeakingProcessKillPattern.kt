@@ -18,6 +18,7 @@ package org.gradle.testing
 
 import java.util.regex.Pattern
 
+
 object LeakingProcessKillPattern {
 
     @JvmStatic

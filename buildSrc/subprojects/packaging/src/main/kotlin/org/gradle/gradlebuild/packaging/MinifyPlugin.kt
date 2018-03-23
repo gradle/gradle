@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Attribute
 
 import org.gradle.kotlin.dsl.*
 
+
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
  * Artifacts matched by this map will be minified to only contain the specified
@@ -75,13 +76,9 @@ open class MinifyPlugin : Plugin<Project> {
                         if (!attributes.isEmpty) {
                             attributes.attribute(minified, true)
                         }
-
                     }
                 }
             }
         }
     }
 }
-
-
-
