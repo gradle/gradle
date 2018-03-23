@@ -22,6 +22,7 @@ import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
 
@@ -56,12 +57,20 @@ class JfrProfiler implements Profiler {
     String scenarioUnderTest
 
     JfrProfiler() {
-        enabled = System.getProperty(TARGET_DIR_KEY) != null
-        logDirectory = enabled ? new File(System.getProperty(TARGET_DIR_KEY)) : null
-        jcmdExecutable = findJcmd()
-        pidFile = createPidFile()
-        pidFileInitScript = createPidFileInitScript(pidFile)
-        flamegraphScript = createFlamegraphScript()
+        enabled = System.getProperty(TARGET_DIR_KEY) != null && !Jvm.current().ibmJvm
+        if (enabled) {
+            logDirectory = new File(System.getProperty(TARGET_DIR_KEY))
+            jcmdExecutable = findJcmd()
+            pidFile = createPidFile()
+            pidFileInitScript = createPidFileInitScript(pidFile)
+            flamegraphScript = createFlamegraphScript()
+        } else {
+            logDirectory = null
+            jcmdExecutable = null
+            pidFile = null
+            pidFileInitScript = null
+            flamegraphScript = null
+        }
     }
 
     private static File findJcmd() {
