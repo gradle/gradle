@@ -19,13 +19,13 @@ Gradle build scripts combine the qualities of declarative build logic, expressiv
 
 [NOTE]
 ====
-The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate link:https://en.wikipedia.org/wiki/Lint_(software)[linting] automation.
+The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate linting automation.
 ====
 
 [[sec:declare_task_group_and_description]]
 === Declare the group and description for tasks
 
-Even new users to a build should to be able to find crucial information quickly and effortlessly. In Gradle you can declare a api:org.gradle.api.Task#setGroup(java.lang.String)[group] and a api:org.gradle.api.Task#setDescription(java.lang.String)[description] for any task of the build. The <<sec:listing_tasks,tasks report>> uses the assigned values to organize and render the task for easy discoverability. Assigning a group and description is most helpful for lifecycle tasks.
+Even new users to a build should to be able to find crucial information quickly and effortlessly. In Gradle you can declare a api:org.gradle.api.Task#setGroup(java.lang.String)[group] and a api:org.gradle.api.Task#setDescription(java.lang.String)[description] for any task of the build. The <<sec:listing_tasks,tasks report>> uses the assigned values to organize and render the task for easy discoverability. Assigning a group and description is most helpful for any task that you expect build users to invoke.
 
 The example task `generateDocs` generates documentation for a project in the form of HTML pages. The task should be organized underneath the bucket `Documentation`. The description should express its intent.
 
@@ -42,13 +42,9 @@ $ gradle tasks
 
 > Task :tasks
 
-...
-
 Documentation tasks
 -------------------
 generateDocs - Generates the HTML documentation for this project.
-
-...
 ----
 
 [[sec:minimize_logic_executed_configuration_phase]]
@@ -72,8 +68,8 @@ The code for resolving the dependencies should be moved to the task action to av
 </sample>
 ++++
 
-[[sec:avoid_use_of_imperative_logic]]
-=== Avoid the use of imperative logic
+[[sec:avoid_imperative_logic_in_scripts]]
+=== Avoid imperative logic in scripts
 
 The Gradle runtime does not enforce a specific style for build logic. For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code. Let's talk about some concrete examples.
 
