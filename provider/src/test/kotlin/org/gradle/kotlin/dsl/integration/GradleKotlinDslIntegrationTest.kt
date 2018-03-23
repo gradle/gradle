@@ -772,6 +772,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             """))
     }
 
+    @LeaksFileHandles
     @Test
     fun `can cross configure buildscript`() {
 
