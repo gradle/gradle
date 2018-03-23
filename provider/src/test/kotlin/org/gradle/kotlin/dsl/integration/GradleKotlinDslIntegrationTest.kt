@@ -17,7 +17,6 @@ import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.jetbrains.kotlin.preprocessor.convertLineSeparators
