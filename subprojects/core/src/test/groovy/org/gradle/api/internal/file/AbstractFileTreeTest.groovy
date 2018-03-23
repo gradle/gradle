@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.util.UsesNativeServices
@@ -161,7 +162,7 @@ public class AbstractFileTreeTest extends Specification {
             throw new UnsupportedOperationException();
         }
 
-        FileTree visit(FileVisitor visitor) {
+        FileTree visit(DirectoryElementVisitor visitor) {
             contents.each { FileVisitDetails details ->
                 visitor.visitFile(details)
             }

@@ -21,6 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor;
+import org.gradle.api.internal.file.collections.FailOnBrokenSymbolicLinkVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -28,6 +30,10 @@ import org.gradle.internal.Actions;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -134,8 +140,20 @@ public class CompositeFileTreeTest {
     }
 
     @Test
-    public void visitsEachTreeWithVisitor() {
+    public void visitsEachTreeWithFileVisitor() {
         final FileVisitor visitor = context.mock(FileVisitor.class);
+
+        context.checking(new Expectations() {{
+            oneOf(source1).visit(with(aVisitorDelegatingTo(visitor)));
+            oneOf(source2).visit(with(aVisitorDelegatingTo(visitor)));
+        }});
+
+        tree.visit(visitor);
+    }
+
+    @Test
+    public void visitsEachTreeWithDocumentElementVisitor() {
+        final DirectoryElementVisitor visitor = context.mock(DirectoryElementVisitor.class);
 
         context.checking(new Expectations() {{
             oneOf(source1).visit(visitor);
@@ -151,8 +169,8 @@ public class CompositeFileTreeTest {
         final FileVisitor closureAsVisitor = DefaultGroovyMethods.asType(visitor, FileVisitor.class);
 
         context.checking(new Expectations() {{
-            oneOf(source1).visit(closureAsVisitor);
-            oneOf(source2).visit(closureAsVisitor);
+            oneOf(source1).visit(with(aVisitorDelegatingTo(closureAsVisitor)));
+            oneOf(source2).visit(with(aVisitorDelegatingTo(closureAsVisitor)));
         }});
 
         tree.visit(visitor);
@@ -168,5 +186,26 @@ public class CompositeFileTreeTest {
         }});
 
         tree.visit(visitor);
+    }
+
+    @Factory
+    public static Matcher<FailOnBrokenSymbolicLinkVisitor> aVisitorDelegatingTo(FileVisitor visitor) {
+        return new FileVisitorAdapterMatcher(visitor);
+    }
+
+    public static class FileVisitorAdapterMatcher extends TypeSafeMatcher<FailOnBrokenSymbolicLinkVisitor> {
+        private FileVisitor visitor;
+
+        public FileVisitorAdapterMatcher(FileVisitor visitor) {
+            this.visitor = visitor;
+        }
+
+        public boolean matchesSafely(FailOnBrokenSymbolicLinkVisitor s) {
+            return s.getDelegate().equals(visitor);
+        }
+
+        public void describeTo(Description description) {
+            description.appendText("a visitor delegating to ").appendValue(visitor.getClass().getCanonicalName()).toString();
+        }
     }
 }

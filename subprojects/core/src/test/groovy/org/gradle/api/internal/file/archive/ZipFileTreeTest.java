@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.Resources;
@@ -70,7 +71,7 @@ public class ZipFileTreeTest {
     @Test
     public void failsWhenZipFileDoesNotExist() {
         try {
-            tree.visit(null);
+            tree.visit((FileVisitor)null);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it does not exist."));
@@ -82,7 +83,7 @@ public class ZipFileTreeTest {
         zipFile.createDir();
 
         try {
-            tree.visit(null);
+            tree.visit((FileVisitor)null);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it is not a file."));
@@ -94,7 +95,7 @@ public class ZipFileTreeTest {
         zipFile.write("not a zip file");
 
         try {
-            tree.visit(null);
+            tree.visit((FileVisitor)null);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Could not expand ZIP '" + zipFile + "'."));

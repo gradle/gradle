@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.resources.MissingResourceException;
@@ -104,7 +105,7 @@ public class TarFileTreeTest {
     @Test
     public void failsWhenTarFileDoesNotExist() {
         try {
-            tree.visit(null);
+            tree.visit((FileVisitor)null);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), containsString("Cannot expand TAR '" + tarFile + "'."));
@@ -117,7 +118,7 @@ public class TarFileTreeTest {
         tarFile.createDir();
 
         try {
-            tree.visit(null);
+            tree.visit((FileVisitor)null);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), containsString("Cannot expand TAR '" + tarFile + "'"));
@@ -130,7 +131,7 @@ public class TarFileTreeTest {
         tarFile.write("not a tar file");
 
         try {
-            tree.visit(null);
+            tree.visit((FileVisitor)null);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), containsString("Unable to expand TAR '" + tarFile + "'"));

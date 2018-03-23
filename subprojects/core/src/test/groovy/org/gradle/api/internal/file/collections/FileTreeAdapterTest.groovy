@@ -45,7 +45,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visit(visitor)
 
         then:
-        1 * tree.visit(visitor)
+        1 * tree.visit({ it instanceof FailOnBrokenSymbolicLinkVisitor && it.delegate == visitor })
         0 * _._
     }
 
