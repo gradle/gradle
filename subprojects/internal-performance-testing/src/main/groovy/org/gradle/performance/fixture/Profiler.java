@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,25 @@
 
 package org.gradle.performance.fixture;
 
-public interface Profiler extends DataCollector {
+import org.gradle.internal.jvm.Jvm;
 
-    void setVersionUnderTest(String versionUnderTest);
+import java.io.File;
 
-    void setScenarioUnderTest(String scenarioUnderTest);
+public abstract class Profiler implements DataCollector {
+    private static final String TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
 
-    void setUseDaemon(boolean useDaemon);
+    public static Profiler create() {
+        String targetDir = System.getProperty(TARGET_DIR_KEY);
+        if (targetDir != null && !Jvm.current().isIbmJvm()) {
+            return new JfrProfiler(new File(targetDir));
+        } else {
+            return new NoopProfiler();
+        }
+    }
+
+    public abstract void setVersionUnderTest(String versionUnderTest);
+
+    public abstract void setScenarioUnderTest(String scenarioUnderTest);
+
+    public abstract void setUseDaemon(boolean useDaemon);
 }

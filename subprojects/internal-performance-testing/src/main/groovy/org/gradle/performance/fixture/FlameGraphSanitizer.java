@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FlameGraphSanitizer {
+class FlameGraphSanitizer {
     private static final Splitter LINE_SPLITTER = Splitter.on(" ").omitEmptyStrings();
     private static final Splitter STACKTRACE_SPLITTER = Splitter.on(";").omitEmptyStrings();
     private static final Joiner STACKTRACE_JOINER = Joiner.on(";");

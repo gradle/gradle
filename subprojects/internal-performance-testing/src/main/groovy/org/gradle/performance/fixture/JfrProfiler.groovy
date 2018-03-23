@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import com.google.common.base.Charsets
 import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import groovy.util.logging.Log
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
 
@@ -41,10 +41,8 @@ import org.gradle.performance.measure.MeasuredOperation
  */
 @CompileStatic
 @Log
-class JfrProfiler implements Profiler {
-    private static final String TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir"
-
-    final boolean enabled
+@PackageScope
+class JfrProfiler extends Profiler {
 
     private final File logDirectory
     private final File jcmdExecutable
@@ -56,21 +54,12 @@ class JfrProfiler implements Profiler {
     String versionUnderTest
     String scenarioUnderTest
 
-    JfrProfiler() {
-        enabled = System.getProperty(TARGET_DIR_KEY) != null && !Jvm.current().ibmJvm
-        if (enabled) {
-            logDirectory = new File(System.getProperty(TARGET_DIR_KEY))
-            jcmdExecutable = findJcmd()
-            pidFile = createPidFile()
-            pidFileInitScript = createPidFileInitScript(pidFile)
-            flamegraphScript = createFlamegraphScript()
-        } else {
-            logDirectory = null
-            jcmdExecutable = null
-            pidFile = null
-            pidFileInitScript = null
-            flamegraphScript = null
-        }
+    JfrProfiler(File targetDir) {
+        logDirectory = targetDir
+        jcmdExecutable = findJcmd()
+        pidFile = createPidFile()
+        pidFileInitScript = createPidFileInitScript(pidFile)
+        flamegraphScript = createFlamegraphScript()
     }
 
     private static File findJcmd() {
@@ -87,7 +76,7 @@ class JfrProfiler implements Profiler {
     }
 
     private static File createFlamegraphScript() {
-        URL flamegraphResource = JfrProfiler.classLoader.getResource("org/gradle/reporting/flamegraph.pl")
+        URL flamegraphResource = JfrProfiler.getResource("flamegraph.pl")
         def flamegraphScript = File.createTempFile("flamegraph", ".pl")
         flamegraphScript.deleteOnExit()
         Resources.asCharSource(flamegraphResource, Charsets.UTF_8).copyTo(Files.asCharSink(flamegraphScript, Charsets.UTF_8))
@@ -118,9 +107,6 @@ class JfrProfiler implements Profiler {
 
     @Override
     List<String> getAdditionalJvmOpts(File workingDir) {
-        if (!enabled) {
-            return Collections.emptyList()
-        }
         String flightRecordOptions = "stackdepth=1024"
         if (!useDaemon) {
             flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=$jfrFile,settings=profile"
@@ -131,17 +117,11 @@ class JfrProfiler implements Profiler {
 
     @Override
     List<String> getAdditionalArgs(File workingDir) {
-        if (!enabled) {
-            return Collections.emptyList()
-        }
         return ["--init-script", pidFileInitScript.absolutePath] as List<String>
     }
 
     @Override
     void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
-        if (!enabled) {
-            return
-        }
         if (invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == BuildExperimentRunner.Phase.WARMUP && useDaemon) {
             start()
         }

@@ -48,7 +48,7 @@ public class BuildExperimentRunner {
 
     public BuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
-        profiler = new JfrProfiler();
+        profiler = Profiler.create();
         dataCollector = new CompositeDataCollector(profiler);
     }
 
