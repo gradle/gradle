@@ -1,3 +1,23 @@
+The Gradle team is pleased to announce Gradle 4.7.
+
+First and foremost, Gradle's incremental Java compiler can now run _annotation processing incrementally_. No user-facing configuration is necessary, but processor authors need to opt-in. We request annotation processor authors read the [documentation for this feature](userguide/java_plugin.html#sec:incremental_annotation_processing) and contact the Gradle team via the [forum](https://discuss.gradle.org/c/help-discuss) for assistance.
+
+Next, Gradle log output is now grouped under a header by project and task for non-interactive environments, making debugging parallel tasks much easier to debug on CI.
+
+User experience for running tests is further improved in this release of Gradle, as failed tests now run first. This allows use of the [`--fail-fast` option](userguide/java_plugin.html#sec:test_execution) to provide the quickest possible feedback loop.
+
+Last but not least, the IDEA Gradle Plugin now automatically marks Java resources directories as resources in the IDEA module definitions. This behavior can be customized; see an example.
+
+We hope you will build happiness with Gradle 4.7, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
+
+## Upgrade instructions
+
+Switch your build to use Gradle 4.7 RC1 quickly by updating your wrapper properties:
+
+    gradle wrapper --gradle-version=4.7-rc-1
+
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/release-candidate). 
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
