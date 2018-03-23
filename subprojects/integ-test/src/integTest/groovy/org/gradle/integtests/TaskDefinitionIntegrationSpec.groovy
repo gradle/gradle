@@ -17,9 +17,37 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
+    private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
+        import javax.inject.Inject
+
+        class CustomTask extends DefaultTask {
+            final String message
+            final int number
+
+            @Inject
+            CustomTask(String message, int number) {
+                this.message = message
+                this.number = number
+            }
+
+            @TaskAction
+            void printIt() {
+                println("\$message \$number")
+            }
+        }
+    """
+
+    private static final String KOTLIN_TASK_CONTAINER_EXTENSION = '''
+        inline
+        fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
+            create(name, T::class.java, *arguments)
+    '''
 
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
@@ -69,30 +97,23 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains('hello world')
     }
 
+    def "can construct a custom task with constructor arguments"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.create('myTask', CustomTask, 'hello', 42)"
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("hello 42")
+    }
+
     @Unroll
     def "can construct a custom task with constructor arguments as #description via Map"() {
         given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
-        """
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "task myTask(type: CustomTask, constructorArgs: ${constructorArgs})"
 
         when:
         run 'myTask'
@@ -103,95 +124,51 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         where:
         description | constructorArgs
         'List'      | "['hello', 42]"
-        'Object[]'  | "['hello', 42] as Object[]"
+        'Object[]'  | "(['hello', 42] as Object[])"
     }
 
-    def "can construct a custom task with constructor arguments via API"() {
+    @Unroll
+    def "fails to create custom task using #description if constructor arguments are missing"() {
         given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            tasks.create('myTask', CustomTask, 'hello', 42)
-        """
-
-        when:
-        run 'myTask'
-
-        then:
-        result.output.contains("hello 42")
-    }
-
-    def "fails to build custom task if constructor arguments missing"() {
-        given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            task myTask(type: CustomTask, constructorArgs: ['hello'])
-        """
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << script
 
         when:
         fails 'myTask'
 
         then:
         result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type int available")
+
+        where:
+        description   | script
+        'Map'         | "task myTask(type: CustomTask, constructorArgs: ['hello'])"
+        'direct call' | "tasks.create('myTask', CustomTask, 'hello')"
+    }
+
+    @Unroll
+    def "fails to create custom task using #description if all constructor arguments missing"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << script
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+
+        where:
+        description   | script
+        'Map'         | "task myTask(type: CustomTask)"
+        'Map (null)'  | "task myTask(type: CustomTask, constructorArgs: null)"
+        'direct call' | "tasks.create('myTask', CustomTask)"
     }
 
     @Unroll
     def "fails when constructorArgs not list or Object[], but #description"() {
         given:
-        buildFile << """
-            import javax.inject.Inject
-
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
-
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
-            }
-
-            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
-        """
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "task myTask(type: CustomTask, constructorArgs: ${constructorArgs})"
 
         when:
         fails 'myTask'
@@ -205,6 +182,36 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         'Map'       | '[a: 1, b: 2]'
         'String'    | '"abc"'
         'primitive' | '123'
+    }
+
+    @Unroll
+    def "fails when #description constructor argument is wrong type"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.create('myTask', CustomTask, $constructorArgs)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type $outputType available")
+
+        where:
+        description | constructorArgs | outputType
+        'first'     | '123, 234'      | 'String'
+        'last'      | '"abc", "def"'  | 'int'
+    }
+
+    def "fails when null passed as a constructor argument value"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.create('myTask', CustomTask, null, 1)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
     }
 
     def "can construct a task with @Inject services"() {
@@ -237,8 +244,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         result.output.contains("got it")
     }
 
-    @Unroll
-    def "can construct a task with @Inject services and constructor args as #description"() {
+    def "can construct a task with @Inject services and constructor args"() {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
@@ -260,7 +266,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            task myTask(type: CustomTask, constructorArgs: ${constructorArgs})
+            tasks.create('myTask', CustomTask, 15)
         """
 
         when:
@@ -268,162 +274,49 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("got it 15")
-
-        where:
-        description | constructorArgs
-        'List'      | '[ 15 ]'
-        'Object[]'  | '[ 15 ] as Object[]'
     }
 
-    def "can construct a custom task without constructor arguments from plugin"() {
+    @Requires(KOTLIN_SCRIPT)
+    def 'can run custom task with constructor arguments via Kotlin friendly DSL'() {
         given:
-        file('buildSrc/src/main/java/CustomPlugin.java') << '''
-import org.gradle.api.*;
-import org.gradle.api.tasks.*;
+        settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("build.gradle.kts") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import javax.inject.Inject
 
-public class CustomPlugin implements Plugin<Project> {
-    public static class CustomTask extends DefaultTask {
-        @TaskAction
-        void printIt() {
-           System.out.println("hello world");
-        }
-    }
+            $KOTLIN_TASK_CONTAINER_EXTENSION
 
-    @Override
-    public void apply(Project p) {
-        p.getTasks().create("myTask", CustomTask.class);
-    }
-}
-'''
+            open class CustomTask @Inject constructor(private val message: String, private val number: Int) : DefaultTask() {
+                @TaskAction fun run() = println("\$message \$number")
+            }
 
-        file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << 'implementation-class=CustomPlugin'
-
-        buildFile << "apply plugin: 'custom'"
+            tasks.create<CustomTask>("myTask", "hello", 42)
+        """
 
         when:
         run 'myTask'
 
         then:
-        result.output.contains('hello world')
+        result.output.contains('hello 42')
     }
 
-    def "can construct a custom task with constructor arguments via API from a plugin"() {
+    @Requires(KOTLIN_SCRIPT)
+    def "can construct a task in Kotlin with @Inject services"() {
         given:
-        file('buildSrc/src/main/java/CustomPlugin.java') << '''
-import org.gradle.api.*;
-import org.gradle.api.tasks.*;
-import javax.inject.Inject;
+        settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("build.gradle.kts") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
 
-public class CustomPlugin implements Plugin<Project> {
-    public static class CustomTask extends DefaultTask {
-        private final String message;
-        private final int number;
+            open class CustomTask @Inject constructor(private val executor: WorkerExecutor) : DefaultTask() {
+                @TaskAction fun run() = println(if (executor != null) "got it" else "NOT IT")
+            }
 
-        @Inject
-        public CustomTask(String message, int number) {
-            this.message = message;
-            this.number = number;
-        }
-
-        @TaskAction
-        void printIt() {
-            System.out.println(message + " " + number);
-        }
-    }
-
-    @Override
-    public void apply(Project p) {
-        p.getTasks().create("myTask", CustomTask.class, "hello", 42);
-    }
-}
-'''
-
-        file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << 'implementation-class=CustomPlugin'
-
-        buildFile << "apply plugin: 'custom'"
-
-        when:
-        run 'myTask'
-
-        then:
-        result.output.contains("hello 42")
-    }
-
-    def "fails to build custom task if constructor arguments missing from a plugin"() {
-        given:
-        file('buildSrc/src/main/java/CustomPlugin.java') << '''
-import org.gradle.api.*;
-import org.gradle.api.tasks.*;
-import javax.inject.Inject;
-
-public class CustomPlugin implements Plugin<Project> {
-    public static class CustomTask extends DefaultTask {
-        private final String message;
-        private final int number;
-
-        @Inject
-        public CustomTask(String message, int number) {
-            this.message = message;
-            this.number = number;
-        }
-
-        @TaskAction
-        void printIt() {
-            System.out.println(message + " " + number);
-        }
-    }
-
-    @Override
-    public void apply(Project p) {
-        p.getTasks().create("myTask", CustomTask.class, "hello");
-    }
-}
-'''
-
-        file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << 'implementation-class=CustomPlugin'
-
-        buildFile << "apply plugin: 'custom'"
-
-        when:
-        fails 'myTask'
-
-        then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type int available")
-    }
-
-    def "can construct a task with @Inject services from a plugin"() {
-        given:
-        file('buildSrc/src/main/java/CustomPlugin.java') << '''
-import org.gradle.api.*;
-import org.gradle.api.tasks.*;
-import org.gradle.workers.*;
-import javax.inject.Inject;
-
-public class CustomPlugin implements Plugin<Project> {
-    public static class CustomTask extends DefaultTask {
-        private final WorkerExecutor executor;
-
-        @Inject
-        public CustomTask(WorkerExecutor executor) {
-            this.executor = executor;
-        }
-
-        @TaskAction
-        void printIt() {
-            System.out.println(executor != null ? "got it" : "NOT IT");
-        }
-    }
-
-    @Override
-    public void apply(Project p) {
-        p.getTasks().create("myTask", CustomTask.class);
-    }
-}
-'''
-
-        file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << 'implementation-class=CustomPlugin'
-
-        buildFile << "apply plugin: 'custom'"
+            tasks.create<CustomTask>("myTask")
+        """
 
         when:
         run 'myTask'
@@ -432,45 +325,24 @@ public class CustomPlugin implements Plugin<Project> {
         result.output.contains("got it")
     }
 
-    def "can construct a task with @Inject services and constructor args from a plugin"() {
+    @Requires(KOTLIN_SCRIPT)
+    def "can construct a task with @Inject services and constructor args via Kotlin friendly DSL"() {
         given:
-        file('buildSrc/src/main/java/CustomPlugin.java') << '''
-import org.gradle.api.*;
-import org.gradle.api.tasks.*;
-import org.gradle.workers.*;
-import javax.inject.Inject;
+        settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("build.gradle.kts") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
 
-public class CustomPlugin implements Plugin<Project> {
-    public static class CustomTask extends DefaultTask {
-        private final int number;
-        private final WorkerExecutor executor;
+            $KOTLIN_TASK_CONTAINER_EXTENSION
 
-        @Inject
-        public CustomTask(int number, WorkerExecutor executor) {
-            this.number = number;
-            this.executor = executor;
-        }
-
-        @TaskAction
-        void printIt() {
-            if (executor != null) {
-                System.out.println("got it " + number);
-            } else {
-                System.out.println(number + " NOT IT");
+            open class CustomTask @Inject constructor(private val number: Int, private val executor: WorkerExecutor) : DefaultTask() {
+                @TaskAction fun run() = println(if (executor != null) "got it \$number" else "\$number NOT IT")
             }
-        }
-    }
 
-    @Override
-    public void apply(Project p) {
-        p.getTasks().create("myTask", CustomTask.class, 15);
-    }
-}
-'''
-
-        file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << 'implementation-class=CustomPlugin'
-
-        buildFile << "apply plugin: 'custom'"
+            tasks.create<CustomTask>("myTask", 15)
+        """
 
         when:
         run 'myTask'
