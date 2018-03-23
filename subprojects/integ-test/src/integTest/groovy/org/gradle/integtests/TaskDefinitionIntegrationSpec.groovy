@@ -24,30 +24,30 @@ import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
-            import javax.inject.Inject
+        import javax.inject.Inject
 
-            class CustomTask extends DefaultTask {
-                final String message
-                final int number
+        class CustomTask extends DefaultTask {
+            final String message
+            final int number
 
-                @Inject
-                CustomTask(String message, int number) {
-                    this.message = message
-                    this.number = number
-                }
-
-                @TaskAction
-                void printIt() {
-                    println("\$message \$number")
-                }
+            @Inject
+            CustomTask(String message, int number) {
+                this.message = message
+                this.number = number
             }
-        """
+
+            @TaskAction
+            void printIt() {
+                println("\$message \$number")
+            }
+        }
+    """
 
     private static final String KOTLIN_TASK_CONTAINER_EXTENSION = '''
-            inline
-            fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any?) =
-                create(name, T::class.java, *arguments)
-'''
+        inline
+        fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
+            create(name, T::class.java, *arguments)
+    '''
 
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
