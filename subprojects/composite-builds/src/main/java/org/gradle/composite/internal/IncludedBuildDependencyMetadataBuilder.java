@@ -45,18 +45,18 @@ public class IncludedBuildDependencyMetadataBuilder {
         Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects = Maps.newHashMap();
         Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(registeredProjects, build.getModel(), (ProjectInternal) project);
+            registerProject(registeredProjects, build, (ProjectInternal) project);
         }
         return registeredProjects;
     }
 
-    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuild build, ProjectInternal project) {
+    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuildInternal build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
-        LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
+        ProjectComponentIdentifier componentIdentifier = build.idForProjectInThisBuild(project.getPath());
+        LocalComponentMetadata compositeComponent = createCompositeCopy(build.getModel(), componentIdentifier, originalComponent);
         registeredProjects.put(componentIdentifier, new RegisteredProject(compositeComponent));
     }
 

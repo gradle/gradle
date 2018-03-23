@@ -34,6 +34,8 @@ public interface IncludedBuildInternal {
     List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
+    ProjectComponentIdentifier idForProjectInThisBuild(String path);
+
     SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();
     void finishBuild();

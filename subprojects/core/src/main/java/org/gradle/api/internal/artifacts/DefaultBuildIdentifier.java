@@ -32,6 +32,11 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
     }
 
     @Override
+    public boolean isCurrentBuild() {
+        return true;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -40,7 +45,7 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
             return false;
         }
         DefaultBuildIdentifier that = (DefaultBuildIdentifier) o;
-        return Objects.equal(name, that.name);
+        return name.equals(that.name);
     }
 
     @Override

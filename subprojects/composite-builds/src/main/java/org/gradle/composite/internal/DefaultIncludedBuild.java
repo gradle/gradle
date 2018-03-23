@@ -28,6 +28,7 @@ import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -36,6 +37,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -124,10 +126,15 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Configurable
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = newProjectId(this, project.getPath());
+        ProjectComponentIdentifier componentIdentifier = idForProjectInThisBuild(project.getPath());
         ModuleVersionIdentifier moduleId = originalComponent.getModuleVersionId();
         LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         availableModules.add(Pair.of(moduleId, componentIdentifier));
+    }
+
+    public ProjectComponentIdentifier idForProjectInThisBuild(String projectPath) {
+        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild work in the root build
+        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(getName()), projectPath);
     }
 
     @Override

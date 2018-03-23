@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -28,11 +29,17 @@ public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifie
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
         String buildName = decoder.readString();
-        return new DefaultBuildIdentifier(buildName);
+        boolean isCurrent = decoder.readBoolean();
+        if (isCurrent) {
+            return new DefaultBuildIdentifier(buildName);
+        } else {
+            return new ForeignBuildIdentifier(buildName);
+        }
     }
 
     @Override
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
         encoder.writeString(value.getName());
+        encoder.writeBoolean(value.isCurrentBuild());
     }
 }

@@ -37,7 +37,7 @@ public interface IncludedBuildRegistry {
      * Locates a build by {@link BuildIdentifier}, if present.
      */
     @Nullable
-    IncludedBuildInternal getBuild(BuildIdentifier name);
+    IncludedBuildInternal getBuild(BuildIdentifier buildIdentifier);
 
     void validateExplicitIncludedBuilds(SettingsInternal settings);
 
