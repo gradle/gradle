@@ -35,17 +35,50 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
-operator fun <T> ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: T) =
-    set(property.name, value)
+operator fun ExtraPropertiesExtension.provideDelegate(any: Any?, property: KProperty<*>) =
+    if (property.returnType.isMarkedNullable) NullableExtraPropertyDelegate(this, property.name)
+    else NonNullExtraPropertyDelegate(this, property.name)
 
 
-operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
-    property.run {
-        val isFound = has(name)
-        val foundValue = if (isFound) get(name) else null
-        if (returnType.isMarkedNullable || (isFound && foundValue != null)) return uncheckedCast(foundValue)
+/**
+ * Enables typed access to extra properties.
+ */
+interface ExtraPropertyDelegate {
+    operator fun <T> getValue(any: Any?, property: KProperty<*>): T
+    operator fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T)
+}
+
+
+private
+class NonNullExtraPropertyDelegate(
+    private val extra: ExtraPropertiesExtension,
+    private val name: String
+) : ExtraPropertyDelegate {
+
+    override fun <T> getValue(any: Any?, property: KProperty<*>): T {
+        val isFound = extra.has(name)
+        val foundValue = if (isFound) extra.get(name) else null
+        return if (isFound && foundValue != null) uncheckedCast(foundValue)
         else throw InvalidUserCodeException("Cannot get non-null extra property '$name' as it ${if (isFound) "is null" else "does not exist"}")
     }
+
+    override fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T) =
+        extra.set(property.name, value)
+}
+
+
+private
+class NullableExtraPropertyDelegate(
+    private val extra: ExtraPropertiesExtension,
+    private val name: String
+) : ExtraPropertyDelegate {
+
+    override fun <T> getValue(any: Any?, property: KProperty<*>): T =
+        uncheckedCast(if (extra.has(name)) extra.get(name) else null)
+
+    override fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T) =
+        extra.set(property.name, value)
+}
 
 
 /**
@@ -55,7 +88,7 @@ operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KPr
  * Usage: `val answer by extra { 42 }`
  */
 inline
-operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
+operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): InitialValueExtraPropertyDelegateProvider<T> =
     invoke(initialValueProvider())
 
 
@@ -64,26 +97,26 @@ operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T):
  *
  * Usage: `val answer by extra(42)`
  */
-operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
-    ExtraPropertyDelegateProvider(this, initialValue)
+operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueExtraPropertyDelegateProvider<T> =
+    InitialValueExtraPropertyDelegateProvider(this, initialValue)
 
 
-class ExtraPropertyDelegateProvider<T>(
+class InitialValueExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
     val initialValue: T
 ) {
 
-    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): ExtraPropertyDelegate<T> {
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): InitialValueExtraPropertyDelegate<T> {
         extra.set(property.name, initialValue)
-        return ExtraPropertyDelegate(extra)
+        return InitialValueExtraPropertyDelegate(extra)
     }
 }
 
 
 /**
- * Enables typed access to extra properties.
+ * Enables typed access to extra properties with initial value.
  */
-class ExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
+class InitialValueExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
 
     operator fun setValue(receiver: Any?, property: kotlin.reflect.KProperty<*>, value: T) =
         extra.set(property.name, value)
