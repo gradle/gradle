@@ -19,6 +19,9 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 
+/**
+ * Instruments a Gradle build so we can query its process ID.
+ */
 @CompileStatic
 @PackageScope
 class PidInstrumentation {

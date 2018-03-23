@@ -31,6 +31,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Simplifies stacks to make flame graphs more readable.
+ */
 class FlameGraphSanitizer {
     private static final Splitter LINE_SPLITTER = Splitter.on(" ").omitEmptyStrings();
     private static final Splitter STACKTRACE_SPLITTER = Splitter.on(";").omitEmptyStrings();
