@@ -29,6 +29,8 @@ import org.gradle.util.NameValidator;
 import java.util.concurrent.Callable;
 
 public class TaskFactory implements ITaskFactory {
+    private static final Object[] NO_ARGS = new Object[0];
+
     private final ClassGenerator generator;
     private final ProjectInternal project;
     private final Instantiator instantiator;
@@ -49,7 +51,7 @@ public class TaskFactory implements ITaskFactory {
 
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
-        return create(name, type, (Object[]) null);
+        return create(name, type, NO_ARGS);
     }
 
     @Override
@@ -71,10 +73,7 @@ public class TaskFactory implements ITaskFactory {
         return type.cast(AbstractTask.injectIntoNewInstance(project, name, type, new Callable<Task>() {
             public Task call() throws Exception {
                 try {
-                    if (args != null) {
-                        return instantiator.newInstance(generatedType, args);
-                    }
-                    return instantiator.newInstance(generatedType);
+                    return instantiator.newInstance(generatedType, args);
                 } catch (ObjectInstantiationException e) {
                     throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
                         e.getCause());
@@ -82,5 +81,4 @@ public class TaskFactory implements ITaskFactory {
             }
         }));
     }
-
 }
