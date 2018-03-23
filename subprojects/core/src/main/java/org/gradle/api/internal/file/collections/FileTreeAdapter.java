@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileSystemSubset;
@@ -112,7 +111,8 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         return super.matching(patterns);
     }
 
-    public FileTree visit(FileVisitor visitor) {
+    @Override
+    public FileTree visit(DirectoryElementVisitor visitor) {
         tree.visit(visitor);
         return this;
     }
@@ -127,7 +127,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         }
     }
 
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
+    public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
         tree.visitTreeOrBackingFile(visitor);
     }
 }

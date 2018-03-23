@@ -76,7 +76,13 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         return directoryFileTreeFactory.create(getTmpDir());
     }
 
+    @Override
     public void visit(FileVisitor visitor) {
+        visit(new FailOnBrokenSymbolicLinkVisitor(visitor));
+    }
+
+    @Override
+    public void visit(DirectoryElementVisitor visitor) {
         AtomicBoolean stopFlag = new AtomicBoolean();
         Visit visit = new Visit(visitor, stopFlag);
         for (Map.Entry<RelativePath, Action<OutputStream>> entry : elements.entrySet()) {
@@ -113,21 +119,21 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     private class Visit {
         private final Set<RelativePath> visitedDirs = new LinkedHashSet<RelativePath>();
-        private final FileVisitor visitor;
+        private final DirectoryElementVisitor visitor;
         private final AtomicBoolean stopFlag;
 
-        public Visit(FileVisitor visitor, AtomicBoolean stopFlag) {
+        public Visit(DirectoryElementVisitor visitor, AtomicBoolean stopFlag) {
             this.visitor = visitor;
             this.stopFlag = stopFlag;
         }
 
-        private void visitDirs(RelativePath path, FileVisitor visitor) {
+        private void visitDirs(RelativePath path, DirectoryElementVisitor visitor) {
             if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
                 return;
             }
 
             visitDirs(path.getParent(), visitor);
-            visitor.visitDir(new FileVisitDetailsImpl(path, null, stopFlag, chmod));
+            visitor.visitDirectory(new FileVisitDetailsImpl(path, null, stopFlag, chmod));
         }
 
         public void visit(RelativePath path, Action<OutputStream> generator) {
@@ -248,7 +254,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
+    public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
         visit(visitor);
     }
 }

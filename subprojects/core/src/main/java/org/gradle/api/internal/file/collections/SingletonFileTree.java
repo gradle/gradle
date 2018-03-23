@@ -42,13 +42,17 @@ public class SingletonFileTree implements MinimalFileTree {
         visitor.visitFile(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
     }
 
+    public void visit(DirectoryElementVisitor visitor) {
+        visitor.visitFile(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+    }
+
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         builder.add(file);
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
+    public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
         visit(visitor);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.file.FileVisitDetails;
 
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
+public interface DirectoryElementVisitor {
+    void visitFile(FileVisitDetails details);
 
-public interface DirectoryWalker {
-    void walkDir(File file, RelativePath path, DirectoryElementVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix);
+    void visitDirectory(FileVisitDetails details);
+
+    void visitBrokenSymbolicLink(FileVisitDetails details);
+
+    boolean isReproducibleOrder();
 }

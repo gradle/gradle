@@ -23,6 +23,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.UnauthorizedFileVisitDetails;
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor;
 import org.gradle.api.internal.file.collections.DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -52,7 +53,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<? super FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
+    public void walkDir(final File rootDir, final RelativePath rootPath, final DirectoryElementVisitor visitor, final Spec<? super FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
         final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
 
         try {
@@ -63,7 +64,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                     if (directoryDetailsHolder.size() == 0 || isAllowed(details, spec)) {
                         directoryDetailsHolder.push(details);
                         if (directoryDetailsHolder.size() > 1 && !postfix) {
-                            visitor.visitDir(details);
+                            visitor.visitDirectory(details);
                         }
                         return checkStopFlag();
                     } else {
@@ -81,9 +82,10 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                     if (isAllowed(details, spec)) {
                         if (attrs.isSymbolicLink()) {
                             // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                            throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
+                            visitor.visitBrokenSymbolicLink(details);
+                        } else {
+                            visitor.visitFile(details);
                         }
-                        visitor.visitFile(details);
                     }
                     return checkStopFlag();
                 }
@@ -126,7 +128,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                         if (postfix) {
                             FileVisitDetails details = directoryDetailsHolder.peek();
                             if (directoryDetailsHolder.size() > 1 && details != null) {
-                                visitor.visitDir(details);
+                                visitor.visitDirectory(details);
                             }
                         }
                     }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.specs.Spec;
@@ -38,7 +37,7 @@ public abstract class AbstractDirectoryWalker implements DirectoryWalker {
     }
 
     @Override
-    public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+    public void walkDir(File file, RelativePath path, DirectoryElementVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
         File[] children = getChildren(file);
         if (children == null) {
             if (file.isDirectory() && !file.canRead()) {
@@ -67,9 +66,9 @@ public abstract class AbstractDirectoryWalker implements DirectoryWalker {
             FileVisitDetails dir = dirs.get(i);
             if (postfix) {
                 walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, postfix);
-                visitor.visitDir(dir);
+                visitor.visitDirectory(dir);
             } else {
-                visitor.visitDir(dir);
+                visitor.visitDirectory(dir);
                 walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, postfix);
             }
         }

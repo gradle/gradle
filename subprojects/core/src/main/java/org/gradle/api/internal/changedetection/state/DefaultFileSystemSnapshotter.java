@@ -20,12 +20,13 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -39,10 +40,14 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 
@@ -280,7 +285,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
     }
 
-    private class FileVisitorImpl implements FileVisitor {
+    private class FileVisitorImpl implements DirectoryElementVisitor {
         private final List<FileSnapshot> fileTreeElements;
 
         FileVisitorImpl(List<FileSnapshot> fileTreeElements) {
@@ -288,13 +293,23 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
 
         @Override
-        public void visitDir(FileVisitDetails dirDetails) {
+        public void visitDirectory(FileVisitDetails dirDetails) {
             fileTreeElements.add(new DirectoryFileSnapshot(internPath(dirDetails.getFile()), dirDetails.getRelativePath(), false));
         }
 
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
             fileTreeElements.add(new RegularFileSnapshot(internPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
+        }
+
+        @Override
+        public void visitBrokenSymbolicLink(FileVisitDetails symDetails) {
+            fileTreeElements.add(new MissingFileSnapshot(internPath(symDetails.getFile()), symDetails.getRelativePath()));
+        }
+
+        @Override
+        public boolean isReproducibleOrder() {
+            return false;
         }
     }
 }

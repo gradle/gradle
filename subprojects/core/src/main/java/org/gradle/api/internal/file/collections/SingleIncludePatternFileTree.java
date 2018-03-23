@@ -64,10 +64,15 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     }
 
     public void visit(FileVisitor visitor) {
+        visit(new FailOnBrokenSymbolicLinkVisitor(visitor));
+    }
+
+    @Override
+    public void visit(DirectoryElementVisitor visitor) {
         doVisit(visitor, baseDir, new LinkedList<String>(), 0, new AtomicBoolean());
     }
 
-    private void doVisit(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisit(DirectoryElementVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
         if (stopFlag.get()) {
             return;
         }
@@ -108,7 +113,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
         }
     }
 
-    private void doVisitDirOrFile(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisitDirOrFile(DirectoryElementVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
                 RelativePath path = new RelativePath(true, relativePath.toArray(new String[relativePath.size()]));
@@ -121,7 +126,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
             RelativePath path = new RelativePath(false, relativePath.toArray(new String[relativePath.size()]));
             FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
             if (!excludeSpec.isSatisfiedBy(details)) {
-                visitor.visitDir(details);
+                visitor.visitDirectory(details);
             }
             if (segmentIndex < patternSegments.size()) {
                 doVisit(visitor, file, relativePath, segmentIndex, stopFlag);
@@ -139,7 +144,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
+    public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
         visit(visitor);
     }
 }

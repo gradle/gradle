@@ -25,8 +25,10 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.FailOnBrokenSymbolicLinkVisitor;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
@@ -67,6 +69,10 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public void visit(FileVisitor visitor) {
+        visit(new FailOnBrokenSymbolicLinkVisitor(visitor));
+    }
+
+    public void visit(DirectoryElementVisitor visitor) {
         if (!zipFile.exists()) {
             throw new InvalidUserDataException(String.format("Cannot expand %s as it does not exist.", getDisplayName()));
         }
@@ -92,7 +98,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 while (!stopFlag.get() && sortedEntries.hasNext()) {
                     ZipEntry entry = sortedEntries.next();
                     if (entry.isDirectory()) {
-                        visitor.visitDir(new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod));
+                        visitor.visitDirectory(new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod));
                     } else {
                         visitor.visitFile(new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod));
                     }
@@ -193,7 +199,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
+    public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
         File backingFile = getBackingFile();
         if (backingFile!=null) {
             new SingletonFileTree(backingFile).visit(visitor);

@@ -23,6 +23,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor;
+import org.gradle.api.internal.file.collections.FailOnBrokenSymbolicLinkVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -157,7 +159,12 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
+    public FileTree visit(FileVisitor visitor) {
+        return visit(new FailOnBrokenSymbolicLinkVisitor(visitor));
+    }
+
+    @Override
+    public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
         visit(visitor);
     }
 
@@ -186,10 +193,14 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         public FileTree visit(final FileVisitor visitor) {
+            return visit(new FailOnBrokenSymbolicLinkVisitor(visitor));
+        }
+
+        public FileTree visit(final DirectoryElementVisitor visitor) {
             fileTree.visit(new FileVisitor() {
                 public void visitDir(FileVisitDetails dirDetails) {
                     if (spec.isSatisfiedBy(dirDetails)) {
-                        visitor.visitDir(dirDetails);
+                        visitor.visitDirectory(dirDetails);
                     }
                 }
 
@@ -209,7 +220,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public void visitTreeOrBackingFile(FileVisitor visitor) {
+        public void visitTreeOrBackingFile(DirectoryElementVisitor visitor) {
             fileTree.visitTreeOrBackingFile(visitor);
         }
     }

@@ -17,8 +17,10 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.collections.DirectoryElementVisitor;
 
 public interface FileTreeInternal extends FileTree, FileCollectionInternal {
-    void visitTreeOrBackingFile(FileVisitor visitor);
+    void visitTreeOrBackingFile(DirectoryElementVisitor visitor);
+
+    FileTree visit(DirectoryElementVisitor visitor);
 }
