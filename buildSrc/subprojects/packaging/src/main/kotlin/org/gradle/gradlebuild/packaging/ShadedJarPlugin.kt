@@ -17,15 +17,38 @@
 package org.gradle.gradlebuild.packaging
 
 import accessors.base
+import org.gradle.api.Action
+import org.gradle.api.ActionConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.attributes.Attribute
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.*
+
+
+private
+const val relocatedClassesAndAnalysisType = "relocatedClassesAndAnalysis"
+
+
+private
+const val relocatedClassesType = "relocatedClasses"
+
+
+private
+const val entryPointsType = "entryPoints"
+
+
+private
+const val classTreesType = "classTrees"
+
+
+private
+const val manifestsType = "manifests"
 
 
 /**
@@ -34,87 +57,104 @@ import org.gradle.kotlin.dsl.*
  * The shaded jar is added as an artifact to the {@code publishRuntime} configuration.
  */
 open class ShadedJarPlugin : Plugin<Project> {
-    val artifactType: Attribute<String> = Attribute.of("artifactType", String::class.java)
-    val minified: Attribute<Boolean> = Attribute.of("minified", Boolean::class.javaObjectType)
 
     override fun apply(project: Project): Unit = project.run {
+        val shadedJarExtension = createShadedJarExtension(createConfigurationToShade())
 
-        val jarsToShade by configurations.creating
-        jarsToShade.apply {
-            exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
+        registerTransforms(shadedJarExtension)
+
+        val shadedJarTask = addShadedJarTask(shadedJarExtension)
+
+        plugins.withId("gradlebuild.publish-public-libraries") {
+            addShadedJarArtifact(shadedJarTask)
+        }
+    }
+
+    private
+    fun Project.createShadedJarExtension(configurationToShade: Configuration) =
+        extensions.create<ShadedJarExtension>("shadedJar", layout, objects, configurationToShade)
+
+    private
+    fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
+        afterEvaluate {
+            dependencies {
+                registerTransform {
+                    from
+                        .attribute(artifactType, "jar")
+                        .attribute(minified, true)
+                    to.attribute(artifactType, relocatedClassesAndAnalysisType)
+                    artifactTransform(ShadeClassesTransform::class.java) {
+                        params(
+                            "org.gradle.internal.impldep",
+                            shadedJarExtension.keepPackages.get(),
+                            shadedJarExtension.unshadedPackages.get(),
+                            shadedJarExtension.ignoredPackages.get()
+                        )
+                    }
+                }
+            }
+        }
+        dependencies {
+            registerArtifactTypeTransform<FindRelocatedClasses>(relocatedClassesAndAnalysisType, relocatedClassesType)
+            registerArtifactTypeTransform<FindEntryPoints>(relocatedClassesAndAnalysisType, entryPointsType)
+            registerArtifactTypeTransform<FindClassTrees>(relocatedClassesAndAnalysisType, classTreesType)
+            registerArtifactTypeTransform<FindManifests>(relocatedClassesAndAnalysisType, manifestsType)
+        }
+    }
+
+    private
+    fun Project.createConfigurationToShade(): Configuration {
+        val configurationName = "jarsToShade"
+        afterEvaluate {
+            dependencies.add(configurationName, project)
+        }
+
+        return configurations.create(configurationName) {
             attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
             isCanBeResolved = true
             isCanBeConsumed = false
         }
+    }
 
-        val shadedJar = extensions.create<ShadedJarExtension>("shadedJar", layout, objects, jarsToShade)
-
-        dependencies {
-            registerTransform {
-                from.attribute(artifactType, "relocatedClassesAndAnalysis")
-                to.attribute(artifactType, "relocatedClasses")
-                artifactTransform(FindRelocatedClasses::class.java)
-            }
-            registerTransform {
-                from.attribute(artifactType, "relocatedClassesAndAnalysis")
-                to.attribute(artifactType, "entryPoints")
-                artifactTransform(FindEntryPoints::class.java)
-            }
-            registerTransform {
-                from.attribute(artifactType, "relocatedClassesAndAnalysis")
-                to.attribute(artifactType, "classTrees")
-                artifactTransform(FindClassTrees::class.java)
-            }
-            registerTransform {
-                from.attribute(artifactType, "relocatedClassesAndAnalysis")
-                to.attribute(artifactType, "manifests")
-                artifactTransform(FindManifests::class.java)
-            }
-        }
-
+    private
+    fun Project.addShadedJarTask(shadedJarExtension: ShadedJarExtension): ShadedJar {
+        val configurationToShade = shadedJarExtension.shadedConfiguration
         val baseVersion: String by rootProject.extra
         val jar: Jar by tasks
 
-        val toolingApiShadedJar by tasks.creating(ShadedJar::class) {
+        return tasks.create<ShadedJar>("${project.name}ShadedJar") {
             dependsOn(jar)
-            jarFile.set(layout.buildDirectory.file("shaded-jar/gradle-tooling-api-shaded-$baseVersion.jar"))
-            classTreesConfiguration = jarsToShade.artifactViewForType("classTrees")
-            entryPointsConfiguration = jarsToShade.artifactViewForType("entryPoints")
-            relocatedClassesConfiguration = jarsToShade.artifactViewForType("relocatedClasses")
-            manifests = jarsToShade.artifactViewForType("manifests")
-            buildReceiptFile.set(shadedJar.buildReceiptFile)
-        }
-
-        artifacts.add("publishRuntime", mapOf(
-            "file" to toolingApiShadedJar.jarFile.get().asFile,
-            "name" to base.archivesBaseName,
-            "type" to "jar",
-            "builtBy" to toolingApiShadedJar
-        ))
-
-        afterEvaluate {
-            dependencies {
-                registerTransform {
-                    from.attribute(artifactType, "jar").attribute(minified, true)
-                    to.attribute(artifactType, "relocatedClassesAndAnalysis")
-                    artifactTransform(ShadeClassesTransform::class.java) {
-                        params(
-                            "org.gradle.internal.impldep",
-                            shadedJar.keepPackages.get(),
-                            shadedJar.unshadedPackages.get(),
-                            shadedJar.ignoredPackages.get()
-                        )
-                    }
-                }
-
-                add(jarsToShade.name, project)
-            }
+            jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
+            classTreesConfiguration = configurationToShade.artifactViewForType(classTreesType)
+            entryPointsConfiguration = configurationToShade.artifactViewForType(entryPointsType)
+            relocatedClassesConfiguration = configurationToShade.artifactViewForType(relocatedClassesType)
+            manifests = configurationToShade.artifactViewForType(manifestsType)
+            buildReceiptFile.set(shadedJarExtension.buildReceiptFile)
         }
     }
 
+    private
+    fun Project.addShadedJarArtifact(shadedJarTask: ShadedJar) {
+        artifacts.add("publishRuntime", mapOf(
+            "file" to shadedJarTask.jarFile.get().asFile,
+            "name" to base.archivesBaseName,
+            "type" to "jar",
+            "builtBy" to shadedJarTask
+        ))
+    }
+
+    private
     fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artifactView {
         attributes.attribute(artifactType, artifactTypeName)
     }.files
+
+    private
+    inline fun <reified T : ArtifactTransform> DependencyHandler.registerArtifactTypeTransform(fromType: String, toType: String, action: Action<ActionConfiguration> = Action {}) =
+        registerTransform {
+            from.attribute(artifactType, fromType)
+            to.attribute(artifactType, toType)
+            artifactTransform(T::class.java, action)
+        }
 }
 
 

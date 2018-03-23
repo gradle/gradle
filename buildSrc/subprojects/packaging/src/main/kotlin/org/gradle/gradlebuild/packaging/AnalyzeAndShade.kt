@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.packaging
 
+import org.gradle.api.attributes.Attribute
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
@@ -38,6 +39,14 @@ import java.util.zip.ZipEntry
 
 private
 val ignoredPackagePatterns = PackagePatterns(setOf("java"))
+
+
+internal
+val artifactType = Attribute.of("artifactType", String::class.java)
+
+
+internal
+val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 
 
 internal
