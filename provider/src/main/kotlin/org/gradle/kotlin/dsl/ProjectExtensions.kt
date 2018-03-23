@@ -194,10 +194,10 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
 
 
 /**
- * Locates a [Project] property using [Project.findProperty].
+ * Locates a property on [Project].
  */
-operator fun Project.getValue(any: Any?, property: KProperty<*>): Any? =
-    findProperty(property.name)
+operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
+    propertyDelegateFor(this, property)
 
 
 /**

@@ -19,6 +19,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
 
+import kotlin.reflect.KProperty
+
 
 /**
  * Applies the plugin of the given type [T]. Does nothing if the plugin has already been applied.
@@ -32,3 +34,10 @@ import org.gradle.api.plugins.PluginAware
 inline
 fun <reified T : Plugin<Settings>> Settings.apply() =
     (this as PluginAware).apply<T>()
+
+
+/**
+ * Locates a property on [Settings].
+ */
+operator fun Settings.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
+    propertyDelegateFor(this, property)
