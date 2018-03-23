@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
-import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.invocation.BuildController
@@ -29,14 +29,16 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
-import org.gradle.tooling.internal.provider.*
+import org.gradle.tooling.internal.provider.BuildActionResult
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions
+import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class ClientProvidedBuildActionRunnerTest extends Specification {
 
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def action = Mock(SerializedPayload)
     def clientSubscriptions = Mock(BuildClientSubscriptions)
     def buildEventConsumer = Mock(BuildEventConsumer)

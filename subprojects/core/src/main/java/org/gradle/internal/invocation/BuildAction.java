@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.invocation;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 
 /**
  * An object that describes the top level build action to perform, e.g. run some tasks, build a tooling model, run some tests, etc.
  */
 public interface BuildAction {
-    StartParameter getStartParameter();
+    StartParameterInternal getStartParameter();
 }

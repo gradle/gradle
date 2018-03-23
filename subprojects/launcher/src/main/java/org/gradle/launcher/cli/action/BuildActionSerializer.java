@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.cli.action;
 
-import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -69,7 +69,7 @@ public class BuildActionSerializer {
 
         @Override
         public void write(Encoder encoder, ExecuteBuildAction action) throws Exception {
-            StartParameter startParameter = action.getStartParameter();
+            StartParameterInternal startParameter = action.getStartParameter();
 
             // Log configuration
             logLevelSerializer.write(encoder, startParameter.getLogLevel());
@@ -97,12 +97,12 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isSearchUpwards());
 
             // Other stuff
-            encoder.writeBoolean(startParameter.isBuildProjectDependencies());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
             fileListSerializer.write(encoder, startParameter.getInitScripts());
 
             // Flags
+            encoder.writeBoolean(startParameter.isBuildProjectDependencies());
             encoder.writeBoolean(startParameter.isDryRun());
             encoder.writeBoolean(startParameter.isRerunTasks());
             encoder.writeBoolean(startParameter.isProfile());
@@ -117,6 +117,9 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildScan());
             encoder.writeBoolean(startParameter.isNoBuildScan());
             encoder.writeBoolean(startParameter.isInteractive());
+
+            // Deprecations (these should just be rendered on the client instead of being sent to the daemon to send them back again)
+            stringSetSerializer.write(encoder, startParameter.getDeprecations());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -133,7 +136,7 @@ public class BuildActionSerializer {
 
         @Override
         public ExecuteBuildAction read(Decoder decoder) throws Exception {
-            StartParameter startParameter = new StartParameter();
+            StartParameterInternal startParameter = new StartParameterInternal();
 
             // Logging configuration
             startParameter.setLogLevel(logLevelSerializer.read(decoder));
@@ -163,12 +166,12 @@ public class BuildActionSerializer {
             startParameter.setSearchUpwards(decoder.readBoolean());
 
             // Other stuff
-            startParameter.setBuildProjectDependencies(decoder.readBoolean());
             startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setSystemPropertiesArgs(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setInitScripts(fileListSerializer.read(decoder));
 
             // Flags
+            startParameter.setBuildProjectDependencies(decoder.readBoolean());
             startParameter.setDryRun(decoder.readBoolean());
             startParameter.setRerunTasks(decoder.readBoolean());
             startParameter.setProfile(decoder.readBoolean());
@@ -183,6 +186,10 @@ public class BuildActionSerializer {
             startParameter.setBuildScan(decoder.readBoolean());
             startParameter.setNoBuildScan(decoder.readBoolean());
             startParameter.setInteractive(decoder.readBoolean());
+
+            for (String warning : stringSetSerializer.read(decoder)) {
+                startParameter.addDeprecation(warning);
+            }
 
             return new ExecuteBuildAction(startParameter);
         }
