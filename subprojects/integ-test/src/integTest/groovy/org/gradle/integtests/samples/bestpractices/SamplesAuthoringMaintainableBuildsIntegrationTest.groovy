@@ -44,4 +44,17 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractIntegrat
         'dont'     | 'negative example'
         'do'       | 'positive example'
     }
+
+    @UsesSample('userguide/bestPractices/taskGroupDescription')
+    def "can render a task's group and description in tasks report"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds 'tasks'
+
+        then:
+        outputContains("""Documentation tasks
+-------------------
+generateDocs - Generates the HTML documentation for this project.""")
+    }
 }

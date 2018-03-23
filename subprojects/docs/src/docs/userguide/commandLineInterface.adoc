@@ -206,6 +206,7 @@ Running `gradle projects` gives you a list of the sub-projects of the selected p
 
 You also get a project report within build scans. Learn more about https://guides.gradle.org/creating-build-scans/[creating build scans].
 
+[[sec:listing_tasks]]
 ==== Listing tasks
 
 Running `gradle tasks` gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task.
