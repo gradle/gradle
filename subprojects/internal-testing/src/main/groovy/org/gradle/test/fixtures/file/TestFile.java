@@ -410,6 +410,11 @@ public class TestFile extends File {
         return this;
     }
 
+    public TestFile assertIsLink() {
+        assertTrue(String.format("%s is not a link", this), isLink());
+        return this;
+    }
+
     public TestFile assertDoesNotExist() {
         assertFalse(String.format("%s should not exist", this), exists());
         return this;
@@ -574,6 +579,10 @@ public class TestFile extends File {
             return true;
         }
         return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
+    }
+
+    public boolean isLink() {
+        return NativeServices.getInstance().get(FileSystem.class).isSymlink(this);
     }
 
     public TestFile createDir() {
