@@ -19,9 +19,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
 
-import org.gradle.kotlin.dsl.support.dynamicObjectFor
-import org.gradle.kotlin.dsl.support.getPropertyValue
-
 import kotlin.reflect.KProperty
 
 
@@ -42,5 +39,5 @@ fun <reified T : Plugin<Settings>> Settings.apply() =
 /**
  * Locates a property on [Settings].
  */
-operator fun <T> Settings.getValue(any: Any?, property: KProperty<*>): T =
-    dynamicObjectFor(this).getPropertyValue(property.name, property.returnType.isMarkedNullable) { "${this@getValue}" }
+operator fun Settings.provideDelegate(any: Any?, property: KProperty<*>) =
+    propertyDelegateFor(this, property)
