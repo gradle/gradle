@@ -23,6 +23,8 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -95,6 +97,23 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot2.is(snapshot)
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
+    def "fetches details of a directory hierarchy containing a broken symbolic link and caches the result"() {
+        def d = tmpDir.createDir("d")
+        d.createFile("f1")
+        d.createFile("d1/f2")
+        d.createDir("d2")
+        d.file('l1').createLink('m1')
+
+        expect:
+        def snapshot = snapshotter.snapshotDirectoryTree(d)
+        snapshot.path == d.path
+        snapshot.descendants.size() == 5
+
+        def snapshot2 = snapshotter.snapshotDirectoryTree(d)
+        snapshot2.is(snapshot)
+    }
+
     def "fetches details of an empty directory and caches the result"() {
         def d = tmpDir.createDir("d")
 
@@ -118,6 +137,27 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotDirectoryTree(tree)
         snapshot.path == d.path
         snapshot.descendants.size() == 4
+
+        def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
+        snapshot2.is(snapshot)
+
+        def snapshot3 = snapshotter.snapshotDirectoryTree(d)
+        snapshot3.is(snapshot)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "fetches details of a directory tree containing broken symbolic link with no patterns and caches the result"() {
+        def d = tmpDir.createDir("d")
+        d.createFile("f1")
+        d.createFile("d1/f2")
+        d.createDir("d2")
+        d.file('l1').createLink('m1')
+        def tree = TestFiles.directoryFileTreeFactory().create(d)
+
+        expect:
+        def snapshot = snapshotter.snapshotDirectoryTree(tree)
+        snapshot.path == d.path
+        snapshot.descendants.size() == 5
 
         def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
         snapshot2.is(snapshot)
@@ -155,6 +195,39 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot4.is(snapshot3)
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
+    def "fetches details of a directory tree containing broken symbolic links with patterns patterns and does not cache the result"() {
+        def d = tmpDir.createDir("d")
+        d.createFile("f1")
+        d.createFile("d1/f2")
+        d.createFile("d1/f1")
+        d.createDir("d2")
+        d.createFile("d2/f1")
+        d.createFile("d2/f2")
+        d.file('l1').createLink('m1')
+        d.file('d2/l1').createLink('m1')
+        d.file('d2/l2').createLink('m2')
+        def patterns = TestFiles.patternSetFactory.create()
+        patterns.include "**/*1"
+        def tree = TestFiles.directoryFileTreeFactory().create(d, patterns)
+
+        expect:
+        def snapshot = snapshotter.snapshotDirectoryTree(tree)
+        snapshot.path == d.path
+        snapshot.descendants.size() == 7
+
+        def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
+        !snapshot2.is(snapshot)
+
+        def snapshot3 = snapshotter.snapshotDirectoryTree(d)
+        !snapshot3.is(snapshot)
+        snapshot3.descendants.size() == 10
+
+        def snapshot4 = snapshotter.snapshotDirectoryTree(TestFiles.directoryFileTreeFactory().create(d))
+        !snapshot4.is(snapshot)
+        snapshot4.is(snapshot3)
+    }
+
     def "reuses cached unfiltered trees when looking for details of a filtered tree"() {
         given: "An existing snapshot"
         def d = tmpDir.createDir("d")
@@ -179,6 +252,32 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot.descendants*.relativePath*.pathString as Set == ["d1", "d1/f1", "f1"] as Set
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
+    def "reuses cached unfiltered trees containing a broken symbolic link when looking for details of a filtered tree"() {
+        given: "An existing snapshot"
+        def d = tmpDir.createDir("d")
+        d.createFile("f1")
+        d.createFile("d1/f2")
+        d.createFile("d1/f1")
+        d.file('l1').createLink('m1')
+        def unfilteredTree = TestFiles.directoryFileTreeFactory().create(d)
+        snapshotter.snapshotDirectoryTree(unfilteredTree)
+
+        and: "A filtered tree over the same directory"
+        def patterns = TestFiles.patternSetFactory.create()
+        patterns.include "**/*1"
+        DirectoryFileTree filteredTree = Mock(DirectoryFileTree) {
+            getDir() >> d
+            getPatterns() >> patterns
+        }
+
+        when:
+        def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
+
+        then: "The filtered tree uses the cached state"
+        snapshot.descendants*.relativePath*.pathString as Set == ["d1", "d1/f1", "f1", "l1"] as Set
+    }
+
     def "snapshots a file and caches the result"() {
         def f = tmpDir.createFile("f")
 
@@ -190,6 +289,24 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         f << "some other content"
 
         def snapshot2 = snapshotter.snapshotAll(f)
+        hash(snapshot) != hash(snapshot2)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "snapshots a directory containing a broken symbolic link and caches the result"() {
+        def d = tmpDir.createDir('d')
+        def l = d.file("l")
+        l.createLink('m')
+
+        expect:
+        def snapshot = snapshotter.snapshotAll(d)
+        snapshotter.snapshotAll(d).is(snapshot)
+
+        fileSystemMirror.beforeTaskOutputChanged()
+        l.delete()
+        l.createLink('m-alt')
+
+        def snapshot2 = snapshotter.snapshotAll(l)
         hash(snapshot) != hash(snapshot2)
     }
 
@@ -211,6 +328,24 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def f = tmpDir.createDir("dir")
         f.createFile("child1/f")
         f.createFile("child2/f")
+
+        expect:
+        def snapshot = snapshotter.snapshotAll(f)
+        snapshotter.snapshotAll(f).is(snapshot)
+
+        fileSystemMirror.beforeTaskOutputChanged()
+        f.createFile("newFile")
+
+        def snapshot2 = snapshotter.snapshotAll(f)
+        hash(snapshot) != hash(snapshot2)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "snapshots a directory tree containing a symbolic link and caches the result"() {
+        def f = tmpDir.createDir("dir")
+        f.createFile("child1/f")
+        f.createFile("child2/f")
+        f.file("child2/l").createLink('m')
 
         expect:
         def snapshot = snapshotter.snapshotAll(f)
