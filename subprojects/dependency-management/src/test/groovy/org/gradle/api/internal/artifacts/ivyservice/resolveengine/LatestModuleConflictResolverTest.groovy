@@ -21,8 +21,10 @@ import spock.lang.Unroll
 
 class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
+    def messageBuilder = Mock(ModuleResolutionMessageBuilder)
+
     def setup() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator())
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator().asVersionComparator(), messageBuilder)
     }
 
     @Unroll
@@ -54,28 +56,11 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         resolveConflicts()
 
         then:
-        resolutionFailedWith """Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':root:' --> 'org:foo' prefers '1.2'
-   Dependency path ':root:' --> 'org:foo' prefers '1.1', rejects ']1.1,)'
-"""
+        1 * messageBuilder.buildFailureMessage(participants) >> "FAILURE MESSAGE"
+        resolutionFailedWith "FAILURE MESSAGE"
     }
 
-    def "reasonable error message when path to dependency isn't simple"() {
-        given:
-        prefer('1.2', module('org', 'bar', '1.0', module('org', 'baz', '1.0')))
-        strictly('1.1', module('com', 'other', '15'))
-
-        when:
-        resolveConflicts()
-
-        then:
-        resolutionFailedWith """Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':root:' --> 'org:baz:1.0' --> 'org:bar:1.0' --> 'org:foo' prefers '1.2'
-   Dependency path ':root:' --> 'com:other:15' --> 'org:foo' prefers '1.1', rejects ']1.1,)'
-"""
-    }
-
-    def "recognizes a rejectAll clause"() {
+    def "rejectAll can fail conflict resolution"() {
         given:
         prefer('1.2', module('org', 'bar', '1.0', module('org', 'baz', '1.0')))
         participants << module('org', 'foo', '', module('com', 'other', '15')).rejectAll()
@@ -84,10 +69,8 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         resolveConflicts()
 
         then:
-        resolutionFailedWith """Module 'org:foo' has been rejected:
-   Dependency path ':root:' --> 'org:baz:1.0' --> 'org:bar:1.0' --> 'org:foo' prefers '1.2'
-   Dependency path ':root:' --> 'com:other:15' --> 'org:foo' rejects all versions
-"""
+        1 * messageBuilder.buildFailureMessage(participants) >> "FAILURE MESSAGE"
+        resolutionFailedWith "FAILURE MESSAGE"
     }
 
     def "can upgrade non strict version"() {
