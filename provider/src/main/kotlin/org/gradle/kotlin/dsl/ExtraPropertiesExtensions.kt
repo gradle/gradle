@@ -40,20 +40,11 @@ operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: 
     else NonNullExtraPropertyDelegate(this, property.name)
 
 
-/**
- * Enables typed access to extra properties.
- */
-interface ExtraPropertyDelegate {
-    operator fun <T> getValue(receiver: Any?, property: KProperty<*>): T
-    operator fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T)
-}
-
-
 private
 class NonNullExtraPropertyDelegate(
     private val extra: ExtraPropertiesExtension,
     private val name: String
-) : ExtraPropertyDelegate {
+) : MutablePropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T {
         val isFound = extra.has(name)
@@ -71,7 +62,7 @@ private
 class NullableExtraPropertyDelegate(
     private val extra: ExtraPropertiesExtension,
     private val name: String
-) : ExtraPropertyDelegate {
+) : MutablePropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
         uncheckedCast(if (extra.has(name)) extra.get(name) else null)

@@ -27,10 +27,18 @@ import kotlin.reflect.KProperty
 
 
 /**
- * Provides efficient access to a dynamic property.
+ * Provides efficient access to a property.
  */
 interface PropertyDelegate {
     operator fun <T> getValue(receiver: Any?, property: KProperty<*>): T
+}
+
+
+/**
+ * Provides efficient access to a mutable dynamic property.
+ */
+interface MutablePropertyDelegate : PropertyDelegate {
+    operator fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T)
 }
 
 
