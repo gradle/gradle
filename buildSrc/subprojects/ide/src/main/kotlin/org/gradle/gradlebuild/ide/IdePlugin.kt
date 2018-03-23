@@ -278,20 +278,30 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureBuildSrc(root: Element) {
-        val buildSrcModuleFile = "buildSrc/buildSrc.iml"
-        val projectModuleManager = root.select("component[name=ProjectModuleManager]").first()
-        if (file(buildSrcModuleFile).exists()) {
-            val hasBuildSrc = projectModuleManager
-                .select("modules")?.first()
-                ?.select("module[filepath*=buildSrc]")?.isNotEmpty() ?: false
+    val minusLower = "-\\p{Lower}".toRegex()
 
-            if (!hasBuildSrc) {
+    private
+    fun String.toCamelCase() =
+        replace(minusLower) { "${it.value[1].toUpperCase()}" }
+
+    private
+    fun Project.configureBuildSrc(root: Element) {
+        val subprojectModuleFiles = file("buildSrc/subprojects").listFiles().filter { it.isDirectory }.map {
+            val projectName = it.name.toCamelCase()
+            "buildSrc/subprojects/${it.name}/buildSrc-$projectName.iml"
+        }
+        val projectModuleManager = root.select("component[name=ProjectModuleManager]").first()
+        subprojectModuleFiles.filter { file(it).exists() }.forEach { relativeModulePath ->
+            val hasModule = projectModuleManager
+                .select("modules")?.first()
+                ?.select("module[filepath*=$relativeModulePath]")?.isNotEmpty() ?: false
+
+            if (!hasModule) {
                 projectModuleManager
                     .select("modules").first()
                     .appendElement("module")
-                    .attr("fileurl", "file://\$PROJECT_DIR\$/$buildSrcModuleFile")
-                    .attr("filepath", "\$PROJECT_DIR\$/$buildSrcModuleFile")
+                    .attr("fileurl", "file://\$PROJECT_DIR\$/$relativeModulePath")
+                    .attr("filepath", "\$PROJECT_DIR\$/$relativeModulePath")
             }
         }
     }
