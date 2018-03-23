@@ -9,6 +9,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 
 import org.gradle.api.Action
+import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
@@ -16,6 +17,7 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.reflect.TypeOf
+import org.gradle.api.tasks.TaskContainer
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -190,6 +192,22 @@ class ProjectExtensionsTest {
             verify(convention).findByType(eq(conventionType))
             verify(convention).findPlugin(eq(JavaPluginConvention::class.java))
             verify(convention).configure(eq(conventionType), any<Action<JavaPluginConvention>>())
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `can create tasks with injected constructor arguments`() {
+
+        val taskContainer = mock<TaskContainer>()
+        val project = mock<Project>()
+
+        whenever(project.tasks).thenReturn(taskContainer)
+
+        project.task<DefaultTask>("my", "foo", "bar")
+
+        inOrder(taskContainer) {
+            verify(taskContainer).create("my", DefaultTask::class.java, "foo", "bar")
             verifyNoMoreInteractions()
         }
     }

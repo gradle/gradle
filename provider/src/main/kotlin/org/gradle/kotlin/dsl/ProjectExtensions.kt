@@ -157,6 +157,15 @@ fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: 
 
 
 /**
+ * Creates a [Task] with the given [name] and type, passing the given arguments to the [javax.inject.Inject]-annotated constructor,
+ * and adds it to this project tasks container.
+ */
+inline
+fun <reified T : Task> Project.task(name: String, vararg arguments: Any?) =
+    tasks.create(name, T::class.java, *arguments)
+
+
+/**
  * Configures the repositories for this project.
  *
  * Executes the given configuration block against the [RepositoryHandler] for this
