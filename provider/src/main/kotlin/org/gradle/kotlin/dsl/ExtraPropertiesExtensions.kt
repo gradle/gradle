@@ -46,15 +46,16 @@ class NonNullExtraPropertyDelegate(
     private val name: String
 ) : MutablePropertyDelegate {
 
-    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T {
-        val isFound = extra.has(name)
-        val foundValue = if (isFound) extra.get(name) else null
-        return if (isFound && foundValue != null) uncheckedCast(foundValue)
-        else throw InvalidUserCodeException("Cannot get non-null extra property '$name' as it ${if (isFound) "is null" else "does not exist"}")
-    }
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
+        if (!extra.has(name)) cannotGetExtraProperty("does not exist")
+        else uncheckedCast(extra.get(name) ?: cannotGetExtraProperty("is null"))
 
     override fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T) =
         extra.set(property.name, value)
+
+    private
+    fun cannotGetExtraProperty(reason: String): Nothing =
+        throw InvalidUserCodeException("Cannot get non-null extra property '$name' as it $reason")
 }
 
 
