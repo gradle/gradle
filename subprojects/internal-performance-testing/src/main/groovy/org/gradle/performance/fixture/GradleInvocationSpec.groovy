@@ -82,17 +82,14 @@ class GradleInvocationSpec implements InvocationSpec {
     }
 
     static class InvocationBuilder implements InvocationSpec.Builder {
-        Profiler profiler = new YourKitProfiler()
         GradleDistribution gradleDistribution
         File workingDirectory
         List<String> tasksToRun = []
         List<String> args = []
         List<String> gradleOptions = []
-        Map<String, Object> profilerOpts = [:]
         List<String> cleanTasks = []
         boolean useDaemon
         boolean useToolingApi
-        boolean useProfiler
         boolean expectFailure
 
 
@@ -150,8 +147,6 @@ class GradleInvocationSpec implements InvocationSpec {
 
         InvocationBuilder useToolingApi() {
             useToolingApi(true)
-            // Can't use tooling API with profiler yet
-            assert !isUseProfiler()
             this
         }
 
@@ -164,29 +159,6 @@ class GradleInvocationSpec implements InvocationSpec {
             gradleOpts("-D${ParallelismBuildOptions.MaxWorkersOption.GRADLE_PROPERTY}=1")
         }
 
-        InvocationBuilder useProfiler() {
-            useProfiler = true
-            // Can't use tooling API with profiler yet
-            assert !isUseToolingApi()
-            this
-        }
-
-        InvocationBuilder useProfiler(Profiler profiler) {
-            useProfiler()
-            this.profiler = profiler
-            this
-        }
-
-        InvocationBuilder profilerOpts(Map<String, Object> profilerOpts) {
-            this.profilerOpts.putAll(profilerOpts)
-            this
-        }
-
-        InvocationBuilder buildInfo(String displayName, String projectName) {
-            this.profilerOpts.put("sessionname", "$projectName $displayName".replace(' ', "_").toString())
-            this
-        }
-
         @Override
         InvocationSpec.Builder expectFailure() {
             expectFailure = true
@@ -197,14 +169,7 @@ class GradleInvocationSpec implements InvocationSpec {
             assert gradleDistribution != null
             assert workingDirectory != null
 
-            profiler.addProfilerDefaults(this)
-            Set<String> jvmOptsSet = new LinkedHashSet<String>()
-            jvmOptsSet.addAll(gradleOptions)
-            if (useProfiler) {
-                jvmOptsSet.addAll(profiler.profilerArguments(profilerOpts))
-            }
-
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), new ArrayList<String>(jvmOptsSet).asImmutable(), cleanTasks.asImmutable(), useDaemon, useToolingApi, expectFailure)
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), cleanTasks.asImmutable(), useDaemon, useToolingApi, expectFailure)
         }
 
     }

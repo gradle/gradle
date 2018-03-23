@@ -21,8 +21,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentRunner
-import org.gradle.performance.fixture.LogFiles
 import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -71,9 +69,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
         runner.warmUpRuns = iterations - 1
         runner.runs = iterations
-        if (runner.honestProfiler.enabled) {
-            runner.honestProfiler.autoStartStop = false
-        }
 
         def changedFile = fileToChange
         def changeClosure = change
@@ -100,10 +95,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                     println "Changing $file"
                     // do change
                     changeClosure(file, originalContent)
-                    if (runner.honestProfiler.enabled && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
-                        println "Starting honestprofiler"
-                        runner.honestProfiler.start()
-                    }
                 } else if (invocationInfo.iterationNumber > 2) {
                     println "Reverting $file"
                     file.text = originalContent
@@ -115,18 +106,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                 if (invocationInfo.iterationNumber % 2 == 1) {
                     println "Omitting measurement from last run."
                     measurementCallback.omitMeasurement()
-                } else {
-                    if (runner.honestProfiler.enabled && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
-                        println "Stopping honestprofiler"
-                        runner.honestProfiler.stop()
-                        if (invocationInfo.iterationNumber == invocationInfo.iterationMax || (invocationInfo.iterationMax % 2 == 1 && invocationInfo.iterationNumber == invocationInfo.iterationMax - 1)) {
-                            // last invocation, copy log file
-                            def tmpDir = new File(System.getProperty("java.io.tmpdir"))
-                            def destFile = new File(tmpDir, LogFiles.createFileNameForBuildInvocation(invocationInfo, "honestprofiler_", ".hpl"))
-                            println "Copying honestprofiler log to $destFile"
-                            FileUtils.copyFile(runner.honestProfiler.logFile, destFile)
-                        }
-                    }
                 }
             }
         })

@@ -22,9 +22,14 @@ plugins {
 }
 
 val reports by configurations.creating
+val flamegraph by configurations.creating
+configurations.compileOnly.extendsFrom(flamegraph)
 
 repositories {
     javaScript.googleApis()
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
 }
 
 dependencies {
@@ -39,6 +44,8 @@ dependencies {
     compile(library("jgit"))
     compile(library("commons_httpclient"))
     compile(library("jsch"))
+
+    flamegraph("com.github.oehme:jfr-flame-graph:v0.0.5:all")
 
     runtime("com.h2database:h2:1.4.192")
 }
@@ -55,6 +62,13 @@ val reportResources by tasks.creating(Copy::class) {
 }
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir)
+
+tasks {
+    "jar"(Jar::class) {
+        inputs.files(flamegraph)
+        from(files(deferred{ flamegraph.map { zipTree(it) } }))
+    }
+}
 
 testFixtures {
     from(":core", "main")

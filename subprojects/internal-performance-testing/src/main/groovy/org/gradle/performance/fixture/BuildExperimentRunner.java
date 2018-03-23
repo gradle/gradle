@@ -35,7 +35,7 @@ public class BuildExperimentRunner {
 
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
-    private final HonestProfilerCollector honestProfiler;
+    private final Profiler profiler;
 
     public enum Phase {
         WARMUP,
@@ -48,12 +48,12 @@ public class BuildExperimentRunner {
 
     public BuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
-        honestProfiler = new HonestProfilerCollector();
-        dataCollector = new CompositeDataCollector(honestProfiler);
+        profiler = new JfrProfiler();
+        dataCollector = new CompositeDataCollector(profiler);
     }
 
-    public HonestProfilerCollector getHonestProfiler() {
-        return honestProfiler;
+    public Profiler getProfiler() {
+        return profiler;
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -72,7 +72,7 @@ public class BuildExperimentRunner {
 
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
-            honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
+            profiler.setUseDaemon(invocation.getUseDaemon());
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());

@@ -35,7 +35,6 @@ import org.junit.Rule
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     private static interface ReporterAndStore extends DataReporter, ResultsStore {}
 
-    private static final String MOST_RECENT_SNAPSHOT = "2.11-20160101120000+0000"
     private static final String MOST_RECENT_RELEASE = "2.10"
 
     @Rule
@@ -150,7 +149,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * reporter.report(_)
-        1 * experimentRunner.getHonestProfiler()
+        1 * experimentRunner.getProfiler()
         0 * _._
     }
 
@@ -170,7 +169,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             result.add(operation(totalTime: Duration.seconds(10)))
         }
         1 * reporter.report(_)
-        1 * experimentRunner.getHonestProfiler()
+        1 * experimentRunner.getProfiler()
         0 * _._
     }
 

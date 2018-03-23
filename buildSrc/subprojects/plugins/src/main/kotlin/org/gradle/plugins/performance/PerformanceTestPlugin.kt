@@ -42,8 +42,7 @@ object PropertyNames {
     const val dbUsername = "org.gradle.performance.db.username"
     const val dbPassword = "org.gradle.performance.db.password"
 
-    const val useYourkit = "org.gradle.performance.use_yourkit"
-    const val honestProfiler = "org.gradle.performance.honestprofiler"
+    const val flameGraphTargetDir = "org.gradle.performance.flameGraphTargetDir"
 
     const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
     const val channel = "org.gradle.performance.execution.channel"
@@ -353,14 +352,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
 
-            if (project.hasProperty(PropertyNames.useYourkit)) {
-                testLogging.showStandardStreams = true
-                systemProperties[PropertyNames.useYourkit] = "1"
-                outputs.upToDateWhen { false }
-            }
-            if (project.hasProperty(PropertyNames.honestProfiler)) {
-                systemProperties[PropertyNames.honestProfiler] = "1"
-            }
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
             }
@@ -428,6 +419,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
                 systemProperty(PropertyNames.baselines, baselines)
             }
+
+            jvmArgs("-Xmx1g", "-XX:+HeapDumpOnOutOfMemoryError")
 
             dependsOn(prepareSamplesTask)
             finalizedBy(performanceReportTask)
