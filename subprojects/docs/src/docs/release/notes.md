@@ -143,6 +143,10 @@ Task types `org.gradle.language.assembler.tasks.Assemble`, `org.gradle.language.
 
 TBD - This method is not longer available, so that a `BuildIdentifier` instance may be used to represent a build from anywhere in the Gradle invocation.
 
+### Removed incubating package `org.gradle.api.artifacts.cache`
+
+All interfaces in this package were incubating and there was no public API to obtain instances of any of these interfaces.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
