@@ -21,10 +21,9 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.support.filter
 
 import java.io.File
-import java.util.jar.JarFile
 
 
-const val buildSrcSourceRootsResourcePath = "META-INF/services/gradle/buildSrcLocalSourcePath.txt"
+const val buildSrcSourceRootsFilePath = "source-roots/buildSrc/source-roots.txt"
 
 
 object SourcePathProvider {
@@ -37,7 +36,7 @@ object SourcePathProvider {
     ): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
-        val projectBuildSrcRoots = buildSrcRootsOf(classPath, projectDir)
+        val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
         val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it, sourceDistributionResolver) } ?: emptyList()
 
         return gradleKotlinDslJar + projectBuildSrcRoots + gradleSourceRoots
@@ -47,20 +46,12 @@ object SourcePathProvider {
      * Returns source directories from buildSrc if any.
      */
     private
-    fun buildSrcRootsOf(classPath: ClassPath, projectRoot: File): Collection<File> =
-        buildSrcJarFileOf(classPath)?.let { jar -> buildSrcRootsOf(jar, projectRoot) }
+    fun buildSrcRootsOf(projectRoot: File): Collection<File> =
+        projectRoot.resolve("buildSrc/build/$buildSrcSourceRootsFilePath")
+            .takeIf { it.isFile }
+            ?.readLines()
+            ?.map { projectRoot.resolve("buildSrc/$it") }
             ?: buildSrcRootsFallbackFor(projectRoot)
-
-    private
-    fun buildSrcJarFileOf(classPath: ClassPath) =
-        classPath.asFiles.find { it.name == "buildSrc.jar" && it.isFile }?.let { JarFile(it) }
-
-    private
-    fun buildSrcRootsOf(buildSrcJarFile: JarFile, projectRoot: File) =
-        buildSrcJarFile.getJarEntry(buildSrcSourceRootsResourcePath)
-            ?.let { buildSrcJarFile.getInputStream(it) }
-            ?.bufferedReader()
-            ?.use { it.readLines().map { projectRoot.resolve("buildSrc/$it") } }
 
     private
     fun buildSrcRootsFallbackFor(projectRoot: File) =

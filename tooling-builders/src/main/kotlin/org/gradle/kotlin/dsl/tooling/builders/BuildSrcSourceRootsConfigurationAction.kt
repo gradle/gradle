@@ -29,17 +29,12 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.jvm.tasks.Jar
 
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.inClassPathMode
-import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsResourcePath
-
-
-private
-const val buildSrcSourceRootsGeneratedDirectoryPath = "generated-resources/buildSrcLocalSourcePath"
+import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
 
 
 internal
@@ -57,25 +52,17 @@ class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationActio
     fun Project.configureBuildSrcSourceRootsTask() {
         plugins.withType<JavaBasePlugin> {
             tasks {
-                val generatedResourcesDir = layout.buildDirectory.dir(buildSrcSourceRootsGeneratedDirectoryPath)
                 val generateSourceRoots by creating(GenerateSourceRootsFile::class) {
-                    sourceRoots.set(provider {
-                        projectDependenciesSourceRootsFrom("runtimeClasspath")
-                    })
-                    destinationFile.set(provider {
-                        generatedResourcesDir.get().file(buildSrcSourceRootsResourcePath)
-                    })
+                    sourceRoots.set(projectDependenciesSourceRootsFrom("runtimeClasspath"))
+                    destinationFile.set(layout.buildDirectory.file(buildSrcSourceRootsFilePath))
                 }
-                "jar"(Jar::class) {
-                    dependsOn(generateSourceRoots)
-                    from(generatedResourcesDir)
-                }
+                getByName("jar").finalizedBy(generateSourceRoots)
             }
         }
     }
 
     private
-    fun Project.projectDependenciesSourceRootsFrom(configurationName: String) =
+    fun Project.projectDependenciesSourceRootsFrom(configurationName: String) = provider {
         configurations.getByName(configurationName).incoming.resolutionResult.allComponents.asSequence()
             .projectDependenciesIdentifiers()
             .map { project(it.projectPath) }
@@ -83,6 +70,7 @@ class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationActio
             .allSourceSetsRoots()
             .map { it.relativeTo(rootDir).path }
             .toList()
+    }
 
     private
     fun Sequence<ResolvedComponentResult>.projectDependenciesIdentifiers() =
