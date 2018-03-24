@@ -222,11 +222,9 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withKotlinBuildSrc()
         withSettings("""include(":sub")""")
 
-        val sourcePath = sourcePathFor(withFile("sub/build.gradle.kts"))
-
-        assertSourcePathIncludesBuildSrcProjectDependenciesSources(
-            sourcePath,
-            mapOf(":" to SourceRoots(listOf(Language.java, Language.kotlin))))
+        assertThat(
+            sourcePathFor(withFile("sub/build.gradle.kts")),
+            matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
     }
 
     @Test
@@ -235,8 +233,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         val sourceRoots = withMultiProjectKotlinBuildSrc()
         withSettings("""include(":sub")""")
 
-        val sourcePath = sourcePathFor(withFile("sub/build.gradle.kts"))
-
-        assertSourcePathIncludesBuildSrcProjectDependenciesSources(sourcePath, sourceRoots)
+        assertThat(
+            sourcePathFor(withFile("sub/build.gradle.kts")),
+            matchesProjectsSourceRoots(*sourceRoots))
     }
 }

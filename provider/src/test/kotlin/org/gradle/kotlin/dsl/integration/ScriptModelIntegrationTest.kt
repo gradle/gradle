@@ -76,36 +76,41 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     fun sourcePathFor(scriptFile: File) =
         kotlinBuildScriptModelFor(projectRoot, scriptFile).sourcePath
 
+    protected
+    class ProjectSourceRoots(val projectDir: File, val sourceSets: List<String>, val languages: List<String>)
 
     protected
-    data class SourceRoots(val languages: List<Language>, val sourceSets: List<String> = listOf("main"))
+    fun withMainSourceSetJavaIn(projectDir: String) =
+        ProjectSourceRoots(existing(projectDir), listOf("main"), listOf("java"))
 
     protected
-    enum class Language { java, kotlin }
+    fun withMainSourceSetJavaKotlinIn(projectDir: String) =
+        ProjectSourceRoots(existing(projectDir), listOf("main"), listOf("java", "kotlin"))
 
     protected
-    fun assertSourcePathIncludesBuildSrcProjectDependenciesSources(sourcePath: List<File>, sourceRootsByProject: Map<String, SourceRoots>) {
-        val sourcePathPaths = sourcePath.map { it.path }
-        sourceRootsByProject.forEach { projectPath, sourceRoots ->
+    fun matchesProjectsSourceRoots(vararg projectSourceRoots: ProjectSourceRoots): Matcher<Iterable<File>> {
+
+        fun hasLanguageDir(base: File, set: String, lang: String): Matcher<Iterable<*>> =
+            hasItem(base.resolve("src/$set/$lang"))
+
+        val all = mutableListOf<Matcher<Iterable<*>>>()
+        projectSourceRoots.forEach { sourceRoots ->
             if (sourceRoots.languages.isEmpty()) return@forEach
-            val projectDir =
-                if (projectPath == ":") "buildSrc"
-                else "buildSrc/${projectPath.drop(1).replace(":", "/")}"
             sourceRoots.sourceSets.forEach { sourceSet ->
-                assertThat(sourcePathPaths, hasItem(endsWith("$projectDir/src/$sourceSet/resources")))
-                Language.values().forEach { language ->
-                    if (language in sourceRoots.languages) {
-                        assertThat(sourcePathPaths, hasItem(endsWith("$projectDir/src/$sourceSet/$language")))
-                    } else {
-                        assertThat(sourcePathPaths, not(hasItem(endsWith("$projectDir/src/$sourceSet/$language"))))
-                    }
+                listOf("java", "kotlin").forEach { language ->
+                    val hasLanguageDir = hasLanguageDir(sourceRoots.projectDir, sourceSet, language)
+                    all +=
+                        if (language in sourceRoots.languages) hasLanguageDir
+                        else not(hasLanguageDir)
                 }
+                all += hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
             }
         }
+        return allOf(*all.toTypedArray())
     }
 
     protected
-    fun withMultiProjectKotlinBuildSrc(): Map<String, SourceRoots> {
+    fun withMultiProjectKotlinBuildSrc(): Array<ProjectSourceRoots> {
         withFile("buildSrc/settings.gradle.kts", """include(":a", ":b", ":c")""")
         withFile("buildSrc/build.gradle.kts", """
             plugins {
@@ -128,11 +133,11 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
         withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
         withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
 
-        return mapOf(
-            ":" to SourceRoots(listOf(Language.java)),
-            ":a" to SourceRoots(listOf(Language.java, Language.kotlin)),
-            ":b" to SourceRoots(listOf(Language.java, Language.kotlin)),
-            ":c" to SourceRoots(listOf(Language.java)))
+        return arrayOf(
+            withMainSourceSetJavaIn("buildSrc"),
+            withMainSourceSetJavaKotlinIn("buildSrc/a"),
+            withMainSourceSetJavaKotlinIn("buildSrc/b"),
+            withMainSourceSetJavaIn("buildSrc/c"))
     }
 
     protected
