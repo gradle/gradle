@@ -34,6 +34,7 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.provider.inClassPathMode
 import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsResourcePath
 
 
@@ -45,8 +46,10 @@ internal
 class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationAction {
 
     override fun execute(project: ProjectInternal) = project.run {
-        afterEvaluate {
-            configureBuildSrcSourceRootsTask()
+        if (inClassPathMode()) {
+            afterEvaluate {
+                configureBuildSrcSourceRootsTask()
+            }
         }
     }
 

@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.concurrent.tapi
-import org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory
+import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.ModelBuilder
@@ -86,7 +86,7 @@ fun org.gradle.tooling.ProjectConnection.modelBuilderFor(request: KotlinBuildScr
 
 private
 val modelSpecificJvmOptions =
-    listOf("-D${KotlinScriptPluginFactory.Companion.modeSystemPropertyName}=${KotlinScriptPluginFactory.Companion.classPathMode}")
+    listOf("-D${KotlinDslProviderMode.systemPropertyName}=${KotlinDslProviderMode.classPathMode}")
 
 
 const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
