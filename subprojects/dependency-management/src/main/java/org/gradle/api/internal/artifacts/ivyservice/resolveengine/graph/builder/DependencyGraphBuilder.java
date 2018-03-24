@@ -350,8 +350,8 @@ public class DependencyGraphBuilder {
         // TODO:DAZ This should probably be done as a DependencyGraphVisitor inside `assembleResult`
         for (ModuleResolveState module : resolveState.getModules()) {
             // TODO:DAZ Need a better way to signal rejection
-            if (module.getSelected() != null && module.getSelected().getRejectionReason() != null) {
-                throw new GradleException(module.getSelected().getRejectionReason());
+            if (module.getSelected() != null && module.getSelected().isRejected()) {
+                throw new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
             }
         }
     }

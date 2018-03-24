@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.RejectedComponentMessageBuilder;
 
 import java.util.Collection;
 
@@ -31,11 +30,9 @@ public class RejectCheckingConflictResolverDetails<T extends ComponentResolution
         String version = selected.getVersion();
 
         // TODO:DAZ Should be setting this earlier, not during conflict resolution
-        // Currently, the message-building algorithm depends on the post-conflict-resolve state
         for (T candidate : getCandidates()) {
             if (candidate.getVersionConstraint() != null && candidate.getVersionConstraint().getRejectedSelector() != null && candidate.getVersionConstraint().getRejectedSelector().accept(version)) {
-                String message = new RejectedComponentMessageBuilder().buildFailureMessage(getCandidates());
-                selected.reject(message);
+                selected.reject();
                 break;
             }
         }

@@ -68,8 +68,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private ResolvedVersionConstraint mergedVersionConstraint;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
-    // TODO:DAZ Should model this better
-    private String rejectMessage;
+    private boolean rejected;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
         this.resultId = resultId;
@@ -342,14 +341,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public void reject(String message) {
-        this.rejectMessage = message;
+    public void reject() {
+        this.rejected = true;
 
     }
 
     @Override
-    public String getRejectionReason() {
-        return rejectMessage;
+    public boolean isRejected() {
+        return rejected;
     }
 
 

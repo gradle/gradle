@@ -127,7 +127,7 @@ class SelectorState implements DependencyGraphSelector {
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
-            failureSelectionReason = createFailureReason();
+            failureSelectionReason = getReasonForSelector();
         }
 
         this.idResolveResult = idResolveResult;
@@ -168,7 +168,7 @@ class SelectorState implements DependencyGraphSelector {
         return failureSelectionReason;
     }
 
-    private ComponentSelectionReasonInternal createFailureReason() {
+    public ComponentSelectionReasonInternal getReasonForSelector() {
         List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(2);
         descriptors.add(selectionDescriptionForDependency(dependencyMetadata));
         if (dependencyState.getRuleDescriptor() != null) {

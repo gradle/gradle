@@ -801,7 +801,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                         }
                     }
                 }
-                conf 'org:bar:1' // When this is selected, the previous constraint is forgotten when resolving conflict
+                conf 'org:bar:1'
                 conf 'org:foo:2' // Brings in org:bar:2, which is chosen over org:bar:1 in conflict resolution
             }
 """
@@ -824,7 +824,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:bar' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:bar' prefers '1', rejects ']1,)'
+   Dependency path ':test:unspecified' --> 'org:bar' prefers '1'
+   Constraint path ':test:unspecified' --> 'org:bar' prefers '1', rejects ']1,)'
    Dependency path ':test:unspecified' --> 'org:foo:2' --> 'org:bar' prefers '2'""")
     }
 
