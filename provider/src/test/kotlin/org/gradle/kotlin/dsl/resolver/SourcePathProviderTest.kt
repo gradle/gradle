@@ -16,6 +16,10 @@ import org.junit.Test
 
 class SourcePathProviderTest : FolderBasedTest() {
 
+    /**
+     * This unit test can't rely on `BuildSrcSourceRootsConfigurationAction`
+     * it is testing the fallback behavior of [SourcePathProvider]
+     */
     @Test
     fun `given buildSrc folder, it will fallback to approximate buildSrc source roots`() {
         withFolders {
