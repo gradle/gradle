@@ -224,27 +224,27 @@ public class DependencyGraphBuilder {
             return;
         }
 
-        ComponentState moduleRevision = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
-        dependency.start(moduleRevision);
-        selector.select(moduleRevision);
+        ComponentState candidate = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        dependency.start(candidate);
+        selector.select(candidate);
 
         ModuleResolveState module = selector.getTargetModule();
-        if (tryCompatibleSelection(resolveState, moduleRevision, module)) {
+        if (tryCompatibleSelection(resolveState, candidate, module)) {
             return;
         }
 
         // Check for a new conflict
-        if (moduleRevision.isSelectable()) {
+        if (candidate.isSelectable()) {
 
             // A new module revision. Check for conflict
             PotentialConflict c = moduleConflictHandler.registerCandidate(module);
             if (!c.conflictExists()) {
                 // No conflict. Select it for now
-                LOGGER.debug("Selecting new module version {}", moduleRevision);
-                module.select(moduleRevision);
+                LOGGER.debug("Selecting new module version {}", candidate);
+                module.select(candidate);
             } else {
                 // We have a conflict
-                LOGGER.debug("Found new conflicting module version {}", moduleRevision);
+                LOGGER.debug("Found new conflicting module version {}", candidate);
 
                 // Deselect the currently selected version, and remove all outgoing edges from the version
                 // This will propagate through the graph and prune configurations that are no longer required
