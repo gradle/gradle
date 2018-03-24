@@ -10,6 +10,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.withFolders
@@ -163,6 +164,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         )
     }
 
+    @LeaksFileHandles
     @Test
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
