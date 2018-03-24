@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import com.google.common.base.Charsets
 import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
@@ -34,8 +33,8 @@ class FlameGraphGenerator {
     private static File createFlameGraphScript() {
         URL flamegraphResource = JfrProfiler.getResource("flamegraph.pl")
         File flamegraphScript = File.createTempFile("flamegraph", ".pl")
+        Resources.asByteSource(flamegraphResource).copyTo(Files.asByteSink(flamegraphScript))
         flamegraphScript.deleteOnExit()
-        Resources.asCharSource(flamegraphResource, Charsets.UTF_8).copyTo(Files.asCharSink(flamegraphScript, Charsets.UTF_8))
         flamegraphScript.setExecutable(true)
         flamegraphScript
     }

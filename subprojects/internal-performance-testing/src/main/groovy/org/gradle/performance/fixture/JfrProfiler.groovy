@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.io.Files
+import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.gradle.performance.util.JCmd
@@ -31,15 +33,25 @@ import org.gradle.performance.util.JCmd
 class JfrProfiler extends Profiler {
 
     private final File logDirectory
+    private final File config
     private final JCmd jCmd
     private final PidInstrumentation pid
     private final JfrFlameGraphGenerator flameGraphGenerator
 
     JfrProfiler(File targetDir) {
         logDirectory = targetDir
+        config = createConfig()
         jCmd = new JCmd()
         flameGraphGenerator = new JfrFlameGraphGenerator()
         pid = new PidInstrumentation()
+    }
+
+    private static File createConfig() {
+        URL jfcResource = JfrProfiler.getResource("gradle.jfc")
+        File jfcFile = File.createTempFile("gradle", ".jfc")
+        Resources.asByteSource(jfcResource).copyTo(Files.asByteSink(jfcFile))
+        jfcFile.deleteOnExit()
+        jfcFile
     }
 
     @Override
@@ -48,7 +60,7 @@ class JfrProfiler extends Profiler {
         def jfrFile = getJfrFile(spec)
         jfrFile.parentFile.mkdirs()
         if (!useDaemon(spec)) {
-            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=profile"
+            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=$config"
         }
         ["-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:FlightRecorderOptions=$flightRecordOptions", "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"] as List<String>
     }
@@ -66,7 +78,7 @@ class JfrProfiler extends Profiler {
 
     void start(BuildExperimentSpec spec) {
         if (useDaemon(spec)) {
-            jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=profile")
+            jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=$config")
         }
     }
 
