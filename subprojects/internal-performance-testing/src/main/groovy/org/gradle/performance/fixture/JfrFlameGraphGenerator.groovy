@@ -35,9 +35,8 @@ class JfrFlameGraphGenerator {
     private final FlameGraphSanitizer flameGraphSanitizer = new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
         (~'build_([a-z0-9]+)'): 'build script',
         (~'settings_([a-z0-9]+)'): 'settings script',
-        (~'org[.]gradle[.]'): '',
-        (~'sun[.]reflect[.]GeneratedMethodAccessor[0-9]+'): 'GeneratedMethodAccessor',
-        (~'com[.]sun[.]proxy[.][$]Proxy[0-9]+'): 'Proxy'
+        (~'GeneratedMethodAccessor[0-9]+'): 'GeneratedMethodAccessor',
+        (~'Proxy[0-9]+'): 'Proxy'
     ))
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
@@ -50,7 +49,7 @@ class JfrFlameGraphGenerator {
 
     private File collapseStacks(File jfrRecording) {
         File stacks = new File(jfrRecording.parentFile, "stacks.txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i")
+        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i", "-sn")
         stacks
     }
 
