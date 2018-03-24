@@ -16,40 +16,27 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.performance.measure.MeasuredOperation;
-
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
 class NoopProfiler extends Profiler {
     @Override
-    public void setVersionUnderTest(String versionUnderTest) {
-
-    }
-
-    @Override
-    public void setScenarioUnderTest(String scenarioUnderTest) {
-
-    }
-
-    @Override
-    public void setUseDaemon(boolean useDaemon) {
-
-    }
-
-    @Override
-    public List<String> getAdditionalJvmOpts(File workingDir) {
+    public List<String> getAdditionalJvmOpts(BuildExperimentSpec spec) {
         return Collections.emptyList();
     }
 
     @Override
-    public List<String> getAdditionalArgs(File workingDir) {
+    public List<String> getAdditionalGradleArgs(BuildExperimentSpec spec) {
         return Collections.emptyList();
     }
 
     @Override
-    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
+    public void start(BuildExperimentSpec spec) {
+
+    }
+
+    @Override
+    public void stop(BuildExperimentSpec spec) {
 
     }
 }

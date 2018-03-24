@@ -95,7 +95,9 @@ class ForkingGradleSession implements GradleSession {
         args += invocation.args
 
         ProcessBuilder run = newProcessBuilder(invocationInfo, args + tasks, env)
-        stop = newProcessBuilder(invocationInfo, args + "--stop", env)
+        if (invocation.useDaemon) {
+            stop = newProcessBuilder(invocationInfo, args + "--stop", env)
+        }
 
         def exitCode = run.start().waitFor()
         if (exitCode != 0 && !invocation.expectFailure) {

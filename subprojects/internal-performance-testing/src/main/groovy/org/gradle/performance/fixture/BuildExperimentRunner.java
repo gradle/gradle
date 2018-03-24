@@ -17,12 +17,9 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.util.GFileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,9 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
-
-    private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
     private final Profiler profiler;
 
@@ -42,14 +36,9 @@ public class BuildExperimentRunner {
         MEASUREMENT
     }
 
-    protected DataCollector getDataCollector() {
-        return dataCollector;
-    }
-
     public BuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
         profiler = Profiler.create();
-        dataCollector = new CompositeDataCollector(profiler);
     }
 
     public Profiler getProfiler() {
@@ -72,9 +61,8 @@ public class BuildExperimentRunner {
 
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
-            profiler.setUseDaemon(invocation.getUseDaemon());
-            final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
-            final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
+            final List<String> additionalJvmOpts = profiler.getAdditionalJvmOpts(experiment);
+            final List<String> additionalArgs = new ArrayList<String>(profiler.getAdditionalGradleArgs(experiment));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
@@ -84,7 +72,6 @@ public class BuildExperimentRunner {
                 performMeasurements(session, experiment, results, workingDirectory);
             } finally {
                 session.cleanup();
-                CompositeStoppable.stoppable(dataCollector).stop();
             }
         }
     }
@@ -97,7 +84,9 @@ public class BuildExperimentRunner {
 
     protected void performMeasurements(final InvocationExecutorProvider session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
         doWarmup(experiment, projectDir, session);
+        profiler.start(experiment);
         doMeasure(experiment, results, projectDir, session);
+        profiler.stop(experiment);
     }
 
     private void doMeasure(BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir, InvocationExecutorProvider session) {
@@ -119,7 +108,7 @@ public class BuildExperimentRunner {
                     final List<String> iterationInfoArguments = createIterationInfoArguments(info.getPhase(), info.getIterationNumber(), info.getIterationMax());
                     GradleInvocationSpec gradleInvocationSpec = ((GradleInvocationSpec) invocationSpec).withAdditionalArgs(iterationInfoArguments);
                     System.out.println("Run Gradle using JVM opts: " + gradleInvocationSpec.getJvmOpts());
-                    if(info.getBuildExperimentSpec().getInvocationCustomizer() != null) {
+                    if (info.getBuildExperimentSpec().getInvocationCustomizer() != null) {
                         gradleInvocationSpec = info.getBuildExperimentSpec().getInvocationCustomizer().customize(info, gradleInvocationSpec);
                     }
                     return (T) gradleInvocationSpec;
@@ -184,7 +173,7 @@ public class BuildExperimentRunner {
     }
 
     protected void runOnce(
-            final InvocationExecutorProvider session,
+        final InvocationExecutorProvider session,
         final MeasuredOperationList results,
         final BuildExperimentInvocationInfo invocationInfo) {
         BuildExperimentSpec experiment = invocationInfo.getBuildExperimentSpec();
@@ -212,9 +201,6 @@ public class BuildExperimentRunner {
         }
 
         if (!omitMeasurement.get()) {
-            if (operation.isValid()) {
-                dataCollector.collect(invocationInfo, operation);
-            }
             results.add(operation);
         }
     }

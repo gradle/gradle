@@ -72,7 +72,7 @@ import spock.lang.Specification
 /**
  * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
  *
- * TODO collect profiling data with {@link org.gradle.performance.fixture.JfrProfiler}
+ * TODO collect profiling data with {@link org.gradle.performance.fixture.Profiler}
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory

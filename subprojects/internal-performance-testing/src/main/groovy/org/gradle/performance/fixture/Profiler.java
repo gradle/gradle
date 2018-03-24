@@ -19,8 +19,9 @@ package org.gradle.performance.fixture;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
+import java.util.List;
 
-public abstract class Profiler implements DataCollector {
+public abstract class Profiler {
     private static final String TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
 
     public static Profiler create() {
@@ -32,9 +33,11 @@ public abstract class Profiler implements DataCollector {
         }
     }
 
-    public abstract void setVersionUnderTest(String versionUnderTest);
+    public abstract List<String> getAdditionalJvmOpts(BuildExperimentSpec spec);
 
-    public abstract void setScenarioUnderTest(String scenarioUnderTest);
+    public abstract List<String> getAdditionalGradleArgs(BuildExperimentSpec spec);
 
-    public abstract void setUseDaemon(boolean useDaemon);
+    public abstract void start(BuildExperimentSpec spec);
+
+    public abstract void stop(BuildExperimentSpec spec);
 }

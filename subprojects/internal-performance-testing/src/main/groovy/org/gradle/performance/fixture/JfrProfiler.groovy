@@ -18,17 +18,12 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.util.JCmd
-
-import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
-import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 
 /**
  * Profiles performance test scenarios using the Java Flight Recorder.
  *
  * TODO support pause/resume so we can exclude clean tasks from measurement
- * TODO remove setters for useDaemon/versionUnderTest/scenarioUnderTest, this should all be available from BuildExperimentInvocationInfo
  * TODO move flamegraph generation to buildSrc and offer it as a task so it can be used when people send us .jfr files
  */
 @CompileStatic
@@ -40,10 +35,6 @@ class JfrProfiler extends Profiler {
     private final PidInstrumentation pid
     private final JfrFlameGraphGenerator flameGraphGenerator
 
-    boolean useDaemon
-    String versionUnderTest
-    String scenarioUnderTest
-
     JfrProfiler(File targetDir) {
         logDirectory = targetDir
         jCmd = new JCmd()
@@ -52,52 +43,46 @@ class JfrProfiler extends Profiler {
     }
 
     @Override
-    List<String> getAdditionalJvmOpts(File workingDir) {
+    List<String> getAdditionalJvmOpts(BuildExperimentSpec spec) {
         String flightRecordOptions = "stackdepth=1024"
-        if (!useDaemon) {
-            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=$jfrFile,settings=profile"
+        def jfrFile = getJfrFile(spec)
+        jfrFile.parentFile.mkdirs()
+        if (!useDaemon(spec)) {
+            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=profile"
         }
         ["-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:FlightRecorderOptions=$flightRecordOptions", "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"] as List<String>
     }
 
-
     @Override
-    List<String> getAdditionalArgs(File workingDir) {
+    List<String> getAdditionalGradleArgs(BuildExperimentSpec spec) {
         pid.gradleArgs
     }
 
-    @Override
-    void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
-        if (isEndOf(invocationInfo, WARMUP) && useDaemon) {
-            start()
-        }
-        if (isEndOf(invocationInfo, MEASUREMENT)) {
-            scenarioBaseDir.mkdirs()
-            if (useDaemon) {
-                stop()
-            }
-            flameGraphGenerator.generateGraphs(jfrFile)
+    private File getJfrFile(BuildExperimentSpec spec) {
+        def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
+        def baseDir = new File(logDirectory, fileSafeName)
+        new File(baseDir, "profile.jfr")
+    }
+
+    void start(BuildExperimentSpec spec) {
+        if (useDaemon(spec)) {
+            jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=profile")
         }
     }
 
-    private boolean isEndOf(BuildExperimentInvocationInfo invocationInfo, BuildExperimentRunner.Phase phase) {
-        invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == phase
+    void stop(BuildExperimentSpec spec) {
+        def jfrFile = getJfrFile(spec)
+        if (useDaemon(spec)) {
+            jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
+        }
+        flameGraphGenerator.generateGraphs(jfrFile)
     }
 
-    private File getScenarioBaseDir() {
-        def fileSafeScenarioName = scenarioUnderTest.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        new File(logDirectory, fileSafeScenarioName + "/" + versionUnderTest)
-    }
-
-    private File getJfrFile() {
-        new File(scenarioBaseDir, "profile.jfr")
-    }
-
-    private void start() {
-        jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=profile")
-    }
-
-    private void stop() {
-        jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
+    private boolean useDaemon(BuildExperimentSpec spec) {
+        if (spec instanceof GradleBuildExperimentSpec) {
+            (spec.invocation as GradleInvocationSpec).useDaemon
+        } else {
+            false
+        }
     }
 }
