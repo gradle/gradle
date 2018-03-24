@@ -82,64 +82,54 @@ class JfrFlameGraphGenerator {
     }
 
     private static enum DetailLevel {
-        RAW{
-            @Override
-            List<String> getStackConversionOptions() {
-                []
-            }
+        RAW(
+            [],
+            ["--minwidth", "0.5"],
+            ["--minwidth", "1"],
+            new FlameGraphSanitizer({ it })
+        ),
+        SIMPLIFIED(
+            ["--hide-arguments", "--ignore-line-numbers", "--use-simple-names"],
+            ["--minwidth", "1"],
+            ["--minwidth", "2"],
+            new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
+                (~'build_([a-z0-9]+)'): 'build script',
+                (~'settings_([a-z0-9]+)'): 'settings script',
+                (~'.*BuildOperation.*'): 'build operations',
+                (~'.*(CommandLine|Execut[eo]r|Execution|Runner|BuildController).*'): 'execution infrastructure',
+                (~'.*(PluginManager|ObjectConfigurationAction|PluginTarget|PluginAware|Script.apply|ScriptPlugin|ScriptTarget|ScriptRunner).*'): 'plugin management',
+                (~'.*(DynamicObject|Closure.call|MetaClass|MetaMethod|CallSite|ConfigureDelegate|Method.invoke|MethodAccessor|Proxy|ConfigureUtil|Script.invoke|ClosureBackedAction|getProperty).*'): 'dynamic invocation',
+                (~'.*(ProjectEvaluator|Project.evaluate).*'): 'project evaluation',
+            ))
+        )
 
-            @Override
-            List<String> getFlameGraphOptions() {
-                ["--minwidth", "0.5"]
-            }
+        private List<String> stackConversionOptions
+        private List<String> flameGraphOptions
+        private List<String> icicleGraphOptions
+        private FlameGraphSanitizer sanitizer
 
-            @Override
-            List<String> getIcicleGraphOptions() {
-                ["--minwidth", "1"]
-            }
-
-            @Override
-            FlameGraphSanitizer getSanitizer() {
-                new FlameGraphSanitizer({ it })
-            }
-        },
-        SIMPLIFIED{
-            @Override
-            List<String> getStackConversionOptions() {
-                ["--hide-arguments", "--ignore-line-numbers", "--use-simple-names"]
-            }
-
-            @Override
-            List<String> getFlameGraphOptions() {
-                ["--minwidth", "1"]
-            }
-
-            @Override
-            List<String> getIcicleGraphOptions() {
-                ["--minwidth", "2"]
-            }
-
-            @Override
-            FlameGraphSanitizer getSanitizer() {
-                new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
-                    (~'build_([a-z0-9]+)'): 'build script',
-                    (~'settings_([a-z0-9]+)'): 'settings script',
-                    (~'.*BuildOperation.*'): 'build operations',
-                    (~'.*(CommandLine|Execut[eo]r|Execution|Runner|BuildController).*'): 'execution infrastructure',
-                    (~'.*(PluginManager|ObjectConfigurationAction|PluginTarget|PluginAware|Script.apply|ScriptPlugin|ScriptTarget|ScriptRunner).*'): 'plugin management',
-                    (~'.*(DynamicObject|Closure.call|MetaClass|MetaMethod|CallSite|ConfigureDelegate|Method.invoke|MethodAccessor|Proxy|ConfigureUtil|Script.invoke|ClosureBackedAction|getProperty).*'): 'dynamic invocation',
-                    (~'.*(ProjectEvaluator|Project.evaluate).*'): 'project evaluation',
-                ))
-            }
+        DetailLevel(List<String> stackConversionOptions, List<String> flameGraphOptions, List<String> icicleGraphOptions, FlameGraphSanitizer sanitizer) {
+            this.stackConversionOptions = stackConversionOptions
+            this.flameGraphOptions = flameGraphOptions
+            this.icicleGraphOptions = icicleGraphOptions
+            this.sanitizer = sanitizer
         }
 
-        abstract List<String> getStackConversionOptions();
+        List<String> getStackConversionOptions() {
+            return stackConversionOptions
+        }
 
-        abstract List<String> getFlameGraphOptions();
+        List<String> getFlameGraphOptions() {
+            return flameGraphOptions
+        }
 
-        abstract List<String> getIcicleGraphOptions();
+        List<String> getIcicleGraphOptions() {
+            return icicleGraphOptions
+        }
 
-        abstract FlameGraphSanitizer getSanitizer();
+        FlameGraphSanitizer getSanitizer() {
+            return sanitizer
+        }
     }
 
 }
