@@ -17,6 +17,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
@@ -35,7 +36,6 @@ import java.util.regex.Pattern;
  * Simplifies stacks to make flame graphs more readable.
  */
 class FlameGraphSanitizer {
-    private static final Splitter LINE_SPLITTER = Splitter.on(" ").omitEmptyStrings();
     private static final Splitter STACKTRACE_SPLITTER = Splitter.on(";").omitEmptyStrings();
     private static final Joiner STACKTRACE_JOINER = Joiner.on(";");
 
@@ -63,9 +63,12 @@ class FlameGraphSanitizer {
                         List<String> stackTraceElements = STACKTRACE_SPLITTER.splitToList(stackTrace);
                         List<String> sanitizedStackElements = new ArrayList<String>(stackTraceElements.size());
                         for (String stackTraceElement : stackTraceElements) {
-                            String mapped = sanitizeFunction.map(stackTraceElement);
-                            if (mapped != null) {
-                                sanitizedStackElements.add(mapped);
+                            String sanitizedStackElement = sanitizeFunction.map(stackTraceElement);
+                            if (sanitizedStackElement != null) {
+                                String previousStackElement = Iterables.getLast(sanitizedStackElements, null);
+                                if (!sanitizedStackElement.equals(previousStackElement)) {
+                                    sanitizedStackElements.add(sanitizedStackElement);
+                                }
                             }
                         }
                         if (!sanitizedStackElements.isEmpty()) {

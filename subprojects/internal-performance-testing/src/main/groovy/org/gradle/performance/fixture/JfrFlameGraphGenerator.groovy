@@ -22,7 +22,6 @@ import groovy.transform.PackageScope
 /**
  * Generates flame graphs based on JFR recordings.
  *
- * TODO simplify flame graphs more, e.g. collapse task executor chain, build operation handling etc
  * TODO maybe create "raw" flame graphs too, for cases when above mentioned things actually regress
  * TODO create memory, IO, locking flame graphs
  * TODO create flame graph diffs
@@ -35,8 +34,11 @@ class JfrFlameGraphGenerator {
     private final FlameGraphSanitizer flameGraphSanitizer = new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
         (~'build_([a-z0-9]+)'): 'build script',
         (~'settings_([a-z0-9]+)'): 'settings script',
-        (~'GeneratedMethodAccessor[0-9]+'): 'GeneratedMethodAccessor',
-        (~'Proxy[0-9]+'): 'Proxy'
+        (~'.*BuildOperation.*'): 'build operations',
+        (~'.*(Execut[eo]r|Execution).*(execute|run|proceed).*'): 'execution infrastructure',
+        (~'.*(PluginManager|ObjectConfigurationAction|PluginTarget|PluginAware|Script.apply|ScriptPlugin|ScriptTarget|ScriptRunner).*'): 'plugin management',
+        (~'.*(DynamicObject|Closure.call|MetaClass|MetaMethod|CallSite|ConfigureDelegate|Method.invoke|MethodAccessor|Proxy|ConfigureUtil|Script.invoke|ClosureBackedAction).*'): 'dynamic invocation',
+        (~'.*(ProjectEvaluator|Project.evaluate).*'): 'project evaluation',
     ))
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
