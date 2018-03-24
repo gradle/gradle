@@ -45,7 +45,7 @@ dependencies {
     compile(library("commons_httpclient"))
     compile(library("jsch"))
 
-    flamegraph("com.github.oehme:jfr-flame-graph:v0.0.5:all")
+    flamegraph("com.github.oehme:jfr-flame-graph:v0.0.6:all")
 
     runtime("com.h2database:h2:1.4.192")
 }

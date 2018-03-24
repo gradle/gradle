@@ -22,7 +22,6 @@ import groovy.transform.PackageScope
 /**
  * Generates flame graphs based on JFR recordings.
  *
- * TODO create memory, IO, locking flame graphs
  * TODO create flame graph diffs
  */
 @CompileStatic
@@ -42,42 +41,60 @@ class JfrFlameGraphGenerator {
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
     void generateGraphs(File jfrRecording) {
-        def stacks = generatedRawStacks(jfrRecording);
-        def sanitizedStacks = generateSimplifiedStacks(jfrRecording)
-        generateFlameGraphs(stacks)
-        generateFlameGraphs(sanitizedStacks)
+        EventType.values().each { EventType type ->
+            def stacks = generatedRawStacks(jfrRecording, type);
+            def sanitizedStacks = generateSimplifiedStacks(jfrRecording, type)
+            generateFlameGraphs(stacks, type)
+            generateFlameGraphs(sanitizedStacks, type)
+        }
     }
 
-    private File generatedRawStacks(File jfrRecording) {
-        File stacks = new File(jfrRecording.parentFile, "raw/stacks.txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks)
+    private File generatedRawStacks(File jfrRecording, EventType type) {
+        File stacks = new File(jfrRecording.parentFile, "${type.id}/raw/stacks.txt")
+        stacksConverter.convertToStacks(jfrRecording, stacks, "-e", type.id)
         stacks
     }
 
-    private File generateSimplifiedStacks(File jfrRecording) {
+    private File generateSimplifiedStacks(File jfrRecording, EventType type) {
         File stacks = File.createTempFile("stacks", ".txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i", "-sn")
-        File simplified = new File(jfrRecording.parentFile, "simplified/stacks.txt")
+        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i", "-sn", "-e", type.id)
+        File simplified = new File(jfrRecording.parentFile, "${type.id}/simplified/stacks.txt")
         flameGraphSanitizer.sanitize(stacks, simplified)
         stacks.delete()
         simplified
     }
 
-    private void generateFlameGraphs(File stacks) {
-        generateFlameGraph(stacks)
-        generateIcicleGraph(stacks)
+    private void generateFlameGraphs(File stacks, EventType type) {
+        generateFlameGraph(stacks, type)
+        generateIcicleGraph(stacks, type)
     }
 
-    private void generateFlameGraph(File stacks) {
+    private void generateFlameGraph(File stacks, EventType type) {
         File flames = new File(stacks.parentFile, "flames.svg")
-        flameGraphGenerator.generate(stacks, flames, "--minwidth", "1")
+        flameGraphGenerator.generate(stacks, flames, "--minwidth", "1", "--title", "${type.displayName} Flame Graph", "--countname", type.unitOfMeasure)
         flames
     }
 
-    private void generateIcicleGraph(File stacks) {
+    private void generateIcicleGraph(File stacks, EventType type) {
         File icicles = new File(stacks.parentFile, "icicles.svg")
-        flameGraphGenerator.generate(stacks, icicles, "--minwidth", "2", "--reverse", "--invert", "--colors", "blue")
+        flameGraphGenerator.generate(stacks, icicles, "--minwidth", "2", "--reverse", "--invert", "--colors", "blue", "--title", "${type.displayName} Icicle Graph", "--countname", type.unitOfMeasure)
         icicles
+    }
+
+    private static enum EventType {
+        CPU("cpu", "CPU", "samples"),
+        ALLOCATION("allocation-tlab", "Allocation in new TLAB", "bytes"),
+        MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "samples");
+
+        private final String id
+        private final String displayName
+        private final String unitOfMeasure
+
+        private EventType(String id, String displayName, String unitOfMeasure) {
+            this.unitOfMeasure = unitOfMeasure
+            this.displayName = displayName
+            this.id = id
+        }
     }
 
 }
