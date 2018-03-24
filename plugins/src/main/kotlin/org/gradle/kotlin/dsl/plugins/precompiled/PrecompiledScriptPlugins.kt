@@ -132,23 +132,12 @@ val Project.gradlePlugin
 private
 fun Project.declareScriptPlugins(scriptPlugins: Lazy<List<ScriptPlugin>>) {
 
-    tasks {
-
-        val inferGradlePluginDeclarations by creating {
-            doLast {
-                project.configure<GradlePluginDevelopmentExtension> {
-                    for (scriptPlugin in scriptPlugins.value) {
-                        plugins.create(scriptPlugin.id) {
-                            it.id = scriptPlugin.id
-                            it.implementationClass = scriptPlugin.implementationClass
-                        }
-                    }
-                }
+    configure<GradlePluginDevelopmentExtension> {
+        for (scriptPlugin in scriptPlugins.value) {
+            plugins.create(scriptPlugin.id) {
+                it.id = scriptPlugin.id
+                it.implementationClass = scriptPlugin.implementationClass
             }
-        }
-
-        getByName("pluginDescriptors") {
-            it.dependsOn(inferGradlePluginDeclarations)
         }
     }
 }
