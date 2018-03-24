@@ -96,8 +96,12 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
     fun readCapabilities(source: File): List<CapabilitySpec> {
         val gson = Gson()
         val reader = JsonReader(source.reader(Charsets.UTF_8))
-        reader.isLenient = true
-        return gson.fromJson<List<CapabilitySpec>>(reader)
+        try {
+            reader.isLenient = true
+            return gson.fromJson<List<CapabilitySpec>>(reader)
+        } finally {
+            reader.close()
+        }
     }
 }
 
