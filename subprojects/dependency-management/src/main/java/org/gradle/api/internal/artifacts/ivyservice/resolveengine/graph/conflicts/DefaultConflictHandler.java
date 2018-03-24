@@ -46,6 +46,11 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
         this.compositeResolver.addFirst(conflictResolver);
     }
 
+    @Override
+    public ModuleConflictResolver getResolver() {
+        return compositeResolver;
+    }
+
     /**
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
@@ -69,7 +74,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.popConflict();
-        ConflictResolverDetails<ComponentResolutionState> details = new RejectCheckingConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
+        ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
         compositeResolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());

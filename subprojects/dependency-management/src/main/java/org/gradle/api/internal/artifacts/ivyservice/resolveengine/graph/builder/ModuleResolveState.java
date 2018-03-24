@@ -123,16 +123,6 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public void softSelect(ComponentState selected) {
-        assert this.selected == null;
-        this.selected = selected;
-        for (ComponentState version : versions.values()) {
-            version.makeSelectable();
-        }
-        selected.select();
-        doRestart(selected);
-    }
-
     private void doRestart(ComponentState selected) {
         for (ComponentState version : versions.values()) {
             version.restart(selected);
