@@ -29,55 +29,39 @@ import groovy.transform.PackageScope
 class JfrFlameGraphGenerator {
 
     private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
-    private final FlameGraphSanitizer flameGraphSanitizer = new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
-        (~'build_([a-z0-9]+)'): 'build script',
-        (~'settings_([a-z0-9]+)'): 'settings script',
-        (~'.*BuildOperation.*'): 'build operations',
-        (~'.*(Execut[eo]r|Execution).*(execute|run|proceed).*'): 'execution infrastructure',
-        (~'.*(PluginManager|ObjectConfigurationAction|PluginTarget|PluginAware|Script.apply|ScriptPlugin|ScriptTarget|ScriptRunner).*'): 'plugin management',
-        (~'.*(DynamicObject|Closure.call|MetaClass|MetaMethod|CallSite|ConfigureDelegate|Method.invoke|MethodAccessor|Proxy|ConfigureUtil|Script.invoke|ClosureBackedAction).*'): 'dynamic invocation',
-        (~'.*(ProjectEvaluator|Project.evaluate).*'): 'project evaluation',
-    ))
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
     void generateGraphs(File jfrRecording) {
         EventType.values().each { EventType type ->
-            def stacks = generatedRawStacks(jfrRecording, type);
-            def sanitizedStacks = generateSimplifiedStacks(jfrRecording, type)
-            generateFlameGraphs(stacks, type)
-            generateFlameGraphs(sanitizedStacks, type)
+            DetailLevel.values().each { DetailLevel level ->
+                def stacks = generateStacks(jfrRecording, type, level)
+                generateFlameGraph(stacks, type, level)
+                generateIcicleGraph(stacks, type, level)
+            }
         }
     }
 
-    private File generatedRawStacks(File jfrRecording, EventType type) {
-        File stacks = new File(jfrRecording.parentFile, "${type.id}/raw/stacks.txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "--event", type.id)
-        stacks
-    }
-
-    private File generateSimplifiedStacks(File jfrRecording, EventType type) {
+    private File generateStacks(File jfrRecording, EventType type, DetailLevel level) {
         File stacks = File.createTempFile("stacks", ".txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "--hide-arguments", "--ignore-line-numbers", "--use-simple-names", "--event", type.id)
-        File simplified = new File(jfrRecording.parentFile, "${type.id}/simplified/stacks.txt")
-        flameGraphSanitizer.sanitize(stacks, simplified)
+        String[] options = level.stackConversionOptions + ["--event", type.id]
+        stacksConverter.convertToStacks(jfrRecording, stacks, options)
+        File sanitizedStacks = new File(jfrRecording.parentFile, "${type.id}/${level.name().toLowerCase()}/stacks.txt")
+        level.sanitizer.sanitize(stacks, sanitizedStacks)
         stacks.delete()
-        simplified
+        sanitizedStacks
     }
 
-    private void generateFlameGraphs(File stacks, EventType type) {
-        generateFlameGraph(stacks, type)
-        generateIcicleGraph(stacks, type)
-    }
-
-    private void generateFlameGraph(File stacks, EventType type) {
+    private void generateFlameGraph(File stacks, EventType type, DetailLevel level) {
         File flames = new File(stacks.parentFile, "flames.svg")
-        flameGraphGenerator.generate(stacks, flames, "--minwidth", "1", "--title", "${type.displayName} Flame Graph", "--countname", type.unitOfMeasure)
+        String[] options = ["--title", type.displayName + " Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
+        flameGraphGenerator.generate(stacks, flames, options)
         flames
     }
 
-    private void generateIcicleGraph(File stacks, EventType type) {
+    private void generateIcicleGraph(File stacks, EventType type, DetailLevel level) {
         File icicles = new File(stacks.parentFile, "icicles.svg")
-        flameGraphGenerator.generate(stacks, icicles, "--minwidth", "2", "--reverse", "--invert", "--colors", "blue", "--title", "${type.displayName} Icicle Graph", "--countname", type.unitOfMeasure)
+        String[] options = ["--title", type.displayName + " Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert", "--colors", "blue"] + level.icicleGraphOptions
+        flameGraphGenerator.generate(stacks, icicles, options)
         icicles
     }
 
@@ -95,6 +79,77 @@ class JfrFlameGraphGenerator {
             this.displayName = displayName
             this.id = id
         }
+    }
+
+    private static enum DetailLevel {
+        RAW{
+            @Override
+            List<String> getStackConversionOptions() {
+                []
+            }
+
+            @Override
+            List<String> getFlameGraphOptions() {
+                ["--minwidth", "0.5"]
+            }
+
+            @Override
+            List<String> getIcicleGraphOptions() {
+                ["--minwidth", "1"]
+            }
+
+            @Override
+            FlameGraphSanitizer getSanitizer() {
+                new FlameGraphSanitizer(new FlameGraphSanitizer.SanitizeFunction() {
+                    @Override
+                    boolean skipLine(String line) {
+                        false
+                    }
+
+                    @Override
+                    String map(String entry) {
+                        entry
+                    }
+                })
+            }
+        },
+        SIMPLIFIED{
+            @Override
+            List<String> getStackConversionOptions() {
+                ["--hide-arguments", "--ignore-line-numbers", "--use-simple-names"]
+            }
+
+            @Override
+            List<String> getFlameGraphOptions() {
+                ["--minwidth", "1"]
+            }
+
+            @Override
+            List<String> getIcicleGraphOptions() {
+                ["--minwidth", "2"]
+            }
+
+            @Override
+            FlameGraphSanitizer getSanitizer() {
+                new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
+                    (~'build_([a-z0-9]+)'): 'build script',
+                    (~'settings_([a-z0-9]+)'): 'settings script',
+                    (~'.*BuildOperation.*'): 'build operations',
+                    (~'.*(Execut[eo]r|Execution).*(execute|run|proceed).*'): 'execution infrastructure',
+                    (~'.*(PluginManager|ObjectConfigurationAction|PluginTarget|PluginAware|Script.apply|ScriptPlugin|ScriptTarget|ScriptRunner).*'): 'plugin management',
+                    (~'.*(DynamicObject|Closure.call|MetaClass|MetaMethod|CallSite|ConfigureDelegate|Method.invoke|MethodAccessor|Proxy|ConfigureUtil|Script.invoke|ClosureBackedAction).*'): 'dynamic invocation',
+                    (~'.*(ProjectEvaluator|Project.evaluate).*'): 'project evaluation',
+                ))
+            }
+        }
+
+        abstract List<String> getStackConversionOptions();
+
+        abstract List<String> getFlameGraphOptions();
+
+        abstract List<String> getIcicleGraphOptions();
+
+        abstract FlameGraphSanitizer getSanitizer();
     }
 
 }
