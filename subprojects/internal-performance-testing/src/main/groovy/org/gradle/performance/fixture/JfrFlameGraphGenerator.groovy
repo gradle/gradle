@@ -100,17 +100,7 @@ class JfrFlameGraphGenerator {
 
             @Override
             FlameGraphSanitizer getSanitizer() {
-                new FlameGraphSanitizer(new FlameGraphSanitizer.SanitizeFunction() {
-                    @Override
-                    boolean skipLine(String line) {
-                        false
-                    }
-
-                    @Override
-                    String map(String entry) {
-                        entry
-                    }
-                })
+                new FlameGraphSanitizer({ it })
             }
         },
         SIMPLIFIED{

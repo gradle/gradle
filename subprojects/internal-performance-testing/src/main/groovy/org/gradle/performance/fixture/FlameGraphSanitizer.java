@@ -53,9 +53,6 @@ class FlameGraphSanitizer {
                 String line;
                 StringBuilder sb = new StringBuilder();
                 while ((line = reader.readLine()) != null) {
-                    if (sanitizeFunction.skipLine(line)) {
-                        continue;
-                    }
                     int endOfStack = line.lastIndexOf(' ');
                     if (endOfStack > 0) {
                         String stackTrace = line.substring(0, endOfStack);
@@ -86,8 +83,6 @@ class FlameGraphSanitizer {
     }
 
     public interface SanitizeFunction {
-        boolean skipLine(String line);
-
         String map(String entry);
     }
 
@@ -96,11 +91,6 @@ class FlameGraphSanitizer {
 
         public RegexBasedSanitizerFunction(Map<Pattern, String> replacements) {
             this.replacements = replacements;
-        }
-
-        @Override
-        public boolean skipLine(String line) {
-            return false;
         }
 
         @Override
