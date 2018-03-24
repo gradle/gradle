@@ -26,11 +26,13 @@ open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
             try {
                 base.evaluate()
             } finally {
-                if (leaksFileHandles(description)) {
-                    ignoringDeleteErrorCausedBy(description) {
-                        after()
-                    }
-                } else after()
+                if (allowsDeletion(description)) {
+                    if (leaksFileHandles(description)) {
+                        ignoringDeleteErrorCausedBy(description) {
+                            after()
+                        }
+                    } else after()
+                }
             }
         }
     }
@@ -48,6 +50,10 @@ open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
     }
 
     private
+    fun allowsDeletion(description: Description): Boolean =
+        description.getAnnotation(DontDeleteTemporaryFolder::class.java) == null
+
+    private
     fun leaksFileHandles(description: Description) =
         description.getAnnotation(LeaksFileHandles::class.java) != null
             || description.testClass.getAnnotation(LeaksFileHandles::class.java) != null
@@ -62,3 +68,12 @@ open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
  */
 @Target(FUNCTION, CLASS)
 annotation class LeaksFileHandles(val why: String = "")
+
+
+/**
+ * Declares that the temporary folder used by the test should not be forcefully deleted.
+ *
+ * Useful during debugging.
+ */
+@Target(FUNCTION)
+annotation class DontDeleteTemporaryFolder(val why: String)
