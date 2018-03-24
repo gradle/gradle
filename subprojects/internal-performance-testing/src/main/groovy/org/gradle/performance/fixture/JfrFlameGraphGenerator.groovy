@@ -51,13 +51,13 @@ class JfrFlameGraphGenerator {
 
     private File generatedRawStacks(File jfrRecording, EventType type) {
         File stacks = new File(jfrRecording.parentFile, "${type.id}/raw/stacks.txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "-e", type.id)
+        stacksConverter.convertToStacks(jfrRecording, stacks, "--event", type.id)
         stacks
     }
 
     private File generateSimplifiedStacks(File jfrRecording, EventType type) {
         File stacks = File.createTempFile("stacks", ".txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i", "-sn", "-e", type.id)
+        stacksConverter.convertToStacks(jfrRecording, stacks, "--hide-arguments", "--ignore-line-numbers", "--use-simple-names", "--event", type.id)
         File simplified = new File(jfrRecording.parentFile, "${type.id}/simplified/stacks.txt")
         flameGraphSanitizer.sanitize(stacks, simplified)
         stacks.delete()

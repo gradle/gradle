@@ -29,7 +29,7 @@ class JfrToStacksConverter {
 
     void convertToStacks(File jfrRecording, File stacks, String... options) {
         stacks.parentFile.mkdirs()
-        String[] args = ["-f", jfrRecording.absolutePath, "-o", stacks.absolutePath]
+        String[] args = ["--jfrdump", jfrRecording.absolutePath, "--output", stacks.absolutePath]
         args += options
         Application.main(args)
     }
