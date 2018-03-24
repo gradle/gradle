@@ -22,7 +22,6 @@ import groovy.transform.PackageScope
 /**
  * Generates flame graphs based on JFR recordings.
  *
- * TODO maybe create "raw" flame graphs too, for cases when above mentioned things actually regress
  * TODO create memory, IO, locking flame graphs
  * TODO create flame graph diffs
  */
@@ -43,33 +42,41 @@ class JfrFlameGraphGenerator {
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
     void generateGraphs(File jfrRecording) {
-        def stacks = collapseStacks(jfrRecording);
-        def sanitizedStacks = sanitizeStacks(stacks)
-        generateFlameGraph(sanitizedStacks)
-        generateIcicleGraph(sanitizedStacks)
+        def stacks = generatedRawStacks(jfrRecording);
+        def sanitizedStacks = generateSimplifiedStacks(jfrRecording)
+        generateFlameGraphs(stacks)
+        generateFlameGraphs(sanitizedStacks)
     }
 
-    private File collapseStacks(File jfrRecording) {
-        File stacks = new File(jfrRecording.parentFile, "stacks.txt")
-        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i", "-sn")
+    private File generatedRawStacks(File jfrRecording) {
+        File stacks = new File(jfrRecording.parentFile, "raw/stacks.txt")
+        stacksConverter.convertToStacks(jfrRecording, stacks)
         stacks
     }
 
-    private File sanitizeStacks(File stacks) {
-        File sanitizedStacks = new File(stacks.parentFile, "sanitized-stacks.txt")
-        flameGraphSanitizer.sanitize(stacks, sanitizedStacks)
-        sanitizedStacks
+    private File generateSimplifiedStacks(File jfrRecording) {
+        File stacks = File.createTempFile("stacks", ".txt")
+        stacksConverter.convertToStacks(jfrRecording, stacks, "-ha", "-i", "-sn")
+        File simplified = new File(jfrRecording.parentFile, "simplified/stacks.txt")
+        flameGraphSanitizer.sanitize(stacks, simplified)
+        stacks.delete()
+        simplified
     }
 
-    private void generateFlameGraph(File sanitizedStacks) {
-        File flames = new File(sanitizedStacks.parentFile, "flames.svg")
-        flameGraphGenerator.generate(sanitizedStacks, flames, "--minwidth", "1")
+    private void generateFlameGraphs(File stacks) {
+        generateFlameGraph(stacks)
+        generateIcicleGraph(stacks)
+    }
+
+    private void generateFlameGraph(File stacks) {
+        File flames = new File(stacks.parentFile, "flames.svg")
+        flameGraphGenerator.generate(stacks, flames, "--minwidth", "1")
         flames
     }
 
-    private void generateIcicleGraph(File sanitizedStacks) {
-        File icicles = new File(sanitizedStacks.parentFile, "icicles.svg")
-        flameGraphGenerator.generate(sanitizedStacks, icicles, "--minwidth", "2", "--reverse", "--invert", "--colors", "blue")
+    private void generateIcicleGraph(File stacks) {
+        File icicles = new File(stacks.parentFile, "icicles.svg")
+        flameGraphGenerator.generate(stacks, icicles, "--minwidth", "2", "--reverse", "--invert", "--colors", "blue")
         icicles
     }
 
