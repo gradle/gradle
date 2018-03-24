@@ -70,4 +70,27 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         // assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
     }
+
+    @Test
+    fun `sourcePath includes buildSrc source roots`() {
+
+        withKotlinBuildSrc()
+        val settings = withSettings("""include(":sub")""")
+
+        val sourcePath = sourcePathFor(settings)
+        assertSourcePathIncludesBuildSrcProjectDependenciesSources(
+            sourcePath,
+            mapOf(":" to SourceRoots(listOf(Language.java, Language.kotlin))))
+    }
+
+    @Test
+    fun `sourcePath includes buildSrc project dependencies source roots`() {
+
+        val sourceRoots = withMultiProjectKotlinBuildSrc()
+        val settings = withSettings("""include(":sub")""")
+
+        val sourcePath = sourcePathFor(settings)
+
+        assertSourcePathIncludesBuildSrcProjectDependenciesSources(sourcePath, sourceRoots)
+    }
 }

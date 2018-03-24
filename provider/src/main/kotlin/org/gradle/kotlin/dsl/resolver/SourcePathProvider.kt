@@ -21,6 +21,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.support.filter
 
 import java.io.File
+import java.util.jar.JarFile
+
+
+const val buildSrcSourceRootsResourcePath = "META-INF/services/gradle/buildSrcLocalSourcePath.txt"
 
 
 object SourcePathProvider {
@@ -33,20 +37,33 @@ object SourcePathProvider {
     ): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
-        val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
+        val projectBuildSrcRoots = buildSrcRootsOf(classPath, projectDir)
         val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it, sourceDistributionResolver) } ?: emptyList()
 
         return gradleKotlinDslJar + projectBuildSrcRoots + gradleSourceRoots
     }
 
     /**
-     * Returns all conventional source directories under buildSrc if any.
-     *
-     * This won't work for buildSrc projects with a custom source directory layout
-     * but should account for the majority of cases and it's cheap.
+     * Returns source directories from buildSrc if any.
      */
     private
-    fun buildSrcRootsOf(projectRoot: File): Collection<File> =
+    fun buildSrcRootsOf(classPath: ClassPath, projectRoot: File): Collection<File> =
+        buildSrcJarFileOf(classPath)?.let { jar -> buildSrcRootsOf(jar, projectRoot) }
+            ?: buildSrcRootsFallbackFor(projectRoot)
+
+    private
+    fun buildSrcJarFileOf(classPath: ClassPath) =
+        classPath.asFiles.find { it.name == "buildSrc.jar" && it.isFile }?.let { JarFile(it) }
+
+    private
+    fun buildSrcRootsOf(buildSrcJarFile: JarFile, projectRoot: File) =
+        buildSrcJarFile.getJarEntry(buildSrcSourceRootsResourcePath)
+            ?.let { buildSrcJarFile.getInputStream(it) }
+            ?.bufferedReader()
+            ?.use { it.readLines().map { projectRoot.resolve("buildSrc/$it") } }
+
+    private
+    fun buildSrcRootsFallbackFor(projectRoot: File) =
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
     private

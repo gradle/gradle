@@ -215,4 +215,28 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             rootProjectScript = "",
             subProjectScript = """ plugins { kotlin("jvm") version "$embeddedKotlinVersion" } """)
     }
+
+    @Test
+    fun `sourcePath includes buildSrc source roots`() {
+
+        withKotlinBuildSrc()
+        withSettings("""include(":sub")""")
+
+        val sourcePath = sourcePathFor(withFile("sub/build.gradle.kts"))
+
+        assertSourcePathIncludesBuildSrcProjectDependenciesSources(
+            sourcePath,
+            mapOf(":" to SourceRoots(listOf(Language.java, Language.kotlin))))
+    }
+
+    @Test
+    fun `sourcePath includes buildSrc project dependencies source roots`() {
+
+        val sourceRoots = withMultiProjectKotlinBuildSrc()
+        withSettings("""include(":sub")""")
+
+        val sourcePath = sourcePathFor(withFile("sub/build.gradle.kts"))
+
+        assertSourcePathIncludesBuildSrcProjectDependenciesSources(sourcePath, sourceRoots)
+    }
 }

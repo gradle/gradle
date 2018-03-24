@@ -72,9 +72,68 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
     }
 
-    private
+    protected
     fun sourcePathFor(scriptFile: File) =
         kotlinBuildScriptModelFor(projectRoot, scriptFile).sourcePath
+
+
+    protected
+    data class SourceRoots(val languages: List<Language>, val sourceSets: List<String> = listOf("main"))
+
+    protected
+    enum class Language { java, kotlin }
+
+    protected
+    fun assertSourcePathIncludesBuildSrcProjectDependenciesSources(sourcePath: List<File>, sourceRootsByProject: Map<String, SourceRoots>) {
+        val sourcePathPaths = sourcePath.map { it.path }
+        sourceRootsByProject.forEach { projectPath, sourceRoots ->
+            if (sourceRoots.languages.isEmpty()) return@forEach
+            val projectDir =
+                if (projectPath == ":") "buildSrc"
+                else "buildSrc/${projectPath.drop(1).replace(":", "/")}"
+            sourceRoots.sourceSets.forEach { sourceSet ->
+                assertThat(sourcePathPaths, hasItem(endsWith("$projectDir/src/$sourceSet/resources")))
+                Language.values().forEach { language ->
+                    if (language in sourceRoots.languages) {
+                        assertThat(sourcePathPaths, hasItem(endsWith("$projectDir/src/$sourceSet/$language")))
+                    } else {
+                        assertThat(sourcePathPaths, not(hasItem(endsWith("$projectDir/src/$sourceSet/$language"))))
+                    }
+                }
+            }
+        }
+    }
+
+    protected
+    fun withMultiProjectKotlinBuildSrc(): Map<String, SourceRoots> {
+        withFile("buildSrc/settings.gradle.kts", """include(":a", ":b", ":c")""")
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                java
+                `kotlin-dsl` apply false
+            }
+
+            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
+
+            kotlinDslProjects.forEach {
+                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+            }
+
+            dependencies {
+                kotlinDslProjects.forEach {
+                    "runtime"(project(it.path))
+                }
+            }
+        """)
+        withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
+        withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
+
+        return mapOf(
+            ":" to SourceRoots(listOf(Language.java)),
+            ":a" to SourceRoots(listOf(Language.java, Language.kotlin)),
+            ":b" to SourceRoots(listOf(Language.java, Language.kotlin)),
+            ":c" to SourceRoots(listOf(Language.java)))
+    }
 
     protected
     fun assertContainsGradleKotlinDslJars(classPath: List<File>) {
