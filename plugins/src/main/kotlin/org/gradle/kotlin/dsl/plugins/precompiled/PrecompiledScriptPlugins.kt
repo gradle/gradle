@@ -173,14 +173,11 @@ internal
 fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) =
     File(outputDir, "$implementationClass.kt").writeText(
         """
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            class $implementationClass : Plugin<Project> {
-                override fun apply(target: Project) {
+            class $implementationClass : org.gradle.api.Plugin<$targetType> {
+                override fun apply(target: $targetType) {
                     Class
                         .forName("$compiledScriptTypeName")
-                        .getDeclaredConstructor(Project::class.java)
+                        .getDeclaredConstructor($targetType::class.java)
                         .newInstance(target)
                 }
             }

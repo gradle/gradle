@@ -16,6 +16,8 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -45,9 +47,22 @@ data class ScriptPlugin(val scriptFile: File) {
         fileNameWithoutScriptExtension.kebabCaseToPascalCase() + "Plugin"
     }
 
+    val targetType by lazy {
+        when (scriptExtension) {
+            ".settings.gradle.kts" -> Settings::class.qualifiedName
+            else -> Project::class.qualifiedName
+        }
+    }
+
     private
     val fileNameWithoutScriptExtension by lazy {
-        scriptFile.name.removeSuffix(".gradle.kts")
+        scriptFile.name.removeSuffix(scriptExtension)
+    }
+
+    private
+    val scriptExtension by lazy {
+        if (scriptFile.name.endsWith(".settings.gradle.kts")) ".settings.gradle.kts"
+        else ".gradle.kts"
     }
 
     /**

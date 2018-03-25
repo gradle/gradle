@@ -125,6 +125,11 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                         println("my-plugin applied!")
                     """)
 
+                    // Settings plugins must be named `*.settings.gradle.kts`
+                    withFile("my-settings-plugin.settings.gradle.kts", """
+                        println("my-settings-plugin applied!")
+                    """)
+
                     // plugin id for script with package declaration is the
                     // package name dot the file name minus the `.gradle.kts` suffix
                     withFile("org/acme/my-other-plugin.gradle.kts", """
@@ -148,6 +153,9 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             }
         }
 
+        withSettings("""
+            apply(plugin = "my-settings-plugin")
+        """)
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -158,6 +166,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         assertThat(
             build("help").output,
             allOf(
+                containsString("my-settings-plugin applied!"),
                 containsString("my-plugin applied!"),
                 containsString("my-other-plugin applied!")
             )
