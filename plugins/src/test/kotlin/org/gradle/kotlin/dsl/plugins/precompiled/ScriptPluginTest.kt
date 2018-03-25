@@ -35,4 +35,12 @@ class ScriptPluginTest : TestWithTempFiles() {
             ScriptPlugin(script).id,
             equalTo("org.acme.my-script"))
     }
+
+    @Test
+    fun `implementationClass is a valid Java identifier`() {
+
+        assertThat(
+            ScriptPlugin(newFile("my-script.with invalid characters.gradle.kts")).implementationClass,
+            equalTo("MyScript_with_invalid_charactersPlugin"))
+    }
 }

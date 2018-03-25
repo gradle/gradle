@@ -45,7 +45,9 @@ data class ScriptPlugin(val scriptFile: File) {
      * the `generateScriptPluginAdapters` task.
      */
     val implementationClass by lazy {
-        fileNameWithoutScriptExtension.kebabCaseToPascalCase() + "Plugin"
+        fileNameWithoutScriptExtension
+            .kebabCaseToPascalCase()
+            .asJavaIdentifier() + "Plugin"
     }
 
     val targetType by lazy {
@@ -142,3 +144,16 @@ fun CharSequence.kebabCaseToPascalCase() =
 private
 fun CharSequence.kebabCaseToCamelCase() =
     replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase() }
+
+
+private
+fun CharSequence.asJavaIdentifier() =
+    replaceBy { if (it.isJavaIdentifierPart()) it else '_' }
+
+
+private
+inline fun CharSequence.replaceBy(f: (Char) -> Char) =
+    StringBuilder(length).let { builder ->
+        forEach { char -> builder.append(f(char)) }
+        builder.toString()
+    }
