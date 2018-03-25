@@ -54,7 +54,7 @@ class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationActio
             tasks {
                 val generateSourceRoots by creating(GenerateSourceRootsFile::class) {
                     sourceRoots.set(projectDependenciesSourceRootsFrom("runtimeClasspath"))
-                    destinationFile.set(layout.buildDirectory.file(buildSrcSourceRootsFilePath))
+                    destinationFile.set(layout.projectDirectory.file(buildSrcSourceRootsFilePath))
                 }
                 getByName("jar").finalizedBy(generateSourceRoots)
             }

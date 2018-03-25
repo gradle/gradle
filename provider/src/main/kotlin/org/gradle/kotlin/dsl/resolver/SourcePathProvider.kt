@@ -23,7 +23,7 @@ import org.gradle.kotlin.dsl.support.filter
 import java.io.File
 
 
-const val buildSrcSourceRootsFilePath = "source-roots/buildSrc/source-roots.txt"
+const val buildSrcSourceRootsFilePath = "build/source-roots/buildSrc/source-roots.txt"
 
 
 object SourcePathProvider {
@@ -47,7 +47,7 @@ object SourcePathProvider {
      */
     private
     fun buildSrcRootsOf(projectRoot: File): Collection<File> =
-        projectRoot.resolve("buildSrc/build/$buildSrcSourceRootsFilePath")
+        projectRoot.resolve("buildSrc/$buildSrcSourceRootsFilePath")
             .takeIf { it.isFile }
             ?.readLines()
             ?.map { projectRoot.resolve("buildSrc/$it") }
