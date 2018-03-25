@@ -26,20 +26,35 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 
 public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifier> {
+    private static final byte ROOT = 0;
+    private static final byte LOCAL = 1;
+    private static final byte FOREIGN = 2;
+
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
-        String buildName = decoder.readString();
-        boolean isCurrent = decoder.readBoolean();
-        if (isCurrent) {
-            return new DefaultBuildIdentifier(buildName);
-        } else {
-            return new ForeignBuildIdentifier(buildName);
+        byte type = decoder.readByte();
+        switch (type) {
+            case ROOT:
+                return DefaultBuildIdentifier.ROOT;
+            case LOCAL:
+                return new DefaultBuildIdentifier(decoder.readString());
+            case FOREIGN:
+                return new ForeignBuildIdentifier(decoder.readString());
+            default:
+                throw new IllegalArgumentException("Unexpected build identifier type.");
         }
     }
 
     @Override
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
-        encoder.writeString(value.getName());
-        encoder.writeBoolean(value.isCurrentBuild());
+        if (value == DefaultBuildIdentifier.ROOT) {
+            encoder.writeByte(ROOT);
+        } else if (value instanceof ForeignBuildIdentifier) {
+            encoder.writeByte(FOREIGN);
+            encoder.writeString(value.getName());
+        } else {
+            encoder.writeByte(LOCAL);
+            encoder.writeString(value.getName());
+        }
     }
 }

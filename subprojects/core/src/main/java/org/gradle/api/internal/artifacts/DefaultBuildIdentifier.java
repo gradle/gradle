@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public class DefaultBuildIdentifier implements BuildIdentifier {
+    public static final BuildIdentifier ROOT = new DefaultBuildIdentifier(":");
     private final String name;
 
     public DefaultBuildIdentifier(String name) {
