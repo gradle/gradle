@@ -93,20 +93,26 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
         fun hasLanguageDir(base: File, set: String, lang: String): Matcher<Iterable<*>> =
             hasItem(base.resolve("src/$set/$lang"))
 
-        val all = mutableListOf<Matcher<Iterable<*>>>()
-        projectSourceRoots.forEach { sourceRoots ->
-            if (sourceRoots.languages.isEmpty()) return@forEach
-            sourceRoots.sourceSets.forEach { sourceSet ->
-                listOf("java", "kotlin").forEach { language ->
-                    val hasLanguageDir = hasLanguageDir(sourceRoots.projectDir, sourceSet, language)
-                    all +=
-                        if (language in sourceRoots.languages) hasLanguageDir
-                        else not(hasLanguageDir)
-                }
-                all += hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
-            }
-        }
-        return allOf(*all.toTypedArray())
+        return allOf(
+            *projectSourceRoots
+                .filter { it.languages.isNotEmpty() }
+                .flatMap { sourceRoots ->
+                    val languageDirs =
+                        sourceRoots.sourceSets.flatMap { sourceSet ->
+                            listOf("java", "kotlin").map { language ->
+                                val hasLanguageDir = hasLanguageDir(sourceRoots.projectDir, sourceSet, language)
+                                if (language in sourceRoots.languages) hasLanguageDir
+                                else not(hasLanguageDir)
+                            }
+                        }
+
+                    val resourceDirs =
+                        sourceRoots.sourceSets.map { sourceSet ->
+                            hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
+                        }
+
+                    languageDirs + resourceDirs
+                }.toTypedArray())
     }
 
     protected
