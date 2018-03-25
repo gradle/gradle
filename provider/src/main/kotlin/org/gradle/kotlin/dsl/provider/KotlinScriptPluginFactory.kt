@@ -61,14 +61,15 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     ): (Any) -> Unit = { target ->
 
         val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        val script = compile(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope)
+        val kotlinScriptSource = KotlinScriptSource(scriptSource)
+        val script = compile(scriptTarget, kotlinScriptSource, scriptHandler, targetScope, baseScope)
         script(scriptTarget.`object`)
     }
 
     private
     fun compile(
         scriptTarget: KotlinScriptTarget<Any>,
-        scriptSource: ScriptSource,
+        scriptSource: KotlinScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope
@@ -83,7 +84,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     private
     fun compilerFor(
         scriptTarget: KotlinScriptTarget<Any>,
-        scriptSource: ScriptSource,
+        scriptSource: KotlinScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope
@@ -92,7 +93,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         KotlinBuildScriptCompiler(
             kotlinCompiler,
             classloadingCache,
-            KotlinScriptSource(scriptSource),
+            scriptSource,
             scriptTarget,
             scriptHandler as ScriptHandlerInternal,
             pluginRequestsHandler,
