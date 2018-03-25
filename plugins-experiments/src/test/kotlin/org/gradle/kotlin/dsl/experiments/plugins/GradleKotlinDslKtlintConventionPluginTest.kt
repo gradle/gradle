@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.experiments.plugins
 
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
@@ -18,7 +19,7 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
     fun setup() {
         withBuildScript("""
             plugins {
-                kotlin("jvm") version "1.2.30"
+                kotlin("jvm") version "$embeddedKotlinVersion"
                 id("org.gradle.kotlin.ktlint-convention")
             }
 
