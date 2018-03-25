@@ -159,10 +159,6 @@ Task type `org.gradle.nativeplatform.tasks.InstallExecutable`
 
 Task types `org.gradle.language.assembler.tasks.Assemble`, `org.gradle.language.rc.tasks.WindowsResourceCompile`, `org.gradle.nativeplatform.tasks.StripSymbols`, `org.gradle.nativeplatform.tasks.ExtractSymbols`, `org.gradle.language.swift.tasks.SwiftCompile`, and `org.gradle.nativeplatform.tasks.LinkMachOBundle` were changed in similar ways.
 
-### Removed incubating method `BuildIdentifier.isCurrentBuild()`
-
-TBD - This method is not longer available, so that a `BuildIdentifier` instance may be used to represent a build from anywhere in the Gradle invocation.
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
