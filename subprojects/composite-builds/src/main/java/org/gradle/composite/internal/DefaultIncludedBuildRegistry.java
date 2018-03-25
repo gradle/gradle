@@ -147,7 +147,7 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
 
     private void registerRootBuildProjects(SettingsInternal settings) {
         ProjectRegistry<DefaultProjectDescriptor> settingsProjectRegistry = settings.getProjectRegistry();
-        DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(":");
+        BuildIdentifier buildIdentifier = DefaultBuildIdentifier.ROOT;
         registerProjects(Path.ROOT, buildIdentifier, settingsProjectRegistry.getAllProjects(), false);
     }
 

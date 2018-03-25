@@ -27,7 +27,7 @@ public class DefaultBuildIdentity implements BuildIdentity {
 
     public DefaultBuildIdentity(BuildDefinition buildDefinition, boolean isRootBuild) {
         if (isRootBuild) {
-            this.buildIdentifier = new DefaultBuildIdentifier(":");
+            this.buildIdentifier = DefaultBuildIdentifier.ROOT;
         } else {
             // Infer a build id from the containing directory
             // Should be part of the build definition
