@@ -156,8 +156,9 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, s
             inputs.files(scriptSourceFiles)
             outputs.dir(generatedSourcesDir)
             doLast {
+                val outputDir = generatedSourcesDir.get().asFile
                 for (scriptPlugin in scriptPlugins.value) {
-                    scriptPlugin.writeScriptPluginAdapterTo(generatedSourcesDir.get().asFile)
+                    scriptPlugin.writeScriptPluginAdapterTo(outputDir)
                 }
             }
         }
