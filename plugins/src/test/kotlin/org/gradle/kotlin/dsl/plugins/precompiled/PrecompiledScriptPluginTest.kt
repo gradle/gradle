@@ -10,6 +10,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.withFolders
@@ -110,7 +111,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `plugin ids for precompiled scripts are automatically registered with the java-gradle-plugin extension`() {
+    fun `precompiled script plugin ids are honored by java-gradle-plugin plugin`() {
 
         projectRoot.withFolders {
 
@@ -133,7 +134,11 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                     """)
                 }
 
-                withFile("settings.gradle.kts", testPluginRepositorySettings)
+                withFile("settings.gradle.kts", """
+
+                    $pluginManagementBlock
+
+                """)
 
                 withFile(
                     "build.gradle.kts",
@@ -147,6 +152,82 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             plugins {
                 id("my-plugin")
                 id("org.acme.my-other-plugin")
+            }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("my-plugin applied!"),
+                containsString("my-other-plugin applied!")
+            )
+        )
+    }
+
+    @LeaksFileHandles
+    @Test
+    fun `precompiled script plugins can be published by maven-publish plugin`() {
+
+        projectRoot.withFolders {
+
+            "plugins" {
+
+                "src/main/kotlin" {
+
+                    withFile("my-plugin.gradle.kts", """
+                        println("my-plugin applied!")
+                    """)
+
+                    withFile("org/acme/my-other-plugin.gradle.kts", """
+                        package org.acme
+
+                        println("my-other-plugin applied!")
+                    """)
+                }
+
+                withFile("settings.gradle.kts", """
+
+                    $pluginManagementBlock
+
+                """)
+
+                withFile( "build.gradle.kts", """
+
+                    plugins {
+                        `kotlin-dsl`
+                        `java-gradle-plugin`
+                        `maven-publish`
+                    }
+
+                    group = "org.acme"
+
+                    version = "0.1.0"
+
+                    $applyPrecompiledScriptPlugins
+
+                    publishing {
+                        repositories {
+                            maven(url = "../repository")
+                        }
+                    }
+                """)
+            }
+        }
+
+        build(existing("plugins"), "publish")
+
+        withSettings("""
+            pluginManagement {
+                repositories {
+                    maven(url = "./repository")
+                }
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin") version "0.1.0"
+                id("org.acme.my-other-plugin") version "0.1.0"
             }
         """)
 
@@ -188,8 +269,12 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                 ${additionalPlugins.joinToString(separator = "\n") { "`$it`" }}
             }
 
-            apply<${PrecompiledScriptPlugins::class.qualifiedName}>()
+            $applyPrecompiledScriptPlugins
         """
+
+    protected
+    val applyPrecompiledScriptPlugins
+        get() = "apply<${PrecompiledScriptPlugins::class.qualifiedName}>()"
 
     private
     fun compileKotlin() {

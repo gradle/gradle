@@ -15,19 +15,14 @@ import java.util.*
 open class AbstractPluginTest : AbstractIntegrationTest() {
 
     protected
-    val testPluginRepositorySettings by lazy {
-        val testRepository = normaliseFileSeparators(absolutePathOf("build/repository"))
-        val futureVersion = loadTestProperties()["version"]
+    val pluginManagementBlock by lazy {
         """
             pluginManagement {
-                repositories {
-                    maven { url = uri("$testRepository") }
-                    gradlePluginPortal()
-                }
+                $repositoriesBlock
                 resolutionStrategy {
                     eachPlugin {
                         if (requested.id.namespace == "org.gradle.kotlin") {
-                            useVersion("$futureVersion")
+                            useVersion("$futurePluginsVersion")
                         }
                     }
                 }
@@ -35,9 +30,28 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         """
     }
 
+    private
+    val repositoriesBlock by lazy {
+        """
+            repositories {
+                maven { url = uri("$testRepositoryPath") }
+                gradlePluginPortal()
+            }
+        """
+    }
+
+    private
+    val futurePluginsVersion by lazy {
+        loadTestProperties()["version"]!!
+    }
+
+    private
+    val testRepositoryPath: String
+        get() = normaliseFileSeparators(absolutePathOf("build/repository"))
+
     @Before
     fun setUpTestPluginRepository() {
-        withSettings(testPluginRepositorySettings)
+        withSettings(pluginManagementBlock)
     }
 
     private
