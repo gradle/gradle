@@ -16,10 +16,10 @@
 
 package org.gradle.nativeplatform.toolchain.internal.xcode;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.process.internal.ExecActionFactory;
 
 import javax.inject.Inject;
-import java.util.Arrays;
 import java.util.List;
 
 public class SwiftStdlibToolLocator extends AbstractLocator {
@@ -30,6 +30,6 @@ public class SwiftStdlibToolLocator extends AbstractLocator {
 
     @Override
     protected List<String> getXcrunFlags() {
-        return Arrays.asList("--find", "swift-stdlib-tool");
+        return ImmutableList.of("--find", "swift-stdlib-tool");
     }
 }

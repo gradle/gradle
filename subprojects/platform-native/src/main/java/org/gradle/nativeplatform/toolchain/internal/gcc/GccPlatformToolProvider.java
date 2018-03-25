@@ -242,7 +242,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     public SystemLibraries getSystemLibraries(ToolType compilerType) {
         final SearchResult<GccMetadata> gccMetadata = getGccMetadata(compilerType);
         if (gccMetadata.isAvailable()) {
-            return standardLibraryDiscovery.getSystemLibraries(gccMetadata.getComponent(), targetPlatform);
+            return gccMetadata.getComponent().getSystemLibraries();
         }
         return new EmptySystemLibraries();
     }

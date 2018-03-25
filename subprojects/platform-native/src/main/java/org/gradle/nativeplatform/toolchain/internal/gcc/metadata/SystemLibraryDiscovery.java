@@ -17,13 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class SystemLibraryDiscovery {
     private final MacOSSdkPathLocator macOSSdkPathLocator;
@@ -32,38 +28,11 @@ public class SystemLibraryDiscovery {
         this.macOSSdkPathLocator = macOSSdkPathLocator;
     }
 
-    public SystemLibraries getSystemLibraries(final GccMetadata compiler, NativePlatformInternal target) {
-        final SystemLibraries compilerSystemLibraries = compiler.getSystemLibraries();
-
+    public String[] compilerProbeArgs(NativePlatformInternal target) {
         if (!target.getOperatingSystem().isMacOsX()) {
-            return compilerSystemLibraries;
+            return new String[0];
         }
-
-        // Add the macOS platform SDK, if not present
         File sdkDir = macOSSdkPathLocator.find();
-        final File platformIncludeDir = new File(sdkDir, "usr/include");
-        if (compilerSystemLibraries.getIncludeDirs().contains(platformIncludeDir)) {
-            return compilerSystemLibraries;
-        }
-
-        final List<File> dirs = new ArrayList<File>(compilerSystemLibraries.getIncludeDirs());
-        dirs.add(platformIncludeDir);
-
-        return new SystemLibraries() {
-            @Override
-            public List<File> getIncludeDirs() {
-                return dirs;
-            }
-
-            @Override
-            public List<File> getLibDirs() {
-                return compilerSystemLibraries.getLibDirs();
-            }
-
-            @Override
-            public Map<String, String> getPreprocessorMacros() {
-                return compilerSystemLibraries.getPreprocessorMacros();
-            }
-        };
+        return new String[]{"-isysroot", sdkDir.getAbsolutePath()};
     }
 }
