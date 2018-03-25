@@ -387,14 +387,12 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
         where:
         permutation << StrictPermutationsProvider.check(
-            ignore: true,
             versions: [FIXED_12, REJECT_11],
             expectedNoStrict: 12
         ).and(
             versions: [FIXED_12, REJECT_12],
             expectedNoStrict: -1
         ).and(
-            ignore: true,
             versions: [FIXED_12, REJECT_13],
             expectedNoStrict: 12
         )
@@ -420,7 +418,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             expectedNoStrict: 12,
             expectedStrict: [-1, 12, 12]
         ).and(
-            ignore: true,
             versions: [FIXED_10, RANGE_10_11, RANGE_10_14],
             expectedNoStrict: 10,
             expectedStrict: [10, 10, 10]
@@ -434,7 +431,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             expectedNoStrict: 12,
             expectedStrict: [-1, 12, 12]
         ).and(
-            ignore: true,
             versions: [RANGE_10_11, RANGE_10_12, RANGE_10_14],
             expectedNoStrict: 11,
             expectedStrict: [11, 11, 11]
@@ -476,7 +472,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             expectedNoStrict: 12,
 
         ).and(
-            ignore: true,
             versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_11],
             expectedNoStrict: 12,
         ).and(
@@ -484,7 +479,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_12],
             expectedNoStrict: 13,
         ).and(
-            ignore: true,
             versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_13],
             expectedNoStrict: 12,
 
