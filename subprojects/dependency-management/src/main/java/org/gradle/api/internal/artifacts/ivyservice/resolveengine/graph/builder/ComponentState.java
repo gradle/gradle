@@ -48,7 +48,7 @@ import java.util.Set;
 /**
  * Resolution state for a given component
  */
-public class ComponentState implements ComponentResolutionState, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
+public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
@@ -305,15 +305,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             }
         }
         return incoming;
-    }
-
-    public List<ComponentState> getUnattachedDependencies() {
-        return module.getUnattachedEdgesTo(this);
-    }
-
-    @Override
-    public boolean isFromPendingNode() {
-        return firstSelectedBy != null && firstSelectedBy.getDependencyMetadata().isPending();
     }
 
     public boolean isSelected() {
