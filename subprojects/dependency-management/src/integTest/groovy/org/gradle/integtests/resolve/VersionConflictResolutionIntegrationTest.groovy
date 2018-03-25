@@ -1150,7 +1150,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    def "range selector should not win over sub-version selector"() {
+    def "merges range selector with sub-version selector"() {
         given:
         (1..10).each {
             mavenRepo.module("org", "leaf", "1.$it").publish()
@@ -1171,7 +1171,7 @@ task checkDeps(dependsOn: configurations.compile) {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.10.jar']
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.6.jar']
                 }
             }
         """
