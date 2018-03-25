@@ -207,11 +207,14 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                     withFile("org/acme/my-other-plugin.gradle.kts", """
                         package org.acme
 
-                        println("my-other-plugin applied!")
+                        println("org.acme.my-other-plugin applied!")
                     """)
 
-                    withFile("my-init-plugin.init.gradle.kts", """
-                        println("my-init-plugin applied!")
+                    withFile("org/acme/plugins/my-init.init.gradle.kts", """
+
+                        package org.acme.plugins
+
+                        println("org.acme.plugins.my-init applied!")
                     """)
                 }
 
@@ -275,18 +278,18 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                     }
                 }
 
-                apply<MyInitPluginPlugin>()
+                apply<org.acme.plugins.MyInitPlugin>()
 
                 // TODO: can't apply plugin by id
-                // apply(plugin = "my-init-plugin")
+                // apply(plugin = "org.acme.plugins.my-init")
             """)
 
         assertThat(
             build("help", "-I", initScript.canonicalPath).output,
             allOf(
-                containsString("my-init-plugin applied!"),
+                containsString("org.acme.plugins.my-init applied!"),
                 containsString("my-plugin applied!"),
-                containsString("my-other-plugin applied!")
+                containsString("org.acme.my-other-plugin applied!")
             )
         )
     }

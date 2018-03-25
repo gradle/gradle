@@ -170,18 +170,36 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, s
 
 
 internal
-fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) =
-    File(outputDir, "$implementationClass.kt").writeText(
-        """
-            class $implementationClass : org.gradle.api.Plugin<$targetType> {
-                override fun apply(target: $targetType) {
-                    Class
-                        .forName("$compiledScriptTypeName")
-                        .getDeclaredConstructor($targetType::class.java)
-                        .newInstance(target)
-                }
+fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
+
+    val (packageDir, packageDeclaration) =
+        packageName?.let { packageName ->
+            outputDir.mkdir(packageName.replace('.', '/')) to "package $packageName"
+        } ?: outputDir to ""
+
+    val outputFile =
+        packageDir.resolve("$simplePluginAdapterClassName.kt")
+
+    outputFile.writeText("""
+
+        $packageDeclaration
+
+        class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
+            override fun apply(target: $targetType) {
+                Class
+                    .forName("$compiledScriptTypeName")
+                    .getDeclaredConstructor($targetType::class.java)
+                    .newInstance(target)
             }
-        """.replaceIndent())
+        }
+
+    """.replaceIndent())
+}
+
+
+private
+fun File.mkdir(relative: String) =
+    resolve(relative).apply { mkdirs() }
 
 
 private

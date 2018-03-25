@@ -48,6 +48,10 @@ data class ScriptPlugin(val scriptFile: File) {
      * the `generateScriptPluginAdapters` task.
      */
     val implementationClass by lazy {
+        packagePrefixed(simplePluginAdapterClassName)
+    }
+
+    val simplePluginAdapterClassName by lazy {
         fileNameWithoutScriptExtension
             .kebabCaseToPascalCase()
             .asJavaIdentifier() + "Plugin"
