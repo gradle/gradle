@@ -30,6 +30,9 @@ import java.io.File
 internal
 data class ScriptPlugin(val scriptFile: File) {
 
+    private
+    val scriptFileName = scriptFile.name
+
     /**
      * Gradle plugin id inferred from the script file name and package declaration (if any).
      */
@@ -50,28 +53,21 @@ data class ScriptPlugin(val scriptFile: File) {
             .asJavaIdentifier() + "Plugin"
     }
 
-    val targetType by lazy {
-        when (scriptExtension) {
-            ".settings.gradle.kts" -> Settings::class.qualifiedName
-            ".init.gradle.kts" -> Gradle::class.qualifiedName
-            else -> Project::class.qualifiedName
-        }
-    }
-
     private
     val fileNameWithoutScriptExtension by lazy {
-        scriptFile.name.removeSuffix(scriptExtension)
+        scriptFileName.removeSuffix(scriptExtension)
     }
 
+    val targetType
+        get() = scriptTarget.second
+
     private
-    val scriptExtension by lazy {
-        scriptFile.name.run {
-            when {
-                endsWith(".settings.gradle.kts") -> ".settings.gradle.kts"
-                endsWith(".init.gradle.kts") -> ".init.gradle.kts"
-                else -> ".gradle.kts"
-            }
-        }
+    val scriptExtension
+        get() = scriptTarget.first
+
+    private
+    val scriptTarget by lazy {
+        scriptTargets.first { (extension, _) -> scriptFileName.endsWith(extension) }
     }
 
     /**
@@ -89,6 +85,14 @@ data class ScriptPlugin(val scriptFile: File) {
     fun packagePrefixed(id: String) =
         packageName?.let { "$it.$id" } ?: id
 }
+
+
+private
+val scriptTargets =
+    listOf( // order is relevant and must be from longer suffix to shorter suffix
+        ".settings.gradle.kts" to Settings::class.qualifiedName,
+        ".init.gradle.kts" to Gradle::class.qualifiedName,
+        ".gradle.kts" to Project::class.qualifiedName)
 
 
 private
