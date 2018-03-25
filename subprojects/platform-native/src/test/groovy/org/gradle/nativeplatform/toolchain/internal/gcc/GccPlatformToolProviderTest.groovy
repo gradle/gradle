@@ -64,9 +64,9 @@ class GccPlatformToolProviderTest extends Specification {
             assert arguments[1] == args
             new ComponentFound(metaData)
         }
-        1 * systemLibraryDiscovery.getSystemLibraries(metaData, targetPlatform) >> libs
         1 * toolRegistry.getTool(toolType) >> new DefaultGccCommandLineToolConfiguration(toolType, 'exe')
         1 * toolSearchPath.locate(toolType, 'exe') >> Mock(CommandLineToolSearchResult)
+        _ * metaData.systemLibraries >> libs
 
         where:
         toolType                       | args
