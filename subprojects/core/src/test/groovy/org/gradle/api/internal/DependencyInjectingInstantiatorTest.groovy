@@ -56,7 +56,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
     def "injects missing parameters from provided service registry"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(String) >> "string"
+        services.find(String) >> "string"
 
         when:
         def result = instantiator.newInstance(HasInjectConstructor, 12)
@@ -167,7 +167,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
     def "fails when supplied parameters cannot be used to call constructor"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(Number) >> 12
+        services.find(Number) >> 12
 
         when:
         instantiator.newInstance(HasOneInjectConstructor, new StringBuilder("string"))
@@ -179,9 +179,8 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "fails on missing service"() {
         given:
-        def failure = new UnknownServiceException(String, "unknown")
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(String) >> { throw failure }
+        services.find(String) >> null
 
         when:
         instantiator.newInstance(HasInjectConstructor, 12)
@@ -189,7 +188,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == 'Unable to determine argument #0: no service of type class java.lang.String, or value 12 not assignable to type class java.lang.String'
+        e.cause.message == 'Unable to determine argument #1: value 12 not assignable to type class java.lang.String, or no service of type class java.lang.String'
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
@@ -279,7 +278,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
     def "fails when null passed as constructor argument value"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(String) >> { throw new UnknownServiceException(String, "message") }
+        services.find(String) >> null
 
         when:
         instantiator.newInstance(HasInjectConstructor, null, null)
@@ -287,7 +286,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == 'Unable to determine argument #0: no service of type class java.lang.String, or value null not assignable to type class java.lang.String'
+        e.cause.message == 'Unable to determine argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String'
     }
 
     def "selects @Inject constructor over no-args constructor"() {

@@ -97,15 +97,16 @@ public class DependencyInjectingInstantiator implements Instantiator {
         if (parameterTypes.length < parameters.length) {
             throw new IllegalArgumentException(String.format("Too many parameters provided for constructor for class %s. Expected %s, received %s.", type.getName(), parameterTypes.length, parameters.length));
         }
+        Type[] genericTypes = constructor.getGenericParameterTypes();
         Object[] resolvedParameters = new Object[parameterTypes.length];
         int pos = 0;
         for (int i = 0; i < resolvedParameters.length; i++) {
-            Object currentParameter = null;
             Class<?> targetType = parameterTypes[i];
             if (targetType.isPrimitive()) {
                 targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
             }
-            Type serviceType = constructor.getGenericParameterTypes()[i];
+            Type serviceType = genericTypes[i];
+            Object currentParameter;
             if (pos < parameters.length && targetType.isInstance(parameters[pos])) {
                 currentParameter = parameters[pos];
                 pos++;
@@ -116,7 +117,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
             if (currentParameter != null) {
                 resolvedParameters[i] = currentParameter;
             } else {
-                StringBuilder builder = new StringBuilder(String.format("Unable to determine argument #%s:", i));
+                StringBuilder builder = new StringBuilder(String.format("Unable to determine argument #%s:", i + 1));
                 if (pos < parameters.length) {
                     builder.append(String.format(" value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
                 } else {

@@ -95,7 +95,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param options The task creation options.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @throws NullPointerException If any of the values in {@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS} is null.
+     * @throws NullPointerException If any of the values in <code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      */
     Task create(Map<String, ?> options) throws InvalidUserDataException;
 
@@ -155,7 +155,8 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
 
     /**
      * <p>Creates a {@link Task} with the given name and type, passing the given arguments to the {@code @Inject}-annotated constructor,
-     * and adds it to this container.</p>
+     * and adds it to this container.  All values passed to the task constructor must be non-null; otherwise a
+     * {@code NullPointerException} will be thrown</p>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>

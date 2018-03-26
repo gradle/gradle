@@ -57,10 +57,10 @@ public interface ServiceRegistry {
     Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
-     * Locates the service of the given type.
+     * Locates the service of the given type, returning null if no such service.
      *
      * @param serviceType The service type.
-     * @return The service instance. Returns {@code null} if no such service exists
+     * @return The service instance. Returns {@code null} if no such service exists.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
     Object find(Type serviceType) throws ServiceLookupException;

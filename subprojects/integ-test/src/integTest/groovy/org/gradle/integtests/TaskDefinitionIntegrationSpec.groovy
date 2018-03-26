@@ -138,7 +138,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #1: missing parameter value of type int, or no service of type int")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #2: missing parameter value of type int, or no service of type int")
 
         where:
         description   | script
@@ -156,7 +156,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #0: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -199,8 +199,8 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         description | constructorArgs | argumentNumber | outputType
-        'first'     | '123, 234'      | 0              | 'class java.lang.String'
-        'last'      | '"abc", "123"'  | 1              | 'int'
+        'first'     | '123, 234'      | 1              | 'class java.lang.String'
+        'last'      | '"abc", "123"'  | 2              | 'int'
     }
 
     @Unroll
@@ -217,10 +217,10 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         description   | position | script
-        'Map'         | 0        | "task myTask(type: CustomTask, constructorArgs: [null, 1])"
-        'direct call' | 0        | "tasks.create('myTask', CustomTask, null, 1)"
-        'Map'         | 1        | "task myTask(type: CustomTask, constructorArgs: ['abc', null])"
-        'direct call' | 1        | "tasks.create('myTask', CustomTask, 'abc', null)"
+        'Map'         | 1        | "task myTask(type: CustomTask, constructorArgs: [null, 1])"
+        'direct call' | 1        | "tasks.create('myTask', CustomTask, null, 1)"
+        'Map'         | 2        | "task myTask(type: CustomTask, constructorArgs: ['abc', null])"
+        'direct call' | 2        | "tasks.create('myTask', CustomTask, 'abc', null)"
     }
 
     def "can construct a task with @Inject services"() {
