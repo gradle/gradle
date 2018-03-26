@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -123,6 +124,7 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.ConfigureUtil.configure;
 
+@NonNullApi
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
     private final ConfigurationResolver resolver;
@@ -363,7 +365,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return description;
     }
 
-    public Configuration setDescription(String description) {
+    public Configuration setDescription(@Nullable String description) {
         this.description = description;
         return this;
     }
@@ -916,28 +918,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class ConfigurationFileCollection extends AbstractFileCollection {
         private final Spec<? super Dependency> dependencySpec;
-        private final AttributeContainerInternal viewAttributes;
-        private final Spec<? super ComponentIdentifier> componentSpec;
         private final boolean lenient;
-        private final boolean allowNoMatchingVariants;
-        private SelectedArtifactSet selectedArtifacts;
+        private CachedArtifactSelection cachedArtifactSelection;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
-            this.viewAttributes = configurationAttributes;
-            this.componentSpec = Specs.satisfyAll();
-            lenient = false;
-            allowNoMatchingVariants = false;
+            this.lenient = false;
+            this.cachedArtifactSelection = new CachedArtifactSelection(dependencySpec, configurationAttributes, Specs.satisfyAll(), false);
         }
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes,
                                             Spec<? super ComponentIdentifier> componentSpec, boolean lenient, boolean allowNoMatchingVariants) {
             this.dependencySpec = dependencySpec;
-            this.viewAttributes = viewAttributes.asImmutable();
-            this.componentSpec = componentSpec;
             this.lenient = lenient;
-            this.allowNoMatchingVariants = allowNoMatchingVariants;
+            this.cachedArtifactSelection = new CachedArtifactSelection(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants);
         }
 
         private ConfigurationFileCollection(Closure dependencySpecClosure) {
@@ -953,9 +948,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
+        public ConfigurationTaskDependency getBuildDependencies() {
             assertResolvingAllowed();
-            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, lenient);
+            return new ConfigurationTaskDependency(lenient, cachedArtifactSelection);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -968,7 +963,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-            getSelectedArtifacts().visitArtifacts(visitor, lenient);
+            cachedArtifactSelection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             if (!lenient) {
                 rethrowFailure("files", visitor.getFailures());
@@ -978,6 +973,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {
+            return cachedArtifactSelection.getSelectedArtifacts();
+        }
+    }
+
+    private class CachedArtifactSelection {
+        private final Spec<? super Dependency> dependencySpec;
+        private final AttributeContainerInternal viewAttributes;
+        private final Spec<? super ComponentIdentifier> componentSpec;
+        private final boolean allowNoMatchingVariants;
+
+        private SelectedArtifactSet selectedArtifacts;
+
+        private CachedArtifactSelection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants) {
+            this.dependencySpec = dependencySpec;
+            this.viewAttributes = viewAttributes;
+            this.componentSpec = componentSpec;
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
+        }
+
+        public synchronized SelectedArtifactSet getSelectedArtifacts() {
             if (selectedArtifacts == null) {
                 assertResolvingAllowed();
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
@@ -1344,27 +1359,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {
-        private final Spec<? super Dependency> dependencySpec;
-        private final AttributeContainerInternal requestedAttributes;
-        private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
         private final boolean lenient;
-        private final boolean allowNoMatchingVariants;
+        private final DefaultConfiguration.CachedArtifactSelection cachedArtifactSelection;
 
-        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants, boolean lenient) {
-            this.dependencySpec = dependencySpec;
-            this.requestedAttributes = requestedAttributes;
-            this.componentIdentifierSpec = componentIdentifierSpec;
-            this.allowNoMatchingVariants = allowNoMatchingVariants;
+        ConfigurationTaskDependency(boolean lenient, CachedArtifactSelection cachedArtifactSelection) {
             this.lenient = lenient;
+            this.cachedArtifactSelection = cachedArtifactSelection;
         }
 
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
             synchronized (resolutionLock) {
                 // In order to detect which artifact transforms are required, the whole graph needs to be resolved to detect dependencies.
-                resolveToStateOrLater(GRAPH_RESOLVED);
-                ResolverResults results = cachedResolverResults;
-                SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
+                SelectedArtifactSet selected = cachedArtifactSelection.getSelectedArtifacts();
                 final Set<Throwable> failures = new LinkedHashSet<Throwable>();
                 selected.collectBuildDependencies(new BuildDependenciesVisitor() {
                     @Override

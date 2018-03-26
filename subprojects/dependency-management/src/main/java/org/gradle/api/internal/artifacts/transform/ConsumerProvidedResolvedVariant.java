@@ -32,18 +32,17 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
-    private final Map<AttributeMatchingVariantSelector.VariantTaskKey, ArtifactTransformTask> transformTasks;
+    private ArtifactTransformDependency artifactTransformDependency;
 
-    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, Map<AttributeMatchingVariantSelector.VariantTaskKey, ArtifactTransformTask> transformTasks) {
+    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;
-        this.transformTasks = transformTasks;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        return transformTasks.get(new AttributeMatchingVariantSelector.VariantTaskKey(delegate, attributes, transform)).getResult();
+        return artifactTransformDependency.getTransformTask().getResult();
 //        Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
 //        Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
 //        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
@@ -57,7 +56,8 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
             System.out.println(((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).artifact.getId().getDisplayName());
             System.out.println(((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).artifact.getId().getComponentIdentifier());
         }
-        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate, attributes, transformTasks));
+        artifactTransformDependency = new ArtifactTransformDependency(transform, delegate, attributes);
+        visitor.visitDependency(artifactTransformDependency);
         // FIXME: Task needs to collect the delegate dependencies and create tranforms for them.
 //        delegate.collectBuildDependencies(visitor);
     }

@@ -17,22 +17,21 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Named;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
-import java.util.Map;
-
+@NonNullApi
 public class ArtifactTransformDependency implements Named {
     private final ArtifactTransformer transform;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
-    private final Map<AttributeMatchingVariantSelector.VariantTaskKey, ArtifactTransformTask> transformTasks;
+    private ArtifactTransformTask transformTask;
 
-    public ArtifactTransformDependency(ArtifactTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes, Map<AttributeMatchingVariantSelector.VariantTaskKey, ArtifactTransformTask> transformTasks) {
+    public ArtifactTransformDependency(ArtifactTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes) {
         this.transform = transform;
         this.delegate = delegate;
         this.attributes = attributes;
-        this.transformTasks = transformTasks;
     }
 
     public ArtifactTransformer getTransform() {
@@ -53,6 +52,10 @@ public class ArtifactTransformDependency implements Named {
     }
 
     public void setTransformTask(ArtifactTransformTask transformTask) {
-        transformTasks.put(new AttributeMatchingVariantSelector.VariantTaskKey(delegate, attributes, transform), transformTask);
+        this.transformTask = transformTask;
+    }
+
+    public ArtifactTransformTask getTransformTask() {
+        return transformTask;
     }
 }

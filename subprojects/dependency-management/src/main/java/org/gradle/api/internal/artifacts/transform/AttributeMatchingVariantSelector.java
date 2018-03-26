@@ -30,15 +30,12 @@ import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final AttributeContainerInternal requested;
     private final boolean ignoreWhenNoMatches;
-    private static final Map<VariantTaskKey, ArtifactTransformTask> transformTasks = new ConcurrentHashMap<VariantTaskKey, ArtifactTransformTask>();
 
     AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
@@ -84,7 +81,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-            return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer, transformTasks);
+            return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
         }
 
         if (!candidates.isEmpty()) {
@@ -95,37 +92,5 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             return ResolvedArtifactSet.EMPTY;
         }
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), requested, producer.getVariants(), matcher);
-    }
-
-    public static class VariantTaskKey {
-        private final ResolvedArtifactSet artifacts;
-        private final AttributeContainerInternal attributes;
-        private final ArtifactTransformer transformer;
-
-        public VariantTaskKey(ResolvedArtifactSet artifacts, AttributeContainerInternal attributes, ArtifactTransformer transformer) {
-            this.artifacts = artifacts;
-            this.attributes = attributes;
-            this.transformer = transformer;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            VariantTaskKey that = (VariantTaskKey) o;
-
-            if (!artifacts.equals(that.artifacts)) return false;
-            if (!attributes.equals(that.attributes)) return false;
-            return transformer.equals(that.transformer);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = artifacts.hashCode();
-            result = 31 * result + attributes.hashCode();
-            result = 31 * result + transformer.hashCode();
-            return result;
-        }
     }
 }
