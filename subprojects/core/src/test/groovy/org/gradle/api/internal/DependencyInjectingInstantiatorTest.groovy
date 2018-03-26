@@ -298,7 +298,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
         def result = instantiator.newInstance(HasDefaultAndInjectConstructors, "ignored")
 
         then:
-        result != null
         result.message == "injected"
     }
 
