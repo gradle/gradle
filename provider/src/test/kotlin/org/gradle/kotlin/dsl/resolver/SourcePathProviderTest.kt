@@ -10,15 +10,18 @@ import org.gradle.kotlin.dsl.resolver.SourcePathProvider.sourcePathFor
 
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 
 import org.junit.Test
 
 
 class SourcePathProviderTest : FolderBasedTest() {
 
+    /**
+     * This unit test can't rely on `BuildSrcSourceRootsConfigurationAction`
+     * it is testing the fallback behavior of [SourcePathProvider]
+     */
     @Test
-    fun `given buildSrc folder, it will include buildSrc source roots`() {
+    fun `given buildSrc folder, it will fallback to approximate buildSrc source roots`() {
         withFolders {
             "project" {
                 "buildSrc/src/main" {
@@ -43,46 +46,6 @@ class SourcePathProviderTest : FolderBasedTest() {
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
-                folder("gradle/src/gradle-foo"),
-                folder("gradle/src/gradle-bar")))
-    }
-
-    @Ignore("gradle/kotlin-dsl#775")
-    @Test
-    fun `given multi-project buildSrc folder, it will include buildSrc source roots`() {
-        withFolders {
-            "project" {
-                "buildSrc" {
-                    "subprojects/foo/src/main/kotlin" {
-                    }
-                    "subprojects/bar/src/main/java" {
-                    }
-                    withFile("settings.gradle.kts", """
-                        include("foo")
-                        include("bar")
-                        for (project in rootProject.children) {
-                            project.projectDir = file("subprojects/${'$'}{project.name}")
-                        }
-                    """)
-                }
-            }
-            "gradle" {
-                "src" {
-                    +"gradle-foo"
-                    +"gradle-bar"
-                }
-            }
-        }
-
-        assertThat(
-            sourcePathFor(
-                classPath = ClassPath.EMPTY,
-                projectDir = folder("project"),
-                gradleHomeDir = folder("gradle"),
-                sourceDistributionResolver = mock()).asFiles,
-            hasItems(
-                folder("project/buildSrc/subprojects/foo/src/main/kotlin"),
-                folder("project/buildSrc/subprojects/bar/src/main/java"),
                 folder("gradle/src/gradle-foo"),
                 folder("gradle/src/gradle-bar")))
     }

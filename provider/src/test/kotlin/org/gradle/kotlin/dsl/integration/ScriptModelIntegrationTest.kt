@@ -72,9 +72,79 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
     }
 
-    private
+    protected
     fun sourcePathFor(scriptFile: File) =
         kotlinBuildScriptModelFor(projectRoot, scriptFile).sourcePath
+
+    protected
+    class ProjectSourceRoots(val projectDir: File, val sourceSets: List<String>, val languages: List<String>)
+
+    protected
+    fun withMainSourceSetJavaIn(projectDir: String) =
+        ProjectSourceRoots(existing(projectDir), listOf("main"), listOf("java"))
+
+    protected
+    fun withMainSourceSetJavaKotlinIn(projectDir: String) =
+        ProjectSourceRoots(existing(projectDir), listOf("main"), listOf("java", "kotlin"))
+
+    protected
+    fun matchesProjectsSourceRoots(vararg projectSourceRoots: ProjectSourceRoots): Matcher<Iterable<File>> {
+
+        fun hasLanguageDir(base: File, set: String, lang: String): Matcher<Iterable<*>> =
+            hasItem(base.resolve("src/$set/$lang"))
+
+        return allOf(
+            *projectSourceRoots
+                .filter { it.languages.isNotEmpty() }
+                .flatMap { sourceRoots ->
+                    val languageDirs =
+                        sourceRoots.sourceSets.flatMap { sourceSet ->
+                            listOf("java", "kotlin").map { language ->
+                                val hasLanguageDir = hasLanguageDir(sourceRoots.projectDir, sourceSet, language)
+                                if (language in sourceRoots.languages) hasLanguageDir
+                                else not(hasLanguageDir)
+                            }
+                        }
+
+                    val resourceDirs =
+                        sourceRoots.sourceSets.map { sourceSet ->
+                            hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
+                        }
+
+                    languageDirs + resourceDirs
+                }.toTypedArray())
+    }
+
+    protected
+    fun withMultiProjectKotlinBuildSrc(): Array<ProjectSourceRoots> {
+        withFile("buildSrc/settings.gradle.kts", """include(":a", ":b", ":c")""")
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                java
+                `kotlin-dsl` apply false
+            }
+
+            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
+
+            kotlinDslProjects.forEach {
+                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+            }
+
+            dependencies {
+                kotlinDslProjects.forEach {
+                    "runtime"(project(it.path))
+                }
+            }
+        """)
+        withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
+        withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
+
+        return arrayOf(
+            withMainSourceSetJavaIn("buildSrc"),
+            withMainSourceSetJavaKotlinIn("buildSrc/a"),
+            withMainSourceSetJavaKotlinIn("buildSrc/b"),
+            withMainSourceSetJavaIn("buildSrc/c"))
+    }
 
     protected
     fun assertContainsGradleKotlinDslJars(classPath: List<File>) {
