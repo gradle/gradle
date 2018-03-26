@@ -162,8 +162,12 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
-        allConfigurations.put(name, conf);
+        addToConfigurations(name, conf);
         return conf;
+    }
+
+    void addToConfigurations(String name, DefaultLocalConfigurationMetadata conf) {
+        allConfigurations.put(name, conf);
     }
 
     @Override
@@ -272,7 +276,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         private List<LocalComponentArtifactMetadata> configurationArtifacts;
 
-        private DefaultLocalConfigurationMetadata(String name,
+        DefaultLocalConfigurationMetadata(String name,
                                                   String description,
                                                   boolean visible,
                                                   boolean transitive,
@@ -386,9 +390,14 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                         configuration.addDefinedDependencies(result);
                     }
                 }
+                addExtraDependencies(result);
                 configurationDependencies = result.build();
             }
             return configurationDependencies;
+        }
+
+        void addExtraDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
+            // No-op
         }
 
         void addDefinedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.DomainObjectContext;
@@ -52,6 +53,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMeta
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.internal.locking.DefaultDependencyLockingHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -73,6 +75,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -224,6 +227,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTypeRegistry);
         }
 
+        DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, DependencyFactory dependencyFactory, FileOperations fileOperations) {
+            return instantiator.newInstance(DefaultDependencyLockingHandler.class, dependencyFactory, fileOperations);
+        }
+
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
             return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory);
         }
@@ -323,6 +330,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return services.get(DependencyHandler.class);
         }
 
+        @Override
+        public DependencyLockingHandler getDependencyLockingHandler() {
+            return services.get(DependencyLockingHandler.class);
+        }
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {

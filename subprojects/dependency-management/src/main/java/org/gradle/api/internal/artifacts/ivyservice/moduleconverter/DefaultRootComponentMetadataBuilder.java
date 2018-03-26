@@ -23,10 +23,13 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.internal.locking.DefaultDependencyLockingHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder {
@@ -64,7 +67,8 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-        metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
+        DependencyLockingProvider dependencyLockingHandler = project == null ? DefaultDependencyLockingHandler.NO_OP_LOCKING_PROVIDER : ((DefaultDependencyLockingHandler) project.getDependencyLocking()).getDependencyLockingProvider();
+        metaData = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
         localComponentMetadataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         holder.cachedValue = metaData;
         return metaData;

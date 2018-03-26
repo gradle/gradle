@@ -35,6 +35,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -1344,4 +1345,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         configuration.execute(getNormalization());
     }
 
+    @Inject
+    @Override
+    public DependencyLockingHandler getDependencyLocking() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
+        configuration.execute(getDependencyLocking());
+    }
 }
