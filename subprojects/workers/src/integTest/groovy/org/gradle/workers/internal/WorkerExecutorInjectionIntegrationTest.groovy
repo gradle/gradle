@@ -35,7 +35,7 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
         fails("runInWorker")
 
         and:
-        failure.assertHasCause("Unable to determine argument #0: no service of type $forbiddenType, or missing parameter value of type $forbiddenType")
+        failure.assertHasCause("Unable to determine argument #1: missing parameter value of type $forbiddenType, or no service of type $forbiddenType")
 
         where:
         forbiddenType << [Project, FileResolver]
