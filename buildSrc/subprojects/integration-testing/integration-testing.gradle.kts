@@ -28,6 +28,10 @@ gradlePlugin {
             id = "gradlebuild.integration-tests"
             implementationClass = "org.gradle.gradlebuild.test.integrationtests.IntegrationTestsPlugin"
         }
+        "intTestImage" {
+            id = "gradlebuild.int-test-image"
+            implementationClass = "org.gradle.gradlebuild.test.fixtures.IntTestImagePlugin"
+        }
         "testFixtures" {
             id = "gradlebuild.test-fixtures"
             implementationClass = "org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin"
