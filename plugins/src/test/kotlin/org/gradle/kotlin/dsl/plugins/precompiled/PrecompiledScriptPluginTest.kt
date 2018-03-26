@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
@@ -11,6 +12,7 @@ import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.withFolders
@@ -87,6 +89,39 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                 "My_gradle_script_init_gradle"))
 
         verify(gradle).useLogger("my-logger")
+    }
+
+    @Test
+    fun `plugin adapter doesn't mask exceptions thrown by precompiled script`() {
+
+        // given:
+        val expectedMessage = "Not on my watch!"
+
+        withPrecompiledScriptPluginsPlus(
+            "kotlin-dsl",
+            "java-gradle-plugin")
+
+        withFile("src/main/kotlin/my-project-script.gradle.kts", """
+            throw IllegalStateException("$expectedMessage")
+        """)
+
+        // when:
+        compileKotlin()
+
+        // then:
+        @Suppress("unchecked_cast")
+        val pluginAdapter =
+            loadCompiledKotlinClass("MyProjectScriptPlugin")
+                .newInstance() as Plugin<Project>
+
+        val exception =
+            assertFailsWith(IllegalStateException::class) {
+                pluginAdapter.apply(mock())
+            }
+
+        assertThat(
+            exception.message,
+            equalTo(expectedMessage))
     }
 
     @Test

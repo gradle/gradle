@@ -187,10 +187,14 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
         class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
             override fun apply(target: $targetType) {
-                Class
-                    .forName("$compiledScriptTypeName")
-                    .getDeclaredConstructor($targetType::class.java)
-                    .newInstance(target)
+                try {
+                    Class
+                        .forName("$compiledScriptTypeName")
+                        .getDeclaredConstructor($targetType::class.java)
+                        .newInstance(target)
+                } catch (e: java.lang.reflect.InvocationTargetException) {
+                    throw e.targetException
+                }
             }
         }
 
