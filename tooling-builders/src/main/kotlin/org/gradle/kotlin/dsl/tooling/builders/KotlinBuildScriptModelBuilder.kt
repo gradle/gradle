@@ -42,6 +42,7 @@ import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
@@ -85,7 +86,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     private
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
-        when (parameter.scriptFile?.let { KotlinScriptType.forFile(it) }) {
+        when (parameter.scriptFile?.let { kotlinScriptTypeFor(it) }) {
             null -> projectScriptModelBuilder(modelRequestProject)
             KotlinScriptType.SETTINGS -> settingsScriptModelBuilder(modelRequestProject)
             KotlinScriptType.INIT -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)

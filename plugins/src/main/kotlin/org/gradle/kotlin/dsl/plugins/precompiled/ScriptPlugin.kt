@@ -20,6 +20,9 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
+
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.NameUtils
@@ -62,16 +65,25 @@ data class ScriptPlugin(val scriptFile: File) {
         scriptFileName.removeSuffix(scriptExtension)
     }
 
-    val targetType
-        get() = scriptTarget.second
+    val targetType by lazy {
+        when (scriptType) {
+            KotlinScriptType.PROJECT -> Project::class.qualifiedName
+            KotlinScriptType.SETTINGS -> Settings::class.qualifiedName
+            KotlinScriptType.INIT -> Gradle::class.qualifiedName
+        }
+    }
+
+    private
+    val scriptType
+        get() = scriptTypeMatch.scriptType
 
     private
     val scriptExtension
-        get() = scriptTarget.first
+        get() = scriptTypeMatch.match.value
 
     private
-    val scriptTarget by lazy {
-        scriptTargets.first { (extension, _) -> scriptFileName.endsWith(extension) }
+    val scriptTypeMatch by lazy {
+        KotlinScriptTypeMatch.forName(scriptFileName)!!
     }
 
     /**
@@ -89,14 +101,6 @@ data class ScriptPlugin(val scriptFile: File) {
     fun packagePrefixed(id: String) =
         packageName?.let { "$it.$id" } ?: id
 }
-
-
-private
-val scriptTargets =
-    listOf( // order is relevant and must be from longer suffix to shorter suffix
-        ".settings.gradle.kts" to Settings::class.qualifiedName,
-        ".init.gradle.kts" to Gradle::class.qualifiedName,
-        ".gradle.kts" to Project::class.qualifiedName)
 
 
 private

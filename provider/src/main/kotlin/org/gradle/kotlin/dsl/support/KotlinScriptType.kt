@@ -19,17 +19,50 @@ package org.gradle.kotlin.dsl.support
 import java.io.File
 
 
-enum class KotlinScriptType {
+fun kotlinScriptTypeFor(candidate: File): KotlinScriptType? =
+    KotlinScriptTypeMatch.forFile(candidate)?.scriptType
 
-    INIT, SETTINGS, PROJECT;
+
+enum class KotlinScriptType {
+    INIT, SETTINGS, PROJECT
+}
+
+
+data class KotlinScriptTypeMatch(
+    val scriptType: KotlinScriptType,
+    val match: Match
+) {
 
     companion object {
-        fun forFile(file: File) = file.name.run {
-            when {
-                endsWith(".init.gradle.kts") -> INIT
-                equals("settings.gradle.kts") || endsWith(".settings.gradle.kts") -> SETTINGS
-                else -> PROJECT
-            }
-        }
+
+        fun forFile(file: File): KotlinScriptTypeMatch? =
+            forName(file.name)
+
+        fun forName(name: String): KotlinScriptTypeMatch? =
+            candidates.firstOrNull { it.match.matches(name) }
+
+        private
+        val candidates =
+            listOf(
+                KotlinScriptTypeMatch(KotlinScriptType.SETTINGS, Match.Whole("settings.gradle.kts")),
+                KotlinScriptTypeMatch(KotlinScriptType.SETTINGS, Match.Suffix(".settings.gradle.kts")),
+                KotlinScriptTypeMatch(KotlinScriptType.INIT, Match.Suffix(".init.gradle.kts")),
+                KotlinScriptTypeMatch(KotlinScriptType.PROJECT, Match.Suffix(".gradle.kts")))
+    }
+}
+
+
+sealed class Match {
+
+    abstract val value: String
+
+    abstract fun matches(candidate: String): Boolean
+
+    data class Whole(override val value: String) : Match() {
+        override fun matches(candidate: String) = candidate == value
+    }
+
+    data class Suffix(override val value: String) : Match() {
+        override fun matches(candidate: String) = candidate.endsWith(value)
     }
 }
