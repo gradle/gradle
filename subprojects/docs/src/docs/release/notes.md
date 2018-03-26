@@ -84,6 +84,40 @@ Text resources like a common checkstyle configuration file can now be fetched di
     }
 
 
+### Create tasks with constructor arguments
+
+You can now create a task and pass values to its constructor.
+In order to pass values to the constructor, you must annotate the relevant constructor with `@javax.inject.Inject`.
+Given the following `Task` class:
+
+    public class CustomTask extends DefaultTask {
+        private final String message;
+        private final int number;
+
+        @Inject
+        CustomTask(String message, int number) {
+            this.message = message;
+            this.number = number;
+        }
+
+        @TaskAction
+        public void doSomething() { }
+    }
+
+You can then create the task using the Groovy DSL syntax and the `constructorArgs` key.
+
+    task myTask(type: CustomTask, constructorArgs: ['hello', 42])
+
+You can use the alternative syntax for defining tasks, passing the constructor arguments at the end.
+
+    tasks.create('myTask', CustomTask, 'hello', 42)
+
+Using the Kotlin DSL, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
+
+    tasks.create<CustomTask>("myTask", "hello", 42)
+
+More details are available in the [user guide](userguide/more_about_tasks.html#sec:passing_arguments_to_a_task_constructor)
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

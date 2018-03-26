@@ -178,6 +178,52 @@ You can also use a configuration closure when you define a task.
 A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle>> for more details about the build lifecycle.
 ====
 
+[[sec:passing_arguments_to_a_task_constructor]]
+=== Passing arguments to a task constructor
+
+As opposed to configuring the mutable properties of a `Task` after creation, you can pass argument values to the `Task` class's constructor.
+In order to pass values to the `Task` constructor, you must annotate the relevant constructor with `@javax.inject.Inject`.
+
+++++
+<sample id="taskConstructorArgs" dir="userguide/tasks/taskConstructorArgs/groovyMap" title="Task class with @Inject constructor">
+            <sourcefile file="build.gradle" snippet="inject-task-constructor"/>
+        </sample>
+++++
+
+You can then create the task using the Groovy DSL syntax and the `constructorArgs` key.
+
+++++
+<sample id="taskConstructorArgsMap" dir="userguide/tasks/taskConstructorArgs/groovyMap" title="Creating a task with constructor arguments using Map">
+            <sourcefile file="build.gradle" snippet="groovy-map"/>
+        </sample>
+++++
+
+You can also use the alternative syntax for defining tasks, passing the constructor arguments at the end.
+
+++++
+<sample id="taskConstructorArgsTaskContainer" dir="userguide/tasks/taskConstructorArgs/groovyTaskContainer" title="Creating a task with constructor arguments using TaskContainer">
+            <sourcefile file="build.gradle" snippet="task-container"/>
+        </sample>
+++++
+
+Using the Kotlin DSL, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
+
+++++
+<sample id="taskConstructorArgsKotlinDsl" dir="userguide/tasks/taskConstructorArgs/kotlinDsl" title="Creating a task with constructor arguments using Kotlin DSL">
+            <sourcefile file="build.gradle.kts" snippet="kotlin-dsl"/>
+        </sample>
+++++
+
+Within a plugin, you pass arguments to the constructor using the varargs `create()` method on `TaskContainer`.
+
+++++
+<sample id="taskConstructorArgsPlugin" dir="userguide/tasks/taskConstructorArgs/plugin/buildSrc/src/main/java/com/enterprise" title="Creating a task with constructor arguments in a plugin">
+            <sourcefile file="TaskPlugin.java" snippet="task-container-create"/>
+        </sample>
+++++
+
+In all circumstances, the values passed as constructor arguments must be non-null.
+If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.
 
 [[sec:adding_dependencies_to_tasks]]
 === Adding dependencies to a task
