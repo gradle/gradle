@@ -78,7 +78,7 @@ class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationActio
 
     private
     fun Sequence<Project>.withJavaBasePlugin() =
-        filter { it.plugins.hasPlugin((JavaBasePlugin::class.java)) }
+        filter { it.plugins.hasPlugin(JavaBasePlugin::class.java) }
 
     private
     fun Sequence<Project>.allSourceSetsRoots() =
