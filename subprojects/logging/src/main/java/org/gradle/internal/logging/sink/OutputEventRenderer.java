@@ -44,6 +44,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
@@ -81,11 +82,24 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             new LazyListener(new Factory<OutputEventListener>() {
                 @Override
                 public OutputEventListener create() {
-                    OutputEventListener stdOutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource()));
-                    OutputEventListener stdErrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource()));
+                    final OutputEventListener stdOutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource()));
+                    final OutputEventListener stdErrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource()));
 
                     return new BuildLogLevelFilterRenderer(
-                        new ProgressLogEventGenerator(new LogEventDispatcher(stdOutChain, stdErrChain))
+                        new ProgressLogEventGenerator(new OutputEventListener() {
+                            @Override
+                            public void onOutput(OutputEvent event) {
+                                // Do not forward events for rendering when there are no listeners to receive
+                                if (event instanceof LogLevelChangeEvent) {
+                                    stdOutChain.onOutput(event);
+                                    stdErrChain.onOutput(event);
+                                } else if (event.getLogLevel() == LogLevel.ERROR && !stderrListeners.isEmpty() && event instanceof RenderableOutputEvent) {
+                                    stdErrChain.onOutput(event);
+                                } else if (event.getLogLevel() != LogLevel.ERROR && !stdoutListeners.isEmpty() && event instanceof RenderableOutputEvent) {
+                                    stdOutChain.onOutput(event);
+                                }
+                            }
+                        })
                     );
                 }
             })
@@ -371,6 +385,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         @Override
         public void onOutput(OutputEvent event) {
             if (delegate == null) {
+                if (event instanceof EndOutputEvent || event instanceof FlushOutputEvent) {
+                    // Ignore
+                    return;
+                }
                 delegate = factory.create();
                 factory = null;
             }
