@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -43,19 +42,10 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         return artifactTransformDependency.getTransformTask().getResult();
-//        Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
-//        Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
-//        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
-//        return new TransformingResult(result, artifactResults, fileResults, attributes);
     }
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        System.out.println(delegate.getClass());
-        if (delegate instanceof ArtifactBackedResolvedVariant.SingleArtifactSet) {
-            System.out.println(((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).artifact.getId().getDisplayName());
-            System.out.println(((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).artifact.getId().getComponentIdentifier());
-        }
         artifactTransformDependency = new ArtifactTransformDependency(transform, delegate, attributes);
         visitor.visitDependency(artifactTransformDependency);
         // FIXME: Task needs to collect the delegate dependencies and create tranforms for them.
