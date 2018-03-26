@@ -22,8 +22,9 @@ import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
-import org.gradle.internal.logging.events.FlushOutputEvent
+import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
@@ -174,6 +175,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
+        1 * listener.onOutput({ it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO })
         1 * listener.onOutput(event)
         0 * listener._
     }
@@ -193,6 +195,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(complete)
 
         then:
+        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == logLevel})
         1 * listener.onOutput(start)
         1 * listener.onOutput(progress)
         1 * listener.onOutput(complete)
@@ -213,7 +216,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
-        1 * listener.onOutput(_ as FlushOutputEvent)
+        1 * listener.onOutput({ it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO })
+        1 * listener.onOutput({ it instanceof EndOutputEvent })
         0 * listener._
     }
 
@@ -235,14 +239,26 @@ class OutputEventRendererTest extends OutputSpecification {
         listener.value.readLines() == ['info']
     }
 
-    def rendersProgressEvents() {
+    def rendersProgressEventsToStdOutListeners() {
+        def listener = new TestListener()
+
+        when:
+        renderer.addStandardOutputListener(listener)
+        renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(complete('status'))
+
+        then:
+        listener.value.readLines() == ['description status']
+    }
+
+    def doesNotRenderProgressEventsToStdoutAndStderr() {
         when:
         renderer.attachSystemOutAndErr()
         renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(complete('status'))
 
         then:
-        outputs.stdOut.readLines() == ['description status']
+        outputs.stdOut == ''
         outputs.stdErr == ''
     }
 

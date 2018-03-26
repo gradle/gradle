@@ -72,8 +72,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private ColorMap colourMap;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
-    private StreamBackedStandardOutputListener stdOutListener;
-    private StreamBackedStandardOutputListener stdErrListener;
+    private OutputEventListener stdOutListener;
+    private OutputEventListener stdErrListener;
     private OutputEventListener console;
 
     public OutputEventRenderer(final Clock clock) {
@@ -125,14 +125,23 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             // TODO - also close console when it is replaced
             if (snapshot.console != console) {
                 if (snapshot.console == null) {
-                    formatters.remove(console);
-                    console.onOutput(new EndOutputEvent());
+                    removeChain(console);
                     console = null;
                 } else {
                     throw new UnsupportedOperationException("Cannot restore previous console. This is not implemented yet.");
                 }
             }
         }
+    }
+
+    private void addChain(OutputEventListener listener) {
+        listener.onOutput(new LogLevelChangeEvent(logLevel.get()));
+        formatters.add(listener);
+    }
+
+    private void removeChain(OutputEventListener listener) {
+        formatters.remove(listener);
+        listener.onOutput(new EndOutputEvent());
     }
 
     public ColorMap getColourMap() {
@@ -186,10 +195,15 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         synchronized (lock) {
             originalStdOut = System.out;
             if (stdOutListener != null) {
-                stdoutListeners.remove(stdOutListener);
+                removeChain(stdOutListener);
             }
-            stdOutListener = new StreamBackedStandardOutputListener((Appendable) System.out);
-            addStandardOutputListener(stdOutListener);
+            stdOutListener = new LazyListener(new Factory<OutputEventListener>() {
+                @Override
+                public OutputEventListener create() {
+                    return onNonError(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener((Appendable) originalStdOut))));
+                }
+            });
+            addChain(stdOutListener);
         }
     }
 
@@ -197,18 +211,22 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         synchronized (lock) {
             originalStdErr = System.err;
             if (stdErrListener != null) {
-                stderrListeners.remove(stdErrListener);
+                removeChain(stdErrListener);
             }
-            stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
-            addStandardErrorListener(stdErrListener);
+            stdErrListener = new LazyListener(new Factory<OutputEventListener>() {
+                @Override
+                public OutputEventListener create() {
+                    return onError(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener((Appendable) originalStdErr))));
+                }
+            });
+            addChain(stdErrListener);
         }
     }
 
     private void removeStandardOutputListener() {
         synchronized (lock) {
-            flush();
             if (stdOutListener != null) {
-                stdoutListeners.remove(stdOutListener);
+                removeChain(stdOutListener);
                 stdOutListener = null;
             }
         }
@@ -216,9 +234,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     private void removeStandardErrorListener() {
         synchronized (lock) {
-            flush();
             if (stdErrListener != null) {
-                stderrListeners.remove(stdErrListener);
+                removeChain(stdErrListener);
                 stdErrListener = null;
             }
         }
@@ -226,15 +243,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public void addOutputEventListener(OutputEventListener listener) {
         synchronized (lock) {
-            flush();
-            formatters.add(listener);
+            addChain(listener);
         }
     }
 
     public void removeOutputEventListener(OutputEventListener listener) {
         synchronized (lock) {
-            flush();
-            formatters.remove(listener);
+            removeChain(listener);
         }
     }
 
@@ -257,7 +272,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addPlainConsole() {
-        return addPlainConsole(stdOutListener);
+        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut));
     }
 
     private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener) {
@@ -287,8 +302,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             } else {
                 this.console = consoleChain;
             }
-            consoleChain.onOutput(new LogLevelChangeEvent(logLevel.get()));
-            formatters.add(this.console);
+            addChain(this.console);
         }
         return this;
     }
@@ -377,6 +391,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private static class LazyListener implements OutputEventListener {
         private Factory<OutputEventListener> factory;
         private OutputEventListener delegate;
+        private LogLevelChangeEvent pendingLogLevel;
 
         private LazyListener(Factory<OutputEventListener> factory) {
             this.factory = factory;
@@ -389,8 +404,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     // Ignore
                     return;
                 }
+                if (event instanceof LogLevelChangeEvent) {
+                    pendingLogLevel = (LogLevelChangeEvent) event;
+                    return;
+                }
                 delegate = factory.create();
                 factory = null;
+                if (pendingLogLevel != null) {
+                    delegate.onOutput(pendingLogLevel);
+                    pendingLogLevel = null;
+                }
             }
             delegate.onOutput(event);
         }
