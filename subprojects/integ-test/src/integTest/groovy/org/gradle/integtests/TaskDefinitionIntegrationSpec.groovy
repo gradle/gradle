@@ -202,16 +202,24 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         'last'      | '"abc", "123"'  | 1              | 'int'
     }
 
-    def "fails when null passed as a constructor argument value"() {
+    @Unroll
+    def "fails to create via #description when null passed as a constructor argument value at #position"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
-        buildFile << "tasks.create('myTask', CustomTask, null, 1)"
+        buildFile << script
 
         when:
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #0: no service of type class java.lang.String, or value null not assignable to type class java.lang.String")
+        result.output.contains("java.lang.NullPointerException: Received null for constructor argument #$position")
+
+        where:
+        description   | position | script
+        'Map'         | 0        | "task myTask(type: CustomTask, constructorArgs: [null, 1])"
+        'direct call' | 0        | "tasks.create('myTask', CustomTask, null, 1)"
+        'Map'         | 1        | "task myTask(type: CustomTask, constructorArgs: ['abc', null])"
+        'direct call' | 1        | "tasks.create('myTask', CustomTask, 'abc', null)"
     }
 
     def "can construct a task with @Inject services"() {

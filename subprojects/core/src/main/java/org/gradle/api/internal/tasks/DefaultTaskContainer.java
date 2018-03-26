@@ -52,7 +52,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +126,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return addTask(task, replace);
     }
 
-    @Nullable
     private static Object[] getConstructorArgs(Map<String, ?> args) {
         Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
         if (constructorArgs instanceof List) {
@@ -209,12 +207,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> T create(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+    public <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         T task = createTask(name, type, constructorArgs);
         return addTask(task, false);
     }
 
-    private <T extends Task> T createTask(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+    private <T extends Task> T createTask(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
+        for (int i = 0; i < constructorArgs.length; i++) {
+            if (constructorArgs[i] == null) {
+                throw new NullPointerException(String.format("Received null for constructor argument #%s", i));
+            }
+        }
         return taskFactory.create(name, type, constructorArgs);
     }
 
