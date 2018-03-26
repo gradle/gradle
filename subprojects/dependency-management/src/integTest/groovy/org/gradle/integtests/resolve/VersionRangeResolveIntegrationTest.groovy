@@ -16,35 +16,16 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.Canonical
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.Unroll
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
- * // TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
+ * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
+ * TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
  */
 class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
-
-    static final FIXED_7 = fixed(7)
-    static final FIXED_9 = fixed(9)
-    static final FIXED_10 = fixed(10)
-    static final FIXED_11 = fixed(11)
-    static final FIXED_12 = fixed(12)
-    static final FIXED_13 = fixed(13)
-    static final RANGE_7_8 = range(7, 8)
-    static final RANGE_10_11 = range(10, 11)
-    static final RANGE_10_12 = range(10, 12)
-    static final RANGE_10_14 = range(10, 14)
-    static final RANGE_10_16 = range(10, 16)
-    static final RANGE_11_12 = range(11, 12)
-    static final RANGE_12_14 = range(12, 14)
-    static final RANGE_13_14 = range(13, 14)
-    static final RANGE_14_16 = range(14, 16)
-
-    static final REJECT_11 = reject(11)
-    static final REJECT_12 = reject(12)
-    static final REJECT_13 = reject(13)
 
     def baseBuild
     def baseSettings
@@ -326,51 +307,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << StrictPermutationsProvider.check(
-            versions: [FIXED_7, FIXED_13],
-            expectedNoStrict: 13,
-            expectedStrict: [-1, 13]
-        ).and(
-            versions: [FIXED_12, FIXED_13],
-            expectedNoStrict: 13,
-            expectedStrict: [-1, 13]
-        ).and(
-            versions: [FIXED_12, RANGE_10_11],
-            expectedNoStrict: 12,
-            expectedStrict: [12, -1]
-        ).and(
-            versions: [FIXED_12, RANGE_10_14],
-            expectedNoStrict: 12,
-            expectedStrict: [12, 12]
-        ).and(
-            versions: [FIXED_12, RANGE_13_14],
-            expectedNoStrict: 13,
-            expectedStrict: [-1, 13]
-        ).and(
-            versions: [FIXED_12, RANGE_7_8],
-            expectedNoStrict: -1,
-            expectedStrict: [-1, -1]
-        ).and(
-            versions: [FIXED_12, RANGE_14_16],
-            expectedNoStrict: -1,
-            expectedStrict: [-1, -1]
-        ).and(
-            versions: [RANGE_10_11, FIXED_10],
-            expectedNoStrict: 10,
-            expectedStrict: [10, 10]
-        ).and(
-            versions: [RANGE_10_14, FIXED_13],
-            expectedNoStrict: 13,
-            expectedStrict: [13, 13]
-        ).and(
-            versions: [RANGE_10_14, RANGE_10_11],
-            expectedNoStrict: 11,
-            expectedStrict: [11, 11]
-        ).and(
-            versions: [RANGE_10_14, RANGE_10_16],
-            expectedNoStrict: 13,
-            expectedStrict: [13, 13]
-        )
+        permutation << VersionRangeResolveTestScenarios.PAIRS
     }
 
     @Unroll
@@ -383,16 +320,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << StrictPermutationsProvider.check(
-            versions: [FIXED_12, REJECT_11],
-            expectedNoStrict: 12
-        ).and(
-            versions: [FIXED_12, REJECT_12],
-            expectedNoStrict: -1
-        ).and(
-            versions: [FIXED_12, REJECT_13],
-            expectedNoStrict: 12
-        )
+        permutation << VersionRangeResolveTestScenarios.PAIRS_WITH_REJECT
     }
 
     @Unroll
@@ -405,47 +333,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << StrictPermutationsProvider.check(
-            versions: [FIXED_10, FIXED_12, FIXED_13],
-            expectedNoStrict: 13,
-            expectedStrict: [-1, -1, 13]
-        ).and(
-            ignore: true,
-            versions: [FIXED_10, FIXED_12, RANGE_10_14],
-            expectedNoStrict: 12,
-            expectedStrict: [-1, 12, 12]
-        ).and(
-            versions: [FIXED_10, RANGE_10_11, RANGE_10_14],
-            expectedNoStrict: 10,
-            expectedStrict: [10, 10, 10]
-        ).and(
-            versions: [FIXED_10, RANGE_10_11, RANGE_13_14],
-            expectedNoStrict: 13,
-            expectedStrict: [-1, -1, 13]
-        ).and(
-            ignore: true,
-            versions: [FIXED_10, RANGE_11_12, RANGE_10_14],
-            expectedNoStrict: 12,
-            expectedStrict: [-1, 12, 12]
-        ).and(
-            versions: [RANGE_10_11, RANGE_10_12, RANGE_10_14],
-            expectedNoStrict: 11,
-            expectedStrict: [11, 11, 11]
-        ).and(
-            versions: [RANGE_10_11, RANGE_10_12, RANGE_13_14],
-            expectedNoStrict: 13,
-            expectedStrict: [-1, -1, 13]
-        ).and(
-            ignore: true,
-            versions: [FIXED_10, FIXED_10, FIXED_12],
-            expectedNoStrict: 12,
-            expectedStrict: [-1, -1, 12]
-        ).and(
-            ignore: true,
-            versions: [FIXED_10, FIXED_12, RANGE_12_14],
-            expectedNoStrict: 12,
-            expectedStrict: [-1, 12, 12]
-        )
+        permutation << VersionRangeResolveTestScenarios.THREES
     }
 
     @Unroll
@@ -458,50 +346,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << StrictPermutationsProvider.check(
-            versions: [FIXED_11, FIXED_12, REJECT_11],
-            expectedNoStrict: 12,
-        ).and(
-            versions: [FIXED_11, FIXED_12, REJECT_12],
-            expectedNoStrict: -1,
-        ).and(
-            versions: [FIXED_11, FIXED_12, REJECT_13],
-            expectedNoStrict: 12,
-
-        ).and(
-            versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_11],
-            expectedNoStrict: 12,
-        ).and(
-            ignore: true, // This will require resolving RANGE_10_14 with the knowledge that FIXED_12 rejects < 12.
-            versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_12],
-            expectedNoStrict: 13,
-        ).and(
-            versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_13],
-            expectedNoStrict: 12,
-
-        ).and(
-            versions: [RANGE_10_12, RANGE_13_14, REJECT_11],
-            expectedNoStrict: 13,
-        ).and(
-            versions: [RANGE_10_12, RANGE_13_14, REJECT_12],
-            expectedNoStrict: 13,
-        ).and(
-            versions: [RANGE_10_12, RANGE_13_14, REJECT_13],
-            expectedNoStrict: -1,
-
-        ).and(
-            ignore: true,
-            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_11],
-            expectedNoStrict: 10,
-        ).and(
-            ignore: true,
-            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_12],
-            expectedNoStrict: 11,
-        ).and(
-            ignore: true,
-            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_13],
-            expectedNoStrict: 11,
-        )
+        permutation << VersionRangeResolveTestScenarios.MULTIPLES_WITH_REJECT
     }
 
     @Unroll
@@ -514,52 +359,14 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << StrictPermutationsProvider.check(
-            versions: [FIXED_9, FIXED_10, FIXED_11, FIXED_12],
-            expectedNoStrict: 12
-        ).and(
-            ignore: true,
-            versions: [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14],
-            expectedNoStrict: 12
-        ).and(
-            versions: [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14],
-            expectedNoStrict: 13
-        ).and(
-            ignore: true,
-            versions: [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14],
-            expectedNoStrict: 11
-        )
+        permutation << VersionRangeResolveTestScenarios.FOURS
     }
 
-    private static RenderableVersion fixed(int version) {
-        def vs = new SimpleVersion()
-        vs.version = "${version}"
-        return vs
-    }
-
-    private static RenderableVersion range(int low, int high) {
-        def vs = new SimpleVersion()
-        vs.version = "[${low},${high}]"
-        return vs
-    }
-
-    private static RenderableVersion reject(int version) {
-        def vs = new RejectVersion()
-        vs.version = version
-        vs
-    }
-
-    private static RenderableVersion strict(RenderableVersion input) {
-        def v = new StrictVersion()
-        v.version = input.version
-        v
-    }
-
-    def resolve(RenderableVersion... versions) {
+    def resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
         resolve(versions as List)
     }
 
-    def resolve(List<RenderableVersion> versions) {
+    def resolve(List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
         settingsFile.text = baseSettings
 
         def singleProjectConfs = []
@@ -598,7 +405,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             }
 """
         for (int i = 1; i <= versions.size(); i++) {
-            RenderableVersion version = versions.get(i - 1);
+            VersionRangeResolveTestScenarios.RenderableVersion version = versions.get(i - 1);
             def nextProjectDependency = i < versions.size() ? "conf project(path: ':p${i + 1}', configuration: 'conf')" : ""
             buildFile << """
                 project('p${i}') {
@@ -640,139 +447,5 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         assert resolvedFile.startsWith('foo-')
         assert resolvedFile.endsWith('.jar')
         return (resolvedFile =~ /\d\d/).getAt(0) as int
-    }
-
-    interface RenderableVersion {
-        String getVersion()
-
-        String render()
-    }
-
-    static class SimpleVersion implements RenderableVersion {
-        String version
-
-        @Override
-        String render() {
-            "'org:foo:${version}'"
-        }
-
-        @Override
-        String toString() {
-            return version
-        }
-    }
-
-    static class StrictVersion implements RenderableVersion {
-        String version
-
-        @Override
-        String render() {
-            return "('org:foo') { version { strictly '${version}' } }"
-        }
-
-        @Override
-        String toString() {
-            return "strictly(" + version + ")"
-        }
-    }
-
-    static class RejectVersion implements RenderableVersion {
-        String version
-
-        @Override
-        String render() {
-            "('org:foo') { version { reject '${version}' } }"
-        }
-
-        @Override
-        String toString() {
-            return "reject " + version
-        }
-    }
-
-    static class StrictPermutationsProvider implements Iterable<Candidate> {
-        private final List<Batch> batches = []
-        private int batchCount
-
-        static StrictPermutationsProvider check(Map config) {
-            new StrictPermutationsProvider().and(config)
-        }
-
-        StrictPermutationsProvider and(Map config) {
-            assert config.versions
-            assert config.expectedNoStrict
-
-            ++batchCount
-            if (!config.ignore) {
-                List<RenderableVersion> versions = config.versions
-                List<Integer> expectedStrict = config.expectedStrict
-                List<Batch> iterations = []
-                String batchName = config.description ?: "#${batchCount} (${versions})"
-                iterations.add(new Batch(batchName, versions, config.expectedNoStrict))
-                if (expectedStrict) {
-                    versions.size().times { idx ->
-                        iterations.add(new Batch(batchName, versions.withIndex().collect { RenderableVersion version, idx2 ->
-                            if (idx == idx2) {
-                                def v = new StrictVersion()
-                                v.version = version.version
-                                v
-                            } else {
-                                version
-                            }
-                        }, expectedStrict[idx]))
-                    }
-                }
-                batches.addAll(iterations)
-            }
-
-            this
-        }
-
-        @Override
-        Iterator<Candidate> iterator() {
-            new PermutationIterator()
-        }
-
-        @Canonical
-        static class Batch {
-            String batchName
-            List<RenderableVersion> versions
-            int expected
-        }
-
-        class PermutationIterator implements Iterator<Candidate> {
-            Iterator<Batch> batchesIterator = batches.iterator()
-            String currentBatch
-            Iterator<List<RenderableVersion>> current
-            int expected
-
-            @Override
-            boolean hasNext() {
-                batchesIterator.hasNext() || current?.hasNext()
-            }
-
-            @Override
-            Candidate next() {
-                if (current?.hasNext()) {
-                    return new Candidate(batch: currentBatch, candidates: current.next() as RenderableVersion[], expected: expected)
-                }
-                Batch nextBatch = batchesIterator.next()
-                expected = nextBatch.expected
-                current = nextBatch.versions.permutations().iterator()
-                currentBatch = nextBatch.batchName
-                return next()
-            }
-        }
-
-        static class Candidate {
-            String batch
-            RenderableVersion[] candidates
-            int expected
-
-            @Override
-            String toString() {
-                batch + ": " + candidates.collect { it.toString() }.join(' & ') + " -> ${expected < 0 ? 'FAIL' : expected}"
-            }
-        }
     }
 }
