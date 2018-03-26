@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.util.TextUtil
+import org.junit.Assert.assertThat
 
 import org.junit.Test
 
@@ -69,5 +70,27 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         //TODO: buildscript.dependencies (#180)
         // assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
+    }
+
+    @Test
+    fun `sourcePath includes buildSrc source roots`() {
+
+        withKotlinBuildSrc()
+        val settings = withSettings("""include(":sub")""")
+
+        assertThat(
+            sourcePathFor(settings),
+            matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
+    }
+
+    @Test
+    fun `sourcePath includes buildSrc project dependencies source roots`() {
+
+        val sourceRoots = withMultiProjectKotlinBuildSrc()
+        val settings = withSettings("""include(":sub")""")
+
+        assertThat(
+            sourcePathFor(settings),
+            matchesProjectsSourceRoots(*sourceRoots))
     }
 }

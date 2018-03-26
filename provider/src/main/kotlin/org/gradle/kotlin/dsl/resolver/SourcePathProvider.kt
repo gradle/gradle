@@ -23,6 +23,9 @@ import org.gradle.kotlin.dsl.support.filter
 import java.io.File
 
 
+const val buildSrcSourceRootsFilePath = "build/source-roots/buildSrc/source-roots.txt"
+
+
 object SourcePathProvider {
 
     fun sourcePathFor(
@@ -40,13 +43,18 @@ object SourcePathProvider {
     }
 
     /**
-     * Returns all conventional source directories under buildSrc if any.
-     *
-     * This won't work for buildSrc projects with a custom source directory layout
-     * but should account for the majority of cases and it's cheap.
+     * Returns source directories from buildSrc if any.
      */
     private
     fun buildSrcRootsOf(projectRoot: File): Collection<File> =
+        projectRoot.resolve("buildSrc/$buildSrcSourceRootsFilePath")
+            .takeIf { it.isFile }
+            ?.readLines()
+            ?.map { projectRoot.resolve("buildSrc/$it") }
+            ?: buildSrcRootsFallbackFor(projectRoot)
+
+    private
+    fun buildSrcRootsFallbackFor(projectRoot: File) =
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
     private
