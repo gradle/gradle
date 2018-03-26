@@ -566,4 +566,26 @@ rootProject.name = 'sample'
         then:
         skippedTasks.contains(":startScripts")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/4627")
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "distribution not in root directory has correct permissions set"() {
+        given:
+        buildFile << """
+            distributions {
+                main {
+                    contents {
+                        into "/not-the-root"
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("installDist")
+
+        then:
+        file('build/install/sample/').allDescendants() == ["not-the-root/bin/sample", "not-the-root/bin/sample.bat", "not-the-root/lib/sample.jar"] as Set
+        assert file("build/install/sample/not-the-root/bin/sample").permissions == "rwxr-xr-x"
+    }
 }
