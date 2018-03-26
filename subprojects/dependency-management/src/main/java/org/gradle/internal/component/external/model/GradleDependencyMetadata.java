@@ -122,4 +122,9 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         return reason;
     }
 
+
+    @Override
+    public String toString() {
+        return "GradleDependencyMetadata: " + selector.toString();
+    }
 }

@@ -18,17 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentStateWithDependents
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
@@ -44,25 +37,19 @@ abstract class AbstractConflictResolverTest extends Specification {
         resolver.select(details)
     }
 
-    protected TestComponent module(String org, String name, String version, TestComponent... dependents) {
-        ComponentResolutionState state = new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
-        if (dependents) {
-            Collections.addAll(state.dependents, dependents)
-        } else {
-            state.dependents << root
-        }
-        state
+    protected TestComponent module(String org, String name, String version) {
+        new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
     }
 
-    protected TestComponent prefer(String version, TestComponent... dependents) {
-        module('org', 'foo', version, dependents).with {
+    protected TestComponent prefer(String version) {
+        module('org', 'foo', version).with {
             participants << it
             it
         }
     }
 
-    protected TestComponent strictly(String version, TestComponent... dependents) {
-        prefer(version, dependents).strict()
+    protected TestComponent strictly(String version) {
+        prefer(version).strict()
     }
 
     protected void selected(ComponentResolutionState state) {
@@ -86,12 +73,11 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
     }
 
-    private static class TestComponent implements ComponentStateWithDependents<TestComponent> {
+    private static class TestComponent implements ComponentResolutionState {
 
         private final ModuleVersionIdentifier id
         private MutableVersionConstraint constraint
         private ComponentResolveMetadata metaData
-        private List<TestComponent> dependents = []
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id
@@ -124,23 +110,18 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
-        ResolvedVersionConstraint getVersionConstraint() {
-            new DefaultResolvedVersionConstraint(constraint, new DefaultVersionSelectorScheme(new DefaultVersionComparator()))
-        }
-
-        @Override
-        boolean isResolved() {
-            metaData != null
-        }
-
-        @Override
-        ComponentSelectionReasonInternal getSelectionReason() {
-            VersionSelectionReasons.requested()
-        }
-
-        @Override
         void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription) {
 
+        }
+
+        @Override
+        void reject() {
+
+        }
+
+        @Override
+        boolean isRejected() {
+            return false
         }
 
         @Override
@@ -149,20 +130,5 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         String toString() { id }
-
-        @Override
-        List<TestComponent> getDependents() {
-            dependents
-        }
-
-        @Override
-        List<TestComponent> getUnattachedDependencies() {
-            []
-        }
-
-        @Override
-        boolean isFromPendingNode() {
-            false
-        }
     }
 }

@@ -127,7 +127,7 @@ class SelectorState implements DependencyGraphSelector {
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
-            failureSelectionReason = createFailureReason();
+            failureSelectionReason = getReasonForSelector();
         }
 
         this.idResolveResult = idResolveResult;
@@ -168,7 +168,7 @@ class SelectorState implements DependencyGraphSelector {
         return failureSelectionReason;
     }
 
-    private ComponentSelectionReasonInternal createFailureReason() {
+    public ComponentSelectionReasonInternal getReasonForSelector() {
         List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(2);
         descriptors.add(selectionDescriptionForDependency(dependencyMetadata));
         if (dependencyState.getRuleDescriptor() != null) {
@@ -182,6 +182,11 @@ class SelectorState implements DependencyGraphSelector {
      * This happens when the `ModuleResolveState` is restarted, during conflict resolution or 'softSelect' with version range merging.
      */
     public void overrideSelection(ComponentState selectedComponent) {
+        if (this.selected == null) {
+            // Do not override if this selector hasn't yet been resolved
+            return;
+        }
+
         this.selected = selectedComponent;
 
         // Target module can change, if this is called as the result of a module replacement conflict.
