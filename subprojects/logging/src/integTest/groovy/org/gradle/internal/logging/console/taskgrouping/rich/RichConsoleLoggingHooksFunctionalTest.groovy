@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.taskgrouping
+package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.internal.logging.console.taskgrouping.AbstractLoggingHooksFunctionalTest
 
-/**
- * A base class for testing the console.
- */
-abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
-    def setup() {
-        executer.beforeExecute {
-            it.withConsole(consoleType)
-        }
-    }
 
-    abstract ConsoleOutput getConsoleType()
+class RichConsoleLoggingHooksFunctionalTest extends AbstractLoggingHooksFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Rich
 }
