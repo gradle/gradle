@@ -27,10 +27,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -45,7 +47,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 /**
  * Resolution state for a given module version selector.
  */
-class SelectorState implements DependencyGraphSelector {
+class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
     // TODO:DAZ Should inject this
     private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
     private final Long id;
@@ -200,5 +202,11 @@ class SelectorState implements DependencyGraphSelector {
 
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
+    }
+
+    @Override
+    public boolean isForce() {
+        return dependencyMetadata instanceof LocalOriginDependencyMetadata
+            && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
     }
 }

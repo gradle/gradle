@@ -25,23 +25,19 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -52,7 +48,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
-import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,21 +214,18 @@ public class DependencyGraphBuilder {
             return;
         }
 
-        ComponentIdResolveResult idResolveResult = selector.resolve();
-        if (idResolveResult.getFailure() != null) {
-            // Resolve failure, nothing more to do.
-            return;
-        }
-
-        ComponentState candidate = resolveState.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
-
         ModuleResolveState module = selector.getTargetModule();
         ComponentState currentSelection = module.getSelected();
 
-        // TODO:DAZ Should not need to select the candidate if the current selection ends up being chosen.
-        // But some of the logic to choose between currentSelection and candidate requires that these be set.
-        dependency.start(candidate);
-        selector.select(candidate);
+        SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState);
+        ComponentState selected = selectorStateResolver.selectBest(module.getSelectors(), selector, currentSelection);
+        if (selected == null) {
+            // Failure to resolve
+            return;
+        }
+
+        dependency.start(selected);
+        selector.select(selected);
 
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {
@@ -241,61 +233,19 @@ public class DependencyGraphBuilder {
             if (!moduleHasConflicts(resolveState, module)) {
                 // No conflicting modules. Select it for now
                 LOGGER.debug("Selecting new module {}", module.getId());
-                module.select(candidate);
+                module.select(selected);
             }
             return;
         }
 
-        // Choose the best option from the current selection and the new candidate.
-        // This choice is made considering _all_ selectors registered for this module.
-        ComponentState selected = chooseBest(module, selector, currentSelection, candidate);
-
         // If current selection is still the best choice, then only need to point new edge/selector at current selection.
         if (selected == currentSelection) {
-            dependency.start(currentSelection);
-            selector.select(currentSelection);
-
-            // Since we have a new selector for the current selection, check if it's now rejected.
-            // TODO:DAZ It's wasteful to recheck all of the existing selectors. Should only check the new one.
-            maybeMarkRejected(currentSelection);
             return;
         }
 
         // New candidate is a preferred choice over current selection. Reset the module state and reselect.
-        assert selected == candidate;
         resolveState.getDeselectVersionAction().execute(module.getId());
-        module.restart(candidate);
-
-        // Check the candidate against all selectors to see if it's rejected.
-        maybeMarkRejected(candidate);
-    }
-
-    /**
-     * Chooses the best out of 2 components for the module, considering all selectors for the module.
-     */
-    private ComponentState chooseBest(ModuleResolveState module, SelectorState selector, final ComponentState currentSelection, final ComponentState candidate) {
-        if (currentSelection == candidate) {
-            return candidate;
-        }
-
-        // See if the new selector agrees with the current selection. If so, keep the current selection.
-        if (selectorAgreesWith(selector, currentSelection.getVersion())) {
-            return currentSelection;
-        }
-
-        // See if all known selectors agree with the candidate selection. If so, use the candidate.
-        if (!currentSelection.isRoot() && allSelectorsAgreeWith(module.getSelectors(), candidate.getVersion())) {
-            return candidate;
-        }
-
-        // Do conflict resolution to choose the best out of current selection and candidate.
-        List<ComponentState> candidates = ImmutableList.of(currentSelection, candidate);
-        ConflictResolverDetails<ComponentState> details = new DefaultConflictResolverDetails<ComponentState>(candidates);
-        moduleConflictHandler.getResolver().select(details);
-        if (details.hasFailure()) {
-            throw UncheckedException.throwAsUncheckedException(details.getFailure());
-        }
-        return details.getSelected();
+        module.restart(selected);
     }
 
     private boolean moduleHasConflicts(ResolveState resolveState, ModuleResolveState module) {
@@ -311,21 +261,6 @@ public class DependencyGraphBuilder {
             return true;
         }
         return false;
-    }
-
-    private void maybeMarkRejected(ComponentState selected) {
-        if (selected.isRejected()) {
-            return;
-        }
-
-        String version = selected.getVersion();
-        ModuleResolveState moduleResolveState = selected.getModule();
-        for (SelectorState selector : moduleResolveState.getSelectors()) {
-            if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null && selector.getVersionConstraint().getRejectedSelector().accept(version)) {
-                selected.reject();
-                return;
-            }
-        }
     }
 
     /**
@@ -461,39 +396,6 @@ public class DependencyGraphBuilder {
 
         visitor.finish(resolveState.getRoot());
     }
-
-    /**
-     * Check if all of the supplied selectors agree with the version chosen
-     */
-    private static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version) {
-        for (SelectorState selectorState : allSelectors) {
-            ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
-            if (versionConstraint == null) {
-                return false;
-            }
-            VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
-            if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                return false;
-            }
-            candidateSelector = versionConstraint.getRejectedSelector();
-            if (candidateSelector != null && candidateSelector.accept(version)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean selectorAgreesWith(SelectorState selectorState, String version) {
-        ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
-        if (versionConstraint == null || versionConstraint.getPreferredSelector() == null) {
-            return false;
-        }
-        VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
-        return !candidateSelector.requiresMetadata()
-            && candidateSelector.canShortCircuitWhenVersionAlreadyPreselected()
-            && candidateSelector.accept(version);
-    }
-
 
     enum VisitState {
         NotSeen, Visiting, Visited
