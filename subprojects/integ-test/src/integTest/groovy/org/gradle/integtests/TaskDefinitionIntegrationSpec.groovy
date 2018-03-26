@@ -43,6 +43,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         }
     """
 
+    // TODO(adamb): remove once this TaskContainer extension function is added to kotlin-dsl
     private static final String KOTLIN_TASK_CONTAINER_EXTENSION = '''
         inline
         fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
