@@ -46,8 +46,7 @@ import java.util.concurrent.TimeUnit;
  * progress of operations.
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-    // Configurability is temporary until we can settle on a good timeout
-    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = Long.getLong("org.gradle.console.flush-timeout", TimeUnit.SECONDS.toMillis(30));
+    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
     private final OutputEventListener listener;
     private final Clock clock;
