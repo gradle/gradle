@@ -45,7 +45,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "class generation doesn't prevent injection of missing parameters from provided service registry"() {
         given:
-        _ * services.get(String) >> "string"
+        _ * services.find(String) >> "string"
 
         when:
         def result = instantiator.newInstance(HasInjectConstructor, 12)
