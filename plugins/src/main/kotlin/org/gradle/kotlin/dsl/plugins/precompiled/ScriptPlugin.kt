@@ -16,6 +16,12 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
+
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -25,7 +31,10 @@ import java.io.File
 
 
 internal
-data class ScriptPlugin(val scriptFile: File) {
+data class ScriptPlugin(private val scriptFile: File) {
+
+    private
+    val scriptFileName = scriptFile.name
 
     /**
      * Gradle plugin id inferred from the script file name and package declaration (if any).
@@ -42,12 +51,39 @@ data class ScriptPlugin(val scriptFile: File) {
      * the `generateScriptPluginAdapters` task.
      */
     val implementationClass by lazy {
-        fileNameWithoutScriptExtension.kebabCaseToPascalCase() + "Plugin"
+        packagePrefixed(simplePluginAdapterClassName)
+    }
+
+    val simplePluginAdapterClassName by lazy {
+        fileNameWithoutScriptExtension
+            .kebabCaseToPascalCase()
+            .asJavaIdentifier() + "Plugin"
     }
 
     private
     val fileNameWithoutScriptExtension by lazy {
-        scriptFile.name.removeSuffix(".gradle.kts")
+        scriptFileName.removeSuffix(scriptExtension)
+    }
+
+    val targetType by lazy {
+        when (scriptType) {
+            KotlinScriptType.PROJECT -> Project::class.qualifiedName
+            KotlinScriptType.SETTINGS -> Settings::class.qualifiedName
+            KotlinScriptType.INIT -> Gradle::class.qualifiedName
+        }
+    }
+
+    private
+    val scriptType
+        get() = scriptTypeMatch.scriptType
+
+    private
+    val scriptExtension
+        get() = scriptTypeMatch.match.value
+
+    private
+    val scriptTypeMatch by lazy {
+        KotlinScriptTypeMatch.forName(scriptFileName)!!
     }
 
     /**
@@ -120,3 +156,16 @@ fun CharSequence.kebabCaseToPascalCase() =
 private
 fun CharSequence.kebabCaseToCamelCase() =
     replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase() }
+
+
+private
+fun CharSequence.asJavaIdentifier() =
+    replaceBy { if (it.isJavaIdentifierPart()) it else '_' }
+
+
+private
+inline fun CharSequence.replaceBy(f: (Char) -> Char) =
+    StringBuilder(length).let { builder ->
+        forEach { char -> builder.append(f(char)) }
+        builder.toString()
+    }

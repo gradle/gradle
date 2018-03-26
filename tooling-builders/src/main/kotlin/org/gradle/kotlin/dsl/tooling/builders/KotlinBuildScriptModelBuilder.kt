@@ -41,6 +41,8 @@ import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
@@ -84,10 +86,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     private
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
-        when {
-            parameter.noScriptPath -> projectScriptModelBuilder(modelRequestProject)
-            parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject)
-            parameter.initScript -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
+        when (parameter.scriptFile?.let { kotlinScriptTypeFor(it) }) {
+            null -> projectScriptModelBuilder(modelRequestProject)
+            KotlinScriptType.SETTINGS -> settingsScriptModelBuilder(modelRequestProject)
+            KotlinScriptType.INIT -> initScriptModelBuilder(parameter.scriptFile!!, modelRequestProject)
             else -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
         }
 
@@ -188,21 +190,6 @@ data class KotlinScriptTargetModelBuilder<T : Any>(
     val implicitImports
         get() = project.scriptImplicitImports
 }
-
-
-private
-val KotlinBuildScriptModelParameter.noScriptPath
-    get() = scriptPath == null
-
-
-private
-val KotlinBuildScriptModelParameter.settingsScript
-    get() = scriptFile?.name?.run { equals("settings.gradle.kts") || endsWith(".settings.gradle.kts") } ?: false
-
-
-private
-val KotlinBuildScriptModelParameter.initScript
-    get() = scriptFile?.name?.endsWith(".init.gradle.kts") ?: false
 
 
 private

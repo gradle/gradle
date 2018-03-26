@@ -119,10 +119,23 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 "src/main/kotlin" {
 
-                    // plugin id for script with no package declaration is simply
-                    // the file name minus the `.gradle.kts` suffix
+                    // Plugin id for script with no package declaration is simply
+                    // the file name minus the script file extension.
+
+                    // Project plugins must be named `*.gradle.kts`
                     withFile("my-plugin.gradle.kts", """
                         println("my-plugin applied!")
+                    """)
+
+                    // Settings plugins must be named `*.settings.gradle.kts`
+                    withFile("my-settings-plugin.settings.gradle.kts", """
+                        println("my-settings-plugin applied!")
+                    """)
+
+                    // Gradle object plugins, a.k.a., precompiled init script plugins,
+                    // must be named `*.init.gradle.kts`
+                    withFile("my-init-plugin.init.gradle.kts", """
+                        println("my-init-plugin applied!")
                     """)
 
                     // plugin id for script with package declaration is the
@@ -148,6 +161,17 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             }
         }
 
+        withSettings("""
+
+            // Apply Gradle plugin via type as it cannot be applied via id
+            // because `buildSrc` is not in the `gradle` object
+            // plugin search classpath
+
+            gradle.apply<MyInitPluginPlugin>()
+
+            apply(plugin = "my-settings-plugin")
+        """)
+
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -158,6 +182,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         assertThat(
             build("help").output,
             allOf(
+                containsString("my-init-plugin applied!"),
+                containsString("my-settings-plugin applied!"),
                 containsString("my-plugin applied!"),
                 containsString("my-other-plugin applied!")
             )
@@ -181,7 +207,14 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                     withFile("org/acme/my-other-plugin.gradle.kts", """
                         package org.acme
 
-                        println("my-other-plugin applied!")
+                        println("org.acme.my-other-plugin applied!")
+                    """)
+
+                    withFile("org/acme/plugins/my-init.init.gradle.kts", """
+
+                        package org.acme.plugins
+
+                        println("org.acme.plugins.my-init applied!")
                     """)
                 }
 
@@ -216,11 +249,15 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
         build(existing("plugins"), "publish")
 
+        val repositoriesBlock = """
+            repositories {
+                maven { url = uri("./repository") }
+            }
+        """
+
         withSettings("""
             pluginManagement {
-                repositories {
-                    maven(url = "./repository")
-                }
+                $repositoriesBlock
             }
         """)
 
@@ -231,11 +268,28 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             }
         """)
 
+        val initScript =
+            withFile("my-init-script.init.gradle.kts", """
+
+                initscript {
+                    $repositoriesBlock
+                    dependencies {
+                        classpath("org.acme:plugins:0.1.0")
+                    }
+                }
+
+                apply<org.acme.plugins.MyInitPlugin>()
+
+                // TODO: can't apply plugin by id
+                // apply(plugin = "org.acme.plugins.my-init")
+            """)
+
         assertThat(
-            build("help").output,
+            build("help", "-I", initScript.canonicalPath).output,
             allOf(
+                containsString("org.acme.plugins.my-init applied!"),
                 containsString("my-plugin applied!"),
-                containsString("my-other-plugin applied!")
+                containsString("org.acme.my-other-plugin applied!")
             )
         )
     }

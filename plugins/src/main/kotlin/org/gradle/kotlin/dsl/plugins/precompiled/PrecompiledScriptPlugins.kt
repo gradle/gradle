@@ -156,8 +156,9 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, s
             inputs.files(scriptSourceFiles)
             outputs.dir(generatedSourcesDir)
             doLast {
+                val outputDir = generatedSourcesDir.get().asFile
                 for (scriptPlugin in scriptPlugins.value) {
-                    scriptPlugin.writeScriptPluginAdapterTo(generatedSourcesDir.get().asFile)
+                    scriptPlugin.writeScriptPluginAdapterTo(outputDir)
                 }
             }
         }
@@ -170,21 +171,36 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, s
 
 
 internal
-fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) =
-    File(outputDir, "$implementationClass.kt").writeText(
-        """
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
+fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
-            class $implementationClass : Plugin<Project> {
-                override fun apply(target: Project) {
-                    Class
-                        .forName("$compiledScriptTypeName")
-                        .getDeclaredConstructor(Project::class.java)
-                        .newInstance(target)
-                }
+    val (packageDir, packageDeclaration) =
+        packageName?.let { packageName ->
+            outputDir.mkdir(packageName.replace('.', '/')) to "package $packageName"
+        } ?: outputDir to ""
+
+    val outputFile =
+        packageDir.resolve("$simplePluginAdapterClassName.kt")
+
+    outputFile.writeText("""
+
+        $packageDeclaration
+
+        class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
+            override fun apply(target: $targetType) {
+                Class
+                    .forName("$compiledScriptTypeName")
+                    .getDeclaredConstructor($targetType::class.java)
+                    .newInstance(target)
             }
-        """.replaceIndent())
+        }
+
+    """.replaceIndent())
+}
+
+
+private
+fun File.mkdir(relative: String) =
+    resolve(relative).apply { mkdirs() }
 
 
 private
