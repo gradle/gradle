@@ -41,9 +41,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         ComponentIdResolveResult idResolveResult = selector.resolve();
 
         if (idResolveResult.getFailure() != null) {
-            // Resolve failure, nothing more to do.
-            // TODO:DAZ Throw here
-            return null;
+            throw idResolveResult.getFailure();
         }
 
         T candidate = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());

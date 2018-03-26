@@ -32,6 +32,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
@@ -119,15 +120,14 @@ class SelectorStateResolverTest extends Specification {
             def selector = new TestSelectorState(componentIdResolver, version.versionConstraint)
             selectors << selector
 
-            currentSelection = selectorStateResolver.selectBest(selectors, selector, currentSelection)
-
-            if (currentSelection == null) {
-                // Resolve failure
+            try {
+                currentSelection = selectorStateResolver.selectBest(selectors, selector, currentSelection)
+            } catch (ModuleVersionResolveException e) {
                 return -1
             }
-
         }
         if (currentSelection.isRejected()) {
+            // TODO:DAZ Differentiate from other failures in test
             return -1
         }
         return Integer.parseInt(currentSelection.getVersion())

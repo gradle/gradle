@@ -45,6 +45,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
@@ -218,9 +219,11 @@ public class DependencyGraphBuilder {
         ComponentState currentSelection = module.getSelected();
 
         SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState);
-        ComponentState selected = selectorStateResolver.selectBest(module.getSelectors(), selector, currentSelection);
-        if (selected == null) {
-            // Failure to resolve
+        ComponentState selected = null;
+        try {
+            selected = selectorStateResolver.selectBest(module.getSelectors(), selector, currentSelection);
+        } catch (ModuleVersionResolveException e) {
+            // Ignore: failure will be retained on selector
             return;
         }
 
