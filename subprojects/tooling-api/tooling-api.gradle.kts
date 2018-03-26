@@ -42,18 +42,18 @@ val jar: Jar by tasks
 
 val baseVersion: String by rootProject.extra
 
-val shadedJarWithoutVersion by tasks.creating(ShadedJar::class) {
-    val outputDir = file("$buildDir/shaded-jar-without-version")
-    sourceFiles = jar.outputs.files +
-        files(deferred { configurations.runtimeClasspath - configurations.publishCompile })
-    analysisFile = file("$outputDir/analysis.txt")
-    classesDir = file("$outputDir/classes")
-    jarFile = file("$outputDir/gradle-tooling-api-shaded-$baseVersion.jar")
-    keepPackages = setOf("org.gradle.tooling")
-    unshadedPackages = setOf("org.gradle", "org.slf4j", "sun.misc")
-    ignorePackages = setOf("org.gradle.tooling.provider.model")
-    shadowPackage = "org.gradle.internal.impldep"
-}
+val outputDir = file("$buildDir/shaded-jar-without-version")
+val shadedJarWithoutVersion = tasks.create<ShadedJar>(
+    "shadedJarWithoutVersion",
+    jar.outputs.files + files(deferred { configurations.runtimeClasspath - configurations.publishCompile }),
+    file("$outputDir/classes"),
+    file("$outputDir/gradle-tooling-api-shaded-$baseVersion.jar"),
+    file("$outputDir/analysis.txt"),
+    "org.gradle.internal.impldep",
+    setOf("org.gradle.tooling"),
+    setOf("org.gradle", "org.slf4j", "sun.misc"),
+    setOf("org.gradle.tooling.provider.model")
+)
 
 val buildReceipt = tasks.getByPath(":createBuildReceipt")
 
