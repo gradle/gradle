@@ -33,7 +33,7 @@ public class FileDependencyArtifactSet implements ArtifactSet {
 
     @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
-        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry).select();
+        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry);
     }
 
 }

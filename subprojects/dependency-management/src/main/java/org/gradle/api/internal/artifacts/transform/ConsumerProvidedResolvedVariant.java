@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -26,6 +27,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
@@ -41,7 +43,14 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        return artifactTransformDependency.getTransformTask().getResult();
+        if (delegate instanceof LocalFileDependencyBackedArtifactSet.SingletonFileResolvedVariant) {
+            Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
+            Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
+            Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
+            return new TransformingResult(result, artifactResults, fileResults, attributes);
+        } else {
+            return artifactTransformDependency.getTransformTask().getResult();
+        }
     }
 
     @Override
@@ -52,7 +61,7 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 //        delegate.collectBuildDependencies(visitor);
     }
 
-    public static class TransformingResult implements Completion {
+    private static class TransformingResult implements Completion {
         private final Completion result;
         private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
         private final Map<File, TransformFileOperation> fileResults;
