@@ -20,7 +20,6 @@ import org.gradle.api.Transformer
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.UnknownServiceException
 import spock.lang.Specification
 
 import javax.inject.Inject
