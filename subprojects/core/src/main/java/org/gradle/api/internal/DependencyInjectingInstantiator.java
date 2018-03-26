@@ -22,7 +22,6 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.UnknownServiceException;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
