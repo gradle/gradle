@@ -93,10 +93,12 @@ class KotlinScriptPluginFactory @Inject internal constructor(
             kotlinCompiler,
             classloadingCache,
             KotlinScriptSource(scriptSource),
-            scriptTarget, scriptHandler as ScriptHandlerInternal,
+            scriptTarget,
+            scriptHandler as ScriptHandlerInternal,
             pluginRequestsHandler,
             baseScope,
-            targetScope, classPathProvider,
+            targetScope,
+            classPathProvider,
             embeddedKotlinProvider,
             classPathModeExceptionCollector)
 }
