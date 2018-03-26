@@ -101,26 +101,30 @@ public class DependencyInjectingInstantiator implements Instantiator {
         Object[] resolvedParameters = new Object[parameterTypes.length];
         int pos = 0;
         for (int i = 0; i < resolvedParameters.length; i++) {
+            Object currentParameter = null;
             Class<?> targetType = parameterTypes[i];
             if (targetType.isPrimitive()) {
                 targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
             }
+            Type serviceType = constructor.getGenericParameterTypes()[i];
             if (pos < parameters.length && targetType.isInstance(parameters[pos])) {
-                resolvedParameters[i] = parameters[pos];
+                currentParameter = parameters[pos];
                 pos++;
             } else {
-                Type serviceType = constructor.getGenericParameterTypes()[i];
-                try {
-                    resolvedParameters[i] = services.get(serviceType);
-                } catch (UnknownServiceException use) {
-                    StringBuilder builder = new StringBuilder(String.format("Unable to determine argument #%s: no service of type %s", i, serviceType));
-                    if (pos < parameters.length) {
-                        builder.append(String.format(", or value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
-                    } else {
-                        builder.append(String.format(", or missing parameter value of type %s", parameterTypes[i]));
-                    }
-                    throw new IllegalArgumentException(builder.toString());
+                currentParameter = services.find(serviceType);
+            }
+
+            if (currentParameter != null) {
+                resolvedParameters[i] = currentParameter;
+            } else {
+                StringBuilder builder = new StringBuilder(String.format("Unable to determine argument #%s:", i));
+                if (pos < parameters.length) {
+                    builder.append(String.format(" value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
+                } else {
+                    builder.append(String.format(" missing parameter value of type %s", parameterTypes[i]));
                 }
+                builder.append(String.format(", or no service of type %s", serviceType));
+                throw new IllegalArgumentException(builder.toString());
             }
         }
         if (pos != parameters.length) {

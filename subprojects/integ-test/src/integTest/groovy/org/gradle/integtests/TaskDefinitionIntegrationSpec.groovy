@@ -137,7 +137,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #1: no service of type int, or missing parameter value of type int")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #1: missing parameter value of type int, or no service of type int")
 
         where:
         description   | script
@@ -155,7 +155,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #0: no service of type class java.lang.String, or missing parameter value of type class java.lang.String")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #0: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -194,7 +194,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #$argumentNumber: no service of type $outputType, or value 123 not assignable to type $outputType")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine argument #$argumentNumber: value 123 not assignable to type $outputType, or no service of type $outputType")
 
         where:
         description | constructorArgs | argumentNumber | outputType

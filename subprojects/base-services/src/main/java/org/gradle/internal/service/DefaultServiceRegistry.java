@@ -280,13 +280,17 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-        assertValidServiceType(unwrap(serviceType));
-        Service provider = getService(serviceType);
-        Object instance = provider == null ? null : provider.get();
+        Object instance = find(serviceType);
         if (instance == null) {
             throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), getDisplayName()));
         }
         return instance;
+    }
+
+    public Object find(Type serviceType) throws ServiceLookupException {
+        assertValidServiceType(unwrap(serviceType));
+        Service provider = getService(serviceType);
+        return provider == null ? null : provider.get();
     }
 
     private Service getService(Type serviceType) {
