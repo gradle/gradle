@@ -10,7 +10,6 @@ dependencies {
     implementation(project(":kotlinDsl"))
     implementation(project(":versioning"))
     implementation(project(":build"))
-    implementation(project(":packaging"))
     testCompile("junit:junit:4.12")
 }
 
