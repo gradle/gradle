@@ -39,4 +39,5 @@ public interface ComponentResolutionState extends StringVersioned {
 
     boolean isRejected();
 
+    boolean isRoot();
 }

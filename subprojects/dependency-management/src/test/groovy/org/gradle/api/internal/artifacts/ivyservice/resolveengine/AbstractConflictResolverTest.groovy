@@ -75,9 +75,11 @@ abstract class AbstractConflictResolverTest extends Specification {
 
     private static class TestComponent implements ComponentResolutionState {
 
-        private final ModuleVersionIdentifier id
+        final ModuleVersionIdentifier id
+        ComponentResolveMetadata metadata
+        boolean root = false
+        boolean rejected = false
         private MutableVersionConstraint constraint
-        private ComponentResolveMetadata metaData
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id
@@ -95,18 +97,8 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         TestComponent release() {
-            metaData = ['getStatus': {'release'}] as ComponentResolveMetadata
+            metadata = ['getStatus': {'release'}] as ComponentResolveMetadata
             this
-        }
-
-        @Override
-        ModuleVersionIdentifier getId() {
-            id
-        }
-
-        @Override
-        ComponentResolveMetadata getMetadata() {
-            metaData
         }
 
         @Override
@@ -117,11 +109,6 @@ abstract class AbstractConflictResolverTest extends Specification {
         @Override
         void reject() {
 
-        }
-
-        @Override
-        boolean isRejected() {
-            return false
         }
 
         @Override

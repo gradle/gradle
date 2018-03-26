@@ -301,6 +301,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return rejected;
     }
 
+    @Override
+    public boolean isRoot() {
+        for (NodeState node : nodes) {
+            if (node.isRoot()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Describes the possible states of a component in the graph.
