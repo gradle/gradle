@@ -36,36 +36,137 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
     def "listener added to task receives only the output generated while the task is running"() {
         buildFile << """
-            def o = new CollectingListener()
-            def e = new CollectingListener()
-            def none = new CollectingListener()
+            def output = new CollectingListener()
+            def error = new CollectingListener()
+            def after = new CollectingListener()
+            def before = new CollectingListener()
+            
             task log {
                 doLast {
-                    logging.addStandardOutputListener(o)
-                    logging.addStandardErrorListener(e)
+                    logging.addStandardOutputListener(output)
+                    logging.addStandardErrorListener(error)
                     System.out.println "output" 
                     System.err.println "error" 
                 }
             }
+            
+            log.logging.addStandardOutputListener(before)
+            log.logging.addStandardErrorListener(before)
+
             task other {
                 dependsOn log
                 doLast {
+                    log.logging.addStandardOutputListener(after)
+                    log.logging.addStandardErrorListener(after)
                     System.out.println "other" 
                     System.err.println "other" 
                 }
             }
             
             gradle.buildFinished {
-                log.logging.addStandardOutputListener(none)
-                log.logging.addStandardErrorListener(none)
+                log.logging.addStandardOutputListener(after)
+                log.logging.addStandardErrorListener(after)
                 println "finished"
-                assert o.toString().readLines() == [":log", "output"]
-                assert e.toString().readLines() == ["error"]
-                assert none.toString().readLines() == []
+                assert output.toString().readLines() == [":log", "output"]
+                assert error.toString().readLines() == ["error"]
+                assert before.toString().readLines() == [":log", "output", "error"]
+                assert after.toString().readLines() == []
             }
         """
 
         expect:
         succeeds("log", "other")
+    }
+
+    def "listener added to task receives logging for log level"() {
+        buildFile << """
+            def output = new CollectingListener()
+            
+            task log {
+                doLast {
+                    logging.addStandardOutputListener(output)
+                    logging.addStandardErrorListener(output)
+                    logger.debug("debug")
+                    logger.info("info")
+                    logger.lifecycle("lifecycle")
+                    logger.warn("warn")
+                    logger.error("error")
+                    System.out.println "System.out" 
+                    System.err.println "System.err" 
+                }
+            }
+            
+            gradle.buildFinished {
+                file("output.txt").text = output.toString()
+            }
+        """
+
+        when:
+        executer.withArguments("--debug")
+        run("log")
+        def captured = file("output.txt").text
+
+        then:
+        captured.contains("[DEBUG] [org.gradle.api.Task] debug")
+        captured.contains("[INFO] [org.gradle.api.Task] info")
+        captured.contains("[LIFECYCLE] [org.gradle.api.Task] lifecycle")
+        captured.contains("[WARN] [org.gradle.api.Task] warn")
+        captured.contains("[ERROR] [org.gradle.api.Task] error")
+        captured.contains("[QUIET] [system.out] System.out")
+        captured.contains("[ERROR] [system.err] System.err")
+
+        when:
+        executer.withArguments("--info")
+        run("log")
+        def lines = file("output.txt").text.readLines()
+
+        then:
+        lines == [
+                'info',
+                'lifecycle',
+                'warn',
+                'error',
+                'System.out',
+                'System.err'
+        ]
+
+        when:
+        run("log")
+        lines = file("output.txt").text.readLines()
+
+        then:
+        lines == [
+                ':log',
+                'lifecycle',
+                'warn',
+                'error',
+                'System.out',
+                'System.err'
+        ]
+
+        when:
+        executer.withArguments("--warn")
+        run("log")
+        lines = file("output.txt").text.readLines()
+
+        then:
+        lines == [
+                'warn',
+                'error',
+                'System.out',
+                'System.err'
+        ]
+
+        when:
+        executer.withArguments("--quiet")
+        run("log")
+        lines = file("output.txt").text.readLines()
+
+        then:
+        lines == [
+                'error',
+                'System.out',
+                'System.err'
+        ]
     }
 }

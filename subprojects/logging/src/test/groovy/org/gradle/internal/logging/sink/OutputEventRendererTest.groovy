@@ -65,19 +65,7 @@ class OutputEventRendererTest extends OutputSpecification {
         outputs.stdErr.readLines() == ['message']
     }
 
-    def rendersLogEventsWhenLogLevelIsDebug() {
-        def listener = new TestListener()
-
-        when:
-        renderer.configure(LogLevel.DEBUG)
-        renderer.addStandardOutputListener(listener)
-        renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
-
-        then:
-        listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
-    }
-
-    def rendersLogEventsToStdOutandStdErrWhenLogLevelIsDebug() {
+    def rendersLogEventsToStdOutAndStdErrWhenLogLevelIsDebug() {
         when:
         renderer.configure(LogLevel.DEBUG)
         renderer.attachSystemOutAndErr()
@@ -93,6 +81,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
@@ -105,6 +94,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.removeStandardOutputListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
@@ -119,6 +109,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
         when:
         renderer.configure(LogLevel.DEBUG)
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
@@ -130,6 +121,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardErrorListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
@@ -142,6 +134,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardErrorListener(listener)
         renderer.removeStandardErrorListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
@@ -156,11 +149,26 @@ class OutputEventRendererTest extends OutputSpecification {
 
         when:
         renderer.configure(LogLevel.DEBUG)
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardErrorListener(listener)
         renderer.onOutput(event(tenAm, 'message', LogLevel.ERROR))
 
         then:
         listener.value.readLines() == ['10:00:00.000 [ERROR] [category] message']
+    }
+
+    def cannotAddStdOutListenerWhenNotEnabled() {
+        when:
+        renderer.addStandardOutputListener(Stub(StandardOutputListener))
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        renderer.addStandardErrorListener(Stub(StandardOutputListener))
+
+        then:
+        thrown(IllegalStateException)
     }
 
     def forwardsOutputEventsToListener() {
@@ -225,6 +233,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         given:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.configure(LogLevel.INFO)
         def snapshot = renderer.snapshot()
@@ -243,6 +252,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(complete('status'))

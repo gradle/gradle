@@ -66,8 +66,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
-    private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-    private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
 
     private ColorMap colourMap;
     private OutputStream originalStdOut;
@@ -75,35 +73,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputEventListener stdOutListener;
     private OutputEventListener stdErrListener;
     private OutputEventListener console;
+    private OutputEventListener userListenerChain;
+    private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
+    private ListenerBroadcast<StandardOutputListener> userStderrListeners;
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
-        formatters.add(
-            new LazyListener(new Factory<OutputEventListener>() {
-                @Override
-                public OutputEventListener create() {
-                    final OutputEventListener stdOutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource()));
-                    final OutputEventListener stdErrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource()));
-
-                    return new BuildLogLevelFilterRenderer(
-                        new ProgressLogEventGenerator(new OutputEventListener() {
-                            @Override
-                            public void onOutput(OutputEvent event) {
-                                // Do not forward events for rendering when there are no listeners to receive
-                                if (event instanceof LogLevelChangeEvent) {
-                                    stdOutChain.onOutput(event);
-                                    stdErrChain.onOutput(event);
-                                } else if (event.getLogLevel() == LogLevel.ERROR && !stderrListeners.isEmpty() && event instanceof RenderableOutputEvent) {
-                                    stdErrChain.onOutput(event);
-                                } else if (event.getLogLevel() != LogLevel.ERROR && !stdoutListeners.isEmpty() && event instanceof RenderableOutputEvent) {
-                                    stdOutChain.onOutput(event);
-                                }
-                            }
-                        })
-                    );
-                }
-            })
-        );
     }
 
     @Override
@@ -187,11 +162,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public void attachSystemOutAndErr() {
-        addStandardOutputListener();
-        addStandardErrorListener();
+        addSystemOutAsLoggingDestination();
+        addSystemErrAsLoggingDestination();
     }
 
-    private void addStandardOutputListener() {
+    private void addSystemOutAsLoggingDestination() {
         synchronized (lock) {
             originalStdOut = System.out;
             if (stdOutListener != null) {
@@ -207,7 +182,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    private void addStandardErrorListener() {
+    private void addSystemErrAsLoggingDestination() {
         synchronized (lock) {
             originalStdErr = System.err;
             if (stdErrListener != null) {
@@ -223,7 +198,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    private void removeStandardOutputListener() {
+    private void removeSystemOutAsLoggingDestination() {
         synchronized (lock) {
             if (stdOutListener != null) {
                 removeChain(stdOutListener);
@@ -232,7 +207,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    private void removeStandardErrorListener() {
+    private void removeSystemErrAsLoggingDestination() {
         synchronized (lock) {
             if (stdErrListener != null) {
                 removeChain(stdErrListener);
@@ -267,7 +242,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                         console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
                     console.getStatusBar(), console, consoleMetaData, clock),
                 console),
-                clock);
+            clock);
         return addConsoleChain(consoleChain, stdout, stderr);
     }
 
@@ -291,14 +266,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
-                removeStandardOutputListener();
-                removeStandardErrorListener();
+                removeSystemOutAsLoggingDestination();
+                removeSystemErrAsLoggingDestination();
             } else if (stdout) {
                 this.console = onNonError(consoleChain);
-                removeStandardOutputListener();
+                removeSystemOutAsLoggingDestination();
             } else if (stderr) {
                 this.console = onError(consoleChain);
-                removeStandardErrorListener();
+                removeSystemErrAsLoggingDestination();
             } else {
                 this.console = consoleChain;
             }
@@ -315,17 +290,56 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return new LogEventDispatcher(listener, null);
     }
 
+    @Override
+    public void enableUserStandardOutputListeners() {
+        // Create all of the pipeline eagerly as soon as this is enabled, to track the state of build operations.
+        // All of the pipelines do this, so should instead have a single stage that tracks this for all pipelines and that can replay the current state to new pipelines
+        // Then, a pipeline can be added for each listener as required
+        synchronized (lock) {
+            if (userStdoutListeners == null) {
+                userStdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+                userStderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+                final OutputEventListener stdOutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(userStdoutListeners.getSource()));
+                final OutputEventListener stdErrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(userStderrListeners.getSource()));
+                userListenerChain = new BuildLogLevelFilterRenderer(
+                    new ProgressLogEventGenerator(new OutputEventListener() {
+                        @Override
+                        public void onOutput(OutputEvent event) {
+                            // Do not forward events for rendering when there are no listeners to receive
+                            if (event instanceof LogLevelChangeEvent) {
+                                stdOutChain.onOutput(event);
+                                stdErrChain.onOutput(event);
+                            } else if (event.getLogLevel() == LogLevel.ERROR && !userStderrListeners.isEmpty() && event instanceof RenderableOutputEvent) {
+                                stdErrChain.onOutput(event);
+                            } else if (event.getLogLevel() != LogLevel.ERROR && !userStdoutListeners.isEmpty() && event instanceof RenderableOutputEvent) {
+                                stdOutChain.onOutput(event);
+                            }
+                        }
+                    })
+                );
+                addChain(userListenerChain);
+            }
+        }
+    }
+
+    private void assertUserListenersEnabled() {
+        if (userListenerChain == null) {
+            throw new IllegalStateException("Custom standard output listeners not enabled.");
+        }
+        userListenerChain.onOutput(new FlushOutputEvent());
+    }
+
     public void addStandardErrorListener(StandardOutputListener listener) {
         synchronized (lock) {
-            flush();
-            stderrListeners.add(listener);
+            assertUserListenersEnabled();
+            userStderrListeners.add(listener);
         }
     }
 
     public void addStandardOutputListener(StandardOutputListener listener) {
         synchronized (lock) {
-            flush();
-            stdoutListeners.add(listener);
+            assertUserListenersEnabled();
+            userStdoutListeners.add(listener);
         }
     }
 
@@ -337,18 +351,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         addStandardErrorListener(new StreamBackedStandardOutputListener(outputStream));
     }
 
-
     public void removeStandardOutputListener(StandardOutputListener listener) {
         synchronized (lock) {
-            flush();
-            stdoutListeners.remove(listener);
+            assertUserListenersEnabled();
+            userStdoutListeners.remove(listener);
         }
     }
 
     public void removeStandardErrorListener(StandardOutputListener listener) {
         synchronized (lock) {
-            flush();
-            stderrListeners.remove(listener);
+            assertUserListenersEnabled();
+            userStderrListeners.remove(listener);
         }
     }
 
@@ -405,6 +418,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     return;
                 }
                 if (event instanceof LogLevelChangeEvent) {
+                    // Keep until the listener is created
                     pendingLogLevel = (LogLevelChangeEvent) event;
                     return;
                 }
