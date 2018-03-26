@@ -21,8 +21,6 @@ import spock.lang.Unroll
 
 class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
-    def messageBuilder = Mock(ModuleResolutionMessageBuilder)
-
     def setup() {
         resolver = new LatestModuleConflictResolver(new DefaultVersionComparator())
     }

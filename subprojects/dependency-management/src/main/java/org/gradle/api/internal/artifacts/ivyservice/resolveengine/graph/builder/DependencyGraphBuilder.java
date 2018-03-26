@@ -347,9 +347,8 @@ public class DependencyGraphBuilder {
     }
 
     private void validateGraph(ResolveState resolveState) {
-        // TODO:DAZ This should probably be done as a DependencyGraphVisitor inside `assembleResult`
+        // TODO In order to collect all of the rejection failures, this should be done via a DependencyGraphVisitor.
         for (ModuleResolveState module : resolveState.getModules()) {
-            // TODO:DAZ Need a better way to signal rejection
             if (module.getSelected() != null && module.getSelected().isRejected()) {
                 throw new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
             }
