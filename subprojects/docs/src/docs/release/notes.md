@@ -6,6 +6,8 @@ Next, Gradle log output is now grouped under a header by project and task for no
 
 User experience for running tests is further improved in this release of Gradle, as failed tests now run first. This allows use of the [`--fail-fast` option](userguide/java_plugin.html#sec:test_execution) to provide the quickest possible feedback loop.
 
+This release improves the Kotlin DSL around declaring plugins, properties, and extensions. It also provides further improved parity with the Groovy DSL, and better IDE support for `buildSrc/`. See Kotlin DSL v0.16 release notes for full details.
+
 Last but not least, the IDEA Gradle Plugin now automatically marks Java resources directories as resources in the IDEA module definitions. This behavior can be customized; see an example.
 
 We hope you will build happiness with Gradle 4.7, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
