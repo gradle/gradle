@@ -20,7 +20,6 @@ import groovy.transform.Canonical
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
-
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
  * // TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
@@ -563,10 +562,12 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     def resolve(List<RenderableVersion> versions) {
         settingsFile.text = baseSettings
 
-        def singleProjectDeps = versions.collect {
-            "single " + it.render()
-        }.join("\n")
-
+        def singleProjectConfs = []
+        def singleProjectDeps = []
+        versions.eachWithIndex { VersionRangeResolveTestScenarios.RenderableVersion version, int i ->
+            singleProjectConfs << "single${i}"
+            singleProjectDeps << "single${i} " + version.render()
+        }
 
         buildFile.text = baseBuild + """
             allprojects {
@@ -574,13 +575,16 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             }
             
             configurations {
-                single
+                ${singleProjectConfs.join('\n')}
+                single {
+                    extendsFrom(${singleProjectConfs.join(',')})
+                }
             }
 
             dependencies {
                 conf 'org:foo'
                 conf project(path: ':p1', configuration: 'conf')
-                ${singleProjectDeps}
+                ${singleProjectDeps.join('\n')}
             }
             
             task resolveMultiProject(type: Sync) {
