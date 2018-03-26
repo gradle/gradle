@@ -218,10 +218,10 @@ public class DependencyGraphBuilder {
         ModuleResolveState module = selector.getTargetModule();
         ComponentState currentSelection = module.getSelected();
 
-        SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState);
+        SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState, resolveState.getRoot().getComponent());
         ComponentState selected;
         try {
-            selected = selectorStateResolver.selectBest(module.getSelectors());
+            selected = selectorStateResolver.selectBest(module.getId(), module.getSelectors());
         } catch (ModuleVersionResolveException e) {
             // Ignore: failure will be retained on selector
             return;

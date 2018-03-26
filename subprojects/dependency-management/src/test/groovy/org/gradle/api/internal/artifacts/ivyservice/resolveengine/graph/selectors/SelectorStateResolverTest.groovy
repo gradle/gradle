@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
@@ -43,11 +45,13 @@ import spock.lang.Unroll
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
 class SelectorStateResolverTest extends Specification {
+    private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
     private final conflictResolver = new TestModuleConflictResolver()
     private final componentFactory = new TestComponentFactory()
+    private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
 
-    private final SelectorStateResolver selectorStateResolver = new SelectorStateResolver(conflictResolver, componentFactory)
+    private final SelectorStateResolver selectorStateResolver = new SelectorStateResolver(conflictResolver, componentFactory, root)
 
     @Unroll
     def "resolve pair #permutation"() {
@@ -121,7 +125,7 @@ class SelectorStateResolverTest extends Specification {
             selectors << new TestSelectorState(componentIdResolver, version.versionConstraint)
 
             try {
-                currentSelection = selectorStateResolver.selectBest(selectors)
+                currentSelection = selectorStateResolver.selectBest(moduleId, selectors)
             } catch (ModuleVersionResolveException e) {
                 return -1
             }
@@ -171,14 +175,14 @@ class SelectorStateResolverTest extends Specification {
             def reject = versionConstraint.rejectedSelector
 
             if (!prefer.isDynamic()) {
-                def id = DefaultModuleComponentIdentifier.newId("org", "module", prefer.selector)
+                def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, prefer.selector)
                 result.resolved(id, DefaultModuleVersionIdentifier.newId(id))
                 return
             }
 
             def resolved = findDynamicVersion(prefer, reject)
             if (resolved) {
-                def id = DefaultModuleComponentIdentifier.newId("org", "module", resolved as String)
+                def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, resolved as String)
                 result.resolved(id, DefaultModuleVersionIdentifier.newId(id))
                 return
             }
@@ -198,7 +202,7 @@ class SelectorStateResolverTest extends Specification {
         }
 
         private ModuleVersionNotFoundException missing(VersionSelector prefer) {
-            def moduleComponentSelector = DefaultModuleComponentSelector.newSelector("org", "module", prefer.selector)
+            def moduleComponentSelector = DefaultModuleComponentSelector.newSelector(moduleId.group, moduleId.name, prefer.selector)
             return new ModuleVersionNotFoundException(moduleComponentSelector, [])
         }
     }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
-import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,19 +31,29 @@ import java.util.List;
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
     private final ComponentStateFactory<T> componentFactory;
+    private final T rootComponent;
+    private final ModuleIdentifier rootModuleId;
 
-    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory) {
+    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
+        this.rootComponent = rootComponent;
+        this.rootModuleId = rootComponent.getId().getModule();
     }
 
-    public T selectBest(List<? extends ResolvableSelectorState> selectors) {
+    public T selectBest(ModuleIdentifier moduleId, List<? extends ResolvableSelectorState> selectors) {
         List<T> candidates = resolveSelectors(selectors);
         assert !candidates.isEmpty();
 
+        // If the module matches, add the root component into the mix
+        if (moduleId.equals(rootModuleId)) {
+            candidates = new ArrayList<T>(candidates);
+            candidates.add(rootComponent);
+        }
+
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
-            return maybeMarkRejected(candidates.iterator().next(), selectors);
+            return maybeMarkRejected(candidates.get(0), selectors);
         }
 
         // Perform conflict resolution
