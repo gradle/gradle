@@ -16,10 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
@@ -34,17 +32,6 @@ public interface ComponentResolutionState extends StringVersioned {
      */
     @Nullable
     ComponentResolveMetadata getMetadata();
-
-    /**
-     * Returns a version constraint representing all of the `SelectorState`s that chose this component.
-     * At this stage, the 'reject' VersionSelectors are merged for all `SelectorState`s, but the 'prefer' version
-     * is taken from the first `SelectorState` to choose this component.
-     */
-    ResolvedVersionConstraint getVersionConstraint();
-
-    boolean isResolved();
-
-    ComponentSelectionReasonInternal getSelectionReason();
 
     void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription);
 
