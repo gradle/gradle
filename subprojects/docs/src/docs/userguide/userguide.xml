@@ -118,6 +118,11 @@
         <xi:include href='../../../build/asciidoc/userguide/ideaPlugin.xml'/>
     </part>
     <part>
+        <title>Best practices</title>
+        <xi:include href='../../../build/asciidoc/userguide/authoringMaintainableBuildScripts.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/organizingBuildLogic.xml'/>
+    </part>
+    <part>
         <title>The Software model</title>
         <xi:include href='../../../build/asciidoc/userguide/softwareModel.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/softwareModelConcepts.xml'/>

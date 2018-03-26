@@ -1,0 +1,112 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[authoring_maintainable_build_scripts]]
+== Authoring Maintainable Build Scripts
+
+Gradle build scripts combine the qualities of declarative build logic, expressiveness as well as flexibility and rigidity as needed. As a build script author it is easy to fall into the trap of striking the wrong balance or applying poor coding habits. This chapter describes best practices for writing your build script in a meaningful, yet flexible and efficient way.
+
+[NOTE]
+====
+The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate linting automation.
+====
+
+[[sec:declare_task_group_and_description]]
+=== Declare the group and description for tasks
+
+Even new users to a build should to be able to find crucial information quickly and effortlessly. In Gradle you can declare a api:org.gradle.api.Task#setGroup(java.lang.String)[group] and a api:org.gradle.api.Task#setDescription(java.lang.String)[description] for any task of the build. The <<sec:listing_tasks,tasks report>> uses the assigned values to organize and render the task for easy discoverability. Assigning a group and description is most helpful for any task that you expect build users to invoke.
+
+The example task `generateDocs` generates documentation for a project in the form of HTML pages. The task should be organized underneath the bucket `Documentation`. The description should express its intent.
+
+++++
+<sample id="taskGroupDescription" dir="userguide/bestPractices/taskGroupDescription" title="A task declaring the group and description">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+The output of the tasks report reflects the assigned values.
+
+----
+$ gradle tasks
+
+> Task :tasks
+
+Documentation tasks
+-------------------
+generateDocs - Generates the HTML documentation for this project.
+----
+
+[[sec:minimize_logic_executed_configuration_phase]]
+=== Minimize logic executed during the configuration phase
+
+It's important for every build script developer to understand the different phases of the <<build_lifecycle,build lifecycle>> and their implications on performance and evaluation order of build logic. During the configuration phase the project and its domain objects should be _configured_, whereas the execution phase only executes the actions of the task(s) requested on the command line plus their dependencies. Be aware that any code that is not part of a task action will be executed with _every single run_ of the build. A link:https://scans.gradle.com/get-started[build scan] can help you with identifying the time spent during each of the lifecycle phases. It's an invaluable tool for diagnosing common performance issues.
+
+Let's consider the following incantation of the anti-pattern described above. In the build script you can see that the dependencies assigned to the configuration `printArtifactNames` are resolved outside of the task action.
+
+++++
+<sample id="logicDuringConfigurationPhase" dir="userguide/bestPractices/logicDuringConfiguration/dont" title="Executing logic during configuration should be avoided">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+The code for resolving the dependencies should be moved into the task action to avoid the performance impact of resolving the dependencies before they are actually needed.
+
+++++
+<sample id="logicDuringExecutionPhase" dir="userguide/bestPractices/logicDuringConfiguration/do" title="Executing logic during execution phase is preferred">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+[[sec:avoid_imperative_logic_in_scripts]]
+=== Avoid imperative logic in scripts
+
+The Gradle runtime does not enforce a specific style for build logic. For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code. Let's talk about some concrete examples.
+
+* _Declarative code:_ Built-in, language-agnostic DSL elements (e.g. api:org.gradle.api.Project#dependencies(groovy.lang.Closure)[] or api:org.gradle.api.Project#repositories(groovy.lang.Closure)[]) or DSLs exposed by plugins
+* _Imperative code:_ Conditional logic or very complex task action implementations
+
+The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain. Imperative logic should live in binary plugins and which in turn is applied to the build script. As a side product, you automatically enable your team to link:https://guides.gradle.org/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
+
+The following sample build shows a negative example of using conditional logic directly in the build script. While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it would have on readability and maintainability. By moving the code into a class link:https://guides.gradle.org/testing-gradle-plugins/[testability] also becomes a valid option.
+
+++++
+<sample id="conditionalLogicDont" dir="userguide/bestPractices/conditionalLogic/dont" title="A build script using conditional logic to create a task">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+Let's compare the build script with the same logic implemented as a binary plugin. The code might look more involved at first but clearly looks more like typical application code. This particular plugin class lives in the <<sec:build_sources,`buildSrc` directory>> which makes it available to the build script automatically.
+
+++++
+<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do/buildSrc/src/main/java/com/enterprise" title="A binary plugin implementing imperative logic">
+    <sourcefile file="ReleasePlugin.java"/>
+</sample>
+++++
+
+Now that the build logic has been translated into a plugin, you can apply it in the build script. The build script has been shrunk from 8 lines of code to a one liner.
+
+++++
+<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do" title="A build script applying a plugin that encapsulates imperative logic">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+[[sec:avoid_use_of_passwords_in_plain_text]]
+=== Avoid the use of passwords in plain text
+
+Most builds need to consume one or many passwords. The reasons for this need may vary. Some builds need a password for publishing artifacts to a secured binary repository, other builds need a password for downloading binary files. Passwords should always kept safe to prevent fraud. Under no circumstance should you add the password to the build script as property in plain text or declare it in a `gradle.properties`. Those files usually live in a version control repository and can be viewed by anyone that has access to it.
+
+Passwords should be stored in encrypted fashion. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords. A good solution for solving this problem is the link:https://github.com/etiennestuder/gradle-credentials-plugin[Gradle Credentials plugin].
+
+
