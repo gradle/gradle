@@ -38,24 +38,46 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 
+private
+const val offerTimeoutMillis = 50L
+
+
+private
+const val pollTimeoutMillis = 5_000L
+
+
 internal
 object ResolverEventLogger {
 
     fun log(event: ResolverEvent) {
-        require(consumer.isAlive)
-        q.offer(now() to event, 50, TimeUnit.MILLISECONDS)
+        q.offer(now() to event, offerTimeoutMillis, TimeUnit.MILLISECONDS)
+        ensureAliveConsumer()
     }
 
     private
     val q = ArrayBlockingQueue<Pair<Date, ResolverEvent>>(64)
 
     private
-    val consumer = thread {
-        // TODO: Don't leak this thread
+    val outputFile by lazy {
+        File(outputDir(), "resolver-${timestampForFileName()}.log")
+    }
+
+    private
+    var consumer: Thread? = null
+
+    private
+    fun ensureAliveConsumer() = synchronized(ResolverEventLogger) {
+        if (consumer?.isAlive != true) {
+            consumer = newConsumerThread()
+        }
+    }
+
+    private
+    fun newConsumerThread() = thread {
 
         val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
-        bufferedWriter().use { writer ->
+        bufferedAppendWriter().use { writer ->
 
             fun write(timestamp: Date, e: ResolverEvent) {
                 try {
@@ -68,19 +90,15 @@ object ResolverEventLogger {
             }
 
             while (true) {
-                val (timestamp, event) = q.take()
+                val (timestamp, event) = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS) ?: break
                 write(timestamp, event)
             }
         }
     }
 
     private
-    fun bufferedWriter() =
-        BufferedWriter(FileWriter(outputFile()))
-
-    private
-    fun outputFile() =
-        File(outputDir(), "resolver-${timestampForFileName()}.log")
+    fun bufferedAppendWriter() =
+        BufferedWriter(FileWriter(outputFile, true))
 
     private
     fun timestampForFileName() =
