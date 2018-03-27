@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.cache;
+package org.gradle.api.internal.artifacts.cache;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
-import java.util.Set;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 /**
- * Command methods for controlling dependency resolution via the DSL.
+ * Command methods for controlling module resolution via the DSL.
  */
-@Incubating
-public interface DependencyResolutionControl extends ResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> {
+public interface ModuleResolutionControl extends ResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> {
+    // TODO: This should be part of the cached result?
+    /**
+     * Does the module change content over time?
+     * @return if the module is changing
+     */
+    boolean isChanging();
 }

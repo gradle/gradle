@@ -194,6 +194,10 @@ The Gradle Kotlin DSL v0.16 contains several potential breaking changes:
 
 See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3) for more information.
 
+### Removed incubating cache-control DSL in `org.gradle.api.artifacts.cache`
+
+All interfaces in this package were incubating and there was no public API to obtain instances of any of these interfaces.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
