@@ -205,6 +205,7 @@ We would like to thank the following community members for making contributions 
  - [Peter Ledbrook](https://github.com/pledbrook) - Fix typo (gradle/gradle#4801)
  - [Brett Randall](https://github.com/javabrett) - Always report Checkstyle violations-summary (gradle/gradle#3901)
  - [Fred Deschenes](https://github.com/FredDeschenes) - Removed extraneous 'chmod' (gradle/gradle#4779)
+ - [Frantisek Veverka](https://github.com/fanick1) - Add support for resources and test resources in IDEA module (gradle/gradle#3724)
  
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
