@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
@@ -38,7 +39,9 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult idResolveResult = results.get(selectorState);
 
             if (selectorState.isForce()) {
-                return Collections.singletonList(componentForIdResolveResult(componentFactory, idResolveResult, selectorState));
+                T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
+                forcedComponent.addCause(VersionSelectionReasons.FORCED);
+                return Collections.singletonList(forcedComponent);
             }
 
             if (processedResolveResults.add(idResolveResult)) {
