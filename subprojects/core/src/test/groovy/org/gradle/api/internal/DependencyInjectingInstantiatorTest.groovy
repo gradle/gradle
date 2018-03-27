@@ -187,7 +187,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == 'Unable to determine argument #1: value 12 not assignable to type class java.lang.String, or no service of type class java.lang.String'
+        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value 12 not assignable to type class java.lang.String, or no service of type class java.lang.String"
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
@@ -285,7 +285,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == 'Unable to determine argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String'
+        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String"
     }
 
     def "selects @Inject constructor over no-args constructor"() {

@@ -117,7 +117,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
             if (currentParameter != null) {
                 resolvedParameters[i] = currentParameter;
             } else {
-                StringBuilder builder = new StringBuilder(String.format("Unable to determine argument #%s:", i + 1));
+                StringBuilder builder = new StringBuilder(String.format("Unable to determine %s argument #%s:", type.getName(), i + 1));
                 if (pos < parameters.length) {
                     builder.append(String.format(" value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
                 } else {

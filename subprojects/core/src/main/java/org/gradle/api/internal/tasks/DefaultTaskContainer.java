@@ -215,7 +215,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private <T extends Task> T createTask(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         for (int i = 0; i < constructorArgs.length; i++) {
             if (constructorArgs[i] == null) {
-                throw new NullPointerException(String.format("Received null for constructor argument #%s", i + 1));
+                throw new NullPointerException(String.format("Received null for %s constructor argument #%s", type.getName(), i + 1));
             }
         }
         return taskFactory.create(name, type, constructorArgs);
