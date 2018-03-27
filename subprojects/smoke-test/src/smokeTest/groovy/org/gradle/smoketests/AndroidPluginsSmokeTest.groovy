@@ -28,7 +28,7 @@ import spock.lang.Unroll
  *
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
-    public static final ANDROID_BUILD_TOOLS_VERSION = '27.2.2'
+    public static final ANDROID_BUILD_TOOLS_VERSION = '27.0.3'
     public static final String STABLE_ANDROID_2X_VERSION = '2.3.3'
     public static final String STABLE_ANDROID_3X_VERSION = '3.1.0'
     public static final TESTED_ANDROID_PLUGIN_VERSIONS = [STABLE_ANDROID_2X_VERSION, STABLE_ANDROID_3X_VERSION]
