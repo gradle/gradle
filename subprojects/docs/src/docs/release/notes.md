@@ -145,13 +145,6 @@ Using the `as` operator to cast `FileCollection` to `Object[]`, `Collection`, `S
 
 The plain console mode now formats output consistently with the rich console, which means that the output format has changed. This may break tools that scrape details from the console output.
 
-### Changes in the caching of missing versions
-
-Previously, Gradle would refresh the version list when dynamic version cache expires for repositories that did not contain a version at all.
-From now on, Gradle [will cache forever that a `group:name` was absent](https://github.com/gradle/gradle/issues/4436) from a repository.
-This has a positive performance on dependency resolution when multiple repositories are defined and dynamic versions are used.
-As before, using `--refresh-dependencies` will force a refresh, bypassing all caching.
-
 ### Changes to native compilation, linking and installation tasks
 
 To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices, many tasks related to compiling and linking native libraries and applications have been converted to use the Provider API.
