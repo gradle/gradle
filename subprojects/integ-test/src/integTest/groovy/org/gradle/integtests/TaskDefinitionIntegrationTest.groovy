@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
+class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
         import javax.inject.Inject
 
@@ -42,6 +42,135 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
             }
         }
     """
+
+    def "can define tasks using task keyword and identifier"() {
+        buildFile << """
+            task nothing
+            task withAction << { }
+            task emptyOptions()
+            task task
+            task withOptions(dependsOn: [nothing, withAction, emptyOptions, task])
+            task withOptionsAndAction(dependsOn: withOptions) << { }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds ":emptyOptions", ":nothing", ":task", ":withAction", ":withOptions", ":withOptionsAndAction"
+    }
+
+    def "can define tasks using task keyword and GString"() {
+        buildFile << """
+            ext.v = 'Task'
+            task "nothing\$v"
+            task "withAction\$v" << { }
+            task "emptyOptions\$v"()
+            task "withOptions\$v"(dependsOn: [nothingTask, withActionTask, emptyOptionsTask])
+            task "withOptionsAndAction\$v"(dependsOn: withOptionsTask) << { }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds ":emptyOptionsTask", ":nothingTask", ":withActionTask", ":withOptionsTask", ":withOptionsAndActionTask"
+    }
+
+    def "can define tasks using task keyword and String"() {
+        buildFile << """
+            task 'nothing'
+            task 'withAction' << { }
+            task 'emptyOptions'()
+            task 'withOptions'(dependsOn: [nothing, withAction, emptyOptions])
+            task 'withOptionsAndAction'(dependsOn: withOptions) << { }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds ":emptyOptions", ":nothing",":withAction", ":withOptions", ":withOptionsAndAction"
+    }
+
+    def "can define tasks in nested blocks"() {
+        buildFile << """
+            2.times { task "dynamic\$it" }
+            if (dynamic0) { task inBlock }
+            def task() { task inMethod }
+            task()
+            def cl = { -> task inClosure }
+            cl()
+            task all(dependsOn: [dynamic0, dynamic1, inBlock, inMethod, inClosure])
+        """
+
+        expect:
+        succeeds ":dynamic0", ":dynamic1", ":inBlock", ":inClosure", ":inMethod", ":all"
+    }
+
+    def "can define tasks using task method expression"() {
+        buildFile << """
+            ext.a = 'a' == 'b' ? null: task(withAction) << { }
+            a = task(nothing)
+            a = task(emptyOptions())
+            ext.taskName = 'dynamic'
+            a = task("\$taskName") << { }
+            a = task('string')
+            a = task('stringWithAction') << { }
+            a = task('stringWithOptions', description: 'description')
+            a = task('stringWithOptionsAndAction', description: 'description') << { }
+            a = task(withOptions, description: 'description')
+            a = task(withOptionsAndAction, description: 'description') << { }
+            a = task(anotherWithAction).doFirst\n{}
+            task all(dependsOn: tasks as List)
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds ":anotherWithAction", ":dynamic", ":emptyOptions",
+            ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
+            ":withAction", ":withOptions", ":withOptionsAndAction", ":all"
+    }
+
+    def "can configure tasks when the are defined"() {
+        buildFile << """
+            task withDescription { description = 'value' }
+            task(asMethod)\n{ description = 'value' }
+            task asStatement(type: TestTask) { property = 'value' }
+            task "dynamic"(type: TestTask) { property = 'value' }
+            ext.v = task(asExpression, type: TestTask) { property = 'value' }
+            task(postConfigure, type: TestTask).configure { property = 'value' }
+            [asStatement, dynamic, asExpression, postConfigure].each {
+                assert 'value' == it.property
+            }
+            [withDescription, asMethod].each {
+                assert 'value' == it.description
+            }
+            task all(dependsOn: tasks as List)
+            class TestTask extends DefaultTask { String property }
+        """
+
+        expect:
+        succeeds "all"
+    }
+
+    def "does not hide local methods and variables"() {
+        buildFile << """
+            String name = 'a'; task name
+            def taskNameMethod(String name = 'c') { name }
+            task taskNameMethod('d')
+            def addTaskMethod(String methodParam) { task methodParam }
+            addTaskMethod('e')
+            def addTaskWithClosure(String methodParam) { task(methodParam) { ext.property = 'value' } }
+            addTaskWithClosure('f')
+            def addTaskWithMap(String methodParam) { task(methodParam, description: 'description') }
+            addTaskWithMap('g')
+            ext.cl = { String taskNameParam -> task taskNameParam }
+            cl.call('h')
+            cl = { String taskNameParam -> task(taskNameParam) { ext.property = 'value' } }
+            cl.call('i')
+            assert 'value' == f.property
+            assert 'value' == i.property
+            task all(dependsOn: tasks as List)
+        """
+
+        expect:
+        succeeds ":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all"
+    }
 
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
