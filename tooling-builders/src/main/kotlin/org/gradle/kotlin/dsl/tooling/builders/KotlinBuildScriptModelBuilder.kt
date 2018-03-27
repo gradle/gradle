@@ -81,40 +81,36 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             .buildModel()
 
     private
-    fun requestParameterOf(modelRequestProject: Project) =
-        KotlinBuildScriptModelParameter(
-            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String)
-
-    private
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter): KotlinScriptTargetModelBuilder {
 
         val scriptFile = parameter.scriptFile
             ?: return projectScriptModelBuilder(modelRequestProject)
 
-        val enclosingSourceSet =
-            modelRequestProject.enclosingSourceSetOf(scriptFile)
+        modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
+            return projectScriptModelBuilder(buildFileProject)
+        }
 
-        if (enclosingSourceSet != null) {
+        modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
             return precompiledScriptPluginModelBuilder(enclosingSourceSet, modelRequestProject)
         }
 
         return when (kotlinScriptTypeFor(scriptFile)) {
             KotlinScriptType.SETTINGS -> settingsScriptModelBuilder(modelRequestProject)
             KotlinScriptType.INIT -> initScriptModelBuilder(scriptFile, modelRequestProject)
-            else -> resolveScriptModelBuilderFor(scriptFile, modelRequestProject)
+            else -> defaultScriptModelBuilder(modelRequestProject)
         }
     }
 
     private
-    fun resolveScriptModelBuilderFor(scriptFile: File, modelRequestProject: Project) =
-        projectFor(scriptFile, modelRequestProject)
-            ?.let { projectScriptModelBuilder(it) }
-            ?: defaultScriptModelBuilder(modelRequestProject)
-
-    private
-    fun projectFor(scriptFile: File, modelRequestProject: Project) =
-        modelRequestProject.allprojects.find { it.buildFile == scriptFile }
+    fun requestParameterOf(modelRequestProject: Project) =
+        KotlinBuildScriptModelParameter(
+            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String)
 }
+
+
+private
+fun Project.findProjectWithBuildFile(file: File) =
+    allprojects.find { it.buildFile == file }
 
 
 private
@@ -132,10 +128,13 @@ fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): SourceSet? =
 
 
 private
-fun Project.findSourceSetOf(scriptFile: File): SourceSet? =
-    convention.findPlugin<JavaPluginConvention>()?.sourceSets?.find {
-        it.allSource.contains(scriptFile)
-    }
+fun Project.findSourceSetOf(file: File): SourceSet? =
+    sourceSets?.find { file in it.allSource }
+
+
+private
+val Project.sourceSets
+    get() = convention.findPlugin<JavaPluginConvention>()?.sourceSets
 
 
 private
