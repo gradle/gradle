@@ -36,7 +36,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
-        runner.targetVersions = ["4.7-20180320095059+0000"]
+        runner.targetVersions = ["4.7-20180327000715+0000"]
 
         when:
         def result = runner.run()
