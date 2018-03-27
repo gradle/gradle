@@ -74,8 +74,8 @@ public class ResolveIvyFactory {
             return new NoRepositoriesResolver();
         }
 
-        resolutionStrategy.setResolveMode(startParameterResolutionOverride.getResolveMode());
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
+        startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
 
         UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory);

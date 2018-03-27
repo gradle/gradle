@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal.ResolveMode;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
@@ -44,10 +44,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal.ResolveMode.DEFAULT;
-import static org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal.ResolveMode.OFFLINE;
-import static org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal.ResolveMode.REFRESH_DEPENDENCIES;
-
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
 
@@ -55,8 +51,12 @@ public class StartParameterResolutionOverride {
         this.startParameter = startParameter;
     }
 
-    public ResolveMode getResolveMode() {
-        return startParameter.isOffline()? OFFLINE : startParameter.isRefreshDependencies()? REFRESH_DEPENDENCIES : DEFAULT;
+    public void applyToCachePolicy(CachePolicy cachePolicy) {
+        if (startParameter.isOffline()) {
+            cachePolicy.setOffline();
+        } else if (startParameter.isRefreshDependencies()) {
+            cachePolicy.setRefreshDependencies();
+        }
     }
 
     public ModuleComponentRepository overrideModuleVersionRepository(ModuleComponentRepository original) {
