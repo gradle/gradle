@@ -32,6 +32,7 @@ import java.util.Map;
 public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec implements NativeCompileSpec {
 
     private List<File> includeRoots = new ArrayList<File>();
+    private List<File> systemIncludeRoots = new ArrayList<File>();
     private List<File> sourceFiles = new ArrayList<File>();
     private List<File> removedSourceFiles = new ArrayList<File>();
     private boolean incrementalCompile;
@@ -60,6 +61,21 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     @Override
     public void include(Iterable<File> includeRoots) {
         addAll(this.includeRoots, includeRoots);
+    }
+
+    @Override
+    public List<File> getSystemIncludeRoots() {
+        return systemIncludeRoots;
+    }
+
+    @Override
+    public void systemInclude(Iterable<File> systemIncludeRoots) {
+        addAll(this.systemIncludeRoots, systemIncludeRoots);
+    }
+
+    @Override
+    public void systemInclude(File... systemIncludeRoots) {
+        Collections.addAll(this.systemIncludeRoots, systemIncludeRoots);
     }
 
     @Override
