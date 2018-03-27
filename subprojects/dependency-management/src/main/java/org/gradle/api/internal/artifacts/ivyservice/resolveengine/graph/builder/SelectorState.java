@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionCons
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -207,9 +206,4 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
     }
 
-    @Override
-    public void select(ComponentResolutionState component) {
-        // TODO:DAZ Move this method to ComponentResolutionState
-        ((ComponentState) component).selectedBy(this);
-    }
 }

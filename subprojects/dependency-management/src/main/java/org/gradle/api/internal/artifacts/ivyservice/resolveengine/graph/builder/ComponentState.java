@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -140,9 +141,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    public void selectedBy(SelectorState resolver) {
+    @Override
+    public void selectedBy(ResolvableSelectorState selectorState) {
         if (firstSelectedBy == null) {
-            firstSelectedBy = resolver;
+            firstSelectedBy = (SelectorState) selectorState;
         }
     }
 
