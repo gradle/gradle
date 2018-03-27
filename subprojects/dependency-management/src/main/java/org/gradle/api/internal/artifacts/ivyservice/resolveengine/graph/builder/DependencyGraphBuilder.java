@@ -219,7 +219,7 @@ public class DependencyGraphBuilder {
         ComponentState currentSelection = module.getSelected();
 
         SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState);
-        ComponentState selected = null;
+        ComponentState selected;
         try {
             selected = selectorStateResolver.selectBest(module.getSelectors(), selector, currentSelection);
         } catch (ModuleVersionResolveException e) {

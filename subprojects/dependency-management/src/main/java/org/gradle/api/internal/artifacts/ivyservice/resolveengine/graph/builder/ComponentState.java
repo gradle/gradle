@@ -32,6 +32,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -57,10 +58,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private volatile ComponentResolveMetadata metadata;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
-    private ModuleVersionResolveException failure;
-    // The first selector that resolved this component
+    private ModuleVersionResolveException metadataResolveFailure;
     private SelectorState firstSelectedBy;
-    private List<SelectorState> selectedBy;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
     private boolean rejected;
@@ -100,8 +99,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return id;
     }
 
-    public ModuleVersionResolveException getFailure() {
-        return failure;
+    public ModuleVersionResolveException getMetadataResolveFailure() {
+        return metadataResolveFailure;
     }
 
     public DependencyGraphBuilder.VisitState getVisitState() {
@@ -144,13 +143,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public void selectedBy(SelectorState resolver) {
         if (firstSelectedBy == null) {
             firstSelectedBy = resolver;
-            selectedBy = Lists.newLinkedList();
         }
-        selectedBy.add(resolver);
-    }
-
-    public List<SelectorState> getSelectedBy() {
-        return selectedBy;
     }
 
     /**
@@ -159,7 +152,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      * @return true if it has been resolved in a cheap way
      */
     public boolean alreadyResolved() {
-        return metadata != null || failure != null;
+        return metadata != null || metadataResolveFailure != null;
     }
 
     public void resolve() {
@@ -167,10 +160,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return;
         }
 
+        // Any metadata overrides (e.g classifier/artifacts/client-module) will be taken from the first dependency that referenced this component
+        ComponentOverrideMetadata componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata());
+
         DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
-        resolver.resolve(componentIdentifier, DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata()), result);
+        resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
         if (result.getFailure() != null) {
-            failure = result.getFailure();
+            metadataResolveFailure = result.getFailure();
             return;
         }
         metadata = result.getMetadata();
@@ -178,7 +174,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     public void setMetadata(ComponentResolveMetadata metaData) {
         this.metadata = metaData;
-        this.failure = null;
+        this.metadataResolveFailure = null;
     }
 
     public void addConfiguration(NodeState node) {

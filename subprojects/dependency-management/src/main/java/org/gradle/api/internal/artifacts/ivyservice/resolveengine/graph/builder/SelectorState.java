@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -39,8 +38,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
-
-import java.util.List;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONSTRAINT;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED;
@@ -103,7 +100,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
      */
     ModuleVersionResolveException getFailure() {
-        return failure != null ? failure : selected.getFailure();
+        return failure != null ? failure : selected.getMetadataResolveFailure();
     }
 
     /**
@@ -139,11 +136,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     public void select(ComponentState selected) {
         selected.selectedBy(this);
-        ComponentSelectionDescriptorInternal selectionDescriptor = selectionDescriptionForDependency(dependencyMetadata);
-        selected.addCause(selectionDescriptor);
-        if (dependencyState.getRuleDescriptor() != null) {
-            selected.addCause(dependencyState.getRuleDescriptor());
-        }
+        addReasonsForSelector(selected.getSelectionReason());
 
         // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
         // TODO Ditch the JVM Software Model plugins and re-add this assertion
@@ -152,12 +145,24 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.selected = selected;
     }
 
-    private ComponentSelectionDescriptorInternal selectionDescriptionForDependency(DependencyMetadata dependencyMetadata) {
-        ComponentSelectionDescriptorInternal selectionDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
-        if (dependencyMetadata.getReason() != null) {
-            selectionDescriptor = selectionDescriptor.withReason(dependencyMetadata.getReason());
+    /**
+     * Overrides the component that is the chosen for this selector.
+     * This happens when the `ModuleResolveState` is restarted, during conflict resolution or version range merging.
+     */
+    public void overrideSelection(ComponentState selected) {
+        if (this.selected == null) {
+            // Do not override if this selector hasn't yet been resolved
+            return;
         }
-        return selectionDescriptor;
+
+        this.selected = selected;
+
+        // Target module can change, if this is called as the result of a module replacement conflict.
+        this.targetModule = selected.getModule();
+
+        // TODO:DAZ It's not clear that we're setting up the correct state here:
+        // - We are not updating the selection reasons for the selected component
+        // - If the target module changed, we are not updating the set of selectors on the target modules (both current and new)
     }
 
     public ComponentSelectionReason getSelectionReason() {
@@ -172,29 +177,20 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     public ComponentSelectionReasonInternal getReasonForSelector() {
-        List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(2);
-        descriptors.add(selectionDescriptionForDependency(dependencyMetadata));
-        if (dependencyState.getRuleDescriptor() != null) {
-            descriptors.add(dependencyState.getRuleDescriptor());
-        }
-        return VersionSelectionReasons.of(descriptors);
+        return addReasonsForSelector(VersionSelectionReasons.empty());
     }
 
-    /**
-     * Overrides the component that is the chosen for this selector.
-     * This happens when the `ModuleResolveState` is restarted, during conflict resolution or 'softSelect' with version range merging.
-     */
-    public void overrideSelection(ComponentState selectedComponent) {
-        if (this.selected == null) {
-            // Do not override if this selector hasn't yet been resolved
-            return;
+    private ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
+        if (dependencyMetadata.getReason() != null) {
+            dependencyDescriptor = dependencyDescriptor.withReason(dependencyMetadata.getReason());
         }
+        selectionReason.addCause(dependencyDescriptor);
 
-        this.selected = selectedComponent;
-
-        // Target module can change, if this is called as the result of a module replacement conflict.
-        // TODO:DAZ We are not updating the set of selectors for the updated module (or for the module that the selectors were removed from)
-        this.targetModule = selectedComponent.getModule();
+        if (dependencyState.getRuleDescriptor() != null) {
+            selectionReason.addCause(dependencyState.getRuleDescriptor());
+        }
+        return selectionReason;
     }
 
     public DependencyMetadata getDependencyMetadata() {
