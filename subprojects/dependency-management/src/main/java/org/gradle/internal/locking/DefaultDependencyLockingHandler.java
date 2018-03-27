@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -24,11 +25,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockHandling;
 import org.gradle.api.internal.file.FileOperations;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,9 +38,9 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
 
     private DependencyLockingProvider dependencyLockingProvider;
 
-    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory, FileOperations fileOperations) {
+    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory, FileOperations fileOperations, StartParameter startParameter) {
         this.configurationContainer = configurationContainer;
-        this.dependencyLockingProvider = new DefaultDependencyLockingProvider(dependencyFactory, fileOperations);
+        this.dependencyLockingProvider = new DefaultDependencyLockingProvider(dependencyFactory, fileOperations, startParameter.isWriteDependencyLocks());
     }
 
     @Override
@@ -67,17 +66,7 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
         }
 
         @Override
-        public void updateLockHandling(LockHandling lockHandling) {
-            // No-op
-        }
-
-        @Override
         public void validateLockAligned(String configurationName, Map<String, ModuleComponentIdentifier> modules) {
-            // No-op
-        }
-
-        @Override
-        public void setUpgradeModules(List<String> strings) {
             // No-op
         }
     }

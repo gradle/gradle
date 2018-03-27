@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockHandling;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -35,8 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.locking.LockOutOfDateException.createLockOutOfDateException;
 import static org.gradle.internal.locking.LockOutOfDateException.createLockOutOfDateExceptionStrictMode;
@@ -47,57 +44,36 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
     private final DependencyFactory dependencyFactory;
     private final LockFileReaderWriter lockFileReaderWriter;
-    private final Map<String, Map<String, ModuleComponentIdentifier>> resolvedConfigurations = new ConcurrentHashMap<String, Map<String, ModuleComponentIdentifier>>();
-    private final AtomicReference<LockHandling> lockHandling = new AtomicReference<LockHandling>(LockHandling.VALIDATE);
-    private final AtomicReference<List<String>> upgradeModules = new AtomicReference<List<String>>(Collections.<String>emptyList());
     private final boolean strict = true;
+    private final boolean writeLocks;
 
-    public DefaultDependencyLockingProvider(DependencyFactory dependencyFactory, FileOperations fileOperations) {
+    public DefaultDependencyLockingProvider(DependencyFactory dependencyFactory, FileOperations fileOperations, boolean writeDependencyLocks) {
         this.dependencyFactory = dependencyFactory;
         this.lockFileReaderWriter = new LockFileReaderWriter(fileOperations);
+        this.writeLocks = writeDependencyLocks;
     }
 
     @Override
     public Set<DependencyConstraint> getLockedDependencies(String configurationName) {
         Set<DependencyConstraint> results = Collections.emptySet();
-        if (lockHandling.get() != LockHandling.UPDATE_ALL) {
+        if (!writeLocks) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
                 results = new HashSet<DependencyConstraint>(lockedModules.size());
                 for (String module : lockedModules) {
-                    if (mustCheckModule(module.substring(0, module.lastIndexOf(':')))) {
-                        DependencyConstraint dependencyConstraint = dependencyFactory.createDependencyConstraint(module);
-                        dependencyConstraint.version(new Action<MutableVersionConstraint>() {
-                            @Override
-                            public void execute(MutableVersionConstraint mutableVersionConstraint) {
-                                mutableVersionConstraint.strictly(mutableVersionConstraint.getPreferredVersion());
-                            }
-                        });
-                        dependencyConstraint.because("dependency-locking in place");
-                        results.add(dependencyConstraint);
-                    }
+                    DependencyConstraint dependencyConstraint = dependencyFactory.createDependencyConstraint(module);
+                    dependencyConstraint.version(new Action<MutableVersionConstraint>() {
+                        @Override
+                        public void execute(MutableVersionConstraint mutableVersionConstraint) {
+                            mutableVersionConstraint.strictly(mutableVersionConstraint.getPreferredVersion());
+                        }
+                    });
+                    dependencyConstraint.because("dependency-locking in place");
+                    results.add(dependencyConstraint);
                 }
             }
         }
         return results;
-    }
-
-    @Override
-    public void updateLockHandling(LockHandling lockHandling) {
-        if (this.lockHandling.compareAndSet(LockHandling.VALIDATE, lockHandling)) {
-            writePreviouslyResolvedConfigurations();
-        }
-    }
-
-    @Override
-    public void setUpgradeModules(List<String> strings) {
-        upgradeModules.set(Collections.unmodifiableList(strings));
-    }
-
-    private synchronized void writePreviouslyResolvedConfigurations() {
-        for (Map.Entry<String, Map<String, ModuleComponentIdentifier>> resolvedConfiguration : resolvedConfigurations.entrySet()) {
-            lockFileReaderWriter.writeLockFile(resolvedConfiguration.getKey(), resolvedConfiguration.getValue());
-        }
     }
 
     @Override
@@ -109,20 +85,18 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
         List<String> errors = new ArrayList<String>();
         Map<String, ModuleComponentIdentifier> extraModules = new HashMap<String, ModuleComponentIdentifier>(modules);
-        if (state != LockValidationState.NO_LOCK && lockHandling.get() != LockHandling.UPDATE_ALL) {
+        if (state != LockValidationState.NO_LOCK && !writeLocks) {
             if (modules.keySet().size() > lockedDependencies.size()) {
                 state = LockValidationState.VALID_APPENDED;
             }
             for (String line : lockedDependencies) {
                 String module = line.substring(0, line.lastIndexOf(':'));
                 extraModules.remove(module);
-                if (mustCheckModule(module)) {
-                    ModuleComponentIdentifier identifier = modules.get(module);
-                    if (identifier == null) {
-                        errors.add("Lock file contained '" + line + "' but it is not part of the resolved modules");
-                    } else if (!line.contains(identifier.getVersion())) {
-                        errors.add("Lock file expected '" + line + "' but resolution result was '" + module + ":" + identifier.getVersion() + "'");
-                    }
+                ModuleComponentIdentifier identifier = modules.get(module);
+                if (identifier == null) {
+                    errors.add("Lock file contained '" + line + "' but it is not part of the resolved modules");
+                } else if (!line.contains(identifier.getVersion())) {
+                    errors.add("Lock file expected '" + line + "' but resolution result was '" + module + ":" + identifier.getVersion() + "'");
                 }
             }
             if (!errors.isEmpty()) {
@@ -130,7 +104,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         processResult(state, errors, extraModules.values());
-        configurationResolved(configurationName, modules, state);
+        if (writeLocks) {
+            lockFileReaderWriter.writeLockFile(configurationName, modules);
+        }
     }
 
     private void processResult(LockValidationState state, List<String> errors, Collection<ModuleComponentIdentifier> extraModules) {
@@ -152,21 +128,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             case NO_LOCK:
                 // Nothing to do
                 break;
-        }
-    }
-
-    private boolean mustCheckModule(String module) {
-        return !upgradeModules.get().contains(module);
-    }
-
-    private void configurationResolved(String configurationName, Map<String, ModuleComponentIdentifier> modules, LockValidationState validationResult) {
-        if (lockHandling.get() != LockHandling.VALIDATE || validationResult == LockValidationState.VALID_APPENDED) {
-            lockFileReaderWriter.writeLockFile(configurationName, modules);
-        } else {
-            resolvedConfigurations.put(configurationName, modules);
-            if (lockHandling.get() != LockHandling.VALIDATE) {
-                writePreviouslyResolvedConfigurations();
-            }
         }
     }
 

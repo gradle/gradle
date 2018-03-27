@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,9 +26,5 @@ public interface DependencyLockingProvider {
 
     Set<DependencyConstraint> getLockedDependencies(String configurationName);
 
-    void updateLockHandling(LockHandling lockHandling);
-
     void validateLockAligned(String configurationName, Map<String, ModuleComponentIdentifier> modules);
-
-    void setUpgradeModules(List<String> strings);
 }

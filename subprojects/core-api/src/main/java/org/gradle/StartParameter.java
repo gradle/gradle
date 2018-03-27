@@ -96,6 +96,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
+    private boolean writeDependencyLocks;
 
     /**
      * {@inheritDoc}
@@ -255,6 +256,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         p.interactive = interactive;
+        p.writeDependencyLocks = writeDependencyLocks;
         return p;
     }
 
@@ -294,9 +296,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Specifies that an empty settings script should be used.
      *
-     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(java.io.File)}, it will not be used.
+     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(File)}, it will not be used.
      *
-     * If {@link #setSettingsFile(java.io.File)} is called after this, it will supersede calling this method.
+     * If {@link #setSettingsFile(File)} is called after this, it will supersede calling this method.
      *
      * @return this
      */
@@ -764,6 +766,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + ", interactive=" + interactive
+            + ", writeDependencyLocks=" + writeDependencyLocks
             + '}';
     }
 
@@ -862,5 +865,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
+    }
+
+    /**
+     * Specifies whether dependency resolution needs to be persisted for locking
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public void setWriteDependencyLocks(boolean writeDependencyLocks) {
+        this.writeDependencyLocks = writeDependencyLocks;
+    }
+
+    /**
+     * Returns true when dependency resolution is to be persisted for locking
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public boolean isWriteDependencyLocks() {
+        return writeDependencyLocks;
     }
 }

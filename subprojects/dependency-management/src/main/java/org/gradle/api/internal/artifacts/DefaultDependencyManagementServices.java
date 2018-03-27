@@ -227,8 +227,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTypeRegistry);
         }
 
-        DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, FileOperations fileOperations) {
-            return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer, dependencyFactory, fileOperations);
+        DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, FileOperations fileOperations, StartParameter startParameter) {
+            return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer, dependencyFactory, fileOperations, startParameter);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
