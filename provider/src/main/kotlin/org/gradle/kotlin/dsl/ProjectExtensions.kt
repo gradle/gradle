@@ -93,7 +93,7 @@ inline
 fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     typeOf<T>().let { type ->
         convention.findByType(type)?.let(configuration)
-            ?: convention.findPlugin(T::class.java)?.let(configuration)
+            ?: convention.findPlugin<T>()?.let(configuration)
             ?: convention.configure(type, configuration)
     }
 
@@ -105,7 +105,7 @@ inline
 fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type ->
         convention.findByType(type)
-            ?: convention.findPlugin(T::class.java)
+            ?: convention.findPlugin()
             ?: convention.getByType(type)
     }
 

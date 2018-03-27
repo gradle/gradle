@@ -42,8 +42,17 @@ fun <reified T : Any> Convention.getPlugin() =
     getPlugin(T::class)
 
 
-fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
+fun <T : Any> Convention.getPlugin(conventionType: KClass<T>): T =
     getPlugin(conventionType.java)
+
+
+inline
+fun <reified T : Any> Convention.findPlugin() =
+    findPlugin(T::class)
+
+
+fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
+    findPlugin(conventionType.java)
 
 
 /**
