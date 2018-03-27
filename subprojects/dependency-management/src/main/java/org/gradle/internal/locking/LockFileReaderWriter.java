@@ -17,7 +17,7 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class LockFileReaderWriter implements LockfileReader, LockfileWriter {
+public class LockFileReaderWriter {
 
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
@@ -38,8 +38,14 @@ public class LockFileReaderWriter implements LockfileReader, LockfileWriter {
 
     private final Path lockFilesRoot;
 
-    public LockFileReaderWriter(FileOperations fileOperations) {
-        lockFilesRoot = fileOperations.file(DEPENDENCY_LOCKING_FOLDER).toPath();
+    public LockFileReaderWriter(FileResolver fileResolver) {
+        Path resolve = null;
+        try {
+            resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
+        } catch (UnsupportedOperationException e) {
+            // TODO Investigate if locking and no base dir can happen together
+        }
+        this.lockFilesRoot = resolve;
     }
 
     public Path resolve(String path) {
@@ -65,7 +71,6 @@ public class LockFileReaderWriter implements LockfileReader, LockfileWriter {
         }
     }
 
-    @Override
     public List<String> readLockFile(String configurationName) {
         try {
             Path lockFile = lockFilesRoot.resolve(configurationName + FILE_SUFFIX);

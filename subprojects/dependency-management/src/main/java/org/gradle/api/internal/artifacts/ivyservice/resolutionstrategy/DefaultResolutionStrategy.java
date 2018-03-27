@@ -47,7 +47,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.DEPENDENCIES;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 import static org.gradle.util.GUtil.flattenElements;
 

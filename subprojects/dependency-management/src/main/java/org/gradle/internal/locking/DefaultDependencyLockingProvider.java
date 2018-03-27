@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -50,9 +50,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final boolean strict = true;
     private final boolean writeLocks;
 
-    public DefaultDependencyLockingProvider(DependencyFactory dependencyFactory, FileOperations fileOperations, StartParameter startParameter) {
+    public DefaultDependencyLockingProvider(DependencyFactory dependencyFactory, FileResolver fileResolver, StartParameter startParameter) {
         this.dependencyFactory = dependencyFactory;
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileOperations);
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver);
         this.writeLocks = startParameter.isWriteDependencyLocks();
     }
 

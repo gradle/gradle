@@ -76,7 +76,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -233,8 +232,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer);
         }
 
-        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, DependencyFactory dependencyFactory, FileOperations fileOperations, StartParameter startParameter) {
-            return instantiator.newInstance(DefaultDependencyLockingProvider.class, dependencyFactory, fileOperations, startParameter);
+        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, DependencyFactory dependencyFactory, FileResolver fileResolver, StartParameter startParameter) {
+            return instantiator.newInstance(DefaultDependencyLockingProvider.class, dependencyFactory, fileResolver, startParameter);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
