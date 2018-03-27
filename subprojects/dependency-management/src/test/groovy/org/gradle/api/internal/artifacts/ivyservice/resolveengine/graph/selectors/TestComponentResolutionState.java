@@ -16,8 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
@@ -33,6 +35,11 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     @Override
     public String getVersion() {
         return id.getVersion();
+    }
+
+    @Override
+    public ComponentIdentifier getComponentId() {
+        return DefaultModuleComponentIdentifier.newId(id);
     }
 
     @Override

@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
@@ -76,6 +78,7 @@ abstract class AbstractConflictResolverTest extends Specification {
     private static class TestComponent implements ComponentResolutionState {
 
         final ModuleVersionIdentifier id
+        final ComponentIdentifier componentId
         ComponentResolveMetadata metadata
         boolean root = false
         boolean rejected = false
@@ -83,6 +86,7 @@ abstract class AbstractConflictResolverTest extends Specification {
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id
+            this.componentId = DefaultModuleComponentIdentifier.newId(id)
             this.constraint = new DefaultMutableVersionConstraint(id.version)
         }
 
