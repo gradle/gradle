@@ -8,6 +8,8 @@ This release supports running Gradle on JDK 10.
 
 User experience for running tests is further improved: _failed tests now run first_. This allows use of the [`--fail-fast` option](userguide/java_plugin.html#sec:test_execution) to provide the quickest possible feedback loop.
 
+This release improves the Kotlin DSL with support for `.gradle.kts` scripts in regular Kotlin source sets. It also provides Kotlin 1.2.31, a more consistent API, better IDE support, and further improved parity with the Groovy DSL. See Kotlin DSL v0.16 [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3) for full details.
+
 Last but not least, the _IDEA Gradle Plugin now automatically marks Java resources directories_ as resources in the IDEA module definitions. This behavior can be customized; see an example.
 
 We hope you will build happiness with Gradle 4.7, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
@@ -180,6 +182,17 @@ Task type `org.gradle.nativeplatform.tasks.InstallExecutable`
 - `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
 
 Task types `org.gradle.language.assembler.tasks.Assemble`, `org.gradle.language.rc.tasks.WindowsResourceCompile`, `org.gradle.nativeplatform.tasks.StripSymbols`, `org.gradle.nativeplatform.tasks.ExtractSymbols`, `org.gradle.language.swift.tasks.SwiftCompile`, and `org.gradle.nativeplatform.tasks.LinkMachOBundle` were changed in similar ways.
+
+### Changes to the Gradle Kotlin DSL
+
+The Gradle Kotlin DSL v0.16 contains several potential breaking changes:
+
+- Access to Gradle/Project properties via Kotlin delegated properties now requires property type declaration.
+- Erroneous usage of the `plugins {}` block in a nested scope now throws, it was a no-op before.
+- `the<T>()` and `configure<T>()` are now available on all `ExtensionAware` types.
+- It is now enforced that there's a single `pluginManagement {}` block in settings scripts.
+
+See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3) for more information.
 
 ## External contributions
 
