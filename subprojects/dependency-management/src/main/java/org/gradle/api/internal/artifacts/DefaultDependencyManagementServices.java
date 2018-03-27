@@ -272,7 +272,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildIdentity buildIdentity) {
+                                                       BuildIdentity buildIdentity,
+                                                       DependencyLockingProvider dependencyLockingProvider) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -293,7 +294,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             artifactTypeRegistry,
                             componentSelectorConverter,
                             attributeContainerSerializer,
-                            buildIdentity),
+                            buildIdentity,
+                            dependencyLockingProvider),
                         componentIdentifierFactory,
                         moduleIdentifierFactory,
                         buildIdentity));

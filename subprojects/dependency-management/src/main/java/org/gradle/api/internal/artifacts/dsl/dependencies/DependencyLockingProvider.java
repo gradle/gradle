@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 
-import java.util.Map;
 import java.util.Set;
 
 public interface DependencyLockingProvider {
 
     Set<DependencyConstraint> getLockedDependencies(String configurationName);
 
-    void persistResolvedDependencies(String configurationName, Map<String, ModuleComponentIdentifier> modules);
+    void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> modules);
 }
