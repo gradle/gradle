@@ -52,7 +52,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +61,8 @@ import java.util.SortedSet;
 
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
+    private static final Object[] NO_ARGS = new Object[0];
+
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
     );
@@ -99,12 +100,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
         Object[] constructorArgs = getConstructorArgs(actualArgs);
-        TaskInternal task;
-        if (constructorArgs != null) {
-            task = createTask(name, type, constructorArgs);
-        } else {
-            task = createTask(name, type);
-        }
+        TaskInternal task = createTask(name, type, constructorArgs);
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
@@ -130,7 +126,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return addTask(task, replace);
     }
 
-    @Nullable
     private static Object[] getConstructorArgs(Map<String, ?> args) {
         Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
         if (constructorArgs instanceof List) {
@@ -143,7 +138,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (constructorArgs != null) {
             throw new IllegalArgumentException(String.format("%s must be a List or Object[].  Received %s", Task.TASK_CONSTRUCTOR_ARGS, constructorArgs.getClass()));
         }
-        return null;
+        return NO_ARGS;
     }
 
     private static Map<String, ?> checkTaskArgsAndCreateDefaultValues(Map<String, ?> args) {
@@ -208,16 +203,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
-        return create(name, type, new Object[0]);
+        return create(name, type, NO_ARGS);
     }
 
     @Override
-    public <T extends Task> T create(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+    public <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         T task = createTask(name, type, constructorArgs);
         return addTask(task, false);
     }
 
-    private <T extends Task> T createTask(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+    private <T extends Task> T createTask(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
+        for (int i = 0; i < constructorArgs.length; i++) {
+            if (constructorArgs[i] == null) {
+                throw new NullPointerException(String.format("Received null for %s constructor argument #%s", type.getName(), i + 1));
+            }
+        }
         return taskFactory.create(name, type, constructorArgs);
     }
 

@@ -43,12 +43,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         }
     """
 
-    private static final String KOTLIN_TASK_CONTAINER_EXTENSION = '''
-        inline
-        fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
-            create(name, T::class.java, *arguments)
-    '''
-
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
         when:
@@ -137,7 +131,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type int available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
 
         where:
         description   | script
@@ -155,7 +149,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -194,24 +188,32 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type $outputType available")
+        result.output.contains("java.lang.IllegalArgumentException: Unable to determine CustomTask_Decorated argument #$argumentNumber: value 123 not assignable to type $outputType, or no service of type $outputType")
 
         where:
-        description | constructorArgs | outputType
-        'first'     | '123, 234'      | 'String'
-        'last'      | '"abc", "def"'  | 'int'
+        description | constructorArgs | argumentNumber | outputType
+        'first'     | '123, 234'      | 1              | 'class java.lang.String'
+        'last'      | '"abc", "123"'  | 2              | 'int'
     }
 
-    def "fails when null passed as a constructor argument value"() {
+    @Unroll
+    def "fails to create via #description when null passed as a constructor argument value at #position"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
-        buildFile << "tasks.create('myTask', CustomTask, null, 1)"
+        buildFile << script
 
         when:
         fails 'myTask'
 
         then:
-        result.output.contains("org.gradle.internal.service.UnknownServiceException: No service of type String available")
+        result.output.contains("java.lang.NullPointerException: Received null for CustomTask constructor argument #$position")
+
+        where:
+        description   | position | script
+        'Map'         | 1        | "task myTask(type: CustomTask, constructorArgs: [null, 1])"
+        'direct call' | 1        | "tasks.create('myTask', CustomTask, null, 1)"
+        'Map'         | 2        | "task myTask(type: CustomTask, constructorArgs: ['abc', null])"
+        'direct call' | 2        | "tasks.create('myTask', CustomTask, 'abc', null)"
     }
 
     def "can construct a task with @Inject services"() {
@@ -285,8 +287,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
             import javax.inject.Inject
 
-            $KOTLIN_TASK_CONTAINER_EXTENSION
-
             open class CustomTask @Inject constructor(private val message: String, private val number: Int) : DefaultTask() {
                 @TaskAction fun run() = println("\$message \$number")
             }
@@ -334,8 +334,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
             import org.gradle.workers.WorkerExecutor
             import javax.inject.Inject
-
-            $KOTLIN_TASK_CONTAINER_EXTENSION
 
             open class CustomTask @Inject constructor(private val number: Int, private val executor: WorkerExecutor) : DefaultTask() {
                 @TaskAction fun run() = println(if (executor != null) "got it \$number" else "\$number NOT IT")

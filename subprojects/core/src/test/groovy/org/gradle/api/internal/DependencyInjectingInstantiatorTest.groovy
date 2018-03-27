@@ -20,7 +20,6 @@ import org.gradle.api.Transformer
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.UnknownServiceException
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -56,7 +55,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
     def "injects missing parameters from provided service registry"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(String) >> "string"
+        services.find(String) >> "string"
 
         when:
         def result = instantiator.newInstance(HasInjectConstructor, 12)
@@ -167,7 +166,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
     def "fails when supplied parameters cannot be used to call constructor"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(Number) >> 12
+        services.find(Number) >> 12
 
         when:
         instantiator.newInstance(HasOneInjectConstructor, new StringBuilder("string"))
@@ -179,16 +178,16 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "fails on missing service"() {
         given:
-        def failure = new UnknownServiceException(String, "unknown")
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(String) >> { throw failure }
+        services.find(String) >> null
 
         when:
         instantiator.newInstance(HasInjectConstructor, 12)
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause == failure
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value 12 not assignable to type class java.lang.String, or no service of type class java.lang.String"
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
@@ -278,14 +277,26 @@ class DependencyInjectingInstantiatorTest extends Specification {
     def "fails when null passed as constructor argument value"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }
-        services.get(String) >> { throw new UnknownServiceException(String, "message") }
+        services.find(String) >> null
 
         when:
         instantiator.newInstance(HasInjectConstructor, null, null)
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause instanceof UnknownServiceException
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String"
+    }
+
+    def "selects @Inject constructor over no-args constructor"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        def result = instantiator.newInstance(HasDefaultAndInjectConstructors, "ignored")
+
+        then:
+        result.message == "injected"
     }
 
     static class TestCache implements CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> {
@@ -455,4 +466,16 @@ class DependencyInjectingInstantiatorTest extends Specification {
         }
     }
 
+    public static class HasDefaultAndInjectConstructors {
+        final String message
+
+        @Inject
+        public HasDefaultAndInjectConstructors(String ignored) {
+            message = "injected"
+        }
+
+        public HasDefaultAndInjectConstructors() {
+            message = "default"
+        }
+    }
 }
