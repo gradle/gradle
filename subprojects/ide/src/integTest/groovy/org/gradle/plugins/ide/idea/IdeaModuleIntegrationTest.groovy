@@ -33,9 +33,6 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         testResources.dir.create {
             additionalCustomSources {}
             additionalCustomTestSources {}
-            additionalCustomResources {}
-            additionalCustomTestResources {}
-            additionalCustomGeneratedResources {}
             muchBetterOutputDir {}
             muchBetterTestOutputDir {}
             customImlFolder {}
@@ -63,10 +60,6 @@ idea {
 
         sourceDirs += file('additionalCustomSources')
         testSourceDirs += file('additionalCustomTestSources')
-        resourceDirs += file('additionalCustomResources')
-        resourceDirs += file('additionalCustomGeneratedResources')
-        testResourceDirs += file('additionalCustomTestResources')
-        generatedSourceDirs += file('additionalCustomGeneratedResources')
         excludeDirs += file('excludeMePlease')
 
         scopes.PROVIDED.plus += [ configurations.compile ]
@@ -93,18 +86,9 @@ idea {
 
         //then
         def iml = parseImlFile('customImlFolder/foo')
-        ['additionalCustomSources', 'additionalCustomTestSources',
-         'additionalCustomResources', 'additionalCustomTestResources',
-         'additionalCustomGeneratedResources',
-         'src/main/java'].each { expectedSrcFolder ->
+        ['additionalCustomSources', 'additionalCustomTestSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
-        ['additionalCustomResources', 'additionalCustomGeneratedResources'].each { expectedSrcFolder ->
-            assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) && it.@type.text() == 'java-resource'}
-        }
-        assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomTestResources') && it.@type == 'java-test-resource' }
-        assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomGeneratedResources') && it.@generated.text() == 'true'}
-
         ['customModuleContentRoot', 'CUSTOM_VARIABLE'].each {
             assert iml.component.content.@url.text().contains(it)
         }

@@ -57,21 +57,6 @@ This allows for declaring nice names when adding `CommandLineArgumentProviders`,
 
 Now, in the subsequent test, Gradle will execute the previous failed test class first. With [`--fail-fast`](userguide/java_plugin.html#sec:test_execution) option introduced in `4.6`, this can provide a much faster feedback loop for development.
 
-### Support for resources and test resources in the IDEA plugin
-
-The IDEA plugin now automatically marks your Java resource directories (e.g. `src/main/resources`) as resources in the IDEA project hierarchy. From now on it is also possible to mark additional directories as resources or test resources in the IDEA module:
-
-    idea {
-
-        module {
-            //and some extra resource dirs
-            resourceDirs += file('src/main/some-extra-resource-dir')
-
-            //and some extra test resource dirs
-            testResourceDirs += file('src/test/some-extra-test-resource-dir')
-        }
-    }
-
 ### Incremental annotation processing
 
 Gradle's incremental Java compiler can now also run annotation processing incrementally. 
