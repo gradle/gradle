@@ -72,4 +72,11 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * Sets the validator to invoke before mutation. Any exception thrown by the action will veto the mutation.
      */
     void setMutationValidator(MutationValidator action);
+
+    /**
+     * Indicates if dependency locking is enabled.
+     *
+     * @return {@code true} if dependency locking is enabled, {@code false} otherwise
+     */
+    boolean isDependencyLockingEnabled();
 }

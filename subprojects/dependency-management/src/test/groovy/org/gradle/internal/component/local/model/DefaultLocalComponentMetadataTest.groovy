@@ -45,8 +45,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup configuration after it has been added"() {
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true, ImmutableCapabilities.EMPTY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true, ImmutableCapabilities.EMPTY, false)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY, false)
 
         then:
         metadata.configurationNames == ['conf', 'super'] as Set
@@ -67,8 +67,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def "configuration has no dependencies or artifacts when none have been added"() {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         when:
-        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true, ImmutableCapabilities.EMPTY)
-        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true, ImmutableCapabilities.EMPTY, false)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY, false)
 
         then:
         def conf = metadata.getConfiguration('conf')
@@ -302,8 +302,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        def compile = metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY)
-        def runtime = metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY)
+        def compile = metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY, false)
+        def runtime = metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true, ImmutableCapabilities.EMPTY, false)
 
         def rule1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"))
         def rule2 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"))

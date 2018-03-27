@@ -47,7 +47,7 @@ public interface BuildableLocalComponentMetadata {
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
      */
-    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities);
+    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities, boolean canBeLocked);
 
     /**
      * Provides a backing configuration instance from which dependencies and excludes will be sourced.

@@ -47,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.DEPENDENCIES;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 import static org.gradle.util.GUtil.flattenElements;
 
@@ -63,6 +64,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final ComponentSelectorConverter componentSelectorConverter;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
+    private boolean dependencyLockingEnabled = false;
     private boolean assumeFluidDependencies;
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
@@ -103,6 +105,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public void preferProjectModules() {
         conflictResolution = ConflictResolution.preferProjectModules;
+    }
+
+    @Override
+    public ResolutionStrategy activateDependencyLocking() {
+        // TODO should this check the mutationValidator?
+        dependencyLockingEnabled = true;
+        return this;
     }
 
     @Override
@@ -210,5 +219,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             out.getComponentSelection().addRule(ruleAction);
         }
         return out;
+    }
+
+    @Override
+    public boolean isDependencyLockingEnabled() {
+        return dependencyLockingEnabled;
     }
 }

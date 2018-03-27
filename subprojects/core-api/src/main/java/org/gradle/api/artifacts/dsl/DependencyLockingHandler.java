@@ -22,10 +22,12 @@ package org.gradle.api.artifacts.dsl;
 public interface DependencyLockingHandler {
 
     /**
-     * Used to indicate if dependency locking is to be used or not.
-     * Default is {@code false}.
+     * Convenience method for doing:
      *
-     * @param lockingEnabled if {@code true} then dependency locking will be enabled
+     * configurations.all {
+     *     resolutionStrategy.activateDependencyLocking()
+     * }
+     *
      */
-    void setLockingEnabled(boolean lockingEnabled);
+    void lockAllConfigurations();
 }

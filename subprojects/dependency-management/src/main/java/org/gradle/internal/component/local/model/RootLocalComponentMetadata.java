@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -44,34 +43,40 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities, boolean canBeLocked) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities, canBeLocked);
         addToConfigurations(name, conf);
         return conf;
     }
 
     class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata {
+        private final boolean canBeLocked;
+
         RootLocalConfigurationMetadata(String name,
-                                          String description,
-                                          boolean visible,
-                                          boolean transitive,
-                                          Set<String> extendsFrom,
-                                          Set<String> hierarchy,
-                                          ImmutableAttributes attributes,
-                                          boolean canBeConsumed,
-                                          boolean canBeResolved,
-                                          ImmutableCapabilities capabilities) {
+                                       String description,
+                                       boolean visible,
+                                       boolean transitive,
+                                       Set<String> extendsFrom,
+                                       Set<String> hierarchy,
+                                       ImmutableAttributes attributes,
+                                       boolean canBeConsumed,
+                                       boolean canBeResolved,
+                                       ImmutableCapabilities capabilities,
+                                       boolean canBeLocked) {
             super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+            this.canBeLocked = canBeLocked;
         }
 
         @Override
         void addExtraDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
-            for (DependencyConstraint dependencyConstraint : dependencyLockingProvider.getLockedDependencies(getName())) {
-                ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-                    dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint());
-                result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(), null,
-                    Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason()));
+            if (canBeLocked) {
+                for (DependencyConstraint dependencyConstraint : dependencyLockingProvider.getLockedDependencies(getName())) {
+                    ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+                        dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint());
+                    result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(), null,
+                        Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason()));
+                }
             }
         }
     }

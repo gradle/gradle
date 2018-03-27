@@ -16,6 +16,9 @@
 
 package org.gradle.internal.locking;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -32,26 +35,28 @@ import java.util.Set;
 public class DefaultDependencyLockingHandler implements DependencyLockingHandlerInternal {
 
     public static final DependencyLockingProvider NO_OP_LOCKING_PROVIDER = new NoOpDependencyLockingProvider();
+    private final ConfigurationContainer configurationContainer;
 
-    private boolean lockingEnabled = false;
     private DependencyLockingProvider dependencyLockingProvider;
 
-    public DefaultDependencyLockingHandler(DependencyFactory dependencyFactory, FileOperations fileOperations) {
+    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory, FileOperations fileOperations) {
+        this.configurationContainer = configurationContainer;
         this.dependencyLockingProvider = new DefaultDependencyLockingProvider(dependencyFactory, fileOperations);
     }
 
     @Override
-    public void setLockingEnabled(boolean lockingEnabled) {
-        this.lockingEnabled = lockingEnabled;
+    public void lockAllConfigurations() {
+        configurationContainer.all(new Action<Configuration>() {
+            @Override
+            public void execute(Configuration configuration) {
+                configuration.getResolutionStrategy().activateDependencyLocking();
+            }
+        });
     }
 
     @Override
     public DependencyLockingProvider getDependencyLockingProvider() {
-        if (lockingEnabled) {
-            return dependencyLockingProvider;
-        } else {
-            return NO_OP_LOCKING_PROVIDER;
-        }
+        return dependencyLockingProvider;
     }
 
     private static class NoOpDependencyLockingProvider implements DependencyLockingProvider {

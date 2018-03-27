@@ -86,7 +86,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 ImmutableAttributes.EMPTY,
                 true,
                 false,
-                ImmutableCapabilities.EMPTY);
+                ImmutableCapabilities.EMPTY, false);
         }
         return metaData;
     }
