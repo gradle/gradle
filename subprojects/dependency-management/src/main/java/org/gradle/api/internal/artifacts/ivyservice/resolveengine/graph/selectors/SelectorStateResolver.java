@@ -45,6 +45,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         }
 
         T candidate = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        selector.select(candidate);
 
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {

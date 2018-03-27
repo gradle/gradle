@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionCons
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
@@ -69,6 +70,11 @@ public class TestSelectorState implements ResolvableSelectorState {
     @Override
     public boolean isForce() {
         return false;
+    }
+
+    @Override
+    public void select(ComponentResolutionState component) {
+
     }
 
 }
