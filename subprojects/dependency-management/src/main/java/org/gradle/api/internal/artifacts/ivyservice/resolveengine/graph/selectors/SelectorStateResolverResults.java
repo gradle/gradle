@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
@@ -33,6 +34,7 @@ class SelectorStateResolverResults {
     public final Map<ResolvableSelectorState, ComponentIdResolveResult> results = Maps.newLinkedHashMap();
 
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
+        ModuleVersionResolveException failure = null;
         Set<ComponentIdResolveResult> processedResolveResults = Sets.newHashSet();
         List<T> resolved = Lists.newArrayList();
         for (ResolvableSelectorState selectorState : results.keySet()) {
@@ -49,9 +51,15 @@ class SelectorStateResolverResults {
                     T componentState = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
                     resolved.add(componentState);
                 } else {
-                    throw idResolveResult.getFailure();
+                    if (failure == null) {
+                        failure = idResolveResult.getFailure();
+                    }
                 }
             }
+        }
+
+        if (resolved.isEmpty() && failure != null) {
+            throw failure;
         }
 
         return resolved;

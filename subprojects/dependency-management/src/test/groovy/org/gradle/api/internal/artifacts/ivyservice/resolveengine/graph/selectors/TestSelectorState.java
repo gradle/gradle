@@ -34,7 +34,8 @@ public class TestSelectorState implements ResolvableSelectorState {
 
     private final DependencyToComponentIdResolver resolver;
     private ResolvedVersionConstraint versionConstraint;
-    private ComponentIdResolveResult resolved;
+    public ComponentIdResolveResult resolved;
+    public String selectedVersion;
 
     public TestSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
         this.resolver = resolver;
@@ -74,5 +75,6 @@ public class TestSelectorState implements ResolvableSelectorState {
 
     @Override
     public void select(ComponentResolutionState component) {
+        this.selectedVersion = component.getId().getVersion();
     }
 }

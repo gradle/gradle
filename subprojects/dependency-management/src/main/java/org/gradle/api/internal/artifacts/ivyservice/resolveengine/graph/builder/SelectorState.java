@@ -209,6 +209,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public void select(ComponentResolutionState component) {
-        select((ComponentState) component);
+        // TODO:DAZ Move this method to ComponentResolutionState
+        ((ComponentState) component).selectedBy(this);
     }
 }

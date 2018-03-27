@@ -26,27 +26,27 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
  */
 class VersionRangeResolveTestScenarios {
 
-    static final FIXED_7 = fixed(7)
-    static final FIXED_9 = fixed(9)
-    static final FIXED_10 = fixed(10)
-    static final FIXED_11 = fixed(11)
-    static final FIXED_12 = fixed(12)
-    static final FIXED_13 = fixed(13)
-    static final RANGE_7_8 = range(7, 8)
-    static final RANGE_10_11 = range(10, 11)
-    static final RANGE_10_12 = range(10, 12)
-    static final RANGE_10_14 = range(10, 14)
-    static final RANGE_10_16 = range(10, 16)
-    static final RANGE_11_12 = range(11, 12)
-    static final RANGE_12_14 = range(12, 14)
-    static final RANGE_13_14 = range(13, 14)
-    static final RANGE_14_16 = range(14, 16)
+    public static final FIXED_7 = fixed(7)
+    public static final FIXED_9 = fixed(9)
+    public static final FIXED_10 = fixed(10)
+    public static final FIXED_11 = fixed(11)
+    public static final FIXED_12 = fixed(12)
+    public static final FIXED_13 = fixed(13)
+    public static final RANGE_7_8 = range(7, 8)
+    public static final RANGE_10_11 = range(10, 11)
+    public static final RANGE_10_12 = range(10, 12)
+    public static final RANGE_10_14 = range(10, 14)
+    public static final RANGE_10_16 = range(10, 16)
+    public static final RANGE_11_12 = range(11, 12)
+    public static final RANGE_12_14 = range(12, 14)
+    public static final RANGE_13_14 = range(13, 14)
+    public static final RANGE_14_16 = range(14, 16)
 
-    static final REJECT_11 = reject(11)
-    static final REJECT_12 = reject(12)
-    static final REJECT_13 = reject(13)
+    public static final REJECT_11 = reject(11)
+    public static final REJECT_12 = reject(12)
+    public static final REJECT_13 = reject(13)
 
-    public static final StrictPermutationsProvider PAIRS = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_7, FIXED_13],
         expectedNoStrict: 13,
         expectedStrict: [-1, 13]
@@ -91,7 +91,7 @@ class VersionRangeResolveTestScenarios {
         expectedNoStrict: 13,
         expectedStrict: [13, 13]
     )
-    public static final StrictPermutationsProvider PAIRS_WITH_REJECT = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_DEPENDENCY_WITH_REJECT = StrictPermutationsProvider.check(
         versions: [FIXED_12, REJECT_11],
         expectedNoStrict: 12
     ).and(
@@ -102,7 +102,7 @@ class VersionRangeResolveTestScenarios {
         expectedNoStrict: 12
     )
 
-    public static final StrictPermutationsProvider THREES = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_THREE_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_10, FIXED_12, FIXED_13],
         expectedNoStrict: 13,
         expectedStrict: [-1, -1, 13]
@@ -140,7 +140,7 @@ class VersionRangeResolveTestScenarios {
         expectedStrict: [-1, 12, 12]
     )
 
-    public static final StrictPermutationsProvider MULTIPLES_WITH_REJECT = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_WITH_REJECT = StrictPermutationsProvider.check(
         versions: [FIXED_11, FIXED_12, REJECT_11],
         expectedNoStrict: 12,
     ).and(
@@ -183,7 +183,7 @@ class VersionRangeResolveTestScenarios {
         expectedNoStrict: 11,
     )
 
-    public static final StrictPermutationsProvider FOURS = StrictPermutationsProvider.check(
+    public static final StrictPermutationsProvider SCENARIOS_FOUR_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_9, FIXED_10, FIXED_11, FIXED_12],
         expectedNoStrict: 12
     ).and(

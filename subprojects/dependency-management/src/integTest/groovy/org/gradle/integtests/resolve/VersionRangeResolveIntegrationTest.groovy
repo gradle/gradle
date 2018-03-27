@@ -307,7 +307,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << VersionRangeResolveTestScenarios.PAIRS
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
     }
 
     @Unroll
@@ -320,7 +320,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << VersionRangeResolveTestScenarios.PAIRS_WITH_REJECT
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
     }
 
     @Unroll
@@ -333,7 +333,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << VersionRangeResolveTestScenarios.THREES
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
     }
 
     @Unroll
@@ -346,7 +346,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << VersionRangeResolveTestScenarios.MULTIPLES_WITH_REJECT
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
     }
 
     @Unroll
@@ -359,7 +359,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve(candidates) == expected
 
         where:
-        permutation << VersionRangeResolveTestScenarios.FOURS
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
     }
 
     def resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
