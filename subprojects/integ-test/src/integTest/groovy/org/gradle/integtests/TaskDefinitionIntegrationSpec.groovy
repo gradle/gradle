@@ -43,13 +43,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
         }
     """
 
-    // TODO(adamb): remove once this TaskContainer extension function is added to kotlin-dsl
-    private static final String KOTLIN_TASK_CONTAINER_EXTENSION = '''
-        inline
-        fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
-            create(name, T::class.java, *arguments)
-    '''
-
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
         when:
@@ -294,8 +287,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
             import javax.inject.Inject
 
-            $KOTLIN_TASK_CONTAINER_EXTENSION
-
             open class CustomTask @Inject constructor(private val message: String, private val number: Int) : DefaultTask() {
                 @TaskAction fun run() = println("\$message \$number")
             }
@@ -343,8 +334,6 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
             import org.gradle.workers.WorkerExecutor
             import javax.inject.Inject
-
-            $KOTLIN_TASK_CONTAINER_EXTENSION
 
             open class CustomTask @Inject constructor(private val number: Int, private val executor: WorkerExecutor) : DefaultTask() {
                 @TaskAction fun run() = println(if (executor != null) "got it \$number" else "\$number NOT IT")
