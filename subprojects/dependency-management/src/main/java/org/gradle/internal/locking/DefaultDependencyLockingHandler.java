@@ -16,31 +16,17 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingHandlerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
-public class DefaultDependencyLockingHandler implements DependencyLockingHandlerInternal {
-
-    public static final DependencyLockingProvider NO_OP_LOCKING_PROVIDER = new NoOpDependencyLockingProvider();
     private final ConfigurationContainer configurationContainer;
 
-    private DependencyLockingProvider dependencyLockingProvider;
-
-    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory, FileOperations fileOperations, StartParameter startParameter) {
+    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer) {
         this.configurationContainer = configurationContainer;
-        this.dependencyLockingProvider = new DefaultDependencyLockingProvider(dependencyFactory, fileOperations, startParameter.isWriteDependencyLocks());
     }
 
     @Override
@@ -51,23 +37,5 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
                 configuration.getResolutionStrategy().activateDependencyLocking();
             }
         });
-    }
-
-    @Override
-    public DependencyLockingProvider getDependencyLockingProvider() {
-        return dependencyLockingProvider;
-    }
-
-    private static class NoOpDependencyLockingProvider implements DependencyLockingProvider {
-
-        @Override
-        public Set<DependencyConstraint> getLockedDependencies(String configurationName) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public void validateLockAligned(String configurationName, Map<String, ModuleComponentIdentifier> modules) {
-            // No-op
-        }
     }
 }

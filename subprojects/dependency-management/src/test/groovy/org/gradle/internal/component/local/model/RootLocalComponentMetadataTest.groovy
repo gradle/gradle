@@ -17,14 +17,14 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingHandlerInternal
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
-    def dependencyLockingHandler = Mock(DependencyLockingHandlerInternal)
+    def dependencyLockingHandler = Mock(DependencyLockingProvider)
     def metadata = new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler)
 
     def 'locking constraints are attached to a configuration and not its children'() {
@@ -45,7 +45,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true, ImmutableCapabilities.EMPTY, true)
     }
 
 }

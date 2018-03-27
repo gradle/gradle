@@ -26,5 +26,5 @@ public interface DependencyLockingProvider {
 
     Set<DependencyConstraint> getLockedDependencies(String configurationName);
 
-    void validateLockAligned(String configurationName, Map<String, ModuleComponentIdentifier> modules);
+    void persistResolvedDependencies(String configurationName, Map<String, ModuleComponentIdentifier> modules);
 }
