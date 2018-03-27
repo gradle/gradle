@@ -18,7 +18,6 @@ package org.gradle.tooling.model.idea;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.util.Set;
@@ -42,9 +41,7 @@ public interface IdeaContentRoot {
      * The set of generated source directories. This is a subset of those directories returned by {@link #getSourceDirectories()}.
      *
      * @since 2.2
-     * @deprecated Use {@link IdeaContentRoot#getSourceDirectories()} in combination with  {@link IdeaSourceDirectory#isGenerated()} instead.
      */
-    @Deprecated
     @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories();
 
@@ -57,30 +54,9 @@ public interface IdeaContentRoot {
      * The set of generated test directories. This is a subset of those directories returned by {@link #getTestDirectories()}.
      *
      * @since 2.2
-     * @deprecated Use {@link IdeaContentRoot#getTestDirectories()} in combination with  {@link IdeaSourceDirectory#isGenerated()} instead.
      */
-    @Deprecated
     @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories();
-
-    /**
-     * The set of resource directories.
-     * NOTE: The resources directory is only available for Java projects, otherwise it is empty set.
-     * @throws UnsupportedMethodException For Gradle versions older than 4.7 where this method is not supported.
-     * @since 4.7
-     */
-    @Incubating
-    DomainObjectSet<? extends IdeaSourceDirectory> getResourceDirectories() throws UnsupportedMethodException;
-
-
-    /**
-     * The set of test resource directories.
-     * NOTE: The test resources directory is only available for Java projects, otherwise it is empty set.
-     * @throws UnsupportedMethodException For Gradle versions older than 4.7 where this method is not supported.
-     * @since 4.7
-     */
-    @Incubating
-    DomainObjectSet<? extends IdeaSourceDirectory> getTestResourceDirectories() throws UnsupportedMethodException;
 
     /**
      * The set of excluded directories.

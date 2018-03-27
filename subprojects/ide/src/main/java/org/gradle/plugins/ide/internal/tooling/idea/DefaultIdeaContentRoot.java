@@ -26,8 +26,6 @@ public class DefaultIdeaContentRoot implements Serializable {
     File rootDirectory;
     Set<DefaultIdeaSourceDirectory> sourceDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
     Set<DefaultIdeaSourceDirectory> testDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-    Set<DefaultIdeaSourceDirectory> resourceDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-    Set<DefaultIdeaSourceDirectory> testResourceDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
     Set<File> excludeDirectories = new LinkedHashSet<File>();
 
     public File getRootDirectory() {
@@ -74,24 +72,6 @@ public class DefaultIdeaContentRoot implements Serializable {
     public Set<DefaultIdeaSourceDirectory> getGeneratedTestDirectories() {
         return generated(testDirectories);
     }
-    public Set<DefaultIdeaSourceDirectory> getResourceDirectories() {
-        return resourceDirectories;
-    }
-
-    public DefaultIdeaContentRoot setResourceDirectories(Set<DefaultIdeaSourceDirectory> resourceDirectories) {
-        this.resourceDirectories = resourceDirectories;
-        return this;
-    }
-
-    public Set<DefaultIdeaSourceDirectory> getTestResourceDirectories() {
-        return testResourceDirectories;
-    }
-
-    public DefaultIdeaContentRoot setTestResourceDirectories(Set<DefaultIdeaSourceDirectory> testResourceDirectories) {
-        this.testResourceDirectories = testResourceDirectories;
-        return this;
-    }
-
 
     public Set<File> getExcludeDirectories() {
         return excludeDirectories;
@@ -108,8 +88,6 @@ public class DefaultIdeaContentRoot implements Serializable {
                 + "rootDirectory=" + rootDirectory
                 + ", sourceDirectories count=" + sourceDirectories.size()
                 + ", testDirectories count=" + testDirectories.size()
-                + ", resourceDirectories count=" + resourceDirectories.size()
-                + ", testResourceDirectories count=" + testResourceDirectories.size()
                 + ", excludeDirectories count=" + excludeDirectories.size()
                 + '}';
     }

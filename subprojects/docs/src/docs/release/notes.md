@@ -8,6 +8,8 @@ This release supports running Gradle on JDK 10.
 
 User experience for running tests is further improved: _failed tests now run first_. This allows use of the [`--fail-fast` option](userguide/java_plugin.html#sec:test_execution) to provide the quickest possible feedback loop.
 
+This release improves the Kotlin DSL with support for `.gradle.kts` scripts in regular Kotlin source sets. It also provides Kotlin 1.2.31, a more consistent API, better IDE support, and further improved parity with the Groovy DSL. See Kotlin DSL v0.16 [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3) for full details.
+
 Last but not least, the _IDEA Gradle Plugin now automatically marks Java resources directories_ as resources in the IDEA module definitions. This behavior can be customized; see an example.
 
 We hope you will build happiness with Gradle 4.7, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
@@ -54,21 +56,6 @@ This allows for declaring nice names when adding `CommandLineArgumentProviders`,
 ### Rerun failed tests first
 
 Now, in the subsequent test, Gradle will execute the previous failed test class first. With [`--fail-fast`](userguide/java_plugin.html#sec:test_execution) option introduced in `4.6`, this can provide a much faster feedback loop for development.
-
-### Support for resources and test resources in the IDEA plugin
-
-The IDEA plugin now automatically marks your Java resource directories (e.g. `src/main/resources`) as resources in the IDEA project hierarchy. From now on it is also possible to mark additional directories as resources or test resources in the IDEA module:
-
-    idea {
-
-        module {
-            //and some extra resource dirs
-            resourceDirs += file('src/main/some-extra-resource-dir')
-
-            //and some extra test resource dirs
-            testResourceDirs += file('src/test/some-extra-test-resource-dir')
-        }
-    }
 
 ### Incremental annotation processing
 
@@ -145,13 +132,6 @@ Using the `as` operator to cast `FileCollection` to `Object[]`, `Collection`, `S
 
 The plain console mode now formats output consistently with the rich console, which means that the output format has changed. This may break tools that scrape details from the console output.
 
-### Changes in the caching of missing versions
-
-Previously, Gradle would refresh the version list when dynamic version cache expires for repositories that did not contain a version at all.
-From now on, Gradle [will cache forever that a `group:name` was absent](https://github.com/gradle/gradle/issues/4436) from a repository.
-This has a positive performance on dependency resolution when multiple repositories are defined and dynamic versions are used.
-As before, using `--refresh-dependencies` will force a refresh, bypassing all caching.
-
 ### Changes to native compilation, linking and installation tasks
 
 To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices, many tasks related to compiling and linking native libraries and applications have been converted to use the Provider API.
@@ -187,6 +167,21 @@ Task type `org.gradle.nativeplatform.tasks.InstallExecutable`
 - `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
 
 Task types `org.gradle.language.assembler.tasks.Assemble`, `org.gradle.language.rc.tasks.WindowsResourceCompile`, `org.gradle.nativeplatform.tasks.StripSymbols`, `org.gradle.nativeplatform.tasks.ExtractSymbols`, `org.gradle.language.swift.tasks.SwiftCompile`, and `org.gradle.nativeplatform.tasks.LinkMachOBundle` were changed in similar ways.
+
+### Changes to the Gradle Kotlin DSL
+
+The Gradle Kotlin DSL v0.16 contains several potential breaking changes:
+
+- Access to Gradle/Project properties via Kotlin delegated properties now requires property type declaration.
+- Erroneous usage of the `plugins {}` block in a nested scope now throws, it was a no-op before.
+- `the<T>()` and `configure<T>()` are now available on all `ExtensionAware` types.
+- It is now enforced that there's a single `pluginManagement {}` block in settings scripts.
+
+See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3) for more information.
+
+### Removed incubating cache-control DSL in `org.gradle.api.artifacts.cache`
+
+All interfaces in this package were incubating and there was no public API to obtain instances of any of these interfaces.
 
 ## External contributions
 

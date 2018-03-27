@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedModuleVersion
-import org.gradle.api.artifacts.cache.ArtifactResolutionControl
-import org.gradle.api.artifacts.cache.DependencyResolutionControl
-import org.gradle.api.artifacts.cache.ModuleResolutionControl
+import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl
+import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl
+import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier

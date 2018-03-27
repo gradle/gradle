@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.cache;
+package org.gradle.api.internal.artifacts.cache;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Represents a set of rules/actions that can be applied during dependency resolution.
  * Currently these are restricted to controlling caching, but these could possibly be extended in the future to include other manipulations.
  */
-@Incubating
 public interface ResolutionRules {
     /**
      * Apply a rule to control resolution of dependencies.
