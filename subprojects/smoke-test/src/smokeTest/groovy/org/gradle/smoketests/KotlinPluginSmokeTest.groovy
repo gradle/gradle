@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import static AndroidPluginsSmokeTest.STABLE_ANDROID_2X_VERSION
+import static AndroidPluginsSmokeTest.STABLE_ANDROID_3X_VERSION
 import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 

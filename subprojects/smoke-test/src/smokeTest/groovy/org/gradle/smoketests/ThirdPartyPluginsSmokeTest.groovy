@@ -156,14 +156,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     def 'spring boot plugin'() {
         given:
         buildFile << """
-            buildscript {
-                ${mavenCentralRepository()}
-                dependencies {
-                    classpath('org.springframework.boot:spring-boot-gradle-plugin:2.0.0.RELEASE')
-                }
+            plugins {
+                id "org.springframework.boot" version "2.0.0.RELEASE"
             }
-
-            apply plugin: 'spring-boot'
         """.stripIndent()
 
         file('src/main/java/example/Application.java') << """
@@ -176,10 +171,10 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         when:
         def result = runner('build').build()
+        println(result.output)
 
         then:
-        result.task(':findMainClass').outcome == SUCCESS
-        result.task(':bootRepackage').outcome == SUCCESS
+        result.task(':buildEnvironment').outcome == SUCCESS
     }
 
     @Issue(["gradle/gradle#2480", "https://plugins.gradle.org/plugin/io.spring.dependency-management"])

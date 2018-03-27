@@ -149,6 +149,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         file('build.gradle') << buildscript(pluginVersion) << """
             subprojects {
                 ${jcenterRepository()}
+                ${googleRepository()}
             }
         """
 
