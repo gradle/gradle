@@ -19,6 +19,7 @@ package org.gradle.gradlebuild.packaging
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -31,31 +32,27 @@ import java.nio.file.Path
 import java.util.*
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
+import javax.inject.Inject
 
 
-open class ShadedJar : DefaultTask() {
-    @InputFiles
-    val relocatedClassesConfiguration = project.files()
-    @InputFiles
-    val classTreesConfiguration = project.files()
-    @InputFiles
-    val entryPointsConfiguration = project.files()
-    @InputFiles
-    val manifests = project.files()
-
-    /**
-     * The build receipt properties file.
-     *
-     * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
-     */
-    @InputFile
-    val buildReceiptFile: RegularFileProperty = project.layout.fileProperty()
-
-    /**
-      * The output Jar file.
-      */
-    @OutputFile
-    val jarFile = newOutputFile()
+/**
+ * Produces a shaded jar.
+ *
+ * @param relocatedClassesConfiguration
+ * @param classTreesConfiguration
+ * @param entryPointsConfiguration
+ * @param manifests
+ * @param buildReceiptFile The build receipt properties file. The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
+ * @param jarFile The output Jar file.
+ */
+open class ShadedJar @Inject constructor(
+    @get:InputFiles val relocatedClassesConfiguration: FileCollection,
+    @get:InputFiles val classTreesConfiguration: FileCollection,
+    @get:InputFiles val entryPointsConfiguration: FileCollection,
+    @get:InputFiles val manifests: FileCollection,
+    @get:InputFile val buildReceiptFile: RegularFileProperty,
+    @get:OutputFile val jarFile: RegularFileProperty
+) : DefaultTask() {
 
     @TaskAction
     fun shade() {
