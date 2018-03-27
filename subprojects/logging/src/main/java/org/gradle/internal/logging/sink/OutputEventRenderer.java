@@ -238,9 +238,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 new BuildStatusRenderer(
                     new WorkInProgressRenderer(
                         new BuildLogLevelFilterRenderer(
-                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), clock, new PrettyPrefixedLogHeaderFormatter(), verbose)),
+                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), new PrettyPrefixedLogHeaderFormatter(), verbose)),
                         console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                    console.getStatusBar(), console, consoleMetaData, clock),
+                    console.getStatusBar(), console, consoleMetaData),
                 console),
             clock);
         return addConsoleChain(consoleChain, stdout, stderr);
@@ -254,7 +254,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
         OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(stdoutChain, clock, new PrettyPrefixedLogHeaderFormatter(), true)
+                new GroupingProgressLogEventGenerator(stdoutChain, new PrettyPrefixedLogHeaderFormatter(), true)
             ),
             clock
         );
