@@ -16,19 +16,17 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
-
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
         executer.withWelcomeMessageEnabled()
-        file("build.gradle") << "task emptyTask"
     }
 
     def "wrapper only renders welcome message when executed in quiet mode"() {
         given:
+        file("build.gradle") << """
+task emptyTask
+        """
         prepareWrapper()
 
         when:
@@ -44,43 +42,5 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         result.output.empty
-    }
-
-    def "wrapper logs and continues when there is a problem setting permissions"() {
-        given: "malformed distribution"
-        // Repackage distribution with bin/gradle removed so permissions cannot be set
-        TestFile tempUnzipDir = temporaryFolder.createDir("temp-unzip")
-        distribution.binDistribution.unzipTo(tempUnzipDir)
-        assert tempUnzipDir.file("gradle-${distribution.version.version}", "bin", "gradle").delete()
-        TestFile tempZipDir = temporaryFolder.createDir("temp-zip-foo")
-        TestFile malformedDistZip = new TestFile(tempZipDir, "gradle-${distribution.version.version}-bin.zip")
-        tempUnzipDir.zipTo(malformedDistZip)
-        prepareWrapper(malformedDistZip.toURI())
-
-        when:
-        ExecutionResult result = wrapperExecuter
-            .withTasks("emptyTask")
-            .run()
-
-        then:
-        result.assertOutputContains("Could not set executable permissions")
-        result.assertOutputContains("Please do this manually if you want to use the Gradle UI.")
-    }
-
-    def "wrapper prints error and fails build if downloaded zip is empty"() {
-        given: "empty distribution"
-        TestFile tempUnzipDir = temporaryFolder.createDir("empty-distribution")
-        TestFile malformedDistZip = new TestFile(tempUnzipDir, "gradle-${distribution.version.version}-bin.zip") << ""
-        prepareWrapper(malformedDistZip.toURI())
-
-        when:
-        ExecutionFailure failure = wrapperExecuter
-            .withTasks("emptyTask")
-            .withStackTraceChecksDisabled()
-            .runWithFailure()
-
-        then:
-        failure.assertOutputContains("Could not unzip")
-        failure.assertNotOutput("Could not set executable permissions")
     }
 }
