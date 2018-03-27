@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -161,9 +162,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
-                Set<String> versionList = cachedModuleVersionList.getModuleVersions();
-                Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList, new Transformer<ModuleVersionIdentifier, String>() {
-                    public ModuleVersionIdentifier transform(String original) {
+                Set<VersionVariants> versionList = cachedModuleVersionList.getModuleVersions();
+                Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList, new Transformer<ModuleVersionIdentifier, VersionVariants>() {
+                    public ModuleVersionIdentifier transform(VersionVariants original) {
                         return new DefaultModuleVersionIdentifier(moduleId, original);
                     }
                 });
@@ -360,7 +361,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             switch (result.getState()) {
                 case Listed:
                     ModuleIdentifier moduleId = getCacheKey(dependency.getSelector());
-                    Set<String> versionList = result.getVersions();
+                    Set<VersionVariants> versionList = result.getVersions();
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     break;
                 case Failed:

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -69,7 +70,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider,
-                         MavenMetadataLoader mavenMetadataLoader) {
+                         MavenMetadataLoader mavenMetadataLoader,
+                         @Nullable VersionsVariantsLister versionsVariantsLister) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -77,7 +79,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             artifactFileStore,
             moduleIdentifierFactory,
             metadataSources,
-            metadataArtifactProvider);
+            metadataArtifactProvider,
+            rootUri,
+            versionsVariantsLister);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();

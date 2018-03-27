@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -39,6 +40,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resolve.result.DefaultVersionVariants;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,7 +207,7 @@ public class DynamicVersionResolver {
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
         private final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
-        private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
+        private final Map<VersionVariants, CandidateResult> candidateComponents = new LinkedHashMap<VersionVariants, CandidateResult>();
         private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
         private final Set<String> rejectedVersions = Sets.newLinkedHashSet();
         private final VersionListResult versionListingResult;
@@ -253,7 +255,7 @@ public class DynamicVersionResolver {
         @Override
         public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
             String version = moduleComponentIdentifier.getVersion();
-            CandidateResult candidateResult = candidateComponents.get(version);
+            CandidateResult candidateResult = candidateComponents.get(new DefaultVersionVariants(version));
             candidateResult.tryResolveMetadata(resolvedVersionMetadata);
         }
 
@@ -279,10 +281,10 @@ public class DynamicVersionResolver {
 
         private List<CandidateResult> candidates() {
             List<CandidateResult> candidates = new ArrayList<CandidateResult>();
-            for (String version : versionListingResult.result.getVersions()) {
+            for (VersionVariants version : versionListingResult.result.getVersions()) {
                 CandidateResult candidateResult = candidateComponents.get(version);
                 if (candidateResult == null) {
-                    candidateResult = new CandidateResult(dependency, version, repository, attemptCollector);
+                    candidateResult = new CandidateResult(dependency, version.getVersion(), repository, attemptCollector);
                     candidateComponents.put(version, candidateResult);
                 }
                 candidates.add(candidateResult);

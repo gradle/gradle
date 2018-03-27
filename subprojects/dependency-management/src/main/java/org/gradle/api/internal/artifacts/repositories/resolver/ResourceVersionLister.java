@@ -19,8 +19,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resolve.result.DefaultVersionVariants;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -50,7 +52,7 @@ public class ResourceVersionLister implements VersionLister {
 
     @Override
     public void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
-        List<String> collector = Lists.newArrayList();
+        List<VersionVariants> collector = Lists.newArrayList();
         for (ResourcePattern pattern : patterns) {
             visit(pattern, artifact, module, collector, result);
         }
@@ -59,13 +61,13 @@ public class ResourceVersionLister implements VersionLister {
         }
     }
 
-    private void visit(ResourcePattern pattern, IvyArtifactName artifact, ModuleIdentifier module, List<String> collector, BuildableModuleVersionListingResolveResult result) {
+    private void visit(ResourcePattern pattern, IvyArtifactName artifact, ModuleIdentifier module, List<VersionVariants> collector, BuildableModuleVersionListingResolveResult result) {
         ExternalResourceName versionListPattern = pattern.toVersionListPattern(module, artifact);
         LOGGER.debug("Listing all in {}", versionListPattern);
         try {
             List<String> versionStrings = listRevisionToken(versionListPattern, result);
             for (String versionString : versionStrings) {
-                collector.add(versionString);
+                collector.add(new DefaultVersionVariants(versionString));
             }
         } catch (Exception e) {
             throw ResourceExceptions.failure(versionListPattern.getUri(), String.format("Could not list versions using %s.", pattern), e);

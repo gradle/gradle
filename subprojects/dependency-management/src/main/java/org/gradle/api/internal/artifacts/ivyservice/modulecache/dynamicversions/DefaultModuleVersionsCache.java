@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.resolve.result.DefaultVersionVariants;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -92,19 +94,21 @@ public class DefaultModuleVersionsCache extends InMemoryModuleVersionsCache {
     private static class ModuleVersionsCacheEntrySerializer extends AbstractSerializer<ModuleVersionsCacheEntry> {
 
         public void write(Encoder encoder, ModuleVersionsCacheEntry value) throws Exception {
-            Set<String> versions = value.moduleVersionListing;
+            Set<VersionVariants> versions = value.moduleVersionListing;
             encoder.writeInt(versions.size());
-            for (String version : versions) {
-                encoder.writeString(version);
+            for (VersionVariants version : versions) {
+                encoder.writeString(version.getVersion());
+                //TODO serialize variants attributes
             }
             encoder.writeLong(value.createTimestamp);
         }
 
         public ModuleVersionsCacheEntry read(Decoder decoder) throws Exception {
             int size = decoder.readInt();
-            Set<String> versions = new LinkedHashSet<String>();
+            Set<VersionVariants> versions = new LinkedHashSet<VersionVariants>();
             for (int i = 0; i < size; i++) {
-                versions.add(decoder.readString());
+                versions.add(new DefaultVersionVariants(decoder.readString()));
+                //TODO read variants attributes
             }
             long createTimestamp = decoder.readLong();
             return new ModuleVersionsCacheEntry(versions, createTimestamp);

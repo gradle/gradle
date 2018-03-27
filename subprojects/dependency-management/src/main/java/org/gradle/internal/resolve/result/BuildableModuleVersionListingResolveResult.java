@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -52,7 +53,7 @@ public interface BuildableModuleVersionListingResolveResult extends ResourceAwar
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.
      */
-    Set<String> getVersions() throws ModuleVersionResolveException;
+    Set<VersionVariants> getVersions() throws ModuleVersionResolveException;
 
     @Nullable
     ModuleVersionResolveException getFailure();
@@ -60,7 +61,7 @@ public interface BuildableModuleVersionListingResolveResult extends ResourceAwar
     /**
      * Marks the module as having been listed to have the specified versions available.
      */
-    void listed(Collection<String> versions);
+    void listed(Collection<VersionVariants> versions);
 
     /**
      * Marks the list as failed with the given exception.

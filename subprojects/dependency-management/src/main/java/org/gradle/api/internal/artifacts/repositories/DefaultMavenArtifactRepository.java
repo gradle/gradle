@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.FeaturePreviews;
@@ -80,6 +81,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileResourceRepository fileResourceRepository;
     private final MavenMutableModuleMetadataFactory metadataFactory;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
+    private VersionsVariantsLister versionsVariantsLister = null;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -163,6 +165,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls = Lists.newArrayList(urls);
     }
 
+    @Override
+    public void setVersionsVariantsLister(VersionsVariantsLister versionsVariantsLister) {
+        this.versionsVariantsLister = versionsVariantsLister;
+    }
+
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }
@@ -189,7 +196,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         RepositoryTransport transport = getTransport(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, versionsVariantsLister);
     }
 
     @Override

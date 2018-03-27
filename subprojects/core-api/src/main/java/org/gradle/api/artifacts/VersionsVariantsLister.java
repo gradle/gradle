@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.maven;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.artifacts.VersionVariants;
+import org.gradle.api.Incubating;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.List;
 
-public class MavenMetadata {
-    public String timestamp;
-    public String buildNumber;
-    public List<VersionVariants> versions = new ArrayList<VersionVariants>();
+/**
+ * Implementations of this interface communicate with the repository the lister is attached
+ * to to retrieve all versions and variants of a given module.
+ *
+ * @since 4.8
+ */
+@Incubating
+public interface VersionsVariantsLister {
+    List<VersionVariants> getVersionsAndVariantsFor(URI repositoryRoot, String group, String module);
 }

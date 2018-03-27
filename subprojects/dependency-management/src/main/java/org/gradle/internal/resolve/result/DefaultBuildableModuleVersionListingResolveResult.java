@@ -16,6 +16,7 @@
 package org.gradle.internal.resolve.result;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
@@ -24,7 +25,7 @@ import java.util.Set;
 public class DefaultBuildableModuleVersionListingResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionListingResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
-    private Set<String> versions;
+    private Set<VersionVariants> versions;
     private boolean authoritative;
 
     private void reset(State state) {
@@ -42,7 +43,7 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
         return state != State.Unknown;
     }
 
-    public Set<String> getVersions() throws ModuleVersionResolveException {
+    public Set<VersionVariants> getVersions() throws ModuleVersionResolveException {
         assertHasResult();
         return versions;
     }
@@ -52,7 +53,7 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
         return failure;
     }
 
-    public void listed(Collection<String> versions) {
+    public void listed(Collection<VersionVariants> versions) {
         reset(State.Listed);
         this.versions = ImmutableSet.copyOf(versions);
         this.authoritative = true;

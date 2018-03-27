@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 
 import java.net.URI;
 
@@ -201,6 +202,16 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      */
     @Incubating
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
+
+    /**
+     * Register a lister implementation for listing of variants and versions.
+     *
+     * @param versionsVariantsLister a lister implementation that can retrieve listings of versions and variants from this repository
+     *
+     * @since 4.8
+     */
+    @Incubating
+    void setVersionsVariantsLister(VersionsVariantsLister versionsVariantsLister);
 
     /**
      * Configures the metadata sources for this repository. This method will replace any previously configured sources

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class InMemoryModuleVersionsCache implements ModuleVersionsCache {
         this.timeProvider = timeProvider;
     }
 
-    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
+    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<VersionVariants> listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = createEntry(listedVersions);
@@ -63,7 +64,7 @@ public class InMemoryModuleVersionsCache implements ModuleVersionsCache {
         return new ModuleAtRepositoryKey(repository.getId(), moduleId);
     }
 
-    private ModuleVersionsCacheEntry createEntry(Set<String> listedVersions) {
+    private ModuleVersionsCacheEntry createEntry(Set<VersionVariants> listedVersions) {
         return new ModuleVersionsCacheEntry(listedVersions, timeProvider.getCurrentTime());
     }
 }

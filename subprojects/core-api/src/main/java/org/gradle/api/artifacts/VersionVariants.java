@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.maven;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.artifacts.VersionVariants;
+import org.gradle.api.Incubating;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class MavenMetadata {
-    public String timestamp;
-    public String buildNumber;
-    public List<VersionVariants> versions = new ArrayList<VersionVariants>();
+/**
+ * Represents an existing version and its variants.
+ *
+ * @since 4.8
+ */
+@Incubating
+public interface VersionVariants {
+
+    String getVersion();
+
+    List<Map<String, String>> getVariants();
 }

@@ -21,6 +21,7 @@ import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.ErroringAction;
+import org.gradle.internal.resolve.result.DefaultVersionVariants;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
@@ -85,7 +86,7 @@ public class MavenMetadataLoader {
                             mavenMetadata.buildNumber = getText();
                         }
                         if ("metadata/versioning/versions/version".equals(getContext())) {
-                            mavenMetadata.versions.add(getText().trim());
+                            mavenMetadata.versions.add(new DefaultVersionVariants(getText().trim())); //TODO add derived variants for POM files?
                         }
                         super.endElement(uri, localName, qName);
                     }

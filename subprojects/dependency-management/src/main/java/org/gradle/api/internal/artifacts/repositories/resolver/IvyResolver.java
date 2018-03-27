@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -34,6 +35,7 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata> implements PatternBasedResolver {
@@ -52,8 +54,10 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                        Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
                        ImmutableMetadataSources repositoryContentFilter,
-                       MetadataArtifactProvider metadataArtifactProvider) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, repositoryContentFilter, metadataArtifactProvider);
+                       MetadataArtifactProvider metadataArtifactProvider,
+                       @Nullable URI rootUri,
+                       @Nullable VersionsVariantsLister versionsVariantsLister) {
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, repositoryContentFilter, metadataArtifactProvider, rootUri, versionsVariantsLister);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.dynamicResolve = dynamicResolve;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();

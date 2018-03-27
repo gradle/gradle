@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 
 import java.net.URI;
 import java.util.Set;
@@ -90,6 +91,16 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      * @param urls The URLs.
      */
     void setArtifactUrls(Iterable<?> urls);
+
+    /**
+     * Register a lister implementation for listing of variants and versions.
+     *
+     * @param versionsVariantsLister a lister implementation that can retrieve listings of versions and variants from this repository
+     *
+     * @since 4.8
+     */
+    @Incubating
+    void setVersionsVariantsLister(VersionsVariantsLister versionsVariantsLister);
 
     /**
      * Configures the metadata sources for this repository. This method will replace any previously configured sources

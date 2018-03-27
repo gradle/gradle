@@ -15,14 +15,20 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+
+import java.util.List;
+import java.util.Map;
 
 public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     private final ModuleIdentifier id;
     private final String version;
+    private final List<Map<String, String>> variants;
 
     public DefaultModuleVersionIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
@@ -30,12 +36,21 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         assert version != null : "version cannot be null";
         this.id = DefaultModuleIdentifier.newId(group, name);
         this.version = version;
+        this.variants = ImmutableList.of();
     }
 
     public DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
         assert version != null : "version cannot be null";
         this.id = id;
         this.version = version;
+        this.variants = ImmutableList.of();
+    }
+
+    public DefaultModuleVersionIdentifier(ModuleIdentifier id, VersionVariants versionVariants) {
+        assert versionVariants != null : "version cannot be null";
+        this.id = id;
+        this.version = versionVariants.getVersion();
+        this.variants = versionVariants.getVariants();
     }
 
     public String getGroup() {

@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
@@ -103,6 +104,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final ModuleMetadataParser moduleMetadataParser;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
+    private VersionsVariantsLister versionsVariantsLister = null;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -176,7 +178,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private IvyResolver createResolver(RepositoryTransport transport) {
         Factory<ComponentMetadataSupplier> supplierFactory = createComponentMetadataSupplierFactory(createInjectorForMetadataSupplier(transport));
-        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE);
+        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, getUrl(), versionsVariantsLister);
     }
 
     @Override
@@ -293,6 +295,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         configureAction.execute(configuration);
         this.componentMetadataSupplierClass = rule;
         this.componentMetadataSupplierParams = configuration.getParams();
+    }
+
+    @Override
+    public void setVersionsVariantsLister(VersionsVariantsLister versionsVariantsLister) {
+        this.versionsVariantsLister = versionsVariantsLister;
     }
 
     /**

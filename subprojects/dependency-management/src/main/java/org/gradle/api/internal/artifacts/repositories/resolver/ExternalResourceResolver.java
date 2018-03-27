@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.VersionVariants;
+import org.gradle.api.artifacts.VersionsVariantsLister;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -73,8 +75,10 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -98,6 +102,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
+    private final URI repositoryRoot;
+    private final VersionsVariantsLister versionsVariantsLister;
 
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
@@ -110,7 +116,9 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                        ImmutableMetadataSources metadataSources,
-                                       MetadataArtifactProvider metadataArtifactProvider) {
+                                       MetadataArtifactProvider metadataArtifactProvider,
+                                       @Nullable URI repositoryRoot,
+                                       @Nullable VersionsVariantsLister versionsVariantsLister) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -120,6 +128,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.metadataSources = metadataSources;
         this.metadataArtifactProvider = metadataArtifactProvider;
+        this.repositoryRoot = repositoryRoot;
+        this.versionsVariantsLister = versionsVariantsLister;
     }
 
     public String getId() {
@@ -163,6 +173,10 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
+        if (versionsVariantsLister != null && repositoryRoot != null) {
+            result.listed(versionsVariantsLister.getVersionsAndVariantsFor(repositoryRoot, module.getGroup(), module.getName()));
+            return;
+        }
 
         // TODO: Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
         // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
@@ -178,7 +192,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
         }
 
-        result.listed(ImmutableSet.<String>of());
+        result.listed(ImmutableSet.<VersionVariants>of());
     }
 
     private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {

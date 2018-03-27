@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.maven;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.VersionVariants;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
@@ -37,7 +38,7 @@ public class MavenVersionLister {
     public void listVersions(ModuleIdentifier module, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
         final Set<ExternalResourceName> searched = Sets.newHashSet();
 
-        List<String> versions = Lists.newArrayList();
+        List<VersionVariants> versions = Lists.newArrayList();
         boolean hasResult = false;
         for (ResourcePattern pattern : patterns) {
             ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
