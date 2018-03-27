@@ -141,7 +141,7 @@ This value must contain an array with zero or more elements. Each element must b
         "group": "my.group",
         "module": "mylib",
         "version": "1.2"
-    }
+    },
     "builtBy": {
         "gradle": {
             "version": "4.3",
