@@ -30,6 +30,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
  - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
  - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
+ - [`precompiled-script-plugin`](./precompiled-script-plugin): demonstrates a Gradle plugin implemented as a precompiled script 
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
  - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic in `buildSrc`
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
