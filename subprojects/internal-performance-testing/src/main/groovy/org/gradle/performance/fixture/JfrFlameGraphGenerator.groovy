@@ -92,15 +92,19 @@ class JfrFlameGraphGenerator {
             ["--hide-arguments", "--ignore-line-numbers", "--use-simple-names"],
             ["--minwidth", "1"],
             ["--minwidth", "2"],
-            new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
-                (~'build_([a-z0-9]+)'): 'build script',
-                (~'settings_([a-z0-9]+)'): 'settings script',
-                (~'.*BuildOperation.*'): 'build operations',
-                (~'.*(CommandLine|Execut[eo]r|Execution|Runner|BuildController).*'): 'execution infrastructure',
-                (~'.*(PluginManager|ObjectConfigurationAction|PluginTarget|PluginAware|Script.apply|ScriptPlugin|ScriptTarget|ScriptRunner).*'): 'plugin management',
-                (~'.*(DynamicObject|Closure.call|MetaClass|MetaMethod|CallSite|ConfigureDelegate|Method.invoke|MethodAccessor|Proxy|ConfigureUtil|Script.invoke|ClosureBackedAction|getProperty).*'): 'dynamic invocation',
-                (~'.*(ProjectEvaluator|Project.evaluate).*'): 'project evaluation',
-            ))
+            new FlameGraphSanitizer(
+                new FlameGraphSanitizer.RegexBasedSanitizeFunction(
+                    (~'build_[a-z0-9]+'): 'build script',
+                    (~'settings_[a-z0-9]+'): 'settings script',
+                ),
+                new FlameGraphSanitizer.ContainmentBasedSanitizeFunction(
+                    ['BuildOperation']: 'build operations',
+                    ['PluginManager', 'ObjectConfigurationAction', 'PluginTarget', 'PluginAware', 'Script.apply', 'ScriptPlugin', 'ScriptTarget', 'ScriptRunner']: 'plugin management',
+                    ['DynamicObject', 'Closure.call', 'MetaClass', 'MetaMethod', 'CallSite', 'ConfigureDelegate', 'Method.invoke', 'MethodAccessor', 'Proxy', 'ConfigureUtil', 'Script.invoke', 'ClosureBackedAction', 'getProperty(']: 'dynamic invocation',
+                    ['ProjectEvaluator', 'Project.evaluate']: 'project evaluation',
+                    ['CommandLine', 'Executer', 'Executor', 'Execution', 'Runner', 'BuildController', 'Bootstrap', 'EntryPoint', 'Main']: 'execution infrastructure',
+                )
+            )
         )
 
         private List<String> stackConversionOptions

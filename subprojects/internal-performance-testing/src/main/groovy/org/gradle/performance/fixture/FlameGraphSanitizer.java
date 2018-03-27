@@ -17,7 +17,9 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
@@ -41,8 +43,8 @@ class FlameGraphSanitizer {
 
     private final SanitizeFunction sanitizeFunction;
 
-    public FlameGraphSanitizer(SanitizeFunction sanitizeFunction) {
-        this.sanitizeFunction = sanitizeFunction;
+    public FlameGraphSanitizer(SanitizeFunction... sanitizeFunctions) {
+        this.sanitizeFunction = new CompositeSanitizeFunction(sanitizeFunctions);
     }
 
     public void sanitize(final File in, File out) {
@@ -86,10 +88,51 @@ class FlameGraphSanitizer {
         String map(String entry);
     }
 
-    public static class RegexBasedSanitizerFunction implements SanitizeFunction {
+    private static class CompositeSanitizeFunction implements SanitizeFunction {
+
+        private final List<SanitizeFunction> sanitizeFunctions;
+
+        private CompositeSanitizeFunction(SanitizeFunction... sanitizeFunctions) {
+            this.sanitizeFunctions = ImmutableList.copyOf(sanitizeFunctions);
+        }
+
+        @Override
+        public String map(String entry) {
+            String result = entry;
+            for (SanitizeFunction sanitizeFunction : sanitizeFunctions) {
+                result = sanitizeFunction.map(result);
+            }
+            return result;
+        }
+    }
+
+    public static class ContainmentBasedSanitizeFunction implements SanitizeFunction {
+        private final Map<String, String> replacements;
+
+        public ContainmentBasedSanitizeFunction(Map<List<String>, String> replacements) {
+            this.replacements = Maps.newHashMap();
+            for (Map.Entry<List<String>, String> entry : replacements.entrySet()) {
+                for (String key : entry.getKey()) {
+                    this.replacements.put(key, entry.getValue());
+                }
+            }
+        }
+
+        @Override
+        public String map(String entry) {
+            for (Map.Entry<String, String> replacement : replacements.entrySet()) {
+                if (entry.contains(replacement.getKey())) {
+                    return replacement.getValue();
+                }
+            }
+            return entry;
+        }
+    }
+
+    public static class RegexBasedSanitizeFunction implements SanitizeFunction {
         private final Map<Pattern, String> replacements;
 
-        public RegexBasedSanitizerFunction(Map<Pattern, String> replacements) {
+        public RegexBasedSanitizeFunction(Map<Pattern, String> replacements) {
             this.replacements = replacements;
         }
 
