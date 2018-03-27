@@ -13,8 +13,8 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
     @Test
     fun `given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set`() {
 
-        val compileDependency =
-            withFile("compile.jar")
+        val implementationDependency =
+            withFile("implementation.jar")
 
         val classpathDependency =
             withFile("classpath.jar")
@@ -31,7 +31,7 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
             }
 
             dependencies {
-                compile(files("${compileDependency.name}"))
+                implementation(files("${implementationDependency.name}"))
             }
         """)
 
@@ -40,7 +40,7 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
 
         assertClassPathFor(
             precompiledScriptPlugin,
-            includes = setOf(compileDependency),
+            includes = setOf(implementationDependency),
             excludes = setOf(classpathDependency))
     }
 
@@ -64,14 +64,14 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
                 "src/main/kotlin" {
                     withFile("my-plugin-a.gradle.kts")
                 }
-                withCompileDependencyOn(dependencyA)
+                withImplementationDependencyOn(dependencyA)
             }
 
             "project-b" {
                 "src/main/kotlin" {
                     withFile("my-plugin-b.gradle.kts")
                 }
-                withCompileDependencyOn(dependencyB)
+                withImplementationDependencyOn(dependencyB)
             }
         }
 
@@ -87,14 +87,14 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
     }
 
     private
-    fun FoldersDsl.withCompileDependencyOn(file: File) {
+    fun FoldersDsl.withImplementationDependencyOn(file: File) {
         withFile("build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
             }
 
             dependencies {
-                compile(files("${file.name}"))
+                implementation(files("${file.name}"))
             }
         """)
     }
