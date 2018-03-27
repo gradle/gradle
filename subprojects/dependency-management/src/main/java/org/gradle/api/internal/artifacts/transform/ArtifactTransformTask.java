@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
@@ -52,27 +54,39 @@ import java.util.concurrent.ConcurrentHashMap;
 @NonNullApi
 public class ArtifactTransformTask extends DefaultTask {
 
-    private ArtifactTransformDependency artifactTransformDependency;
+    private final ArtifactTransformer transform;
+    private final ResolvedArtifactSet delegate;
+    private final AttributeContainerInternal attributes;
     private ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
     private ConcurrentHashMap<File, TransformationResult> fileResults;
+    private final ArtifactTransformTask requiredTransform;
 
-    public ArtifactTransformTask() {
-        dependsOn(new TaskDependencyContainer() {
-            @Override
-            public void visitDependencies(final TaskDependencyResolveContext context) {
-                artifactTransformDependency.getDelegate().collectBuildDependencies(new BuildDependenciesVisitor() {
-                    @Override
-                    public void visitDependency(Object dep) {
-                        context.add(dep);
-                    }
+    @Inject
+    public ArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes, Optional<ArtifactTransformTask> requiredTransform) {
+        this.transform = transform;
+        this.delegate = delegate;
+        this.attributes = attributes;
+        this.requiredTransform = requiredTransform.orNull();
+        if (requiredTransform.isPresent()) {
+            dependsOn(requiredTransform.get());
+        } else {
+            dependsOn(new TaskDependencyContainer() {
+                @Override
+                public void visitDependencies(final TaskDependencyResolveContext context) {
+                    ArtifactTransformTask.this.delegate.collectBuildDependencies(new BuildDependenciesVisitor() {
+                        @Override
+                        public void visitDependency(Object dep) {
+                            context.add(dep);
+                        }
 
-                    @Override
-                    public void visitFailure(Throwable failure) {
-                        throw new GradleException("Broken!");
-                    }
-                });
-            }
-        });
+                        @Override
+                        public void visitFailure(Throwable failure) {
+                            throw new GradleException("Broken!");
+                        }
+                    });
+                }
+            });
+        }
     }
 
     private ResolvedArtifactSet.Completion result;
@@ -82,31 +96,70 @@ public class ArtifactTransformTask extends DefaultTask {
         return result;
     }
 
+    @Internal
+    public ResolvedArtifactSet.Completion getResolvedArtifacts() {
+        if (requiredTransform != null) {
+            return requiredTransform.getResolvedArtifacts();
+        }
+        ResolveArtifacts resolveArtifacts = new ResolveArtifacts(delegate);
+        getBuildOperationExecuter().runAll(resolveArtifacts);
+
+        return resolveArtifacts.getResult();
+    }
+
+    public TransformationResult getIncomingTransformationResult(ResolvableArtifact artifact) {
+        if (requiredTransform != null) {
+            return requiredTransform.artifactResults.get(artifact);
+        }
+        return new TransformationResult(ImmutableList.of(artifact.getFile()));
+    }
+
+    public TransformationResult getIncomingTransformationResult(File file) {
+        if (requiredTransform != null) {
+            return requiredTransform.fileResults.get(file);
+        }
+        return new TransformationResult(ImmutableList.of(file));
+    }
+
     @TaskAction
     public void transformArtifacts() {
         artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformationResult>();
         fileResults = new ConcurrentHashMap<File, TransformationResult>();
-        ResolveArtifacts resolveArtifacts = new ResolveArtifacts(getDelegate());
-        getBuildOperationExecuter().runAll(resolveArtifacts);
-
-        resolveArtifacts.getResult().visit(new ArtifactVisitor() {
+        ResolvedArtifactSet.Completion resolvedArtifacts = getResolvedArtifacts();
+        resolvedArtifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                artifactResults.put(artifact, transform(artifact.getFile()));
+                TransformationResult incoming = getIncomingTransformationResult(artifact);
+                artifactResults.put(artifact, transform(incoming));
             }
 
             @Override
             public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
-                fileResults.put(file, transform(file));
+                fileResults.put(file, transform(getIncomingTransformationResult(file)));
             }
 
             private TransformationResult transform(File file) {
                 try {
-                    List<File> result = getTransform().transform(file);
+                    List<File> result = transform.transform(file);
                     return new TransformationResult(result);
                 } catch (Throwable e) {
                     return new TransformationResult(e);
                 }
+            }
+
+            private TransformationResult transform(TransformationResult incoming) {
+                if (incoming.isFailed()) {
+                    return incoming;
+                }
+                ImmutableList.Builder<File> builder = ImmutableList.builder();
+                for (File file : incoming.getTransformedFiles()) {
+                    TransformationResult transformationResult = transform(file);
+                    if (transformationResult.isFailed()) {
+                        return transformationResult;
+                    }
+                    builder.addAll(transformationResult.getTransformedFiles());
+                }
+                return new TransformationResult(builder.build());
             }
 
             @Override
@@ -124,11 +177,7 @@ public class ArtifactTransformTask extends DefaultTask {
 
             }
         });
-        result = new TransformingResult(resolveArtifacts.getResult(), artifactResults, fileResults, artifactTransformDependency.getAttributes());
-    }
-
-    public void setArtifactTransformDependency(ArtifactTransformDependency artifactTransformDependency) {
-        this.artifactTransformDependency = artifactTransformDependency;
+        result = new TransformingResult(resolvedArtifacts, artifactResults, fileResults, attributes);
     }
 
     private static class ResolveArtifacts implements Action<BuildOperationQueue<RunnableBuildOperation>> {
@@ -153,14 +202,6 @@ public class ArtifactTransformTask extends DefaultTask {
     @Inject
     public BuildOperationExecutor getBuildOperationExecuter() {
         throw new UnsupportedOperationException();
-    }
-
-    private ResolvedArtifactSet getDelegate() {
-        return artifactTransformDependency.getDelegate();
-    }
-
-    private ArtifactTransformer getTransform() {
-        return artifactTransformDependency.getTransform();
     }
 
     public static class TransformingResult implements ResolvedArtifactSet.Completion {

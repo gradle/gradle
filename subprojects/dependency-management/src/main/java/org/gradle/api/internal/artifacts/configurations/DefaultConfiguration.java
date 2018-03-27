@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -69,10 +70,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVi
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependency;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformTask;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
+import org.gradle.api.internal.artifacts.transform.ChainedTransformer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -1384,13 +1388,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         if (dep instanceof ArtifactTransformDependency) {
                             ITaskFactory taskFactory = projectFinder.findProject(":").getServices().get(ITaskFactory.class);
                             ArtifactTransformDependency transformDependency = (ArtifactTransformDependency) dep;
-                            ArtifactTransformTask transformTask = taskFactory.create(getName() + transformDependency.getName() + System.nanoTime(), ArtifactTransformTask.class);
-                            transformTask.setArtifactTransformDependency(transformDependency);
+
+                            ArtifactTransformTask transformTask = createAndUnpackTransformTask(taskFactory, transformDependency.getTransform(), transformDependency.getDelegate(), transformDependency.getAttributes(), null);
                             transformDependency.setTransformTask(transformTask);
                             context.add(transformTask);
                         } else {
                             context.add(dep);
                         }
+                    }
+
+                    private ArtifactTransformTask createAndUnpackTransformTask(ITaskFactory taskFactory, ArtifactTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformTask innerTransformTask) {
+                        if (transform instanceof ChainedTransformer) {
+                            ChainedTransformer transformer = (ChainedTransformer) transform;
+                            ArtifactTransformTask inner = createAndUnpackTransformTask(taskFactory, transformer.getFirst(), delegate, attributes, innerTransformTask);
+                            return createAndUnpackTransformTask(taskFactory, transformer.getSecond(), delegate, attributes, inner);
+                        }
+                        return createArtifactTransformTask(taskFactory, transform, delegate, attributes, innerTransformTask);
+                    }
+
+                    private ArtifactTransformTask createArtifactTransformTask(ITaskFactory taskFactory, ArtifactTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes, @Nullable ArtifactTransformTask innerTransformTask) {
+                        return taskFactory.create(
+                            getName() + transform.getDisplayName() + System.nanoTime(),
+                            ArtifactTransformTask.class,
+                            transform,
+                            delegate,
+                            attributes,
+                            Optional.fromNullable(innerTransformTask)
+                        );
                     }
                 });
                 if (!lenient) {

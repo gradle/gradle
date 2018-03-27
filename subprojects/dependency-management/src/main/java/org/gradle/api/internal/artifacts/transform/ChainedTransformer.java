@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-class ChainedTransformer implements ArtifactTransformer {
+public class ChainedTransformer implements ArtifactTransformer {
 
     private final ArtifactTransformer first;
     private final ArtifactTransformer second;
@@ -55,5 +55,13 @@ class ChainedTransformer implements ArtifactTransformer {
     @Override
     public String getDisplayName() {
         return first.getDisplayName() + " -> " + second.getDisplayName();
+    }
+
+    public ArtifactTransformer getFirst() {
+        return first;
+    }
+
+    public ArtifactTransformer getSecond() {
+        return second;
     }
 }
