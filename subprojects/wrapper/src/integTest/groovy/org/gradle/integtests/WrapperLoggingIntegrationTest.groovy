@@ -19,6 +19,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
@@ -46,6 +48,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.output.empty
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "wrapper logs and continues when there is a problem setting permissions"() {
         given: "malformed distribution"
         // Repackage distribution with bin/gradle removed so permissions cannot be set
