@@ -105,7 +105,7 @@ inline
 fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type ->
         convention.findByType(type)
-            ?: convention.findPlugin()
+            ?: convention.findPlugin(T::class.java)
             ?: convention.getByType(type)
     }
 
