@@ -1,5 +1,74 @@
 {
     "acceptedApiChanges": [
-        
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getResourceDirs()",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResourceDirs()",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setResourceDirs(java.util.Set)",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestResourceDirs(java.util.Set)",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.getResourceFolders()",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.getTestResourceFolders()",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.setResourceFolders(java.util.Set)",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.setTestResourceFolders(java.util.Set)",
+            "acceptation": "merged from release"
+        },
+        {
+            "type": "org.gradle.tooling.model.idea.IdeaContentRoot",
+            "member": "Method org.gradle.tooling.model.idea.IdeaContentRoot.getResourceDirectories()",
+            "acceptation": "merged from release",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.model.idea.IdeaContentRoot",
+            "member": "Method org.gradle.tooling.model.idea.IdeaContentRoot.getTestResourceDirectories()",
+            "acceptation": "merged from release",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.configure(org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.lang.Boolean,org.gradle.plugins.ide.idea.model.Path,org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.lang.String,java.lang.String)",
+            "acceptation": "merged from release",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.configure(org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.lang.Boolean,org.gradle.plugins.ide.idea.model.Path,org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.lang.String,java.lang.String)",
+            "acceptation": "merged from release"
+        }
+
     ]
 }
