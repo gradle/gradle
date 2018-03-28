@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -57,7 +56,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.language.cpp.CppBinary.*;
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -99,11 +100,10 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                // TODO: Implement os for Swift
-                //  library.getOperatingSystems().lockNow();
-                Set<OperatingSystemFamily> operatingSystemFamilies = Sets.newHashSet(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())); // library.getOperatingSystems().get();
+                library.getOperatingSystems().lockNow();
+                Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
-                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                    throw new IllegalArgumentException("An operating system needs to be specified for the library.");
                 }
 
                 library.getLinkage().lockNow();
