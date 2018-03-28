@@ -31,7 +31,12 @@ import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.api.logging.LogLevel.*
+import static org.gradle.api.logging.LogLevel.DEBUG
+import static org.gradle.api.logging.LogLevel.ERROR
+import static org.gradle.api.logging.LogLevel.INFO
+import static org.gradle.api.logging.LogLevel.LIFECYCLE
+import static org.gradle.api.logging.LogLevel.QUIET
+import static org.gradle.api.logging.LogLevel.WARN
 import static org.slf4j.Logger.ROOT_LOGGER_NAME
 
 @Unroll
@@ -46,7 +51,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         }
 
     }
-    final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, timeProvider)
+    final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(timeProvider)
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance()
 
     def setup() {

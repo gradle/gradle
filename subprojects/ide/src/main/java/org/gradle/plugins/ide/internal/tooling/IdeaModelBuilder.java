@@ -160,6 +160,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
             .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs(), ideaModule.getGeneratedSourceDirs()))
+            .setResourceDirectories(srcDirs(ideaModule.getResourceDirs(), ideaModule.getGeneratedSourceDirs()))
+            .setTestResourceDirectories(srcDirs(ideaModule.getTestResourceDirs(), ideaModule.getGeneratedSourceDirs()))
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
         Project project = ideaModule.getProject();

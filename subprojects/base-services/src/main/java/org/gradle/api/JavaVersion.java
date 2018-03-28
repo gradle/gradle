@@ -28,7 +28,21 @@ import java.util.List;
 public enum JavaVersion {
     VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4,
     VERSION_1_5, VERSION_1_6, VERSION_1_7, VERSION_1_8,
-    VERSION_1_9, VERSION_1_10, VERSION_11, VERSION_HIGHER;
+    VERSION_1_9, VERSION_1_10,
+    /**
+     * Java 11 major version.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    VERSION_11,
+
+    /**
+     * Higher version of Java.
+     * @since 4.7
+     */
+    @Incubating
+    VERSION_HIGHER;
     // Since Java 9, version should be X instead of 1.X
     // However, to keep backward compatibility, we change from 11
     private static final int FIRST_MAJOR_VERSION_ORDINAL = 10;
@@ -121,6 +135,12 @@ public enum JavaVersion {
         return this == VERSION_1_10;
     }
 
+    /**
+     * Returns if the version is Java 11.
+     *
+     * @since 4.7
+     */
+    @Incubating
     public boolean isJava11() {
         return this == VERSION_11;
     }
@@ -149,6 +169,12 @@ public enum JavaVersion {
         return this.compareTo(VERSION_1_10) >= 0;
     }
 
+    /**
+     * Returns if the version is Java 11 compatible.
+     *
+     * @since 4.7
+     */
+    @Incubating
     public boolean isJava11Compatible() {
         return this.compareTo(VERSION_11) >= 0;
     }
