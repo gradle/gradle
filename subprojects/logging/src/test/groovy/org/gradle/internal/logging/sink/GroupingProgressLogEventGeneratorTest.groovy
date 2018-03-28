@@ -391,12 +391,12 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     @Unroll
     def "forwards header again when status changes after output is flushed (verbose: #verbose)"() {
-        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT
+        def olderTimestamp = 0
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def event1 = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskStartEvent.buildOperationId)
-        def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
-        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, timeProvider.currentTime, "STATUS", false)
-        def listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, verbose)
+        def updateNowEvent = new UpdateNowEvent(olderTimestamp + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, olderTimestamp + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10, "STATUS", false)
+        def listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, verbose)
 
         when:
         listener.onOutput(taskStartEvent)
@@ -424,7 +424,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         given:
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "FAILED", true)
-        def listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, false)
+        def listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, false)
 
         when:
         listener.onOutput(taskStartEvent)
