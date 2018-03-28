@@ -62,6 +62,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final ProjectFinder projectFinder;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ArtifactTransformTaskRegistry artifactTransformTaskRegistry;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
@@ -82,7 +83,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          TaskResolver taskResolver,
                                          ImmutableAttributesFactory attributesFactory,
                                          final ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                         final ComponentSelectorConverter componentSelectorConverter) {
+                                         final ComponentSelectorConverter componentSelectorConverter,
+                                         ArtifactTransformTaskRegistry artifactTransformTaskRegistry) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -93,6 +95,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.projectFinder = projectFinder;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.artifactTransformTaskRegistry = artifactTransformTaskRegistry;
         this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory().create();
         this.attributesFactory = attributesFactory;
@@ -109,7 +112,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder);
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, artifactTransformTaskRegistry);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -140,7 +143,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             context, name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), artifactTransformTaskRegistry);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

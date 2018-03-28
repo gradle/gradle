@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,32 +33,30 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
-    private ArtifactTransformDependency artifactTransformDependency;
+    private final ArtifactTransformTask transformTask;
 
-    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform) {
+    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, @Nullable ArtifactTransformTask transformTask) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;
+        this.transformTask = transformTask;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        if (delegate instanceof LocalFileDependencyBackedArtifactSet.SingletonFileResolvedVariant) {
+        if (transformTask == null) {
             Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
             Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
             Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
             return new TransformingResult(result, artifactResults, fileResults, attributes);
         } else {
-            return artifactTransformDependency.getTransformTask().getResult();
+            return transformTask.getResult();
         }
     }
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        artifactTransformDependency = new ArtifactTransformDependency(transform, delegate, attributes);
-        visitor.visitDependency(artifactTransformDependency);
-        // FIXME: Task needs to collect the delegate dependencies and create tranforms for them.
-//        delegate.collectBuildDependencies(visitor);
+        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate, attributes));
     }
 
     private static class TransformingResult implements Completion {

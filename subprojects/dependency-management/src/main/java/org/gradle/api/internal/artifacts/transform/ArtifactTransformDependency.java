@@ -26,7 +26,6 @@ public class ArtifactTransformDependency implements Named {
     private final ArtifactTransformer transform;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
-    private ArtifactTransformTask transformTask;
 
     public ArtifactTransformDependency(ArtifactTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes) {
         this.transform = transform;
@@ -49,13 +48,5 @@ public class ArtifactTransformDependency implements Named {
 
     public AttributeContainerInternal getAttributes() {
         return attributes;
-    }
-
-    public void setTransformTask(ArtifactTransformTask transformTask) {
-        this.transformTask = transformTask;
-    }
-
-    public ArtifactTransformTask getTransformTask() {
-        return transformTask;
     }
 }

@@ -138,6 +138,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
+    private final ArtifactTransformTaskRegistry artifactTransformTaskRegistry;
     private CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private DefaultDependencySet allDependencies;
@@ -217,9 +218,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 NotationParser<Object, Capability> capabilityNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder
-
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
+                                ArtifactTransformTaskRegistry artifactTransformTaskRegistry
     ) {
+        this.artifactTransformTaskRegistry = artifactTransformTaskRegistry;
         this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -731,7 +733,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder);
+            rootComponentMetadataBuilder, artifactTransformTaskRegistry);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -922,21 +924,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class ConfigurationFileCollection extends AbstractFileCollection {
         private final Spec<? super Dependency> dependencySpec;
+        private final AttributeContainerInternal viewAttributes;
+        private final Spec<? super ComponentIdentifier> componentSpec;
         private final boolean lenient;
-        private CachedArtifactSelection cachedArtifactSelection;
+        private final boolean allowNoMatchingVariants;
+        private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
-            this.lenient = false;
-            this.cachedArtifactSelection = new CachedArtifactSelection(dependencySpec, configurationAttributes, Specs.satisfyAll(), false);
+            this.viewAttributes = configurationAttributes;
+            this.componentSpec = Specs.satisfyAll();
+            lenient = false;
+            allowNoMatchingVariants = false;
         }
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes,
                                             Spec<? super ComponentIdentifier> componentSpec, boolean lenient, boolean allowNoMatchingVariants) {
             this.dependencySpec = dependencySpec;
+            this.viewAttributes = viewAttributes.asImmutable();
+            this.componentSpec = componentSpec;
             this.lenient = lenient;
-            this.cachedArtifactSelection = new CachedArtifactSelection(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants);
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
         }
 
         private ConfigurationFileCollection(Closure dependencySpecClosure) {
@@ -952,9 +961,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public ConfigurationTaskDependency getBuildDependencies() {
+        public TaskDependency getBuildDependencies() {
             assertResolvingAllowed();
-            return new ConfigurationTaskDependency(lenient, cachedArtifactSelection);
+            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, lenient);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -967,7 +976,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-            cachedArtifactSelection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
+            getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             if (!lenient) {
                 rethrowFailure("files", visitor.getFailures());
@@ -977,26 +986,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {
-            return cachedArtifactSelection.getSelectedArtifacts();
-        }
-    }
-
-    private class CachedArtifactSelection {
-        private final Spec<? super Dependency> dependencySpec;
-        private final AttributeContainerInternal viewAttributes;
-        private final Spec<? super ComponentIdentifier> componentSpec;
-        private final boolean allowNoMatchingVariants;
-
-        private SelectedArtifactSet selectedArtifacts;
-
-        private CachedArtifactSelection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants) {
-            this.dependencySpec = dependencySpec;
-            this.viewAttributes = viewAttributes;
-            this.componentSpec = componentSpec;
-            this.allowNoMatchingVariants = allowNoMatchingVariants;
-        }
-
-        public synchronized SelectedArtifactSet getSelectedArtifacts() {
             if (selectedArtifacts == null) {
                 assertResolvingAllowed();
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
@@ -1363,19 +1352,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {
+        private final Spec<? super Dependency> dependencySpec;
+        private final AttributeContainerInternal requestedAttributes;
+        private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
         private final boolean lenient;
-        private final DefaultConfiguration.CachedArtifactSelection cachedArtifactSelection;
+        private final boolean allowNoMatchingVariants;
 
-        ConfigurationTaskDependency(boolean lenient, CachedArtifactSelection cachedArtifactSelection) {
+        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants, boolean lenient) {
+            this.dependencySpec = dependencySpec;
+            this.requestedAttributes = requestedAttributes;
+            this.componentIdentifierSpec = componentIdentifierSpec;
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
             this.lenient = lenient;
-            this.cachedArtifactSelection = cachedArtifactSelection;
         }
 
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
             synchronized (resolutionLock) {
-                // In order to detect which artifact transforms are required, the whole graph needs to be resolved to detect dependencies.
-                SelectedArtifactSet selected = cachedArtifactSelection.getSelectedArtifacts();
+                if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                    // Force graph resolution as this is required to calculate build dependencies
+                    resolveToStateOrLater(GRAPH_RESOLVED);
+                }
+                ResolverResults results;
+                if (getState() == State.UNRESOLVED) {
+                    // Traverse graph
+                    results = new DefaultResolverResults();
+                    resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+                } else {
+                    // Otherwise, already have a result, so reuse it
+                    results = cachedResolverResults;
+                }
+                SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
                 final Set<Throwable> failures = new LinkedHashSet<Throwable>();
                 selected.collectBuildDependencies(new BuildDependenciesVisitor() {
                     @Override
@@ -1390,7 +1397,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                             ArtifactTransformDependency transformDependency = (ArtifactTransformDependency) dep;
 
                             ArtifactTransformTask transformTask = createAndUnpackTransformTask(taskFactory, transformDependency.getTransform(), transformDependency.getDelegate(), transformDependency.getAttributes(), null);
-                            transformDependency.setTransformTask(transformTask);
+                            artifactTransformTaskRegistry.register(transformDependency.getDelegate(), transformDependency.getAttributes(), transformDependency.getTransform(), transformTask);
                             context.add(transformTask);
                         } else {
                             context.add(dep);
