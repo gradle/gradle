@@ -173,22 +173,26 @@ task sleep {
         def infoBuild = executer.withArguments("-i", "-Dorg.gradle.jvmargs=-ea").run()
 
         then:
-        getLogs(executer.daemonBaseDir).size() == 0 //we should connect to the foreground daemon so no log was created
-
-        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
-        daemon.standardOutput.count("info me!") == 1
-
         infoBuild.output.count("debug me!") == 0
         infoBuild.output.count("info me!") == 1
+
+        getLogs(executer.daemonBaseDir).size() == 0 //we should connect to the foreground daemon so no log was created
+
+        // Output is delivered asynchronously to the daemon's output, so wait for it to appear
+        poll(60) { assert daemon.standardOutput.count("info me!") == 1 }
+        daemon.standardOutput.count("debug me!") == 0
+        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
 
         when:
         def debugBuild = executer.withArguments("-d", "-Dorg.gradle.jvmargs=-ea").run()
 
         then:
-        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
-        daemon.standardOutput.count("debug me!") == 1
-
         debugBuild.output.count("debug me!") == 1
+        debugBuild.output.count("info me!") == 1
+
+        poll(60) { assert daemon.standardOutput.count("info me!") == 2 }
+        daemon.standardOutput.count("debug me!") == 1
+        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
 
         cleanup:
         daemon.abort()
