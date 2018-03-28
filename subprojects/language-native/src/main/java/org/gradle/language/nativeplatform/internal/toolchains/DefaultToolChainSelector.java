@@ -66,7 +66,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
             }
         }
 
-        // TODO - use a better name for the platforms, rather than "current"
+        // TODO - use a better name for the platforms, rather than "host"
 
         T targetPlatform = null;
         if (CppPlatform.class.isAssignableFrom(platformType)) {
