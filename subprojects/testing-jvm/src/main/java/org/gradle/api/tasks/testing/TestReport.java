@@ -83,14 +83,14 @@ public class TestReport extends DefaultTask {
     private void addTo(Object result, UnionFileCollection dirs) {
         if (result instanceof Test) {
             Test test = (Test) result;
-            dirs.uniteWith(getProject().files(test.getBinResultsDir()).builtBy(test));
+            dirs.addToUnion(getProject().files(test.getBinResultsDir()).builtBy(test));
         } else if (result instanceof Iterable<?>) {
             Iterable<?> iterable = (Iterable<?>) result;
             for (Object nested : iterable) {
                 addTo(nested, dirs);
             }
         } else {
-            dirs.uniteWith(getProject().files(result));
+            dirs.addToUnion(getProject().files(result));
         }
     }
 

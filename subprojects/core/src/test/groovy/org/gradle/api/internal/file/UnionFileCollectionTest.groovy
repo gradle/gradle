@@ -68,7 +68,7 @@ class UnionFileCollectionTest extends Specification {
 
         expect:
         def collection = new UnionFileCollection([source1])
-        collection.uniteWith(source2)
+        collection.addToUnion(source2)
         collection.files == [file1, file2] as LinkedHashSet
     }
 
