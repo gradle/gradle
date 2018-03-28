@@ -16,11 +16,13 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -33,11 +35,13 @@ import javax.inject.Inject;
 
 public class DefaultToolChainSelector implements ToolChainSelector {
     private final ModelRegistry modelRegistry;
+    private final ObjectFactory objectFactory;
     private DefaultNativePlatform host;
 
     @Inject
-    public DefaultToolChainSelector(ModelRegistry modelRegistry) {
+    public DefaultToolChainSelector(ModelRegistry modelRegistry, ObjectFactory objectFactory) {
         this.modelRegistry = modelRegistry;
+        this.objectFactory = objectFactory;
         this.host = DefaultNativePlatform.host();
     }
 
@@ -67,12 +71,14 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         }
 
         // TODO - use a better name for the platforms, rather than "host"
-
-        T targetPlatform = null;
+        OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, targetMachine.getOperatingSystem().toFamilyName());
+        final T targetPlatform;
         if (CppPlatform.class.isAssignableFrom(platformType)) {
-            targetPlatform = platformType.cast(new DefaultCppPlatform("host", targetMachine));
+            targetPlatform = platformType.cast(new DefaultCppPlatform("host", operatingSystemFamily, targetMachine));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            targetPlatform = platformType.cast(new DefaultSwiftPlatform("host", targetMachine));
+            targetPlatform = platformType.cast(new DefaultSwiftPlatform("host", operatingSystemFamily, targetMachine));
+        } else {
+            throw new IllegalArgumentException("Unknown type of platform " + platformType);
         }
         return new DefaultResult<T>(toolChain, toolProvider, targetPlatform);
     }

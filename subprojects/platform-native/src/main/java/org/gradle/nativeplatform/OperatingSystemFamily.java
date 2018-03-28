@@ -19,6 +19,7 @@ package org.gradle.nativeplatform;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.tasks.Input;
 
 /**
  * Represents the operating system of a configuration. Typical operating system include Windows, Linux, and macOS.
@@ -29,6 +30,13 @@ import org.gradle.api.attributes.Attribute;
 @Incubating
 public interface OperatingSystemFamily extends Named {
     Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Input
+    @Override
+    String getName();
 
     /**
      * The Windows operating system family.
