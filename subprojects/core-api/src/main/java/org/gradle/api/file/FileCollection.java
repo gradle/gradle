@@ -129,7 +129,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @param collection The collection to add.
      * @return This
      * @throws UnsupportedOperationException When this collection does not allow modification.
+     *
+     * @deprecated Use {@link ConfigurableFileCollection#from(Object...)} instead. You can create configurable file collections
+     * via {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Deprecated
     FileCollection add(FileCollection collection) throws UnsupportedOperationException;
 
     /**
