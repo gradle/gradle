@@ -149,11 +149,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * This happens when the `ModuleResolveState` is restarted, during conflict resolution or version range merging.
      */
     public void overrideSelection(ComponentState selected) {
-        if (this.selected == null) {
-            // Do not override if this selector hasn't yet been resolved
-            return;
-        }
-
         this.selected = selected;
 
         // Target module can change, if this is called as the result of a module replacement conflict.

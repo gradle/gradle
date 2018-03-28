@@ -232,12 +232,9 @@ public class DependencyGraphBuilder {
 
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {
+            module.select(selected);
             // This is the first time we've seen the module, so register with conflict resolver.
-            if (!moduleHasConflicts(resolveState, module)) {
-                // No conflicting modules. Select it for now
-                LOGGER.debug("Selecting new module {}", module.getId());
-                module.select(selected);
-            }
+            checkForModuleConflicts(resolveState, module);
             return;
         }
 
@@ -251,7 +248,7 @@ public class DependencyGraphBuilder {
         module.restart(selected);
     }
 
-    private boolean moduleHasConflicts(ResolveState resolveState, ModuleResolveState module) {
+    private void checkForModuleConflicts(ResolveState resolveState, ModuleResolveState module) {
         // A new module. Check for conflict with capabilities and module replacements.
         PotentialConflict c = moduleConflictHandler.registerCandidate(module);
         if (c.conflictExists()) {
@@ -261,9 +258,7 @@ public class DependencyGraphBuilder {
             // For each module participating in the conflict, deselect the currently selection, and remove all outgoing edges from the version.
             // This will propagate through the graph and prune configurations that are no longer required.
             c.withParticipatingModules(resolveState.getDeselectVersionAction());
-            return true;
         }
-        return false;
     }
 
     /**
