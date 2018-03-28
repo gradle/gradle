@@ -75,7 +75,7 @@ class DefaultToolChainSelectorTest extends Specification {
         def x86ToolChain = Mock(NativeToolChainInternal)
         def x86ToolProvider = Mock(PlatformToolProvider)
         def windows = Mock(OperatingSystemFamily)
-        
+
         given:
         objectFactory.named(_, _) >> windows
         modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
