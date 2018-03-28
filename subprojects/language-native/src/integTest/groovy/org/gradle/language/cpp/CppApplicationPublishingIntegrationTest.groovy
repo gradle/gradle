@@ -405,7 +405,9 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
             version = '1.2'
             application {
                 baseName = 'test'
-                operatingSystems = [objects.named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS), objects.named(OperatingSystemFamily, OperatingSystemFamily.LINUX), objects.named(OperatingSystemFamily, OperatingSystemFamily.MACOS)]
+                operatingSystem targets.windows()
+                operatingSystem targets.linux()
+                operatingSystem targets.macOS()
             }
             publishing {
                 repositories { maven { url '$repo.uri' } }

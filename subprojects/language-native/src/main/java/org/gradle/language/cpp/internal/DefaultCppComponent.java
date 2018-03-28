@@ -29,11 +29,11 @@ import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.internal.DefaultBinaryCollection;
+import org.gradle.language.internal.DefaultTargetMachine;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -50,6 +50,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
     private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
+    private final DefaultTargetMachine targetMachineBuilder;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -60,10 +61,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
+        targetMachineBuilder = new DefaultTargetMachine(objectFactory);
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
         operatingSystems = new LockableSetProperty<OperatingSystemFamily>(objectFactory.setProperty(OperatingSystemFamily.class));
-        operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
+        operatingSystems.set(Collections.singleton(targetMachineBuilder.host()));
     }
 
     @Override
@@ -130,5 +132,15 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public LockableSetProperty<OperatingSystemFamily> getOperatingSystems() {
         return operatingSystems;
+    }
+
+    @Override
+    public void operatingSystem(OperatingSystemFamily operatingSystemFamily) {
+        operatingSystems.add(operatingSystemFamily);
+    }
+
+    @Override
+    public TargetMachine getTargets() {
+        return targetMachineBuilder;
     }
 }
