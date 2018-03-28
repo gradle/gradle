@@ -42,10 +42,8 @@ public class UnionFileCollection extends CompositeFileCollection {
         return source;
     }
 
-    @Override
-    public FileCollection add(FileCollection collection) {
+    public void uniteWith(FileCollection collection) {
         source.add(collection);
-        return this;
     }
 
     @Override

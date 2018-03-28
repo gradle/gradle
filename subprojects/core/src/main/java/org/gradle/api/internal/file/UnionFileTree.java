@@ -52,13 +52,11 @@ public class UnionFileTree extends CompositeFileTree {
         context.add(sourceTrees);
     }
 
-    @Override
-    public UnionFileTree add(FileCollection source) {
+    public void uniteWith(FileCollection source) {
         if (!(source instanceof FileTree)) {
             throw new UnsupportedOperationException(String.format("Can only add FileTree instances to %s.", getDisplayName()));
         }
 
         sourceTrees.add(Cast.cast(FileTreeInternal.class, source));
-        return this;
     }
 }

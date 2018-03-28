@@ -34,6 +34,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Deprecated methods on `FileCollection`
+
+- `FileCollection.add()` is now deprecated. Use `ConfigurableFileCollection.from()` instead. You can create a `ConfigurableFileCollection` via `Project.files()`.
+
 ## Potential breaking changes
 
 <!--
