@@ -173,7 +173,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                         }
                     }
                 }
-                
+
                 testComponent.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
                     @Override
                     public void execute(DefaultSwiftXCTestBinary binary) {

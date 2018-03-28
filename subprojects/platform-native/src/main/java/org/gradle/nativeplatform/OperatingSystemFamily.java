@@ -49,5 +49,5 @@ public interface OperatingSystemFamily extends Named {
      *
      * @since 4.7
      */
-    String MAC_OS = "macos";
+    String MACOS = "macos";
 }
