@@ -78,8 +78,9 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         given:
         def header = "Download http://repo.somewhere.com/foo.jar"
         def operationId = new OperationIdentifier(-3L)
-        def downloadEvent = new ProgressStartEvent(operationId, new OperationIdentifier(-4L), tenAm, CATEGORY, "Download description", null, header, null, 0, false, null, null, BuildOperationCategory.UNCATEGORIZED)
-        def progressEvent = new LogEvent(tenAm, CATEGORY, LogLevel.INFO, "message", null, operationId)
+        def buildOpId = new OperationIdentifier(22L)
+        def downloadEvent = new ProgressStartEvent(operationId, new OperationIdentifier(-4L), tenAm, CATEGORY, "Download description", null, header, null, 0, true, buildOpId, null, BuildOperationCategory.UNCATEGORIZED)
+        def progressEvent = new LogEvent(tenAm, CATEGORY, LogLevel.INFO, "message", null, buildOpId)
         def endEvent = new ProgressCompleteEvent(operationId, tenAm, "all good", false)
 
         when:
