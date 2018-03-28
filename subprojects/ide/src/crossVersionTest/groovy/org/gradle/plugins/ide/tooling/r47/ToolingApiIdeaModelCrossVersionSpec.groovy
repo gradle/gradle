@@ -23,11 +23,9 @@ import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=4.7 <5.0")
 @TargetGradleVersion(">=4.7 <5.0")
-@Ignore
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=4.7")
