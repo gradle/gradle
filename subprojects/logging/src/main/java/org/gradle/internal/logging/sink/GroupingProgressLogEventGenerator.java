@@ -182,6 +182,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private String lastHeaderStatus = "";
         private boolean failed;
         private boolean headerSent;
+        private boolean outputRendered;
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
@@ -214,7 +215,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private void flushOutput() {
             if (shouldForward()) {
                 boolean hasContent = !bufferedLogs.isEmpty();
-                if (!buildOpIdentifier.equals(lastRenderedBuildOpId) || !status.equals(lastHeaderStatus)) {
+                if (!hasForeground() || statusHasChanged()) {
                     if (needHeaderSeparator || hasContent) {
                         listener.onOutput(spacerLine(lastUpdateTime, category));
                     }
@@ -224,6 +225,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 }
 
                 for (RenderableOutputEvent renderableEvent : bufferedLogs) {
+                    outputRendered = true;
                     listener.onOutput(renderableEvent);
                 }
                 GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
@@ -245,7 +247,15 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean canClaimForeground() {
-            return buildOpIdentifier.equals(lastRenderedBuildOpId) || (!bufferedLogs.isEmpty() && lastRenderedBuildOpId == null);
+            return hasForeground() || (!bufferedLogs.isEmpty() && lastRenderedBuildOpId == null);
+        }
+
+        private boolean hasForeground() {
+            return buildOpIdentifier.equals(lastRenderedBuildOpId);
+        }
+
+        private boolean statusHasChanged() {
+            return !status.equals(lastHeaderStatus);
         }
 
         private void setStatus(String status, boolean failed) {
@@ -254,11 +264,19 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldPrintHeader() {
-            return !headerSent || !status.equals(lastHeaderStatus);
+            // Print the header if:
+            //   we're in verbose mode OR we're in rich mode and some output has already been rendered
+            //   AND
+            //   we haven't displayed the header yet OR we've displayed the header but the status has since changed
+            return (verbose || outputRendered) && (!headerSent || statusHasChanged());
+        }
+
+        private boolean statusIsFailed() {
+            return failed && statusHasChanged();
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (verbose && buildOperationCategory == BuildOperationCategory.TASK && shouldPrintHeader());
+            return !bufferedLogs.isEmpty() || (buildOperationCategory == BuildOperationCategory.TASK && (shouldPrintHeader() || statusIsFailed()));
         }
     }
 }

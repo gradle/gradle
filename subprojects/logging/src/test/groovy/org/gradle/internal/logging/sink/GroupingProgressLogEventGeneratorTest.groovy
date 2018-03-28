@@ -30,6 +30,7 @@ import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.MockClock
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
@@ -388,5 +389,52 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :b</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
+    }
+
+    @Unroll
+    def "forwards header again when status changes after output is flushed (verbose: #verbose)"() {
+        def olderTimestamp = timeProvider.currentTime - GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def event1 = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskStartEvent.buildOperationId)
+        def updateNowEvent = new UpdateNowEvent(timeProvider.currentTime)
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, timeProvider.currentTime, "STATUS", false)
+        def listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, verbose)
+
+        when:
+        listener.onOutput(taskStartEvent)
+        listener.onOutput(event1)
+        listener.onOutput(updateNowEvent)
+
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput(event1)
+
+        when:
+        listener.onOutput(taskCompleteEvent)
+
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        0 * downstreamListener._
+
+        where:
+        verbose << [true, false]
+    }
+
+    def "forwards header when not verbose and task status is failed"() {
+        given:
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "FAILED", true)
+        def listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, false)
+
+        when:
+        listener.onOutput(taskStartEvent)
+        listener.onOutput(taskCompleteEvent)
+
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        then:
+        0 * downstreamListener._
     }
 }
