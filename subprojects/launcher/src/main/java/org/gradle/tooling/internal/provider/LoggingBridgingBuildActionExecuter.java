@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
@@ -74,12 +73,6 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
             } else if (event instanceof ProgressCompleteEvent) {
                 progressListener.onOperationEnd();
             }
-        }
-    }
-
-    private static class IgnoreOutput implements StandardOutputListener {
-        @Override
-        public void onOutput(CharSequence output) {
         }
     }
 }
