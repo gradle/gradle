@@ -71,9 +71,4 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     public boolean isRejected() {
         return rejected;
     }
-
-    @Override
-    public boolean isRoot() {
-        return false;
-    }
 }

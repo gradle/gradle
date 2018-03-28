@@ -81,7 +81,6 @@ abstract class AbstractConflictResolverTest extends Specification {
         final ModuleVersionIdentifier id
         final ComponentIdentifier componentId
         ComponentResolveMetadata metadata
-        boolean root = false
         boolean rejected = false
         private MutableVersionConstraint constraint
 
