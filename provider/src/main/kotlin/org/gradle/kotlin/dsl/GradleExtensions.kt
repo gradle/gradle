@@ -29,6 +29,5 @@ import org.gradle.api.plugins.PluginAware
  * @param T the plugin type.
  * @see [PluginAware.apply]
  */
-inline
-fun <reified T : Plugin<Gradle>> Gradle.apply() =
+inline fun <reified T : Plugin<Gradle>> Gradle.apply() =
     (this as PluginAware).apply<T>()

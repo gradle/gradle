@@ -256,8 +256,7 @@ fun connectorFor(projectDir: File) =
     newConnector().forProjectDirectory(projectDir)!!
 
 
-inline
-fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T {
+inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T {
     try {
         return connector.connect().use(block)
     } finally {
@@ -266,8 +265,7 @@ fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.
 }
 
 
-inline
-fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
+inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
     try {
         return block(this)
     } finally {
@@ -279,18 +277,15 @@ fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
 /**
  * Forces a new daemon process to be started by basing the registry on an unique temp dir.
  */
-inline
-fun <T> withUniqueDaemonRegistry(baseDir: File, block: () -> T) =
+inline fun <T> withUniqueDaemonRegistry(baseDir: File, block: () -> T) =
     withDaemonRegistry(createTempDir("daemon-registry-", directory = baseDir), block)
 
 
-inline
-fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
+inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.path, block)
 
 
-inline
-fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
+inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
     val originalValue = System.getProperty(key)
     try {
         System.setProperty(key, value)

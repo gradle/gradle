@@ -79,8 +79,7 @@ class NullableExtraPropertyDelegate(
  *
  * Usage: `val answer by extra { 42 }`
  */
-inline
-operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): InitialValueExtraPropertyDelegateProvider<T> =
+inline operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): InitialValueExtraPropertyDelegateProvider<T> =
     invoke(initialValueProvider())
 
 

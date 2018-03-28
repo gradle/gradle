@@ -228,8 +228,7 @@ fun DependencyHandler.project(
  * @param dependencyConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  */
-inline
-fun DependencyHandler.add(
+inline fun DependencyHandler.add(
     configuration: String,
     dependencyNotation: String,
     dependencyConfiguration: ExternalModuleDependency.() -> Unit
@@ -246,8 +245,7 @@ fun DependencyHandler.add(
  * @param dependencyConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  */
-inline
-fun <T : ModuleDependency> DependencyHandler.add(
+inline fun <T : ModuleDependency> DependencyHandler.add(
     configuration: String,
     dependency: T,
     dependencyConfiguration: T.() -> Unit

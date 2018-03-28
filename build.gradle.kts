@@ -137,5 +137,4 @@ val benchmark by task<integration.Benchmark> {
 // --- Utility functions -----------------------------------------------
 operator fun Regex.contains(s: String) = matches(s)
 
-inline
-fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
+inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)

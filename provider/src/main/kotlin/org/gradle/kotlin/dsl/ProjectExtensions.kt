@@ -61,8 +61,7 @@ fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
  * starting the build.
  */
 @Suppress("nothing_to_inline")
-inline
-fun Project.defaultTasks(vararg tasks: Task) {
+inline fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
 
@@ -76,8 +75,7 @@ fun Project.defaultTasks(vararg tasks: Task) {
  * @param T the plugin type.
  * @see [PluginAware.apply]
  */
-inline
-fun <reified T : Plugin<Project>> Project.apply() =
+inline fun <reified T : Plugin<Project>> Project.apply() =
     (this as PluginAware).apply<T>()
 
 
@@ -89,8 +87,7 @@ fun <reified T : Plugin<Project>> Project.apply() =
  * @param configuration the configuration block.
  * @see [Convention.getPlugin]
  */
-inline
-fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
+inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     typeOf<T>().let { type ->
         convention.findByType(type)?.let(configuration)
             ?: convention.findPlugin<T>()?.let(configuration)
@@ -101,8 +98,7 @@ fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): U
 /**
  * Returns the plugin convention or extension of the specified type.
  */
-inline
-fun <reified T : Any> Project.the(): T =
+inline fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type ->
         convention.findByType(type)
             ?: convention.findPlugin(T::class.java)
@@ -123,8 +119,7 @@ fun <T : Any> Project.the(extensionType: KClass<T>): T =
  * Creates a [Task] with the given [name] and [type], configures it with the given [configuration] action,
  * and adds it to this project tasks container.
  */
-inline
-fun <reified type : Task> Project.task(name: String, noinline configuration: type.() -> Unit) =
+inline fun <reified type : Task> Project.task(name: String, noinline configuration: type.() -> Unit) =
     task(name, type::class, configuration)
 
 
@@ -135,8 +130,7 @@ fun <reified type : Task> Project.task(name: String, noinline configuration: typ
  * @see [TaskContainer.create]
  */
 @Suppress("extension_shadowed_by_member")
-inline
-fun <reified type : Task> Project.task(name: String) =
+inline fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
 
@@ -197,8 +191,7 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  * @see [ObjectFactory.property]
  */
 @Incubating
-inline
-fun <reified T> ObjectFactory.property(): Property<T> =
+inline fun <reified T> ObjectFactory.property(): Property<T> =
     property(T::class.java)
 
 
@@ -208,8 +201,7 @@ fun <reified T> ObjectFactory.property(): Property<T> =
  * @see [ObjectFactory.listProperty]
  */
 @Incubating
-inline
-fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
+inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
     listProperty(T::class.java)
 
 

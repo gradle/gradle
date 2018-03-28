@@ -57,8 +57,7 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
              *
              * @see $implementationClass
              */
-            inline
-            val $extendedType.`$memberName`: $extensionType
+            inline val $extendedType.`$memberName`: $extensionType
                 get() = id("$pluginId")
             """.replaceIndent()
         }

@@ -32,8 +32,7 @@ import kotlin.reflect.full.safeCast
  * @param configuration The expression to configure this container with
  * @return The container.
  */
-inline
-operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
+inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
     configuration: NamedDomainObjectContainerScope<T>.() -> Unit
 ): C =
 
@@ -52,8 +51,7 @@ class NamedDomainObjectContainerScope<T : Any>(
     /**
      * @see [NamedDomainObjectContainer.maybeCreate]
      */
-    inline
-    operator fun String.invoke(configuration: T.() -> Unit): T =
+    inline operator fun String.invoke(configuration: T.() -> Unit): T =
         this().apply(configuration)
 
     /**
@@ -65,8 +63,7 @@ class NamedDomainObjectContainerScope<T : Any>(
     /**
      * @see [PolymorphicDomainObjectContainer.maybeCreate]
      */
-    inline
-    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
+    inline operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
         this(type).apply(configuration)
 
     /**

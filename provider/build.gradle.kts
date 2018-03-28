@@ -66,6 +66,5 @@ tasks {
 withParallelTests()
 
 // --- Utility functions -----------------------------------------------
-inline
-fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
+inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
 

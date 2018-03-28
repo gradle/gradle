@@ -48,8 +48,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @return The dependency.
      * @see [DependencyHandler.add]
      */
-    inline
-    operator fun String.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+    inline operator fun String.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         dependencies.add(this, dependencyNotation, dependencyConfiguration)
 
     /**
@@ -90,8 +89,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
-    inline
-    operator fun String.invoke(
+    inline operator fun String.invoke(
         group: String,
         name: String,
         version: String? = null,
@@ -111,8 +109,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      *
      * @see [DependencyHandler.add]
      */
-    inline
-    operator fun <T : ModuleDependency> String.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+    inline operator fun <T : ModuleDependency> String.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         dependencies.add(this, dependency, dependencyConfiguration)
 
     /**
@@ -133,8 +130,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @return The dependency.
      * @see [DependencyHandler.add]
      */
-    inline
-    operator fun Configuration.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+    inline operator fun Configuration.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
 
     /**
@@ -175,8 +171,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
-    inline
-    operator fun Configuration.invoke(
+    inline operator fun Configuration.invoke(
         group: String,
         name: String,
         version: String? = null,
@@ -196,11 +191,9 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      *
      * @see [DependencyHandler.add]
      */
-    inline
-    operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+    inline operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
-    inline
-    operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
+    inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
         configuration()
 }
