@@ -478,40 +478,46 @@ inline fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () 
 private
 inline fun <T> LoadedScriptClass<T>.eval(scriptSource: KotlinScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
     withContextClassLoader(scriptClass.classLoader) {
-        withLocationAwareScriptEvaluationExceptionHandling(scriptSource, action)
+        withLocationAwareExceptionHandling(scriptSource, action)
     }
 
 
 private
-inline fun <T> LoadedScriptClass<T>.withLocationAwareScriptEvaluationExceptionHandling(
+inline fun <T> LoadedScriptClass<T>.withLocationAwareExceptionHandling(
     scriptSource: KotlinScriptSource,
     action: LoadedScriptClass<T>.() -> Unit
 ) =
     try {
         action()
     } catch (e: Throwable) {
-        throw maybeLocateException(scriptSource.source, e)
+        throw maybeLocateException(scriptSource.source, maybeUnwrapInvocationTargetException(e))
     }
 
 
 private
 fun LoadedScriptClass<*>.maybeLocateException(scriptSource: ScriptSource, e: Throwable): Throwable {
-    var actualException = e
-    if (actualException is InvocationTargetException) actualException = actualException.targetException
+
+    val innerClassNamePrefix = "${compiledScript.className}${'$'}"
 
     fun matches(element: StackTraceElement) =
-        element.className != null && (element.className == compiledScript.className || element.className.startsWith("${compiledScript.className}${'$'}"))
+        element.className?.run { equals(compiledScript.className) || startsWith(innerClassNamePrefix) } == true
 
     tailrec fun inferLocationFrom(exception: Throwable): Throwable {
         if (exception is LocationAwareException) return exception
         exception.stackTrace.find { matches(it) }
-            ?.run { return LocationAwareException(actualException, scriptSource, lineNumber.takeIf { it >= 0 }) }
-        return if (exception.cause == null) actualException
+            ?.run { return LocationAwareException(e, scriptSource, lineNumber.takeIf { it >= 0 }) }
+        return if (exception.cause == null) e
         else inferLocationFrom(exception.cause!!)
     }
 
-    return inferLocationFrom(actualException)
+    return inferLocationFrom(e)
 }
+
+
+private
+fun maybeUnwrapInvocationTargetException(e: Throwable) =
+    if (e is InvocationTargetException) e.targetException
+    else e
 
 
 private

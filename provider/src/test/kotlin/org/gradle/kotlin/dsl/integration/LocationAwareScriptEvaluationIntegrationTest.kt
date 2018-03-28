@@ -18,10 +18,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withSettings("""include("a")""")
         val script = withBuildScriptIn("a", boom)
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Build file '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -30,10 +32,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""apply(from = "other.gradle.kts")""")
         val script = withFile("other.gradle.kts", boom)
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Script '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -42,10 +46,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""apply(from = "other/build.gradle.kts")""")
         val script = withFile("other/build.gradle.kts", boom)
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Script '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -53,10 +59,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withBuildScript("buildscript { $boom }")
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Build file '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -64,10 +72,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withBuildScript("plugins { $boom }")
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Build file '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -75,10 +85,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withSettings(boom)
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Settings file '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -86,10 +98,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withFile("my.init.gradle.kts", boom)
 
-        assertThat(buildAndFail("help", "-I", script.absolutePath).output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help", "-I", script.absolutePath) {
+            """
             * Where:
             Initialization script '${script.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
 
     @Test
@@ -98,13 +112,15 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""apply(from = "present.gradle.kts")""")
         val present = withFile("present.gradle.kts", """apply(from = "absent.gradle.kts")""")
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Script '${present.canonicalPath}' line: 1
 
             * What went wrong:
             Could not read script '${existing("absent.gradle.kts").canonicalPath}' as it does not exist.
-        """))
+            """
+        }
     }
 
     @Test
@@ -116,10 +132,12 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
             $boom
         """)
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Script '${script.canonicalPath}' line: 3
-        """))
+            """
+        }
     }
 
     /**
@@ -140,9 +158,15 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
             throw new InternalError("BOOM!")
         """)
 
-        assertThat(buildAndFail("help").output, containsMultiLineString("""
+        assertFailingBuildOutputContains("help") {
+            """
             * Where:
             Build file '${kotlinScript.canonicalPath}' line: 1
-        """))
+            """
+        }
     }
+
+    private
+    fun assertFailingBuildOutputContains(vararg arguments: String, string: () -> String) =
+        assertThat(buildAndFail(*arguments).output, containsMultiLineString(string()))
 }
