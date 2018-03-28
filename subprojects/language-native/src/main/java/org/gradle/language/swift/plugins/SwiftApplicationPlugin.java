@@ -49,7 +49,6 @@ import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -100,10 +99,15 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                final ObjectFactory objectFactory = project.getObjects();
+                application.getOperatingSystems().lockNow();
+                Set<OperatingSystemFamily> operatingSystemFamilies = application.getOperatingSystems().get();
+                if (operatingSystemFamilies.isEmpty()) {
+                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                }
 
                 // Add outgoing APIs
                 // TODO - remove this
+                final ObjectFactory objectFactory = project.getObjects();
                 final Configuration implementation = application.getImplementationDependencies();
                 final Usage apiUsage = objectFactory.named(Usage.class, Usage.SWIFT_API);
 
@@ -122,7 +126,6 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                     }
                 });
 
-                Set<OperatingSystemFamily> operatingSystemFamilies = Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()));
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
