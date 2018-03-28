@@ -158,6 +158,11 @@ public enum JavaVersion {
         return versionName;
     }
 
+    // We have to keep this for a while: https://github.com/gradle/gradle/issues/4856
+    private String getName() {
+        return versionName;
+    }
+
     public String getMajorVersion() {
         return String.valueOf(ordinal() + 1);
     }
