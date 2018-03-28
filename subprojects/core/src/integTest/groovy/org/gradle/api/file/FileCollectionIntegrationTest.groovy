@@ -108,6 +108,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "The FileTree.add() method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileTree.from() method instead."
+        output.contains "The FileCollection.add() method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileTree.from() method instead."
     }
 }

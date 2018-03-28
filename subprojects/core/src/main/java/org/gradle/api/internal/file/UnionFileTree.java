@@ -55,7 +55,7 @@ public class UnionFileTree extends CompositeFileTree {
 
     @Override
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
-        DeprecationLogger.nagUserOfReplacedMethod("FileTree.add()", "ConfigurableFileTree.from()");
+        DeprecationLogger.nagUserOfReplacedMethod("FileCollection.add()", "ConfigurableFileTree.from()");
         addToUnion(collection);
         return this;
     }
