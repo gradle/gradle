@@ -30,7 +30,6 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.time.Clock;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -44,12 +43,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
+ *
+ * <p>This listener forwards nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
     private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
     private final OutputEventListener listener;
-    private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
     private final boolean verbose;
 
@@ -60,10 +60,10 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private Object lastRenderedBuildOpId;
     private boolean needHeaderSeparator;
+    private long currentTimePeriod;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, Clock clock, LogHeaderFormatter headerFormatter, boolean verbose) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
-        this.clock = clock;
         this.headerFormatter = headerFormatter;
         this.verbose = verbose;
     }
@@ -139,6 +139,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onUpdateNow(UpdateNowEvent event) {
+        currentTimePeriod = event.getTimestamp();
         for (OperationGroup group : operationsInProgress.values()) {
             group.maybeFlushOutput(event.getTimestamp());
         }
@@ -204,7 +205,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             // Forward output immediately when the focus is on this operation group
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
-                lastUpdateTime = clock.getCurrentTime();
+                lastUpdateTime = currentTimePeriod;
                 needHeaderSeparator = true;
             } else {
                 bufferedLogs.add(output);
@@ -229,7 +230,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
 
                 bufferedLogs.clear();
-                lastUpdateTime = clock.getCurrentTime();
+                lastUpdateTime = currentTimePeriod;
                 lastRenderedBuildOpId = buildOpIdentifier;
             }
         }

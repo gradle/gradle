@@ -41,6 +41,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private final StartableLoggingSystem stdErrLoggingSystem;
     private final StartableLoggingSystem javaUtilLoggingSystem;
     private final StartableLoggingRouter loggingRouter;
+    private boolean enableStdOutListeners;
     private final LoggingOutputInternal loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
@@ -59,6 +60,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     @Override
     public DefaultLoggingManager start() {
         started = true;
+        if (enableStdOutListeners) {
+            loggingRouter.loggingRouter.enableUserStandardOutputListeners();
+        }
         for (StandardOutputListener stdoutListener : stdoutListeners) {
             loggingOutput.addStandardOutputListener(stdoutListener);
         }
@@ -146,6 +150,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     @Override
     public LogLevel getStandardErrorCaptureLevel() {
         return stdErrLoggingSystem.level;
+    }
+
+    @Override
+    public LoggingManagerInternal enableUserStandardOutputListeners() {
+        enableStdOutListeners = true;
+        return this;
     }
 
     @Override
