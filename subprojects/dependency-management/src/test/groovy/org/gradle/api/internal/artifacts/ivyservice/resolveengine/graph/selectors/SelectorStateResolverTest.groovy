@@ -170,19 +170,18 @@ class SelectorStateResolverTest extends Specification {
         noExceptionThrown()
     }
 
-    int resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
+    String resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
         List<TestSelectorState> selectors = versions.collect { version ->
             new TestSelectorState(componentIdResolver, version.versionConstraint)
         }
         def currentSelection = selectorStateResolver.selectBest(moduleId, selectors)
-        // TODO:DAZ Differentiate between these 2
         if (currentSelection.isRejected()) {
-            return -1
+            return VersionRangeResolveTestScenarios.REJECTED
         }
         if (selectors.any { it.resolved?.failure != null }) {
-            return -1
+            return VersionRangeResolveTestScenarios.FAILED
         }
-        return Integer.parseInt(currentSelection.getVersion())
+        return currentSelection.getVersion()
     }
 
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
