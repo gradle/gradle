@@ -10,7 +10,7 @@ import org.junit.Test
 class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
     private
-    val boom = """throw InternalError("BOUM!")"""
+    val boom = """throw InternalError("BOOM!")"""
 
     @Test
     fun `location of exception thrown from build script is reported`() {
