@@ -52,7 +52,7 @@ public class NoToolingApiConnection implements ConsumerConnection {
 
     @Override
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "4.7");
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "4.8");
     }
 
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {

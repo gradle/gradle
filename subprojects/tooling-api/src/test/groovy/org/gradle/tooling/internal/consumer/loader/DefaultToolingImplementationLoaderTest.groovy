@@ -185,7 +185,7 @@ class TestConnection extends TestR44Connection implements InternalPhasedActionCo
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData('4.7')
+        return new TestMetaData('4.8')
     }
 }
 

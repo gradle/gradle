@@ -24,7 +24,7 @@ import java.io.Serializable;
  * A result of one of the actions of an {@link InternalPhasedAction}.
  * This result will be supplied to {@link PhasedActionResultListener}.
  *
- * @since 4.7
+ * @since 4.8
  */
 public interface PhasedActionResult<T> extends InternalProtocolInterface, Serializable {
 
@@ -33,7 +33,7 @@ public interface PhasedActionResult<T> extends InternalProtocolInterface, Serial
      *
      * @return The result. {@code null} if a failure occurred.
      *
-     * @since 4.7
+     * @since 4.8
      */
     T getResult();
 
@@ -42,14 +42,14 @@ public interface PhasedActionResult<T> extends InternalProtocolInterface, Serial
      *
      * @return The phase.
      *
-     * @since 4.7
+     * @since 4.8
      */
     Phase getPhase();
 
     /**
      * Phases of the build when it is possible to run an action provided by the client.
      *
-     * @since 4.7
+     * @since 4.8
      */
     enum Phase {
         PROJECTS_LOADED,

@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
  * A handler for an intermediate result obtained by a {@link PhasedBuildActionExecuter}.
  *
  * @param <T> The result type.
- * @since 4.7
+ * @since 4.8
  */
 @Incubating
 public interface PhasedResultHandler<T> {
@@ -30,7 +30,7 @@ public interface PhasedResultHandler<T> {
      * Handles successful completion of the action.
      *
      * @param result the result
-     * @since 4.7
+     * @since 4.8
      */
     void onComplete(T result);
 }

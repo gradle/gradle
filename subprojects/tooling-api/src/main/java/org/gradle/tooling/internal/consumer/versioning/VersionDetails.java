@@ -36,8 +36,8 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public static VersionDetails from(GradleVersion version) {
-        if (version.getBaseVersion().compareTo(GradleVersion.version("4.7")) >= 0) {
-            return new R47VersionDetails(version.getVersion());
+        if (version.getBaseVersion().compareTo(GradleVersion.version("4.8")) >= 0) {
+            return new R48VersionDetails(version.getVersion());
         }
         if (version.getBaseVersion().compareTo(GradleVersion.version("4.4")) >= 0) {
             return new R44VersionDetails(version.getVersion());
@@ -196,8 +196,8 @@ public abstract class VersionDetails implements Serializable {
         }
     }
 
-    private static class R47VersionDetails extends R44VersionDetails {
-        public R47VersionDetails(String version) {
+    private static class R48VersionDetails extends R44VersionDetails {
+        public R48VersionDetails(String version) {
             super(version);
         }
 

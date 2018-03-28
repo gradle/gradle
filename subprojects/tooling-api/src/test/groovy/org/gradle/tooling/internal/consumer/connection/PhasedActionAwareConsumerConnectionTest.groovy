@@ -52,7 +52,7 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
 
     final target = Mock(TestConnection) {
         getMetaData() >> Stub(ConnectionMetaDataVersion1) {
-            getVersion() >> "4.7"
+            getVersion() >> "4.8"
         }
     }
     final adapter = Stub(ProtocolToModelAdapter)

@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r47;
+package org.gradle.integtests.tooling.r48;
 
-import java.io.Serializable;
+import org.gradle.tooling.PhasedResultHandler;
 
-public interface CustomProjectsEvaluatedModel extends Serializable {
-    String getValue();
+public class PhasedResultHandlerCollector implements PhasedResultHandler<String> {
+    private String result = null;
+
+    @Override
+    public void onComplete(String result) {
+        this.result = result;
+    }
+
+    public String getResult() {
+        return result;
+    }
 }

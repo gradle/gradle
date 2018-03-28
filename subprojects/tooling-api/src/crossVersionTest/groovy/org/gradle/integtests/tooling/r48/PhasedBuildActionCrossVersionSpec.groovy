@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r47
+package org.gradle.integtests.tooling.r48
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -24,7 +24,7 @@ import org.gradle.tooling.UnsupportedVersionException
 
 import java.util.regex.Pattern
 
-@ToolingApiVersion(">=4.7")
+@ToolingApiVersion(">=4.8")
 class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """
@@ -103,7 +103,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion(">=4.7")
+    @TargetGradleVersion(">=4.8")
     def "can run phased action"() {
         PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
         PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
@@ -124,7 +124,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == "build"
     }
 
-    @TargetGradleVersion(">=4.7")
+    @TargetGradleVersion(">=4.8")
     def "failures are received and future actions not run"() {
         PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
         PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
@@ -149,7 +149,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
     }
 
-    @TargetGradleVersion(">=4.7")
+    @TargetGradleVersion(">=4.8")
     def "can modify task graph in after configuration action"() {
         PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
@@ -167,7 +167,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         stdOut.toString().contains("hello")
     }
 
-    @TargetGradleVersion(">=4.7")
+    @TargetGradleVersion(">=4.8")
     def "can run pre-defined tasks and build finished action is run after tasks are executed"() {
         PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
@@ -189,7 +189,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         stdOut.toString().contains("bye")
     }
 
-    @TargetGradleVersion("<4.7")
+    @TargetGradleVersion("<4.8")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
         PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
@@ -203,6 +203,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (${version}) does not support the PhasedBuildActionExecuter API. Support for this is available in Gradle 4.7 and all later versions."
+        e.message == "The version of Gradle you are using (${version}) does not support the PhasedBuildActionExecuter API. Support for this is available in Gradle 4.8 and all later versions."
     }
 }

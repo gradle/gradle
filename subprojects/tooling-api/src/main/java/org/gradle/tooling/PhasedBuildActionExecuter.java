@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Used to execute multiple {@link BuildAction}s in different phases of the build process.
  *
- * @since 4.7
+ * @since 4.8
  */
 @Incubating
 public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBuildActionExecuter> {
@@ -31,7 +31,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      *
      * <p>A single {@link BuildAction} is allowed per build phase. Use composite actions if needed.
      *
-     * @since 4.7
+     * @since 4.8
      */
     @Incubating
     interface Builder {
@@ -49,7 +49,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          *
-         * @since 4.7
+         * @since 4.8
          */
         <T> Builder projectsLoaded(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -64,7 +64,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          *
-         * @since 4.7
+         * @since 4.8
          */
         <T> Builder projectsEvaluated(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -79,7 +79,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          *
-         * @since 4.7
+         * @since 4.8
          */
         <T> Builder buildFinished(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -88,7 +88,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          *
          * @return The executer.
          *
-         * @since 4.7
+         * @since 4.8
          */
         PhasedBuildActionExecuter build();
     }
@@ -100,7 +100,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     * @since 4.7
+     * @since 4.8
      */
     @Incubating
     PhasedBuildActionExecuter forTasks(String... tasks);
@@ -112,7 +112,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     * @since 4.7
+     * @since 4.8
      */
     @Incubating
     PhasedBuildActionExecuter forTasks(Iterable<String> tasks);
@@ -131,7 +131,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 4.7
+     * @since 4.8
      */
     void run() throws GradleConnectionException, IllegalStateException;
 
@@ -144,7 +144,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      *
      * @param handler The handler to supply the build result to. Individual action results are supplied to its respective handler.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 4.7
+     * @since 4.8
      */
     void run(ResultHandler<? super Void> handler) throws IllegalStateException;
 }

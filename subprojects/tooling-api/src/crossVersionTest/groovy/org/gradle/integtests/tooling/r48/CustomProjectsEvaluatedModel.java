@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r47;
-
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+package org.gradle.integtests.tooling.r48;
 
 import java.io.Serializable;
 
-public class FailAction implements BuildAction<String>, Serializable {
-    @Override
-    public String execute(BuildController controller) {
-        throw new RuntimeException("actionFailure");
-    }
+public interface CustomProjectsEvaluatedModel extends Serializable {
+    String getValue();
 }

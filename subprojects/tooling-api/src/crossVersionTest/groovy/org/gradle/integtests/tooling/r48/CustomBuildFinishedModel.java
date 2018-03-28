@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r47;
-
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.GradleBuild;
+package org.gradle.integtests.tooling.r48;
 
 import java.io.Serializable;
 
-public class CustomProjectsLoadedAction implements BuildAction<String>, Serializable {
-    // Plugins are not applied yet, cannot have access to custom model builders. However, basic models provided by Gradle are already available.
-
-    @Override
-    public String execute(BuildController controller) {
-        GradleBuild buildModel = controller.getBuildModel();
-        assert buildModel != null;
-        return "loading";
-    }
+public interface CustomBuildFinishedModel extends Serializable {
+    String getValue();
 }
