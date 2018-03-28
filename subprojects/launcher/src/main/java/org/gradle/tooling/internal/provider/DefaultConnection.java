@@ -241,7 +241,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     }
 
     /**
-     * This is used by consumers 4.7 and later
+     * This is used by consumers 4.8 and later
      */
     @Override
     public BuildResult<?> run(InternalPhasedAction phasedAction, PhasedActionResultListener listener, InternalCancellationToken cancellationToken, BuildParameters operationParameters) {

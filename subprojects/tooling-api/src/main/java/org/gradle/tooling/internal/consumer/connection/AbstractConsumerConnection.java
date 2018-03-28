@@ -64,7 +64,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     }
 
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), getVersionDetails().getVersion(), "4.7");
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), getVersionDetails().getVersion(), "4.8");
     }
 
     public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {

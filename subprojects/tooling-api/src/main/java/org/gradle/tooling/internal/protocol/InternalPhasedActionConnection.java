@@ -24,10 +24,10 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 4.7.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from 4.7.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 4.8.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 4.8.</p>
  *
- * @since 4.7
+ * @since 4.8
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
 public interface InternalPhasedActionConnection extends InternalProtocolInterface {
@@ -35,8 +35,8 @@ public interface InternalPhasedActionConnection extends InternalProtocolInterfac
     /**
      * Performs some action against a build and returns the result.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 4.7.</p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 4.7.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 4.8.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 4.8.</p>
      *
      * @return The result of the entire build. A {@code Void} type is expected as result. Results for individual actions
      * are supplied to their respective handlers.
@@ -47,7 +47,7 @@ public interface InternalPhasedActionConnection extends InternalProtocolInterfac
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      *
-     * @since 4.7
+     * @since 4.8
      */
     BuildResult<?> run(InternalPhasedAction internalPhasedAction,
                        PhasedActionResultListener listener,

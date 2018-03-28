@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r47;
+package org.gradle.integtests.tooling.r48;
 
-import org.gradle.tooling.PhasedResultHandler;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 
-public class PhasedResultHandlerCollector implements PhasedResultHandler<String> {
-    private String result = null;
+import java.io.Serializable;
+
+public class CustomBuildFinishedAction implements BuildAction<String>, Serializable {
+    // Tasks graph is already calculated and tasks executed. Action or model builders can access tasks results.
 
     @Override
-    public void onComplete(String result) {
-        this.result = result;
-    }
-
-    public String getResult() {
-        return result;
+    public String execute(BuildController controller) {
+        // Print something to verify it is after task execution
+        System.out.println("afterBuildAction");
+        return controller.getModel(CustomBuildFinishedModel.class).getValue();
     }
 }

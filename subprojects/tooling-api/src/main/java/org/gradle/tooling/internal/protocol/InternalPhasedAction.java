@@ -22,17 +22,17 @@ import java.io.Serializable;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is implemented by all consumer versions from 4.7.</p>
- * <p>Provider compatibility: This interface is consumed by all provider versions from 4.7.</p>
+ * <p>Consumer compatibility: This interface is implemented by all consumer versions from 4.8.</p>
+ * <p>Provider compatibility: This interface is consumed by all provider versions from 4.8.</p>
  *
- * @since 4.7
+ * @since 4.8
  */
 public interface InternalPhasedAction extends InternalProtocolInterface, Serializable {
 
     /**
      * Internal version of the action to be run after projects are loaded.
      *
-     * @since 4.7
+     * @since 4.8
      */
     @Nullable
     InternalBuildActionVersion2<?> getProjectsLoadedAction();
@@ -40,7 +40,7 @@ public interface InternalPhasedAction extends InternalProtocolInterface, Seriali
     /**
      * Internal version of the action to be run after projects are evaluated.
      *
-     * @since 4.7
+     * @since 4.8
      */
     @Nullable
     InternalBuildActionVersion2<?> getProjectsEvaluatedAction();
@@ -48,7 +48,7 @@ public interface InternalPhasedAction extends InternalProtocolInterface, Seriali
     /**
      * Internal version of the action to be run after tasks are run.
      *
-     * @since 4.7
+     * @since 4.8
      */
     @Nullable
     InternalBuildActionVersion2<?> getBuildFinishedAction();

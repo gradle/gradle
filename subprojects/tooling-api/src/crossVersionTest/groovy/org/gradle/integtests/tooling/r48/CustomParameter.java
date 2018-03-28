@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r47;
+package org.gradle.integtests.tooling.r48;
 
-import java.io.Serializable;
+import java.util.List;
 
-public interface CustomBuildFinishedModel extends Serializable {
-    String getValue();
+public interface CustomParameter {
+    void setTasks(List<String> tasks);
+    List<String> getTasks();
 }
