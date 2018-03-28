@@ -390,13 +390,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                         configuration.addDefinedDependencies(result);
                     }
                 }
-                addExtraDependencies(result);
+                maybeAddGeneratedDependencies(result);
                 configurationDependencies = result.build();
             }
             return configurationDependencies;
         }
 
-        void addExtraDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
+        void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
             // No-op
         }
 

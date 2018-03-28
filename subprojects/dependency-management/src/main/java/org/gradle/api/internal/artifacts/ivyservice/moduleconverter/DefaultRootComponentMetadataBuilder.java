@@ -30,7 +30,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.locking.DefaultDependencyLockingProvider;
+import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder {
     private final DependencyMetaDataProvider metaDataProvider;
@@ -67,7 +67,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-        DependencyLockingProvider dependencyLockingHandler = project == null ? DefaultDependencyLockingProvider.NO_OP_LOCKING_PROVIDER : project.getServices().get(DependencyLockingProvider.class);
+        DependencyLockingProvider dependencyLockingHandler = project == null ? NoOpDependencyLockingProvider.getInstance() : project.getServices().get(DependencyLockingProvider.class);
         metaData = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
         localComponentMetadataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         holder.cachedValue = metaData;

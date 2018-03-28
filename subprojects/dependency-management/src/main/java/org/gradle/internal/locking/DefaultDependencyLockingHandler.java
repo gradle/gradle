@@ -23,6 +23,13 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
+    private static final Action<Configuration> ACTIVATE_LOCKING = new Action<Configuration>() {
+        @Override
+        public void execute(Configuration configuration) {
+            configuration.getResolutionStrategy().activateDependencyLocking();
+        }
+    };
+
     private final ConfigurationContainer configurationContainer;
 
     public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer) {
@@ -31,11 +38,6 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
 
     @Override
     public void lockAllConfigurations() {
-        configurationContainer.all(new Action<Configuration>() {
-            @Override
-            public void execute(Configuration configuration) {
-                configuration.getResolutionStrategy().activateDependencyLocking();
-            }
-        });
+        configurationContainer.all(ACTIVATE_LOCKING);
     }
 }

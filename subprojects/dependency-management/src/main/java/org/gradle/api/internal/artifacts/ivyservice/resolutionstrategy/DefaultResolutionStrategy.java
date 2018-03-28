@@ -108,7 +108,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     @Override
     public ResolutionStrategy activateDependencyLocking() {
-        // TODO should this check the mutationValidator?
+        mutationValidator.validateMutation(STRATEGY);
         dependencyLockingEnabled = true;
         return this;
     }

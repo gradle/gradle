@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking;
 
+import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -30,7 +31,6 @@ import org.gradle.api.logging.Logging;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,8 +42,6 @@ import static org.gradle.internal.locking.LockOutOfDateException.createLockOutOf
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
-
-    public static final DependencyLockingProvider NO_OP_LOCKING_PROVIDER = new NoOpDependencyLockingProvider();
 
     private final DependencyFactory dependencyFactory;
     private final LockFileReaderWriter lockFileReaderWriter;
@@ -57,12 +55,12 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public Set<DependencyConstraint> getLockedDependencies(String configurationName) {
+    public Set<DependencyConstraint> findLockedDependencies(String configurationName) {
         Set<DependencyConstraint> results = Collections.emptySet();
         if (!writeLocks) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
-                results = new HashSet<DependencyConstraint>(lockedModules.size());
+                results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
                     DependencyConstraint dependencyConstraint = dependencyFactory.createDependencyConstraint(module);
                     dependencyConstraint.version(new Action<MutableVersionConstraint>() {
@@ -71,7 +69,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                             mutableVersionConstraint.strictly(mutableVersionConstraint.getPreferredVersion());
                         }
                     });
-                    dependencyConstraint.because("dependency-locking in place");
+                    dependencyConstraint.because("dependency was locked to version " + dependencyConstraint.getVersion());
                     results.add(dependencyConstraint);
                 }
             }
@@ -125,19 +123,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         INVALID,
         VALID_APPENDED,
         NO_LOCK
-    }
-
-    private static class NoOpDependencyLockingProvider implements DependencyLockingProvider {
-
-        @Override
-        public Set<DependencyConstraint> getLockedDependencies(String configurationName) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> modules) {
-            // No-op
-        }
     }
 
 }

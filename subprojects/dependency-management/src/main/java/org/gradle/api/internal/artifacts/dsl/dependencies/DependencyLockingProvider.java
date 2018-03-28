@@ -23,7 +23,7 @@ import java.util.Set;
 
 public interface DependencyLockingProvider {
 
-    Set<DependencyConstraint> getLockedDependencies(String configurationName);
+    Set<DependencyConstraint> findLockedDependencies(String configurationName);
 
     void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> modules);
 }
