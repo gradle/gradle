@@ -55,6 +55,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return getDisplayName();
     }
 
+    @Override
     public File getSingleFile() throws IllegalStateException {
         Collection<File> files = getFiles();
         if (files.isEmpty()) {
@@ -66,22 +67,27 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return files.iterator().next();
     }
 
+    @Override
     public Iterator<File> iterator() {
         return getFiles().iterator();
     }
 
+    @Override
     public String getAsPath() {
         return GUtil.asPath(getFiles());
     }
 
+    @Override
     public boolean contains(File file) {
         return getFiles().contains(file);
     }
 
+    @Override
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(this, collection);
     }
 
+    @Override
     public FileCollection minus(final FileCollection collection) {
         return new AbstractFileCollection() {
             @Override
@@ -102,10 +108,12 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         };
     }
 
+    @Override
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
         throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
     }
 
+    @Override
     public void addToAntBuilder(Object builder, String nodeName, AntType type) {
         if (type == AntType.ResourceCollection) {
             addAsResourceCollection(builder, nodeName);
@@ -141,16 +149,20 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return fileTrees;
     }
 
+    @Override
     public Object addToAntBuilder(Object node, String childNodeName) {
         addToAntBuilder(node, childNodeName, AntType.ResourceCollection);
         return this;
     }
 
+    @Override
     public boolean isEmpty() {
         return getFiles().isEmpty();
     }
 
+    @Override
     public FileCollection stopExecutionIfEmpty() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("FileCollection.stopExecutionIfEmpty()");
         if (isEmpty()) {
             throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
         }
@@ -182,10 +194,12 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return DefaultGroovyMethods.asType(this, type);
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return new DefaultTaskDependency();
     }
 
+    @Override
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
@@ -207,10 +221,12 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         };
     }
 
+    @Override
     public FileCollection filter(Closure filterClosure) {
         return filter(Specs.convertClosureToSpec(filterClosure));
     }
 
+    @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
         return new AbstractFileCollection() {
             @Override
