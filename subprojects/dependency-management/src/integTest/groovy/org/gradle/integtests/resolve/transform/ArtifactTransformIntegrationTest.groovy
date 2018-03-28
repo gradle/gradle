@@ -182,7 +182,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+        executed(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
@@ -201,7 +201,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+        executed(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
         output.count("Transforming") == 0
@@ -245,7 +245,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:zip1", ":app:resolve")
+        executed(":lib:jar1", ":lib:zip1", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
@@ -445,7 +445,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
@@ -459,7 +459,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         output.count("Transforming") == 0
@@ -564,7 +564,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
@@ -582,7 +582,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         output.count("Transforming") == 0
