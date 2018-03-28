@@ -18,6 +18,5 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.initialization.Settings
 
 
-inline
-fun <reified T : Any> Settings.serviceOf(): T =
+inline fun <reified T : Any> Settings.serviceOf(): T =
     gradle.serviceOf()

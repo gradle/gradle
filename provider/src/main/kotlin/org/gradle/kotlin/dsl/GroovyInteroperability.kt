@@ -133,8 +133,7 @@ operator fun <T> Closure<T>.invoke(vararg xs: Any?): T = call(*xs)
  *
  * @see [GroovyBuilderScope]
  */
-inline
-fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
+inline fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
     GroovyBuilderScope.of(this).builder()
 
 

@@ -23,6 +23,5 @@ import org.gradle.api.tasks.TaskContainer
  * Creates a [Task] with the given [name] and type, passing the given arguments to the [javax.inject.Inject]-annotated constructor,
  * and adds it to this project tasks container.
  */
-inline
-fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
+inline fun <reified T : Task> TaskContainer.create(name: String, vararg arguments: Any) =
     create(name, T::class.java, *arguments)

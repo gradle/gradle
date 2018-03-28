@@ -180,18 +180,15 @@ val rootProjectDir = File("..").canonicalFile!!
 val customInstallationBuildDir = File(rootProjectDir, "build/custom")
 
 
-inline
-fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
+inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.absolutePath, block)
 
 
-inline
-fun <T> withDaemonIdleTimeout(seconds: Int, block: () -> T) =
+inline fun <T> withDaemonIdleTimeout(seconds: Int, block: () -> T) =
     withSystemProperty("org.gradle.daemon.idletimeout", (seconds * 1000).toString(), block)
 
 
-inline
-fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
+inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
     val originalValue = System.getProperty(key)
     try {
         System.setProperty(key, value)

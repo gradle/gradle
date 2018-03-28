@@ -24,8 +24,7 @@ import kotlin.reflect.KClass
  *
  * @param T the extension type.
  */
-inline
-fun <reified T : Any> ExtensionAware.the(): T =
+inline fun <reified T : Any> ExtensionAware.the(): T =
     extensions.getByType(typeOf<T>())
 
 
@@ -46,6 +45,5 @@ fun <T : Any> ExtensionAware.the(extensionType: KClass<T>): T =
  * @param configuration the configuration block.
  * @see [ExtensionAware]
  */
-inline
-fun <reified T : Any> ExtensionAware.configure(noinline configuration: T.() -> Unit): Unit =
+inline fun <reified T : Any> ExtensionAware.configure(noinline configuration: T.() -> Unit): Unit =
     extensions.configure(typeOf<T>(), configuration)

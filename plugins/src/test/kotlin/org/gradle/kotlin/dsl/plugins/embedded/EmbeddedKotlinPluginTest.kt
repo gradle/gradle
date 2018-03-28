@@ -137,8 +137,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                     .execute()
                     .resolvedComponents
 
-            inline
-            fun <reified T : Artifact> printFileNamesOf() =
+            inline fun <reified T : Artifact> printFileNamesOf() =
                 resolvedComponents
                     .flatMap { it.getArtifacts(T::class.java) }
                     .filterIsInstance<ResolvedArtifactResult>()

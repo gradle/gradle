@@ -40,8 +40,7 @@ import kotlin.reflect.KClass
  * @param properties map of filter properties
  * @return this
  */
-inline
-fun <reified T : FilterReader> ContentFilterable.filter(vararg properties: Pair<String, Any?>) =
+inline fun <reified T : FilterReader> ContentFilterable.filter(vararg properties: Pair<String, Any?>) =
     if (properties.isEmpty()) filter(T::class.java)
     else filter(mapOf(*properties), T::class.java)
 
@@ -63,8 +62,7 @@ fun <reified T : FilterReader> ContentFilterable.filter(vararg properties: Pair<
  * @param properties map of filter properties
  * @return this
  */
-inline
-fun <reified T : FilterReader> ContentFilterable.filter(properties: Map<String, Any?>) =
+inline fun <reified T : FilterReader> ContentFilterable.filter(properties: Map<String, Any?>) =
     if (properties.isEmpty()) filter(T::class.java)
     else filter(properties, T::class.java)
 

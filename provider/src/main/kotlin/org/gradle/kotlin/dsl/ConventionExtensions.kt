@@ -30,15 +30,13 @@ import kotlin.reflect.KClass
  * @return the convention plugin, never null
  * @throws [IllegalStateException] When the convention cannot be found or cast to the expected type.
  */
-inline
-fun <reified T : Any> Convention.getPluginByName(name: String): T =
+inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
     plugins[name]?.let {
         (it as T?) ?: throw IllegalStateException("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
     } ?: throw IllegalStateException("A convention named '$name' could not be found.")
 
 
-inline
-fun <reified T : Any> Convention.getPlugin() =
+inline fun <reified T : Any> Convention.getPlugin() =
     getPlugin(T::class)
 
 
@@ -46,8 +44,7 @@ fun <T : Any> Convention.getPlugin(conventionType: KClass<T>): T =
     getPlugin(conventionType.java)
 
 
-inline
-fun <reified T : Any> Convention.findPlugin() =
+inline fun <reified T : Any> Convention.findPlugin() =
     findPlugin(T::class)
 
 
@@ -65,8 +62,7 @@ fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
  *
  * @see [Convention.getPlugin]
  */
-inline
-fun <ConventionType : Any, ReturnType> Any.withConvention(
+inline fun <ConventionType : Any, ReturnType> Any.withConvention(
     conventionType: KClass<ConventionType>,
     function: ConventionType.() -> ReturnType
 ): ReturnType =

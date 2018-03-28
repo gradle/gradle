@@ -79,8 +79,8 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
                 private lateinit
                 var description: String
 
-                private inline
-                fun something() = Unit
+                private
+                inline fun something() = Unit
             }
         """)
 

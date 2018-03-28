@@ -31,8 +31,7 @@ import kotlin.reflect.KProperty
  * @param T the plugin type.
  * @see [PluginAware.apply]
  */
-inline
-fun <reified T : Plugin<Settings>> Settings.apply() =
+inline fun <reified T : Plugin<Settings>> Settings.apply() =
     (this as PluginAware).apply<T>()
 
 

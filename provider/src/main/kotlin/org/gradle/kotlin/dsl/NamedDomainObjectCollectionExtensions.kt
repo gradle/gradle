@@ -30,8 +30,7 @@ import kotlin.reflect.KProperty
  *
  * `tasks { val jar by getting }`
  */
-inline
-val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U
+inline val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U
     get() = this
 
 
@@ -77,8 +76,7 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
  *
  * @see [NamedDomainObjectCollection.getByName]
  */
-inline
-operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
+inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
     getByName(property.name).let {
         it as? U
             ?: throw illegalElementType(this, property.name, U::class, it::class)

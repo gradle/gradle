@@ -170,8 +170,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            inline
-            fun DependencyHandler.`$kotlinIdentifier`(
+            inline fun DependencyHandler.`$kotlinIdentifier`(
                 dependencyNotation: String,
                 dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
                 add("$stringLiteral", dependencyNotation, dependencyConfiguration)
@@ -213,8 +212,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @see [DependencyHandler.create]
              * @see [DependencyHandler.add]
              */
-            inline
-            fun DependencyHandler.`$kotlinIdentifier`(
+            inline fun DependencyHandler.`$kotlinIdentifier`(
                 group: String,
                 name: String,
                 version: String? = null,
@@ -233,8 +231,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            inline
-            fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+            inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(dependency: T, dependencyConfiguration: T.() -> Unit): T =
                 add("$stringLiteral", dependency, dependencyConfiguration)
 
         """

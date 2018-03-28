@@ -22,11 +22,9 @@ import java.io.FilterReader
 
 
 // Interim extensions until those methods are added to CopySpec
-inline
-fun <reified T : FilterReader> CopySpec.filter(vararg properties: Pair<String, Any?>) =
+inline fun <reified T : FilterReader> CopySpec.filter(vararg properties: Pair<String, Any?>) =
     filter(mapOf(*properties), T::class.java)
 
 
-inline
-fun <reified T : FilterReader> CopySpec.filter(properties: Map<String, Any?>) =
+inline fun <reified T : FilterReader> CopySpec.filter(properties: Map<String, Any?>) =
     filter(properties, T::class.java)

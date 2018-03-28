@@ -46,8 +46,7 @@ fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null
  * @param T the plugin type.
  * @see [PluginAware.apply]
  */
-inline
-fun <reified T : Plugin<*>> PluginAware.apply() {
+inline fun <reified T : Plugin<*>> PluginAware.apply() {
     apply {
         it.plugin(T::class.java)
     }
@@ -63,8 +62,7 @@ fun <reified T : Plugin<*>> PluginAware.apply() {
  * @param to the plugin target object or collection of objects
  * @see [PluginAware.apply]
  */
-inline
-fun <reified T : Plugin<*>> PluginAware.apply(to: Any) {
+inline fun <reified T : Plugin<*>> PluginAware.apply(to: Any) {
     apply {
         it.plugin(T::class.java)
         it.to(to)
