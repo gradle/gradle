@@ -16,40 +16,30 @@
 
 package org.gradle.internal.locking;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-
-import static org.gradle.internal.locking.LockOutOfDateException.createLockOutOfDateException;
-import static org.gradle.internal.locking.LockOutOfDateException.createLockOutOfDateExceptionStrictMode;
 
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
 
-    private final DependencyFactory dependencyFactory;
+    private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
     private final LockFileReaderWriter lockFileReaderWriter;
-    private final boolean strict = true;
     private final boolean writeLocks;
 
-    public DefaultDependencyLockingProvider(DependencyFactory dependencyFactory, FileResolver fileResolver, StartParameter startParameter) {
-        this.dependencyFactory = dependencyFactory;
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter) {
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver);
         this.writeLocks = startParameter.isWriteDependencyLocks();
     }
@@ -62,15 +52,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             if (lockedModules != null) {
                 results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    DependencyConstraint dependencyConstraint = dependencyFactory.createDependencyConstraint(module);
-                    dependencyConstraint.version(new Action<MutableVersionConstraint>() {
-                        @Override
-                        public void execute(MutableVersionConstraint mutableVersionConstraint) {
-                            mutableVersionConstraint.strictly(mutableVersionConstraint.getPreferredVersion());
-                        }
-                    });
-                    dependencyConstraint.because("dependency was locked to version " + dependencyConstraint.getVersion());
-                    results.add(dependencyConstraint);
+                    results.add(converter.convertToDependencyConstraint(module));
                 }
             }
         }
@@ -80,49 +62,20 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     @Override
     public void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> resolvedComponents) {
         if (writeLocks) {
-            lockFileReaderWriter.writeLockFile(configurationName, getMapOfResolvedDependencies(resolvedComponents));
+            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolvedComponents));
         }
     }
 
-    private Map<String, ModuleComponentIdentifier> getMapOfResolvedDependencies(Set<ResolvedComponentResult> resolvedComponents) {
-        Map<String, ModuleComponentIdentifier> modules = new TreeMap<String, ModuleComponentIdentifier>();
+    private List<String> getModulesOrdered(Set<ResolvedComponentResult> resolvedComponents) {
+        List<String> modules = Lists.newArrayListWithCapacity(resolvedComponents.size());
         for (ResolvedComponentResult resolvedComponentResult : resolvedComponents) {
             if (resolvedComponentResult.getId() instanceof ModuleComponentIdentifier) {
                 ModuleComponentIdentifier id = (ModuleComponentIdentifier) resolvedComponentResult.getId();
-                modules.put(id.getGroup() + ":" + id.getModule(), id);
+                modules.add(converter.convertToLockNotation(id));
             }
         }
+        Collections.sort(modules);
         LOGGER.warn("Found the following modules:\n\t{}", modules);
         return modules;
     }
-
-    private void processResult(LockValidationState state, List<String> errors, Collection<ModuleComponentIdentifier> extraModules) {
-        switch(state) {
-            case INVALID:
-                throw createLockOutOfDateException(errors);
-            case VALID_APPENDED:
-                if (strict) {
-                    throw createLockOutOfDateExceptionStrictMode(extraModules);
-                } else {
-                    StringBuilder builder = new StringBuilder("Dependency lock found new modules:\n");
-                    for (ModuleComponentIdentifier extraModule : extraModules) {
-                        builder.append("\t").append(extraModule.getGroup()).append(":").append(extraModule.getModule()).append(":").append(extraModule.getVersion()).append("\n");
-                    }
-                    builder.append("\tLock file has been updated with these entries.");
-                    LOGGER.lifecycle(builder.toString());
-                }
-            case VALID:
-            case NO_LOCK:
-                // Nothing to do
-                break;
-        }
-    }
-
-    enum LockValidationState {
-        VALID,
-        INVALID,
-        VALID_APPENDED,
-        NO_LOCK
-    }
-
 }

@@ -27,6 +27,11 @@ import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 import javax.annotation.Nullable;
 
 public class DefaultDependencyConstraint implements DependencyConstraint {
+
+    public static DefaultDependencyConstraint strictConstraint(String group, String name, String version) {
+        return new DefaultDependencyConstraint(group, name, new DefaultMutableVersionConstraint(version, true));
+    }
+
     private final String group;
     private final String name;
     private final MutableVersionConstraint versionConstraint;

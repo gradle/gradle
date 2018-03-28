@@ -16,7 +16,6 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.IOException;
@@ -25,7 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class LockFileReaderWriter {
 
@@ -52,7 +50,7 @@ public class LockFileReaderWriter {
         return lockFilesRoot.resolve(path);
     }
 
-    public void writeLockFile(String configurationName, Map<String, ModuleComponentIdentifier> resolvedModules) {
+    public void writeLockFile(String configurationName, List<String> resolvedModules) {
         if (!Files.exists(lockFilesRoot)) {
             try {
                 Files.createDirectories(lockFilesRoot);
@@ -61,8 +59,8 @@ public class LockFileReaderWriter {
             }
         }
         StringBuilder builder = new StringBuilder(LOCKFILE_HEADER);
-        for (Map.Entry<String, ModuleComponentIdentifier> entry : resolvedModules.entrySet()) {
-            builder.append(entry.getKey()).append(':').append(entry.getValue().getVersion()).append("\n");
+        for (String module : resolvedModules) {
+            builder.append(module).append("\n");
         }
         try {
             Files.write(lockFilesRoot.resolve(configurationName + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
