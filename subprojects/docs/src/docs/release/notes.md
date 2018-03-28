@@ -198,6 +198,15 @@ See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.
 
 All interfaces in this package were incubating and there was no public API to obtain instances of any of these interfaces.
 
+### Changes to `org.gradle.api.reporting.ReportContainer`
+
+The following methods were changed:
+
+- `getEnabledReports()` has been added
+- `getEnabledDirectoryReportDestinations()` has been removed
+- `getEnabledFileReportDestinations()` has been removed
+- `getEnabledReportNames()` has been removed
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
