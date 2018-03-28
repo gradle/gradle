@@ -80,7 +80,7 @@ public class LockFileReaderWriter {
                 return null;
             }
         } catch (IOException e) {
-            throw new RuntimeException("Unable to load lock file");
+            throw new RuntimeException("Unable to load lock file", e);
         }
 
     }
@@ -88,7 +88,7 @@ public class LockFileReaderWriter {
     private void filterNonModuleLines(List<String> lines) {
         Iterator<String> iterator = lines.iterator();
         while (iterator.hasNext()) {
-            String value = iterator.next();
+            String value = iterator.next().trim();
             if (value.startsWith("#") || value.isEmpty()) {
                 iterator.remove();
             }

@@ -69,6 +69,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private List<String> getModulesOrdered(Set<ResolvedComponentResult> resolvedComponents) {
         List<String> modules = Lists.newArrayListWithCapacity(resolvedComponents.size());
         for (ResolvedComponentResult resolvedComponentResult : resolvedComponents) {
+            // TODO this filtering needs to happen at the caller instead
             if (resolvedComponentResult.getId() instanceof ModuleComponentIdentifier) {
                 ModuleComponentIdentifier id = (ModuleComponentIdentifier) resolvedComponentResult.getId();
                 modules.add(converter.convertToLockNotation(id));

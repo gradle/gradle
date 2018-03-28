@@ -233,9 +233,9 @@ dependencies {
 }
 """
 
-        file('gradle', 'dependency-locks', 'lockedConf.lockfile') << """
-org:foo:1.0
-"""
+
+        lockfileFixture.createLockfile('lockedConf', ["org:foo:1.0"])
+
         when:
         succeeds 'dependencies', '--write-locks'
 
