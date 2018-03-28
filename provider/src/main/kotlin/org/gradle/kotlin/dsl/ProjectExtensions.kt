@@ -212,8 +212,7 @@ inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
  */
 @Incubating
 @Deprecated("Will be removed in 1.0", replaceWith = ReplaceWith("objects.property()"))
-inline
-fun <reified T> Project.property(): PropertyState<T> =
+inline fun <reified T> Project.property(): PropertyState<T> =
     property(T::class.java)
 
 
