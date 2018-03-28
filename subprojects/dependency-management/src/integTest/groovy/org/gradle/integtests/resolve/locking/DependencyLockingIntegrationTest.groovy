@@ -21,7 +21,7 @@ import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
-class DependencyLockingPluginIntegrationTest extends AbstractDependencyResolutionTest {
+class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
 
@@ -195,10 +195,10 @@ dependencies {
 """
 
         when:
-        succeeds'dependencies', '--write-locks'
+        succeeds'dependencies', '--write-locks', '--refresh-dependencies'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
     }
 
@@ -222,13 +222,6 @@ configurations {
 }
 
 dependencies {
-    constraints {
-        lockedConf('org:foo') {
-            version {
-                prefer '1.1'
-            }
-        }
-    }
     lockedConf 'org:foo:1.+'
 }
 """

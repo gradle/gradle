@@ -52,7 +52,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             if (lockedModules != null) {
                 results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    results.add(converter.convertToDependencyConstraint(module));
+                    try {
+                        results.add(converter.convertToDependencyConstraint(module));
+                    } catch (IllegalArgumentException e) {
+                        throw new InvalidLockFileException(configurationName, e);
+                    }
                 }
             }
         }

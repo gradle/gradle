@@ -46,10 +46,6 @@ public class LockFileReaderWriter {
         this.lockFilesRoot = resolve;
     }
 
-    public Path resolve(String path) {
-        return lockFilesRoot.resolve(path);
-    }
-
     public void writeLockFile(String configurationName, List<String> resolvedModules) {
         if (!Files.exists(lockFilesRoot)) {
             try {

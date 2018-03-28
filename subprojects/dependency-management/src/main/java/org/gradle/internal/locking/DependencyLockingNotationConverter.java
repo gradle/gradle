@@ -25,8 +25,8 @@ class DependencyLockingNotationConverter {
     DependencyConstraint convertToDependencyConstraint(String module) {
         int groupNameSeparatorIndex = module.indexOf(':');
         int nameVersionSeparatorIndex = module.lastIndexOf(':');
-        if (groupNameSeparatorIndex * nameVersionSeparatorIndex < 0) {
-            throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received " + module);
+        if (groupNameSeparatorIndex < 0 || nameVersionSeparatorIndex == groupNameSeparatorIndex) {
+            throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + module + "'");
         }
         DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
                                                                                             module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),

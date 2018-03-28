@@ -27,14 +27,14 @@ class LockfileFixture {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
         def lines = [LockFileReaderWriter.LOCKFILE_HEADER]
         lines.addAll modules
-        lockFile.writelns(lines)
+        lockFile.writelns(lines.sort())
     }
 
     void verifyLockfile(String configurationName, List<String> modules) {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
         assert lockFile.exists()
         def builder = new StringBuilder(LockFileReaderWriter.LOCKFILE_HEADER)
-        modules.sort.each {
+        modules.sort().each {
             builder.append(it).append("\n")
         }
         assert lockFile.text == builder.toString()
