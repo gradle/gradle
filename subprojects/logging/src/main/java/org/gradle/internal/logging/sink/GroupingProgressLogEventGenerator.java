@@ -93,7 +93,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
             // Create a new group for tasks or configure project
             if (isGrouped) {
-                operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), startEvent.getLoggingHeader(), startEvent.getDescription(), startEvent.getShortDescription(), startEvent.getTimestamp(), startEvent.getBuildOperationId(), startEvent.getBuildOperationCategory()));
+                operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), startEvent.getLoggingHeader(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getBuildOperationId(), startEvent.getBuildOperationCategory()));
             }
         }
 
@@ -175,7 +175,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private final String loggingHeader;
         private long lastUpdateTime;
         private final String description;
-        private final String shortDescription;
         private final OperationIdentifier buildOpIdentifier;
         private final BuildOperationCategory buildOperationCategory;
 
@@ -187,19 +186,18 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        private OperationGroup(String category, @Nullable String loggingHeader, String description, @Nullable String shortDescription, long startTime, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        private OperationGroup(String category, @Nullable String loggingHeader, String description, long startTime, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.lastUpdateTime = startTime;
             this.description = description;
-            this.shortDescription = shortDescription;
             this.lastUpdateTime = startTime;
             this.buildOpIdentifier = buildOpIdentifier;
             this.buildOperationCategory = buildOperationCategory;
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
+            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, status, failed));
         }
 
         private void bufferOutput(RenderableOutputEvent output) {
