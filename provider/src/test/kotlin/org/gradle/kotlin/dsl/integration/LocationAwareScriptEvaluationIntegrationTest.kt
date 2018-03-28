@@ -18,7 +18,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withSettings("""include("a")""")
         val script = withBuildScriptIn("a", boom)
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Build file '${script.canonicalPath}' line: 1
@@ -32,7 +32,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""apply(from = "other.gradle.kts")""")
         val script = withFile("other.gradle.kts", boom)
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Script '${script.canonicalPath}' line: 1
@@ -46,7 +46,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""apply(from = "other/build.gradle.kts")""")
         val script = withFile("other/build.gradle.kts", boom)
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Script '${script.canonicalPath}' line: 1
@@ -59,7 +59,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withBuildScript("buildscript { $boom }")
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Build file '${script.canonicalPath}' line: 1
@@ -72,7 +72,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withBuildScript("plugins { $boom }")
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Build file '${script.canonicalPath}' line: 1
@@ -85,7 +85,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withSettings(boom)
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Settings file '${script.canonicalPath}' line: 1
@@ -98,7 +98,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
 
         val script = withFile("my.init.gradle.kts", boom)
 
-        assertFailingBuildOutputContains("help", "-I", script.absolutePath) {
+        assertFailingBuildOutputOf("help", "-I", script.absolutePath) {
             """
             * Where:
             Initialization script '${script.canonicalPath}' line: 1
@@ -112,7 +112,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""apply(from = "present.gradle.kts")""")
         val present = withFile("present.gradle.kts", """apply(from = "absent.gradle.kts")""")
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Script '${present.canonicalPath}' line: 1
@@ -132,7 +132,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
             $boom
         """)
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Script '${script.canonicalPath}' line: 3
@@ -158,7 +158,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
             throw new InternalError("BOOM!")
         """)
 
-        assertFailingBuildOutputContains("help") {
+        assertFailingBuildOutputOf("help") {
             """
             * Where:
             Build file '${kotlinScript.canonicalPath}' line: 1
@@ -167,6 +167,6 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
     }
 
     private
-    fun assertFailingBuildOutputContains(vararg arguments: String, string: () -> String) =
+    fun assertFailingBuildOutputOf(vararg arguments: String, string: () -> String) =
         assertThat(buildAndFail(*arguments).output, containsMultiLineString(string()))
 }
