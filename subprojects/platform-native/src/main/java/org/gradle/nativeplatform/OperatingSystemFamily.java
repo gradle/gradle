@@ -28,34 +28,59 @@ import org.gradle.api.tasks.Input;
  * @since 4.7
  */
 @Incubating
-public interface OperatingSystemFamily extends Named {
-    Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
+public abstract class OperatingSystemFamily implements Named {
+    public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
 
     /**
      * {@inheritDoc}
      */
     @Input
     @Override
-    String getName();
+    public abstract String getName();
 
     /**
      * The Windows operating system family.
      *
      * @since 4.7
      */
-    String WINDOWS = "windows";
+    public static final String WINDOWS = "windows";
+
+    /**
+     * Is this the Windows operating system family?
+     */
+    public boolean isWindows() {
+        return is(WINDOWS);
+    }
 
     /**
      * The Linux operating system family.
      *
      * @since 4.7
      */
-    String LINUX = "linux";
+    public static final String LINUX = "linux";
+
+    /**
+     * Is this the Linux operating system family?
+     */
+    public boolean isLinux() {
+        return is(LINUX);
+    }
 
     /**
      * The macOS operating system family.
      *
      * @since 4.7
      */
-    String MACOS = "macos";
+    public static final String MACOS = "macos";
+
+    /**
+     * Is this the macOS operating system family?
+     */
+    public boolean isMacOs() {
+        return is(MACOS);
+    }
+
+    private boolean is(String osFamily) {
+        return getName().equals(osFamily);
+    }
 }

@@ -48,6 +48,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     @Override
     public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
         DefaultNativePlatform targetMachine = host;
+        OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, targetMachine.getOperatingSystem().toFamilyName());
 
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
@@ -57,7 +58,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         // TODO - don't select again here, as the selection is already performed to select the toolchain
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetMachine);
 
-        if (!toolProvider.isAvailable() && targetMachine.getOperatingSystem().isWindows() && targetMachine.getArchitecture().isAmd64()) {
+        if (!toolProvider.isAvailable() && operatingSystemFamily.isWindows() && targetMachine.getArchitecture().isAmd64()) {
             // Try building x86 on Windows. Don't do this for other operating systems (yet)
             DefaultNativePlatform x86platformRequest = targetMachine.withArchitecture(Architectures.of(Architectures.X86));
             NativeToolChainInternal x86ToolChain = registry.getForPlatform(sourceLanguage, x86platformRequest);
@@ -71,7 +72,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         }
 
         // TODO - use a better name for the platforms, rather than "host"
-        OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, targetMachine.getOperatingSystem().toFamilyName());
+
         final T targetPlatform;
         if (CppPlatform.class.isAssignableFrom(platformType)) {
             targetPlatform = platformType.cast(new DefaultCppPlatform("host", operatingSystemFamily, targetMachine));
