@@ -102,8 +102,8 @@ Documentation tasks
 generateDocs - Generates the HTML documentation for this project.
 ----
 
-[[sec:avoiding_io_during_configuration]]
-=== Avoiding I/O during Gradle configuration
+[[sec:minimize_logic_executed_configuration_phase]]
+=== Minimize logic executed during the configuration phase
 
 It's important for every build script developer to understand the different phases of the <<build_lifecycle,build lifecycle>> and their implications on performance and evaluation order of build logic. During the configuration phase the project and its domain objects should be _configured_, whereas the execution phase only executes the actions of the task(s) requested on the command line plus their dependencies. Be aware that any code that is not part of a task action will be executed with _every single run_ of the build. A link:https://scans.gradle.com/get-started[build scan] can help you with identifying the time spent during each of the lifecycle phases. It's an invaluable tool for diagnosing common performance issues.
 
