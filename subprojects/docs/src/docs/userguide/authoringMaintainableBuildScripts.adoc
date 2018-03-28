@@ -22,9 +22,10 @@ Gradle build scripts combine the qualities of declarative build logic, expressiv
 The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate linting automation.
 ====
 
+[[sec:avoiding_gradle_internal_apis]]
 === Avoiding Gradle internal APIs
 
-Use of Gradle internal APIs in plugins and build scripts causes builds to break when either Gradle or plugins change.
+Use of Gradle internal APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
 
 The following packages are listed in the link:https://github.com/gradle/gradle/blob/180b9d3fa84b91768364c603380e82947437eda1/buildSrc/subprojects/configuration/src/main/kotlin/org/gradle/gradlebuild/public-api.kt[Gradle public API definition], with the exception of any subpackage with `internal` in the name:
 
@@ -70,7 +71,7 @@ To provide a nested DSL for your custom task, don't use `org.gradle.internal.ref
 
 Don't use `org.gradle.api.internal.ConventionMapping`. Use api:org.gradle.api.provider.Provider[] and/or api:org.gradle.api.provider.Property[]. You can find an example for capturing user input to configure runtime behavior in the link:https://guides.gradle.org/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
 
-Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as `System.getProperty("os.name")`.
+Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
 
 Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUtils`, `org.gradle.util.GFileUtils`, and other classes under `org.gradle.util.*`.
 
@@ -101,8 +102,8 @@ Documentation tasks
 generateDocs - Generates the HTML documentation for this project.
 ----
 
-[[sec:avoiding_execution_actions_during_configuration]]
-=== Avoiding execution actions during Gradle configuration
+[[sec:avoiding_io_during_configuration]]
+=== Avoiding I/O during Gradle configuration
 
 It's important for every build script developer to understand the different phases of the <<build_lifecycle,build lifecycle>> and their implications on performance and evaluation order of build logic. During the configuration phase the project and its domain objects should be _configured_, whereas the execution phase only executes the actions of the task(s) requested on the command line plus their dependencies. Be aware that any code that is not part of a task action will be executed with _every single run_ of the build. A link:https://scans.gradle.com/get-started[build scan] can help you with identifying the time spent during each of the lifecycle phases. It's an invaluable tool for diagnosing common performance issues.
 
