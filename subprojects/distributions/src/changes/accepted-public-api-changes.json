@@ -120,6 +120,19 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.configure(org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.lang.Boolean,org.gradle.plugins.ide.idea.model.Path,org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.lang.String,java.lang.String)",
+            "acceptation": "This method is not meant to be part of the public API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.Module",
+            "member": "Method org.gradle.plugins.ide.idea.model.Module.configure(org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.util.Set,java.lang.Boolean,org.gradle.plugins.ide.idea.model.Path,org.gradle.plugins.ide.idea.model.Path,java.util.Set,java.lang.String,java.lang.String)",
+            "acceptation": "This method is not meant to be part of the public API"
+        },
+        {
             "type": "org.gradle.api.JavaVersion",
             "member": "Field VERSION_11",
             "acceptation": "Support JDK 11"
