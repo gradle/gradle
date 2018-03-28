@@ -40,29 +40,18 @@ public class RejectedModuleMessageBuilder {
         }
         StringBuilder sb = new StringBuilder();
         if (hasRejectAll) {
-            sb.append("Module ");
+            sb.append("Module '").append(module.getId()).append("' has been rejected:\n");
         } else {
-            sb.append("Cannot find a version of ");
+            sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints: \n");
         }
-        boolean first = true;
         for (EdgeState incomingEdge : getIncomingEdges(module)) {
             SelectorState selector = incomingEdge.getSelector();
-            if (first) {
-                sb.append("'").append(module.getId()).append("'");
-                if (hasRejectAll) {
-                    sb.append(" has been rejected:\n");
-                } else {
-                    sb.append(" that satisfies the version constraints: \n");
-                }
-            }
-
             for (String path : pathTo(incomingEdge)) {
                 sb.append("   ").append(path);
                 sb.append(" ").append(renderVersionConstraint(selector.getVersionConstraint()));
                 renderReason(sb, selector);
                 sb.append("\n");
             }
-            first = false;
         }
         return sb.toString();
     }
