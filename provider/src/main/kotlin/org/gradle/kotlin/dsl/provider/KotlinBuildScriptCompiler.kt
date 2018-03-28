@@ -490,27 +490,41 @@ inline fun <T> LoadedScriptClass<T>.withLocationAwareExceptionHandling(
     try {
         action()
     } catch (e: Throwable) {
-        throw maybeLocateException(scriptSource.source, maybeUnwrapInvocationTargetException(e))
+        val targetException = maybeUnwrapInvocationTargetException(e)
+        val locationAware = locationAwareExceptionFor(targetException, scriptSource.source)
+        throw locationAware ?: targetException
     }
 
 
 private
-fun LoadedScriptClass<*>.maybeLocateException(scriptSource: ScriptSource, e: Throwable): Throwable {
+fun LoadedScriptClass<*>.locationAwareExceptionFor(
+    original: Throwable,
+    scriptSource: ScriptSource
+): LocationAwareException? {
 
-    val innerClassNamePrefix = "${compiledScript.className}${'$'}"
+    val scriptClassName = compiledScript.className
+    val scriptClassNameInnerPrefix = "$scriptClassName$"
 
-    fun matches(element: StackTraceElement) =
-        element.className?.run { equals(compiledScript.className) || startsWith(innerClassNamePrefix) } == true
+    fun scriptStackTraceElement(element: StackTraceElement) =
+        element.className?.run {
+            equals(scriptClassName) || startsWith(scriptClassNameInnerPrefix)
+        } == true
 
-    tailrec fun inferLocationFrom(exception: Throwable): Throwable {
-        if (exception is LocationAwareException) return exception
-        exception.stackTrace.find { matches(it) }
-            ?.run { return LocationAwareException(e, scriptSource, lineNumber.takeIf { it >= 0 }) }
-        return if (exception.cause == null) e
-        else inferLocationFrom(exception.cause!!)
+    tailrec fun inferLocationFrom(exception: Throwable): LocationAwareException? {
+
+        if (exception is LocationAwareException) {
+            return exception
+        }
+
+        exception.stackTrace.find(::scriptStackTraceElement)?.run {
+            return LocationAwareException(original, scriptSource, lineNumber.takeIf { it >= 0 })
+        }
+
+        val cause = exception.cause ?: return null
+        return inferLocationFrom(cause)
     }
 
-    return inferLocationFrom(e)
+    return inferLocationFrom(original)
 }
 
 
