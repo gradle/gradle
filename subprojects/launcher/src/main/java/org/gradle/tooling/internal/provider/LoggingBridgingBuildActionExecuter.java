@@ -43,9 +43,9 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
-            loggingManager.attachConsole(actionParameters.getStandardOutput(), ConsoleOutput.Rich);
-        } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null){
-            loggingManager.attachConsole(actionParameters.getStandardOutput(), ConsoleOutput.Plain);
+            loggingManager.attachConsole(actionParameters.getStandardOutput(), actionParameters.getStandardError(), ConsoleOutput.Rich);
+        } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null) {
+            loggingManager.attachConsole(actionParameters.getStandardOutput(), actionParameters.getStandardError(), ConsoleOutput.Plain);
         }
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);

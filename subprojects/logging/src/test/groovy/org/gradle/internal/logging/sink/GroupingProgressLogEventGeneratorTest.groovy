@@ -113,9 +113,9 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
@@ -143,9 +143,9 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
@@ -176,7 +176,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
         then:
         0 * downstreamListener._
     }
@@ -208,21 +208,21 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(completeEvent4)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] a message" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :b</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :b</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :c</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :c</Normal>" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :d</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :d</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] d message" })
         then:
@@ -250,9 +250,9 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Child task log message" })
         then:
@@ -271,9 +271,9 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(endBuildEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Warning: some deprecation or something" })
         then:
@@ -300,15 +300,15 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(taskACompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :b</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :b</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then:
@@ -354,9 +354,12 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(updateNowEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
+        0 * downstreamListener._
     }
 
     def "forwards multiple batched groups of events after receiving update now event after flush period"() {
@@ -381,13 +384,18 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(updateNowEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task a" })
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :b</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :b</Normal>" })
         then:
         1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] message for task b" })
+        0 * downstreamListener._
     }
 
     @Unroll
@@ -405,16 +413,17 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(updateNowEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         1 * downstreamListener.onOutput(event1)
+        0 * downstreamListener._
 
         when:
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] " })
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :a</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         0 * downstreamListener._
 
         where:
@@ -432,7 +441,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header Execute :foo</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
         then:
         0 * downstreamListener._
     }

@@ -64,8 +64,4 @@ public class GroupedTaskFixture {
         });
         return join("\n", nonEmptyOutputs);
     }
-
-    public List<String> getOutputs() {
-        return outputs;
-    }
 }
