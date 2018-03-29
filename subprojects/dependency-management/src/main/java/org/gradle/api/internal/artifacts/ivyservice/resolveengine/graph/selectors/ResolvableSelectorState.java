@@ -21,7 +21,17 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 public interface ResolvableSelectorState {
     ResolvedVersionConstraint getVersionConstraint();
 
+    /**
+     * Resolve the selector to a component identifier.
+     */
     ComponentIdResolveResult resolve();
+
+    /**
+     * Mark the selector as resolved.
+     * This is used when another selector resolved to a component identifier that satisfies this selector.
+     * In that case, a call to {@link #resolve()} is not required.
+     */
+    void markResolved();
 
     boolean isForce();
 

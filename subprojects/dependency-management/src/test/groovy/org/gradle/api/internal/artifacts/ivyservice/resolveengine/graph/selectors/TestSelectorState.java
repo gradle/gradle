@@ -67,6 +67,10 @@ public class TestSelectorState implements ResolvableSelectorState {
     }
 
     @Override
+    public void markResolved() {
+    }
+
+    @Override
     public boolean isForce() {
         return false;
     }

@@ -407,7 +407,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        2 * conflictResolver.select(!null) >> { args ->
+        1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version as Set == ['1.2', '1.1'] as Set
@@ -438,7 +438,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        2 * conflictResolver.select(!null) >> { args ->
+        1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
@@ -470,13 +470,13 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        2 * conflictResolver.select(_) >> { args ->
+        1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
             details.select(candidates.find { it.version == '1.2' })
         }
-        2 * conflictResolver.select(_) >> { args ->
+        1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['2.1', '2.2']
