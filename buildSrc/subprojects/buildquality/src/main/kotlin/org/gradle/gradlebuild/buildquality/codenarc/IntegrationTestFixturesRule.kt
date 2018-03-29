@@ -2,6 +2,7 @@ package org.gradle.gradlebuild.buildquality.codenarc
 
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.MethodNode
+import org.codehaus.groovy.ast.expr.Expression
 import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.expr.PropertyExpression
 import org.codehaus.groovy.ast.expr.VariableExpression
@@ -45,17 +46,30 @@ class IntegrationTestFixtureVisitor : AbstractAstVisitor() {
     override fun visitMethodCallExpression(call: MethodCallExpression?) {
         val mce = call!!
         if (AstUtil.isMethodNamed(mce, "contains")) {
-            val receiver = call.receiver!!
-            if (receiver is PropertyExpression) {
-                if (receiver.propertyAsString == "output") {
-                    val objectExpr = receiver.objectExpression
-                    if (objectExpr is VariableExpression
-                        && objectExpr.name == "result") {
-                        val arg = AstUtil.getNodeText(call.arguments, sourceCode)
-                        addViolation(call, "Should use outputContains($arg) or failure.assertHasCause($arg) instead")
-                    }
-                }
+            checkOutputContains(call)
+        } else if (AstUtil.isMethodNamed(mce, "assertOutputContains")) {
+            val objectExpr = mce.objectExpression
+            checkIndirectOutputContains(objectExpr, call)
+        }
+    }
+
+    private
+    fun checkOutputContains(call: MethodCallExpression) {
+        val receiver = call.receiver!!
+        if (receiver is PropertyExpression) {
+            if (receiver.propertyAsString == "output") {
+                val objectExpr = receiver.objectExpression
+                checkIndirectOutputContains(objectExpr, call)
             }
+        }
+    }
+
+    private
+    fun checkIndirectOutputContains(objectExpr: Expression?, call: MethodCallExpression) {
+        if (objectExpr is VariableExpression
+            && objectExpr.name == "result") {
+            val arg = AstUtil.getNodeText(call.arguments, sourceCode)
+            addViolation(call, "Should use outputContains($arg) or failure.assertHasCause($arg) instead")
         }
     }
 }
