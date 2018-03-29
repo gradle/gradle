@@ -62,6 +62,6 @@ class MavenSettingsPublishIntegrationTest extends AbstractIntegrationSpec {
         when:
         run("uploadArchives")
         then:
-        !result.output.contains("Uploading: group/root/1.0/root-1.0.jar to repository ACME at http://acme.maven.org/maven2")
+        outputDoesNotContain("Uploading: group/root/1.0/root-1.0.jar to repository ACME at http://acme.maven.org/maven2")
     }
 }
