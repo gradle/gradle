@@ -71,9 +71,16 @@ The IDEA plugin now automatically marks your Java resource directories (e.g. `sr
 When dealing with task inputs, it may be that not all values are known upfront.
 For example, for code quality plugins like e.g. the [`findbugs`](userguide/findbugs_plugin.html), it is possible to configure the creation of different kinds of reports, e.g. generating an HTML report and a plain text report.
 
-For each report itself it is easy to declare the inputs and outputs, this is just a matter of annotating the concrete class used to configure the report.
-Each report is identified uniquely by its name and its inputs should only be added when it will be generated.
-However, it is not possible to know what reports are enabled before having configured the build, so the set of all inputs and outputs of those is only known when the configuration is finished.
+Each report may have a different output location and the report is only created when enabled.
+For example, the HTML report is generated to `findbugs.html`, while the XML report is generated to `findbugs.xml`.
+
+Before allowing mapped nested input, the task needed to collect the output files from the different enabled configured reports "by hand":
+
+    @OutputFiles
+    Map<String, File> getEnabledFileReportDestinations();
+
+    @Input
+    SortedSet<String> getEnabledReportNames();
 
 With the ability to [declare the map of enabled reports](https://github.com/gradle/gradle/blob/2376cd3824ea683c1af122f8a582ceb6ef51ec3b/subprojects/reporting/src/main/java/org/gradle/api/reporting/internal/DefaultReportContainer.java#L121-L124) as an input, it is now possible to do this:
     
