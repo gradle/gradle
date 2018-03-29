@@ -41,7 +41,7 @@ The plugin adds an extension named “`distributions`” of type api:org.gradle.
 
 You can run “`gradle distZip`” to package the main distribution as a ZIP, or “`gradle distTar`” to create a TAR file. To build both types of archives just run `gradle assembleDist`. The files will be created at “`__$buildDir__/distributions/__$project.name__-__$project.version__.__«ext»__`”.
 
-You can run “`gradle installDist`” to assemble the uncompressed distribution into “`__$buildDir__/install/__main__`”.
+You can run “`gradle installDist`” to assemble the uncompressed distribution into “`__$buildDir__/install/__$project.name__`”.
 
 [[sec:distribution_tasks]]
 === Tasks
