@@ -40,25 +40,19 @@ import javax.inject.Inject
 
 
 @CacheableTask
-open class Classycle : DefaultTask() {
-
-    @get:Internal
-    lateinit var classesDirs: FileCollection
+open class Classycle @Inject constructor(
+    @get:Internal val classesDirs: FileCollection,
+    @get:Input val excludePatterns: ListProperty<String>,
+    @get:Input val reportName: String,
+    @get:Internal val reportDir: File,
+    val antBuilder: IsolatedAntBuilder
+) : DefaultTask() {
 
     @get:InputFiles
     @get:SkipWhenEmpty
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val existingClassesDir: FileCollection
         get() = classesDirs.filter(File::exists)
-
-    @get:Input
-    val excludePatterns: ListProperty<String> = project.objects.listProperty()
-
-    @get:Input
-    lateinit var reportName: String
-
-    @get:Internal
-    lateinit var reportDir: File
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
@@ -71,13 +65,6 @@ open class Classycle : DefaultTask() {
     private
     val analysisFile: File
         get() = File(reportDir, "${reportName}_analysis.xml")
-
-
-    @get:Inject
-    protected
-    open val antBuilder: IsolatedAntBuilder
-        get() = throw UnsupportedOperationException()
-
 
     @TaskAction
     fun generate() = project.run {
