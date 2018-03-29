@@ -37,7 +37,12 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         buildFile << """
             subprojects {
-                task log { doFirst { logger.quiet "Output from " + project.name } }
+                task log { 
+                    doFirst { 
+                        logger.quiet "Output from " + project.name 
+                        logger.quiet "Done with " + project.name 
+                    } 
+                }
             }
         """
 
@@ -46,9 +51,9 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         then:
         result.groupedOutput.taskCount == 3
-        result.groupedOutput.task(':1:log').output == "Output from 1"
-        result.groupedOutput.task(':2:log').output == "Output from 2"
-        result.groupedOutput.task(':3:log').output == "Output from 3"
+        result.groupedOutput.task(':1:log').output == "Output from 1\nDone with 1"
+        result.groupedOutput.task(':2:log').output == "Output from 2\nDone with 2"
+        result.groupedOutput.task(':3:log').output == "Output from 3\nDone with 3"
     }
 
     def "logs at execution time are grouped"() {
@@ -76,8 +81,10 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             task log {
                 logger.quiet 'Logged during configuration'
                 doFirst {
-                    System.out.println("Standard out")
-                    System.err.println("Standard err")
+                    System.out.println("Standard out 1")
+                    System.err.println("Standard err 1")
+                    System.out.println("Standard out 2")
+                    System.err.println("Standard err 2")
                 }
             }
         """
@@ -86,7 +93,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         succeeds('log')
 
         then:
-        result.groupedOutput.task(':log').output == "Standard out\nStandard err"
+        result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
     }
 
     def "grouped output is displayed for failed tasks"() {
