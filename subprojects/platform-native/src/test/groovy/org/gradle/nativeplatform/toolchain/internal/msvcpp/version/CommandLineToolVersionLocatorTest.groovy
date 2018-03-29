@@ -33,14 +33,12 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
     def locator = new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator)
 
     def setup() {
-        _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> { args -> visualCppMetadata(new File(args[0], "VC/Tools/MSVC/1.2.3.4"), "1.2.3.4") }
-
-        _ * visualCppMetadataProvider.getVisualCppFromRegistry(_) >> { args -> visualCppMetadata(localRoot.createDir("Program Files/Microsoft Visual Studio ${args[0]}/VC"), args[0]) }
         _ * vswhereLocator.getVswhereInstall() >> { vswhere }
     }
 
     def "finds all versions of visual studio using vswhere"() {
         given:
+        validInstallations()
         vswhereInProgramFiles()
         vswhereResults(vsWhereManyVersions(localRoot))
 
@@ -70,6 +68,7 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
 
     def "returns empty list when vswhere returns no results"() {
         given:
+        validInstallations()
         vswhereInProgramFiles()
         vswhereResults(VSWHERE_NO_VERSIONS)
 
@@ -121,6 +120,7 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
 
     def "caches versions after first invocation"() {
         given:
+        validInstallations()
         vswhereInProgramFiles()
         vswhereResults(vsWhereManyVersions(localRoot))
 
@@ -136,6 +136,35 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
         then:
         0 * vswhereLocator.getVswhereInstall()
         0 * execAction.execute()
+    }
+
+    def "ignores partial legacy installs when registry values do not exist"() {
+        given:
+        invalidLegacyInstallations()
+        vswhereInProgramFiles()
+        vswhereResults(vsWhereManyVersions(localRoot))
+
+        when:
+        def versionMetadata = locator.getVisualStudioInstalls()
+
+        then:
+        versionMetadata.size() == 1
+        versionMetadata[0].version == VersionNumber.parse("15.3.26730.16")
+    }
+
+    def "ignores partial VS2017 installs when VisualCpp metadata file does not exist"() {
+        given:
+        invalidVS2017Installations()
+        vswhereInProgramFiles()
+        vswhereResults(vsWhereManyVersions(localRoot))
+
+        when:
+        def versionMetadata = locator.getVisualStudioInstalls()
+
+        then:
+        versionMetadata.size() == 2
+        versionMetadata[0].version == VersionNumber.parse("14.0")
+        versionMetadata[1].version == VersionNumber.parse("12.0")
     }
 
     void vswhereResults(String jsonResult) {
@@ -164,6 +193,21 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
                 return VersionNumber.parse(version)
             }
         }
+    }
+
+    void validInstallations() {
+        _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> { args -> visualCppMetadata(new File(args[0], "VC/Tools/MSVC/1.2.3.4"), "1.2.3.4") }
+        _ * visualCppMetadataProvider.getVisualCppFromRegistry(_) >> { args -> visualCppMetadata(localRoot.createDir("Program Files/Microsoft Visual Studio ${args[0]}/VC"), args[0]) }
+    }
+
+    void invalidLegacyInstallations() {
+        _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> { args -> visualCppMetadata(new File(args[0], "VC/Tools/MSVC/1.2.3.4"), "1.2.3.4") }
+        _ * visualCppMetadataProvider.getVisualCppFromRegistry(_) >> null
+    }
+
+    void invalidVS2017Installations() {
+        _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> null
+        _ * visualCppMetadataProvider.getVisualCppFromRegistry(_) >> { args -> visualCppMetadata(localRoot.createDir("Program Files/Microsoft Visual Studio ${args[0]}/VC"), args[0]) }
     }
 
     private String vsWhereManyVersions(File localRoot) {
