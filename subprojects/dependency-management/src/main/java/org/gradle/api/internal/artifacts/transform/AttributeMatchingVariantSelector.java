@@ -87,7 +87,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet delegate = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             ArtifactTransformer transformer = result.getRight().transformer;
-            return new ConsumerProvidedResolvedVariant(delegate, attributes, transformer, taskRegistry.get(delegate, attributes, transformer));
+            return new ConsumerProvidedResolvedVariant(delegate, attributes, transformer, taskRegistry.get(delegate, transformer));
         }
 
         if (!candidates.isEmpty()) {

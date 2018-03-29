@@ -78,6 +78,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -247,8 +248,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor, rules);
         }
 
-        ArtifactTransformTaskRegistry createArtifactTransformTaskRegistry() {
-            return new ArtifactTransformTaskRegistry();
+        ArtifactTransformTaskRegistry createArtifactTransformTaskRegistry(ITaskFactory taskFactory) {
+            return new ArtifactTransformTaskRegistry(taskFactory);
         }
 
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,

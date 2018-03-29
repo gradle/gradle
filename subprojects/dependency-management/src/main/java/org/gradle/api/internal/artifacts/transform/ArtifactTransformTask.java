@@ -52,20 +52,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
-public class ArtifactTransformTask extends DefaultTask {
+public class ArtifactTransformTask extends DefaultTask implements ArtifactTransformResult {
 
     private final ArtifactTransformer transform;
     private final ResolvedArtifactSet delegate;
-    private final AttributeContainerInternal attributes;
     private ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
     private ConcurrentHashMap<File, TransformationResult> fileResults;
     private final ArtifactTransformTask requiredTransform;
+    private ResolvedArtifactSet.Completion resolvedArtifacts;
 
     @Inject
-    public ArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, AttributeContainerInternal attributes, Optional<ArtifactTransformTask> requiredTransform) {
+    public ArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, Optional<ArtifactTransformTask> requiredTransform) {
         this.transform = transform;
         this.delegate = delegate;
-        this.attributes = attributes;
         this.requiredTransform = requiredTransform.orNull();
         if (requiredTransform.isPresent()) {
             dependsOn(requiredTransform.get());
@@ -89,32 +88,41 @@ public class ArtifactTransformTask extends DefaultTask {
         }
     }
 
-    private ResolvedArtifactSet.Completion result;
-
     @Internal
-    public ResolvedArtifactSet.Completion getResult() {
-        return result;
+    @Override
+    public ResolvedArtifactSet.Completion getResult(AttributeContainerInternal attributes) {
+        return new TransformingResult(getResolvedArtifacts(), artifactResults, fileResults, attributes);
     }
 
     @Internal
     public ResolvedArtifactSet.Completion getResolvedArtifacts() {
+        if (resolvedArtifacts == null) {
+            if (doGetResolvedArtifacts()) {
+                return requiredTransform.getResolvedArtifacts();
+            }
+        }
+        return resolvedArtifacts;
+    }
+
+    private boolean doGetResolvedArtifacts() {
         if (requiredTransform != null) {
-            return requiredTransform.getResolvedArtifacts();
+            return true;
         }
         ResolveArtifacts resolveArtifacts = new ResolveArtifacts(delegate);
         getBuildOperationExecuter().runAll(resolveArtifacts);
 
-        return resolveArtifacts.getResult();
+        resolvedArtifacts = resolveArtifacts.getResult();
+        return false;
     }
 
-    public TransformationResult getIncomingTransformationResult(ResolvableArtifact artifact) {
+    private TransformationResult getIncomingTransformationResult(ResolvableArtifact artifact) {
         if (requiredTransform != null) {
             return requiredTransform.artifactResults.get(artifact);
         }
         return new TransformationResult(ImmutableList.of(artifact.getFile()));
     }
 
-    public TransformationResult getIncomingTransformationResult(File file) {
+    private TransformationResult getIncomingTransformationResult(File file) {
         if (requiredTransform != null) {
             return requiredTransform.fileResults.get(file);
         }
@@ -177,7 +185,6 @@ public class ArtifactTransformTask extends DefaultTask {
 
             }
         });
-        result = new TransformingResult(resolvedArtifacts, artifactResults, fileResults, attributes);
     }
 
     private static class ResolveArtifacts implements Action<BuildOperationQueue<RunnableBuildOperation>> {

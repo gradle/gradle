@@ -62,6 +62,10 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         }
     }
 
+    public List<ResolvedArtifactSet> getSets() {
+        return sets;
+    }
+
     private static class CompositeResult implements Completion {
         private final List<Completion> results;
 

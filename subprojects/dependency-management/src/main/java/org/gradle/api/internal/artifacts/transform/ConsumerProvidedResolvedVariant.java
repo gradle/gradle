@@ -33,24 +33,24 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
-    private final ArtifactTransformTask transformTask;
+    private final ArtifactTransformResult transformResult;
 
-    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, @Nullable ArtifactTransformTask transformTask) {
+    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, @Nullable ArtifactTransformResult transformResult) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;
-        this.transformTask = transformTask;
+        this.transformResult = transformResult;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        if (transformTask == null) {
+        if (transformResult == null) {
             Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
             Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
             Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
             return new TransformingResult(result, artifactResults, fileResults, attributes);
         } else {
-            return transformTask.getResult();
+            return transformResult.getResult(attributes);
         }
     }
 

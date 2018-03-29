@@ -16,38 +16,63 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformTask;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.util.NameValidator;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
 public class ArtifactTransformTaskRegistry {
 
-    private final Map<ArtifactTransformTaskKey, ArtifactTransformTask> tasks = new HashMap<ArtifactTransformTaskKey, ArtifactTransformTask>();
+    private final ConcurrentHashMap<ArtifactTransformTaskKey, ArtifactTransformResult> results = new ConcurrentHashMap<ArtifactTransformTaskKey, ArtifactTransformResult>();
+    private final ITaskFactory taskFactory;
 
-    public void register(ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformer transform, ArtifactTransformTask task) {
-        tasks.put(new ArtifactTransformTaskKey(delegate, attributes, transform), task);
+    public ArtifactTransformTaskRegistry(ITaskFactory taskFactory) {
+        this.taskFactory = taskFactory;
+    }
+
+    public void register(ResolvedArtifactSet delegate, ArtifactTransformer transform, ArtifactTransformResult result) {
+        results.put(new ArtifactTransformTaskKey(delegate, transform), result);
     }
 
     @Nullable
-    public ArtifactTransformTask get(ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformer transform) {
-        return tasks.get(new ArtifactTransformTaskKey(delegate, attributes, transform));
+    public ArtifactTransformResult get(ResolvedArtifactSet delegate, ArtifactTransformer transform) {
+        return results.get(new ArtifactTransformTaskKey(delegate, transform));
+    }
+
+    public ArtifactTransformTask getOrCreate(ResolvedArtifactSet delegate, ArtifactTransformer transform, @Nullable ArtifactTransformTask innerTask) {
+        ArtifactTransformTaskKey key = new ArtifactTransformTaskKey(delegate, transform);
+        if (!results.containsKey(key)) {
+            results.putIfAbsent(key, createArtifactTransformTask(transform, delegate, innerTask));
+        }
+        return (ArtifactTransformTask) results.get(key);
+    }
+
+    private ArtifactTransformTask createArtifactTransformTask(ArtifactTransformer transform, ResolvedArtifactSet delegate, @Nullable ArtifactTransformTask innerTransformTask) {
+        return taskFactory.create(
+            NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName(), System.nanoTime())),
+            ArtifactTransformTask.class,
+            transform,
+            delegate,
+            Optional.fromNullable(innerTransformTask)
+        );
     }
 
     private static class ArtifactTransformTaskKey {
         private final ResolvedArtifactSet delegate;
-        private final AttributeContainerInternal attributes;
         private final ArtifactTransformer transform;
 
-        public ArtifactTransformTaskKey(ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformer transform) {
+        public ArtifactTransformTaskKey(ResolvedArtifactSet delegate, ArtifactTransformer transform) {
             this.delegate = delegate;
-            this.attributes = attributes;
             this.transform = transform;
         }
 
@@ -65,16 +90,12 @@ public class ArtifactTransformTaskRegistry {
             if (!delegate.equals(that.delegate)) {
                 return false;
             }
-            if (!attributes.equals(that.attributes)) {
-                return false;
-            }
             return transform.equals(that.transform);
         }
 
         @Override
         public int hashCode() {
             int result = delegate.hashCode();
-            result = 31 * result + attributes.hashCode();
             result = 31 * result + transform.hashCode();
             return result;
         }
