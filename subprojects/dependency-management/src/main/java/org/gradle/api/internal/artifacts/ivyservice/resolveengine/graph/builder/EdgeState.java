@@ -172,17 +172,25 @@ class EdgeState implements DependencyGraphEdge {
         if (targetNodeSelectionFailure != null) {
             return targetNodeSelectionFailure;
         }
-        return selector.getFailure();
+        ModuleVersionResolveException selectorFailure = selector.getFailure();
+        if (selectorFailure != null) {
+            return selectorFailure;
+        }
+        return getSelectedComponent().getMetadataResolveFailure();
     }
 
     @Override
     public Long getSelected() {
-        return selector.getSelected().getResultId();
+        return getSelectedComponent().getResultId();
     }
 
     @Override
     public ComponentSelectionReason getReason() {
         return selector.getSelectionReason();
+    }
+
+    private ComponentState getSelectedComponent() {
+        return selector.getTargetModule().getSelected();
     }
 
     @Override

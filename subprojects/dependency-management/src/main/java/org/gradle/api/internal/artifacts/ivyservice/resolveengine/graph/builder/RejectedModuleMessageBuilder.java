@@ -89,7 +89,7 @@ public class RejectedModuleMessageBuilder {
     }
 
     private static void renderReason(StringBuilder sb, SelectorState selector) {
-        ComponentSelectionReasonInternal selectionReason = selector.getReasonForSelector();
+        ComponentSelectionReasonInternal selectionReason = selector.getSelectionReason();
         if (selectionReason.hasCustomDescriptions()) {
             sb.append(" because of the following reason");
             List<String> reasons = Lists.newArrayListWithExpectedSize(1);

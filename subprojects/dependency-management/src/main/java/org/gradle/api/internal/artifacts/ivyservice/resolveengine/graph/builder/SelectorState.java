@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -55,7 +54,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
-    private ComponentSelectionReasonInternal failureSelectionReason;
     private ModuleResolveState targetModule;
     ComponentState selected;
 
@@ -99,14 +97,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
      */
     ModuleVersionResolveException getFailure() {
-        return failure != null ? failure : selected.getMetadataResolveFailure();
-    }
-
-    /**
-     * The component that was actually chosen for this component selector.
-     */
-    public ComponentState getSelected() {
-        return targetModule.getSelected();
+        return failure;
     }
 
     /**
@@ -126,7 +117,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
-            failureSelectionReason = getReasonForSelector();
         }
 
         this.idResolveResult = idResolveResult;
@@ -134,9 +124,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     public void select(ComponentState selected) {
-        selected.selectedBy(this);
-        addReasonsForSelector(selected.getSelectionReason());
-
         // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
         // TODO Ditch the JVM Software Model plugins and re-add this assertion
 //        assert selected.getModule() == targetModule;
@@ -159,22 +146,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         // - If the target module changed, we are not updating the set of selectors on the target modules (both current and new)
     }
 
-    public ComponentSelectionReason getSelectionReason() {
-        if (selected != null) {
-            // For successful selection, the selected component provides the reason.
-            return selected.getSelectionReason();
-        }
-        // Create a reason in case of selection failure.
-        assert failure != null;
-        assert failureSelectionReason != null;
-        return failureSelectionReason;
-    }
-
-    public ComponentSelectionReasonInternal getReasonForSelector() {
+    public ComponentSelectionReasonInternal getSelectionReason() {
+        // Create a component selection reason specific to this selector.
         return addReasonsForSelector(VersionSelectionReasons.empty());
     }
 
-    private ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
+    ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
         ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
         if (dependencyMetadata.getReason() != null) {
             dependencyDescriptor = dependencyDescriptor.withReason(dependencyMetadata.getReason());
