@@ -20,9 +20,12 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.BufferedOutputStream
@@ -50,9 +53,20 @@ open class ShadedJar @Inject constructor(
     @get:InputFiles val classTreesConfiguration: FileCollection,
     @get:InputFiles val entryPointsConfiguration: FileCollection,
     @get:InputFiles val manifests: FileCollection,
-    @get:InputFile val buildReceiptFile: RegularFileProperty,
-    @get:OutputFile val jarFile: RegularFileProperty
+    @get:Internal val buildReceipt: Provider<RegularFile>,
+    @get:Internal val jar: Provider<RegularFile>
 ) : DefaultTask() {
+
+    @InputFile
+    val buildReceiptFile: RegularFileProperty = project.layout.fileProperty()
+
+    @OutputFile
+    val jarFile = newOutputFile()
+
+    init {
+        buildReceiptFile.set(buildReceipt)
+        jarFile.set(jar)
+    }
 
     @TaskAction
     fun shade() {
